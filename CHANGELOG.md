@@ -1,5 +1,59 @@
 # Changelog
 
+## [v1.12.3](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.12.3) (2023-11-03)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.12.2...v1.12.3)
+
+**Enhancements**
+
+- Adds `acceptDataRisksAndForceReplicaSetReconfig` parameter in `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` resources [\#1575](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1575) ([lantoli](https://github.com/lantoli))
+
+**Bug Fixes**
+
+- Overrides to attribute behavior for resource elems. in `mongodbatlas_cluster` resource [\#1572](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1572) ([marcosuma](https://github.com/marcosuma))
+- Fixes `computed` and `default` usage in `mongodbatlas_cluster` resource based on the documentation [\#1564](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1564) ([marcosuma](https://github.com/marcosuma))
+- Fixes global `num_shards` adding it as computed and removing the default in `mongodbatlas_cluster` resource [\#1548](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1548) ([marcosuma](https://github.com/marcosuma))
+
+**Deprecations and Removals**
+
+- Deprecates `page_num` and `items_per_page` in data source `mongodbatlas_search_indexes` [\#1538](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1538) ([lantoli](https://github.com/lantoli))
+
+**Closed Issues**
+
+- `replication_specs` do not support deep diff [\#1544](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1544)
+- There is no `team_id` argument/attribute reference in `mongodbatlas_project_invitation` resource block. [\#1535](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1535)
+- Provides a `mongodbatlas_privatelink_endpoint` by region when using data source `mongodbatlas_privatelink_endpoint`  [\#1525](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1525)
+- Error message: Either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set [\#1483](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1483)
+- Unable to update Slack `alert_configurations` via Oauth integration  [\#1074](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1074)
+
+**Internal Improvements**
+
+- Updates to Go 1.21.3 [\#1550](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1550) ([lantoli](https://github.com/lantoli))
+- Disables `assume_role` acceptance test workflow [\#1583](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1583) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Fixes import documentation for `project_api_key` resource [\#1582](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1582) ([lantoli](https://github.com/lantoli))
+- Fixes attributes `paused`, `version_release_system` and `tags` in advanced cluster resource [\#1581](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1581) ([lantoli](https://github.com/lantoli))
+- Updates run condition in migration tests github action [\#1580](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1580) ([maastha](https://github.com/maastha))
+- Does not delete project for trigger acctest. [\#1573](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1573) ([marcosuma](https://github.com/marcosuma))
+- Updates migration tests to run separately and use last released version of provider for plan checks [\#1565](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1565) ([maastha](https://github.com/maastha))
+- Fixes aws region and aws account to be used for trigger acceptance test [\#1558](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1558) ([marcosuma](https://github.com/marcosuma))
+- Adds sdk autoupdates [\#1557](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1557) ([wtrocki](https://github.com/wtrocki))
+- Fixes linter cache [\#1555](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1555) ([lantoli](https://github.com/lantoli))
+- Sets format for AWS region value in the provider definition [\#1549](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1549) ([marcosuma](https://github.com/marcosuma))
+- Adds file .tool-versions for asdf [\#1546](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1546) ([lantoli](https://github.com/lantoli))
+- Fixes the realm URL when it is set. [\#1545](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1545) ([marcosuma](https://github.com/marcosuma))
+- Changes interface{} to any [\#1543](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1543) ([lantoli](https://github.com/lantoli))
+- Fixes small doc bug in CHANGELOG [\#1539](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1539) ([Zuhairahmed](https://github.com/Zuhairahmed))
+- Fixes setting of authentication realm url. [\#1537](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1537) ([marcosuma](https://github.com/marcosuma))
+- Migrates search index resource and data sources to new SDK [\#1536](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1536) ([lantoli](https://github.com/lantoli))
+- Bumps tj-actions/verify-changed-files from 78dc414e915e0664bcf0d2b42465a86cd47bcc3c to 6d688963a73d28584e163b6f62cf927a282c4d11 [\#1562](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1562) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bumps github.com/hashicorp/terraform-plugin-framework from 1.4.1 to 1.4.2 [\#1561](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1561) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bumps google.golang.org/grpc from 1.57.0 to 1.57.1 [\#1570](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1570) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bumps go.mongodb.org/atlas-sdk/v20231001001 from 20231001001.0.0 to 20231001001.1.0 [\#1533](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1533) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bumps github.com/aws/aws-sdk-go from 1.46.0 to 1.46.3 [\#1560](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1560) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bumps github.com/gruntwork-io/terratest from 0.46.0 to 0.46.1 [\#1559](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1559) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bumps github.com/hashicorp/hcl/v2 from 2.19.0 to 2.19.1 [\#1542](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1542) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bumps github.com/aws/aws-sdk-go from 1.45.27 to 1.46.0 [\#1541](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1541) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v1.12.2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.12.2) (2023-10-19)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.12.1...v1.12.2)
@@ -68,9 +122,9 @@
 - Bump github.com/aws/aws-sdk-go from 1.45.8 to 1.45.21 [\#1505](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1505) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Bump github.com/gruntwork-io/terratest from 0.44.0 to 0.45.0 [\#1504](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1504) ([dependabot[bot]](https://github.com/apps/dependabot))
 
-## [v1.12.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.12.1-pre1) (2023-09-22)
+## [v1.12.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.12.1) (2023-09-22)
 
-[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.12.0...v1.12.1-pre1)
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.12.0...v1.12.1)
 
 **Internal Improvements**
 

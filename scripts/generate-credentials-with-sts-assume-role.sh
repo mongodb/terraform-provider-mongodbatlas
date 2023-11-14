@@ -25,6 +25,10 @@ AWS_ACCESS_KEY_ID=$(echo "$CREDENTIALS" | awk '{print $1}')
 AWS_SECRET_ACCESS_KEY=$(echo "$CREDENTIALS" | awk '{print $2}')
 AWS_SESSION_TOKEN=$(echo "$CREDENTIALS" | awk '{print $3}')
 
+echo "::add-mask::${AWS_ACCESS_KEY_ID}"
+echo "::add-mask::${AWS_SECRET_ACCESS_KEY}"
+echo "::add-mask::${AWS_SESSION_TOKEN}"
+
 {
   echo "aws_access_key_id=${AWS_ACCESS_KEY_ID}"
   echo "aws_secret_access_key=$AWS_SECRET_ACCESS_KEY"

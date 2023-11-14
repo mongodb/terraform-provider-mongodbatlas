@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20231001001/admin"
+	"go.mongodb.org/atlas-sdk/v20231001002/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -33,7 +33,7 @@ func DebugPlan() plancheck.PlanCheck {
 	return debugPlan{}
 }
 
-func TestAccMigrationRSProject_NoProps(t *testing.T) {
+func TestAccMigrationProjectRS_NoProps(t *testing.T) {
 	var (
 		resourceName          = "mongodbatlas_project.test"
 		projectName           = acctest.RandomWithPrefix("test-acc-migration")
@@ -76,7 +76,7 @@ func TestAccMigrationRSProject_NoProps(t *testing.T) {
 	})
 }
 
-func TestAccMigrationRSProject_Teams(t *testing.T) {
+func TestAccMigrationProjectRS_Teams(t *testing.T) {
 	var teamsIds = strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
 	if len(teamsIds) < 2 {
 		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
@@ -136,7 +136,7 @@ func TestAccMigrationRSProject_Teams(t *testing.T) {
 	})
 }
 
-func TestAccMigrationRSProject_WithFalseDefaultSettings(t *testing.T) {
+func TestAccMigrationProjectRS_WithFalseDefaultSettings(t *testing.T) {
 	var (
 		project               matlas.Project
 		resourceName          = "mongodbatlas_project.test"
@@ -180,7 +180,7 @@ func TestAccMigrationRSProject_WithFalseDefaultSettings(t *testing.T) {
 	})
 }
 
-func TestAccMigrationRSProject_WithLimits(t *testing.T) {
+func TestAccMigrationProjectRS_WithLimits(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project.test"
 		projectName  = acctest.RandomWithPrefix("tf-acc-project")

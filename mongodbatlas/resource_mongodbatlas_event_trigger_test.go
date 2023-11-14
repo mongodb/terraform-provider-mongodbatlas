@@ -15,7 +15,7 @@ import (
 	"go.mongodb.org/realm/realm"
 )
 
-func TestAccConfigRSEventTriggerDatabase_basic(t *testing.T) {
+func TestEventTriggerDatabase_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -77,7 +77,7 @@ func TestAccConfigRSEventTriggerDatabase_basic(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSEventTriggerDatabase_eventProccesor(t *testing.T) {
+func TestEventTriggerDatabase_eventProccesor(t *testing.T) {
 	var (
 		resourceName            = "mongodbatlas_event_trigger.test"
 		projectID               = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -142,7 +142,7 @@ func TestAccConfigRSEventTriggerDatabase_eventProccesor(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSEventTriggerAuth_basic(t *testing.T) {
+func TestEventTriggerAuth_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -200,7 +200,7 @@ func TestAccConfigRSEventTriggerAuth_basic(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSEventTriggerAuth_eventProcessor(t *testing.T) {
+func TestEventTriggerAuth_eventProcessor(t *testing.T) {
 	var (
 		resourceName            = "mongodbatlas_event_trigger.test"
 		projectID               = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -260,7 +260,7 @@ func TestAccConfigRSEventTriggerAuth_eventProcessor(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSEventTriggerSchedule_basic(t *testing.T) {
+func TestEventTriggerSchedule_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -315,7 +315,7 @@ func TestAccConfigRSEventTriggerSchedule_basic(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSEventTriggerSchedule_eventProcessor(t *testing.T) {
+func TestEventTriggerSchedule_eventProcessor(t *testing.T) {
 	var (
 		resourceName            = "mongodbatlas_event_trigger.test"
 		projectID               = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -372,7 +372,7 @@ func TestAccConfigRSEventTriggerSchedule_eventProcessor(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSEventTriggerFunction_basic(t *testing.T) {
+func TestEventTriggerFunction_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

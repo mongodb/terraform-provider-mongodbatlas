@@ -11,7 +11,8 @@ import (
 	"go.mongodb.org/realm/realm"
 )
 
-func TestAccConfigDSEventTriggers_basic(t *testing.T) {
+func TestEventTriggers_basic(t *testing.T) {
+	SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

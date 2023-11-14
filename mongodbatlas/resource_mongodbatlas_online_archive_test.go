@@ -8,10 +8,11 @@ import (
 	"testing"
 	"time"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccBackupRSOnlineArchive(t *testing.T) {
@@ -166,7 +167,7 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 
 func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := testMongoDBClient.(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
