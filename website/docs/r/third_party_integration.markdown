@@ -12,8 +12,6 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
--> **Note:** Field types NEW_RELIC, FLOWDOCK have now been fully deprecated as part of v1.10.0 release
-
 -> **NOTE:** Slack integrations now use the OAuth2 verification method and must be initially configured, or updated from a legacy integration, through the Atlas third-party service integrations page. Legacy tokens will soon no longer be supported.[Read more about slack setup](https://docs.atlas.mongodb.com/tutorial/third-party-service-integrations/)
 
 ~> **IMPORTANT** Each project can only have one configuration per {INTEGRATION-TYPE}.
@@ -25,12 +23,11 @@ description: |-
 
 ```terraform
 
-resource "mongodbatlas_third_party_integration" "test_flowdock" {
+resource "mongodbatlas_third_party_integration" "test_datadog" {
 	project_id = "<PROJECT-ID>"
-	type = "FLOWDOCK"
-	flow_name = "<FLOW-NAME>"
-	api_token = "<API-TOKEN>"
-	org_name =  "<ORG-NAME>"
+  type = "DATADOG"
+	api_key = "<API-KEY>"
+	region = "<REGION>"
 }
 
 ```
@@ -46,12 +43,7 @@ resource "mongodbatlas_third_party_integration" "test_flowdock" {
      * WEBHOOK
      * MICROSOFT_TEAMS
      * PROMETHEUS
-     * NEW_RELIC*
-     * FLOWDOCK*
        
-     *resource has now been fully deprecated as part of v1.10.0 release
-
-Additional values based on Type
 
 * `PAGER_DUTY`
   * `service_key` - Your Service Key.
@@ -59,22 +51,12 @@ Additional values based on Type
 * `DATADOG`
   * `api_key` - Your API Key.
   * `region` (Required) - Indicates which API URL to use, either "US", "EU", "US3", or "US5". Datadog will use "US" by default.    
-
-* `NEW_RELIC`
-  * `license_key` - Your License Key.
-  * `account_id`  - Unique identifier of your New Relic account.
-  * `write_token` - Your Insights Insert Key.
-  * `read_token`  - Your Insights Query Key.
 * `OPS_GENIE`
   * `api_key` - Your API Key.
   * `region` (Required) -  Indicates which API URL to use, either "US" or "EU". OpsGenie will use "US" by default.
 * `VICTOR_OPS`
   * `api_key` - 	Your API Key.
   * `routing_key` - An optional field for your Routing Key.
-* `FLOWDOCK`
-  * `flow_name` - Your Flowdock Flow name.
-  * `api_token` - Your API Token.
-  * `org_name` - Your Flowdock organization name.
 * `WEBHOOK`
   * `url` - Your webhook URL.
   * `secret` - An optional field for your webhook secret.

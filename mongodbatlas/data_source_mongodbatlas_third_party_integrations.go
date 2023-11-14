@@ -94,7 +94,6 @@ func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyI
 		"api_key":                     integrationSchema.APIKey,
 		"region":                      integration.Region,
 		"service_key":                 integrationSchema.ServiceKey,
-		"api_token":                   integrationSchema.APIToken,
 		"team_name":                   integration.TeamName,
 		"channel_name":                integration.ChannelName,
 		"routing_key":                 integrationSchema.RoutingKey,
@@ -109,7 +108,7 @@ func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyI
 	}
 
 	// removing optional empty values, terraform complains about unexpected values even though they're empty
-	optionals := []string{"api_key", "region", "service_key", "api_token",
+	optionals := []string{"api_key", "region", "service_key",
 		"team_name", "channel_name", "url", "secret", "password"}
 
 	for _, attr := range optionals {
@@ -131,22 +130,6 @@ func schemaToIntegration(in *schema.ResourceData) (out *matlas.ThirdPartyIntegra
 		out.Type = _type.(string)
 	}
 
-	if licenseKey, ok := in.GetOk("license_key"); ok {
-		out.LicenseKey = licenseKey.(string)
-	}
-
-	if accountID, ok := in.GetOk("account_id"); ok {
-		out.AccountID = accountID.(string)
-	}
-
-	if writeToken, ok := in.GetOk("write_token"); ok {
-		out.WriteToken = writeToken.(string)
-	}
-
-	if readToken, ok := in.GetOk("read_token"); ok {
-		out.ReadToken = readToken.(string)
-	}
-
 	if apiKey, ok := in.GetOk("api_key"); ok {
 		out.APIKey = apiKey.(string)
 	}
@@ -159,10 +142,6 @@ func schemaToIntegration(in *schema.ResourceData) (out *matlas.ThirdPartyIntegra
 		out.ServiceKey = serviceKey.(string)
 	}
 
-	if apiToken, ok := in.GetOk("api_token"); ok {
-		out.APIToken = apiToken.(string)
-	}
-
 	if teamName, ok := in.GetOk("team_name"); ok {
 		out.TeamName = teamName.(string)
 	}
@@ -173,14 +152,6 @@ func schemaToIntegration(in *schema.ResourceData) (out *matlas.ThirdPartyIntegra
 
 	if routingKey, ok := in.GetOk("routing_key"); ok {
 		out.RoutingKey = routingKey.(string)
-	}
-
-	if flowName, ok := in.GetOk("flow_name"); ok {
-		out.FlowName = flowName.(string)
-	}
-
-	if orgName, ok := in.GetOk("org_name"); ok {
-		out.OrgName = orgName.(string)
 	}
 
 	if url, ok := in.GetOk("url"); ok {
@@ -219,22 +190,6 @@ func schemaToIntegration(in *schema.ResourceData) (out *matlas.ThirdPartyIntegra
 }
 
 func updateIntegrationFromSchema(d *schema.ResourceData, integration *matlas.ThirdPartyIntegration) {
-	if d.HasChange("license_key") {
-		integration.LicenseKey = d.Get("license_key").(string)
-	}
-
-	if d.HasChange("account_id") {
-		integration.AccountID = d.Get("account_id").(string)
-	}
-
-	if d.HasChange("write_token") {
-		integration.WriteToken = d.Get("write_token").(string)
-	}
-
-	if d.HasChange("read_token") {
-		integration.ReadToken = d.Get("read_token").(string)
-	}
-
 	integration.APIKey = d.Get("api_key").(string)
 
 	if d.HasChange("region") {
@@ -243,10 +198,6 @@ func updateIntegrationFromSchema(d *schema.ResourceData, integration *matlas.Thi
 
 	if d.HasChange("service_key") {
 		integration.ServiceKey = d.Get("service_key").(string)
-	}
-
-	if d.HasChange("api_token") {
-		integration.APIToken = d.Get("api_token").(string)
 	}
 
 	if d.HasChange("team_name") {
@@ -259,14 +210,6 @@ func updateIntegrationFromSchema(d *schema.ResourceData, integration *matlas.Thi
 
 	if d.HasChange("routing_key") {
 		integration.RoutingKey = d.Get("routing_key").(string)
-	}
-
-	if d.HasChange("flow_name") {
-		integration.FlowName = d.Get("flow_name").(string)
-	}
-
-	if d.HasChange("org_name") {
-		integration.OrgName = d.Get("org_name").(string)
 	}
 
 	if d.HasChange("url") {
