@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
@@ -170,9 +169,9 @@ func (r *ClusterRS) Schema(ctx context.Context, request resource.SchemaRequest, 
 			"num_shards": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
-				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.UseStateForUnknown(),
-				},
+				// PlanModifiers: []planmodifier.Int64{
+				// 	int64planmodifier.UseStateForUnknown(),
+				// },
 			},
 			"cloud_backup": schema.BoolAttribute{
 				Optional: true,
@@ -199,14 +198,14 @@ func (r *ClusterRS) Schema(ctx context.Context, request resource.SchemaRequest, 
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseNullForUnknownString(),
 				},
 			},
 			"provider_disk_iops": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.UseStateForUnknown(),
+					planmodifiers.UseNullForUnknownInt64(),
 				},
 			},
 			"provider_disk_type_name": schema.StringAttribute{
@@ -221,13 +220,13 @@ func (r *ClusterRS) Schema(ctx context.Context, request resource.SchemaRequest, 
 				Computed:           true,
 				DeprecationMessage: "All EBS volumes are encrypted by default, the option to disable encryption has been removed",
 				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseNullForUnknownBool(),
 				},
 			},
 			"provider_encrypt_ebs_volume_flag": schema.BoolAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseNullForUnknownBool(),
 				},
 			},
 
@@ -264,7 +263,8 @@ func (r *ClusterRS) Schema(ctx context.Context, request resource.SchemaRequest, 
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.UseStateForUnknown(),
+					// int64planmodifier.UseStateForUnknown(),
+					planmodifiers.UseNullForUnknownInt64(),
 				},
 			},
 			"mongo_db_version": schema.StringAttribute{
@@ -320,7 +320,8 @@ func (r *ClusterRS) Schema(ctx context.Context, request resource.SchemaRequest, 
 			"container_id": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					// stringplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseNullForUnknownString(),
 				},
 			},
 			"version_release_system": schema.StringAttribute{
@@ -1538,6 +1539,7 @@ func setTFProviderSettings(clusterModel *tfClusterRSModel, settings *matlas.Prov
 	}
 	if settings.EncryptEBSVolume != nil {
 		clusterModel.ProviderEncryptEbsVolumeFlag = types.BoolPointerValue(settings.EncryptEBSVolume)
+		clusterModel.ProviderEncryptEbsVolume = types.BoolPointerValue(settings.EncryptEBSVolume)
 	}
 	clusterModel.ProviderDiskTypeName = types.StringValue(settings.DiskTypeName)
 	clusterModel.ProviderInstanceSizeName = types.StringValue(settings.InstanceSizeName)
