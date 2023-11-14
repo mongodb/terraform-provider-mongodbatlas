@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -79,11 +80,12 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 
 func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 	var (
-		cluster      matlas.AdvancedCluster
-		resourceName = "mongodbatlas_advanced_cluster.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		rName        = acctest.RandomWithPrefix("test-acc")
+		cluster        matlas.AdvancedCluster
+		resourceName   = "mongodbatlas_advanced_cluster.test"
+		dataSourceName = fmt.Sprintf("data.%s", resourceName)
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acctest.RandomWithPrefix("test-acc")
+		rName          = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -101,6 +103,8 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+					resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", testutils.IntGreatThan(0)),
+					resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", testutils.IntGreatThan(0)),
 				),
 			},
 			{
