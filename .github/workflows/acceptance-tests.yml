@@ -5,10 +5,6 @@ on:
   schedule:
     - cron: "0 4 * * *" # workflow runs every day at 04:00 AM
   workflow_call: # workflow runs after code-health
-    inputs:
-      parent-event-name:
-        required: true
-        type: string
   pull_request: # you can run a specic job in your PR using GitHub labels
     types: [ labeled ]
 
