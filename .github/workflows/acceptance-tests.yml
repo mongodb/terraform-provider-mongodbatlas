@@ -12,6 +12,9 @@ on:
   pull_request: # you can run a specic job in your PR using GitHub labels
     types: [ labeled ]
 
+env:
+  CI: true
+
 jobs:  
   change-detection:
     runs-on: ubuntu-latest
@@ -260,7 +263,6 @@ jobs:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TF_LOG: ${{ vars.LOG_LEVEL }}
-          CI: true
           TF_ACC: 1
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccBackupRSCloudBackupSnapshot"
@@ -289,7 +291,6 @@ jobs:
           TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           PARALLEL_GO_TEST: 20
-          CI: true
           TEST_REGEX: "^TestAccBackupRSCloudBackupSchedule"
         run: make testacc
   project: 
@@ -317,7 +318,6 @@ jobs:
           TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           PARALLEL_GO_TEST: 20
-          CI: true
           TEST_REGEX: "^TestAccProject"
         run: make testacc
   serverless:
@@ -342,7 +342,6 @@ jobs:
           TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           PARALLEL_GO_TEST: 20
-          CI: true
           TEST_REGEX: "^TestAccServerless"
         run: make testacc
   network:
@@ -371,7 +370,6 @@ jobs:
           TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           PARALLEL_GO_TEST: 20
-          CI: true
           TEST_REGEX: "^TestAccNetwork"
         run: make testacc
 
@@ -395,7 +393,6 @@ jobs:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TF_LOG: ${{ vars.LOG_LEVEL }}
-          CI: true
           TF_ACC: 1
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccFederatedDatabaseInstance"
@@ -428,7 +425,6 @@ jobs:
           TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           PARALLEL_GO_TEST: 20
-          CI: true
           TEST_REGEX: "^TestAccConfig"
         run: make testacc
 
@@ -467,7 +463,6 @@ jobs:
           TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           PARALLEL_GO_TEST: 20
-          CI: true
           TEST_REGEX: "^TestAccSTSAssumeRole"
         run: make testacc
 
