@@ -169,13 +169,19 @@ jobs:
 
   generic: # Acceptance tests that do not use any time-consuming resource (example: cluster)
     needs: [ check ]
-    if: ${{ needs.check.outputs.generic }}
+    if: ${{ needs.check.outputs.generic == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - name: Print params
+        shell: bash
+        run: |
+          echo Generic: ${{ needs.check.outputs.generic }}.
+          echo Config: ${{ needs.check.outputs.config }}.
+
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
