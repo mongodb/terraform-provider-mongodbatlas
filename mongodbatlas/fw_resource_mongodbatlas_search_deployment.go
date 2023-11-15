@@ -26,26 +26,26 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231001002/admin"
 )
 
-var _ resource.ResourceWithConfigure = &ProjectRS{}
-var _ resource.ResourceWithImportState = &ProjectRS{}
+var _ resource.ResourceWithConfigure = &SearchDeploymentRS{}
+var _ resource.ResourceWithImportState = &SearchDeploymentRS{}
 
 const (
-	searchNodeDoesNotExistsError = "ATLAS_FTS_DEPLOYMENT_DOES_NOT_EXIST"
+	searchDeploymentDoesNotExistsError = "ATLAS_FTS_DEPLOYMENT_DOES_NOT_EXIST"
 )
 
-func NewSearchNodeRS() resource.Resource {
-	return &SearchNodeRS{
+func NewSearchDeploymentRS() resource.Resource {
+	return &SearchDeploymentRS{
 		RSCommon: RSCommon{
-			resourceName: "search_node",
+			resourceName: "search_deployment",
 		},
 	}
 }
 
-type SearchNodeRS struct {
+type SearchDeploymentRS struct {
 	RSCommon
 }
 
-type tfSearchNodeRSModel struct {
+type tfSearchDeploymentRSModel struct {
 	ID          types.String   `tfsdk:"id"`
 	ClusterName types.String   `tfsdk:"cluster_name"`
 	ProjectID   types.String   `tfsdk:"project_id"`
@@ -64,7 +64,7 @@ var SpecObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"node_count":    types.Int64Type,
 }}
 
-func (r *SearchNodeRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *SearchDeploymentRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -113,8 +113,8 @@ func (r *SearchNodeRS) Schema(ctx context.Context, req resource.SchemaRequest, r
 
 const defaultSearchNodeTimeout time.Duration = 3 * time.Hour
 
-func (r *SearchNodeRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var searchNodePlan tfSearchNodeRSModel
+func (r *SearchDeploymentRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var searchNodePlan tfSearchDeploymentRSModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &searchNodePlan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -125,7 +125,7 @@ func (r *SearchNodeRS) Create(ctx context.Context, req resource.CreateRequest, r
 	clusterName := searchNodePlan.ClusterName.ValueString()
 	searchDeploymentReq := newSearchDeploymentReq(ctx, &searchNodePlan)
 	if _, _, err := connV2.AtlasSearchApi.CreateAtlasSearchDeployment(ctx, projectID, clusterName, &searchDeploymentReq).Execute(); err != nil {
-		resp.Diagnostics.AddError("error during search node creation", err.Error())
+		resp.Diagnostics.AddError("error during search deployment creation", err.Error())
 		return
 	}
 
@@ -136,7 +136,7 @@ func (r *SearchNodeRS) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 	deploymentResp, err := waitSearchNodeStateTransition(ctx, projectID, clusterName, connV2, createTimeout)
 	if err != nil {
-		resp.Diagnostics.AddError("error during search node creation", err.Error())
+		resp.Diagnostics.AddError("error during search deployment creation", err.Error())
 		return
 	}
 	newSearchNodeModel, diagnostics := newTFSearchDeployment(ctx, clusterName, deploymentResp, searchNodePlan.Timeouts)
@@ -147,8 +147,8 @@ func (r *SearchNodeRS) Create(ctx context.Context, req resource.CreateRequest, r
 	resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
 }
 
-func (r *SearchNodeRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var searchNodePlan tfSearchNodeRSModel
+func (r *SearchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var searchNodePlan tfSearchDeploymentRSModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &searchNodePlan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -159,7 +159,7 @@ func (r *SearchNodeRS) Read(ctx context.Context, req resource.ReadRequest, resp 
 	clusterName := searchNodePlan.ClusterName.ValueString()
 	deploymentResp, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("error getting search node information", err.Error())
+		resp.Diagnostics.AddError("error getting search deployment information", err.Error())
 		return
 	}
 
@@ -171,8 +171,8 @@ func (r *SearchNodeRS) Read(ctx context.Context, req resource.ReadRequest, resp 
 	resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
 }
 
-func (r *SearchNodeRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var searchNodePlan tfSearchNodeRSModel
+func (r *SearchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var searchNodePlan tfSearchDeploymentRSModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &searchNodePlan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -183,7 +183,7 @@ func (r *SearchNodeRS) Update(ctx context.Context, req resource.UpdateRequest, r
 	clusterName := searchNodePlan.ClusterName.ValueString()
 	searchDeploymentReq := newSearchDeploymentReq(ctx, &searchNodePlan)
 	if _, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchDeployment(ctx, projectID, clusterName, &searchDeploymentReq).Execute(); err != nil {
-		resp.Diagnostics.AddError("error during search node update", err.Error())
+		resp.Diagnostics.AddError("error during search deployment update", err.Error())
 		return
 	}
 
@@ -194,7 +194,7 @@ func (r *SearchNodeRS) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 	deploymentResp, err := waitSearchNodeStateTransition(ctx, projectID, clusterName, connV2, updateTimeout)
 	if err != nil {
-		resp.Diagnostics.AddError("error during search node update", err.Error())
+		resp.Diagnostics.AddError("error during search deployment update", err.Error())
 		return
 	}
 	newSearchNodeModel, diagnostics := newTFSearchDeployment(ctx, clusterName, deploymentResp, searchNodePlan.Timeouts)
@@ -205,8 +205,8 @@ func (r *SearchNodeRS) Update(ctx context.Context, req resource.UpdateRequest, r
 	resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
 }
 
-func (r *SearchNodeRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var searchNodeState *tfSearchNodeRSModel
+func (r *SearchDeploymentRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var searchNodeState *tfSearchDeploymentRSModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &searchNodeState)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -216,7 +216,7 @@ func (r *SearchNodeRS) Delete(ctx context.Context, req resource.DeleteRequest, r
 	projectID := searchNodeState.ProjectID.ValueString()
 	clusterName := searchNodeState.ClusterName.ValueString()
 	if _, err := connV2.AtlasSearchApi.DeleteAtlasSearchDeployment(ctx, projectID, clusterName).Execute(); err != nil {
-		resp.Diagnostics.AddError("error during search node delete", err.Error())
+		resp.Diagnostics.AddError("error during search deployment delete", err.Error())
 		return
 	}
 
@@ -226,15 +226,15 @@ func (r *SearchNodeRS) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 	if err := waitSearchNodeDelete(ctx, projectID, clusterName, connV2, deleteTimeout); err != nil {
-		resp.Diagnostics.AddError("error during search node delete", err.Error())
+		resp.Diagnostics.AddError("error during search deployment delete", err.Error())
 		return
 	}
 }
 
-func (r *SearchNodeRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *SearchDeploymentRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	projectID, clusterName, err := splitSearchNodeImportID(req.ID)
 	if err != nil {
-		resp.Diagnostics.AddError("error splitting search node import ID", err.Error())
+		resp.Diagnostics.AddError("error splitting search deployment import ID", err.Error())
 		return
 	}
 
@@ -276,7 +276,7 @@ func waitSearchNodeStateTransition(ctx context.Context, projectID, clusterName s
 	if deploymentResp, ok := result.(*admin.ApiSearchDeploymentResponse); ok && deploymentResp != nil {
 		return deploymentResp, nil
 	}
-	return nil, errors.New("did not obtain valid result when waiting for search node state transition")
+	return nil, errors.New("did not obtain valid result when waiting for search deployment state transition")
 }
 
 func waitSearchNodeDelete(ctx context.Context, projectID, clusterName string, client *admin.APIClient, timeout time.Duration) error {
@@ -299,7 +299,7 @@ func searchNodeRefreshFunc(ctx context.Context, projectID, clusterName string, c
 			return nil, "", err
 		}
 		if err != nil {
-			if resp.StatusCode == 400 && strings.Contains(err.Error(), searchNodeDoesNotExistsError) {
+			if resp.StatusCode == 400 && strings.Contains(err.Error(), searchDeploymentDoesNotExistsError) {
 				return "", retrystrategy.RetryStrategyDeletedState, nil
 			}
 			if resp.StatusCode == 503 {
@@ -309,14 +309,14 @@ func searchNodeRefreshFunc(ctx context.Context, projectID, clusterName string, c
 		}
 
 		if util.IsStringPresent(deploymentResp.StateName) {
-			tflog.Debug(ctx, fmt.Sprintf("search node status: %s", *deploymentResp.StateName))
+			tflog.Debug(ctx, fmt.Sprintf("search deployment status: %s", *deploymentResp.StateName))
 			return deploymentResp, *deploymentResp.StateName, nil
 		}
 		return deploymentResp, "", nil
 	}
 }
 
-func newSearchDeploymentReq(ctx context.Context, searchNodePlan *tfSearchNodeRSModel) admin.ApiSearchDeploymentRequest {
+func newSearchDeploymentReq(ctx context.Context, searchNodePlan *tfSearchDeploymentRSModel) admin.ApiSearchDeploymentRequest {
 	var specs []tfSearchNodeSpecModel
 	searchNodePlan.Specs.ElementsAs(ctx, &specs, true)
 
@@ -333,8 +333,8 @@ func newSearchDeploymentReq(ctx context.Context, searchNodePlan *tfSearchNodeRSM
 	}
 }
 
-func newTFSearchDeployment(ctx context.Context, clusterName string, deployResp *admin.ApiSearchDeploymentResponse, timeout timeouts.Value) (*tfSearchNodeRSModel, diag.Diagnostics) {
-	result := tfSearchNodeRSModel{
+func newTFSearchDeployment(ctx context.Context, clusterName string, deployResp *admin.ApiSearchDeploymentResponse, timeout timeouts.Value) (*tfSearchDeploymentRSModel, diag.Diagnostics) {
+	result := tfSearchDeploymentRSModel{
 		ID:          types.StringPointerValue(deployResp.Id),
 		ClusterName: types.StringValue(clusterName),
 		ProjectID:   types.StringPointerValue(deployResp.GroupId),

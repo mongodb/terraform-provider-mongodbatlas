@@ -1,23 +1,23 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: search node"
-sidebar_current: "docs-mongodbatlas-resource-search-node"
+page_title: "MongoDB Atlas: search deployment"
+sidebar_current: "docs-mongodbatlas-resource-search-deployment"
 description: |-
-Provides a Search Node resource.
+Provides a Search Deployment resource.
 ---
 
-# Resource: mongodbatlas_search_node
+# Resource: mongodbatlas_search_deployment
 
-`mongodbatlas_search_node` provides a Search Node resource. The resource lets you create, edit and delete dedicated search nodes in a cluster.
+`mongodbatlas_search_deployment` provides a Search Node resource. The resource lets you create, edit and delete dedicated search nodes in a cluster.
 
 -> **NOTE:** For details on supported cloud providers and existing limitations you can visit the [Search Node Documentation](https://www.mongodb.com/docs/atlas/cluster-config/multi-cloud-distribution/#search-nodes-for-workload-isolation).
--> **NOTE:** Only a single search node resource can be defined for each cluster.
+-> **NOTE:** Only a single search deployment resource can be defined for each cluster.
 
 
 ## Example Usage
 
 ```terraform
-resource "mongodbatlas_search_node" "test" {
+resource "mongodbatlas_search_deployment" "test" {
   project_id = "PROJECT ID"
   cluster_name = "NAME OF CLUSTER"
   specs = [
@@ -55,7 +55,7 @@ In addition to all arguments above, the following attributes are exported:
 Search node resource can be imported using the project ID and cluster name, in the format `PROJECT_ID-CLUSTER_NAME`, e.g.
 
 ```
-$ terraform import mongodbatlas_search_node.test 650972848269185c55f40ca1-Cluster0
+$ terraform import mongodbatlas_search_deployment.test 650972848269185c55f40ca1-Cluster0
 ```
 TODO: add proper link here
 For more information see: [MongoDB Atlas API - Search Node](https://docs.atlas.mongodb.com/reference/api/) Documentation.

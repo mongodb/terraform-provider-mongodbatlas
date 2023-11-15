@@ -13,10 +13,10 @@ import (
 
 func TestAccSearchNode_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_search_node.test"
+		resourceName = "mongodbatlas_search_deployment.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc-search-node")
-		clusterName  = acctest.RandomWithPrefix("test-acc-search-node")
+		projectName  = acctest.RandomWithPrefix("test-acc-search-dep")
+		clusterName  = acctest.RandomWithPrefix("test-acc-search-dep")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
@@ -26,7 +26,7 @@ func TestAccSearchNode_basic(t *testing.T) {
 			newSearchNodeTestStep(resourceName, orgID, projectName, clusterName, "S20_HIGHCPU_NVME", 3),
 			newSearchNodeTestStep(resourceName, orgID, projectName, clusterName, "S30_HIGHCPU_NVME", 4),
 			{
-				Config:            testAccMongoDBAtlasSearchNodeConfig(orgID, projectName, clusterName, "S30_HIGHCPU_NVME", 4),
+				Config:            testAccMongoDBAtlasSearchDeploymentConfig(orgID, projectName, clusterName, "S30_HIGHCPU_NVME", 4),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: testAccCheckSearchNodeImportStateIDFunc(resourceName),
 				ImportState:       true,
@@ -38,7 +38,7 @@ func TestAccSearchNode_basic(t *testing.T) {
 
 func newSearchNodeTestStep(resourceName, orgID, projectName, clusterName, instanceSize string, searchNodeCount int) resource.TestStep {
 	return resource.TestStep{
-		Config: testAccMongoDBAtlasSearchNodeConfig(orgID, projectName, clusterName, instanceSize, searchNodeCount),
+		Config: testAccMongoDBAtlasSearchDeploymentConfig(orgID, projectName, clusterName, instanceSize, searchNodeCount),
 		Check: resource.ComposeTestCheckFunc(
 			testAccCheckMongoDBAtlasSearchNodeExists(resourceName),
 			resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -50,12 +50,12 @@ func newSearchNodeTestStep(resourceName, orgID, projectName, clusterName, instan
 	}
 }
 
-func testAccMongoDBAtlasSearchNodeConfig(orgID, projectName, clusterName, instanceSize string, searchNodeCount int) string {
+func testAccMongoDBAtlasSearchDeploymentConfig(orgID, projectName, clusterName, instanceSize string, searchNodeCount int) string {
 	clusterConfig := advancedClusterConfig(orgID, projectName, clusterName)
 	return fmt.Sprintf(`
 		%[1]s
 
-		resource "mongodbatlas_search_node" "test" {
+		resource "mongodbatlas_search_deployment" "test" {
 			project_id = mongodbatlas_project.test.id
 			cluster_name = mongodbatlas_advanced_cluster.test.name
 			specs = [
@@ -115,7 +115,7 @@ func testAccCheckMongoDBAtlasSearchNodeExists(resourceName string) resource.Test
 		connV2 := testAccProviderSdkV2.Meta().(*MongoDBClient).AtlasV2
 		_, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
 		if err != nil {
-			return fmt.Errorf("search node deployment (%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
+			return fmt.Errorf("search deployment (%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
 		}
 		return nil
 	}
@@ -130,10 +130,10 @@ func testAccCheckMongoDBAtlasSearchNodeDestroy(state *terraform.State) error {
 	}
 	connV2 := testAccProviderSdkV2.Meta().(*MongoDBClient).AtlasV2
 	for _, rs := range state.RootModule().Resources {
-		if rs.Type == "mongodbatlas_search_node" {
+		if rs.Type == "mongodbatlas_search_deployment" {
 			_, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
 			if err == nil {
-				return fmt.Errorf("search node deployment (%s:%s) still exists", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
+				return fmt.Errorf("search deployment (%s:%s) still exists", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
 			}
 		}
 	}

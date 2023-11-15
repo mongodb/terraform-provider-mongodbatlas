@@ -22,7 +22,7 @@ jobs:
       cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation }}
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster }}
       cluster: ${{ steps.filter.outputs.cluster }}
-      search_node: ${{ steps.filter.outputs.search_node }}
+      search_deployment: ${{ steps.filter.outputs.search_deployment }}
       generic: ${{ steps.filter.outputs.generic }}
       backup_online_archive: ${{ steps.filter.outputs.backup_online_archive }}
       backup_snapshots: ${{ steps.filter.outputs.backup_snapshots }}
@@ -49,8 +49,8 @@ jobs:
             - 'mongodbatlas/**advanced_cluster**.go'
           cluster:
             - 'mongodbatlas/**mongodbatlas_cluster**.go'
-          search_node:
-            - 'mongodbatlas/**search_node**.go'
+          search_deployment:
+            - 'mongodbatlas/**search_deployment**.go'
           generic:
             - 'mongodbatlas/data_source_mongodbatlas_backup_compliance_policy*.go'
             - 'mongodbatlas/resource_mongodbatlas_backup_compliance_policy*.go'
@@ -186,9 +186,9 @@ jobs:
           TEST_REGEX: "^TestAccClusterRSCluster"
         run: make testacc
 
-  search_node:
+  search_deployment:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.search_node == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-search-node' || inputs.parent-event-name == 'release' }}
+    if: ${{ needs.change-detection.outputs.search_deployment == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-search-deployment' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
