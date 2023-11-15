@@ -211,6 +211,7 @@ func TestAccSearchIndexRS_withVector(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(resourceName, "type", "vectorSearch"),
 					resource.TestCheckResourceAttrSet(resourceName, "fields"),
+					testCheckResourceAttrJSON(resourceName, "fields", fields),
 
 					resource.TestCheckResourceAttr(datasourceName, "type", "vectorSearch"),
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
@@ -221,7 +222,7 @@ func TestAccSearchIndexRS_withVector(t *testing.T) {
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(datasourceName, "index_id"),
 					resource.TestCheckResourceAttrSet(datasourceName, "fields"),
-					testCheckResourceAttrJSON(resourceName, "fields", fields),
+					testCheckResourceAttrJSON(datasourceName, "fields", fields),
 				),
 			},
 		},
@@ -471,7 +472,7 @@ func getClusterInfo(projectID string) (clusterName, clusterNameStr, clusterTerra
 	return clusterName, clusterNameStr, clusterTerraformStr
 }
 
-func testCheckResourceAttrJSON(resourceName, attribute string, expected []map[string]interface{}) resource.TestCheckFunc {
+func testCheckResourceAttrJSON[T any](resourceName, attribute string, expected T) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -483,7 +484,7 @@ func testCheckResourceAttrJSON(resourceName, attribute string, expected []map[st
 			return fmt.Errorf("Attribute not found: %s", attribute)
 		}
 
-		var actual []map[string]interface{}
+		var actual T
 		if err := json.Unmarshal([]byte(attr), &actual); err != nil {
 			return fmt.Errorf("Could not unmarshal json: %s", err)
 		}
