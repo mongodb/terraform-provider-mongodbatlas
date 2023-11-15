@@ -464,9 +464,6 @@ func (r *AlertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 	// Removing the computed attributes to recreate the original request
-	// //TODO: fix or remove comments
-	// s := ""
-	// apiReq.GroupId = &s
 	apiReq.Created = nil
 	apiReq.Updated = nil
 
@@ -560,7 +557,6 @@ func newNotificationList(tfNotificationSlice []tfNotificationModel) ([]admin.Ale
 	notifications := make([]admin.AlertsNotificationRootForGroup, 0)
 
 	for i := range tfNotificationSlice {
-
 		if !tfNotificationSlice[i].IntervalMin.IsNull() && tfNotificationSlice[i].IntervalMin.ValueInt64() > 0 {
 			typeName := tfNotificationSlice[i].TypeName.ValueString()
 			if strings.EqualFold(typeName, pagerDuty) || strings.EqualFold(typeName, opsGenie) || strings.EqualFold(typeName, victorOps) {
@@ -571,7 +567,7 @@ func newNotificationList(tfNotificationSlice []tfNotificationModel) ([]admin.Ale
 
 	for i := range tfNotificationSlice {
 		notifierId := tfNotificationSlice[i].NotifierID.ValueStringPointer()
-		//AlertConfigurationsApi expects nil or a valid notifier id
+		// AlertConfigurationsApi expects nil or a valid notifier id
 		if *notifierId == "" {
 			notifierId = nil
 		}
