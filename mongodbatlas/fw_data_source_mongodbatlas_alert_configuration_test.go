@@ -8,12 +8,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231001002/admin"
 )
 
 func TestAccConfigDSAlertConfiguration_basic(t *testing.T) {
 	var (
-		alert          = &matlas.AlertConfiguration{}
+		alert          = &admin.GroupAlertsConfig{}
 		dataSourceName = "data.mongodbatlas_alert_configuration.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName    = acctest.RandomWithPrefix("test-acc")
@@ -42,7 +42,7 @@ func TestAccConfigDSAlertConfiguration_basic(t *testing.T) {
 
 func TestAccConfigDSAlertConfiguration_withThreshold(t *testing.T) {
 	var (
-		alert          = &matlas.AlertConfiguration{}
+		alert          = &admin.GroupAlertsConfig{}
 		dataSourceName = "data.mongodbatlas_alert_configuration.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName    = acctest.RandomWithPrefix("test-acc")
@@ -71,7 +71,7 @@ func TestAccConfigDSAlertConfiguration_withThreshold(t *testing.T) {
 
 func TestAccConfigDSAlertConfiguration_withOutput(t *testing.T) {
 	var (
-		alert          = &matlas.AlertConfiguration{}
+		alert          = &admin.GroupAlertsConfig{}
 		dataSourceName = "data.mongodbatlas_alert_configuration.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName    = acctest.RandomWithPrefix("test-acc")
@@ -104,7 +104,7 @@ func TestAccConfigDSAlertConfiguration_withOutput(t *testing.T) {
 
 func TestAccConfigDSAlertConfiguration_withPagerDuty(t *testing.T) {
 	var (
-		alert          = &matlas.AlertConfiguration{}
+		alert          = &admin.GroupAlertsConfig{}
 		dataSourceName = "data.mongodbatlas_alert_configuration.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName    = acctest.RandomWithPrefix("test-acc")

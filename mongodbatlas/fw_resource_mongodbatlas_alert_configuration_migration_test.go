@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"go.mongodb.org/atlas-sdk/v20231001002/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -17,7 +18,7 @@ func TestAccMigrationConfigRSAlertConfiguration_NotificationsWithMetricThreshold
 		resourceName          = "mongodbatlas_alert_configuration.test"
 		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName           = acctest.RandomWithPrefix("test-acc")
-		alert                 = &matlas.AlertConfiguration{}
+		alert                 = &admin.GroupAlertsConfig{}
 		config                = testAccMongoDBAtlasAlertConfigurationConfig(orgID, projectName, true)
 		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
@@ -59,7 +60,7 @@ func TestAccMigrationConfigRSAlertConfiguration_WithThreshold(t *testing.T) {
 		resourceName          = "mongodbatlas_alert_configuration.test"
 		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName           = acctest.RandomWithPrefix("test-acc")
-		alert                 = &matlas.AlertConfiguration{}
+		alert                 = &admin.GroupAlertsConfig{}
 		config                = testAccMongoDBAtlasAlertConfigurationConfigWithThresholdUpdated(orgID, projectName, true, 1)
 		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
@@ -103,7 +104,7 @@ func TestAccMigrationConfigRSAlertConfiguration_EmptyOptionalBlocks(t *testing.T
 		resourceName          = "mongodbatlas_alert_configuration.test"
 		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName           = acctest.RandomWithPrefix("test-acc")
-		alert                 = &matlas.AlertConfiguration{}
+		alert                 = &admin.GroupAlertsConfig{}
 		config                = testAccMongoDBAtlasAlertConfigurationConfigEmptyOptionalBlocks(orgID, projectName)
 		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
@@ -148,7 +149,7 @@ func TestAccMigrationConfigRSAlertConfiguration_MultipleMatchers(t *testing.T) {
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
-		alert        = &matlas.AlertConfiguration{}
+		alert        = &admin.GroupAlertsConfig{}
 		config       = testAccMongoDBAtlasAlertConfigurationConfigWithMatchers(orgID, projectName, true, false, true,
 			matlas.Matcher{
 				FieldName: "TYPE_NAME",
@@ -200,7 +201,7 @@ func TestAccMigrationConfigRSAlertConfiguration_EmptyOptionalAttributes(t *testi
 		resourceName          = "mongodbatlas_alert_configuration.test"
 		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName           = acctest.RandomWithPrefix("test-acc")
-		alert                 = &matlas.AlertConfiguration{}
+		alert                 = &admin.GroupAlertsConfig{}
 		config                = testAccMongoDBAtlasAlertConfigurationConfigWithEmptyOptionalAttributes(orgID, projectName)
 		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)

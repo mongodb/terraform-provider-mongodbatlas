@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"go.mongodb.org/atlas-sdk/v20231001002/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -18,7 +19,7 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
-		alert        = &matlas.AlertConfiguration{}
+		alert        = &admin.GroupAlertsConfig{}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -69,7 +70,7 @@ func TestAccConfigRSAlertConfiguration_EmptyMatcherMetricThresholdConfig(t *test
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
-		alert        = &matlas.AlertConfiguration{}
+		alert        = &admin.GroupAlertsConfig{}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -93,7 +94,7 @@ func TestAccConfigRSAlertConfiguration_Notifications(t *testing.T) {
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
-		alert        = &matlas.AlertConfiguration{}
+		alert        = &admin.GroupAlertsConfig{}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -124,7 +125,7 @@ func TestAccConfigRSAlertConfiguration_WithMatchers(t *testing.T) {
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
-		alert        = &matlas.AlertConfiguration{}
+		alert        = &admin.GroupAlertsConfig{}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -175,7 +176,7 @@ func TestAccConfigRSAlertConfiguration_withMetricUpdated(t *testing.T) {
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
-		alert        = &matlas.AlertConfiguration{}
+		alert        = &admin.GroupAlertsConfig{}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -206,7 +207,7 @@ func TestAccConfigRSAlertConfiguration_whitThresholdUpdated(t *testing.T) {
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
-		alert        = &matlas.AlertConfiguration{}
+		alert        = &admin.GroupAlertsConfig{}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -241,7 +242,7 @@ func TestAccConfigRSAlertConfiguration_whitThresholdUpdated(t *testing.T) {
 
 func TestAccConfigRSAlertConfiguration_whitoutRoles(t *testing.T) {
 	var (
-		alert        = &matlas.AlertConfiguration{}
+		alert        = &admin.GroupAlertsConfig{}
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
@@ -265,7 +266,7 @@ func TestAccConfigRSAlertConfiguration_whitoutRoles(t *testing.T) {
 
 func TestAccConfigRSAlertConfiguration_withoutOptionalAttributes(t *testing.T) {
 	var (
-		alert        = &matlas.AlertConfiguration{}
+		alert        = &admin.GroupAlertsConfig{}
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
@@ -375,7 +376,7 @@ func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		serviceKey   = dummy32CharKey
-		alert        = &matlas.AlertConfiguration{}
+		alert        = &admin.GroupAlertsConfig{}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -408,7 +409,7 @@ func TestAccConfigRSAlertConfiguration_UpdatePagerDutyWithNotifierId(t *testing.
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		serviceKey   = dummy32CharKey
 		notifierID   = "651dd9336afac13e1c112222"
-		alert        = &matlas.AlertConfiguration{}
+		alert        = &admin.GroupAlertsConfig{}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -444,7 +445,7 @@ func TestAccConfigRSAlertConfiguration_DataDog(t *testing.T) {
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		ddAPIKey     = dummy32CharKey
 		ddRegion     = "US"
-		alert        = &matlas.AlertConfiguration{}
+		alert        = &admin.GroupAlertsConfig{}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -469,7 +470,7 @@ func TestAccConfigRSAlertConfiguration_PagerDuty(t *testing.T) {
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		serviceKey   = dummy32CharKey
-		alert        = &matlas.AlertConfiguration{}
+		alert        = &admin.GroupAlertsConfig{}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -494,7 +495,7 @@ func TestAccConfigRSAlertConfiguration_OpsGenie(t *testing.T) {
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		apiKey       = dummy36CharKey
-		alert        = &matlas.AlertConfiguration{}
+		alert        = &admin.GroupAlertsConfig{}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -519,7 +520,7 @@ func TestAccConfigRSAlertConfiguration_VictorOps(t *testing.T) {
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		apiKey       = dummy36CharKey
-		alert        = &matlas.AlertConfiguration{}
+		alert        = &admin.GroupAlertsConfig{}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -538,9 +539,9 @@ func TestAccConfigRSAlertConfiguration_VictorOps(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName string, alert *matlas.AlertConfiguration) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName string, alert *admin.GroupAlertsConfig) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testMongoDBClient.(*MongoDBClient).Atlas
+		connV2 := testMongoDBClient.(*MongoDBClient).AtlasV2
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -553,7 +554,7 @@ func testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName string, alert
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		alertResp, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID])
+		alertResp, _, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID]).Execute()
 		if err != nil {
 			return fmt.Errorf("the Alert Configuration(%s) does not exist", ids[encodedIDKeyAlertID])
 		}
