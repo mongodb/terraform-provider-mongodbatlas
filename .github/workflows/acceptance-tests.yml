@@ -122,10 +122,8 @@ jobs:
     if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-cluster-outage-simulation' || inputs.parent-event-name == 'release'  }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
       - name: Acceptance Tests
@@ -142,10 +140,8 @@ jobs:
     if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-advanced-cluster' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
       - name: Acceptance Tests
@@ -162,10 +158,8 @@ jobs:
     if: ${{ needs.change-detection.outputs.cluster == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-cluster' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
       - name: Acceptance Tests
@@ -182,10 +176,8 @@ jobs:
     if: ${{ needs.change-detection.outputs.generic == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-generic' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
       - name: Acceptance Tests
@@ -205,10 +197,8 @@ jobs:
     if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-backup-online-archive' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
       - name: Acceptance Tests
@@ -226,10 +216,8 @@ jobs:
     if: ${{ needs.change-detection.outputs.backup_snapshots == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-backup-snapshots' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
       - name: Acceptance Tests
@@ -247,10 +235,8 @@ jobs:
     if: ${{ needs.change-detection.outputs.backup_schedule == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-backup-schedule' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
       - name: Acceptance Tests
@@ -267,10 +253,8 @@ jobs:
     if: ${{ needs.change-detection.outputs.project == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
       - name: Acceptance Tests
@@ -289,10 +273,8 @@ jobs:
     if: ${{ needs.change-detection.outputs.serverless == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-serverless' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
       - name: Acceptance Tests
@@ -308,10 +290,8 @@ jobs:
     if: ${{ needs.change-detection.outputs.network == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-network' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
       - name: Acceptance Tests
@@ -332,10 +312,8 @@ jobs:
     if: ${{ needs.change-detection.outputs.federation == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-federation' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
       - name: Acceptance Tests
@@ -352,10 +330,8 @@ jobs:
     if: ${{ needs.change-detection.outputs.config == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-config' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
       - name: Acceptance Tests
@@ -377,10 +353,8 @@ jobs:
     if: ${{ needs.change-detection.outputs.assume_role == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-config' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
       - id: sts-assume-role
@@ -412,10 +386,8 @@ jobs:
     if: ${{ needs.change-detection.outputs.search_index == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-search-index' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
       - name: Acceptance Tests
