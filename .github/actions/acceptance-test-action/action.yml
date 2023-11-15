@@ -14,10 +14,20 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: dorny/paths-filter@v2
+    - name: Filter src files
+      uses: dorny/paths-filter@v2
       id: filter
       with:
         filters: ${{ inputs.filters }}
+    - name: Print params
+      shell: bash
+      run: |
+        echo forceTestAcc: ${{ inputs.forceTestAcc }}.
+        echo filters: ${{ inputs.filters }}.
+        echo testRegex: ${{ inputs.testRegex }}.
+        echo Files modified: ${{ steps.filter.outputs.src }}.
+        echo Files modified2: ${{ steps.filter.outputs.src == 'true' }}.
+        echo if: ${{ inputs.forceTestAcc || steps.filter.outputs.src == 'true'}}.
     - name: Set up Go
       if: ${{ inputs.forceTestAcc || steps.filter.outputs.src == 'true'}}
       uses: actions/setup-go@v4
