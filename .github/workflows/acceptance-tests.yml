@@ -26,7 +26,7 @@ jobs:
       cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation || github.event.label.name == 'run-testacc-cluster-outage-simulation' || env.ALWAYS_RUN }}
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster || github.event.label.name == 'run-testacc-advanced-cluster' || env.ALWAYS_RUN }}
       cluster: ${{ steps.filter.outputs.cluster || github.event.label.name == 'run-testacc-cluster' || env.ALWAYS_RUN }}
-      generic: ${{ steps.filter.outputs.generic || github.event.label.name == 'run-testacc-generic' || env.ALWAYS_RUN }}
+      generic: ${{ steps.filter.outputs.generic == 'true' || github.event.label.name == 'run-testacc-generic' || env.ALWAYS_RUN == 'true' }}
       backup_online_archive: ${{ steps.filter.outputs.backup_online_archive || github.event.label.name == 'run-testacc-backup-online-archive' || env.ALWAYS_RUN }}
       backup_snapshots: ${{ steps.filter.outputs.backup_snapshots || github.event.label.name == 'run-testacc-backup-snapshots' || env.ALWAYS_RUN }}
       federation: ${{ steps.filter.outputs.federation || github.event.label.name == 'run-testacc-federation' || env.ALWAYS_RUN }}
