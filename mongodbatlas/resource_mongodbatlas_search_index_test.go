@@ -2,8 +2,10 @@ package mongodbatlas
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -185,6 +187,14 @@ func TestAccSearchIndexRS_withVector(t *testing.T) {
 		indexName                                        = acctest.RandomWithPrefix("test-acc-index")
 		databaseName                                     = acctest.RandomWithPrefix("test-acc-db")
 	)
+	fields := []map[string]interface{}{
+		{
+			"type":          "vector",
+			"path":          "plot_embedding",
+			"numDimensions": float64(1536),
+			"similarity":    "euclidean",
+		},
+	}
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
@@ -211,6 +221,7 @@ func TestAccSearchIndexRS_withVector(t *testing.T) {
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(datasourceName, "index_id"),
 					resource.TestCheckResourceAttrSet(datasourceName, "fields"),
+					testCheckResourceAttrJSON(resourceName, "fields", fields),
 				),
 			},
 		},
@@ -458,4 +469,29 @@ func getClusterInfo(projectID string) (clusterName, clusterNameStr, clusterTerra
 		`, projectID, clusterName)
 	}
 	return clusterName, clusterNameStr, clusterTerraformStr
+}
+
+func testCheckResourceAttrJSON(resourceName, attribute string, expected []map[string]interface{}) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		attr, ok := rs.Primary.Attributes[attribute]
+		if !ok {
+			return fmt.Errorf("Attribute not found: %s", attribute)
+		}
+
+		var actual []map[string]interface{}
+		if err := json.Unmarshal([]byte(attr), &actual); err != nil {
+			return fmt.Errorf("Could not unmarshal json: %s", err)
+		}
+
+		if !reflect.DeepEqual(actual, expected) {
+			return fmt.Errorf("Expected `%v`, got `%v`", expected, actual)
+		}
+
+		return nil
+	}
 }
