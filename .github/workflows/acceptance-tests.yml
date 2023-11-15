@@ -59,6 +59,24 @@ jobs:
               - 'mongodbatlas/resource_mongodbatlas_x509_authentication_database_user*.go'
               - 'mongodbatlas/resource_mongodbatlas_auditing*.go'                
 
+  backup_online_archive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/acceptance-test-action
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
+          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+          MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
+        with:
+          forceTestAcc: ${{ env.FORCE_TEST_ACC || github.event.label.name == 'run-testacc-backup-online-archive' }}
+          testRegex: "^TestAccBackupRSOnlineArchive"
+          filters: |
+            src: 
+              - 'mongodbatlas/**online_archive**.go'
+          
   change-detection:
     runs-on: ubuntu-latest
     permissions:
@@ -68,7 +86,6 @@ jobs:
       cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation }}
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster }}
       cluster: ${{ steps.filter.outputs.cluster }}
-      backup_online_archive: ${{ steps.filter.outputs.backup_online_archive }}
       backup_snapshots: ${{ steps.filter.outputs.backup_snapshots }}
       federation: ${{ steps.filter.outputs.federation }}
       backup_schedule: ${{ steps.filter.outputs.backup_schedule }}
@@ -93,8 +110,6 @@ jobs:
             - 'mongodbatlas/**advanced_cluster**.go'
           cluster:
             - 'mongodbatlas/**mongodbatlas_cluster**.go'
-          backup_online_archive:
-            - 'mongodbatlas/**online_archive**.go'
           backup_snapshots:
             - 'mongodbatlas/**backup_snapshot**.go'
           backup_schedule:
@@ -222,31 +237,6 @@ jobs:
           TEST_REGEX: "^TestAccClusterRSCluster"
         run: make testacc
 
-  backup_online_archive:
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-backup-online-archive' || inputs.parent-event-name == 'release' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version-file: 'go.mod'
-      - name: Acceptance Tests
-        env:
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
-          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
-          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
-          MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
-          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
-          TF_ACC: 1
-          PARALLEL_GO_TEST: 20
-          TEST_REGEX: "^TestAccBackupRSOnlineArchive"
-        run: make testacc
 
   backup_snapshots:
     needs: [ change-detection ]
