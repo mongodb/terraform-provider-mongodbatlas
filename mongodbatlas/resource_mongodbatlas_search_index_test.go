@@ -374,8 +374,8 @@ func testAccSearchIndexConfigVector(projectID, indexName, databaseName, clusterN
 				[{
 					"type": "vector",
 					"path": "plot_embedding",
-					"numDimensions": 2048,
-					"similarity": "cosine"
+					"numDimensions": 1536,
+					"similarity": "euclidean"
 				}]
 				EOF
 		}

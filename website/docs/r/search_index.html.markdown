@@ -40,8 +40,8 @@ resource "mongodbatlas_search_index" "test-basic-search-vector" {
 [{
       "type": "vector",
       "path": "plot_embedding",
-      "numDimensions": 2048,
-      "similarity": "cosine"
+      "numDimensions": 1536,
+      "similarity": "euclidean"
 }]
 EOF
 }
@@ -196,7 +196,7 @@ EOF
 * `search_analyzer` - [Analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use when searching the index. Defaults to [lucene.standard](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/standard/#std-label-ref-standard-analyzer)
 * `synonyms` - Synonyms mapping definition to use in this index.
 
-* `fields` - (Mandatory for vector searches) Array of fields to configure in this vectorSearch index. It must contain at least one "vector" type field. This field needs to be a JSON string in order to be decoded correctly.
+* `fields` - Array of [Fields](https://www.mongodb.com/docs/atlas/atlas-search/field-types/knn-vector/#std-label-fts-data-types-knn-vector) to configure this `vectorSearch` index. It is mandatory for vector searches and it must contain at least one `vector` type field. This field needs to be a JSON string in order to be decoded correctly.
 
 ### Analyzers (search  index)
 An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/) prepares a set of documents to be indexed by performing a series of operations to transform, filter, and group sequences of characters. You can define a custom analyzer to suit your specific indexing needs.
@@ -401,12 +401,5 @@ Synonyms mapping definition to use in the index.
    source_collection = "collection_test"
   }
 ```
-
-### Fields (vector  index)
-
-**** DON'T MERGE, TO BE DEFINED
-e.g. in https://docs.google.com/document/d/1dMsLahFNZU3AWR0Qflsimr5TK44I7BBl3nMvVbyEXyU/edit
-there are tables with possible values and descriptions.
-**** DON'T MERGE 
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/atlas-search/) - [and MongoDB Atlas API - Search](https://docs.atlas.mongodb.com/reference/api/atlas-search/) Documentation for more information.
