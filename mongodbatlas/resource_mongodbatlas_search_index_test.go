@@ -79,6 +79,8 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "database", databaseName),
 					resource.TestCheckResourceAttr(resourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(resourceName, "search_analyzer", searchAnalyzer),
+					resource.TestCheckResourceAttrSet(resourceName, "mappings_fields"),
+					resource.TestCheckResourceAttrSet(resourceName, "analyzers"),
 
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
 					resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
@@ -90,6 +92,7 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(datasourceName, "index_id"),
 					resource.TestCheckResourceAttrSet(datasourceName, "mappings_fields"),
+					resource.TestCheckResourceAttrSet(datasourceName, "analyzers"),
 				),
 			},
 		},

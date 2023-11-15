@@ -202,10 +202,6 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 		searchIndex.Analyzer = stringPtr(d.Get("analyzer").(string))
 	}
 
-	if d.HasChange("analyzers") {
-		searchIndex.Analyzers = unmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string))
-	}
-
 	if d.HasChange("collection_name") {
 		searchIndex.CollectionName = d.Get("collection_name").(string)
 	}
@@ -225,6 +221,14 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 	if d.HasChange("mappings_dynamic") {
 		dynamic := d.Get("mappings_dynamic").(bool)
 		searchIndex.Mappings.Dynamic = &dynamic
+	}
+
+	if d.HasChange("analyzers") {
+		analyzers, err := unmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string))
+		if err != nil {
+			return err
+		}
+		searchIndex.Analyzers = analyzers
 	}
 
 	if d.HasChange("mappings_fields") {
@@ -397,7 +401,6 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 	searchIndexRequest := &admin.ClusterSearchIndex{
 		Type:           stringPtr(indexType),
 		Analyzer:       stringPtr(d.Get("analyzer").(string)),
-		Analyzers:      unmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string)),
 		CollectionName: d.Get("collection_name").(string),
 		Database:       d.Get("database").(string),
 		Name:           d.Get("name").(string),
@@ -413,6 +416,11 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 		}
 		searchIndexRequest.Fields = fields
 	} else {
+		analyzers, err := unmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string))
+		if err != nil {
+			return err
+		}
+		searchIndexRequest.Analyzers = analyzers
 		mappingsFields, err := unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
 		if err != nil {
 			return err
@@ -553,16 +561,15 @@ func unmarshalSearchIndexFields(fieldsStr string) ([]map[string]any, diag.Diagno
 	return fields, nil
 }
 
-func unmarshalSearchIndexAnalyzersFields(mappingString string) []admin.ApiAtlasFTSAnalyzers {
+func unmarshalSearchIndexAnalyzersFields(mappingString string) ([]admin.ApiAtlasFTSAnalyzers, diag.Diagnostics) {
 	if mappingString == "" {
-		return nil
+		return nil, nil
 	}
 	var fields []admin.ApiAtlasFTSAnalyzers
 	if err := json.Unmarshal([]byte(mappingString), &fields); err != nil {
-		log.Printf("[ERROR] cannot unmarshal search index mapping fields: %v", err)
-		return nil
+		return nil, diag.Errorf("cannot unmarshal search index attribute `analyzers` because it has an incorrect format")
 	}
-	return fields
+	return fields, nil
 }
 
 func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID, indexID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
