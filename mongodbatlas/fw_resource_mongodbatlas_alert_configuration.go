@@ -502,7 +502,8 @@ func (r *AlertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 	if reflect.DeepEqual(apiReq, &admin.GroupAlertsConfig{Enabled: pointy.Bool(true)}) ||
 		reflect.DeepEqual(apiReq, &admin.GroupAlertsConfig{Enabled: pointy.Bool(false)}) {
 		// this code seems unreachable, as notifications are always being set
-		updatedAlertConfigResp, _, err = connV2.AlertConfigurationsApi.ToggleAlertConfiguration(context.Background(), ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID], &admin.AlertsToggle{Enabled: apiReq.Enabled}).Execute()
+		updatedAlertConfigResp, _, err = connV2.AlertConfigurationsApi.ToggleAlertConfiguration(
+			context.Background(), ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID], &admin.AlertsToggle{Enabled: apiReq.Enabled}).Execute()
 	} else {
 		updatedAlertConfigResp, _, err = connV2.AlertConfigurationsApi.UpdateAlertConfiguration(context.Background(), ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID], apiReq).Execute()
 	}
@@ -566,10 +567,10 @@ func newNotificationList(tfNotificationSlice []tfNotificationModel) ([]admin.Ale
 	}
 
 	for i := range tfNotificationSlice {
-		notifierId := tfNotificationSlice[i].NotifierID.ValueStringPointer()
+		notifierID := tfNotificationSlice[i].NotifierID.ValueStringPointer()
 		// AlertConfigurationsApi expects nil or a valid notifier id
-		if *notifierId == "" {
-			notifierId = nil
+		if *notifierID == "" {
+			notifierID = nil
 		}
 		notification := admin.AlertsNotificationRootForGroup{
 			ApiToken:                 tfNotificationSlice[i].APIToken.ValueStringPointer(),
@@ -591,7 +592,7 @@ func newNotificationList(tfNotificationSlice []tfNotificationModel) ([]admin.Ale
 			VictorOpsApiKey:          tfNotificationSlice[i].VictorOpsAPIKey.ValueStringPointer(),
 			VictorOpsRoutingKey:      tfNotificationSlice[i].VictorOpsRoutingKey.ValueStringPointer(),
 			Roles:                    tfNotificationSlice[i].Roles,
-			NotifierId:               notifierId,
+			NotifierId:               notifierID,
 			MicrosoftTeamsWebhookUrl: tfNotificationSlice[i].MicrosoftTeamsWebhookURL.ValueStringPointer(),
 			WebhookSecret:            tfNotificationSlice[i].WebhookSecret.ValueStringPointer(),
 			WebhookUrl:               tfNotificationSlice[i].WebhookURL.ValueStringPointer(),
