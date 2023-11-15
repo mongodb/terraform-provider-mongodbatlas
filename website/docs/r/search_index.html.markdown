@@ -3,7 +3,7 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: search index"
 sidebar_current: "docs-mongodbatlas-resource-search-index"
 description: |-
-Provides a Search Index resource.
+	Provides a Search Index resource.
 ---
 
 # Resource: mongodbatlas_search_index
