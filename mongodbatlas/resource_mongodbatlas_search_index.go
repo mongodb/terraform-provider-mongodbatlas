@@ -485,7 +485,7 @@ func unmarshalSearchIndexAnalyzersFields(mappingString string) []admin.ApiAtlasF
 	}
 	var fields []admin.ApiAtlasFTSAnalyzers
 	if err := json.Unmarshal([]byte(mappingString), &fields); err != nil {
-		log.Printf("[ERROR] can not unmarshal search index mapping fields: %v", err)
+		log.Printf("[ERROR] cannot unmarshal search index mapping fields: %v", err)
 		return nil
 	}
 	return fields
