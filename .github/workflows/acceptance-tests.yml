@@ -115,7 +115,7 @@ jobs:
   
   cluster_outage_simulation:
     needs: [ check ]
-    if: ${{ needs.check.outputs.cluster_outage_simulation }}
+    if: ${{ needs.check.outputs.cluster_outage_simulation == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -133,7 +133,7 @@ jobs:
 
   advanced_cluster:
     needs: [ check ]
-    if: ${{ needs.check.outputs.advanced_cluster }}
+    if: ${{ needs.check.outputs.advanced_cluster == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -151,7 +151,7 @@ jobs:
 
   cluster:
     needs: [ check ]
-    if: ${{ needs.check.outputs.cluster }}
+    if: ${{ needs.check.outputs.cluster == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -169,7 +169,7 @@ jobs:
 
   generic: # Acceptance tests that do not use any time-consuming resource (example: cluster)
     needs: [ check ]
-    if: ${{ needs.check.outputs.generic }}
+    if: ${{ needs.check.outputs.generic == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -190,7 +190,7 @@ jobs:
 
   backup_online_archive:
     needs: [ check ]
-    if: ${{ needs.check.outputs.backup_online_archive }}
+    if: ${{ needs.check.outputs.backup_online_archive == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -209,7 +209,7 @@ jobs:
 
   backup_snapshots:
     needs: [ check ]
-    if: ${{ needs.check.outputs.backup_snapshots }}
+    if: ${{ needs.check.outputs.backup_snapshots == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -228,7 +228,7 @@ jobs:
         
   backup_schedule:
     needs: [ check ]
-    if: ${{ needs.check.outputs.backup_schedule }}
+    if: ${{ needs.check.outputs.backup_schedule == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -246,7 +246,7 @@ jobs:
         run: make testacc
   project: 
     needs: [ check ]
-    if: ${{ needs.check.outputs.project }}
+    if: ${{ needs.check.outputs.project == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -266,7 +266,7 @@ jobs:
         run: make testacc
   serverless:
     needs: [ check ]
-    if: ${{ needs.check.outputs.serverless }}
+    if: ${{ needs.check.outputs.serverless == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -283,7 +283,7 @@ jobs:
         run: make testacc
   network:
     needs: [ check ]
-    if: ${{ needs.check.outputs.network }}
+    if: ${{ needs.check.outputs.network == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -305,7 +305,7 @@ jobs:
 
   federation:
     needs: [ check ]
-    if: ${{ needs.check.outputs.federation }}
+    if: ${{ needs.check.outputs.federation == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -323,7 +323,7 @@ jobs:
       
   config:
     needs: [ check ]
-    if: ${{ needs.check.outputs.config }}
+    if: ${{ needs.check.outputs.config == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -346,7 +346,7 @@ jobs:
 
   assume_role:
     needs: [ check]
-    if: ${{ needs.check.outputs.assume_role }}
+    if: ${{ needs.check.outputs.assume_role == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -379,7 +379,7 @@ jobs:
 
   search_index:
     needs: [ check ]
-    if: ${{ needs.check.outputs.search_index }}
+    if: ${{ needs.check.outputs.search_index == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
