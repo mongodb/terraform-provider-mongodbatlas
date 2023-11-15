@@ -18,6 +18,7 @@ env:
     SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
     ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
     PARALLEL_GO_TEST: "20"
+    CI: true
 jobs:  
   search_index:
     runs-on: ubuntu-latest

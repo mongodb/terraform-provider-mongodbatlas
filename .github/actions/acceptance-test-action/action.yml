@@ -23,7 +23,6 @@ runs:
       shell: bash
       run: |
         echo forceTestAcc: ${{ inputs.forceTestAcc }}.
-        echo filters: ${{ inputs.filters }}.
         echo testRegex: ${{ inputs.testRegex }}.
         echo Files modified: ${{ steps.filter.outputs.src }}.
         echo Files modified2: ${{ steps.filter.outputs.src == 'true' }}.
