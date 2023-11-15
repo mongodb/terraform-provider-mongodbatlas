@@ -133,7 +133,6 @@ jobs:
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           TF_LOG: ${{ vars.LOG_LEVEL }}
-          TF_ACC: 1
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccOutageSimulationCluster"
         run: make testacc
@@ -158,7 +157,6 @@ jobs:
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           TF_LOG: ${{ vars.LOG_LEVEL }}
-          TF_ACC: 1
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccClusterAdvancedCluster"
         run: make testacc
@@ -183,7 +181,6 @@ jobs:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TF_LOG: ${{ vars.LOG_LEVEL }}
-          TF_ACC: 1
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccClusterRSCluster"
         run: make testacc
@@ -210,7 +207,6 @@ jobs:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TF_LOG: ${{ vars.LOG_LEVEL }}
-          TF_ACC: 1
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccGeneric"
         run: |
@@ -237,7 +233,6 @@ jobs:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TF_LOG: ${{ vars.LOG_LEVEL }}
-          TF_ACC: 1
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccBackupRSOnlineArchive"
         run: make testacc
@@ -263,7 +258,6 @@ jobs:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TF_LOG: ${{ vars.LOG_LEVEL }}
-          TF_ACC: 1
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccBackupRSCloudBackupSnapshot"
         run: make testacc
@@ -289,7 +283,6 @@ jobs:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TF_LOG: ${{ vars.LOG_LEVEL }}
-          TF_ACC: 1
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccBackupRSCloudBackupSchedule"
         run: make testacc
@@ -316,7 +309,6 @@ jobs:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TF_LOG: ${{ vars.LOG_LEVEL }}
-          TF_ACC: 1
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccProject"
         run: make testacc
@@ -340,7 +332,6 @@ jobs:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TF_LOG: ${{ vars.LOG_LEVEL }}
-          TF_ACC: 1
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccServerless"
         run: make testacc
@@ -368,7 +359,6 @@ jobs:
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           AWS_REGION: ${{ vars.AWS_REGION }}
           TF_LOG: ${{ vars.LOG_LEVEL }}
-          TF_ACC: 1
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccNetwork"
         run: make testacc
@@ -393,7 +383,6 @@ jobs:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TF_LOG: ${{ vars.LOG_LEVEL }}
-          TF_ACC: 1
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccFederatedDatabaseInstance"
         run: make testacc
@@ -423,7 +412,6 @@ jobs:
           AZURE_TENANT_ID: ${{vars.AZURE_TENANT_ID}}
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TF_LOG: ${{ vars.LOG_LEVEL }}
-          TF_ACC: 1
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccConfig"
         run: make testacc
@@ -461,7 +449,6 @@ jobs:
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TF_LOG: ${{ vars.LOG_LEVEL }}
-          TF_ACC: 1
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccSTSAssumeRole"
         run: make testacc
@@ -487,7 +474,6 @@ jobs:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TF_LOG: ${{ vars.LOG_LEVEL }}
-          TF_ACC: 1
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccSearchIndex"
         run: make testacc
