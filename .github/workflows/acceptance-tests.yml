@@ -13,7 +13,7 @@ on:
     types: [ labeled ]
 
 env:
-    FORCE_TEST_ACC: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || inputs.parent-event-name == 'release' }}
+    FORCE_TEST_ACC: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' }}
     TF_LOG: ${{ vars.LOG_LEVEL }}
     SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
     ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
@@ -23,6 +23,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Print vars
+        shell: bash
+        run: |
+          echo SHOW VARS
+          echo FORCE_TEST_ACC: ${{ env.FORCE_TEST_ACC }}.
+          echo forceTestAcc: ${{ env.FORCE_TEST_ACC || github.event.label.name == 'run-testacc-search-index' }}.
+          echo github.event.label.name: ${{ github.event.label.name  }}.
       - uses: ./.github/actions/acceptance-test-action
         env:
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
