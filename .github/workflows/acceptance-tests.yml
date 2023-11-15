@@ -373,7 +373,6 @@ jobs:
           AWS_SESSION_TOKEN: ${{ steps.sts-assume-role.outputs.AWS_SESSION_TOKEN }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
-          SKIP_TEST_EXTERNAL_CREDENTIALS: false
           TEST_REGEX: "^TestAccSTSAssumeRole"
         run: make testacc
 
