@@ -496,7 +496,7 @@ func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID,
 		searchIndex, resp, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 		status := util.SafeString(searchIndex.Status)
 		if err != nil {
-			return nil, "ERROR2", err
+			return nil, "ERROR", err
 		}
 		if err != nil && searchIndex == nil && resp == nil {
 			return nil, "", err
