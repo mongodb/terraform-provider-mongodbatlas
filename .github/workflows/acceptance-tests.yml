@@ -23,21 +23,21 @@ jobs:
       pull-requests: read
       repository-projects: read
     outputs:
-      cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation || github.event.label.name == 'run-testacc-cluster-outage-simulation' || env.ALWAYS_RUN }}
-      advanced_cluster: ${{ steps.filter.outputs.advanced_cluster || github.event.label.name == 'run-testacc-advanced-cluster' || env.ALWAYS_RUN }}
-      cluster: ${{ steps.filter.outputs.cluster || github.event.label.name == 'run-testacc-cluster' || env.ALWAYS_RUN }}
+      cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation == 'true' || github.event.label.name == 'run-testacc-cluster-outage-simulation' || env.ALWAYS_RUN == 'true' }}
+      advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || github.event.label.name == 'run-testacc-advanced-cluster' || env.ALWAYS_RUN == 'true' }}
+      cluster: ${{ steps.filter.outputs.cluster == 'true' || github.event.label.name == 'run-testacc-cluster' || env.ALWAYS_RUN == 'true' }}
       generic: ${{ steps.filter.outputs.generic == 'true' || github.event.label.name == 'run-testacc-generic' || env.ALWAYS_RUN == 'true' }}
-      backup_online_archive: ${{ steps.filter.outputs.backup_online_archive || github.event.label.name == 'run-testacc-backup-online-archive' || env.ALWAYS_RUN }}
-      backup_snapshots: ${{ steps.filter.outputs.backup_snapshots || github.event.label.name == 'run-testacc-backup-snapshots' || env.ALWAYS_RUN }}
-      federation: ${{ steps.filter.outputs.federation || github.event.label.name == 'run-testacc-federation' || env.ALWAYS_RUN }}
-      backup_schedule: ${{ steps.filter.outputs.backup_schedule || github.event.label.name == 'run-testacc-backup-schedule' || env.ALWAYS_RUN }}
-      project: ${{ steps.filter.outputs.project || github.event.label.name == 'run-testacc-project' || env.ALWAYS_RUN }}
-      serverless: ${{ steps.filter.outputs.serverless || github.event.label.name == 'run-testacc-serverless' || env.ALWAYS_RUN }}
-      network: ${{ steps.filter.outputs.network || github.event.label.name == 'run-testacc-network' || env.ALWAYS_RUN }}
-      config: ${{ steps.filter.outputs.config || github.event.label.name == 'run-testacc-config' || env.ALWAYS_RUN }}
-      assume_role: ${{ steps.filter.outputs.assume_role || github.event.label.name == 'run-testacc-assume-role' || env.ALWAYS_RUN }}
-      event_trigger: ${{ steps.filter.outputs.event_trigger || github.event.label.name == 'run-testacc-event-trigger' || env.ALWAYS_RUN }}
-      search_index: ${{ steps.filter.outputs.search_index || github.event.label.name == 'run-testacc-search-index' || env.ALWAYS_RUN }}
+      backup_online_archive: ${{ steps.filter.outputs.backup_online_archive == 'true' || github.event.label.name == 'run-testacc-backup-online-archive' || env.ALWAYS_RUN == 'true' }}
+      backup_snapshots: ${{ steps.filter.outputs.backup_snapshots == 'true' || github.event.label.name == 'run-testacc-backup-snapshots' || env.ALWAYS_RUN == 'true' }}
+      federation: ${{ steps.filter.outputs.federation == 'true' || github.event.label.name == 'run-testacc-federation' || env.ALWAYS_RUN == 'true' }}
+      backup_schedule: ${{ steps.filter.outputs.backup_schedule == 'true' || github.event.label.name == 'run-testacc-backup-schedule' || env.ALWAYS_RUN == 'true' }}
+      project: ${{ steps.filter.outputs.project == 'true' || github.event.label.name == 'run-testacc-project' || env.ALWAYS_RUN == 'true' }}
+      serverless: ${{ steps.filter.outputs.serverless == 'true' || github.event.label.name == 'run-testacc-serverless' || env.ALWAYS_RUN == 'true' }}
+      network: ${{ steps.filter.outputs.network == 'true' || github.event.label.name == 'run-testacc-network' || env.ALWAYS_RUN == 'true' }}
+      config: ${{ steps.filter.outputs.config == 'true' || github.event.label.name == 'run-testacc-config' || env.ALWAYS_RUN == 'true' }}
+      assume_role: ${{ steps.filter.outputs.assume_role == 'true' || github.event.label.name == 'run-testacc-assume-role' || env.ALWAYS_RUN == 'true' }}
+      event_trigger: ${{ steps.filter.outputs.event_trigger == 'true' || github.event.label.name == 'run-testacc-event-trigger' || env.ALWAYS_RUN == 'true' }}
+      search_index: ${{ steps.filter.outputs.search_index == 'true' || github.event.label.name == 'run-testacc-search-index' || env.ALWAYS_RUN == 'true' }}
     steps:
     - uses: actions/checkout@v4
     - uses: dorny/paths-filter@v2
