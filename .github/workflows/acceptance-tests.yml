@@ -17,7 +17,7 @@ env:
   TF_LOG: ${{ vars.LOG_LEVEL }}
 
 jobs:  
-  change-detection:
+  check:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
@@ -114,8 +114,8 @@ jobs:
             - 'mongodbatlas/resource_mongodbatlas_search_index*.go'
   
   cluster_outage_simulation:
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.cluster_outage_simulation }}
+    needs: [ check ]
+    if: ${{ needs.check.outputs.cluster_outage_simulation }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -132,8 +132,8 @@ jobs:
         run: make testacc
 
   advanced_cluster:
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.advanced_cluster }}
+    needs: [ check ]
+    if: ${{ needs.check.outputs.advanced_cluster }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -150,8 +150,8 @@ jobs:
         run: make testacc
 
   cluster:
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.cluster }}
+    needs: [ check ]
+    if: ${{ needs.check.outputs.cluster }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -168,8 +168,8 @@ jobs:
         run: make testacc
 
   generic: # Acceptance tests that do not use any time-consuming resource (example: cluster)
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.generic }}
+    needs: [ check ]
+    if: ${{ needs.check.outputs.generic }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -189,8 +189,8 @@ jobs:
           make testacc
 
   backup_online_archive:
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_online_archive }}
+    needs: [ check ]
+    if: ${{ needs.check.outputs.backup_online_archive }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -208,8 +208,8 @@ jobs:
         run: make testacc
 
   backup_snapshots:
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_snapshots }}
+    needs: [ check ]
+    if: ${{ needs.check.outputs.backup_snapshots }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -227,8 +227,8 @@ jobs:
         run: make testacc
         
   backup_schedule:
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_schedule }}
+    needs: [ check ]
+    if: ${{ needs.check.outputs.backup_schedule }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -245,8 +245,8 @@ jobs:
           TEST_REGEX: "^TestAccBackupRSCloudBackupSchedule"
         run: make testacc
   project: 
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.project }}
+    needs: [ check ]
+    if: ${{ needs.check.outputs.project }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -265,8 +265,8 @@ jobs:
           TEST_REGEX: "^TestAccProject"
         run: make testacc
   serverless:
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.serverless }}
+    needs: [ check ]
+    if: ${{ needs.check.outputs.serverless }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -282,8 +282,8 @@ jobs:
           TEST_REGEX: "^TestAccServerless"
         run: make testacc
   network:
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.network }}
+    needs: [ check ]
+    if: ${{ needs.check.outputs.network }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -304,8 +304,8 @@ jobs:
         run: make testacc
 
   federation:
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.federation }}
+    needs: [ check ]
+    if: ${{ needs.check.outputs.federation }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -322,8 +322,8 @@ jobs:
         run: make testacc
       
   config:
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.config }}
+    needs: [ check ]
+    if: ${{ needs.check.outputs.config }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -345,8 +345,8 @@ jobs:
         run: make testacc
 
   assume_role:
-    needs: [ change-detection]
-    if: ${{ needs.change-detection.outputs.assume_role }}
+    needs: [ check]
+    if: ${{ needs.check.outputs.assume_role }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -378,8 +378,8 @@ jobs:
         run: make testacc
 
   search_index:
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.search_index }}
+    needs: [ check ]
+    if: ${{ needs.check.outputs.search_index }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
