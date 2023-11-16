@@ -37,11 +37,6 @@ func thirdPartyIntegrationSchema() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"license_key": {
-				Type:      schema.TypeString,
-				Sensitive: true,
-				Computed:  true,
-			},
 			"account_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -56,11 +51,6 @@ func thirdPartyIntegrationSchema() *schema.Resource {
 				Computed: true,
 			},
 			"service_key": {
-				Type:      schema.TypeString,
-				Sensitive: true,
-				Computed:  true,
-			},
-			"api_token": {
 				Type:      schema.TypeString,
 				Sensitive: true,
 				Computed:  true,

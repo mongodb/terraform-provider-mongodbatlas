@@ -39,17 +39,6 @@ const (
 	}
 	`
 
-	NEWRELIC = `
-	resource "mongodbatlas_third_party_integration" "%[1]s" {
-		project_id = "%[2]s"
-		type = "%[3]s"
-		license_key = "%[4]s"
-		account_id  = "%[5]s"
-		write_token = "%[6]s"
-		read_token  = "%[7]s"
-	}
-	`
-
 	OPSGENIE = `
 	resource "mongodbatlas_third_party_integration" "%[1]s" {
 		project_id = "%[2]s"
@@ -64,16 +53,6 @@ const (
 		type = "%[3]s"
 		api_key = "%[4]s"
 		routing_key = "%[5]s"
-	}
-	`
-
-	FLOWDOCK = `
-	resource "mongodbatlas_third_party_integration" "%[1]s" {
-		project_id = "%[2]s"
-		type = "%[3]s"
-		flow_name = "%[4]s"
-		api_token = "%[5]s"
-		org_name =  "%[6]s"
 	}
 	`
 
@@ -171,7 +150,7 @@ func testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(config *thirdPartyCo
 			config.Name,
 			config.ProjectID,
 			config.Integration.Type,
-			config.Integration.LicenseKey,
+			config.Integration.ServiceKey,
 		)
 	case "DATADOG":
 		return fmt.Sprintf(DATADOG,
@@ -180,16 +159,6 @@ func testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(config *thirdPartyCo
 			config.Integration.Type,
 			config.Integration.APIKey,
 			config.Integration.Region,
-		)
-	case "NEW_RELIC":
-		return fmt.Sprintf(NEWRELIC,
-			config.Name,
-			config.ProjectID,
-			config.Integration.Type,
-			config.Integration.LicenseKey,
-			config.Integration.AccountID,
-			config.Integration.WriteToken,
-			config.Integration.ReadToken,
 		)
 	case "OPS_GENIE":
 		return fmt.Sprintf(OPSGENIE,
@@ -243,22 +212,14 @@ func testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(config *thirdPartyCo
 func testAccCreateThirdPartyIntegrationConfig() *matlas.ThirdPartyIntegration {
 	account := testGenString(6, numeric)
 	return &matlas.ThirdPartyIntegration{
-		Type: "OPS_GENIE",
-		// Pager dutty 20-character strings
-		LicenseKey:  testGenString(20, alphabet),
-		APIToken:    fmt.Sprintf("xoxb-%s-%s-%s", testGenString(12, numeric), testGenString(12, numeric), testGenString(24, alphaNum)),
+		Type:        "OPS_GENIE",
 		TeamName:    "MongoSlackTestTeam " + account,
 		ChannelName: "MongoSlackTestChannel " + account,
 		// DataDog 40
-		APIKey: testGenString(40, alphaNum),
-		Region: "EU",
-
-		AccountID:        account,
-		WriteToken:       "write-test-" + testGenString(20, alphaNum),
+		APIKey:           testGenString(40, alphaNum),
+		Region:           "EU",
 		ReadToken:        "read-test-" + testGenString(20, alphaNum),
 		RoutingKey:       testGenString(40, alphaNum),
-		FlowName:         "MongoFlow test" + account,
-		OrgName:          "MongoOrgTest " + account,
 		URL:              "https://www.mongodb.com/webhook",
 		Secret:           account,
 		UserName:         "PROM_USER",

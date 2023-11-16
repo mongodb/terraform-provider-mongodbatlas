@@ -103,6 +103,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLink() *schema.Resource {
 				Optional:      true,
 				Computed:      true,
 				ConflictsWith: []string{"private_endpoint_ip_address"},
+				ConfigMode:    schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"status": {

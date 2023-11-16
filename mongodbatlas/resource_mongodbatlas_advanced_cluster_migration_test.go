@@ -1,132 +1,103 @@
 package mongodbatlas
 
 import (
-	"fmt"
+	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccClusterRSAdvancedClusterMigrateState_empty_advancedConfig(t *testing.T) {
-	v0State := map[string]any{
-		"project_id":   "test-id",
-		"name":         "test-cluster",
-		"cluster_type": "REPLICASET",
-		"replication_specs": []any{
-			map[string]any{
-				"region_configs": []any{
-					map[string]any{
-						"electable_specs": []any{
-							map[string]any{
-								"instance_size": "M30",
-								"node_count":    3,
-							},
-						},
-						"provider_name": "AWS",
-						"region_name":   "US_EAST_1",
-						"priority":      7,
+func TestAccMigrationAdvancedClusterRS_singleAWSProvider(t *testing.T) {
+	var (
+		cluster               matlas.AdvancedCluster
+		resourceName          = "mongodbatlas_advanced_cluster.test"
+		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName           = acctest.RandomWithPrefix("test-acc")
+		rName                 = acctest.RandomWithPrefix("test-acc")
+		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
+		CheckDestroy: testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: map[string]resource.ExternalProvider{
+					"mongodbatlas": {
+						VersionConstraint: lastVersionConstraint,
+						Source:            "mongodb/mongodbatlas",
 					},
 				},
+				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProvider(orgID, projectName, rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+				),
+			},
+			{
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				Config:                   testAccMongoDBAtlasAdvancedClusterConfigSingleProvider(orgID, projectName, rName),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						DebugPlan(),
+					},
+				},
+				PlanOnly: true,
 			},
 		},
-		"bi_connector": []any{
-			map[string]any{
-				"enabled":         1,
-				"read_preference": "secondary",
-			},
-		},
-	}
-
-	v0Config := terraform.NewResourceConfigRaw(v0State)
-	diags := resourceMongoDBAtlasAdvancedClusterResourceV0().Validate(v0Config)
-
-	if len(diags) > 0 {
-		t.Error("test precondition failed - invalid mongodb cluster v0 config")
-
-		return
-	}
-
-	// test migrate function
-	v1State := migrateBIConnectorConfig(v0State)
-
-	v1Config := terraform.NewResourceConfigRaw(v1State)
-	diags = resourceMongoDBAtlasAdvancedCluster().Validate(v1Config)
-	if len(diags) > 0 {
-		fmt.Println(diags)
-		t.Error("migrated cluster advanced config is invalid")
-
-		return
-	}
+	})
 }
 
-func TestAccClusterRSAdvancedClusterV0StateUpgrade_ReplicationSpecs(t *testing.T) {
-	v0State := map[string]any{
-		"project_id":     "test-id",
-		"name":           "test-cluster",
-		"cluster_type":   "REPLICASET",
-		"backup_enabled": true,
-		"disk_size_gb":   256,
-		"replication_specs": []any{
-			map[string]any{
-				"zone_name": "Test Zone",
-				"region_configs": []any{
-					map[string]any{
-						"priority":      7,
-						"provider_name": "AWS",
-						"region_name":   "US_EAST_1",
-						"electable_specs": []any{
-							map[string]any{
-								"instance_size": "M30",
-								"node_count":    3,
-							},
-						},
-						"read_only_specs": []any{
-							map[string]any{
-								"disk_iops":     0,
-								"instance_size": "M30",
-								"node_count":    0,
-							},
-						},
-						"auto_scaling": []any{
-							map[string]any{
-								"compute_enabled":            true,
-								"compute_max_instance_size":  "M60",
-								"compute_min_instance_size":  "M30",
-								"compute_scale_down_enabled": true,
-								"disk_gb_enabled":            false,
-							},
-						},
+func TestAccMigrationAdvancedClusterRS_multiCloud(t *testing.T) {
+	var (
+		cluster               matlas.AdvancedCluster
+		resourceName          = "mongodbatlas_advanced_cluster.test"
+		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName           = acctest.RandomWithPrefix("test-acc")
+		rName                 = acctest.RandomWithPrefix("test-acc")
+		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
+		CheckDestroy: testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: map[string]resource.ExternalProvider{
+					"mongodbatlas": {
+						VersionConstraint: lastVersionConstraint,
+						Source:            "mongodb/mongodbatlas",
 					},
 				},
+				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+				),
+			},
+			{
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				Config:                   testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						DebugPlan(),
+					},
+				},
+				PlanOnly: true,
 			},
 		},
-	}
-
-	v0Config := terraform.NewResourceConfigRaw(v0State)
-	diags := resourceMongoDBAtlasAdvancedClusterResourceV0().Validate(v0Config)
-
-	if len(diags) > 0 {
-		fmt.Println(diags)
-		t.Error("test precondition failed - invalid mongodb cluster v0 config")
-
-		return
-	}
-
-	// test migrate function
-	v1State := migrateBIConnectorConfig(v0State)
-
-	v1Config := terraform.NewResourceConfigRaw(v1State)
-	diags = resourceMongoDBAtlasAdvancedCluster().Validate(v1Config)
-	if len(diags) > 0 {
-		fmt.Println(diags)
-		t.Error("migrated advanced cluster replication_specs invalid")
-
-		return
-	}
-
-	if len(v1State["replication_specs"].([]any)) != len(v0State["replication_specs"].([]any)) {
-		t.Error("migrated replication specs did not contain the same number of elements")
-
-		return
-	}
+	})
 }

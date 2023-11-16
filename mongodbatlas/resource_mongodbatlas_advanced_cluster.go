@@ -356,6 +356,7 @@ func advancedClusterRegionConfigsSpecsSchema() *schema.Schema {
 				"disk_iops": {
 					Type:     schema.TypeInt,
 					Optional: true,
+					Computed: true,
 				},
 				"ebs_volume_type": {
 					Type:     schema.TypeString,
@@ -1219,9 +1220,7 @@ func flattenAdvancedReplicationSpecRegionConfigSpec(apiObject *matlas.Specs, pro
 
 		if providerName == "AWS" {
 			if cast.ToInt64(apiObject.DiskIOPS) > 0 {
-				if v, ok := tfMapObject["disk_iops"]; ok && v.(int) > 0 {
-					tfMap["disk_iops"] = apiObject.DiskIOPS
-				}
+				tfMap["disk_iops"] = apiObject.DiskIOPS
 			}
 			if v, ok := tfMapObject["ebs_volume_type"]; ok && v.(string) != "" {
 				tfMap["ebs_volume_type"] = apiObject.EbsVolumeType
