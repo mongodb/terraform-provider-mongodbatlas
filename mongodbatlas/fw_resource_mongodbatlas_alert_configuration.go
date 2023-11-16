@@ -403,7 +403,7 @@ func (r *AlertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	encodedID := encodeStateID(map[string]string{
-		encodedIDKeyAlertID:   *apiResp.Id,
+		encodedIDKeyAlertID:   util.SafeString(apiResp.Id),
 		encodedIDKeyProjectID: projectID,
 	})
 	alertConfigPlan.ID = types.StringValue(encodedID)
@@ -645,8 +645,8 @@ func newTFAlertConfigurationModel(apiRespConfig *admin.GroupAlertsConfig, currSt
 	return tfAlertConfigurationRSModel{
 		ID:                    currState.ID,
 		ProjectID:             currState.ProjectID,
-		AlertConfigurationID:  types.StringValue(*apiRespConfig.Id),
-		EventType:             types.StringValue(*apiRespConfig.EventTypeName),
+		AlertConfigurationID:  types.StringValue(util.SafeString(apiRespConfig.Id)),
+		EventType:             types.StringValue(util.SafeString(apiRespConfig.EventTypeName)),
 		Created:               types.StringPointerValue(util.TimePtrToStringPtr(apiRespConfig.Created)),
 		Updated:               types.StringPointerValue(util.TimePtrToStringPtr(apiRespConfig.Updated)),
 		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
