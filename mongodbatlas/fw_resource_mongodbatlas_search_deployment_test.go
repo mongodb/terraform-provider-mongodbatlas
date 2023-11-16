@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccSearchNode_basic(t *testing.T) {
+func TestAccSearchDeployment_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_search_deployment.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")

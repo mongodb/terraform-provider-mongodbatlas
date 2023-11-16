@@ -209,7 +209,7 @@ jobs:
           TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           PARALLEL_GO_TEST: 20
-          TEST_REGEX: "^TestAccSearchNode"
+          TEST_REGEX: "^TestAccSearchDeployment"
         run: make testacc
 
   generic: # Acceptance tests that do not use any time-consuming resource (example: cluster)
