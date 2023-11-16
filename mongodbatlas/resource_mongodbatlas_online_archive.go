@@ -123,7 +123,7 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 						Type:     schema.TypeString,
 						Required: true,
 					},
-					"cluster_provider": {
+					"cloud_provider": {
 						Type:     schema.TypeString,
 						Required: true,
 					},
