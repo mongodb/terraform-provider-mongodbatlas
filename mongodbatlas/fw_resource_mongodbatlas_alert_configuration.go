@@ -464,6 +464,7 @@ func (r *AlertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 	// Removing the computed attributes to recreate the original request
+	apiReq.GroupId = nil
 	apiReq.Created = nil
 	apiReq.Updated = nil
 
