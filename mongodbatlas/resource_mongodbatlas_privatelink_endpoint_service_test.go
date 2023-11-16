@@ -28,17 +28,17 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testCheckAwsEnv(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
+		PreCheck:                 func() { testAccPreCheck(t); testCheckAwsEnv(t) },
+		CheckDestroy:             testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"aws": {
+				VersionConstraint: "5.1.0",
+				Source:            "hashicorp/aws",
+			},
+		},
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"aws": {
-						VersionConstraint: "5.1.0",
-						Source:            "hashicorp/aws",
-					},
-				},
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
 				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(
 					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, resourceSuffix,
 				),
@@ -71,17 +71,17 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_import(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testCheckAwsEnv(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
+		PreCheck:                 func() { testAccPreCheck(t); testCheckAwsEnv(t) },
+		CheckDestroy:             testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"aws": {
+				VersionConstraint: "5.1.0",
+				Source:            "hashicorp/aws",
+			},
+		},
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"aws": {
-						VersionConstraint: "5.1.0",
-						Source:            "hashicorp/aws",
-					},
-				},
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
 				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(
 					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, resourceSuffix,
 				),
@@ -93,18 +93,11 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_import(t *testing.T) {
 				),
 			},
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"aws": {
-						VersionConstraint: "5.1.0",
-						Source:            "hashicorp/aws",
-					},
-				},
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
-				ResourceName:             resourceName,
-				ImportStateIdFunc:        testAccCheckMongoDBAtlasPrivateLinkEndpointServiceImportStateIDFunc(resourceName),
-				ImportState:              true,
-				ImportStateVerify:        true,
-				ImportStateVerifyIgnore:  []string{"private_link_id"},
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasPrivateLinkEndpointServiceImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"private_link_id"},
 			},
 		},
 	})
