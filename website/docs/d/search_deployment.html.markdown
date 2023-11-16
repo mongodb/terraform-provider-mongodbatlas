@@ -30,10 +30,8 @@ data "mongodbatlas_search_deployment" "test" {
 * `state_name` - Human-readable label that indicates the current operating condition of this search node deployment.
 
 ### Specs
-TODO: add proper link here
-* `instance_size` - (Required) Hardware specification for the search node instance sizes. The [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/) describes the valid values. More details can also be found in the [Search Node Documentation](https://www.mongodb.com/docs/atlas/cluster-config/multi-cloud-distribution/#search-tier).
+* `instance_size` - (Required) Hardware specification for the search node instance sizes. The [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Atlas-Search/operation/createAtlasSearchDeployment) describes the valid values. More details can also be found in the [Search Node Documentation](https://www.mongodb.com/docs/atlas/cluster-config/multi-cloud-distribution/#search-tier).
 * `node_count` - (Required) Number of search nodes in the cluster.
 
 
-TODO: add proper link here
-For more information see: [MongoDB Atlas API - Search Node](https://docs.atlas.mongodb.com/reference/api/) Documentation.
+For more information see: [MongoDB Atlas API - Search Node](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Atlas-Search/operation/createAtlasSearchDeployment) Documentation.

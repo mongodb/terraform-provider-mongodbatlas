@@ -8,7 +8,7 @@ Provides a Search Deployment resource.
 
 # Resource: mongodbatlas_search_deployment
 
-`mongodbatlas_search_deployment` provides a Search Node resource. The resource lets you create, edit and delete dedicated search nodes in a cluster.
+`mongodbatlas_search_deployment` provides a Search Deployment resource. The resource lets you create, edit and delete dedicated search nodes in a cluster.
 
 -> **NOTE:** For details on supported cloud providers and existing limitations you can visit the [Search Node Documentation](https://www.mongodb.com/docs/atlas/cluster-config/multi-cloud-distribution/#search-nodes-for-workload-isolation).
 -> **NOTE:** Only a single search deployment resource can be defined for each cluster.
@@ -40,8 +40,7 @@ resource "mongodbatlas_search_deployment" "test" {
 
 Specs list is defined as a ["list nested attribute"](https://developer.hashicorp.com/terraform/plugin/framework/handling-data/attributes/list-nested) containing a single element.
 
-TODO: add proper link here
-* `instance_size` - (Required) Hardware specification for the search node instance sizes. The [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/) describes the valid values. More details can also be found in the [Search Node Documentation](https://www.mongodb.com/docs/atlas/cluster-config/multi-cloud-distribution/#search-tier).
+* `instance_size` - (Required) Hardware specification for the search node instance sizes. The [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Atlas-Search/operation/createAtlasSearchDeployment) describes the valid values. More details can also be found in the [Search Node Documentation](https://www.mongodb.com/docs/atlas/cluster-config/multi-cloud-distribution/#search-tier).
 * `node_count` - (Required) Number of search nodes in the cluster.
 
 ## Attributes Reference
@@ -57,5 +56,5 @@ Search node resource can be imported using the project ID and cluster name, in t
 ```
 $ terraform import mongodbatlas_search_deployment.test 650972848269185c55f40ca1-Cluster0
 ```
-TODO: add proper link here
-For more information see: [MongoDB Atlas API - Search Node](https://docs.atlas.mongodb.com/reference/api/) Documentation.
+
+For more information see: [MongoDB Atlas API - Search Node](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Atlas-Search/operation/createAtlasSearchDeployment) Documentation.

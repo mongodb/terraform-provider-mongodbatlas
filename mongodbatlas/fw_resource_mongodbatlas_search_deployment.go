@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	retrystrategy "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
-	"go.mongodb.org/atlas-sdk/v20231001002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
 
 var _ resource.ResourceWithConfigure = &SearchDeploymentRS{}
