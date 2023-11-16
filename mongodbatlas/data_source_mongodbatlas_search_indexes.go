@@ -100,25 +100,29 @@ func flattenSearchIndexes(searchIndexes []admin.ClusterSearchIndex, projectID, c
 
 	for i := range searchIndexes {
 		searchIndexesMap[i] = map[string]any{
-			"project_id":       projectID,
-			"cluster_name":     clusterName,
-			"analyzer":         searchIndexes[i].Analyzer,
-			"collection_name":  searchIndexes[i].CollectionName,
-			"database":         searchIndexes[i].Database,
-			"index_id":         searchIndexes[i].IndexID,
-			"mappings_dynamic": searchIndexes[i].Mappings.Dynamic,
-			"name":             searchIndexes[i].Name,
-			"search_analyzer":  searchIndexes[i].SearchAnalyzer,
-			"status":           searchIndexes[i].Status,
-			"synonyms":         flattenSearchIndexSynonyms(searchIndexes[i].Synonyms),
+			"project_id":      projectID,
+			"cluster_name":    clusterName,
+			"analyzer":        searchIndexes[i].Analyzer,
+			"collection_name": searchIndexes[i].CollectionName,
+			"database":        searchIndexes[i].Database,
+			"index_id":        searchIndexes[i].IndexID,
+			"name":            searchIndexes[i].Name,
+			"search_analyzer": searchIndexes[i].SearchAnalyzer,
+			"status":          searchIndexes[i].Status,
+			"synonyms":        flattenSearchIndexSynonyms(searchIndexes[i].Synonyms),
+			"type":            searchIndexes[i].Type,
 		}
 
-		if len(searchIndexes[i].Mappings.Fields) > 0 {
-			searchIndexMappingFields, err := marshalSearchIndex(searchIndexes[i].Mappings.Fields)
-			if err != nil {
-				return nil, err
+		if searchIndexes[i].Mappings != nil {
+			searchIndexesMap[i]["mappings_dynamic"] = searchIndexes[i].Mappings.Dynamic
+
+			if len(searchIndexes[i].Mappings.Fields) > 0 {
+				searchIndexMappingFields, err := marshalSearchIndex(searchIndexes[i].Mappings.Fields)
+				if err != nil {
+					return nil, err
+				}
+				searchIndexesMap[i]["mappings_fields"] = searchIndexMappingFields
 			}
-			searchIndexesMap[i]["mappings_fields"] = searchIndexMappingFields
 		}
 
 		if len(searchIndexes[i].Analyzers) > 0 {
@@ -127,6 +131,14 @@ func flattenSearchIndexes(searchIndexes []admin.ClusterSearchIndex, projectID, c
 				return nil, err
 			}
 			searchIndexesMap[i]["analyzers"] = searchIndexAnalyzers
+		}
+
+		if len(searchIndexes[i].Fields) > 0 {
+			fields, err := marshalSearchIndex(searchIndexes[i].Fields)
+			if err != nil {
+				return nil, err
+			}
+			searchIndexesMap[i]["fields"] = fields
 		}
 	}
 
