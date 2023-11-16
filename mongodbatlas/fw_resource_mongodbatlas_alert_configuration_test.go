@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"go.mongodb.org/atlas-sdk/v20231001002/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
@@ -135,15 +134,15 @@ func TestAccConfigRSAlertConfiguration_WithMatchers(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAlertConfigurationConfigWithMatchers(orgID, projectName, true, false, true,
-					matlas.Matcher{
-						FieldName: "TYPE_NAME",
-						Operator:  "EQUALS",
-						Value:     "SECONDARY",
+					map[string]interface{}{
+						"fieldName": "TYPE_NAME",
+						"operator":  "EQUALS",
+						"value":     "SECONDARY",
 					},
-					matlas.Matcher{
-						FieldName: "TYPE_NAME",
-						Operator:  "CONTAINS",
-						Value:     "MONGOS",
+					map[string]interface{}{
+						"fieldName": "TYPE_NAME",
+						"operator":  "CONTAINS",
+						"value":     "MONGOS",
 					}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
@@ -152,15 +151,15 @@ func TestAccConfigRSAlertConfiguration_WithMatchers(t *testing.T) {
 			},
 			{
 				Config: testAccMongoDBAtlasAlertConfigurationConfigWithMatchers(orgID, projectName, false, true, false,
-					matlas.Matcher{
-						FieldName: "TYPE_NAME",
-						Operator:  "NOT_EQUALS",
-						Value:     "SECONDARY",
+					map[string]interface{}{
+						"fieldName": "TYPE_NAME",
+						"operator":  "NOT_EQUALS",
+						"value":     "SECONDARY",
 					},
-					matlas.Matcher{
-						FieldName: "HOSTNAME",
-						Operator:  "EQUALS",
-						Value:     "PRIMARY",
+					map[string]interface{}{
+						"fieldName": "HOSTNAME",
+						"operator":  "EQUALS",
+						"value":     "PRIMARY",
 					}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
@@ -672,7 +671,7 @@ func testAccMongoDBAtlasAlertConfigurationConfigNotifications(orgID, projectName
 	`, orgID, projectName, enabled, smsEnabled, emailEnabled)
 }
 
-func testAccMongoDBAtlasAlertConfigurationConfigWithMatchers(orgID, projectName string, enabled, smsEnabled, emailEnabled bool, m1, m2 matlas.Matcher) string {
+func testAccMongoDBAtlasAlertConfigurationConfigWithMatchers(orgID, projectName string, enabled, smsEnabled, emailEnabled bool, m1, m2 map[string]interface{}) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q
@@ -704,8 +703,8 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithMatchers(orgID, projectName 
 			}
 		}
 	`, orgID, projectName, enabled, smsEnabled, emailEnabled,
-		m1.FieldName, m1.Operator, m1.Value,
-		m2.FieldName, m2.Operator, m2.Value)
+		m1["fieldName"], m1["operator"], m1["value"],
+		m2["fieldName"], m2["operator"], m2["value"])
 }
 
 func testAccMongoDBAtlasAlertConfigurationConfigWithMetrictUpdated(orgID, projectName string, enabled bool, threshold float64) string {

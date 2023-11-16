@@ -567,11 +567,6 @@ func newNotificationList(tfNotificationSlice []tfNotificationModel) ([]admin.Ale
 	}
 
 	for i := range tfNotificationSlice {
-		notifierID := tfNotificationSlice[i].NotifierID.ValueStringPointer()
-		// AlertConfigurationsApi expects nil or a valid notifier id
-		if *notifierID == "" {
-			notifierID = nil
-		}
 		notification := admin.AlertsNotificationRootForGroup{
 			ApiToken:                 tfNotificationSlice[i].APIToken.ValueStringPointer(),
 			ChannelName:              tfNotificationSlice[i].ChannelName.ValueStringPointer(),
@@ -592,10 +587,12 @@ func newNotificationList(tfNotificationSlice []tfNotificationModel) ([]admin.Ale
 			VictorOpsApiKey:          tfNotificationSlice[i].VictorOpsAPIKey.ValueStringPointer(),
 			VictorOpsRoutingKey:      tfNotificationSlice[i].VictorOpsRoutingKey.ValueStringPointer(),
 			Roles:                    tfNotificationSlice[i].Roles,
-			NotifierId:               notifierID,
 			MicrosoftTeamsWebhookUrl: tfNotificationSlice[i].MicrosoftTeamsWebhookURL.ValueStringPointer(),
 			WebhookSecret:            tfNotificationSlice[i].WebhookSecret.ValueStringPointer(),
 			WebhookUrl:               tfNotificationSlice[i].WebhookURL.ValueStringPointer(),
+		}
+		if !tfNotificationSlice[i].NotifierID.IsUnknown() {
+			notification.NotifierId = tfNotificationSlice[i].NotifierID.ValueStringPointer()
 		}
 		notifications = append(notifications, notification)
 	}

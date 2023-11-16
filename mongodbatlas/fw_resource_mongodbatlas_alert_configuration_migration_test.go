@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"go.mongodb.org/atlas-sdk/v20231001002/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -151,15 +150,15 @@ func TestAccMigrationConfigRSAlertConfiguration_MultipleMatchers(t *testing.T) {
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		alert        = &admin.GroupAlertsConfig{}
 		config       = testAccMongoDBAtlasAlertConfigurationConfigWithMatchers(orgID, projectName, true, false, true,
-			matlas.Matcher{
-				FieldName: "TYPE_NAME",
-				Operator:  "EQUALS",
-				Value:     "SECONDARY",
+			map[string]interface{}{
+				"fieldName": "TYPE_NAME",
+				"operator":  "EQUALS",
+				"value":     "SECONDARY",
 			},
-			matlas.Matcher{
-				FieldName: "TYPE_NAME",
-				Operator:  "CONTAINS",
-				Value:     "MONGOS",
+			map[string]interface{}{
+				"fieldName": "TYPE_NAME",
+				"operator":  "CONTAINS",
+				"value":     "MONGOS",
 			})
 		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
