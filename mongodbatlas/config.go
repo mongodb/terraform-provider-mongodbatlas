@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb-forks/digest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 	"github.com/spf13/cast"
-	atlasSDK "go.mongodb.org/atlas-sdk/v20231001002/admin"
+	atlasSDK "go.mongodb.org/atlas-sdk/v20231115001/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"

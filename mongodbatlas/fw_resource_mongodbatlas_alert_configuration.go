@@ -22,7 +22,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mwielbut/pointy"
-	"go.mongodb.org/atlas-sdk/v20231001002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
