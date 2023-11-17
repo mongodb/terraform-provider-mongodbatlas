@@ -65,7 +65,8 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: TimonVS/pr-labeler-action@v4
+      - uses: srvaroa/labeler@1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          configuration-path: .github/pr-labeler.yml
+          config_path: .github/pr-labeler.yml

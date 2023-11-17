@@ -1,3 +1,11 @@
-enhancement: ['feature:*', 'feat:*']
-bug: ['fix:*']
-breaking-change: ['*!*']
+version: 1
+labels:
+  - label: "enhancement"
+    title: "feat:*"
+  - label: "enhancement"
+    title: "feature:*"
+  - label: "bug"
+    title: "fix:*"
+  - label: "breaking-change"
+    title: "*!*"
+
