@@ -31,17 +31,13 @@ resource "mongodbatlas_project_api_key" "test" {
 resource "mongodbatlas_project_api_key" "test" {
   description   = "Description of your API key"
   project_id  = "64259ee860c43338194b0f8e"
-  description   = "Description of your API key"
-  project_id  = "64259ee860c43338194b0f8e"
   
  project_assignment {
-    project_id = "64259ee860c43338194b0f8e"
     project_id = "64259ee860c43338194b0f8e"
     role_names = ["GROUP_READ_ONLY", "GROUP_OWNER"]
   }
   
   project_assignment {
-    project_id = "74259ee860c43338194b0f8e"
     project_id = "74259ee860c43338194b0f8e"
     role_names = ["GROUP_READ_ONLY"]
   }
@@ -57,7 +53,6 @@ resource "mongodbatlas_project_api_key" "test" {
 ~> **NOTE:** Project created by API Keys must belong to an existing organization.
 
 ### project_assignment
-List of Project roles that the Programmatic API key needs to have. `project_assignment` attribute is optional.
 List of Project roles that the Programmatic API key needs to have. `project_assignment` attribute is optional.
 
 * `project_id` - (Required) Project ID to assign to Access Key
@@ -76,5 +71,4 @@ API Keys must be imported using project ID, API Key ID e.g.
 ```
 $ terraform import mongodbatlas_project_api_key.test 5d09d6a59ccf6445652a444a-6576974933969669
 ```
-See [MongoDB Atlas API - API Key](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Programmatic-API-Keys/operation/createProjectApiKey) - Documentation for more information.
 See [MongoDB Atlas API - API Key](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Programmatic-API-Keys/operation/createProjectApiKey) - Documentation for more information.
