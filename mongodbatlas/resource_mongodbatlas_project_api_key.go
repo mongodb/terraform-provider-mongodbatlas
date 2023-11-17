@@ -191,17 +191,6 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 	projectID := ids["project_id"]
 	apiKeyID := ids["api_key_id"]
 
-	updateRequest := new(matlas.AssignAPIKey)
-	if d.HasChange("role_names") {
-		updateRequest.Roles = expandStringList(d.Get("role_names").(*schema.Set).List())
-		if updateRequest.Roles != nil {
-			_, err := conn.ProjectAPIKeys.Assign(ctx, projectID, apiKeyID, updateRequest)
-			if err != nil {
-				return diag.FromErr(fmt.Errorf("error updating API key: %s", err))
-			}
-		}
-	}
-
 	if d.HasChange("project_assignment") {
 		// Getting the current api_keys and the new api_keys with changes
 		newAPIKeys, changedAPIKeys, removedAPIKeys := getStateProjectAssignmentAPIKeys(d)
