@@ -22,7 +22,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 	retrystrategy "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/retry"
 	validators "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -446,9 +445,10 @@ func handleAwsKmsConfigDefaults(ctx context.Context, currentStateFile, newStateF
 	}
 
 	// Secret access key is not returned by the API response
-	if len(currentStateFile.AwsKmsConfig) == 1 && util.IsStringPresent(currentStateFile.AwsKmsConfig[0].SecretAccessKey.ValueStringPointer()) {
-		newStateFile.AwsKmsConfig[0].SecretAccessKey = currentStateFile.AwsKmsConfig[0].SecretAccessKey
-	}
+	newStateFile.AwsKmsConfig[0].SecretAccessKey = currentStateFile.AwsKmsConfig[0].SecretAccessKey
+	// if len(currentStateFile.AwsKmsConfig) == 1 && util.IsStringPresent(currentStateFile.AwsKmsConfig[0].SecretAccessKey.ValueStringPointer()) {
+	// 	newStateFile.AwsKmsConfig[0].SecretAccessKey = currentStateFile.AwsKmsConfig[0].SecretAccessKey
+	// }
 }
 
 func handleAzureKeyVaultConfigDefaults(ctx context.Context, earRSCurrent, earRSNew, earRSConfig *tfEncryptionAtRestRSModel) {

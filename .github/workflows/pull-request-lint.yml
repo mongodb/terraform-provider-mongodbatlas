@@ -9,6 +9,16 @@ on:
       - ready_for_review
       - edited
 jobs:
+ pr-labeler:
+     permissions:
+       contents: read
+       pull-requests: write
+     runs-on: ubuntu-latest
+     steps:
+       - uses: TimonVS/pr-labeler-action@v4
+         with:
+           repo-token: ${{ secrets.GITHUB_TOKEN }}
+           configuration-path: .github/pr-labeler.yml
   validate:
     name: Validate PR title
     runs-on: ubuntu-latest
