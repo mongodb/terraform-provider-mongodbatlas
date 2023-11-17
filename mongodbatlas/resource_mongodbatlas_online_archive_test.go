@@ -201,6 +201,13 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 				Config:      testAccBackupRSOnlineArchiveConfigWithProcessRegion(orgID, projectName, name, cloudProvider, "AP_SOUTH_1"),
 				ExpectError: regexp.MustCompile("ONLINE_ARCHIVE_CANNOT_MODIFY_FIELD"),
 			},
+			{
+				Config: testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.cloud_provider", "AWS"),
+					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.region", "SA_EAST_1"),
+				),
+			},
 		},
 	})
 }
