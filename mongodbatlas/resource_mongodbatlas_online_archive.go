@@ -113,19 +113,23 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 			},
 		},
 		"data_process_region": {
-			Type:     schema.TypeList,
-			MinItems: 1,
-			MaxItems: 1,
-			Optional: true,
+			Type:       schema.TypeList,
+			MinItems:   1,
+			MaxItems:   1,
+			ConfigMode: schema.SchemaConfigModeAttr,
+			Optional:   true,
+			Computed:   true,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"region": {
 						Type:     schema.TypeString,
-						Required: true,
+						Optional: true,
+						Computed: true,
 					},
 					"cloud_provider": {
 						Type:     schema.TypeString,
-						Required: true,
+						Optional: true,
+						Computed: true,
 					},
 				},
 			},
