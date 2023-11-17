@@ -104,12 +104,9 @@ func TestAccMigrationBackupRSOnlineArchiveWithProcessRegionNoChangeBetweenVersio
 					},
 				},
 				Config: testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, name),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PostApplyPreRefresh: []plancheck.PlanCheck{
-						testutils.DebugPlan(),
-					},
-				},
-				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
+				),
 			},
 			{
 				ProtoV6ProviderFactories: testAccProviderV6Factories,

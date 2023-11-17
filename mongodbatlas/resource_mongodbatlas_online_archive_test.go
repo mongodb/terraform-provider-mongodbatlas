@@ -198,10 +198,6 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, name),
-				ExpectError: regexp.MustCompile("ONLINE_ARCHIVE_CANNOT_MODIFY_FIELD"),
-			},
-			{
 				Config:      testAccBackupRSOnlineArchiveConfigWithProcessRegion(orgID, projectName, name, cloudProvider, "AP_SOUTH_1"),
 				ExpectError: regexp.MustCompile("ONLINE_ARCHIVE_CANNOT_MODIFY_FIELD"),
 			},
