@@ -9,11 +9,11 @@ on:
       - ready_for_review
       - edited
 jobs:
- pr-labeler:
-     permissions:
-       contents: read
-       pull-requests: write
-     runs-on: ubuntu-latest
+  pr-labeler:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
      steps:
        - uses: TimonVS/pr-labeler-action@v4
          with:
