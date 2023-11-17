@@ -413,6 +413,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		NewProjectIPAccessListDS,
 		NewAtlasUserDS,
 		NewAtlasUsersDS,
+		NewSearchDeploymentDS,
 	}
 }
 
@@ -423,6 +424,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		NewDatabaseUserRS,
 		NewAlertConfigurationRS,
 		NewProjectIPAccessListRS,
+		NewSearchDeploymentRS,
 	}
 }
 
