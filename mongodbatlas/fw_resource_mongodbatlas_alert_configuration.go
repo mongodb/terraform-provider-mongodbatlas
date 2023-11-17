@@ -576,7 +576,7 @@ func newNotificationList(tfNotificationSlice []tfNotificationModel) ([]admin.Ale
 			DelayMin:                 pointy.Int(int(tfNotificationSlice[i].DelayMin.ValueInt64())),
 			EmailAddress:             tfNotificationSlice[i].EmailAddress.ValueStringPointer(),
 			EmailEnabled:             tfNotificationSlice[i].EmailEnabled.ValueBoolPointer(),
-			IntervalMin:              pointy.Int(int(*tfNotificationSlice[i].IntervalMin.ValueInt64Pointer())),
+			IntervalMin:              util.Int64PtrToIntPtr(tfNotificationSlice[i].IntervalMin.ValueInt64Pointer()),
 			MobileNumber:             tfNotificationSlice[i].MobileNumber.ValueStringPointer(),
 			OpsGenieApiKey:           tfNotificationSlice[i].OpsGenieAPIKey.ValueStringPointer(),
 			OpsGenieRegion:           tfNotificationSlice[i].OpsGenieRegion.ValueStringPointer(),
