@@ -23,8 +23,6 @@ func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing
 		projectName               = acctest.RandomWithPrefix("test-acc")
 		name                      = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 		lastVersionConstraint     = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
-		cloudProvider             = "AWS"
-		region                    = "SA_EAST_1"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -64,6 +62,39 @@ func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing
 					},
 				},
 				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func TestAccMigrationBackupRSOnlineArchiveWithProcessRegionNoChangeBetweenVersions(t *testing.T) {
+	var (
+		cluster                   matlas.Cluster
+		resourceName              = "mongodbatlas_cluster.online_archive_test"
+		onlineArchiveResourceName = "mongodbatlas_online_archive.users_archive"
+		orgID                     = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName               = acctest.RandomWithPrefix("test-acc")
+		name                      = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		lastVersionConstraint     = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+		cloudProvider             = "AWS"
+		region                    = "SA_EAST_1"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
+		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: map[string]resource.ExternalProvider{
+					"mongodbatlas": {
+						VersionConstraint: lastVersionConstraint,
+						Source:            "mongodb/mongodbatlas",
+					},
+				},
+				Config: testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, name),
+				Check: resource.ComposeTestCheckFunc(
+					populateWithSampleData(resourceName, &cluster),
+				),
 			},
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
