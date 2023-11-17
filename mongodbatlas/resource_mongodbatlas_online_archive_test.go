@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"testing"
 	"time"
 
@@ -197,17 +198,12 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccBackupRSOnlineArchiveConfigWithProcessRegion(orgID, projectName, name, cloudProvider, "AP_SOUTH_1"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.cloud_provider", "AWS"),
-					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.region", "AP_SOUTH_1"),
-				),
+				Config:      testAccBackupRSOnlineArchiveConfigWithProcessRegion(orgID, projectName, name, cloudProvider, "AP_SOUTH_1"),
+				ExpectError: regexp.MustCompile("ONLINE_ARCHIVE_CANNOT_MODIFY_FIELD"),
 			},
 			{
-				Config: testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckNoResourceAttr(onlineArchiveResourceName, "data_process_region.#"),
-				),
+				Config:      testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, name),
+				ExpectError: regexp.MustCompile("ONLINE_ARCHIVE_CANNOT_MODIFY_FIELD"),
 			},
 		},
 	})

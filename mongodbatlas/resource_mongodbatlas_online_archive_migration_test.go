@@ -72,14 +72,7 @@ func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
-				Config: testAccBackupRSOnlineArchiveConfigWithProcessRegion(orgID, projectName, name, cloudProvider, region),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.region", region),
-				),
-			},
-			{
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
-				Config:                   testAccBackupRSOnlineArchiveConfigWithProcessRegion(orgID, projectName, name, cloudProvider, region),
+				Config: testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, name),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
 						testutils.DebugPlan(),
@@ -87,61 +80,24 @@ func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing
 				},
 				PlanOnly: true,
 			},
+			{
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				Config:                   testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, name),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						testutils.DebugPlan(),
+					},
+				},
+				PlanOnly: true,
+			},
+			{
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				Config:                   testAccBackupRSOnlineArchiveConfigWithProcessRegion(orgID, projectName, name, cloudProvider, region),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.cloud_provider", cloudProvider),
+					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.region", region),
+				),
+			},
 		},
 	})
 }
-
-// func TestAccMigrationBackupRSOnlineArchiveWithProcessRegionNoChangeBetweenVersions(t *testing.T) {
-// 	var (
-// 		cluster                   matlas.Cluster
-// 		resourceName              = "mongodbatlas_cluster.online_archive_test"
-// 		onlineArchiveResourceName = "mongodbatlas_online_archive.users_archive"
-// 		orgID                     = os.Getenv("MONGODB_ATLAS_ORG_ID")
-// 		projectName               = acctest.RandomWithPrefix("test-acc")
-// 		name                      = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-// 		lastVersionConstraint     = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
-// 		cloudProvider             = "AWS"
-// 		region                    = "SA_EAST_1"
-// 	)
-
-// 	resource.ParallelTest(t, resource.TestCase{
-// 		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
-// 		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				ExternalProviders: map[string]resource.ExternalProvider{
-// 					"mongodbatlas": {
-// 						VersionConstraint: lastVersionConstraint,
-// 						Source:            "mongodb/mongodbatlas",
-// 					},
-// 				},
-// 				Config: testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, name),
-// 				Check: resource.ComposeTestCheckFunc(
-// 					populateWithSampleData(resourceName, &cluster),
-// 				),
-// 			},
-// 			{
-// 				ExternalProviders: map[string]resource.ExternalProvider{
-// 					"mongodbatlas": {
-// 						VersionConstraint: lastVersionConstraint,
-// 						Source:            "mongodb/mongodbatlas",
-// 					},
-// 				},
-// 				Config: testAccBackupRSOnlineArchiveConfigWithProcessRegion(orgID, projectName, name, cloudProvider, region),
-// 				Check: resource.ComposeTestCheckFunc(
-// 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.region", region),
-// 				),
-// 			},
-// 			{
-// 				ProtoV6ProviderFactories: testAccProviderV6Factories,
-// 				Config:                   testAccBackupRSOnlineArchiveConfigWithProcessRegion(orgID, projectName, name, cloudProvider, region),
-// 				ConfigPlanChecks: resource.ConfigPlanChecks{
-// 					PostApplyPreRefresh: []plancheck.PlanCheck{
-// 						testutils.DebugPlan(),
-// 					},
-// 				},
-// 				PlanOnly: true,
-// 			},
-// 		},
-// 	})
-// }
