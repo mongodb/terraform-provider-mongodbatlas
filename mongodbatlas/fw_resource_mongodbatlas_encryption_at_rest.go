@@ -9,6 +9,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -446,9 +448,9 @@ func handleAwsKmsConfigDefaults(ctx context.Context, currentStateFile, newStateF
 
 	// Secret access key is not returned by the API response
 	newStateFile.AwsKmsConfig[0].SecretAccessKey = currentStateFile.AwsKmsConfig[0].SecretAccessKey
-	// if len(currentStateFile.AwsKmsConfig) == 1 && util.IsStringPresent(currentStateFile.AwsKmsConfig[0].SecretAccessKey.ValueStringPointer()) {
-	// 	newStateFile.AwsKmsConfig[0].SecretAccessKey = currentStateFile.AwsKmsConfig[0].SecretAccessKey
-	// }
+	if len(currentStateFile.AwsKmsConfig) == 1 && util.IsStringPresent(currentStateFile.AwsKmsConfig[0].SecretAccessKey.ValueStringPointer()) {
+		newStateFile.AwsKmsConfig[0].SecretAccessKey = currentStateFile.AwsKmsConfig[0].SecretAccessKey
+	}
 }
 
 func handleAzureKeyVaultConfigDefaults(ctx context.Context, earRSCurrent, earRSNew, earRSConfig *tfEncryptionAtRestRSModel) {
