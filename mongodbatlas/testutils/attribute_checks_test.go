@@ -29,3 +29,25 @@ func TestIntGreaterThan(t *testing.T) {
 		})
 	}
 }
+
+func TestJSONEquals(t *testing.T) {
+	objMap := map[string]interface{}{
+		"str":    "my_string",
+		"number": float64(1234),
+		"bool1":  true,
+		"bool2":  false,
+		"nilvar": nil,
+	}
+	strMap := `
+	{
+		"str": "my_string",
+		"number": 1234,
+		"bool1": true,
+		"bool2": false,
+		"nilvar": null
+	}
+`
+	if err := JSONEquals(objMap)(strMap); err != nil {
+		t.Errorf("JSONEquals() error = %v", err)
+	}
+}

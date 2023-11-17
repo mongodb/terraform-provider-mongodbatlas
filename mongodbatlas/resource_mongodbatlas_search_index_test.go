@@ -2,15 +2,14 @@ package mongodbatlas
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
-	"reflect"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 )
 
 const (
@@ -257,7 +256,7 @@ func TestAccSearchIndexRS_withVector(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(resourceName, "type", "vectorSearch"),
 					resource.TestCheckResourceAttrSet(resourceName, "fields"),
-					testCheckResourceAttrJSON(resourceName, "fields", fields),
+					resource.TestCheckResourceAttrWith(resourceName, "fields", testutils.JSONEquals(fields)),
 
 					resource.TestCheckResourceAttr(datasourceName, "type", "vectorSearch"),
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
@@ -268,7 +267,7 @@ func TestAccSearchIndexRS_withVector(t *testing.T) {
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(datasourceName, "index_id"),
 					resource.TestCheckResourceAttrSet(datasourceName, "fields"),
-					testCheckResourceAttrJSON(datasourceName, "fields", fields),
+					resource.TestCheckResourceAttrWith(datasourceName, "fields", testutils.JSONEquals(fields)),
 				),
 			},
 		},
@@ -521,29 +520,4 @@ func getClusterInfo(projectID string) (clusterName, clusterNameStr, clusterTerra
 		`, projectID, clusterName)
 	}
 	return clusterName, clusterNameStr, clusterTerraformStr
-}
-
-func testCheckResourceAttrJSON[T any](resourceName, attribute string, expected T) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		attr, ok := rs.Primary.Attributes[attribute]
-		if !ok {
-			return fmt.Errorf("Attribute not found: %s", attribute)
-		}
-
-		var actual T
-		if err := json.Unmarshal([]byte(attr), &actual); err != nil {
-			return fmt.Errorf("Could not unmarshal json: %s", err)
-		}
-
-		if !reflect.DeepEqual(actual, expected) {
-			return fmt.Errorf("Expected `%v`, got `%v`", expected, actual)
-		}
-
-		return nil
-	}
 }

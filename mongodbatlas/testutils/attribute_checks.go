@@ -1,7 +1,9 @@
 package testutils
 
 import (
+	"encoding/json"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strconv"
 
@@ -30,6 +32,21 @@ func IntGreatThan(value int) resource.CheckResourceAttrWithFunc {
 		if inputInt <= value {
 			return fmt.Errorf("%d is not greater than %d", inputInt, value)
 		}
+		return nil
+	}
+}
+
+func JSONEquals[T any](value T) resource.CheckResourceAttrWithFunc {
+	return func(input string) error {
+		var actual T
+		if err := json.Unmarshal([]byte(input), &actual); err != nil {
+			return fmt.Errorf("could not unmarshal json: %s", err)
+		}
+
+		if !reflect.DeepEqual(actual, value) {
+			return fmt.Errorf("expected `%v`, got `%v`", value, actual)
+		}
+
 		return nil
 	}
 }

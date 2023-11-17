@@ -218,11 +218,6 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 		searchIndex.SearchAnalyzer = stringPtr(d.Get("search_analyzer").(string))
 	}
 
-	if d.HasChange("mappings_dynamic") {
-		dynamic := d.Get("mappings_dynamic").(bool)
-		searchIndex.Mappings.Dynamic = &dynamic
-	}
-
 	if d.HasChange("analyzers") {
 		analyzers, err := unmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string))
 		if err != nil {
@@ -231,10 +226,21 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 		searchIndex.Analyzers = analyzers
 	}
 
+	if d.HasChange("mappings_dynamic") {
+		dynamic := d.Get("mappings_dynamic").(bool)
+		if searchIndex.Mappings == nil {
+			searchIndex.Mappings = &admin.ApiAtlasFTSMappings{}
+		}
+		searchIndex.Mappings.Dynamic = &dynamic
+	}
+
 	if d.HasChange("mappings_fields") {
 		mappingsFields, err := unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
 		if err != nil {
 			return err
+		}
+		if searchIndex.Mappings == nil {
+			searchIndex.Mappings = &admin.ApiAtlasFTSMappings{}
 		}
 		searchIndex.Mappings.Fields = mappingsFields
 	}
