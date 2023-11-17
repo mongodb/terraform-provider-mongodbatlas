@@ -57,15 +57,15 @@ jobs:
         with:   
           header: pr-title-lint-error
           delete: true
-  pr-labeler:
+  labeler:
     name: Add Label
     needs: [ validate ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
-     steps:
-       - uses: TimonVS/pr-labeler-action@v4
-         with:
-           repo-token: ${{ secrets.GITHUB_TOKEN }}
-           configuration-path: .github/pr-labeler.yml
+    steps:
+      - uses: TimonVS/pr-labeler-action@v4
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/pr-labeler.yml
