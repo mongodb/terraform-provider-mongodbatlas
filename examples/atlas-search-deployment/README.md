@@ -1,6 +1,6 @@
 # MongoDB Atlas Provider - Atlas Cluster with dedicated Search Nodes Deployment
 
-This example shows how you can use Atlas Dedicated Search Nodes in Terraform. As a prerequisite, you need to create a project and cluster resource.
+This example shows how you can use Atlas Dedicated Search Nodes in Terraform. As part of it, a project and cluster resource are created as a prerequisite.
 
 Variables Required to be set:
 
