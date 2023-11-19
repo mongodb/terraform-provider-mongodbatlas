@@ -175,6 +175,37 @@ func TestAccConfigRSProjectAPIKey_RecreateWhenDeletedExternally(t *testing.T) {
 	})
 }
 
+func TestAccConfigRSProjectAPIKey_DeleteProjectAndAssignment(t *testing.T) {
+	var (
+		resourceName      = "mongodbatlas_project_api_key.test"
+		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName       = acctest.RandomWithPrefix("test-acc")
+		secondProjectName = acctest.RandomWithPrefix("test-acc")
+		description       = fmt.Sprintf("%s-%s", "test-acc-project", acctest.RandString(5))
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasProjectAPIKeyConfigDeletedProjectAndAssignment(orgID, projectName, secondProjectName, description, true),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_assignment.0.project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "project_assignment.1.project_id"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasProjectAPIKeyConfigDeletedProjectAndAssignment(orgID, projectName, secondProjectName, description, false),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_assignment.0.project_id"),
+				),
+			},
+		},
+	})
+}
+
 func deleteAPIKeyManually(orgID, descriptionPrefix string) error {
 	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 	list, _, err := conn.APIKeys.List(context.Background(), orgID, &matlas.ListOptions{})
@@ -267,4 +298,40 @@ func testAccMongoDBAtlasProjectAPIKeyConfigMultiple(orgID, projectName, descript
 			project_id = mongodbatlas_project.test.id
 		}
 	`, orgID, projectName, description, roleNames)
+}
+
+func testAccMongoDBAtlasProjectAPIKeyConfigDeletedProjectAndAssignment(orgID, projectName, secondProjectName, description string, includeSecondProject bool) string {
+	var secondProject string
+	if includeSecondProject {
+		secondProject = fmt.Sprintf(`
+		resource "mongodbatlas_project" "project2" {
+			org_id = %[1]q
+			name   = %[2]q
+		}`, orgID, secondProjectName)
+	}
+	var secondProjectAssignment string
+	if includeSecondProject {
+		secondProjectAssignment = `
+		project_assignment  {
+			project_id = mongodbatlas_project.project2.id
+			role_names = ["GROUP_OWNER"]
+		}
+		`
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "project1" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+		 %[3]s
+		resource "mongodbatlas_project_api_key" "test" {
+			project_id     = mongodbatlas_project.project1.id
+			description  = %[4]q
+			project_assignment  {
+				project_id = mongodbatlas_project.project1.id
+				role_names = ["GROUP_OWNER"]
+			}
+			%[5]s
+		}
+	`, orgID, projectName, secondProject, description, secondProjectAssignment)
 }
