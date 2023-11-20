@@ -752,7 +752,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 		err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
 			_, resp, err := updateAdvancedCluster(ctx, conn, cluster, projectID, clusterName, timeout)
 			if err != nil {
-				if resp.StatusCode == 400 {
+				if resp == nil || resp.StatusCode == 400 {
 					return retry.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
 				}
 				return retry.RetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
