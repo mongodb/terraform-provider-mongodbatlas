@@ -753,16 +753,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 			_, _, err := updateAdvancedCluster(ctx, conn, cluster, projectID, clusterName, timeout)
 			if err != nil {
 				var target *matlas.ErrorResponse
-				if errors.As(err, &target) && target.ErrorCode == "CANNOT_UPDATE_PAUSED_CLUSTER" {
-					clusterRequest := &matlas.AdvancedCluster{
-						Paused: pointy.Bool(false),
-					}
-					_, _, err := updateAdvancedCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
-					if err != nil {
-						return retry.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
-					}
-				}
-				if errors.As(err, &target) && target.HTTPCode == 400 {
+				if errors.As(err, &target) && (target.HTTPCode == 400 || target.ErrorCode == "CANNOT_UPDATE_PAUSED_CLUSTER") {
 					return retry.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
 				}
 			}
