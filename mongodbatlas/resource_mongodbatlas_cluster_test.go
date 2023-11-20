@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -1328,7 +1329,7 @@ func TestAccClusterRSCluster_basicAWS_UnpauseToPaused(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, true, false),
+				Config: testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, true, false, "M10"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
@@ -1342,7 +1343,7 @@ func TestAccClusterRSCluster_basicAWS_UnpauseToPaused(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, false, true),
+				Config: testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, false, true, "M10"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
@@ -1354,6 +1355,10 @@ func TestAccClusterRSCluster_basicAWS_UnpauseToPaused(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
 					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
 				),
+			},
+			{
+				Config:      testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, false, true, "M20"),
+				ExpectError: regexp.MustCompile("CANNOT_UPDATE_PAUSED_CLUSTER"),
 			},
 			{
 				ResourceName:            resourceName,
@@ -1381,7 +1386,7 @@ func TestAccClusterRSCluster_basicAWS_PausedToUnpaused(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, true, true),
+				Config: testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, true, true, "M30"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
@@ -1395,7 +1400,7 @@ func TestAccClusterRSCluster_basicAWS_PausedToUnpaused(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, false, false),
+				Config: testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, false, false, "M30"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
@@ -1407,6 +1412,10 @@ func TestAccClusterRSCluster_basicAWS_PausedToUnpaused(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
 					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
 				),
+			},
+			{
+				Config:      testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, false, true, "M30"),
+				ExpectError: regexp.MustCompile("CANNOT_PAUSE_RECENTLY_RESUMED_CLUSTER"),
 			},
 		},
 	})
@@ -2453,7 +2462,7 @@ func testAccMongoDBAtlasClusterConfigRegions(
 	`, orgID, projectName, name, replications)
 }
 
-func testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name string, backupEnabled, paused bool) string {
+func testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name string, backupEnabled, paused bool, instanceSizeName string) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_project" "cluster_project" {
 	name   = %[2]q
@@ -2478,7 +2487,7 @@ resource "mongodbatlas_cluster" "test" {
   // Provider Settings "block"
 
   provider_name               = "AWS"
-  provider_instance_size_name = "M30"
+  provider_instance_size_name = %[6]q
 }
-	`, orgID, projectName, name, backupEnabled, paused)
+	`, orgID, projectName, name, backupEnabled, paused, instanceSizeName)
 }
