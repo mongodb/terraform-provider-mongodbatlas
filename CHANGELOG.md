@@ -7,6 +7,7 @@
 **Enhancements**
 
 - feat: search node management with `mongodbatlas_search_deployment` resource and data source [\#1633](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1633) ([AgustinBettati](https://github.com/AgustinBettati))
+- Adds type and fields attributes in resource and data sources for `search_index` [\#1605](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1605) ([lantoli](https://github.com/lantoli))
 
 **Bug Fixes**
 
@@ -40,7 +41,6 @@
 - Bumps github.com/aws/aws-sdk-go from 1.47.4 to 1.47.5 [\#1608](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1608) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Bumps github.com/gruntwork-io/terratest from 0.46.1 to 0.46.6 [\#1607](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1607) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Bumps github.com/aws/aws-sdk-go from 1.46.3 to 1.47.4 [\#1606](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1606) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Adds type and fields attributes in resource and data sources for `search_index` [\#1605](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1605) ([lantoli](https://github.com/lantoli))
 - Updates Atlas Go SDK [\#1604](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1604) ([lantoli](https://github.com/lantoli))
 - Disables `event_trigger` from acceptance test due to missing cluster. [\#1603](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1603) ([marcosuma](https://github.com/marcosuma))
 - Reduces stale days to 5 and close after 2 day of stale [\#1602](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1602) ([andreaangiolillo](https://github.com/andreaangiolillo))
