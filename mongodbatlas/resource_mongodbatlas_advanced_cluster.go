@@ -750,10 +750,9 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	// Has changes
 	if !reflect.DeepEqual(cluster, clusterChangeDetect) {
 		err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-			_, _, err := updateAdvancedCluster(ctx, conn, cluster, projectID, clusterName, timeout)
+			_, resp, err := updateAdvancedCluster(ctx, conn, cluster, projectID, clusterName, timeout)
 			if err != nil {
-				var target *matlas.ErrorResponse
-				if errors.As(err, &target) && (target.HTTPCode == 400 || strings.HasPrefix(target.ErrorCode, "CANNOT_")) {
+				if resp.StatusCode == 400 {
 					return retry.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
 				}
 				return retry.RetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))

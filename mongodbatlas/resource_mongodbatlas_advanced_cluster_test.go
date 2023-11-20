@@ -337,6 +337,9 @@ func TestAccClusterAdvancedCluster_PausedToUnpaused(t *testing.T) {
 				ExpectError: regexp.MustCompile("CANNOT_PAUSE_RECENTLY_RESUMED_CLUSTER"),
 			},
 			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, false, "M10"),
+			},
+			{
 				ResourceName:            resourceName,
 				ImportStateIdFunc:       testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
 				ImportState:             true,
