@@ -12,6 +12,7 @@
 **Bug Fixes**
 
 - fix: Terraform encryption at rest error when upgrading to 1.12.2 [\#1617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1617) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Defines `ConfigMode` for computed nest block attribute in `privatelink_endpoint_service` to support tf 1.0.8 [\#1629](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1629) ([AgustinBettati](https://github.com/AgustinBettati))
 
 **Closed Issues**
 
@@ -28,7 +29,6 @@
 - Removes unused code in resource and cleanup in `project_api_key` docs [\#1636](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1636) ([AgustinBettati](https://github.com/AgustinBettati))
 - Improves testing in search-index resource [\#1635](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1635) ([lantoli](https://github.com/lantoli))
 - Updates Atlas Go SDK [\#1632](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1632) ([lantoli](https://github.com/lantoli))
-- Defines `ConfigMode` for computed nest block attribute in `privatelink_endpoint_service` to support tf 1.0.8 [\#1629](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1629) ([AgustinBettati](https://github.com/AgustinBettati))
 - Updates PR template for further verifications. [\#1628](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1628) ([marcosuma](https://github.com/marcosuma))
 - Bumps tj-actions/verify-changed-files from 6d688963a73d28584e163b6f62cf927a282c4d11 to 82a523f60ad6816c35b418520f84629024d70e1e [\#1626](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1626) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Bumps github.com/aws/aws-sdk-go from 1.47.5 to 1.47.11 [\#1625](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1625) ([dependabot[bot]](https://github.com/apps/dependabot))
