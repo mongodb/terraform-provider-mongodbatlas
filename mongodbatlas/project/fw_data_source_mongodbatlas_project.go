@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework"
 )
 
 var _ datasource.DataSource = &projectDS{}
@@ -21,14 +21,14 @@ var _ datasource.DataSourceWithConfigure = &projectDS{}
 
 func NewProjectDS() datasource.DataSource {
 	return &projectDS{
-		DSCommon: common.DSCommon{
+		DSCommon: framework.DSCommon{
 			DataSourceName: projectResourceName,
 		},
 	}
 }
 
 type projectDS struct {
-	common.DSCommon
+	framework.DSCommon
 }
 
 type tfProjectDSModel struct {

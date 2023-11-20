@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
@@ -52,14 +52,14 @@ type tfAtlasUserRoleModel struct {
 
 func NewAtlasUserDS() datasource.DataSource {
 	return &AtlasUserDS{
-		DSCommon: common.DSCommon{
+		DSCommon: framework.DSCommon{
 			DataSourceName: AtlasUserDataSourceName,
 		},
 	}
 }
 
 type AtlasUserDS struct {
-	common.DSCommon
+	framework.DSCommon
 }
 
 func (d *AtlasUserDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {

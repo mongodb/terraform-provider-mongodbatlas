@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/zclconf/go-cty/cty"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
@@ -42,14 +42,14 @@ type tfAlertConfigurationOutputModel struct {
 
 func NewAlertConfigurationDS() datasource.DataSource {
 	return &AlertConfigurationDS{
-		DSCommon: common.DSCommon{
+		DSCommon: framework.DSCommon{
 			DataSourceName: alertConfigurationResourceName,
 		},
 	}
 }
 
 type AlertConfigurationDS struct {
-	common.DSCommon
+	framework.DSCommon
 }
 
 var alertConfigDSSchemaBlocks = map[string]schema.Block{

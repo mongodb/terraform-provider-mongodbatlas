@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework"
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -21,12 +21,12 @@ const (
 )
 
 type ProjectIPAccessListDS struct {
-	common.DSCommon
+	framework.DSCommon
 }
 
 func NewProjectIPAccessListDS() datasource.DataSource {
 	return &ProjectIPAccessListDS{
-		DSCommon: common.DSCommon{
+		DSCommon: framework.DSCommon{
 			DataSourceName: projectIPAccessList,
 		},
 	}

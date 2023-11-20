@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 	retrystrategy "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/retry"
 	validators "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
@@ -41,14 +41,14 @@ var _ resource.ResourceWithImportState = &EncryptionAtRestRS{}
 
 func NewEncryptionAtRestRS() resource.Resource {
 	return &EncryptionAtRestRS{
-		RSCommon: common.RSCommon{
+		RSCommon: framework.RSCommon{
 			ResourceName: encryptionAtRestResourceName,
 		},
 	}
 }
 
 type EncryptionAtRestRS struct {
-	common.RSCommon
+	framework.RSCommon
 }
 
 type tfEncryptionAtRestRSModel struct {

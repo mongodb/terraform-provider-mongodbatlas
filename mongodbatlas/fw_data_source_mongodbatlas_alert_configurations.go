@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
 
@@ -36,14 +36,14 @@ type tfListOptionsModel struct {
 
 func NewAlertConfigurationsDS() datasource.DataSource {
 	return &AlertConfigurationsDS{
-		DSCommon: common.DSCommon{
+		DSCommon: framework.DSCommon{
 			DataSourceName: alertConfigurationsDataSourceName,
 		},
 	}
 }
 
 type AlertConfigurationsDS struct {
-	common.DSCommon
+	framework.DSCommon
 }
 
 func (d *AlertConfigurationsDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {

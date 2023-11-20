@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework"
 	retrystrategy "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
@@ -37,14 +37,14 @@ const (
 
 func NewSearchDeploymentRS() resource.Resource {
 	return &SearchDeploymentRS{
-		RSCommon: common.RSCommon{
+		RSCommon: framework.RSCommon{
 			ResourceName: searchDeploymentName,
 		},
 	}
 }
 
 type SearchDeploymentRS struct {
-	common.RSCommon
+	framework.RSCommon
 }
 
 type tfSearchDeploymentRSModel struct {

@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -17,12 +17,12 @@ const (
 )
 
 type DatabaseUsersDS struct {
-	common.DSCommon
+	framework.DSCommon
 }
 
 func NewDatabaseUsersDS() datasource.DataSource {
 	return &DatabaseUsersDS{
-		DSCommon: common.DSCommon{
+		DSCommon: framework.DSCommon{
 			DataSourceName: databaseUsersDSName,
 		},
 	}

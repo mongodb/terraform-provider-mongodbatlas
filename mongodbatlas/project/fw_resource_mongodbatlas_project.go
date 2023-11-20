@@ -27,7 +27,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework"
 	conversion "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 )
 
@@ -48,14 +48,14 @@ var _ resource.ResourceWithImportState = &projectRS{}
 
 func NewProjectRS() resource.Resource {
 	return &projectRS{
-		RSCommon: common.RSCommon{
+		RSCommon: framework.RSCommon{
 			ResourceName: projectResourceName,
 		},
 	}
 }
 
 type projectRS struct {
-	common.RSCommon
+	framework.RSCommon
 }
 
 type tfProjectRSModel struct {

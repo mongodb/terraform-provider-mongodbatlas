@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework"
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -44,12 +44,12 @@ type tfProjectIPAccessListModel struct {
 }
 
 type ProjectIPAccessListRS struct {
-	common.RSCommon
+	framework.RSCommon
 }
 
 func NewProjectIPAccessListRS() resource.Resource {
 	return &ProjectIPAccessListRS{
-		RSCommon: common.RSCommon{
+		RSCommon: framework.RSCommon{
 			ResourceName: projectIPAccessList,
 		},
 	}

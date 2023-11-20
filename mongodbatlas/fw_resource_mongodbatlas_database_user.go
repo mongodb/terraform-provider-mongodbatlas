@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -30,12 +30,12 @@ var _ resource.ResourceWithConfigure = &DatabaseUserRS{}
 var _ resource.ResourceWithImportState = &DatabaseUserRS{}
 
 type DatabaseUserRS struct {
-	common.RSCommon
+	framework.RSCommon
 }
 
 func NewDatabaseUserRS() resource.Resource {
 	return &DatabaseUserRS{
-		RSCommon: common.RSCommon{
+		RSCommon: framework.RSCommon{
 			ResourceName: databaseUserResourceName,
 		},
 	}

@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mwielbut/pointy"
@@ -44,14 +44,14 @@ var _ resource.ResourceWithImportState = &AlertConfigurationRS{}
 
 func NewAlertConfigurationRS() resource.Resource {
 	return &AlertConfigurationRS{
-		RSCommon: common.RSCommon{
+		RSCommon: framework.RSCommon{
 			ResourceName: alertConfigurationResourceName,
 		},
 	}
 }
 
 type AlertConfigurationRS struct {
-	common.RSCommon
+	framework.RSCommon
 }
 
 type tfAlertConfigurationRSModel struct {

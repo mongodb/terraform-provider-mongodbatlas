@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework"
 )
 
 var _ datasource.DataSource = &SearchDeploymentDS{}
@@ -14,7 +14,7 @@ var _ datasource.DataSourceWithConfigure = &SearchDeploymentDS{}
 
 func NewSearchDeploymentDS() datasource.DataSource {
 	return &SearchDeploymentDS{
-		DSCommon: common.DSCommon{
+		DSCommon: framework.DSCommon{
 			DataSourceName: searchDeploymentName,
 		},
 	}
@@ -29,7 +29,7 @@ type tfSearchDeploymentDSModel struct {
 }
 
 type SearchDeploymentDS struct {
-	common.DSCommon
+	framework.DSCommon
 }
 
 func (d *SearchDeploymentDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
