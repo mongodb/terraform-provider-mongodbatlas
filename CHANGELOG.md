@@ -6,17 +6,17 @@
 
 **Enhancements**
 
-- feat: search node management with `mongodbatlas_search_deployment` resource and data source [\#1633](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1633) ([AgustinBettati](https://github.com/AgustinBettati))
+- Adds support for search node management with `mongodbatlas_search_deployment` resource and data source [\#1633](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1633) ([AgustinBettati](https://github.com/AgustinBettati))
 - Adds type and fields attributes in resource and data sources for `search_index` [\#1605](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1605) ([lantoli](https://github.com/lantoli))
 
 **Bug Fixes**
 
-- fix: Terraform encryption at rest error when upgrading to 1.12.2 [\#1617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1617) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Fixes terraform encryption at rest error when upgrading to 1.12.2 [\#1617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1617) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Defines `ConfigMode` for computed nest block attribute in `privatelink_endpoint_service` to support tf 1.0.8 [\#1629](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1629) ([AgustinBettati](https://github.com/AgustinBettati))
 
 **Closed Issues**
 
-- 'tags' not working for cluster [\#1619](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1619)
+- `tags` not working for cluster [\#1619](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1619)
 - Terraform Bud in updating serverless project [\#1611](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1611)
 - Changes to `mongodbatlas_project_ip_access_list` comments force a replacement [\#1600](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1600)
 - Rate limit of 10 invitations per 1 minutes exceeded [\#1589](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1589)
