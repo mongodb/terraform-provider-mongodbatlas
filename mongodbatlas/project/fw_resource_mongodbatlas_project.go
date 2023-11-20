@@ -1,4 +1,4 @@
-package mongodbatlas
+package project
 
 import (
 	"context"
@@ -27,34 +27,35 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
 	conversion "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 )
 
 const (
 	projectResourceName            = "project"
 	errorProjectCreate             = "error creating Project: %s"
-	errorProjectRead               = "error getting project(%s): %s"
+	ErrorProjectRead               = "error getting project(%s): %s"
 	errorProjectDelete             = "error deleting project (%s): %s"
-	errorProjectSetting            = "error setting `%s` for project (%s): %s"
+	ErrorProjectSetting            = "error setting `%s` for project (%s): %s"
 	errorProjectUpdate             = "error updating project (%s): %s"
 	projectDependentsStateIdle     = "IDLE"
 	projectDependentsStateDeleting = "DELETING"
 	projectDependentsStateRetry    = "RETRY"
 )
 
-var _ resource.ResourceWithConfigure = &ProjectRS{}
-var _ resource.ResourceWithImportState = &ProjectRS{}
+var _ resource.ResourceWithConfigure = &projectRS{}
+var _ resource.ResourceWithImportState = &projectRS{}
 
 func NewProjectRS() resource.Resource {
-	return &ProjectRS{
-		RSCommon: RSCommon{
-			resourceName: projectResourceName,
+	return &projectRS{
+		RSCommon: common.RSCommon{
+			ResourceName: projectResourceName,
 		},
 	}
 }
 
-type ProjectRS struct {
-	RSCommon
+type projectRS struct {
+	common.RSCommon
 }
 
 type tfProjectRSModel struct {
@@ -106,7 +107,7 @@ type AtlastProjectDependents struct {
 	AdvancedClusters *matlas.AdvancedClustersResponse
 }
 
-func (r *ProjectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -235,13 +236,13 @@ func (r *ProjectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 	}
 }
 
-func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var projectPlan tfProjectRSModel
 	var teams []tfTeamModel
 	var limits []tfLimitModel
 
-	conn := r.client.Atlas
-	connV2 := r.client.AtlasV2
+	conn := r.Client.Atlas
+	connV2 := r.Client.AtlasV2
 
 	diags := req.Plan.Get(ctx, &projectPlan)
 	resp.Diagnostics.Append(diags...)
@@ -277,7 +278,7 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 
 		_, _, err := conn.Projects.AddTeamsToProject(ctx, project.ID, toAtlasProjectTeams(ctx, teams))
 		if err != nil {
-			errd := deleteProject(ctx, r.client.Atlas, project.ID)
+			errd := deleteProject(ctx, r.Client.Atlas, project.ID)
 			if errd != nil {
 				resp.Diagnostics.AddError("error during project deletion when adding teams", fmt.Sprintf(errorProjectDelete, project.ID, err.Error()))
 				return
@@ -298,7 +299,7 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 			}
 			_, _, err := connV2.ProjectsApi.SetProjectLimit(ctx, limit.Name.ValueString(), project.ID, dataFederationLimit).Execute()
 			if err != nil {
-				errd := deleteProject(ctx, r.client.Atlas, project.ID)
+				errd := deleteProject(ctx, r.Client.Atlas, project.ID)
 				if errd != nil {
 					resp.Diagnostics.AddError("error during project deletion when adding limits", fmt.Sprintf(errorProjectDelete, project.ID, err.Error()))
 					return
@@ -312,7 +313,7 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	// add settings
 	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, project.ID)
 	if err != nil {
-		errd := deleteProject(ctx, r.client.Atlas, project.ID)
+		errd := deleteProject(ctx, r.Client.Atlas, project.ID)
 		if errd != nil {
 			resp.Diagnostics.AddError("error during project deletion when getting project settings", fmt.Sprintf(errorProjectDelete, project.ID, err.Error()))
 			return
@@ -341,7 +342,7 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	if _, _, err = conn.Projects.UpdateProjectSettings(ctx, project.ID, projectSettings); err != nil {
-		errd := deleteProject(ctx, r.client.Atlas, project.ID)
+		errd := deleteProject(ctx, r.Client.Atlas, project.ID)
 		if errd != nil {
 			resp.Diagnostics.AddError("error during project deletion when updating project settings", fmt.Sprintf(errorProjectDelete, project.ID, err.Error()))
 			return
@@ -357,14 +358,14 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("error when getting project after create", fmt.Sprintf(errorProjectRead, projectID, err.Error()))
+		resp.Diagnostics.AddError("error when getting project after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
 	// get project props
 	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, projectID)
 	if err != nil {
-		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(errorProjectRead, projectID, err.Error()))
+		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
@@ -380,11 +381,11 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 }
 
-func (r *ProjectRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var projectState tfProjectRSModel
 	var limits []tfLimitModel
-	conn := r.client.Atlas
-	connV2 := r.client.AtlasV2
+	conn := r.Client.Atlas
+	connV2 := r.Client.AtlasV2
 
 	// get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &projectState)...)
@@ -404,14 +405,14 @@ func (r *ProjectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("error when getting project from Atlas", fmt.Sprintf(errorProjectRead, projectID, err.Error()))
+		resp.Diagnostics.AddError("error when getting project from Atlas", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
 	// get project props
 	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, projectID)
 	if err != nil {
-		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(errorProjectRead, projectID, err.Error()))
+		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
@@ -426,11 +427,11 @@ func (r *ProjectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 }
 
-func (r *ProjectRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var projectState tfProjectRSModel
 	var projectPlan tfProjectRSModel
-	conn := r.client.Atlas
-	connV2 := r.client.AtlasV2
+	conn := r.Client.Atlas
+	connV2 := r.Client.AtlasV2
 
 	// get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &projectState)...)
@@ -474,14 +475,14 @@ func (r *ProjectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("error when getting project after create", fmt.Sprintf(errorProjectRead, projectID, err.Error()))
+		resp.Diagnostics.AddError("error when getting project after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
 	// get project props
 	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, projectID)
 	if err != nil {
-		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(errorProjectRead, projectID, err.Error()))
+		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 	var planLimits []tfLimitModel
@@ -494,7 +495,7 @@ func (r *ProjectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	resp.Diagnostics.Append(resp.State.Set(ctx, &projectPlanNew)...)
 }
 
-func (r *ProjectRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *projectRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var project *tfProjectRSModel
 
 	// read Terraform prior state data into the model
@@ -504,7 +505,7 @@ func (r *ProjectRS) Delete(ctx context.Context, req resource.DeleteRequest, resp
 	}
 
 	projectID := project.ID.ValueString()
-	err := deleteProject(ctx, r.client.Atlas, projectID)
+	err := deleteProject(ctx, r.Client.Atlas, projectID)
 
 	if err != nil {
 		resp.Diagnostics.AddError("error when destroying resource", fmt.Sprintf(errorProjectDelete, projectID, err.Error()))
@@ -512,7 +513,7 @@ func (r *ProjectRS) Delete(ctx context.Context, req resource.DeleteRequest, resp
 	}
 }
 
-func (r *ProjectRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *projectRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
@@ -841,10 +842,10 @@ Else consider the aggregate dependents idle.
 If we get a defined error response, return that right away
 Else retry
 */
-func resourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) retry.StateRefreshFunc {
+func resourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID string, conn *matlas.Client) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		var target *matlas.ErrorResponse
-		clusters, _, err := client.AdvancedClusters.List(ctx, projectID, nil)
+		clusters, _, err := conn.AdvancedClusters.List(ctx, projectID, nil)
 		dependents := AtlastProjectDependents{AdvancedClusters: clusters}
 
 		if errors.As(err, &target) {

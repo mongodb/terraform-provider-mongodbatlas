@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -176,7 +177,7 @@ func TestAccConfigRSProjectAPIKey_RecreateWhenDeletedExternally(t *testing.T) {
 }
 
 func deleteAPIKeyManually(orgID, descriptionPrefix string) error {
-	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*client.MongoDBClient).Atlas
 	list, _, err := conn.APIKeys.List(context.Background(), orgID, &matlas.ListOptions{})
 	if err != nil {
 		return err
@@ -192,7 +193,7 @@ func deleteAPIKeyManually(orgID, descriptionPrefix string) error {
 }
 
 func testAccCheckMongoDBAtlasProjectAPIKeyDestroy(s *terraform.State) error {
-	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*client.MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_project_api_key" {

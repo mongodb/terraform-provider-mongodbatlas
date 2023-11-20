@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mwielbut/pointy"
 	"go.mongodb.org/realm/realm"
@@ -430,7 +431,7 @@ func TestEventTriggerFunction_basic(t *testing.T) {
 func testAccCheckMongoDBAtlasEventTriggerExists(resourceName string, eventTrigger *realm.EventTrigger) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ctx := context.Background()
-		conn, err := testAccProviderSdkV2.Meta().(*MongoDBClient).GetRealmClient(ctx)
+		conn, err := testAccProviderSdkV2.Meta().(*client.MongoDBClient).GetRealmClient(ctx)
 		if err != nil {
 			return err
 		}
@@ -460,7 +461,7 @@ func testAccCheckMongoDBAtlasEventTriggerExists(resourceName string, eventTrigge
 
 func testAccCheckMongoDBAtlasEventTriggerDestroy(s *terraform.State) error {
 	ctx := context.Background()
-	conn, err := testAccProviderSdkV2.Meta().(*MongoDBClient).GetRealmClient(ctx)
+	conn, err := testAccProviderSdkV2.Meta().(*client.MongoDBClient).GetRealmClient(ctx)
 	if err != nil {
 		return err
 	}

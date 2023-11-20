@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -155,7 +156,7 @@ func resourceMongoDBAtlasNetworkPeering() *schema.Resource {
 
 func resourceMongoDBAtlasNetworkPeeringCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	providerName := d.Get("provider_name").(string)
 
@@ -265,7 +266,7 @@ func resourceMongoDBAtlasNetworkPeeringCreate(ctx context.Context, d *schema.Res
 
 func resourceMongoDBAtlasNetworkPeeringRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	peerID := ids["peer_id"]
@@ -392,7 +393,7 @@ func resourceMongoDBAtlasNetworkPeeringRead(ctx context.Context, d *schema.Resou
 
 func resourceMongoDBAtlasNetworkPeeringUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	peerID := ids["peer_id"]
@@ -460,7 +461,7 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(ctx context.Context, d *schema.Res
 
 func resourceMongoDBAtlasNetworkPeeringDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	peerID := ids["peer_id"]
@@ -491,7 +492,7 @@ func resourceMongoDBAtlasNetworkPeeringDelete(ctx context.Context, d *schema.Res
 }
 
 func resourceMongoDBAtlasNetworkPeeringImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 3)
 	if len(parts) != 3 {
@@ -528,9 +529,9 @@ func resourceMongoDBAtlasNetworkPeeringImportState(ctx context.Context, d *schem
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceNetworkPeeringRefreshFunc(ctx context.Context, peerID, projectID, containerID string, client *matlas.Client) retry.StateRefreshFunc {
+func resourceNetworkPeeringRefreshFunc(ctx context.Context, peerID, projectID, containerID string, conn *matlas.Client) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		c, resp, err := client.Peers.Get(ctx, projectID, peerID)
+		c, resp, err := conn.Peers.Get(ctx, projectID, peerID)
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
 				return "", "DELETED", nil
@@ -554,7 +555,7 @@ func resourceNetworkPeeringRefreshFunc(ctx context.Context, peerID, projectID, c
 		 * is right, and the Mongo parameters used on the Google side to configure the reciprocal connection
 		 * are now available. */
 		if status == "WAITING_FOR_USER" {
-			container, _, err := client.Containers.Get(ctx, projectID, containerID)
+			container, _, err := conn.Containers.Get(ctx, projectID, containerID)
 
 			if err != nil {
 				return nil, "", fmt.Errorf(errorContainerRead, containerID, err)

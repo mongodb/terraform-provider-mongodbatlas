@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -101,7 +102,7 @@ func resourceMongoDBAtlasNetworkContainer() *schema.Resource {
 
 func resourceMongoDBAtlasNetworkContainerCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	providerName := d.Get("provider_name").(string)
 
@@ -150,7 +151,7 @@ func resourceMongoDBAtlasNetworkContainerCreate(ctx context.Context, d *schema.R
 
 func resourceMongoDBAtlasNetworkContainerRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	containerID := ids["container_id"]
@@ -214,7 +215,7 @@ func resourceMongoDBAtlasNetworkContainerRead(ctx context.Context, d *schema.Res
 
 func resourceMongoDBAtlasNetworkContainerUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	containerID := ids["container_id"]
@@ -253,7 +254,7 @@ func resourceMongoDBAtlasNetworkContainerUpdate(ctx context.Context, d *schema.R
 
 func resourceMongoDBAtlasNetworkContainerDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"provisioned_container"},
@@ -274,7 +275,7 @@ func resourceMongoDBAtlasNetworkContainerDelete(ctx context.Context, d *schema.R
 }
 
 func resourceMongoDBAtlasNetworkContainerImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {
@@ -313,14 +314,14 @@ func resourceMongoDBAtlasNetworkContainerImportState(ctx context.Context, d *sch
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceNetworkContainerRefreshFunc(ctx context.Context, d *schema.ResourceData, client *matlas.Client) retry.StateRefreshFunc {
+func resourceNetworkContainerRefreshFunc(ctx context.Context, d *schema.ResourceData, conn *matlas.Client) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		ids := decodeStateID(d.Id())
 		projectID := ids["project_id"]
 		containerID := ids["container_id"]
 
 		var err error
-		container, res, err := client.Containers.Get(ctx, projectID, containerID)
+		container, res, err := conn.Containers.Get(ctx, projectID, containerID)
 		if err != nil {
 			if res.StatusCode == 404 {
 				return "", "deleted", nil
@@ -333,7 +334,7 @@ func resourceNetworkContainerRefreshFunc(ctx context.Context, d *schema.Resource
 			return nil, "provisioned_container", nil
 		}
 
-		_, err = client.Containers.Delete(ctx, projectID, containerID)
+		_, err = conn.Containers.Delete(ctx, projectID, containerID)
 		if err != nil {
 			return nil, "provisioned_container", nil
 		}

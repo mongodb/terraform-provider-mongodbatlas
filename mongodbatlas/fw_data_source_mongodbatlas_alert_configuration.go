@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/zclconf/go-cty/cty"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
@@ -41,14 +42,14 @@ type tfAlertConfigurationOutputModel struct {
 
 func NewAlertConfigurationDS() datasource.DataSource {
 	return &AlertConfigurationDS{
-		DSCommon: DSCommon{
-			dataSourceName: alertConfigurationResourceName,
+		DSCommon: common.DSCommon{
+			DataSourceName: alertConfigurationResourceName,
 		},
 	}
 }
 
 type AlertConfigurationDS struct {
-	DSCommon
+	common.DSCommon
 }
 
 var alertConfigDSSchemaBlocks = map[string]schema.Block{
@@ -260,7 +261,7 @@ func (d *AlertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequ
 	alertID := getEncodedID(alertConfigurationConfig.AlertConfigurationID.ValueString(), encodedIDKeyAlertID)
 	outputs := alertConfigurationConfig.Output
 
-	connV2 := d.client.AtlasV2
+	connV2 := d.Client.AtlasV2
 	alert, _, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(ctx, projectID, alertID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(errorReadAlertConf, err.Error())

@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/project"
 )
 
 func dataSourceMongoDBAtlasProjectAPIKey() *schema.Resource {
@@ -58,7 +60,7 @@ func dataSourceMongoDBAtlasProjectAPIKey() *schema.Resource {
 
 func dataSourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 	apiKeyID := d.Get("api_key_id").(string)
@@ -86,7 +88,7 @@ func dataSourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Reso
 
 		if projectAssignments, err := newProjectAssignment(ctx, conn, apiKeyID); err == nil {
 			if err := d.Set("project_assignment", projectAssignments); err != nil {
-				return diag.Errorf(errorProjectSetting, `project_assignment`, projectID, err)
+				return diag.Errorf(project.ErrorProjectSetting, `project_assignment`, projectID, err)
 			}
 		}
 	}

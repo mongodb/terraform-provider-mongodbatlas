@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
 
@@ -200,7 +201,7 @@ func TestAccConfigDSAtlasUsers_InvalidAttrCombinations(t *testing.T) {
 }
 
 func fetchOrgUsers(orgID string, t *testing.T) *admin.PaginatedAppUser {
-	connV2 := testMongoDBClient.(*MongoDBClient).AtlasV2
+	connV2 := testMongoDBClient.(*client.MongoDBClient).AtlasV2
 	users, _, err := connV2.OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
 	if err != nil {
 		t.Fatalf("the Atlas Users for Org(%s) could not be fetched: %v", orgID, err)
@@ -282,7 +283,7 @@ func testAccDSMongoDBAtlasUsersByTeamWithPagination(orgID, teamName, username st
 
 func testAccCheckMongoDBAtlasOrgWithUsersExists(dataSourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connV2 := testMongoDBClient.(*MongoDBClient).AtlasV2
+		connV2 := testMongoDBClient.(*client.MongoDBClient).AtlasV2
 
 		rs, ok := s.RootModule().Resources[dataSourceName]
 		if !ok {

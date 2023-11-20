@@ -22,7 +22,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 	sdkv2schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
@@ -39,8 +41,6 @@ const (
 	AWS                                   = "AWS"
 	AZURE                                 = "AZURE"
 	GCP
-	errorConfigureSummary = "Unexpected Resource Configure Type"
-	errorConfigure        = "expected *MongoDBClient, got: %T. Please report this issue to the provider developers"
 )
 
 type MongodbtlasProvider struct{}
@@ -222,7 +222,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		return
 	}
 
-	config := Config{
+	config := client.Config{
 		PublicKey:    data.PublicKey.ValueString(),
 		PrivateKey:   data.PrivateKey.ValueString(),
 		BaseURL:      data.BaseURL.ValueString(),
@@ -248,7 +248,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		}
 	}
 
-	client, err := config.NewClient(ctx)
+	c, err := config.NewClient(ctx)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -258,13 +258,13 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		return
 	}
 
-	resp.DataSourceData = client
-	resp.ResourceData = client
+	resp.DataSourceData = c
+	resp.ResourceData = c
 }
 
 // parseTfModel extracts the values from tfAssumeRoleModel creating a new instance of our internal model AssumeRole used in Config
-func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *AssumeRole {
-	assumeRole := AssumeRole{}
+func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *client.AssumeRole {
+	assumeRole := client.AssumeRole{}
 
 	if !tfAssumeRoleModel.Duration.IsNull() {
 		duration, _ := time.ParseDuration(tfAssumeRoleModel.Duration.ValueString())
@@ -404,8 +404,8 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 
 func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		NewProjectDS,
-		NewProjectsDS,
+		project.NewProjectDS,
+		project.NewProjectsDS,
 		NewDatabaseUserDS,
 		NewDatabaseUsersDS,
 		NewAlertConfigurationDS,
@@ -419,7 +419,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 
 func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		NewProjectRS,
+		project.NewProjectRS,
 		NewEncryptionAtRestRS,
 		NewDatabaseUserRS,
 		NewAlertConfigurationRS,

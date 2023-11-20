@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/project"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -25,7 +27,7 @@ func dataSourceMongoDBAtlasOrgID() *schema.Resource {
 
 func dataSourceMongoDBAtlasOrgIDRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	var (
 		err  error
@@ -41,7 +43,7 @@ func dataSourceMongoDBAtlasOrgIDRead(ctx context.Context, d *schema.ResourceData
 	for idx, role := range apiKeyOrgList.APIKey.Roles {
 		if strings.HasPrefix(role.RoleName, "ORG_") {
 			if err := d.Set("org_id", apiKeyOrgList.APIKey.Roles[idx].OrgID); err != nil {
-				return diag.Errorf(errorProjectSetting, `org_id`, root.APIKey.ID, err)
+				return diag.Errorf(project.ErrorProjectSetting, `org_id`, root.APIKey.ID, err)
 			}
 			d.SetId(apiKeyOrgList.APIKey.Roles[idx].OrgID)
 			return nil

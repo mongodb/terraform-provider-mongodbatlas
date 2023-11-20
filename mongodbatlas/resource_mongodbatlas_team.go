@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -60,7 +61,7 @@ func resourceMongoDBAtlasTeam() *schema.Resource {
 }
 
 func resourceMongoDBAtlasTeamCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	orgID := d.Get("org_id").(string)
 
 	// Creating the team
@@ -82,7 +83,7 @@ func resourceMongoDBAtlasTeamCreate(ctx context.Context, d *schema.ResourceData,
 }
 
 func resourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
@@ -126,7 +127,7 @@ func resourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, m
 }
 
 func resourceMongoDBAtlasTeamUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
@@ -216,7 +217,7 @@ func resourceMongoDBAtlasTeamUpdate(ctx context.Context, d *schema.ResourceData,
 }
 
 func resourceMongoDBAtlasTeamDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	id := ids["id"]
@@ -248,7 +249,7 @@ func resourceMongoDBAtlasTeamDelete(ctx context.Context, d *schema.ResourceData,
 }
 
 func resourceMongoDBAtlasTeamImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {

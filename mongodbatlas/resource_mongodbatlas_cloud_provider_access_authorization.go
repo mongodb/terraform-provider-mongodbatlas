@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -89,7 +90,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorization() *schema.Resource {
 
 func resourceMongoDBAtlasCloudProviderAccessAuthorizationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// sadly there is no just get API
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
 	roleID := ids["id"] // atlas ID
@@ -127,7 +128,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationRead(ctx context.Contex
 }
 
 func resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 	roleID := d.Get("role_id").(string)
@@ -147,7 +148,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate(ctx context.Cont
 }
 
 func resourceMongoDBAtlasCloudProviderAccessAuthorizationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
 	roleID := ids["id"]
@@ -256,7 +257,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationStateUpgradeV0(ctx cont
 	return rawState, nil
 }
 
-func authorizeRole(ctx context.Context, client *matlas.Client, d *schema.ResourceData, projectID string, targetRole *matlas.CloudProviderAccessRole) diag.Diagnostics {
+func authorizeRole(ctx context.Context, conn *matlas.Client, d *schema.ResourceData, projectID string, targetRole *matlas.CloudProviderAccessRole) diag.Diagnostics {
 	req := &matlas.CloudProviderAccessRoleRequest{
 		ProviderName: targetRole.ProviderName,
 	}
@@ -282,7 +283,7 @@ func authorizeRole(ctx context.Context, client *matlas.Client, d *schema.Resourc
 	var err error
 
 	for i := 0; i < 3; i++ {
-		role, _, err = client.CloudProviderAccess.AuthorizeRole(ctx, projectID, roleID, req)
+		role, _, err = conn.CloudProviderAccess.AuthorizeRole(ctx, projectID, roleID, req)
 		if err != nil && strings.Contains(err.Error(), "CANNOT_ASSUME_ROLE") { // aws takes time to update , in case of single path
 			log.Printf("warning issue performing authorize: %s \n", err.Error())
 			log.Println("retrying")

@@ -1,4 +1,4 @@
-package mongodbatlas
+package client
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/mongodb-forks/digest"
@@ -28,6 +29,18 @@ type Config struct {
 	PrivateKey   string
 	BaseURL      string
 	RealmBaseURL string
+}
+
+type AssumeRole struct {
+	Tags              map[string]string
+	RoleARN           string
+	ExternalID        string
+	Policy            string
+	SessionName       string
+	SourceIdentity    string
+	PolicyARNs        []string
+	TransitiveTagKeys []string
+	Duration          time.Duration
 }
 
 // MongoDBClient contains the mongodbatlas clients and configurations

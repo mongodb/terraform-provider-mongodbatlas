@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 )
 
 // This datasource does not have a resource: we tested it manually
@@ -70,7 +71,7 @@ func dataSourceMongoDBAtlasCloudSharedTierRestoreJob() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasCloudSharedTierRestoreJobsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).AtlasV2
+	conn := meta.(*client.MongoDBClient).AtlasV2
 
 	jobID := d.Get("job_id").(string)
 	projectID := d.Get("project_id").(string)

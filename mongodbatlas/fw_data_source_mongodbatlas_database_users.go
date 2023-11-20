@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -16,13 +17,13 @@ const (
 )
 
 type DatabaseUsersDS struct {
-	DSCommon
+	common.DSCommon
 }
 
 func NewDatabaseUsersDS() datasource.DataSource {
 	return &DatabaseUsersDS{
-		DSCommon: DSCommon{
-			dataSourceName: databaseUsersDSName,
+		DSCommon: common.DSCommon{
+			DataSourceName: databaseUsersDSName,
 		},
 	}
 }
@@ -136,7 +137,7 @@ func (d *DatabaseUsersDS) Read(ctx context.Context, req datasource.ReadRequest, 
 	}
 
 	projectID := databaseUsersModel.ProjectID.ValueString()
-	conn := d.client.Atlas
+	conn := d.Client.Atlas
 	dbUser, _, err := conn.DatabaseUsers.List(ctx, projectID, nil)
 	if err != nil {
 		resp.Diagnostics.AddError("error getting database user information", err.Error())

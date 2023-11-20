@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
@@ -141,7 +142,7 @@ func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.R
 	clusterName := parts[1]
 	indexID := parts[2]
 
-	connV2 := meta.(*MongoDBClient).AtlasV2
+	connV2 := meta.(*client.MongoDBClient).AtlasV2
 	_, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import search index (%s) in projectID (%s) and Cluster (%s), error: %s", indexID, projectID, clusterName, err)
@@ -174,7 +175,7 @@ func resourceMongoDBAtlasSearchIndexDelete(ctx context.Context, d *schema.Resour
 	clusterName := ids["cluster_name"]
 	indexID := ids["index_id"]
 
-	connV2 := meta.(*MongoDBClient).AtlasV2
+	connV2 := meta.(*client.MongoDBClient).AtlasV2
 	_, _, err := connV2.AtlasSearchApi.DeleteAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return diag.Errorf("error deleting search index (%s): %s", d.Get("name").(string), err)
@@ -183,7 +184,7 @@ func resourceMongoDBAtlasSearchIndexDelete(ctx context.Context, d *schema.Resour
 }
 
 func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*MongoDBClient).AtlasV2
+	connV2 := meta.(*client.MongoDBClient).AtlasV2
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -296,7 +297,7 @@ func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resource
 	clusterName := ids["cluster_name"]
 	indexID := ids["index_id"]
 
-	connV2 := meta.(*MongoDBClient).AtlasV2
+	connV2 := meta.(*client.MongoDBClient).AtlasV2
 	searchIndex, resp, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		// deleted in the backend case
@@ -399,7 +400,7 @@ func marshalSearchIndex(fields any) (string, error) {
 }
 
 func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*MongoDBClient).AtlasV2
+	connV2 := meta.(*client.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 	indexType := d.Get("type").(string)

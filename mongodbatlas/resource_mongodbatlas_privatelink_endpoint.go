@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -113,7 +114,7 @@ func resourceMongoDBAtlasPrivateLinkEndpoint() *schema.Resource {
 }
 
 func resourceMongoDBAtlasPrivateLinkEndpointCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	providerName := d.Get("provider_name").(string)
 	region := d.Get("region").(string)
@@ -154,7 +155,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointCreate(ctx context.Context, d *schem
 }
 
 func resourceMongoDBAtlasPrivateLinkEndpointRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -228,7 +229,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointRead(ctx context.Context, d *schema.
 }
 
 func resourceMongoDBAtlasPrivateLinkEndpointDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	privateLinkID := ids["private_link_id"]
@@ -264,7 +265,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointDelete(ctx context.Context, d *schem
 }
 
 func resourceMongoDBAtlasPrivateLinkEndpointImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	parts := strings.Split(d.Id(), "-")
 
@@ -302,9 +303,9 @@ func resourceMongoDBAtlasPrivateLinkEndpointImportState(ctx context.Context, d *
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourcePrivateLinkEndpointRefreshFunc(ctx context.Context, client *matlas.Client, projectID, providerName, privateLinkID string) retry.StateRefreshFunc {
+func resourcePrivateLinkEndpointRefreshFunc(ctx context.Context, conn *matlas.Client, projectID, providerName, privateLinkID string) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		p, resp, err := client.PrivateEndpoints.Get(ctx, projectID, providerName, privateLinkID)
+		p, resp, err := conn.PrivateEndpoints.Get(ctx, projectID, providerName, privateLinkID)
 		if err != nil {
 			if resp.Response.StatusCode == 404 {
 				return "", "DELETED", nil

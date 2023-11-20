@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -44,7 +45,7 @@ func dataSourceMongoDBAtlasTeam() *schema.Resource {
 
 func dataSourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	var (
-		conn             = meta.(*MongoDBClient).Atlas
+		conn             = meta.(*client.MongoDBClient).Atlas
 		orgID            = d.Get("org_id").(string)
 		teamID, teamIDOk = d.GetOk("team_id")
 		name, nameOk     = d.GetOk("name")

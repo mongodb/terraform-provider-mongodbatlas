@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
@@ -27,14 +28,14 @@ var _ datasource.DataSourceWithConfigure = &AtlasUsersDS{}
 
 func NewAtlasUsersDS() datasource.DataSource {
 	return &AtlasUsersDS{
-		DSCommon: DSCommon{
-			dataSourceName: AtlasUsersDataSourceName,
+		DSCommon: common.DSCommon{
+			DataSourceName: AtlasUsersDataSourceName,
 		},
 	}
 }
 
 type AtlasUsersDS struct {
-	DSCommon
+	common.DSCommon
 }
 
 type tfAtlasUsersDSModel struct {
@@ -160,7 +161,7 @@ func (d *AtlasUsersDS) Schema(ctx context.Context, req datasource.SchemaRequest,
 }
 
 func (d *AtlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	connV2 := d.client.AtlasV2
+	connV2 := d.Client.AtlasV2
 
 	var atlasUsersConfig tfAtlasUsersDSModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &atlasUsersConfig)...)

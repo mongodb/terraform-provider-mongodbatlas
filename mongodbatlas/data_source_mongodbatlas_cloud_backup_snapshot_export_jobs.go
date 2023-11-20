@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -118,7 +119,7 @@ func datasourceMongoDBAtlasCloudBackupSnapshotExportJobs() *schema.Resource {
 
 func dataSourceMongoDBAtlasCloudBackupSnapshotsExportJobsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)

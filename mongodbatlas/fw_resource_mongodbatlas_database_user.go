@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -29,13 +30,13 @@ var _ resource.ResourceWithConfigure = &DatabaseUserRS{}
 var _ resource.ResourceWithImportState = &DatabaseUserRS{}
 
 type DatabaseUserRS struct {
-	RSCommon
+	common.RSCommon
 }
 
 func NewDatabaseUserRS() resource.Resource {
 	return &DatabaseUserRS{
-		RSCommon: RSCommon{
-			resourceName: databaseUserResourceName,
+		RSCommon: common.RSCommon{
+			ResourceName: databaseUserResourceName,
 		},
 	}
 }
@@ -219,7 +220,7 @@ func (r *DatabaseUserRS) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	conn := r.client.Atlas
+	conn := r.Client.Atlas
 	dbUser, _, err := conn.DatabaseUsers.Create(ctx, databaseUserPlan.ProjectID.ValueString(), dbUserReq)
 	if err != nil {
 		resp.Diagnostics.AddError("error during database user creation", err.Error())
@@ -259,7 +260,7 @@ func (r *DatabaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 		}
 	}
 
-	conn := r.client.Atlas
+	conn := r.Client.Atlas
 	dbUser, httpResponse, err := conn.DatabaseUsers.Get(ctx, authDatabaseName, projectID, username)
 	if err != nil {
 		// case 404
@@ -300,7 +301,7 @@ func (r *DatabaseUserRS) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
-	conn := r.client.Atlas
+	conn := r.Client.Atlas
 	dbUser, _, err := conn.DatabaseUsers.Update(ctx, databaseUserPlan.ProjectID.ValueString(), databaseUserPlan.Username.ValueString(), dbUserReq)
 	if err != nil {
 		resp.Diagnostics.AddError("error during database user creation", err.Error())
@@ -327,7 +328,7 @@ func (r *DatabaseUserRS) Delete(ctx context.Context, req resource.DeleteRequest,
 		return
 	}
 
-	conn := r.client.Atlas
+	conn := r.Client.Atlas
 	_, err := conn.DatabaseUsers.Delete(ctx, databaseUserState.AuthDatabaseName.ValueString(), databaseUserState.ProjectID.ValueString(), databaseUserState.Username.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("error when destroying the database user resource", err.Error())

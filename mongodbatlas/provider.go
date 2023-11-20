@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
@@ -260,7 +261,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (any, diag.D
 		return nil, diagnostics
 	}
 
-	config := Config{
+	config := client.Config{
 		PublicKey:    d.Get("public_key").(string),
 		PrivateKey:   d.Get("private_key").(string),
 		BaseURL:      d.Get("base_url").(string),
@@ -284,11 +285,11 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (any, diag.D
 		}
 	}
 
-	client, err := config.NewClient(ctx)
+	c, err := config.NewClient(ctx)
 	if err != nil {
 		return nil, append(diagnostics, diag.FromErr(err)...)
 	}
-	return client, diagnostics
+	return c, diagnostics
 }
 
 func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
@@ -414,7 +415,7 @@ func MultiEnvDefaultFunc(ks []string, def any) any {
 	return def
 }
 
-func configureCredentialsSTS(config Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (Config, error) {
+func configureCredentialsSTS(config client.Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (client.Config, error) {
 	ep, err := endpoints.GetSTSRegionalEndpoint("regional")
 	if err != nil {
 		log.Printf("GetSTSRegionalEndpoint error: %s", err)
@@ -745,24 +746,12 @@ func validAssumeRoleDuration(v any, k string) (ws []string, errorResults []error
 	return
 }
 
-type AssumeRole struct {
-	Tags              map[string]string
-	RoleARN           string
-	ExternalID        string
-	Policy            string
-	SessionName       string
-	SourceIdentity    string
-	PolicyARNs        []string
-	TransitiveTagKeys []string
-	Duration          time.Duration
-}
-
-func expandAssumeRole(tfMap map[string]any) *AssumeRole {
+func expandAssumeRole(tfMap map[string]any) *client.AssumeRole {
 	if tfMap == nil {
 		return nil
 	}
 
-	assumeRole := AssumeRole{}
+	assumeRole := client.AssumeRole{}
 
 	if v, ok := tfMap["duration"].(string); ok && v != "" {
 		duration, _ := time.ParseDuration(v)

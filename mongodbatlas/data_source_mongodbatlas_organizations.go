@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	"github.com/mwielbut/pointy"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -78,7 +79,7 @@ func dataSourceMongoDBAtlasOrganizations() *schema.Resource {
 
 func dataSourceMongoDBAtlasOrganizationsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	options := &matlas.ListOptions{
 		PageNum:      d.Get("page_num").(int),

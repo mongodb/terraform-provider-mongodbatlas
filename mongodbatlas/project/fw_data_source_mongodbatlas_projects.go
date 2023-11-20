@@ -1,4 +1,4 @@
-package mongodbatlas
+package project
 
 import (
 	"context"
@@ -8,25 +8,26 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const projectsDataSourceName = "projects"
 
-var _ datasource.DataSource = &ProjectsDS{}
-var _ datasource.DataSourceWithConfigure = &ProjectsDS{}
+var _ datasource.DataSource = &projectsDS{}
+var _ datasource.DataSourceWithConfigure = &projectsDS{}
 
 func NewProjectsDS() datasource.DataSource {
-	return &ProjectsDS{
-		DSCommon: DSCommon{
-			dataSourceName: projectsDataSourceName,
+	return &projectsDS{
+		DSCommon: common.DSCommon{
+			DataSourceName: projectsDataSourceName,
 		},
 	}
 }
 
-type ProjectsDS struct {
-	DSCommon
+type projectsDS struct {
+	common.DSCommon
 }
 
 type tfProjectsDSModel struct {
@@ -37,7 +38,7 @@ type tfProjectsDSModel struct {
 	TotalCount   types.Int64         `tfsdk:"total_count"`
 }
 
-func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *projectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			// https://github.com/hashicorp/terraform-plugin-testing/issues/84#issuecomment-1480006432
@@ -140,10 +141,10 @@ func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, r
 	}
 }
 
-func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *projectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var stateModel tfProjectsDSModel
-	conn := d.client.Atlas
-	connV2 := d.client.AtlasV2
+	conn := d.Client.Atlas
+	connV2 := d.Client.AtlasV2
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &stateModel)...)
 	options := &matlas.ListOptions{

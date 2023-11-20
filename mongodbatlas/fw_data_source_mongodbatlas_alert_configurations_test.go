@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -27,7 +28,7 @@ func TestAccConfigDSAlertConfigurations_basic(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: config(orgID, projectName),
+				Config: configAlert(orgID, projectName),
 				Check: resource.ComposeTestCheckFunc(
 					checkCount(dataSourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
@@ -103,7 +104,7 @@ func TestAccConfigDSAlertConfigurations_totalCount(t *testing.T) {
 	})
 }
 
-func config(orgID, projectName string) string {
+func configAlert(orgID, projectName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q
@@ -150,7 +151,7 @@ func configTotalCount(orgID, projectName string) string {
 
 func checkCount(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*client.MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

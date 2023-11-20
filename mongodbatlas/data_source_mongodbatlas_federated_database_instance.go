@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 )
 
 func dataSourceMongoDBAtlasFederatedDatabaseInstance() *schema.Resource {
@@ -316,7 +317,7 @@ func schemaFederatedDatabaseInstanceStoresDataSource() *schema.Schema {
 }
 
 func dataSourceMongoDBAtlasFederatedDatabaseInstanceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*MongoDBClient).AtlasV2
+	connV2 := meta.(*client.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	name := d.Get("name").(string)

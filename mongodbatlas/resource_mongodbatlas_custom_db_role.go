@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -109,7 +110,7 @@ var (
 func resourceMongoDBAtlasCustomDBRoleCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	customRoleLock.Lock()
 	defer customRoleLock.Unlock()
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
 	customDBRoleReq := &matlas.CustomDBRole{
@@ -156,7 +157,7 @@ func resourceMongoDBAtlasCustomDBRoleCreate(ctx context.Context, d *schema.Resou
 }
 
 func resourceMongoDBAtlasCustomDBRoleRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleName := ids["role_name"]
@@ -189,7 +190,7 @@ func resourceMongoDBAtlasCustomDBRoleRead(ctx context.Context, d *schema.Resourc
 func resourceMongoDBAtlasCustomDBRoleUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	customRoleLock.Lock()
 	defer customRoleLock.Unlock()
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleName := ids["role_name"]
@@ -219,7 +220,7 @@ func resourceMongoDBAtlasCustomDBRoleUpdate(ctx context.Context, d *schema.Resou
 }
 
 func resourceMongoDBAtlasCustomDBRoleDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleName := ids["role_name"]
@@ -259,7 +260,7 @@ func resourceMongoDBAtlasCustomDBRoleDelete(ctx context.Context, d *schema.Resou
 }
 
 func resourceMongoDBAtlasCustomDBRoleImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {

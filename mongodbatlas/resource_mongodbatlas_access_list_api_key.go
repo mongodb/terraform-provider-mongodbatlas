@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -71,7 +72,7 @@ func resourceMongoDBAtlasAccessListAPIKey() *schema.Resource {
 }
 
 func resourceMongoDBAtlasAccessListAPIKeyCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	orgID := d.Get("org_id").(string)
 	apiKeyID := d.Get("api_key_id").(string)
 	IPAddress := d.Get("ip_address").(string)
@@ -121,7 +122,7 @@ func resourceMongoDBAtlasAccessListAPIKeyCreate(ctx context.Context, d *schema.R
 
 func resourceMongoDBAtlasAccessListAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
@@ -161,7 +162,7 @@ func resourceMongoDBAtlasAccessListAPIKeyUpdate(ctx context.Context, d *schema.R
 }
 
 func resourceMongoDBAtlasAccessListAPIKeyDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
@@ -174,7 +175,7 @@ func resourceMongoDBAtlasAccessListAPIKeyDelete(ctx context.Context, d *schema.R
 }
 
 func resourceMongoDBAtlasAccessListAPIKeyImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 3)
 	if len(parts) != 3 {

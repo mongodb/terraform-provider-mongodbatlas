@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
 )
 
 var _ datasource.DataSource = &SearchDeploymentDS{}
@@ -13,8 +14,8 @@ var _ datasource.DataSourceWithConfigure = &SearchDeploymentDS{}
 
 func NewSearchDeploymentDS() datasource.DataSource {
 	return &SearchDeploymentDS{
-		DSCommon: DSCommon{
-			dataSourceName: searchDeploymentName,
+		DSCommon: common.DSCommon{
+			DataSourceName: searchDeploymentName,
 		},
 	}
 }
@@ -28,7 +29,7 @@ type tfSearchDeploymentDSModel struct {
 }
 
 type SearchDeploymentDS struct {
-	DSCommon
+	common.DSCommon
 }
 
 func (d *SearchDeploymentDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -70,7 +71,7 @@ func (d *SearchDeploymentDS) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	connV2 := d.client.AtlasV2
+	connV2 := d.Client.AtlasV2
 	projectID := searchDeploymentConfig.ProjectID.ValueString()
 	clusterName := searchDeploymentConfig.ClusterName.ValueString()
 	deploymentResp, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()

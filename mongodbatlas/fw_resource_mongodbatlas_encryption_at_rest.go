@@ -19,9 +19,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 	retrystrategy "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/retry"
 	validators "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -39,14 +41,14 @@ var _ resource.ResourceWithImportState = &EncryptionAtRestRS{}
 
 func NewEncryptionAtRestRS() resource.Resource {
 	return &EncryptionAtRestRS{
-		RSCommon: RSCommon{
-			resourceName: encryptionAtRestResourceName,
+		RSCommon: common.RSCommon{
+			ResourceName: encryptionAtRestResourceName,
 		},
 	}
 }
 
 type EncryptionAtRestRS struct {
-	RSCommon
+	common.RSCommon
 }
 
 type tfEncryptionAtRestRSModel struct {
@@ -204,7 +206,7 @@ func (r *EncryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 func (r *EncryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var encryptionAtRestPlan *tfEncryptionAtRestRSModel
 	var encryptionAtRestConfig *tfEncryptionAtRestRSModel
-	conn := r.client.Atlas
+	conn := r.Client.Atlas
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &encryptionAtRestPlan)...)
 	resp.Diagnostics.Append(req.Config.Get(ctx, &encryptionAtRestConfig)...)
@@ -289,7 +291,7 @@ func (r *EncryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest,
 		isImport = true
 	}
 
-	conn := r.client.Atlas
+	conn := r.Client.Atlas
 
 	encryptionResp, _, err := conn.EncryptionsAtRest.Get(context.Background(), projectID)
 	if err != nil {
@@ -313,7 +315,7 @@ func (r *EncryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 	var encryptionAtRestState *tfEncryptionAtRestRSModel
 	var encryptionAtRestConfig *tfEncryptionAtRestRSModel
 	var encryptionAtRestPlan *tfEncryptionAtRestRSModel
-	conn := r.client.Atlas
+	conn := r.Client.Atlas
 
 	// get current config
 	resp.Diagnostics.Append(req.Config.Get(ctx, &encryptionAtRestConfig)...)
@@ -337,7 +339,7 @@ func (r *EncryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("error when getting encryption at rest resource during update", fmt.Sprintf(errorProjectRead, projectID, err.Error()))
+		resp.Diagnostics.AddError("error when getting encryption at rest resource during update", fmt.Sprintf(project.ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
@@ -375,7 +377,7 @@ func (r *EncryptionAtRestRS) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	conn := r.client.Atlas
+	conn := r.Client.Atlas
 	projectID := encryptionAtRestState.ProjectID.ValueString()
 	_, err := conn.EncryptionsAtRest.Delete(ctx, projectID)
 

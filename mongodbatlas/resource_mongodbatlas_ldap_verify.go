@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -112,7 +113,7 @@ func resourceMongoDBAtlasLDAPVerify() *schema.Resource {
 }
 
 func resourceMongoDBAtlasLDAPVerifyCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 	ldapReq := &matlas.LDAP{}
@@ -165,7 +166,7 @@ func resourceMongoDBAtlasLDAPVerifyCreate(ctx context.Context, d *schema.Resourc
 }
 
 func resourceMongoDBAtlasLDAPVerifyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -237,7 +238,7 @@ func flattenValidations(validationsArray []*matlas.LDAPValidation) []map[string]
 }
 
 func resourceMongoDBAtlasLDAPVerifyImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {
@@ -268,9 +269,9 @@ func resourceMongoDBAtlasLDAPVerifyImportState(ctx context.Context, d *schema.Re
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceLDAPGetStatusRefreshFunc(ctx context.Context, projectID, requestID string, client *matlas.Client) retry.StateRefreshFunc {
+func resourceLDAPGetStatusRefreshFunc(ctx context.Context, projectID, requestID string, conn *matlas.Client) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		p, resp, err := client.LDAPConfigurations.GetStatus(ctx, projectID, requestID)
+		p, resp, err := conn.LDAPConfigurations.GetStatus(ctx, projectID, requestID)
 		if err != nil {
 			if resp.Response.StatusCode == 404 {
 				return "", "DELETED", nil

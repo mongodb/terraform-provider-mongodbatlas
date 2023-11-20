@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
 
@@ -65,7 +66,7 @@ func dataSourceMongoDBAtlasSearchIndexesRead(ctx context.Context, d *schema.Reso
 		return diag.Errorf("project_id, cluster_name, database and collection_name must be configured")
 	}
 
-	connV2 := meta.(*MongoDBClient).AtlasV2
+	connV2 := meta.(*client.MongoDBClient).AtlasV2
 	searchIndexes, _, err := connV2.AtlasSearchApi.ListAtlasSearchIndexes(ctx, projectID.(string), clusterName.(string), collectionName.(string), databaseName.(string)).Execute()
 
 	if err != nil {

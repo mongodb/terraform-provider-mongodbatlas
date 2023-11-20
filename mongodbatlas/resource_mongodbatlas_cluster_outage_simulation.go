@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -78,7 +79,7 @@ func resourceMongoDBAtlasClusterOutageSimulation() *schema.Resource {
 }
 
 func resourceMongoDBClusterOutageSimulationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
@@ -131,7 +132,7 @@ func newOutageFilters(d *schema.ResourceData) []matlas.ClusterOutageSimulationOu
 }
 
 func resourceMongoDBAClusterOutageSimulationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -159,7 +160,7 @@ func resourceMongoDBAClusterOutageSimulationRead(ctx context.Context, d *schema.
 }
 
 func resourceMongoDBAtlasClusterOutageSimulationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -193,9 +194,9 @@ func resourceMongoDBClusterOutageSimulationUpdate(ctx context.Context, d *schema
 	return diag.FromErr(fmt.Errorf("updating a Cluster Outage Simulation is not supported"))
 }
 
-func resourceClusterOutageSimulationRefreshFunc(ctx context.Context, clusterName, projectID string, client *matlas.Client) retry.StateRefreshFunc {
+func resourceClusterOutageSimulationRefreshFunc(ctx context.Context, clusterName, projectID string, conn *matlas.Client) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		outageSimulation, resp, err := client.ClusterOutageSimulation.GetOutageSimulation(ctx, projectID, clusterName)
+		outageSimulation, resp, err := conn.ClusterOutageSimulation.GetOutageSimulation(ctx, projectID, clusterName)
 
 		if err != nil {
 			if resp.StatusCode == 404 {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 )
 
 func TestAccFedDSFederatedSettingsOrganizationConfigs_basic(t *testing.T) {
@@ -48,7 +49,7 @@ func testAccMongoDBAtlasDataSourceFederatedSettingsOrganizationConfigsConfig(fed
 
 func testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigsExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*client.MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

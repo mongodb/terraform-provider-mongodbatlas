@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 )
 
 var (
@@ -58,7 +59,7 @@ func testAccCheckMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchi
 }
 
 func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDestroy(s *terraform.State) error {
-	client := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*client.MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" {
@@ -67,7 +68,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDe
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		_, _, err := client.DataLakes.GetPrivateLinkEndpoint(context.Background(), ids["project_id"], ids["endpoint_id"])
+		_, _, err := conn.DataLakes.GetPrivateLinkEndpoint(context.Background(), ids["project_id"], ids["endpoint_id"])
 
 		if err == nil {
 			return fmt.Errorf("Private endpoint service data federation online archive still exists")
@@ -79,7 +80,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDe
 
 func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*client.MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 
@@ -92,7 +93,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveEx
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
-		_, _, err := client.DataLakes.GetPrivateLinkEndpoint(context.Background(), ids["project_id"], ids["endpoint_id"])
+		_, _, err := conn.DataLakes.GetPrivateLinkEndpoint(context.Background(), ids["project_id"], ids["endpoint_id"])
 
 		if err != nil {
 			return err

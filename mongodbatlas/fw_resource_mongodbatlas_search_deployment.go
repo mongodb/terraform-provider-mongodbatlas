@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
 	retrystrategy "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
@@ -36,14 +37,14 @@ const (
 
 func NewSearchDeploymentRS() resource.Resource {
 	return &SearchDeploymentRS{
-		RSCommon: RSCommon{
-			resourceName: searchDeploymentName,
+		RSCommon: common.RSCommon{
+			ResourceName: searchDeploymentName,
 		},
 	}
 }
 
 type SearchDeploymentRS struct {
-	RSCommon
+	common.RSCommon
 }
 
 type tfSearchDeploymentRSModel struct {
@@ -121,7 +122,7 @@ func (r *SearchDeploymentRS) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	connV2 := r.client.AtlasV2
+	connV2 := r.Client.AtlasV2
 	projectID := searchDeploymentPlan.ProjectID.ValueString()
 	clusterName := searchDeploymentPlan.ClusterName.ValueString()
 	searchDeploymentReq := newSearchDeploymentReq(ctx, &searchDeploymentPlan)
@@ -155,7 +156,7 @@ func (r *SearchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	connV2 := r.client.AtlasV2
+	connV2 := r.Client.AtlasV2
 	projectID := searchDeploymentPlan.ProjectID.ValueString()
 	clusterName := searchDeploymentPlan.ClusterName.ValueString()
 	deploymentResp, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
@@ -179,7 +180,7 @@ func (r *SearchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	connV2 := r.client.AtlasV2
+	connV2 := r.Client.AtlasV2
 	projectID := searchDeploymentPlan.ProjectID.ValueString()
 	clusterName := searchDeploymentPlan.ClusterName.ValueString()
 	searchDeploymentReq := newSearchDeploymentReq(ctx, &searchDeploymentPlan)
@@ -213,7 +214,7 @@ func (r *SearchDeploymentRS) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	connV2 := r.client.AtlasV2
+	connV2 := r.Client.AtlasV2
 	projectID := searchDeploymentState.ProjectID.ValueString()
 	clusterName := searchDeploymentState.ClusterName.ValueString()
 	if _, err := connV2.AtlasSearchApi.DeleteAtlasSearchDeployment(ctx, projectID, clusterName).Execute(); err != nil {
@@ -260,11 +261,11 @@ func splitSearchNodeImportID(id string) (projectID, clusterName string, err erro
 	return
 }
 
-func waitSearchNodeStateTransition(ctx context.Context, projectID, clusterName string, client *admin.APIClient, timeout time.Duration) (*admin.ApiSearchDeploymentResponse, error) {
+func waitSearchNodeStateTransition(ctx context.Context, projectID, clusterName string, conn *admin.APIClient, timeout time.Duration) (*admin.ApiSearchDeploymentResponse, error) {
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyPausedState},
 		Target:     []string{retrystrategy.RetryStrategyIdleState},
-		Refresh:    searchDeploymentRefreshFunc(ctx, projectID, clusterName, client),
+		Refresh:    searchDeploymentRefreshFunc(ctx, projectID, clusterName, conn),
 		Timeout:    timeout,
 		MinTimeout: 1 * time.Minute,
 		Delay:      1 * time.Minute,
@@ -280,11 +281,11 @@ func waitSearchNodeStateTransition(ctx context.Context, projectID, clusterName s
 	return nil, errors.New("did not obtain valid result when waiting for search deployment state transition")
 }
 
-func waitSearchNodeDelete(ctx context.Context, projectID, clusterName string, client *admin.APIClient, timeout time.Duration) error {
+func waitSearchNodeDelete(ctx context.Context, projectID, clusterName string, conn *admin.APIClient, timeout time.Duration) error {
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{retrystrategy.RetryStrategyIdleState, retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyPausedState},
 		Target:     []string{retrystrategy.RetryStrategyDeletedState},
-		Refresh:    searchDeploymentRefreshFunc(ctx, projectID, clusterName, client),
+		Refresh:    searchDeploymentRefreshFunc(ctx, projectID, clusterName, conn),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
@@ -293,9 +294,9 @@ func waitSearchNodeDelete(ctx context.Context, projectID, clusterName string, cl
 	return err
 }
 
-func searchDeploymentRefreshFunc(ctx context.Context, projectID, clusterName string, client *admin.APIClient) retry.StateRefreshFunc {
+func searchDeploymentRefreshFunc(ctx context.Context, projectID, clusterName string, conn *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		deploymentResp, resp, err := client.AtlasSearchApi.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
+		deploymentResp, resp, err := conn.AtlasSearchApi.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
 		if err != nil && deploymentResp == nil && resp == nil {
 			return nil, "", err
 		}

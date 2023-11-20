@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	"go.mongodb.org/realm/realm"
 )
 
@@ -145,7 +146,7 @@ func dataSourceMongoDBAtlasEventTriggers() *schema.Resource {
 func dataSourceMongoDBAtlasEventTriggersRead(d *schema.ResourceData, meta any) error {
 	// Get client connection.
 	ctx := context.Background()
-	conn, err := meta.(*MongoDBClient).GetRealmClient(ctx)
+	conn, err := meta.(*client.MongoDBClient).GetRealmClient(ctx)
 	if err != nil {
 		return err
 	}

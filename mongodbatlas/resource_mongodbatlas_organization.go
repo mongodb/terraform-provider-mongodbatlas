@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -64,7 +65,7 @@ func resourceMongoDBAtlasOrganization() *schema.Resource {
 }
 
 func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	organization, resp, err := conn.Organizations.Create(ctx, newCreateOrganizationRequest(d))
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
@@ -96,14 +97,14 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 
 func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	config := Config{
+	config := client.Config{
 		PublicKey:  d.Get("public_key").(string),
 		PrivateKey: d.Get("private_key").(string),
-		BaseURL:    meta.(*MongoDBClient).Config.BaseURL,
+		BaseURL:    meta.(*client.MongoDBClient).Config.BaseURL,
 	}
 
 	clients, _ := config.NewClient(ctx)
-	conn := clients.(*MongoDBClient).Atlas
+	conn := clients.(*client.MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
@@ -125,14 +126,14 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 
 func resourceMongoDBAtlasOrganizationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	config := Config{
+	config := client.Config{
 		PublicKey:  d.Get("public_key").(string),
 		PrivateKey: d.Get("private_key").(string),
-		BaseURL:    meta.(*MongoDBClient).Config.BaseURL,
+		BaseURL:    meta.(*client.MongoDBClient).Config.BaseURL,
 	}
 
 	clients, _ := config.NewClient(ctx)
-	conn := clients.(*MongoDBClient).Atlas
+	conn := clients.(*client.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 
@@ -149,14 +150,14 @@ func resourceMongoDBAtlasOrganizationUpdate(ctx context.Context, d *schema.Resou
 
 func resourceMongoDBAtlasOrganizationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	config := Config{
+	config := client.Config{
 		PublicKey:  d.Get("public_key").(string),
 		PrivateKey: d.Get("private_key").(string),
-		BaseURL:    meta.(*MongoDBClient).Config.BaseURL,
+		BaseURL:    meta.(*client.MongoDBClient).Config.BaseURL,
 	}
 
 	clients, _ := config.NewClient(ctx)
-	conn := clients.(*MongoDBClient).Atlas
+	conn := clients.(*client.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 
@@ -167,7 +168,7 @@ func resourceMongoDBAtlasOrganizationDelete(ctx context.Context, d *schema.Resou
 }
 
 func resourceMongoDBAtlasOrganizationImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	orgID := d.Id()
 
 	r, _, err := conn.Organizations.Get(ctx, orgID)

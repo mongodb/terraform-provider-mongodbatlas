@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 )
 
 func dataSourceMongoDBAtlasProjectInvitation() *schema.Resource {
@@ -49,7 +50,7 @@ func dataSourceMongoDBAtlasProjectInvitation() *schema.Resource {
 
 func dataSourceMongoDBAtlasProjectInvitationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	username := d.Get("username").(string)
 	invitationID := d.Get("invitation_id").(string)

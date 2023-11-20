@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/common"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mwielbut/pointy"
@@ -43,14 +44,14 @@ var _ resource.ResourceWithImportState = &AlertConfigurationRS{}
 
 func NewAlertConfigurationRS() resource.Resource {
 	return &AlertConfigurationRS{
-		RSCommon: RSCommon{
-			resourceName: alertConfigurationResourceName,
+		RSCommon: common.RSCommon{
+			ResourceName: alertConfigurationResourceName,
 		},
 	}
 }
 
 type AlertConfigurationRS struct {
-	RSCommon
+	common.RSCommon
 }
 
 type tfAlertConfigurationRSModel struct {
@@ -370,7 +371,7 @@ func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 }
 
 func (r *AlertConfigurationRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	conn := r.client.Atlas
+	conn := r.Client.Atlas
 
 	var alertConfigPlan tfAlertConfigurationRSModel
 
@@ -416,7 +417,7 @@ func (r *AlertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 }
 
 func (r *AlertConfigurationRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	conn := r.client.Atlas
+	conn := r.Client.Atlas
 
 	var alertConfigState tfAlertConfigurationRSModel
 
@@ -446,7 +447,7 @@ func (r *AlertConfigurationRS) Read(ctx context.Context, req resource.ReadReques
 }
 
 func (r *AlertConfigurationRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	conn := r.client.Atlas
+	conn := r.Client.Atlas
 
 	var alertConfigState, alertConfigPlan tfAlertConfigurationRSModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &alertConfigState)...)
@@ -521,7 +522,7 @@ func (r *AlertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 }
 
 func (r *AlertConfigurationRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	conn := r.client.Atlas
+	conn := r.Client.Atlas
 
 	var alertConfigState tfAlertConfigurationRSModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &alertConfigState)...)

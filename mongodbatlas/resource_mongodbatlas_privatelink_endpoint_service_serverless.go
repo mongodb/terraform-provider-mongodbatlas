@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/client"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -85,7 +86,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerless() *schema.Resource
 
 func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	instanceName := d.Get("instance_name").(string)
 	endpointID := d.Get("endpoint_id").(string)
@@ -148,7 +149,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate(ctx context.
 
 func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	instanceName := ids["instance_name"]
@@ -205,7 +206,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessRead(ctx context.Co
 
 func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	instanceName := ids["instance_name"]
@@ -229,7 +230,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessDelete(ctx context.
 }
 
 func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*client.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "--", 3)
 	if len(parts) != 3 {
@@ -276,9 +277,9 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessImportState(ctx con
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceServiceEndpointServerlessRefreshFunc(ctx context.Context, client *matlas.Client, projectID, instanceName, endpointServiceID string) retry.StateRefreshFunc {
+func resourceServiceEndpointServerlessRefreshFunc(ctx context.Context, conn *matlas.Client, projectID, instanceName, endpointServiceID string) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		i, resp, err := client.ServerlessPrivateEndpoints.Get(ctx, projectID, instanceName, endpointServiceID)
+		i, resp, err := conn.ServerlessPrivateEndpoints.Get(ctx, projectID, instanceName, endpointServiceID)
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 || resp.Response.StatusCode == 400 {
 				return "", "DELETED", nil
