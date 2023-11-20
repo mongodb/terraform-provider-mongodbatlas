@@ -124,6 +124,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.0.8'
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
@@ -149,6 +153,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.0.8'
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
@@ -174,6 +182,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.0.8'
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
@@ -199,6 +211,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.0.8'
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
@@ -223,6 +239,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.0.8'
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
@@ -251,6 +271,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.0.8'
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
@@ -277,6 +301,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.0.8'
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
@@ -304,6 +332,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.0.8'
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
@@ -330,6 +362,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.0.8'
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
@@ -358,6 +394,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.0.8'
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
@@ -383,6 +423,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.0.8'
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV_NETWORK }}
@@ -413,6 +457,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.0.8'
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
@@ -439,6 +487,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.0.8'
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV_NETWORK }}
@@ -470,6 +522,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.0.8'
+          terraform_wrapper: false
       - id: sts-assume-role
         name: Generate STS Temporary credential for acceptance testing
         shell: bash
@@ -509,6 +565,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.0.8'
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
