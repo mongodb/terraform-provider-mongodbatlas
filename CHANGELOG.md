@@ -49,8 +49,6 @@
 - Changes naming convention for `data_source` event trigger test. [\#1594](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1594) ([marcosuma](https://github.com/marcosuma))
 - Changes naming convention for `data_source` event trigger tests. [\#1593](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1593) ([marcosuma](https://github.com/marcosuma))
 - Updates RELEASING.md [\#1592](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1592) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- Reverts "chore: add acceptance tests and migration tests to report in merge queue" [\#1591](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1591) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- Adds acceptance tests and migration tests to report in merge queue [\#1590](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1590) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Adds code health to report in merge queue [\#1588](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1588) ([AgustinBettati](https://github.com/AgustinBettati))
 - Adds online archive migration test to github action [\#1587](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1587) ([maastha](https://github.com/maastha))
 - Changes naming convention for event trigger tests. [\#1586](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1586) ([marcosuma](https://github.com/marcosuma))
