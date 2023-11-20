@@ -63,7 +63,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			},
 			"auto_scaling_disk_gb_enabled": {
 				Type:     schema.TypeBool,
-				Default:  true,
+				Computed: true,
 				Optional: true,
 			},
 			"auto_scaling_compute_enabled": {
@@ -343,6 +343,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			"accept_data_risks_and_force_replica_set_reconfig": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				Description: "Submit this field alongside your topology reconfiguration to request a new regional outage resistant topology",
 			},
 		},
