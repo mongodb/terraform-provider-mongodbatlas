@@ -13,6 +13,7 @@
 
 - Fixes terraform encryption at rest error when upgrading to 1.12.2 [\#1617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1617) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Defines `ConfigMode` for computed nest block attribute in `privatelink_endpoint_service` to support tf 1.0.8 [\#1629](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1629) ([AgustinBettati](https://github.com/AgustinBettati))
+- Makes `disk_iops` a computed attribute in `mongodbatlas_advanced_cluster` resource [\#1620](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1620) ([AgustinBettati](https://github.com/AgustinBettati))
 
 **Closed Issues**
 
@@ -30,7 +31,6 @@
 - Improves testing in search-index resource [\#1635](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1635) ([lantoli](https://github.com/lantoli))
 - Updates Atlas Go SDK [\#1632](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1632) ([lantoli](https://github.com/lantoli))
 - Updates PR template for further verifications. [\#1628](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1628) ([marcosuma](https://github.com/marcosuma))
-- Makes `disk_iops` a computed attribute in `advanced_cluster` resource [\#1620](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1620) ([AgustinBettati](https://github.com/AgustinBettati))
 - Removes all references to flowdock and new relic third party integrations [\#1616](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1616) ([oarbusi](https://github.com/oarbusi))
 - Fixes documentation errors in cloud provider access [\#1615](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1615) ([milh0use](https://github.com/milh0use))
 - Fixes search index acceptance tests flow [\#1610](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1610) ([lantoli](https://github.com/lantoli))
