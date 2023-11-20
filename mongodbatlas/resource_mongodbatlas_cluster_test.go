@@ -1343,7 +1343,7 @@ func TestAccClusterRSCluster_basicAWS_UnpauseToPaused(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, false, true, "M10"),
+				Config: testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, true, true, "M10"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
@@ -1357,8 +1357,11 @@ func TestAccClusterRSCluster_basicAWS_UnpauseToPaused(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, false, true, "M20"),
+				Config:      testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, true, true, "M20"),
 				ExpectError: regexp.MustCompile("CANNOT_UPDATE_PAUSED_CLUSTER"),
+			},
+			{
+				Config: testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, true, true, "M10"),
 			},
 			{
 				ResourceName:            resourceName,
@@ -1400,7 +1403,7 @@ func TestAccClusterRSCluster_basicAWS_PausedToUnpaused(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, false, false, "M30"),
+				Config: testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, true, false, "M30"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
@@ -1414,7 +1417,7 @@ func TestAccClusterRSCluster_basicAWS_PausedToUnpaused(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, false, true, "M30"),
+				Config:      testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, true, true, "M30"),
 				ExpectError: regexp.MustCompile("CANNOT_PAUSE_RECENTLY_RESUMED_CLUSTER"),
 			},
 		},
