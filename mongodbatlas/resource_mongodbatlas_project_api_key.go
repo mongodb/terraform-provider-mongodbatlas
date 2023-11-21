@@ -192,12 +192,12 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 	apiKeyID := ids["api_key_id"]
 
 	if d.HasChange("project_assignment") {
-		// Getting the current api_keys and the new api_keys with changes
-		newAPIKeys, changedAPIKeys, removedAPIKeys := getStateProjectAssignmentAPIKeys(d)
+		// Getting the changes to api key project assignments
+		newAssignments, changedAssignments, removedAssignments := getStateProjectAssignmentAPIKeys(d)
 
-		// Adding new api_keys into the project
-		if len(newAPIKeys) > 0 {
-			for _, apiKey := range newAPIKeys {
+		// Adding new projects assignments
+		if len(newAssignments) > 0 {
+			for _, apiKey := range newAssignments {
 				projectID := apiKey.(map[string]any)["project_id"].(string)
 				roles := expandStringList(apiKey.(map[string]any)["role_names"].(*schema.Set).List())
 				_, err := conn.ProjectAPIKeys.Assign(ctx, projectID, apiKeyID, &matlas.AssignAPIKey{
@@ -209,17 +209,20 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 			}
 		}
 
-		// Removing api_keys from the project
-		for _, apiKey := range removedAPIKeys {
+		// Removing projects assignments
+		for _, apiKey := range removedAssignments {
 			projectID := apiKey.(map[string]any)["project_id"].(string)
 			_, err := conn.ProjectAPIKeys.Unassign(ctx, projectID, apiKeyID)
+			if err != nil && strings.Contains(err.Error(), "GROUP_NOT_FOUND") {
+				continue // allows removing assignment for a project that has been deleted
+			}
 			if err != nil {
 				return diag.Errorf("error removing api_key(%s) from the project(%s): %s", apiKeyID, projectID, err)
 			}
 		}
 
-		// Updating the role names for the api_key
-		for _, apiKey := range changedAPIKeys {
+		// Updating the role names for the project assignments
+		for _, apiKey := range changedAssignments {
 			projectID := apiKey.(map[string]any)["project_id"].(string)
 			roles := expandStringList(apiKey.(map[string]any)["role_names"].(*schema.Set).List())
 			_, err := conn.ProjectAPIKeys.Assign(ctx, projectID, apiKeyID, &matlas.AssignAPIKey{
@@ -396,30 +399,30 @@ func newProjectAssignment(ctx context.Context, conn *matlas.Client, apiKeyID str
 	return results, nil
 }
 
-func getStateProjectAssignmentAPIKeys(d *schema.ResourceData) (newAPIKeys, changedAPIKeys, removedAPIKeys []any) {
-	currentAPIKeys, changes := d.GetChange("project_assignment")
+func getStateProjectAssignmentAPIKeys(d *schema.ResourceData) (newAssignments, changedAssignments, removedAssignments []any) {
+	prevAssignments, currAssignments := d.GetChange("project_assignment")
 
-	rAPIKeys := currentAPIKeys.(*schema.Set).Difference(changes.(*schema.Set))
-	nAPIKeys := changes.(*schema.Set).Difference(currentAPIKeys.(*schema.Set))
-	changedAPIKeys = make([]any, 0)
+	rAssignments := prevAssignments.(*schema.Set).Difference(currAssignments.(*schema.Set))
+	nAssignments := currAssignments.(*schema.Set).Difference(prevAssignments.(*schema.Set))
+	changedAssignments = make([]any, 0)
 
-	for _, changed := range nAPIKeys.List() {
-		for _, removed := range rAPIKeys.List() {
+	for _, changed := range nAssignments.List() {
+		for _, removed := range rAssignments.List() {
 			if changed.(map[string]any)["project_id"] == removed.(map[string]any)["project_id"] {
-				rAPIKeys.Remove(removed)
+				rAssignments.Remove(removed)
 			}
 		}
 
-		for _, current := range currentAPIKeys.(*schema.Set).List() {
+		for _, current := range prevAssignments.(*schema.Set).List() {
 			if changed.(map[string]any)["project_id"] == current.(map[string]any)["project_id"] {
-				changedAPIKeys = append(changedAPIKeys, changed.(map[string]any))
-				nAPIKeys.Remove(changed)
+				changedAssignments = append(changedAssignments, changed.(map[string]any))
+				nAssignments.Remove(changed)
 			}
 		}
 	}
 
-	newAPIKeys = nAPIKeys.List()
-	removedAPIKeys = rAPIKeys.List()
+	newAssignments = nAssignments.List()
+	removedAssignments = rAssignments.List()
 
 	return
 }
