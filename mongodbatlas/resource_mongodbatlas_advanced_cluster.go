@@ -750,21 +750,12 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	// Has changes
 	if !reflect.DeepEqual(cluster, clusterChangeDetect) {
 		err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-			_, _, err := updateAdvancedCluster(ctx, conn, cluster, projectID, clusterName, timeout)
+			_, resp, err := updateAdvancedCluster(ctx, conn, cluster, projectID, clusterName, timeout)
 			if err != nil {
-				var target *matlas.ErrorResponse
-				if errors.As(err, &target) && target.ErrorCode == "CANNOT_UPDATE_PAUSED_CLUSTER" {
-					clusterRequest := &matlas.AdvancedCluster{
-						Paused: pointy.Bool(false),
-					}
-					_, _, err := updateAdvancedCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
-					if err != nil {
-						return retry.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
-					}
-				}
-				if errors.As(err, &target) && target.HTTPCode == 400 {
+				if resp == nil || resp.StatusCode == 400 {
 					return retry.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
 				}
+				return retry.RetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
 			}
 			return nil
 		})

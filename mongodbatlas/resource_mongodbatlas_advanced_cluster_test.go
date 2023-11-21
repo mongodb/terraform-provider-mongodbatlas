@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -241,11 +242,13 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 func TestAccClusterAdvancedCluster_UnpausedToPaused(t *testing.T) {
 	SkipTest(t)
 	var (
-		cluster      matlas.AdvancedCluster
-		resourceName = "mongodbatlas_advanced_cluster.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		rName        = acctest.RandomWithPrefix("test-acc")
+		cluster             matlas.AdvancedCluster
+		resourceName        = "mongodbatlas_advanced_cluster.test"
+		orgID               = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName         = acctest.RandomWithPrefix("test-acc")
+		rName               = acctest.RandomWithPrefix("test-acc")
+		instanceSize        = "M10"
+		anotherInstanceSize = "M20"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -254,7 +257,7 @@ func TestAccClusterAdvancedCluster_UnpausedToPaused(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasAdvancedClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, false),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, false, instanceSize),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
@@ -266,7 +269,7 @@ func TestAccClusterAdvancedCluster_UnpausedToPaused(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, true),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, true, instanceSize),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
@@ -276,6 +279,10 @@ func TestAccClusterAdvancedCluster_UnpausedToPaused(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
 				),
+			},
+			{
+				Config:      testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, true, anotherInstanceSize),
+				ExpectError: regexp.MustCompile("CANNOT_UPDATE_PAUSED_CLUSTER"),
 			},
 			{
 				ResourceName:            resourceName,
@@ -296,6 +303,7 @@ func TestAccClusterAdvancedCluster_PausedToUnpaused(t *testing.T) {
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		rName        = acctest.RandomWithPrefix("test-acc")
+		instanceSize = "M10"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -304,7 +312,7 @@ func TestAccClusterAdvancedCluster_PausedToUnpaused(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasAdvancedClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, true),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, true, instanceSize),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
@@ -316,7 +324,7 @@ func TestAccClusterAdvancedCluster_PausedToUnpaused(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, false),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, false, instanceSize),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
@@ -326,6 +334,13 @@ func TestAccClusterAdvancedCluster_PausedToUnpaused(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
 				),
+			},
+			{
+				Config:      testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, true, instanceSize),
+				ExpectError: regexp.MustCompile("CANNOT_PAUSE_RECENTLY_RESUMED_CLUSTER"),
+			},
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, false, instanceSize),
 			},
 			{
 				ResourceName:            resourceName,
@@ -964,7 +979,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 	`, orgID, projectName, name)
 }
 
-func testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, name string, paused bool) string {
+func testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, name string, paused bool, instanceSize string) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_project" "cluster_project" {
 	name   = %[2]q
@@ -979,7 +994,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
   replication_specs {
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = %[5]q
         node_count    = 3
       }
       analytics_specs {
@@ -992,7 +1007,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     }
   }
 }
-	`, orgID, projectName, name, paused)
+	`, orgID, projectName, name, paused, instanceSize)
 }
 
 func testAccMongoDBAtlasAdvancedClusterConfigAdvancedConf(orgID, projectName, name string, p *matlas.ProcessArgs) string {
