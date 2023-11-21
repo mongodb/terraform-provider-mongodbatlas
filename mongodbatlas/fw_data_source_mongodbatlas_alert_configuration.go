@@ -306,10 +306,10 @@ func newTFAlertConfigurationDSModel(apiRespConfig *admin.GroupAlertsConfig, proj
 		Created:               types.StringPointerValue(util.TimePtrToStringPtr(apiRespConfig.Created)),
 		Updated:               types.StringPointerValue(util.TimePtrToStringPtr(apiRespConfig.Updated)),
 		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
-		MetricThresholdConfig: newTFMetricThresholdConfigModelV2(apiRespConfig.MetricThreshold, []tfMetricThresholdConfigModel{}),
-		ThresholdConfig:       newTFThresholdConfigModelV2(apiRespConfig.Threshold, []tfThresholdConfigModel{}),
-		Notification:          newTFNotificationModelListV2(apiRespConfig.Notifications, []tfNotificationModel{}),
-		Matcher:               newTFMatcherModelListV2(apiRespConfig.Matchers, []tfMatcherModel{}),
+		MetricThresholdConfig: newTFMetricThresholdConfigModel(apiRespConfig.MetricThreshold, []tfMetricThresholdConfigModel{}),
+		ThresholdConfig:       newTFThresholdConfigModel(apiRespConfig.Threshold, []tfThresholdConfigModel{}),
+		Notification:          newTFNotificationModelList(apiRespConfig.Notifications, []tfNotificationModel{}),
+		Matcher:               newTFMatcherModelList(apiRespConfig.Matchers, []tfMatcherModel{}),
 	}
 }
 

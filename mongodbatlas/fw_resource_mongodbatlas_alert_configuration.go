@@ -23,7 +23,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mwielbut/pointy"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -370,7 +369,7 @@ func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 }
 
 func (r *AlertConfigurationRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	conn := r.client.Atlas
+	connV2 := r.client.AtlasV2
 
 	var alertConfigPlan tfAlertConfigurationRSModel
 
@@ -382,8 +381,8 @@ func (r *AlertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 
 	projectID := alertConfigPlan.ProjectID.ValueString()
 
-	apiReq := &matlas.AlertConfiguration{
-		EventTypeName:   alertConfigPlan.EventType.ValueString(),
+	apiReq := &admin.GroupAlertsConfig{
+		EventTypeName:   alertConfigPlan.EventType.ValueStringPointer(),
 		Enabled:         alertConfigPlan.Enabled.ValueBoolPointer(),
 		Matchers:        newMatcherList(alertConfigPlan.Matcher),
 		MetricThreshold: newMetricThreshold(alertConfigPlan.MetricThresholdConfig),
@@ -397,14 +396,14 @@ func (r *AlertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 	}
 	apiReq.Notifications = notifications
 
-	apiResp, _, err := conn.AlertConfigurations.Create(ctx, projectID, apiReq)
+	apiResp, _, err := connV2.AlertConfigurationsApi.CreateAlertConfiguration(ctx, projectID, apiReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(errorCreateAlertConf, err.Error())
 		return
 	}
 
 	encodedID := encodeStateID(map[string]string{
-		encodedIDKeyAlertID:   apiResp.ID,
+		encodedIDKeyAlertID:   util.SafeString(apiResp.Id),
 		encodedIDKeyProjectID: projectID,
 	})
 	alertConfigPlan.ID = types.StringValue(encodedID)
@@ -416,7 +415,7 @@ func (r *AlertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 }
 
 func (r *AlertConfigurationRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	conn := r.client.Atlas
+	connV2 := r.client.AtlasV2
 
 	var alertConfigState tfAlertConfigurationRSModel
 
@@ -428,7 +427,7 @@ func (r *AlertConfigurationRS) Read(ctx context.Context, req resource.ReadReques
 
 	ids := decodeStateID(alertConfigState.ID.ValueString())
 
-	alert, getResp, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID])
+	alert, getResp, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID]).Execute()
 	if err != nil {
 		// deleted in the backend case
 		if getResp != nil && getResp.StatusCode == http.StatusNotFound {
@@ -446,7 +445,7 @@ func (r *AlertConfigurationRS) Read(ctx context.Context, req resource.ReadReques
 }
 
 func (r *AlertConfigurationRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	conn := r.client.Atlas
+	connV2 := r.client.AtlasV2
 
 	var alertConfigState, alertConfigPlan tfAlertConfigurationRSModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &alertConfigState)...)
@@ -459,15 +458,15 @@ func (r *AlertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 
 	// In order to update an alert config it is necessary to send the original alert configuration request again, if not the
 	// server returns an error 500
-	apiReq, _, err := conn.AlertConfigurations.GetAnAlertConfig(ctx, ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID])
+	apiReq, _, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(ctx, ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID]).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(errorReadAlertConf, err.Error())
 		return
 	}
 	// Removing the computed attributes to recreate the original request
-	apiReq.GroupID = ""
-	apiReq.Created = ""
-	apiReq.Updated = ""
+	apiReq.GroupId = nil
+	apiReq.Created = nil
+	apiReq.Updated = nil
 
 	// Only changes the updated fields
 	if !alertConfigPlan.Enabled.Equal(alertConfigState.Enabled) {
@@ -475,7 +474,7 @@ func (r *AlertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	if !alertConfigPlan.EventType.Equal(alertConfigState.EventType) {
-		apiReq.EventTypeName = alertConfigPlan.EventType.ValueString()
+		apiReq.EventTypeName = alertConfigPlan.EventType.ValueStringPointer()
 	}
 
 	if !reflect.DeepEqual(alertConfigPlan.MetricThresholdConfig, alertConfigState.MetricThresholdConfig) {
@@ -498,15 +497,16 @@ func (r *AlertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 	}
 	apiReq.Notifications = notifications
 
-	var updatedAlertConfigResp *matlas.AlertConfiguration
+	var updatedAlertConfigResp *admin.GroupAlertsConfig
 
 	// Cannot enable/disable ONLY via update (if only send enable as changed field server returns a 500 error) so have to use different method to change enabled.
-	if reflect.DeepEqual(apiReq, &matlas.AlertConfiguration{Enabled: pointy.Bool(true)}) ||
-		reflect.DeepEqual(apiReq, &matlas.AlertConfiguration{Enabled: pointy.Bool(false)}) {
+	if reflect.DeepEqual(apiReq, &admin.GroupAlertsConfig{Enabled: pointy.Bool(true)}) ||
+		reflect.DeepEqual(apiReq, &admin.GroupAlertsConfig{Enabled: pointy.Bool(false)}) {
 		// this code seems unreachable, as notifications are always being set
-		updatedAlertConfigResp, _, err = conn.AlertConfigurations.EnableAnAlertConfig(ctx, ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID], apiReq.Enabled)
+		updatedAlertConfigResp, _, err = connV2.AlertConfigurationsApi.ToggleAlertConfiguration(
+			context.Background(), ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID], &admin.AlertsToggle{Enabled: apiReq.Enabled}).Execute()
 	} else {
-		updatedAlertConfigResp, _, err = conn.AlertConfigurations.Update(ctx, ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID], apiReq)
+		updatedAlertConfigResp, _, err = connV2.AlertConfigurationsApi.UpdateAlertConfiguration(context.Background(), ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID], apiReq).Execute()
 	}
 
 	if err != nil {
@@ -555,101 +555,100 @@ func (r *AlertConfigurationRS) ImportState(ctx context.Context, req resource.Imp
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
 }
 
-func newNotificationList(tfNotificationSlice []tfNotificationModel) ([]matlas.Notification, error) {
-	notifications := make([]matlas.Notification, len(tfNotificationSlice))
-	if len(tfNotificationSlice) == 0 {
-		return notifications, nil
-	}
+func newNotificationList(tfNotificationSlice []tfNotificationModel) ([]admin.AlertsNotificationRootForGroup, error) {
+	notifications := make([]admin.AlertsNotificationRootForGroup, 0)
 
 	for i := range tfNotificationSlice {
-		value := tfNotificationSlice[i]
-
-		if value.IntervalMin.ValueInt64() > 0 {
-			typeName := value.TypeName.ValueString()
+		if !tfNotificationSlice[i].IntervalMin.IsNull() && tfNotificationSlice[i].IntervalMin.ValueInt64() > 0 {
+			typeName := tfNotificationSlice[i].TypeName.ValueString()
 			if strings.EqualFold(typeName, pagerDuty) || strings.EqualFold(typeName, opsGenie) || strings.EqualFold(typeName, victorOps) {
 				return nil, fmt.Errorf(`'interval_min' doesn't need to be set if type_name is 'PAGER_DUTY', 'OPS_GENIE' or 'VICTOR_OPS'`)
 			}
 		}
-
-		notifications[i] = matlas.Notification{
-			APIToken:                 value.APIToken.ValueString(),
-			ChannelName:              value.ChannelName.ValueString(),
-			DatadogAPIKey:            value.DatadogAPIKey.ValueString(),
-			DatadogRegion:            value.DatadogRegion.ValueString(),
-			DelayMin:                 pointy.Int(int(value.DelayMin.ValueInt64())),
-			EmailAddress:             value.EmailAddress.ValueString(),
-			EmailEnabled:             value.EmailEnabled.ValueBoolPointer(),
-			IntervalMin:              int(value.IntervalMin.ValueInt64()),
-			MobileNumber:             value.MobileNumber.ValueString(),
-			OpsGenieAPIKey:           value.OpsGenieAPIKey.ValueString(),
-			OpsGenieRegion:           value.OpsGenieRegion.ValueString(),
-			ServiceKey:               value.ServiceKey.ValueString(),
-			SMSEnabled:               value.SMSEnabled.ValueBoolPointer(),
-			TeamID:                   value.TeamID.ValueString(),
-			NotifierID:               value.NotifierID.ValueString(),
-			TypeName:                 value.TypeName.ValueString(),
-			Username:                 value.Username.ValueString(),
-			VictorOpsAPIKey:          value.VictorOpsAPIKey.ValueString(),
-			VictorOpsRoutingKey:      value.VictorOpsRoutingKey.ValueString(),
-			Roles:                    value.Roles,
-			MicrosoftTeamsWebhookURL: value.MicrosoftTeamsWebhookURL.ValueString(),
-			WebhookSecret:            value.WebhookSecret.ValueString(),
-			WebhookURL:               value.WebhookURL.ValueString(),
-		}
 	}
 
+	for i := range tfNotificationSlice {
+		notification := admin.AlertsNotificationRootForGroup{
+			ApiToken:                 tfNotificationSlice[i].APIToken.ValueStringPointer(),
+			ChannelName:              tfNotificationSlice[i].ChannelName.ValueStringPointer(),
+			DatadogApiKey:            tfNotificationSlice[i].DatadogAPIKey.ValueStringPointer(),
+			DatadogRegion:            tfNotificationSlice[i].DatadogRegion.ValueStringPointer(),
+			DelayMin:                 pointy.Int(int(tfNotificationSlice[i].DelayMin.ValueInt64())),
+			EmailAddress:             tfNotificationSlice[i].EmailAddress.ValueStringPointer(),
+			EmailEnabled:             tfNotificationSlice[i].EmailEnabled.ValueBoolPointer(),
+			IntervalMin:              util.Int64PtrToIntPtr(tfNotificationSlice[i].IntervalMin.ValueInt64Pointer()),
+			MobileNumber:             tfNotificationSlice[i].MobileNumber.ValueStringPointer(),
+			OpsGenieApiKey:           tfNotificationSlice[i].OpsGenieAPIKey.ValueStringPointer(),
+			OpsGenieRegion:           tfNotificationSlice[i].OpsGenieRegion.ValueStringPointer(),
+			ServiceKey:               tfNotificationSlice[i].ServiceKey.ValueStringPointer(),
+			SmsEnabled:               tfNotificationSlice[i].SMSEnabled.ValueBoolPointer(),
+			TeamId:                   tfNotificationSlice[i].TeamID.ValueStringPointer(),
+			TypeName:                 tfNotificationSlice[i].TypeName.ValueStringPointer(),
+			Username:                 tfNotificationSlice[i].Username.ValueStringPointer(),
+			VictorOpsApiKey:          tfNotificationSlice[i].VictorOpsAPIKey.ValueStringPointer(),
+			VictorOpsRoutingKey:      tfNotificationSlice[i].VictorOpsRoutingKey.ValueStringPointer(),
+			Roles:                    tfNotificationSlice[i].Roles,
+			MicrosoftTeamsWebhookUrl: tfNotificationSlice[i].MicrosoftTeamsWebhookURL.ValueStringPointer(),
+			WebhookSecret:            tfNotificationSlice[i].WebhookSecret.ValueStringPointer(),
+			WebhookUrl:               tfNotificationSlice[i].WebhookURL.ValueStringPointer(),
+		}
+		if !tfNotificationSlice[i].NotifierID.IsUnknown() {
+			notification.NotifierId = tfNotificationSlice[i].NotifierID.ValueStringPointer()
+		}
+		notifications = append(notifications, notification)
+	}
 	return notifications, nil
 }
 
-func newThreshold(tfThresholdConfigSlice []tfThresholdConfigModel) *matlas.Threshold {
+func newThreshold(tfThresholdConfigSlice []tfThresholdConfigModel) *admin.GreaterThanRawThreshold {
 	if len(tfThresholdConfigSlice) < 1 {
 		return nil
 	}
 
 	v := tfThresholdConfigSlice[0]
-	return &matlas.Threshold{
-		Operator:  v.Operator.ValueString(),
-		Units:     v.Units.ValueString(),
-		Threshold: v.Threshold.ValueFloat64(),
+	return &admin.GreaterThanRawThreshold{
+		Operator:  v.Operator.ValueStringPointer(),
+		Units:     v.Units.ValueStringPointer(),
+		Threshold: pointy.Int(int(v.Threshold.ValueFloat64())),
 	}
 }
 
-func newMetricThreshold(tfMetricThresholdConfigSlice []tfMetricThresholdConfigModel) *matlas.MetricThreshold {
+func newMetricThreshold(tfMetricThresholdConfigSlice []tfMetricThresholdConfigModel) *admin.ServerlessMetricThreshold {
 	if len(tfMetricThresholdConfigSlice) < 1 {
 		return nil
 	}
 	v := tfMetricThresholdConfigSlice[0]
-	return &matlas.MetricThreshold{
+	return &admin.ServerlessMetricThreshold{
 		MetricName: v.MetricName.ValueString(),
-		Operator:   v.Operator.ValueString(),
-		Threshold:  v.Threshold.ValueFloat64(),
-		Units:      v.Units.ValueString(),
-		Mode:       v.Mode.ValueString(),
+		Operator:   v.Operator.ValueStringPointer(),
+		Threshold:  v.Threshold.ValueFloat64Pointer(),
+		Units:      v.Units.ValueStringPointer(),
+		Mode:       v.Mode.ValueStringPointer(),
 	}
 }
 
-func newMatcherList(tfMatcherSlice []tfMatcherModel) []matlas.Matcher {
-	matchers := make([]matlas.Matcher, len(tfMatcherSlice))
+func newMatcherList(tfMatcherSlice []tfMatcherModel) []map[string]interface{} {
+	matchers := make([]map[string]interface{}, 0)
 
-	for i, m := range tfMatcherSlice {
-		matchers[i] = matlas.Matcher{
-			FieldName: m.FieldName.ValueString(),
-			Operator:  m.Operator.ValueString(),
-			Value:     m.Value.ValueString(),
+	for i := range tfMatcherSlice {
+		matcher := map[string]interface{}{
+			"fieldName": tfMatcherSlice[i].FieldName.ValueString(),
+			"operator":  tfMatcherSlice[i].Operator.ValueString(),
+			"value":     tfMatcherSlice[i].Value.ValueString(),
 		}
+		matchers = append(matchers, matcher)
 	}
-
 	return matchers
 }
 
-func newTFAlertConfigurationModel(apiRespConfig *matlas.AlertConfiguration, currState *tfAlertConfigurationRSModel) tfAlertConfigurationRSModel {
+func newTFAlertConfigurationModel(apiRespConfig *admin.GroupAlertsConfig, currState *tfAlertConfigurationRSModel) tfAlertConfigurationRSModel {
 	return tfAlertConfigurationRSModel{
 		ID:                    currState.ID,
 		ProjectID:             currState.ProjectID,
-		AlertConfigurationID:  types.StringValue(apiRespConfig.ID),
-		EventType:             types.StringValue(apiRespConfig.EventTypeName),
-		Created:               types.StringValue(apiRespConfig.Created),
-		Updated:               types.StringValue(apiRespConfig.Updated),
+		AlertConfigurationID:  types.StringValue(util.SafeString(apiRespConfig.Id)),
+		EventType:             types.StringValue(util.SafeString(apiRespConfig.EventTypeName)),
+		Created:               types.StringPointerValue(util.TimePtrToStringPtr(apiRespConfig.Created)),
+		Updated:               types.StringPointerValue(util.TimePtrToStringPtr(apiRespConfig.Updated)),
 		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
 		MetricThresholdConfig: newTFMetricThresholdConfigModel(apiRespConfig.MetricThreshold, currState.MetricThresholdConfig),
 		ThresholdConfig:       newTFThresholdConfigModel(apiRespConfig.Threshold, currState.ThresholdConfig),
@@ -658,91 +657,7 @@ func newTFAlertConfigurationModel(apiRespConfig *matlas.AlertConfiguration, curr
 	}
 }
 
-func newTFNotificationModelList(matlasSlice []matlas.Notification, currStateNotifications []tfNotificationModel) []tfNotificationModel {
-	notifications := make([]tfNotificationModel, len(matlasSlice))
-
-	if len(matlasSlice) != len(currStateNotifications) { // notifications were modified elsewhere from terraform, or import statement is being called
-		for i := range matlasSlice {
-			value := matlasSlice[i]
-			notifications[i] = tfNotificationModel{
-				TeamName:       types.StringValue(value.TeamName),
-				Roles:          value.Roles,
-				ChannelName:    conversion.StringNullIfEmpty(value.ChannelName),
-				DatadogRegion:  conversion.StringNullIfEmpty(value.DatadogRegion),
-				DelayMin:       types.Int64Value(int64(*value.DelayMin)),
-				EmailAddress:   conversion.StringNullIfEmpty(value.EmailAddress),
-				IntervalMin:    types.Int64Value(int64(value.IntervalMin)),
-				MobileNumber:   conversion.StringNullIfEmpty(value.MobileNumber),
-				OpsGenieRegion: conversion.StringNullIfEmpty(value.OpsGenieRegion),
-				TeamID:         conversion.StringNullIfEmpty(value.TeamID),
-				TypeName:       conversion.StringNullIfEmpty(value.TypeName),
-				Username:       conversion.StringNullIfEmpty(value.Username),
-				NotifierID:     types.StringValue(value.NotifierID),
-				EmailEnabled:   types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled),
-				SMSEnabled:     types.BoolValue(value.SMSEnabled != nil && *value.SMSEnabled),
-			}
-		}
-		return notifications
-	}
-
-	for i := range matlasSlice {
-		value := matlasSlice[i]
-		currState := currStateNotifications[i]
-		newState := tfNotificationModel{
-			TeamName: types.StringValue(value.TeamName),
-			Roles:    value.Roles,
-		}
-
-		// sentive attributes do not use value returned from API
-		newState.APIToken = conversion.StringNullIfEmpty(currState.APIToken.ValueString())
-		newState.DatadogAPIKey = conversion.StringNullIfEmpty(currState.DatadogAPIKey.ValueString())
-		newState.OpsGenieAPIKey = conversion.StringNullIfEmpty(currState.OpsGenieAPIKey.ValueString())
-		newState.ServiceKey = conversion.StringNullIfEmpty(currState.ServiceKey.ValueString())
-		newState.VictorOpsAPIKey = conversion.StringNullIfEmpty(currState.VictorOpsAPIKey.ValueString())
-		newState.VictorOpsRoutingKey = conversion.StringNullIfEmpty(currState.VictorOpsRoutingKey.ValueString())
-		newState.WebhookURL = conversion.StringNullIfEmpty(currState.WebhookURL.ValueString())
-		newState.WebhookSecret = conversion.StringNullIfEmpty(currState.WebhookSecret.ValueString())
-		newState.MicrosoftTeamsWebhookURL = conversion.StringNullIfEmpty(currState.MicrosoftTeamsWebhookURL.ValueString())
-
-		// for optional attributes that are not computed we must check if they were previously defined in state
-		if !currState.ChannelName.IsNull() {
-			newState.ChannelName = conversion.StringNullIfEmpty(value.ChannelName)
-		}
-		if !currState.DatadogRegion.IsNull() {
-			newState.DatadogRegion = conversion.StringNullIfEmpty(value.DatadogRegion)
-		}
-		if !currState.EmailAddress.IsNull() {
-			newState.EmailAddress = conversion.StringNullIfEmpty(value.EmailAddress)
-		}
-		if !currState.MobileNumber.IsNull() {
-			newState.MobileNumber = conversion.StringNullIfEmpty(value.MobileNumber)
-		}
-		if !currState.OpsGenieRegion.IsNull() {
-			newState.OpsGenieRegion = conversion.StringNullIfEmpty(value.OpsGenieRegion)
-		}
-		if !currState.TeamID.IsNull() {
-			newState.TeamID = conversion.StringNullIfEmpty(value.TeamID)
-		}
-		if !currState.TypeName.IsNull() {
-			newState.TypeName = conversion.StringNullIfEmpty(value.TypeName)
-		}
-		if !currState.Username.IsNull() {
-			newState.Username = conversion.StringNullIfEmpty(value.Username)
-		}
-
-		newState.NotifierID = types.StringValue(value.NotifierID)
-		newState.IntervalMin = types.Int64Value(int64(value.IntervalMin))
-		newState.DelayMin = types.Int64Value(int64(*value.DelayMin))
-		newState.EmailEnabled = types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled)
-		newState.SMSEnabled = types.BoolValue(value.SMSEnabled != nil && *value.SMSEnabled)
-
-		notifications[i] = newState
-	}
-
-	return notifications
-}
-
-func newTFNotificationModelListV2(n []admin.AlertsNotificationRootForGroup, currStateNotifications []tfNotificationModel) []tfNotificationModel {
+func newTFNotificationModelList(n []admin.AlertsNotificationRootForGroup, currStateNotifications []tfNotificationModel) []tfNotificationModel {
 	notifications := make([]tfNotificationModel, len(n))
 
 	if len(n) != len(currStateNotifications) { // notifications were modified elsewhere from terraform, or import statement is being called
@@ -826,40 +741,7 @@ func newTFNotificationModelListV2(n []admin.AlertsNotificationRootForGroup, curr
 	return notifications
 }
 
-func newTFMetricThresholdConfigModel(matlasMetricThreshold *matlas.MetricThreshold, currStateSlice []tfMetricThresholdConfigModel) []tfMetricThresholdConfigModel {
-	if matlasMetricThreshold == nil {
-		return []tfMetricThresholdConfigModel{}
-	}
-	if len(currStateSlice) == 0 { // metric threshold was created elsewhere from terraform, or import statement is being called
-		return []tfMetricThresholdConfigModel{
-			{
-				MetricName: conversion.StringNullIfEmpty(matlasMetricThreshold.MetricName),
-				Operator:   conversion.StringNullIfEmpty(matlasMetricThreshold.Operator),
-				Threshold:  types.Float64Value(matlasMetricThreshold.Threshold),
-				Units:      conversion.StringNullIfEmpty(matlasMetricThreshold.Units),
-				Mode:       conversion.StringNullIfEmpty(matlasMetricThreshold.Mode),
-			},
-		}
-	}
-	currState := currStateSlice[0]
-	newState := tfMetricThresholdConfigModel{}
-	if !currState.MetricName.IsNull() {
-		newState.MetricName = conversion.StringNullIfEmpty(matlasMetricThreshold.MetricName)
-	}
-	if !currState.Operator.IsNull() {
-		newState.Operator = conversion.StringNullIfEmpty(matlasMetricThreshold.Operator)
-	}
-	if !currState.Units.IsNull() {
-		newState.Units = conversion.StringNullIfEmpty(matlasMetricThreshold.Units)
-	}
-	if !currState.Mode.IsNull() {
-		newState.Mode = conversion.StringNullIfEmpty(matlasMetricThreshold.Mode)
-	}
-	newState.Threshold = types.Float64Value(matlasMetricThreshold.Threshold)
-	return []tfMetricThresholdConfigModel{newState}
-}
-
-func newTFMetricThresholdConfigModelV2(t *admin.ServerlessMetricThreshold, currStateSlice []tfMetricThresholdConfigModel) []tfMetricThresholdConfigModel {
+func newTFMetricThresholdConfigModel(t *admin.ServerlessMetricThreshold, currStateSlice []tfMetricThresholdConfigModel) []tfMetricThresholdConfigModel {
 	if t == nil {
 		return []tfMetricThresholdConfigModel{}
 	}
@@ -892,34 +774,7 @@ func newTFMetricThresholdConfigModelV2(t *admin.ServerlessMetricThreshold, currS
 	return []tfMetricThresholdConfigModel{newState}
 }
 
-func newTFThresholdConfigModel(atlasThreshold *matlas.Threshold, currStateSlice []tfThresholdConfigModel) []tfThresholdConfigModel {
-	if atlasThreshold == nil {
-		return []tfThresholdConfigModel{}
-	}
-
-	if len(currStateSlice) == 0 { // threshold was created elsewhere from terraform, or import statement is being called
-		return []tfThresholdConfigModel{
-			{
-				Operator:  conversion.StringNullIfEmpty(atlasThreshold.Operator),
-				Threshold: types.Float64Value(atlasThreshold.Threshold),
-				Units:     conversion.StringNullIfEmpty(atlasThreshold.Units),
-			},
-		}
-	}
-	currState := currStateSlice[0]
-	newState := tfThresholdConfigModel{}
-	if !currState.Operator.IsNull() {
-		newState.Operator = conversion.StringNullIfEmpty(atlasThreshold.Operator)
-	}
-	if !currState.Units.IsNull() {
-		newState.Units = conversion.StringNullIfEmpty(atlasThreshold.Units)
-	}
-	newState.Threshold = types.Float64Value(atlasThreshold.Threshold)
-
-	return []tfThresholdConfigModel{newState}
-}
-
-func newTFThresholdConfigModelV2(t *admin.GreaterThanRawThreshold, currStateSlice []tfThresholdConfigModel) []tfThresholdConfigModel {
+func newTFThresholdConfigModel(t *admin.GreaterThanRawThreshold, currStateSlice []tfThresholdConfigModel) []tfThresholdConfigModel {
 	if t == nil {
 		return []tfThresholdConfigModel{}
 	}
@@ -946,36 +801,7 @@ func newTFThresholdConfigModelV2(t *admin.GreaterThanRawThreshold, currStateSlic
 	return []tfThresholdConfigModel{newState}
 }
 
-func newTFMatcherModelList(matlasSlice []matlas.Matcher, currStateSlice []tfMatcherModel) []tfMatcherModel {
-	matchers := make([]tfMatcherModel, len(matlasSlice))
-	if len(matlasSlice) != len(currStateSlice) { // matchers were modified elsewhere from terraform, or import statement is being called
-		for i, value := range matlasSlice {
-			matchers[i] = tfMatcherModel{
-				FieldName: conversion.StringNullIfEmpty(value.FieldName),
-				Operator:  conversion.StringNullIfEmpty(value.Operator),
-				Value:     conversion.StringNullIfEmpty(value.Value),
-			}
-		}
-		return matchers
-	}
-	for i, value := range matlasSlice {
-		currState := currStateSlice[i]
-		newState := tfMatcherModel{}
-		if !currState.FieldName.IsNull() {
-			newState.FieldName = conversion.StringNullIfEmpty(value.FieldName)
-		}
-		if !currState.Operator.IsNull() {
-			newState.Operator = conversion.StringNullIfEmpty(value.Operator)
-		}
-		if !currState.Value.IsNull() {
-			newState.Value = conversion.StringNullIfEmpty(value.Value)
-		}
-		matchers[i] = newState
-	}
-	return matchers
-}
-
-func newTFMatcherModelListV2(m []map[string]any, currStateSlice []tfMatcherModel) []tfMatcherModel {
+func newTFMatcherModelList(m []map[string]any, currStateSlice []tfMatcherModel) []tfMatcherModel {
 	matchers := make([]tfMatcherModel, len(m))
 	if len(m) != len(currStateSlice) { // matchers were modified elsewhere from terraform, or import statement is being called
 		for i, matcher := range m {
