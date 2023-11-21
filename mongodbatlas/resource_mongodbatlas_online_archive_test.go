@@ -171,7 +171,7 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 		cluster                     matlas.Cluster
 		resourceName                = "mongodbatlas_cluster.online_archive_test"
 		onlineArchiveResourceName   = "mongodbatlas_online_archive.users_archive"
-		onlineArchiveDataSourceName = "read_archive"
+		onlineArchiveDataSourceName = "data.mongodbatlas_online_archive.read_archive"
 		orgID                       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName                 = acctest.RandomWithPrefix("test-acc")
 		name                        = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
