@@ -45,7 +45,7 @@ func (d *DatabaseUsersDS) Schema(ctx context.Context, req datasource.SchemaReque
 			"project_id": schema.StringAttribute{
 				Required: true,
 			},
-			"count": schema.StringAttribute{},
+
 			"results": schema.ListNestedAttribute{
 				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
