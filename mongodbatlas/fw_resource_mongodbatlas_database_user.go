@@ -154,7 +154,6 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 					stringvalidator.OneOf("NONE", "USER", "ROLE"),
 				},
 			},
-			"connection": schema.StringAttribute{},
 		},
 		Blocks: map[string]schema.Block{
 			"roles": schema.SetNestedBlock{
