@@ -1,7 +1,8 @@
 version: 1
+appendOnly: true
 labels:
   - label: "breaking-change"
-    title: "*!*"
+    title: "!"
   - label: "enhancement"
     title: "feat:*"
   - label: "enhancement"
