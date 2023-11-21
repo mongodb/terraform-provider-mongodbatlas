@@ -6,7 +6,7 @@
 
 **Enhancements**
 
-- Adds support for search node management with `mongodbatlas_search_deployment` resource and data source [\#1633](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1633) ([AgustinBettati](https://github.com/AgustinBettati))
+- Adds support for [MongoDB Atlas Search Node](https://www.mongodb.com/docs/atlas/atlas-search/atlas-search-overview/#search-nodes-architecture) management with `mongodbatlas_search_deployment` resource and data source [\#1633](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1633) ([AgustinBettati](https://github.com/AgustinBettati))
 - Adds 'vectorSearch` type and fields attributes in resource and data sources for `mongodbatlas_search_index` [\#1605](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1605) ([lantoli](https://github.com/lantoli))
 
 **Bug Fixes**
