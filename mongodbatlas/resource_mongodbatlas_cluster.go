@@ -929,13 +929,20 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		}))
 	} else if !reflect.DeepEqual(cluster, clusterChangeDetect) {
 		err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-			_, resp, err := updateCluster(ctx, conn, cluster, projectID, clusterName, timeout)
-			if err != nil {
-				if resp == nil || resp.StatusCode == 400 {
-					return retry.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+			_, _, err := updateCluster(ctx, conn, cluster, projectID, clusterName, timeout)
+
+			if didErrOnPausedCluster(err) {
+				clusterRequest := &matlas.Cluster{
+					Paused: pointy.Bool(false),
 				}
-				return retry.RetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+
+				_, _, err = updateCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
 			}
+
+			if err != nil {
+				return retry.NonRetryableError(fmt.Errorf(errorClusterUpdate, clusterName, err))
+			}
+
 			return nil
 		})
 
@@ -956,6 +963,16 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	return resourceMongoDBAtlasClusterRead(ctx, d, meta)
+}
+
+func didErrOnPausedCluster(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	var target *matlas.ErrorResponse
+
+	return errors.As(err, &target) && target.ErrorCode == "CANNOT_UPDATE_PAUSED_CLUSTER"
 }
 
 func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
