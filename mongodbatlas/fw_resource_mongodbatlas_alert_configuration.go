@@ -154,6 +154,9 @@ func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 					boolplanmodifier.UseStateForUnknown(),
 				},
 			},
+			"count": schema.StringAttribute{
+				Computed: true,
+			},
 		},
 		Blocks: map[string]schema.Block{
 			"matcher": schema.ListNestedBlock{
