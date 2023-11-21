@@ -12,7 +12,7 @@
 **Bug Fixes**
 
 - Fixes terraform encryption at rest error when upgrading to 1.12.2 [\#1617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1617) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- Defines `ConfigMode` for computed nest block attribute in `privatelink_endpoint_service` to support tf 1.0.8 [\#1629](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1629) ([AgustinBettati](https://github.com/AgustinBettati))
+- Defines `ConfigMode` for computed nest block attribute in `privatelink_endpoint_service` to support HashiCorp Terraform version 1.0.8 [\#1629](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1629) ([AgustinBettati](https://github.com/AgustinBettati))
 - Makes `disk_iops` a computed attribute in `mongodbatlas_advanced_cluster` resource [\#1620](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1620) ([AgustinBettati](https://github.com/AgustinBettati))
 
 **Closed Issues**
