@@ -168,13 +168,14 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 
 func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 	var (
-		cluster                   matlas.Cluster
-		resourceName              = "mongodbatlas_cluster.online_archive_test"
-		onlineArchiveResourceName = "mongodbatlas_online_archive.users_archive"
-		orgID                     = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName               = acctest.RandomWithPrefix("test-acc")
-		name                      = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-		cloudProvider             = "AWS"
+		cluster                     matlas.Cluster
+		resourceName                = "mongodbatlas_cluster.online_archive_test"
+		onlineArchiveResourceName   = "mongodbatlas_online_archive.users_archive"
+		onlineArchiveDataSourceName = "read_archive"
+		orgID                       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName                 = acctest.RandomWithPrefix("test-acc")
+		name                        = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		cloudProvider               = "AWS"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -195,6 +196,8 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.cloud_provider", "AWS"),
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.region", "SA_EAST_1"),
+					resource.TestCheckResourceAttr(onlineArchiveDataSourceName, "data_process_region.0.cloud_provider", "AWS"),
+					resource.TestCheckResourceAttr(onlineArchiveDataSourceName, "data_process_region.0.region", "SA_EAST_1"),
 				),
 			},
 			{
