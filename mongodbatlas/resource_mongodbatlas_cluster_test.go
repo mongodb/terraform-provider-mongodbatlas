@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -46,6 +47,7 @@ func TestAccClusterRSCluster_basicAWS_simple(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "version_release_system", "LTS"),
+					resource.TestCheckResourceAttr(resourceName, "accept_data_risks_and_force_replica_set_reconfig", ""),
 				),
 			},
 			{
@@ -62,6 +64,14 @@ func TestAccClusterRSCluster_basicAWS_simple(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "version_release_system", "LTS"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasClusterConfigAWSWithDataRisk(orgID, projectName, name, false, false, time.Now().GoString()),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
+					resource.TestCheckResourceAttr(resourceName, "accept_data_risks_and_force_replica_set_reconfig", "LTS"),
 				),
 			},
 		},
@@ -1558,6 +1568,39 @@ func testAccMongoDBAtlasClusterConfigAWS(orgID, projectName, name string, backup
 			provider_instance_size_name = "M30"
 		}
 	`, orgID, projectName, name, backupEnabled, autoDiskGBEnabled)
+}
+
+func testAccMongoDBAtlasClusterConfigAWSWithDataRisk(orgID, projectName, name string, backupEnabled, autoDiskGBEnabled bool, acceptDataRisksAndForceReplicaSetReconfig string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "cluster_project" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
+		resource "mongodbatlas_cluster" "test" {
+			project_id                   = mongodbatlas_project.cluster_project.id
+			name                         = %[3]q
+			disk_size_gb                 = 100
+			accept_data_risks_and_force_replica_set_reconfig = %[6]q
+            cluster_type = "REPLICASET"
+		    replication_specs {
+			  num_shards = 1
+			  regions_config {
+			     region_name     = "EU_CENTRAL_1"
+			     electable_nodes = 3
+			     priority        = 7
+                 read_only_nodes = 0
+		       }
+		    }
+			cloud_backup                 = %[4]t
+			pit_enabled                  = %[4]t
+			retain_backups_enabled       = true
+			auto_scaling_disk_gb_enabled = %[5]t
+			// Provider Settings "block"
+
+			provider_name               = "AWS"
+			provider_instance_size_name = "M30"
+		}
+	`, orgID, projectName, name, backupEnabled, autoDiskGBEnabled, acceptDataRisksAndForceReplicaSetReconfig)
 }
 
 func testAccMongoDBAtlasClusterConfigAWSNVMEInstance(orgID, projectName, name, instanceName string) string {
