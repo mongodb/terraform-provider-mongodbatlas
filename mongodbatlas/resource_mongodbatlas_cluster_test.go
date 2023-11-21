@@ -25,6 +25,7 @@ func TestAccClusterRSCluster_basicAWS_simple(t *testing.T) {
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		dateNow      = time.Now().GoString()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -67,11 +68,11 @@ func TestAccClusterRSCluster_basicAWS_simple(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasClusterConfigAWSWithDataRisk(orgID, projectName, name, false, false, time.Now().GoString()),
+				Config: testAccMongoDBAtlasClusterConfigAWSWithDataRisk(orgID, projectName, name, false, false, dateNow),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
-					resource.TestCheckResourceAttr(resourceName, "accept_data_risks_and_force_replica_set_reconfig", "LTS"),
+					resource.TestCheckResourceAttr(resourceName, "accept_data_risks_and_force_replica_set_reconfig", dateNow),
 				),
 			},
 		},
