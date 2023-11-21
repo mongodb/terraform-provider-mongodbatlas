@@ -7,33 +7,33 @@
 **Enhancements**
 
 - Adds support for [MongoDB Atlas Search Node](https://www.mongodb.com/docs/atlas/atlas-search/atlas-search-overview/#search-nodes-architecture) management with `mongodbatlas_search_deployment` resource and data source [\#1633](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1633) ([AgustinBettati](https://github.com/AgustinBettati))
-- Adds 'vectorSearch` type and fields attributes in resource and data sources for `mongodbatlas_search_index` [\#1605](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1605) ([lantoli](https://github.com/lantoli))
+- Adds `type` and `fields` attributes in resource and data sources for `mongodbatlas_search_index` [\#1605](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1605) ([lantoli](https://github.com/lantoli))
 
 **Bug Fixes**
 
-- Fixes terraform encryption at rest error when upgrading to Terraform Provider for MongoDB Atlas v1.12.2 [\#1617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1617) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- Defines `ConfigMode` for computed nest block attribute in `mongodbatlas_privatelink_endpoint_service` to support HashiCorp Terraform version 1.0.8 [\#1629](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1629) ([AgustinBettati](https://github.com/AgustinBettati))
+- Fixes Terraform encryption-at-rest error when upgrading to Terraform Provider for MongoDB Atlas v1.12.2 [\#1617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1617) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Defines `ConfigMode` for the `endpoints`  attribute, enabling use of computed nested blocks in `mongodbatlas_privatelink_endpoint_service` to support HashiCorp Terraform version 1.0.8 [\#1629](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1629) ([AgustinBettati](https://github.com/AgustinBettati))
 - Makes `disk_iops` a computed attribute in `mongodbatlas_advanced_cluster` resource [\#1620](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1620) ([AgustinBettati](https://github.com/AgustinBettati))
 
 **Closed Issues**
 
 - `tags` not working for cluster [\#1619](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1619)
-- Terraform Bud in updating serverless project [\#1611](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1611)
+- Terraform Bug in updating serverless project [\#1611](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1611)
 - Changes to `mongodbatlas_project_ip_access_list` comments force a replacement [\#1600](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1600)
 - Rate limit of 10 invitations per 1 minutes exceeded [\#1589](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1589)
-- The terraform-provider-mongodbatlas_v1.12.2 plugin crashed! [\#1567](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1567)
+- The `terraform-provider-mongodbatlas_v1.12.2` plugin crashed! [\#1567](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1567)
 - Breaking change to drop deprecated fields made in minor version release [\#1493](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1493)
 
 **Internal Improvements**
 
 - Updates PR action to automatically add labels based on the PR title [\#1637](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1637) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Removes unused code in resource and cleanup in `project_api_key` docs [\#1636](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1636) ([AgustinBettati](https://github.com/AgustinBettati))
-- Improves testing in search-index resource [\#1635](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1635) ([lantoli](https://github.com/lantoli))
+- Improves testing of `search_index` resource [\#1635](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1635) ([lantoli](https://github.com/lantoli))
 - Updates Atlas Go SDK [\#1632](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1632) ([lantoli](https://github.com/lantoli))
 - Updates PR template for further verifications. [\#1628](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1628) ([marcosuma](https://github.com/marcosuma))
-- Removes all references to flowdock and new relic third party integrations [\#1616](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1616) ([oarbusi](https://github.com/oarbusi))
+- Removes all references to Flowdock and New Relic third-party integrations [\#1616](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1616) ([oarbusi](https://github.com/oarbusi))
 - Fixes documentation errors in cloud provider access [\#1615](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1615) ([milh0use](https://github.com/milh0use))
-- Fixes search index acceptance tests flow [\#1610](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1610) ([lantoli](https://github.com/lantoli))
+- Fixes `search_index` acceptance tests flow [\#1610](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1610) ([lantoli](https://github.com/lantoli))
 - Updates Atlas Go SDK [\#1604](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1604) ([lantoli](https://github.com/lantoli))
 - Disables `event_trigger` from acceptance test due to missing cluster. [\#1603](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1603) ([marcosuma](https://github.com/marcosuma))
 - Reduces stale days to 5 and close after 2 day of stale [\#1602](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1602) ([andreaangiolillo](https://github.com/andreaangiolillo))
