@@ -18,7 +18,7 @@
 **Closed Issues**
 
 - `tags` not working for cluster [\#1619](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1619)
-- Terraform Bug in updating serverless project [\#1611](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1611)
+- Terraform bug in updating serverless project [\#1611](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1611)
 - Changes to `mongodbatlas_project_ip_access_list` comments force a replacement [\#1600](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1600)
 - Rate limit of 10 invitations per 1 minutes exceeded [\#1589](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1589)
 - The `terraform-provider-mongodbatlas_v1.12.2` plugin crashed! [\#1567](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1567)
@@ -33,7 +33,7 @@
 - Updates PR template for further verifications. [\#1628](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1628) ([marcosuma](https://github.com/marcosuma))
 - Removes all references to Flowdock and New Relic third-party integrations [\#1616](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1616) ([oarbusi](https://github.com/oarbusi))
 - Fixes documentation errors in cloud provider access [\#1615](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1615) ([milh0use](https://github.com/milh0use))
-- Fixes `search_index` acceptance tests flow [\#1610](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1610) ([lantoli](https://github.com/lantoli))
+- Fixes `mongodbatlas_search_index` acceptance tests flow [\#1610](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1610) ([lantoli](https://github.com/lantoli))
 - Updates Atlas Go SDK [\#1604](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1604) ([lantoli](https://github.com/lantoli))
 - Disables `event_trigger` from acceptance test due to missing cluster. [\#1603](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1603) ([marcosuma](https://github.com/marcosuma))
 - Reduces stale days to 5 and close after 2 day of stale [\#1602](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1602) ([andreaangiolillo](https://github.com/andreaangiolillo))
