@@ -898,6 +898,17 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 
 	timeout := d.Timeout(schema.TimeoutUpdate)
 
+	if d.HasChange("paused") && d.Get("paused").(bool) && !isSharedTier(d.Get("provider_instance_size_name").(string)) {
+		clusterRequest := &matlas.Cluster{
+			Paused: pointy.Bool(true),
+		}
+
+		_, _, err := updateCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
+		}
+	}
+
 	/*
 		Check if advaced configuration option has a changes to update it
 	*/
@@ -939,17 +950,6 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 			return nil
 		})
 
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
-		}
-	}
-
-	if d.Get("paused").(bool) && !isSharedTier(d.Get("provider_instance_size_name").(string)) {
-		clusterRequest := &matlas.Cluster{
-			Paused: pointy.Bool(true),
-		}
-
-		_, _, err := updateCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
