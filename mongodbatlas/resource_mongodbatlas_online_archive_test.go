@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"testing"
 	"time"
 
@@ -159,6 +160,55 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_minute"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_hour"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_minute"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
+	var (
+		cluster                     matlas.Cluster
+		resourceName                = "mongodbatlas_cluster.online_archive_test"
+		onlineArchiveResourceName   = "mongodbatlas_online_archive.users_archive"
+		onlineArchiveDataSourceName = "data.mongodbatlas_online_archive.read_archive"
+		orgID                       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName                 = acctest.RandomWithPrefix("test-acc")
+		name                        = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		cloudProvider               = "AWS"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				// We need this step to pupulate the cluster with Sample Data
+				// The online archive won't work if the cluster does not have data
+				Config: testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, name),
+				Check: resource.ComposeTestCheckFunc(
+					populateWithSampleData(resourceName, &cluster),
+				),
+			},
+			{
+				Config: testAccBackupRSOnlineArchiveConfigWithProcessRegion(orgID, projectName, name, cloudProvider, "SA_EAST_1"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.cloud_provider", "AWS"),
+					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.region", "SA_EAST_1"),
+					resource.TestCheckResourceAttr(onlineArchiveDataSourceName, "data_process_region.0.cloud_provider", "AWS"),
+					resource.TestCheckResourceAttr(onlineArchiveDataSourceName, "data_process_region.0.region", "SA_EAST_1"),
+				),
+			},
+			{
+				Config:      testAccBackupRSOnlineArchiveConfigWithProcessRegion(orgID, projectName, name, cloudProvider, "AP_SOUTH_1"),
+				ExpectError: regexp.MustCompile("ONLINE_ARCHIVE_CANNOT_MODIFY_FIELD"),
+			},
+			{
+				Config: testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.cloud_provider", "AWS"),
+					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.region", "SA_EAST_1"),
 				),
 			},
 		},
@@ -329,6 +379,59 @@ func testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, clust
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
 	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName))
+}
+
+func testAccBackupRSOnlineArchiveConfigWithProcessRegion(orgID, projectName, clusterName, cloudProvider, region string) string {
+	return fmt.Sprintf(`
+	%s
+	resource "mongodbatlas_online_archive" "users_archive" {
+		project_id = mongodbatlas_cluster.online_archive_test.project_id
+		cluster_name = mongodbatlas_cluster.online_archive_test.name
+		coll_name = "listingsAndReviews"
+		collection_type = "STANDARD"
+		db_name = "sample_airbnb"
+
+		criteria {
+			type = "DATE"
+			date_field = "last_review"
+			date_format = "ISODATE"
+			expire_after_days = 2
+		}
+
+		partition_fields {
+			field_name = "last_review"
+			order = 0
+		}
+
+		partition_fields {
+			field_name = "maximum_nights"
+			order = 1
+		}
+
+		partition_fields {
+			field_name = "name"
+			order = 2
+		}
+
+		data_process_region {
+			cloud_provider = %[2]q
+			region = %[3]q
+		}
+
+		sync_creation = true
+	}
+
+	data "mongodbatlas_online_archive" "read_archive" {
+		project_id =  mongodbatlas_online_archive.users_archive.project_id
+		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
+		archive_id = mongodbatlas_online_archive.users_archive.archive_id
+	}
+
+	data "mongodbatlas_online_archives" "all" {
+		project_id =  mongodbatlas_online_archive.users_archive.project_id
+		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
+	}
+	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName), cloudProvider, region)
 }
 
 func testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName string) string {

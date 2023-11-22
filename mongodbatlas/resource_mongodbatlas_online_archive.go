@@ -112,6 +112,28 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 				},
 			},
 		},
+		"data_process_region": {
+			Type:       schema.TypeList,
+			MinItems:   1,
+			MaxItems:   1,
+			ConfigMode: schema.SchemaConfigModeAttr,
+			Optional:   true,
+			Computed:   true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"region": {
+						Type:     schema.TypeString,
+						Optional: true,
+						Computed: true,
+					},
+					"cloud_provider": {
+						Type:     schema.TypeString,
+						Optional: true,
+						Computed: true,
+					},
+				},
+			},
+		},
 		"schedule": {
 			Type:     schema.TypeList,
 			Optional: true,
@@ -367,6 +389,7 @@ func mapToArchivePayload(d *schema.ResourceData) admin.BackupOnlineArchiveCreate
 
 	requestInput.Criteria = mapCriteria(d)
 	requestInput.DataExpirationRule = mapDataExpirationRule(d)
+	requestInput.DataProcessRegion = mapDataProcessRegion(d)
 	requestInput.Schedule = mapSchedule(d)
 
 	if partitions, ok := d.GetOk("partition_fields"); ok {
@@ -410,12 +433,13 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.Reso
 	pausedHasChange := d.HasChange("paused")
 	criteriaHasChange := d.HasChange("criteria")
 	dataExpirationRuleHasChange := d.HasChange("data_expiration_rule")
+	dataProcessRegionHasChange := d.HasChange("data_process_region")
 	scheduleHasChange := d.HasChange("schedule")
 
 	collectionTypeHasChange := d.HasChange("collection_type")
 
 	// nothing to do, let's go
-	if !pausedHasChange && !criteriaHasChange && !collectionTypeHasChange && !scheduleHasChange && !dataExpirationRuleHasChange {
+	if !pausedHasChange && !criteriaHasChange && !collectionTypeHasChange && !scheduleHasChange && !dataExpirationRuleHasChange && !dataProcessRegionHasChange {
 		return nil
 	}
 
@@ -438,6 +462,15 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.Reso
 			request.DataExpirationRule = &admin.DataExpirationRule{}
 		} else {
 			request.DataExpirationRule = newExpirationRule
+		}
+	}
+
+	if dataProcessRegionHasChange {
+		newDataProcessRegion := mapDataProcessRegion(d)
+		if newDataProcessRegion == nil {
+			request.DataProcessRegion = &admin.DataProcessRegion{}
+		} else {
+			request.DataProcessRegion = newDataProcessRegion
 		}
 	}
 
@@ -525,6 +558,15 @@ func fromOnlineArchiveToMap(in *admin.BackupOnlineArchive) map[string]any {
 		schemaVals["data_expiration_rule"] = []any{dataExpirationRule}
 	}
 
+	var dataProcessRegion map[string]any
+	if in.DataProcessRegion != nil && (in.DataProcessRegion.CloudProvider != nil || in.DataProcessRegion.Region != nil) {
+		dataProcessRegion = map[string]any{
+			"cloud_provider": in.DataProcessRegion.CloudProvider,
+			"region":         in.DataProcessRegion.Region,
+		}
+		schemaVals["data_process_region"] = []any{dataProcessRegion}
+	}
+
 	// partitions fields
 	if len(in.PartitionFields) == 0 {
 		return schemaVals
@@ -551,6 +593,21 @@ func mapDataExpirationRule(d *schema.ResourceData) *admin.DataExpirationRule {
 		result := admin.DataExpirationRule{}
 		if expireAfterDays, ok := dataExpireRule["expire_after_days"]; ok {
 			result.ExpireAfterDays = pointy.Int(expireAfterDays.(int))
+		}
+		return &result
+	}
+	return nil
+}
+
+func mapDataProcessRegion(d *schema.ResourceData) *admin.DataProcessRegion {
+	if dataProcessRegions, ok := d.GetOk("data_process_region"); ok && len(dataProcessRegions.([]any)) > 0 {
+		dataProcessRegion := dataProcessRegions.([]any)[0].(map[string]any)
+		result := admin.DataProcessRegion{}
+		if cloudProvider, ok := dataProcessRegion["cloud_provider"]; ok {
+			result.CloudProvider = pointy.String(cloudProvider.(string))
+		}
+		if region, ok := dataProcessRegion["region"]; ok {
+			result.Region = pointy.String(region.(string))
 		}
 		return &result
 	}

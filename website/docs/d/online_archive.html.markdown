@@ -36,6 +36,7 @@ data "mongodbatlas_online_archive" "test" {
 * `collection_type`  -  Type of MongoDB collection that you want to return. This value can be "TIMESERIES" or "STANDARD". Default is "STANDARD".
 * `criteria` - Criteria to use for archiving data. See [criteria](#criteria).
 * `data_expiration_rule` - Rule for specifying when data should be deleted from the archive. See [data expiration rule](#data-expiration-rule).
+* `data_process_region` - Settings to configure the region where you wish to store your archived data. See [data process region](#data-process-region).
 * `schedule` - Regular frequency and duration when archiving process occurs. See [schedule](#schedule).
 * `partition_fields` - Fields to use to partition data. You can specify up to two frequently queried fields to use for partitioning data. Queries that don’t contain the specified fields require a full collection scan of all archived documents, which takes longer and increases your costs. To learn more about how partition improves query performance, see [Data Structure in S3](https://docs.mongodb.com/datalake/admin/optimize-query-performance/#data-structure-in-s3). The value of a partition field can be up to a maximum of 700 characters. Documents with values exceeding 700 characters are not archived. See [partition fields](#partition).
 * `paused` - State of the online archive. This is required for pausing an active online archive or resuming a paused online archive. If the collection has another active online archive, the resume request fails.
@@ -50,6 +51,10 @@ data "mongodbatlas_online_archive" "test" {
 
 ### Data Expiration Rule
 * `expire_after_days` - Number of days used in the date criteria for nominating documents for deletion. Value must be between 7 and 9215.
+
+### Data Process Region
+* `cloud_provider` - Human-readable label that identifies the Cloud service provider where you wish to store your archived data.
+* `region` - Human-readable label that identifies the geographic location of the region where you wish to store your archived data. For allowed values, see [MongoDB Atlas API documentation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Online-Archive/operation/createOnlineArchive)
 
 
 ### Schedule

@@ -130,6 +130,22 @@ func schemaOnlineArchive() map[string]*schema.Schema {
 				},
 			},
 		},
+		"data_process_region": {
+			Type:     schema.TypeList,
+			Computed: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"cloud_provider": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"region": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
 		"schedule": {
 			Type:     schema.TypeList,
 			Computed: true,
