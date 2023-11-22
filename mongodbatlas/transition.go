@@ -6,14 +6,14 @@ import (
 
 type MongoDBClient = config.MongoDBClient
 
-func EncodeStateID(values map[string]string) string {
+func encodeStateID(values map[string]string) string {
 	return config.EncodeStateID(values)
 }
 
-func GetEncodedID(stateID, keyPosition string) string {
+func getEncodedID(stateID, keyPosition string) string {
 	return config.GetEncodedID(stateID, keyPosition)
 }
 
-func DecodeStateID(stateID string) map[string]string {
+func decodeStateID(stateID string) map[string]string {
 	return config.DecodeStateID(stateID)
 }
