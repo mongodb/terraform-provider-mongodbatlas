@@ -36,7 +36,6 @@ const (
 	errorProjectCreate             = "error creating Project: %s"
 	errorProjectRead               = "error getting project(%s): %s"
 	errorProjectDelete             = "error deleting project (%s): %s"
-	errorProjectSetting            = "error setting `%s` for project (%s): %s"
 	errorProjectUpdate             = "error updating project (%s): %s"
 	projectDependentsStateIdle     = "IDLE"
 	projectDependentsStateDeleting = "DELETING"

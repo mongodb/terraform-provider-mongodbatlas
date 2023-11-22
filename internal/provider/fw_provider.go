@@ -25,7 +25,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/todo"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 
@@ -420,7 +419,7 @@ func NewFrameworkProvider() provider.Provider {
 }
 
 func MuxedProviderFactory() func() tfprotov6.ProviderServer {
-	return muxedProviderFactory(mongodbatlas.NewSdkV2Provider())
+	return muxedProviderFactory(NewSdkV2Provider())
 }
 
 // muxedProviderFactory creates mux provider using existing sdk v2 provider passed as parameter and creating new instance of framework provider.

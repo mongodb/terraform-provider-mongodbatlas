@@ -214,7 +214,7 @@ func newTFProjectIPAccessListModel(projectIPAccessListModel *tfProjectIPAccessLi
 		entry = projectIPAccessList.AwsSecurityGroup
 	}
 
-	id := encodeStateID(map[string]string{
+	id := config.EncodeStateID(map[string]string{
 		"entry":      entry,
 		"project_id": projectIPAccessList.GroupID,
 	})
@@ -248,7 +248,7 @@ func (r *ProjectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	decodedIDMap := decodeStateID(projectIPAccessListModelState.ID.ValueString())
+	decodedIDMap := config.DecodeStateID(projectIPAccessListModelState.ID.ValueString())
 	if len(decodedIDMap) != 2 {
 		resp.Diagnostics.AddError("error during the reading operation", "the provided resource ID is not correct")
 		return
@@ -361,7 +361,7 @@ func (r *ProjectIPAccessListRS) ImportState(ctx context.Context, req resource.Im
 	projectID := parts[0]
 	entry := parts[1]
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), encodeStateID(map[string]string{
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), config.EncodeStateID(map[string]string{
 		"entry":      entry,
 		"project_id": projectID,
 	}))...)

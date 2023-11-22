@@ -532,7 +532,7 @@ func newAtlasAwsKms(tfAwsKmsConfigSlice []tfAwsKmsConfigModel) *matlas.AwsKms {
 	}
 	v := tfAwsKmsConfigSlice[0]
 
-	awsRegion, _ := valRegion(v.Region.ValueString())
+	awsRegion, _ := config.ValRegion(v.Region.ValueString())
 
 	return &matlas.AwsKms{
 		Enabled:             v.Enabled.ValueBoolPointer(),

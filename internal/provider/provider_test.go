@@ -1,4 +1,4 @@
-package mongodbatlas
+package provider_test
 
 import (
 	"os"

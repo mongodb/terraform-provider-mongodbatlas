@@ -392,7 +392,7 @@ func newTFDatabaseUserModel(ctx context.Context, model *tfDatabaseUserModel, dbU
 	}
 
 	// ID is encoded to preserve format defined in previous versions.
-	encodedID := encodeStateID(map[string]string{
+	encodedID := config.EncodeStateID(map[string]string{
 		"project_id":         dbUser.GroupID,
 		"username":           dbUser.Username,
 		"auth_database_name": dbUser.DatabaseName,
