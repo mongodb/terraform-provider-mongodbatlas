@@ -224,6 +224,7 @@ func resourceMongoDBAtlasBackupCompliancePolicy() *schema.Resource {
 }
 
 func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	printWarningMessageForFirstLastNameFields()
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
@@ -246,6 +247,14 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 	backupCompliancePolicyReq.RestoreWindowDays = pointy.Int64(cast.ToInt64(d.Get("restore_window_days")))
 
 	backupCompliancePolicyReq.OnDemandPolicyItem = *expandDemandBackupPolicyItem(d)
+
+	if v, ok := d.GetOk("authorized_user_first_name"); ok {
+		backupCompliancePolicyReq.AuthorizedUserFirstName = v.(string)
+	}
+
+	if v, ok := d.GetOk("authorized_user_last_name"); ok {
+		backupCompliancePolicyReq.AuthorizedUserLastName = v.(string)
+	}
 
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
 		item := v.([]any)
@@ -307,6 +316,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 }
 
 func resourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	printWarningMessageForFirstLastNameFields()
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -325,6 +335,14 @@ func resourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *sche
 
 	if err := d.Set("authorized_email", backupPolicy.AuthorizedEmail); err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "authorized_email", projectID, err))
+	}
+
+	if err := d.Set("authorized_user_first_name", backupPolicy.AuthorizedUserFirstName); err != nil {
+		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "authorized_user_first_name", projectID, err))
+	}
+
+	if err := d.Set("authorized_user_last_name", backupPolicy.AuthorizedUserLastName); err != nil {
+		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "authorized_user_last_name", projectID, err))
 	}
 
 	if err := d.Set("restore_window_days", backupPolicy.RestoreWindowDays); err != nil {
@@ -383,6 +401,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *sche
 }
 
 func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	printWarningMessageForFirstLastNameFields()
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -397,6 +416,14 @@ func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *sc
 	backupCompliancePolicyUpdate.ProjectID = projectID
 
 	backupCompliancePolicyUpdate.AuthorizedEmail = d.Get("authorized_email").(string)
+
+	if d.HasChange("authorized_user_fist_name") {
+		backupCompliancePolicyUpdate.AuthorizedUserFirstName = d.Get("authorized_user_fist_name").(string)
+	}
+
+	if d.HasChange("authorized_user_last_name") {
+		backupCompliancePolicyUpdate.AuthorizedUserLastName = d.Get("authorized_user_last_name").(string)
+	}
 
 	if d.HasChange("copy_protection_enabled") {
 		backupCompliancePolicyUpdate.CopyProtectionEnabled = pointy.Bool(d.Get("copy_protection_enabled").(bool))
@@ -539,4 +566,8 @@ func expandDemandBackupPolicyItem(d *schema.ResourceData) *matlas.PolicyItem {
 	}
 
 	return &onDemand
+}
+
+func printWarningMessageForFirstLastNameFields() {
+	log.Printf("[WARN] Note: Starting from v1.14.0 authorized_user_first_name and authorized_user_last_name will become mandatory. Please update your script accordingly.")
 }
