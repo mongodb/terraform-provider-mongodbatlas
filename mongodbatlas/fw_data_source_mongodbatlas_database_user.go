@@ -8,17 +8,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 type DatabaseUserDS struct {
-	DSCommon
+	config.DSCommon
 }
 
 func NewDatabaseUserDS() datasource.DataSource {
 	return &DatabaseUserDS{
-		DSCommon: DSCommon{
-			dataSourceName: databaseUserResourceName,
+		DSCommon: config.DSCommon{
+			DataSourceName: databaseUserResourceName,
 		},
 	}
 }
@@ -130,7 +131,7 @@ func (d *DatabaseUserDS) Read(ctx context.Context, req datasource.ReadRequest, r
 	projectID := databaseDSUserModel.ProjectID.ValueString()
 	authDatabaseName := databaseDSUserModel.AuthDatabaseName.ValueString()
 
-	conn := d.client.Atlas
+	conn := d.Client.Atlas
 	dbUser, _, err := conn.DatabaseUsers.Get(ctx, authDatabaseName, projectID, username)
 	if err != nil {
 		resp.Diagnostics.AddError("error getting database user information", err.Error())

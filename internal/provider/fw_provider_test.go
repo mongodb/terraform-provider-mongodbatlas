@@ -1,20 +1,21 @@
-package mongodbatlas
+package provider_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
+	providerfw "github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
 )
 
 func TestResourceSchemas(t *testing.T) {
 	t.Parallel()
 	ctxProvider := context.Background()
-	prov := NewFrameworkProvider()
-	var provReq provider.MetadataRequest
-	var provRes provider.MetadataResponse
+	prov := provider.NewFrameworkProvider()
+	var provReq providerfw.MetadataRequest
+	var provRes providerfw.MetadataResponse
 	prov.Metadata(ctxProvider, provReq, &provRes)
 	for _, fn := range prov.Resources(ctxProvider) {
 		ctx := context.Background()
@@ -44,9 +45,9 @@ func TestResourceSchemas(t *testing.T) {
 func TestDataSourceSchemas(t *testing.T) {
 	t.Parallel()
 	ctxProvider := context.Background()
-	prov := NewFrameworkProvider()
-	var provReq provider.MetadataRequest
-	var provRes provider.MetadataResponse
+	prov := provider.NewFrameworkProvider()
+	var provReq providerfw.MetadataRequest
+	var provRes providerfw.MetadataResponse
 	prov.Metadata(ctxProvider, provReq, &provRes)
 	for _, fn := range prov.DataSources(ctxProvider) {
 		ctx := context.Background()

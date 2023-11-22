@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func dataSourceMongoDBAtlasNetworkContainer() *schema.Resource {
@@ -76,7 +77,7 @@ func dataSourceMongoDBAtlasNetworkContainerRead(ctx context.Context, d *schema.R
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
-	containerID := getEncodedID(d.Get("container_id").(string), "container_id")
+	containerID := config.GetEncodedID(d.Get("container_id").(string), "container_id")
 
 	container, resp, err := conn.Containers.Get(ctx, projectID, containerID)
 	if err != nil {

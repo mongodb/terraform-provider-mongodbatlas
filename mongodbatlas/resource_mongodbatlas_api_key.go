@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -78,7 +79,7 @@ func resourceMongoDBAtlasAPIKeyCreate(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"org_id":     orgID,
 		"api_key_id": apiKey.ID,
 	}))
@@ -89,7 +90,7 @@ func resourceMongoDBAtlasAPIKeyCreate(ctx context.Context, d *schema.ResourceDat
 func resourceMongoDBAtlasAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
 
@@ -124,7 +125,7 @@ func resourceMongoDBAtlasAPIKeyRead(ctx context.Context, d *schema.ResourceData,
 
 func resourceMongoDBAtlasAPIKeyUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
 
@@ -146,7 +147,7 @@ func resourceMongoDBAtlasAPIKeyUpdate(ctx context.Context, d *schema.ResourceDat
 
 func resourceMongoDBAtlasAPIKeyDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
 
@@ -181,7 +182,7 @@ func resourceMongoDBAtlasAPIKeyImportState(ctx context.Context, d *schema.Resour
 		return nil, fmt.Errorf("error setting `public_key`: %s", err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"org_id":     orgID,
 		"api_key_id": r.ID,
 	}))

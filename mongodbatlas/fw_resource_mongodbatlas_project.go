@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
 	conversion "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 )
@@ -47,14 +48,14 @@ var _ resource.ResourceWithImportState = &ProjectRS{}
 
 func NewProjectRS() resource.Resource {
 	return &ProjectRS{
-		RSCommon: RSCommon{
-			resourceName: projectResourceName,
+		RSCommon: config.RSCommon{
+			ResourceName: projectResourceName,
 		},
 	}
 }
 
 type ProjectRS struct {
-	RSCommon
+	config.RSCommon
 }
 
 type tfProjectRSModel struct {
@@ -240,8 +241,8 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	var teams []tfTeamModel
 	var limits []tfLimitModel
 
-	conn := r.client.Atlas
-	connV2 := r.client.AtlasV2
+	conn := r.Client.Atlas
+	connV2 := r.Client.AtlasV2
 
 	diags := req.Plan.Get(ctx, &projectPlan)
 	resp.Diagnostics.Append(diags...)
@@ -277,7 +278,7 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 
 		_, _, err := conn.Projects.AddTeamsToProject(ctx, project.ID, toAtlasProjectTeams(ctx, teams))
 		if err != nil {
-			errd := deleteProject(ctx, r.client.Atlas, project.ID)
+			errd := deleteProject(ctx, r.Client.Atlas, project.ID)
 			if errd != nil {
 				resp.Diagnostics.AddError("error during project deletion when adding teams", fmt.Sprintf(errorProjectDelete, project.ID, err.Error()))
 				return
@@ -298,7 +299,7 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 			}
 			_, _, err := connV2.ProjectsApi.SetProjectLimit(ctx, limit.Name.ValueString(), project.ID, dataFederationLimit).Execute()
 			if err != nil {
-				errd := deleteProject(ctx, r.client.Atlas, project.ID)
+				errd := deleteProject(ctx, r.Client.Atlas, project.ID)
 				if errd != nil {
 					resp.Diagnostics.AddError("error during project deletion when adding limits", fmt.Sprintf(errorProjectDelete, project.ID, err.Error()))
 					return
@@ -312,7 +313,7 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	// add settings
 	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, project.ID)
 	if err != nil {
-		errd := deleteProject(ctx, r.client.Atlas, project.ID)
+		errd := deleteProject(ctx, r.Client.Atlas, project.ID)
 		if errd != nil {
 			resp.Diagnostics.AddError("error during project deletion when getting project settings", fmt.Sprintf(errorProjectDelete, project.ID, err.Error()))
 			return
@@ -341,7 +342,7 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	if _, _, err = conn.Projects.UpdateProjectSettings(ctx, project.ID, projectSettings); err != nil {
-		errd := deleteProject(ctx, r.client.Atlas, project.ID)
+		errd := deleteProject(ctx, r.Client.Atlas, project.ID)
 		if errd != nil {
 			resp.Diagnostics.AddError("error during project deletion when updating project settings", fmt.Sprintf(errorProjectDelete, project.ID, err.Error()))
 			return
@@ -383,8 +384,8 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 func (r *ProjectRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var projectState tfProjectRSModel
 	var limits []tfLimitModel
-	conn := r.client.Atlas
-	connV2 := r.client.AtlasV2
+	conn := r.Client.Atlas
+	connV2 := r.Client.AtlasV2
 
 	// get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &projectState)...)
@@ -429,8 +430,8 @@ func (r *ProjectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 func (r *ProjectRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var projectState tfProjectRSModel
 	var projectPlan tfProjectRSModel
-	conn := r.client.Atlas
-	connV2 := r.client.AtlasV2
+	conn := r.Client.Atlas
+	connV2 := r.Client.AtlasV2
 
 	// get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &projectState)...)
@@ -504,7 +505,7 @@ func (r *ProjectRS) Delete(ctx context.Context, req resource.DeleteRequest, resp
 	}
 
 	projectID := project.ID.ValueString()
-	err := deleteProject(ctx, r.client.Atlas, projectID)
+	err := deleteProject(ctx, r.Client.Atlas, projectID)
 
 	if err != nil {
 		resp.Diagnostics.AddError("error when destroying resource", fmt.Sprintf(errorProjectDelete, projectID, err.Error()))

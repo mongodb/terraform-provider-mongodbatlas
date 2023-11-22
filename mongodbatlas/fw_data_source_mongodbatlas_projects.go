@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -19,14 +20,14 @@ var _ datasource.DataSourceWithConfigure = &ProjectsDS{}
 
 func NewProjectsDS() datasource.DataSource {
 	return &ProjectsDS{
-		DSCommon: DSCommon{
-			dataSourceName: projectsDataSourceName,
+		DSCommon: config.DSCommon{
+			DataSourceName: projectsDataSourceName,
 		},
 	}
 }
 
 type ProjectsDS struct {
-	DSCommon
+	config.DSCommon
 }
 
 type tfProjectsDSModel struct {
@@ -142,8 +143,8 @@ func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, r
 
 func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var stateModel tfProjectsDSModel
-	conn := d.client.Atlas
-	connV2 := d.client.AtlasV2
+	conn := d.Client.Atlas
+	connV2 := d.Client.AtlasV2
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &stateModel)...)
 	options := &matlas.ListOptions{

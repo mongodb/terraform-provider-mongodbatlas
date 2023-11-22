@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	retrystrategy "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
@@ -36,14 +37,14 @@ const (
 
 func NewSearchDeploymentRS() resource.Resource {
 	return &SearchDeploymentRS{
-		RSCommon: RSCommon{
-			resourceName: searchDeploymentName,
+		RSCommon: config.RSCommon{
+			ResourceName: searchDeploymentName,
 		},
 	}
 }
 
 type SearchDeploymentRS struct {
-	RSCommon
+	config.RSCommon
 }
 
 type tfSearchDeploymentRSModel struct {
@@ -121,7 +122,7 @@ func (r *SearchDeploymentRS) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	connV2 := r.client.AtlasV2
+	connV2 := r.Client.AtlasV2
 	projectID := searchDeploymentPlan.ProjectID.ValueString()
 	clusterName := searchDeploymentPlan.ClusterName.ValueString()
 	searchDeploymentReq := newSearchDeploymentReq(ctx, &searchDeploymentPlan)
@@ -155,7 +156,7 @@ func (r *SearchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	connV2 := r.client.AtlasV2
+	connV2 := r.Client.AtlasV2
 	projectID := searchDeploymentPlan.ProjectID.ValueString()
 	clusterName := searchDeploymentPlan.ClusterName.ValueString()
 	deploymentResp, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
@@ -179,7 +180,7 @@ func (r *SearchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	connV2 := r.client.AtlasV2
+	connV2 := r.Client.AtlasV2
 	projectID := searchDeploymentPlan.ProjectID.ValueString()
 	clusterName := searchDeploymentPlan.ClusterName.ValueString()
 	searchDeploymentReq := newSearchDeploymentReq(ctx, &searchDeploymentPlan)
@@ -213,7 +214,7 @@ func (r *SearchDeploymentRS) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	connV2 := r.client.AtlasV2
+	connV2 := r.Client.AtlasV2
 	projectID := searchDeploymentState.ProjectID.ValueString()
 	clusterName := searchDeploymentState.ClusterName.ValueString()
 	if _, err := connV2.AtlasSearchApi.DeleteAtlasSearchDeployment(ctx, projectID, clusterName).Execute(); err != nil {

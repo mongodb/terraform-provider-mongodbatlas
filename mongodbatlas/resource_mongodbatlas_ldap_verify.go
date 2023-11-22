@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -156,7 +157,7 @@ func resourceMongoDBAtlasLDAPVerifyCreate(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(fmt.Errorf(errorLDAPVerifyCreate, projectID, err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"request_id": ldap.RequestID,
 	}))
@@ -167,7 +168,7 @@ func resourceMongoDBAtlasLDAPVerifyCreate(ctx context.Context, d *schema.Resourc
 func resourceMongoDBAtlasLDAPVerifyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	requestID := ids["request_id"]
 
@@ -260,7 +261,7 @@ func resourceMongoDBAtlasLDAPVerifyImportState(ctx context.Context, d *schema.Re
 		return nil, fmt.Errorf(errorLDAPVerifySetting, "request_id", requestID, err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"request_id": requestID,
 	}))

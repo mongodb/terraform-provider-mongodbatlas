@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 // Note: the schema is the same as dataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicy
@@ -283,7 +284,7 @@ func dataSourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schem
 	if err := d.Set("export", flattenExport(backupPolicy)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "export", clusterName, err)
 	}
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": clusterName,
 	}))

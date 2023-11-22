@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
 )
 
@@ -78,7 +79,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 		return nil
 	}
 
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
 	oktaIdpID := ids["okta_idp_id"]
 
@@ -126,7 +127,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 		return diag.FromErr(fmt.Errorf("error setting sso url (%s): %s", d.Id(), err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"federation_settings_id": federationSettingsID,
 		"okta_idp_id":            oktaIdpID,
 	}))
@@ -137,7 +138,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 func resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
 	oktaIdpID := ids["okta_idp_id"]
 
@@ -245,7 +246,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderImportState(ctx contex
 		return nil, fmt.Errorf("error setting sso url (%s): %s", d.Id(), err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"federation_settings_id": *federationSettingsID,
 		"okta_idp_id":            *oktaIdpID,
 	}))

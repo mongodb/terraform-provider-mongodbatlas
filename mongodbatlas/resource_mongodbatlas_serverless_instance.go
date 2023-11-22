@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -37,7 +38,7 @@ func resourceMongoDBAtlasServerlessInstance() *schema.Resource {
 func resourceMongoDBAtlasServerlessInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	instanceName := ids["name"]
 
@@ -185,7 +186,7 @@ func resourceMongoDBAtlasServerlessInstanceImportState(ctx context.Context, d *s
 		log.Printf(errorClusterSetting, "continuous_backup_enabled", u.ID, err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": *projectID,
 		"name":       u.Name,
 	}))
@@ -196,7 +197,7 @@ func resourceMongoDBAtlasServerlessInstanceImportState(ctx context.Context, d *s
 func resourceMongoDBAtlasServerlessInstanceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	serverlessName := ids["name"]
 
@@ -229,7 +230,7 @@ func resourceMongoDBAtlasServerlessInstanceDelete(ctx context.Context, d *schema
 func resourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	instanceName := ids["name"]
 
@@ -351,7 +352,7 @@ func resourceMongoDBAtlasServerlessInstanceCreate(ctx context.Context, d *schema
 		return diag.Errorf("error creating MongoDB Serverless Instance: %s", err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"name":       name,
 	}))

@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 )
@@ -309,7 +310,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Type:       schema.TypeSet,
 				Optional:   true,
 				Set:        HashFunctionForKeyValuePair,
-				Deprecated: fmt.Sprintf(DeprecationByDateWithReplacement, "September 2024", "tags"),
+				Deprecated: fmt.Sprintf(config.DeprecationByDateWithReplacement, "September 2024", "tags"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
@@ -570,7 +571,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"cluster_id":    cluster.ID,
 		"project_id":    projectID,
 		"cluster_name":  cluster.Name,
@@ -583,7 +584,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 	providerName := ids["provider_name"]
@@ -769,7 +770,7 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
@@ -922,7 +923,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
 
-		d.SetId(encodeStateID(map[string]string{
+		d.SetId(config.EncodeStateID(map[string]string{
 			"cluster_id":    updatedCluster.ID,
 			"project_id":    projectID,
 			"cluster_name":  updatedCluster.Name,
@@ -979,7 +980,7 @@ func didErrOnPausedCluster(err error) bool {
 func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
@@ -1040,7 +1041,7 @@ func resourceMongoDBAtlasClusterImportState(ctx context.Context, d *schema.Resou
 		return nil, fmt.Errorf("couldn't import cluster backup configuration %s in project %s, error: %s", *name, *projectID, err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"cluster_id":    u.ID,
 		"project_id":    *projectID,
 		"cluster_name":  u.Name,

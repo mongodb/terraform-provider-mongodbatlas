@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -140,7 +141,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLink() *schema.Resource {
 func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
-	privateLinkID := getEncodedID(d.Get("private_link_id").(string), "private_link_id")
+	privateLinkID := config.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
 	providerName := d.Get("provider_name").(string)
 	endpointServiceID := d.Get("endpoint_service_id").(string)
 	pEIA, pEIAOk := d.GetOk("private_endpoint_ip_address")
@@ -200,7 +201,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d
 		log.Printf(errorAdvancedClusterListStatus, err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":          projectID,
 		"private_link_id":     privateLinkID,
 		"endpoint_service_id": endpointServiceID,
@@ -213,7 +214,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d
 func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	privateLinkID := ids["private_link_id"]
 	endpointServiceID := ids["endpoint_service_id"]
@@ -283,7 +284,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(ctx context.Context, d *
 func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	privateLinkID := ids["private_link_id"]
 	endpointServiceID := ids["endpoint_service_id"]
@@ -362,7 +363,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(ctx context.Conte
 		return nil, fmt.Errorf(errorEndpointSetting, "provider_name", privateLinkID, err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":          projectID,
 		"private_link_id":     privateLinkID,
 		"endpoint_service_id": endpointServiceID,

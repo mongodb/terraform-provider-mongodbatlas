@@ -11,6 +11,8 @@ import (
 	"github.com/go-test/deep"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
 )
 
 const (
@@ -32,17 +34,17 @@ func init() {
 
 	testAccProviderV6Factories = map[string]func() (tfprotov6.ProviderServer, error){
 		ProviderNameMongoDBAtlas: func() (tfprotov6.ProviderServer, error) {
-			return muxedProviderFactory(testAccProviderSdkV2)(), nil
+			return provider.MuxedProviderFactory(testAccProviderSdkV2)(), nil
 		},
 	}
 
-	config := Config{
+	cfg := config.Config{
 		PublicKey:    os.Getenv("MONGODB_ATLAS_PUBLIC_KEY"),
 		PrivateKey:   os.Getenv("MONGODB_ATLAS_PRIVATE_KEY"),
 		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
 		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
 	}
-	testMongoDBClient, _ = config.NewClient(context.Background())
+	testMongoDBClient, _ = cfg.NewClient(context.Background())
 }
 
 func TestSdkV2Provider(t *testing.T) {

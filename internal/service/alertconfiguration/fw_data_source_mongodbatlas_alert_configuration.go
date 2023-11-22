@@ -1,8 +1,9 @@
-package mongodbatlas
+package alertconfiguration
 
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -10,13 +11,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/zclconf/go-cty/cty"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
 
-var _ datasource.DataSource = &AlertConfigurationDS{}
-var _ datasource.DataSourceWithConfigure = &AlertConfigurationDS{}
+var _ datasource.DataSource = &DS{}
+var _ datasource.DataSourceWithConfigure = &DS{}
 
 type tfAlertConfigurationDSModel struct {
 	ID                    types.String                      `tfsdk:"id"`
@@ -40,15 +42,15 @@ type tfAlertConfigurationOutputModel struct {
 }
 
 func NewAlertConfigurationDS() datasource.DataSource {
-	return &AlertConfigurationDS{
-		DSCommon: DSCommon{
-			dataSourceName: alertConfigurationResourceName,
+	return &DS{
+		DSCommon: config.DSCommon{
+			DataSourceName: alertConfigurationResourceName,
 		},
 	}
 }
 
-type AlertConfigurationDS struct {
-	DSCommon
+type DS struct {
+	config.DSCommon
 }
 
 var alertConfigDSSchemaBlocks = map[string]schema.Block{
@@ -239,14 +241,14 @@ var alertConfigDSSchemaAttributes = map[string]schema.Attribute{
 	},
 }
 
-func (d *AlertConfigurationDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *DS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: alertConfigDSSchemaAttributes,
 		Blocks:     alertConfigDSSchemaBlocks,
 	}
 }
 
-func (d *AlertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *DS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var alertConfigurationConfig tfAlertConfigurationDSModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &alertConfigurationConfig)...)
@@ -257,10 +259,10 @@ func (d *AlertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequ
 	projectID := alertConfigurationConfig.ProjectID.ValueString()
 
 	// this is very hard to follow as the data source currently receieves the alert_configuration resource id in alert_configuration_id attribute
-	alertID := getEncodedID(alertConfigurationConfig.AlertConfigurationID.ValueString(), encodedIDKeyAlertID)
+	alertID := config.GetEncodedID(alertConfigurationConfig.AlertConfigurationID.ValueString(), encodedIDKeyAlertID)
 	outputs := alertConfigurationConfig.Output
 
-	connV2 := d.client.AtlasV2
+	connV2 := d.Client.AtlasV2
 	alert, _, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(ctx, projectID, alertID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(errorReadAlertConf, err.Error())
@@ -296,7 +298,7 @@ func computeAlertConfigurationOutput(alert *admin.GroupAlertsConfig, definedOutp
 
 func newTFAlertConfigurationDSModel(apiRespConfig *admin.GroupAlertsConfig, projectID string) tfAlertConfigurationDSModel {
 	return tfAlertConfigurationDSModel{
-		ID: types.StringValue(encodeStateID(map[string]string{
+		ID: types.StringValue(config.EncodeStateID(map[string]string{
 			encodedIDKeyAlertID:   *apiRespConfig.Id,
 			encodedIDKeyProjectID: projectID,
 		})),
@@ -475,4 +477,25 @@ func ctyStringPtrVal(ptr *string) cty.Value {
 		return cty.StringVal("")
 	}
 	return cty.StringVal(*ptr)
+}
+
+func appendBlockWithCtyValues(body *hclwrite.Body, name string, labels []string, values map[string]cty.Value) {
+	if len(values) == 0 {
+		return
+	}
+
+	keys := make([]string, 0, len(values))
+
+	for key := range values {
+		keys = append(keys, key)
+	}
+
+	sort.Strings(keys)
+
+	body.AppendNewline()
+	block := body.AppendNewBlock(name, labels).Body()
+
+	for _, k := range keys {
+		block.SetAttributeValue(k, values[k])
+	}
 }

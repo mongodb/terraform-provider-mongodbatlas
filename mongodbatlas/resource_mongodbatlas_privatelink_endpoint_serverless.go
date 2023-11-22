@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 const (
@@ -100,7 +101,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessCreate(ctx context.Context
 		return diag.FromErr(fmt.Errorf(errorServerlessEndpointAdd, err, endPoint.ID))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":    projectID,
 		"instance_name": instanceName,
 		"endpoint_id":   endPoint.ID,
@@ -112,7 +113,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessCreate(ctx context.Context
 func resourceMongoDBAtlasPrivateLinkEndpointServerlessRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	instanceName := ids["instance_name"]
 	endpointID := ids["endpoint_id"]
@@ -155,7 +156,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessRead(ctx context.Context, 
 func resourceMongoDBAtlasPrivateLinkEndpointServerlessDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	instanceName := ids["instance_name"]
 	endpointID := ids["endpoint_id"]
@@ -236,7 +237,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessImportState(ctx context.Co
 		}
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":    projectID,
 		"instance_name": instanceName,
 		"endpoint_id":   endpointID,

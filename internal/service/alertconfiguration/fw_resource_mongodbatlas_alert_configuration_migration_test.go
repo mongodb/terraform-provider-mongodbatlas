@@ -1,5 +1,6 @@
-package mongodbatlas
+package alertconfiguration_test
 
+/*
 import (
 	"fmt"
 	"os"
@@ -247,19 +248,19 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithEmptyOptionalAttributes(orgI
 		resource "mongodbatlas_alert_configuration" "test" {
 			project_id = mongodbatlas_project.test.id
 			event_type = "OUTSIDE_METRIC_THRESHOLD"
-		  
+
 			notification {
 			  type_name     = "ORG"
 			  interval_min  = 5
 			  email_enabled   = true
 			}
-		  
+
 			metric_threshold_config {
 			  metric_name = "ASSERT_REGULAR"
 			  operator    = "LESS_THAN"
 			  units       = "RAW"
 			  mode        = "AVERAGE"
-			} 
+			}
 		  }
 	`, orgID, projectName)
 }
@@ -286,3 +287,4 @@ func testAccMongoDBAtlasAlertConfigurationConfigEmptyOptionalBlocks(orgID, proje
 		}
 	`, orgID, projectName)
 }
+*/

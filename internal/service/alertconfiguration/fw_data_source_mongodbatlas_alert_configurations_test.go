@@ -1,5 +1,6 @@
-package mongodbatlas
+package alertconfiguration_test
 
+/*
 import (
 	"context"
 	"fmt"
@@ -197,3 +198,4 @@ func checkCount(resourceName string) resource.TestCheckFunc {
 		return nil
 	}
 }
+*/

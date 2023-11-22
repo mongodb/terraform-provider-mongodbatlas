@@ -1,4 +1,4 @@
-package mongodbatlas
+package alertconfiguration
 
 import (
 	"context"
@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mwielbut/pointy"
@@ -37,19 +38,19 @@ const (
 	encodedIDKeyProjectID          = "project_id"
 )
 
-var _ resource.ResourceWithConfigure = &AlertConfigurationRS{}
-var _ resource.ResourceWithImportState = &AlertConfigurationRS{}
+var _ resource.ResourceWithConfigure = &RS{}
+var _ resource.ResourceWithImportState = &RS{}
 
 func NewAlertConfigurationRS() resource.Resource {
-	return &AlertConfigurationRS{
-		RSCommon: RSCommon{
-			resourceName: alertConfigurationResourceName,
+	return &RS{
+		RSCommon: config.RSCommon{
+			ResourceName: alertConfigurationResourceName,
 		},
 	}
 }
 
-type AlertConfigurationRS struct {
-	RSCommon
+type RS struct {
+	config.RSCommon
 }
 
 type tfAlertConfigurationRSModel struct {
@@ -113,7 +114,7 @@ type tfNotificationModel struct {
 	EmailEnabled             types.Bool   `tfsdk:"email_enabled"`
 }
 
-func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *RS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -368,8 +369,8 @@ func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 	}
 }
 
-func (r *AlertConfigurationRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	connV2 := r.client.AtlasV2
+func (r *RS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	connV2 := r.Client.AtlasV2
 
 	var alertConfigPlan tfAlertConfigurationRSModel
 
@@ -402,7 +403,7 @@ func (r *AlertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	encodedID := encodeStateID(map[string]string{
+	encodedID := config.EncodeStateID(map[string]string{
 		encodedIDKeyAlertID:   util.SafeString(apiResp.Id),
 		encodedIDKeyProjectID: projectID,
 	})
@@ -414,8 +415,8 @@ func (r *AlertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 	resp.Diagnostics.Append(resp.State.Set(ctx, newAlertConfigurationState)...)
 }
 
-func (r *AlertConfigurationRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	connV2 := r.client.AtlasV2
+func (r *RS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	connV2 := r.Client.AtlasV2
 
 	var alertConfigState tfAlertConfigurationRSModel
 
@@ -425,7 +426,7 @@ func (r *AlertConfigurationRS) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	ids := decodeStateID(alertConfigState.ID.ValueString())
+	ids := config.DecodeStateID(alertConfigState.ID.ValueString())
 
 	alert, getResp, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID]).Execute()
 	if err != nil {
@@ -444,8 +445,8 @@ func (r *AlertConfigurationRS) Read(ctx context.Context, req resource.ReadReques
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newAlertConfigurationState)...)
 }
 
-func (r *AlertConfigurationRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	connV2 := r.client.AtlasV2
+func (r *RS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	connV2 := r.Client.AtlasV2
 
 	var alertConfigState, alertConfigPlan tfAlertConfigurationRSModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &alertConfigState)...)
@@ -454,7 +455,7 @@ func (r *AlertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	ids := decodeStateID(alertConfigState.ID.ValueString())
+	ids := config.DecodeStateID(alertConfigState.ID.ValueString())
 
 	// In order to update an alert config it is necessary to send the original alert configuration request again, if not the
 	// server returns an error 500
@@ -520,8 +521,8 @@ func (r *AlertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newAlertConfigurationState)...)
 }
 
-func (r *AlertConfigurationRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	conn := r.client.Atlas
+func (r *RS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	conn := r.Client.Atlas
 
 	var alertConfigState tfAlertConfigurationRSModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &alertConfigState)...)
@@ -529,7 +530,7 @@ func (r *AlertConfigurationRS) Delete(ctx context.Context, req resource.DeleteRe
 		return
 	}
 
-	ids := decodeStateID(alertConfigState.ID.ValueString())
+	ids := config.DecodeStateID(alertConfigState.ID.ValueString())
 
 	_, err := conn.AlertConfigurations.Delete(ctx, ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID])
 	if err != nil {
@@ -537,7 +538,7 @@ func (r *AlertConfigurationRS) Delete(ctx context.Context, req resource.DeleteRe
 	}
 }
 
-func (r *AlertConfigurationRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *RS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	parts := strings.SplitN(req.ID, "-", 2)
 
 	if len(parts) != 2 {
@@ -548,7 +549,7 @@ func (r *AlertConfigurationRS) ImportState(ctx context.Context, req resource.Imp
 	projectID := parts[0]
 	alertConfigurationID := parts[1]
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), encodeStateID(map[string]string{
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), config.EncodeStateID(map[string]string{
 		"id":         alertConfigurationID,
 		"project_id": projectID,
 	}))...)

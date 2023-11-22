@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -20,13 +21,13 @@ const (
 )
 
 type ProjectIPAccessListDS struct {
-	DSCommon
+	config.DSCommon
 }
 
 func NewProjectIPAccessListDS() datasource.DataSource {
 	return &ProjectIPAccessListDS{
-		DSCommon: DSCommon{
-			dataSourceName: projectIPAccessList,
+		DSCommon: config.DSCommon{
+			DataSourceName: projectIPAccessList,
 		},
 	}
 }
@@ -112,7 +113,7 @@ func (d *ProjectIPAccessListDS) Read(ctx context.Context, req datasource.ReadReq
 		entry.WriteString(databaseDSUserConfig.AWSSecurityGroup.ValueString())
 	}
 
-	conn := d.client.Atlas
+	conn := d.Client.Atlas
 	accessList, _, err := conn.ProjectIPAccessList.Get(ctx, databaseDSUserConfig.ProjectID.ValueString(), entry.String())
 	if err != nil {
 		resp.Diagnostics.AddError("error getting access list entry", err.Error())
@@ -147,7 +148,7 @@ func newTFProjectIPAccessListDSModel(ctx context.Context, accessList *matlas.Pro
 		entry = accessList.AwsSecurityGroup
 	}
 
-	id := encodeStateID(map[string]string{
+	id := config.EncodeStateID(map[string]string{
 		"entry":      entry,
 		"project_id": accessList.GroupID,
 	})

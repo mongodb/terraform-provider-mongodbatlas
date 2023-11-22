@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func dataSourceMongoDBAtlasEventTrigger() *schema.Resource {
@@ -137,7 +138,7 @@ func dataSourceMongoDBAtlasEventTriggerRead(ctx context.Context, d *schema.Resou
 	}
 	projectID := d.Get("project_id").(string)
 	appID := d.Get("app_id").(string)
-	triggerID := getEncodedID(d.Get("trigger_id").(string), "trigger_id")
+	triggerID := config.GetEncodedID(d.Get("trigger_id").(string), "trigger_id")
 
 	eventResp, _, err := conn.EventTriggers.Get(ctx, projectID, appID, triggerID)
 	if err != nil {
@@ -202,7 +203,7 @@ func dataSourceMongoDBAtlasEventTriggerRead(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "event_processors", projectID, appID, err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"app_id":     appID,
 		"trigger_id": eventResp.ID,

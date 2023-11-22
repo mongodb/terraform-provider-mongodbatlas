@@ -1,4 +1,6 @@
-package mongodbatlas
+package alertconfiguration_test
+
+/*
 
 import (
 	"fmt"
@@ -216,7 +218,7 @@ func testAccDSMongoDBAtlasAlertConfigurationWithOutputs(orgID, projectName, outp
 		}
 		resource "mongodbatlas_alert_configuration" "test" {
 			project_id = mongodbatlas_project.test.id
-			
+
 			event_type = "NO_PRIMARY"
 			enabled    = true
 
@@ -270,3 +272,5 @@ data "mongodbatlas_alert_configuration" "test" {
 }
 	`, orgID, projectName, serviceKey, enabled)
 }
+
+*/

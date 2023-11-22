@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func dataSourceMongoDBAtlasLDAPVerify() *schema.Resource {
@@ -104,7 +105,7 @@ func dataSourceMongoDBAtlasLDAPVerifyRead(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(fmt.Errorf(errorLDAPVerifySetting, "status", d.Id(), err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"request_id": ldapResp.RequestID,
 	}))

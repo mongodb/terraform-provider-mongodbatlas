@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
 
@@ -33,12 +34,12 @@ func dataSourceMongoDBAtlasSearchIndexes() *schema.Resource {
 			"page_num": {
 				Type:       schema.TypeInt,
 				Optional:   true,
-				Deprecated: fmt.Sprintf(DeprecationByVersionMessageParameter, "1.15.0"),
+				Deprecated: fmt.Sprintf(config.DeprecationByVersionMessageParameter, "1.15.0"),
 			},
 			"items_per_page": {
 				Type:       schema.TypeInt,
 				Optional:   true,
-				Deprecated: fmt.Sprintf(DeprecationByVersionMessageParameter, "1.15.0"),
+				Deprecated: fmt.Sprintf(config.DeprecationByVersionMessageParameter, "1.15.0"),
 			},
 			"results": {
 				Type:     schema.TypeList,

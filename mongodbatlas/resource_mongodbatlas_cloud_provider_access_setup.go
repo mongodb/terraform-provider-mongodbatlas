@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -35,7 +36,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 			"provider_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{AWS, AZURE}, false),
+				ValidateFunc: validation.StringInSlice([]string{config.AWS, config.AZURE}, false),
 				ForceNew:     true,
 			},
 			"aws_config": {
@@ -92,7 +93,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 
 func resourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleID := ids["id"]
 
@@ -158,11 +159,11 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *
 	roleSchema := roleToSchemaSetup(role)
 
 	resourceID := role.RoleID
-	if role.ProviderName == AZURE {
+	if role.ProviderName == config.AZURE {
 		resourceID = *role.AzureID
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"id":            resourceID,
 		"project_id":    projectID,
 		"provider_name": role.ProviderName,
@@ -179,7 +180,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *
 
 func resourceMongoDBAtlasCloudProviderAccessSetupDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 
 	projectID := ids["project_id"]
 	roleID := ids["id"]
@@ -239,7 +240,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupImportState(ctx context.Context
 	}
 
 	// searching id in internal format
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"id":            roleID,
 		"project_id":    projectID,
 		"provider_name": providerName,

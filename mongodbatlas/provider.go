@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
@@ -260,7 +261,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (any, diag.D
 		return nil, diagnostics
 	}
 
-	config := Config{
+	cfg := config.Config{
 		PublicKey:    d.Get("public_key").(string),
 		PrivateKey:   d.Get("private_key").(string),
 		BaseURL:      d.Get("base_url").(string),
@@ -270,7 +271,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (any, diag.D
 	assumeRoleValue, ok := d.GetOk("assume_role")
 	awsRoleDefined := ok && len(assumeRoleValue.([]any)) > 0 && assumeRoleValue.([]any)[0] != nil
 	if awsRoleDefined {
-		config.AssumeRole = expandAssumeRole(assumeRoleValue.([]any)[0].(map[string]any))
+		cfg.AssumeRole = expandAssumeRole(assumeRoleValue.([]any)[0].(map[string]any))
 		secret := d.Get("secret_name").(string)
 		region := util.MongoDBRegionToAWSRegion(d.Get("region").(string))
 		awsAccessKeyID := d.Get("aws_access_key_id").(string)
@@ -278,13 +279,13 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (any, diag.D
 		awsSessionToken := d.Get("aws_session_token").(string)
 		endpoint := d.Get("sts_endpoint").(string)
 		var err error
-		config, err = configureCredentialsSTS(config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+		cfg, err = configureCredentialsSTS(cfg, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
 		if err != nil {
 			return nil, append(diagnostics, diag.FromErr(err)...)
 		}
 	}
 
-	client, err := config.NewClient(ctx)
+	client, err := cfg.NewClient(ctx)
 	if err != nil {
 		return nil, append(diagnostics, diag.FromErr(err)...)
 	}
@@ -296,7 +297,7 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 
 	mongodbgovCloud := pointy.Bool(d.Get("is_mongodbgov_cloud").(bool))
 	if *mongodbgovCloud {
-		if err := d.Set("base_url", MongodbGovCloudURL); err != nil {
+		if err := d.Set("base_url", config.MongodbGovCloudURL); err != nil {
 			return append(diagnostics, diag.FromErr(err)...)
 		}
 	}
@@ -332,7 +333,7 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 		return append(diagnostics, diag.FromErr(err)...)
 	}
 	if d.Get("public_key").(string) == "" && !awsRoleDefined {
-		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
+		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: config.MissingAuthAttrError})
 	}
 
 	if err := setValueFromConfigOrEnv(d, "private_key", []string{
@@ -343,7 +344,7 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 	}
 
 	if d.Get("private_key").(string) == "" && !awsRoleDefined {
-		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
+		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: config.MissingAuthAttrError})
 	}
 
 	if err := setValueFromConfigOrEnv(d, "realm_base_url", []string{
@@ -414,11 +415,11 @@ func MultiEnvDefaultFunc(ks []string, def any) any {
 	return def
 }
 
-func configureCredentialsSTS(config Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (Config, error) {
+func configureCredentialsSTS(cfg config.Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (config.Config, error) {
 	ep, err := endpoints.GetSTSRegionalEndpoint("regional")
 	if err != nil {
 		log.Printf("GetSTSRegionalEndpoint error: %s", err)
-		return config, err
+		return cfg, err
 	}
 
 	defaultResolver := endpoints.DefaultResolver()
@@ -426,7 +427,7 @@ func configureCredentialsSTS(config Config, secret, region, awsAccessKeyID, awsS
 		if service == endpoints.StsServiceID {
 			if endpoint == "" {
 				return endpoints.ResolvedEndpoint{
-					URL:           endPointSTSDefault,
+					URL:           config.EndPointSTSDefault,
 					SigningRegion: region,
 				}, nil
 			}
@@ -439,49 +440,49 @@ func configureCredentialsSTS(config Config, secret, region, awsAccessKeyID, awsS
 		return defaultResolver.EndpointFor(service, region, optFns...)
 	}
 
-	cfg := aws.Config{
+	configAWS := aws.Config{
 		Region:              aws.String(region),
 		Credentials:         credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, awsSessionToken),
 		STSRegionalEndpoint: ep,
 		EndpointResolver:    endpoints.ResolverFunc(stsCustResolverFn),
 	}
 
-	sess := session.Must(session.NewSession(&cfg))
+	sess := session.Must(session.NewSession(&configAWS))
 
-	creds := stscreds.NewCredentials(sess, config.AssumeRole.RoleARN)
+	creds := stscreds.NewCredentials(sess, cfg.AssumeRole.RoleARN)
 
 	_, err = sess.Config.Credentials.Get()
 	if err != nil {
 		log.Printf("Session get credentials error: %s", err)
-		return config, err
+		return cfg, err
 	}
 	_, err = creds.Get()
 	if err != nil {
 		log.Printf("STS get credentials error: %s", err)
-		return config, err
+		return cfg, err
 	}
 	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
 	if err != nil {
 		log.Printf("Get Secrets error: %s", err)
-		return config, err
+		return cfg, err
 	}
 
 	var secretData SecretData
 	err = json.Unmarshal([]byte(secretString), &secretData)
 	if err != nil {
-		return config, err
+		return cfg, err
 	}
 	if secretData.PrivateKey == "" {
-		return config, fmt.Errorf("secret missing value for credential PrivateKey")
+		return cfg, fmt.Errorf("secret missing value for credential PrivateKey")
 	}
 
 	if secretData.PublicKey == "" {
-		return config, fmt.Errorf("secret missing value for credential PublicKey")
+		return cfg, fmt.Errorf("secret missing value for credential PublicKey")
 	}
 
-	config.PublicKey = secretData.PublicKey
-	config.PrivateKey = secretData.PrivateKey
-	return config, nil
+	cfg.PublicKey = secretData.PublicKey
+	cfg.PrivateKey = secretData.PrivateKey
+	return cfg, nil
 }
 
 func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) (string, error) {
@@ -745,24 +746,12 @@ func validAssumeRoleDuration(v any, k string) (ws []string, errorResults []error
 	return
 }
 
-type AssumeRole struct {
-	Tags              map[string]string
-	RoleARN           string
-	ExternalID        string
-	Policy            string
-	SessionName       string
-	SourceIdentity    string
-	PolicyARNs        []string
-	TransitiveTagKeys []string
-	Duration          time.Duration
-}
-
-func expandAssumeRole(tfMap map[string]any) *AssumeRole {
+func expandAssumeRole(tfMap map[string]any) *config.AssumeRole {
 	if tfMap == nil {
 		return nil
 	}
 
-	assumeRole := AssumeRole{}
+	assumeRole := config.AssumeRole{}
 
 	if v, ok := tfMap["duration"].(string); ok && v != "" {
 		duration, _ := time.ParseDuration(v)

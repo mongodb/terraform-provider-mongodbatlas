@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -72,7 +73,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx contex
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 	roleMappingID := ids["role_mapping_id"]
@@ -98,7 +99,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx contex
 		return diag.FromErr(fmt.Errorf("error setting role_assignments (%s): %s", d.Id(), err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"federation_settings_id": federationSettingsID,
 		"org_id":                 orgID,
 		"role_mapping_id":        roleMappingID,
@@ -149,7 +150,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingCreate(ctx cont
 		return diag.FromErr(fmt.Errorf("error getting federated settings organization config: %s", err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"federation_settings_id": federationSettingsID.(string),
 		"org_id":                 orgID.(string),
 		"role_mapping_id":        federatedSettingsOrganizationRoleMapping.ID,
@@ -161,7 +162,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingCreate(ctx cont
 func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 	roleMappingID := ids["role_mapping_id"]
@@ -200,7 +201,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingUpdate(ctx cont
 func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 	roleMappingID := ids["role_mapping_id"]
@@ -238,7 +239,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingImportState(ctx
 		return nil, fmt.Errorf("error setting role_assignments (%s): %s", d.Id(), err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"federation_settings_id": *federationSettingsID,
 		"org_id":                 *orgID,
 		"role_mapping_id":        *roleMappingID,

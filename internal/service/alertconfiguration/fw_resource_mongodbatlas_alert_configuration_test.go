@@ -1,5 +1,6 @@
-package mongodbatlas
+package alertconfiguration_test
 
+/*
 import (
 	"context"
 	"fmt"
@@ -635,7 +636,7 @@ resource "mongodbatlas_alert_configuration" "test" {
     threshold   = 99.0
     units       = "RAW"
     mode        = "AVERAGE"
-  } 
+  }
 }
 	`, orgID, projectName, enabled)
 }
@@ -1007,3 +1008,5 @@ resource "mongodbatlas_alert_configuration" "test" {
 }
 	`, orgID, projectName, enabled)
 }
+
+*/

@@ -1,4 +1,4 @@
-package mongodbatlas
+package provider
 
 import (
 	"context"
@@ -22,25 +22,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 	sdkv2schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
-	"github.com/mongodb/terraform-provider-mongodbatlas/version"
-)
 
-const (
-	DeprecationMessageParameterToResource = "this parameter is deprecated and will be removed in %s, please transition to %s"
-	DeprecationByDateMessageParameter     = "this parameter is deprecated and will be removed by %s"
-	DeprecationByDateWithReplacement      = "this parameter is deprecated and will be removed by %s, please transition to %s"
-	DeprecationByVersionMessageParameter  = "this parameter is deprecated and will be removed in version %s"
-	DeprecationMessage                    = "this resource is deprecated and will be removed in %s, please transition to %s"
-	endPointSTSDefault                    = "https://sts.amazonaws.com"
-	MissingAuthAttrError                  = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
-	ProviderConfigError                   = "error in configuring the provider."
-	AWS                                   = "AWS"
-	AZURE                                 = "AZURE"
-	GCP
-	errorConfigureSummary = "Unexpected Resource Configure Type"
-	errorConfigure        = "expected *MongoDBClient, got: %T. Please report this issue to the provider developers"
+	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
 type MongodbtlasProvider struct{}
@@ -222,7 +210,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		return
 	}
 
-	config := Config{
+	cfg := config.Config{
 		PublicKey:    data.PublicKey.ValueString(),
 		PrivateKey:   data.PrivateKey.ValueString(),
 		BaseURL:      data.BaseURL.ValueString(),
@@ -233,7 +221,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	data.AssumeRole.ElementsAs(ctx, &assumeRoles, true)
 	awsRoleDefined := len(assumeRoles) > 0
 	if awsRoleDefined {
-		config.AssumeRole = parseTfModel(ctx, &assumeRoles[0])
+		cfg.AssumeRole = parseTfModel(ctx, &assumeRoles[0])
 		secret := data.SecretName.ValueString()
 		region := util.MongoDBRegionToAWSRegion(data.Region.ValueString())
 		awsAccessKeyID := data.AwsAccessKeyID.ValueString()
@@ -241,14 +229,14 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		awsSessionToken := data.AwsSessionToken.ValueString()
 		endpoint := data.StsEndpoint.ValueString()
 		var err error
-		config, err = configureCredentialsSTS(config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+		cfg, err = config.ConfigureCredentialsSTS(cfg, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
 		if err != nil {
 			resp.Diagnostics.AddError("failed to configure credentials STS", err.Error())
 			return
 		}
 	}
 
-	client, err := config.NewClient(ctx)
+	client, err := cfg.NewClient(ctx)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -263,8 +251,8 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 }
 
 // parseTfModel extracts the values from tfAssumeRoleModel creating a new instance of our internal model AssumeRole used in Config
-func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *AssumeRole {
-	assumeRole := AssumeRole{}
+func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *config.AssumeRole {
+	assumeRole := config.AssumeRole{}
 
 	if !tfAssumeRoleModel.Duration.IsNull() {
 		duration, _ := time.ParseDuration(tfAssumeRoleModel.Duration.ValueString())
@@ -293,14 +281,12 @@ func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *As
 	return &assumeRole
 }
 
-const MongodbGovCloudURL = "https://cloud.mongodbgov.com"
-
 func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasProviderModel, resp *provider.ConfigureResponse) tfMongodbAtlasProviderModel {
 	if mongodbgovCloud := data.IsMongodbGovCloud.ValueBool(); mongodbgovCloud {
-		data.BaseURL = types.StringValue(MongodbGovCloudURL)
+		data.BaseURL = types.StringValue(config.MongodbGovCloudURL)
 	}
 	if data.BaseURL.ValueString() == "" {
-		data.BaseURL = types.StringValue(MultiEnvDefaultFunc([]string{
+		data.BaseURL = types.StringValue(config.MultiEnvDefaultFunc([]string{
 			"MONGODB_ATLAS_BASE_URL",
 			"MCLI_OPS_MANAGER_URL",
 		}, "").(string))
@@ -308,7 +294,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 
 	awsRoleDefined := false
 	if len(data.AssumeRole.Elements()) == 0 {
-		assumeRoleArn := MultiEnvDefaultFunc([]string{
+		assumeRoleArn := config.MultiEnvDefaultFunc([]string{
 			"ASSUME_ROLE_ARN",
 			"TF_VAR_ASSUME_ROLE_ARN",
 		}, "").(string)
@@ -332,68 +318,68 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 	}
 
 	if data.PublicKey.ValueString() == "" {
-		data.PublicKey = types.StringValue(MultiEnvDefaultFunc([]string{
+		data.PublicKey = types.StringValue(config.MultiEnvDefaultFunc([]string{
 			"MONGODB_ATLAS_PUBLIC_KEY",
 			"MCLI_PUBLIC_API_KEY",
 		}, "").(string))
 		if data.PublicKey.ValueString() == "" && !awsRoleDefined {
-			resp.Diagnostics.AddWarning(ProviderConfigError, MissingAuthAttrError)
+			resp.Diagnostics.AddWarning(config.ProviderConfigError, config.MissingAuthAttrError)
 		}
 	}
 
 	if data.PrivateKey.ValueString() == "" {
-		data.PrivateKey = types.StringValue(MultiEnvDefaultFunc([]string{
+		data.PrivateKey = types.StringValue(config.MultiEnvDefaultFunc([]string{
 			"MONGODB_ATLAS_PRIVATE_KEY",
 			"MCLI_PRIVATE_API_KEY",
 		}, "").(string))
 		if data.PrivateKey.ValueString() == "" && !awsRoleDefined {
-			resp.Diagnostics.AddWarning(ProviderConfigError, MissingAuthAttrError)
+			resp.Diagnostics.AddWarning(config.ProviderConfigError, config.MissingAuthAttrError)
 		}
 	}
 
 	if data.RealmBaseURL.ValueString() == "" {
-		data.RealmBaseURL = types.StringValue(MultiEnvDefaultFunc([]string{
+		data.RealmBaseURL = types.StringValue(config.MultiEnvDefaultFunc([]string{
 			"MONGODB_REALM_BASE_URL",
 		}, "").(string))
 	}
 
 	if data.Region.ValueString() == "" {
-		data.Region = types.StringValue(MultiEnvDefaultFunc([]string{
+		data.Region = types.StringValue(config.MultiEnvDefaultFunc([]string{
 			"AWS_REGION",
 			"TF_VAR_AWS_REGION",
 		}, "").(string))
 	}
 
 	if data.StsEndpoint.ValueString() == "" {
-		data.StsEndpoint = types.StringValue(MultiEnvDefaultFunc([]string{
+		data.StsEndpoint = types.StringValue(config.MultiEnvDefaultFunc([]string{
 			"STS_ENDPOINT",
 			"TF_VAR_STS_ENDPOINT",
 		}, "").(string))
 	}
 
 	if data.AwsAccessKeyID.ValueString() == "" {
-		data.AwsAccessKeyID = types.StringValue(MultiEnvDefaultFunc([]string{
+		data.AwsAccessKeyID = types.StringValue(config.MultiEnvDefaultFunc([]string{
 			"AWS_ACCESS_KEY_ID",
 			"TF_VAR_AWS_ACCESS_KEY_ID",
 		}, "").(string))
 	}
 
 	if data.AwsSecretAccessKeyID.ValueString() == "" {
-		data.AwsSecretAccessKeyID = types.StringValue(MultiEnvDefaultFunc([]string{
+		data.AwsSecretAccessKeyID = types.StringValue(config.MultiEnvDefaultFunc([]string{
 			"AWS_SECRET_ACCESS_KEY",
 			"TF_VAR_AWS_SECRET_ACCESS_KEY",
 		}, "").(string))
 	}
 
 	if data.AwsSessionToken.ValueString() == "" {
-		data.AwsSessionToken = types.StringValue(MultiEnvDefaultFunc([]string{
+		data.AwsSessionToken = types.StringValue(config.MultiEnvDefaultFunc([]string{
 			"AWS_SESSION_TOKEN",
 			"TF_VAR_AWS_SESSION_TOKEN",
 		}, "").(string))
 	}
 
 	if data.SecretName.ValueString() == "" {
-		data.SecretName = types.StringValue(MultiEnvDefaultFunc([]string{
+		data.SecretName = types.StringValue(config.MultiEnvDefaultFunc([]string{
 			"SECRET_NAME",
 			"TF_VAR_SECRET_NAME",
 		}, "").(string))
@@ -404,27 +390,27 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 
 func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		NewProjectDS,
-		NewProjectsDS,
-		NewDatabaseUserDS,
-		NewDatabaseUsersDS,
-		NewAlertConfigurationDS,
-		NewAlertConfigurationsDS,
-		NewProjectIPAccessListDS,
-		NewAtlasUserDS,
-		NewAtlasUsersDS,
-		NewSearchDeploymentDS,
+		//		NewProjectDS,
+		//		NewProjectsDS,
+		//		NewDatabaseUserDS,
+		//		NewDatabaseUsersDS,
+		alertconfiguration.NewAlertConfigurationDS,
+		alertconfiguration.NewAlertConfigurationsDS,
+		//	NewProjectIPAccessListDS,
+		//		NewAtlasUserDS,
+		//		NewAtlasUsersDS,
+		//		NewSearchDeploymentDS,
 	}
 }
 
 func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		NewProjectRS,
-		NewEncryptionAtRestRS,
-		NewDatabaseUserRS,
-		NewAlertConfigurationRS,
-		NewProjectIPAccessListRS,
-		NewSearchDeploymentRS,
+		//	NewProjectRS,
+		//	NewEncryptionAtRestRS,
+		//	NewDatabaseUserRS,
+		alertconfiguration.NewAlertConfigurationRS,
+		//		NewProjectIPAccessListRS,
+		//		NewSearchDeploymentRS,
 	}
 }
 
@@ -433,7 +419,7 @@ func NewFrameworkProvider() provider.Provider {
 }
 
 func MuxedProviderFactory() func() tfprotov6.ProviderServer {
-	return muxedProviderFactory(NewSdkV2Provider())
+	return muxedProviderFactory(mongodbatlas.NewSdkV2Provider())
 }
 
 // muxedProviderFactory creates mux provider using existing sdk v2 provider passed as parameter and creating new instance of framework provider.

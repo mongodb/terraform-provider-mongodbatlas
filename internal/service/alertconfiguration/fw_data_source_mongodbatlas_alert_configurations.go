@@ -1,4 +1,4 @@
-package mongodbatlas
+package alertconfiguration
 
 import (
 	"context"
@@ -10,13 +10,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
 
 const alertConfigurationsDataSourceName = "alert_configurations"
 
-var _ datasource.DataSource = &AlertConfigurationDS{}
-var _ datasource.DataSourceWithConfigure = &AlertConfigurationDS{}
+var _ datasource.DataSource = &DS{}
+var _ datasource.DataSourceWithConfigure = &DS{}
 
 type tfAlertConfigurationsDSModel struct {
 	ID          types.String                  `tfsdk:"id"`
@@ -35,14 +36,14 @@ type tfListOptionsModel struct {
 
 func NewAlertConfigurationsDS() datasource.DataSource {
 	return &AlertConfigurationsDS{
-		DSCommon: DSCommon{
-			dataSourceName: alertConfigurationsDataSourceName,
+		DSCommon: config.DSCommon{
+			DataSourceName: alertConfigurationsDataSourceName,
 		},
 	}
 }
 
 type AlertConfigurationsDS struct {
-	DSCommon
+	config.DSCommon
 }
 
 func (d *AlertConfigurationsDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -131,7 +132,7 @@ func (d *AlertConfigurationsDS) Read(ctx context.Context, req datasource.ReadReq
 
 	alertConfigurationsConfig.ListOptions = setDefaultValuesInListOptions(alertConfigurationsConfig.ListOptions)
 
-	connV2 := d.client.AtlasV2
+	connV2 := d.Client.AtlasV2
 	params := newListParams(projectID, alertConfigurationsConfig.ListOptions)
 	alerts, _, err := connV2.AlertConfigurationsApi.ListAlertConfigurationsWithParams(ctx, params).Execute()
 	if err != nil {
@@ -139,7 +140,7 @@ func (d *AlertConfigurationsDS) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	alertConfigurationsConfig.ID = types.StringValue(encodeStateID(map[string]string{
+	alertConfigurationsConfig.ID = types.StringValue(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 	}))
 	alertConfigurationsConfig.Results = newTFAlertConfigurationDSModelList(alerts.Results, projectID, alertConfigurationsConfig.OutputType)

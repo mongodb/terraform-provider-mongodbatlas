@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 var _ datasource.DataSource = &ProjectDS{}
@@ -20,14 +21,14 @@ var _ datasource.DataSourceWithConfigure = &ProjectDS{}
 
 func NewProjectDS() datasource.DataSource {
 	return &ProjectDS{
-		DSCommon: DSCommon{
-			dataSourceName: projectResourceName,
+		DSCommon: config.DSCommon{
+			DataSourceName: projectResourceName,
 		},
 	}
 }
 
 type ProjectDS struct {
-	DSCommon
+	config.DSCommon
 }
 
 type tfProjectDSModel struct {
@@ -143,8 +144,8 @@ func (d *ProjectDS) Schema(ctx context.Context, req datasource.SchemaRequest, re
 
 func (d *ProjectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var projectState tfProjectDSModel
-	conn := d.client.Atlas
-	connV2 := d.client.AtlasV2
+	conn := d.Client.Atlas
+	connV2 := d.Client.AtlasV2
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &projectState)...)
 

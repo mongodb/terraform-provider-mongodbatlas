@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -43,13 +44,13 @@ type tfProjectIPAccessListModel struct {
 }
 
 type ProjectIPAccessListRS struct {
-	RSCommon
+	config.RSCommon
 }
 
 func NewProjectIPAccessListRS() resource.Resource {
 	return &ProjectIPAccessListRS{
-		RSCommon: RSCommon{
-			resourceName: projectIPAccessList,
+		RSCommon: config.RSCommon{
+			ResourceName: projectIPAccessList,
 		},
 	}
 }
@@ -141,7 +142,7 @@ func (r *ProjectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	conn := r.client.Atlas
+	conn := r.Client.Atlas
 	projectID := projectIPAccessListModel.ProjectID.ValueString()
 	stateConf := &retry.StateChangeConf{
 		Pending: []string{"pending"},
@@ -213,7 +214,7 @@ func newTFProjectIPAccessListModel(projectIPAccessListModel *tfProjectIPAccessLi
 		entry = projectIPAccessList.AwsSecurityGroup
 	}
 
-	id := encodeStateID(map[string]string{
+	id := config.EncodeStateID(map[string]string{
 		"entry":      entry,
 		"project_id": projectIPAccessList.GroupID,
 	})
@@ -247,7 +248,7 @@ func (r *ProjectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	decodedIDMap := decodeStateID(projectIPAccessListModelState.ID.ValueString())
+	decodedIDMap := config.DecodeStateID(projectIPAccessListModelState.ID.ValueString())
 	if len(decodedIDMap) != 2 {
 		resp.Diagnostics.AddError("error during the reading operation", "the provided resource ID is not correct")
 		return
@@ -259,7 +260,7 @@ func (r *ProjectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	conn := r.client.Atlas
+	conn := r.Client.Atlas
 	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
 		accessList, httpResponse, err := conn.ProjectIPAccessList.Get(ctx, decodedIDMap["project_id"], decodedIDMap["entry"])
 		if err != nil {
@@ -304,7 +305,7 @@ func (r *ProjectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 		entry = projectIPAccessListModelState.AWSSecurityGroup.ValueString()
 	}
 
-	conn := r.client.Atlas
+	conn := r.Client.Atlas
 	projectID := projectIPAccessListModelState.ProjectID.ValueString()
 
 	timeout, diags := projectIPAccessListModelState.Timeouts.Delete(ctx, projectIPAccessListTimeout)
@@ -360,7 +361,7 @@ func (r *ProjectIPAccessListRS) ImportState(ctx context.Context, req resource.Im
 	projectID := parts[0]
 	entry := parts[1]
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), encodeStateID(map[string]string{
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), config.EncodeStateID(map[string]string{
 		"entry":      entry,
 		"project_id": projectID,
 	}))...)

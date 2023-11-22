@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -122,7 +123,7 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"api_key_id": apiKey.ID,
 	}))
@@ -133,7 +134,7 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	apiKeyID := ids["api_key_id"]
 
@@ -176,7 +177,7 @@ func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Resour
 		return diag.FromErr(fmt.Errorf("error setting `project_id`: %s", err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"api_key_id": apiKeyID,
 	}))
@@ -188,7 +189,7 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 	conn := meta.(*MongoDBClient).Atlas
 	connV2 := meta.(*MongoDBClient).AtlasV2
 
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	apiKeyID := ids["api_key_id"]
 
@@ -249,7 +250,7 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 
 func resourceMongoDBAtlasProjectAPIKeyDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	apiKeyID := ids["api_key_id"]
 	var orgID string
@@ -330,7 +331,7 @@ func resourceMongoDBAtlasProjectAPIKeyImportState(ctx context.Context, d *schema
 				return nil, fmt.Errorf("error setting `public_key`: %s", err)
 			}
 
-			d.SetId(encodeStateID(map[string]string{
+			d.SetId(config.EncodeStateID(map[string]string{
 				"project_id": projectID,
 				"api_key_id": val.ID,
 			}))

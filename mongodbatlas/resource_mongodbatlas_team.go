@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -73,7 +74,7 @@ func resourceMongoDBAtlasTeamCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(fmt.Errorf(errorTeamCreate, err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"org_id": orgID,
 		"id":     teamsResp.ID,
 	}))
@@ -84,7 +85,7 @@ func resourceMongoDBAtlasTeamCreate(ctx context.Context, d *schema.ResourceData,
 func resourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	teamID := ids["id"]
 
@@ -128,7 +129,7 @@ func resourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, m
 func resourceMongoDBAtlasTeamUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	teamID := ids["id"]
 
@@ -217,7 +218,7 @@ func resourceMongoDBAtlasTeamUpdate(ctx context.Context, d *schema.ResourceData,
 
 func resourceMongoDBAtlasTeamDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	id := ids["id"]
 
@@ -271,7 +272,7 @@ func resourceMongoDBAtlasTeamImportState(ctx context.Context, d *schema.Resource
 		log.Printf("[WARN] Error setting team_id for (%s): %s", teamID, err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"org_id": orgID,
 		"id":     u.ID,
 	}))

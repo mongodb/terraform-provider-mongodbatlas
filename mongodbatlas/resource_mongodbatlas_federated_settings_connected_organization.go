@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
 )
 
@@ -64,7 +65,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.Con
 		d.SetId("")
 		return nil
 	}
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 
@@ -92,7 +93,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.Con
 		return diag.FromErr(fmt.Errorf("error setting post_auth_role_grants (%s): %s", d.Id(), err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"federation_settings_id": federationSettingsID,
 		"org_id":                 orgID,
 	}))
@@ -103,7 +104,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.Con
 func resourceMongoDBAtlasFederatedSettingsOrganizationConfigUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 
@@ -143,7 +144,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigUpdate(ctx context.C
 func resourceMongoDBAtlasFederatedSettingsOrganizationConfigDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 
@@ -187,7 +188,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigImportState(ctx cont
 		return nil, fmt.Errorf("error setting identity provider id (%s): %s", d.Id(), err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"federation_settings_id": *federationSettingsID,
 		"org_id":                 *orgID,
 	}))

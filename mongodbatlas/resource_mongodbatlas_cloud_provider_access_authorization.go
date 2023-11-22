@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -90,7 +91,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorization() *schema.Resource {
 func resourceMongoDBAtlasCloudProviderAccessAuthorizationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// sadly there is no just get API
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 
 	roleID := ids["id"] // atlas ID
 	projectID := ids["project_id"]
@@ -118,7 +119,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationRead(ctx context.Contex
 	}
 
 	// If not authorize , then request the authorization
-	if targetRole.ProviderName == AWS && targetRole.AuthorizedDate == "" && !d.IsNewResource() {
+	if targetRole.ProviderName == config.AWS && targetRole.AuthorizedDate == "" && !d.IsNewResource() {
 		d.SetId("")
 		return nil
 	}
@@ -148,7 +149,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate(ctx context.Cont
 
 func resourceMongoDBAtlasCloudProviderAccessAuthorizationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 
 	roleID := ids["id"]
 	projectID := ids["project_id"]
@@ -262,7 +263,7 @@ func authorizeRole(ctx context.Context, client *matlas.Client, d *schema.Resourc
 	}
 
 	roleID := targetRole.RoleID
-	if targetRole.ProviderName == AWS {
+	if targetRole.ProviderName == config.AWS {
 		roleAWS, ok := d.GetOk("aws")
 		if !ok {
 			return diag.FromErr(fmt.Errorf("error CloudProviderAccessAuthorization missing iam_assumed_role_arn"))
@@ -271,7 +272,7 @@ func authorizeRole(ctx context.Context, client *matlas.Client, d *schema.Resourc
 		req.IAMAssumedRoleARN = pointer(roleAWS.([]any)[0].(map[string]any)["iam_assumed_role_arn"].(string))
 	}
 
-	if targetRole.ProviderName == AZURE {
+	if targetRole.ProviderName == config.AZURE {
 		req.AtlasAzureAppID = targetRole.AtlasAzureAppID
 		req.AzureTenantID = targetRole.AzureTenantID
 		req.AzureServicePrincipalID = targetRole.AzureServicePrincipalID
@@ -302,10 +303,10 @@ func authorizeRole(ctx context.Context, client *matlas.Client, d *schema.Resourc
 	authSchema := roleToSchemaAuthorization(role)
 
 	resourceID := role.RoleID
-	if role.ProviderName == AZURE {
+	if role.ProviderName == config.AZURE {
 		resourceID = *role.AzureID
 	}
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"id":         resourceID,
 		"project_id": projectID,
 	}))

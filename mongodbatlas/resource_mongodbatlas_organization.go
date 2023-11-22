@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -87,7 +88,7 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf("error setting `org_id`: %s", err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"org_id": organization.Organization.ID,
 	}))
 
@@ -96,16 +97,16 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 
 func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	config := Config{
+	cfg := config.Config{
 		PublicKey:  d.Get("public_key").(string),
 		PrivateKey: d.Get("private_key").(string),
 		BaseURL:    meta.(*MongoDBClient).Config.BaseURL,
 	}
 
-	clients, _ := config.NewClient(ctx)
+	clients, _ := cfg.NewClient(ctx)
 	conn := clients.(*MongoDBClient).Atlas
 
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
 	organization, resp, err := conn.Organizations.Get(ctx, orgID)
@@ -117,7 +118,7 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 		}
 		return diag.FromErr(fmt.Errorf("error reading organization information: %s", err))
 	}
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"org_id": organization.ID,
 	}))
 	return nil
@@ -125,15 +126,15 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 
 func resourceMongoDBAtlasOrganizationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	config := Config{
+	cfg := config.Config{
 		PublicKey:  d.Get("public_key").(string),
 		PrivateKey: d.Get("private_key").(string),
 		BaseURL:    meta.(*MongoDBClient).Config.BaseURL,
 	}
 
-	clients, _ := config.NewClient(ctx)
+	clients, _ := cfg.NewClient(ctx)
 	conn := clients.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
 	updateRequest := new(matlas.Organization)
@@ -149,15 +150,15 @@ func resourceMongoDBAtlasOrganizationUpdate(ctx context.Context, d *schema.Resou
 
 func resourceMongoDBAtlasOrganizationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	config := Config{
+	cfg := config.Config{
 		PublicKey:  d.Get("public_key").(string),
 		PrivateKey: d.Get("private_key").(string),
 		BaseURL:    meta.(*MongoDBClient).Config.BaseURL,
 	}
 
-	clients, _ := config.NewClient(ctx)
+	clients, _ := cfg.NewClient(ctx)
 	conn := clients.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
 	if _, err := conn.Organizations.Delete(ctx, orgID); err != nil {
@@ -183,7 +184,7 @@ func resourceMongoDBAtlasOrganizationImportState(ctx context.Context, d *schema.
 		return nil, fmt.Errorf("error setting `org_id`: %s", err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"org_id": orgID,
 	}))
 

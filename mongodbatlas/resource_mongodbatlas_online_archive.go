@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mwielbut/pointy"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
@@ -231,7 +232,7 @@ func resourceMongoDBAtlasOnlineArchiveCreate(ctx context.Context, d *schema.Reso
 
 	archiveID := *outputRequest.Id
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": clusterName,
 		"archive_id":   archiveID,
@@ -287,7 +288,7 @@ func resourceOnlineRefreshFunc(ctx context.Context, projectID, clusterName, arch
 
 func resourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*MongoDBClient).AtlasV2
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 
 	archiveID := ids["archive_id"]
 	projectID := ids["project_id"]
@@ -314,7 +315,7 @@ func resourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.Resour
 
 func resourceMongoDBAtlasOnlineArchiveDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	atlasID := ids["archive_id"]
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -368,7 +369,7 @@ func resourceMongoDBAtlasOnlineArchiveImportState(ctx context.Context, d *schema
 		}
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"archive_id":   util.SafeString(outOnlineArchive.Id),
 		"cluster_name": util.SafeString(outOnlineArchive.ClusterName),
 		"project_id":   projectID,
@@ -423,7 +424,7 @@ func mapToArchivePayload(d *schema.ResourceData) admin.BackupOnlineArchiveCreate
 func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*MongoDBClient).AtlasV2
 
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 
 	atlasID := ids["archive_id"]
 	projectID := ids["project_id"]

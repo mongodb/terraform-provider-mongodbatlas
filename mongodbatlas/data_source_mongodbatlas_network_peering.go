@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func dataSourceMongoDBAtlasNetworkPeering() *schema.Resource {
@@ -111,7 +112,7 @@ func dataSourceMongoDBAtlasNetworkPeeringRead(ctx context.Context, d *schema.Res
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
-	peerID := getEncodedID(d.Get("peering_id").(string), "peer_id")
+	peerID := config.GetEncodedID(d.Get("peering_id").(string), "peer_id")
 
 	peer, resp, err := conn.Peers.Get(ctx, projectID, peerID)
 	if err != nil {
@@ -212,7 +213,7 @@ func dataSourceMongoDBAtlasNetworkPeeringRead(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf("[WARN] Error setting provider_name for (%s): %s", d.Id(), err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":    projectID,
 		"peer_id":       peer.ID,
 		"provider_name": provider,
