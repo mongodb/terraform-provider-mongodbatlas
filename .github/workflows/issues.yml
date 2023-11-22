@@ -40,10 +40,7 @@
                       {
                           "id": "27590"
                       }
-                  ],
-                  "assignee": {
-                    "name": "'"${JIRA_ASSIGNEE}"'"
-                  }
+                  ]
               }
             }')
   
