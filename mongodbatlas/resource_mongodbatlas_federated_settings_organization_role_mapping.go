@@ -73,7 +73,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx contex
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 	roleMappingID := ids["role_mapping_id"]
@@ -162,7 +162,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingCreate(ctx cont
 func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 	roleMappingID := ids["role_mapping_id"]
@@ -201,7 +201,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingUpdate(ctx cont
 func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 	roleMappingID := ids["role_mapping_id"]

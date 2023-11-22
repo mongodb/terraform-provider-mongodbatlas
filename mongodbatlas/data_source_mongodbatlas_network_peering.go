@@ -112,7 +112,7 @@ func dataSourceMongoDBAtlasNetworkPeeringRead(ctx context.Context, d *schema.Res
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
-	peerID := config.GetEncodedID(d.Get("peering_id").(string), "peer_id")
+	peerID := getEncodedID(d.Get("peering_id").(string), "peer_id")
 
 	peer, resp, err := conn.Peers.Get(ctx, projectID, peerID)
 	if err != nil {

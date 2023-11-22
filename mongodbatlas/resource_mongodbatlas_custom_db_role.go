@@ -158,7 +158,7 @@ func resourceMongoDBAtlasCustomDBRoleCreate(ctx context.Context, d *schema.Resou
 
 func resourceMongoDBAtlasCustomDBRoleRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleName := ids["role_name"]
 
@@ -191,7 +191,7 @@ func resourceMongoDBAtlasCustomDBRoleUpdate(ctx context.Context, d *schema.Resou
 	customRoleLock.Lock()
 	defer customRoleLock.Unlock()
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleName := ids["role_name"]
 
@@ -221,7 +221,7 @@ func resourceMongoDBAtlasCustomDBRoleUpdate(ctx context.Context, d *schema.Resou
 
 func resourceMongoDBAtlasCustomDBRoleDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleName := ids["role_name"]
 

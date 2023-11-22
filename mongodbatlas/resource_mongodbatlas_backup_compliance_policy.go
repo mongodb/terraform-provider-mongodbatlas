@@ -303,7 +303,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *sche
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 
 	backupPolicy, resp, err := conn.BackupCompliancePolicy.Get(context.Background(), projectID)
@@ -378,7 +378,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *sche
 func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 
 	backupPolicy := matlas.BackupCompliancePolicy{}

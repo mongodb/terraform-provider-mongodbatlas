@@ -106,7 +106,7 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 	clients, _ := cfg.NewClient(ctx)
 	conn := clients.(*MongoDBClient).Atlas
 
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 
 	organization, resp, err := conn.Organizations.Get(ctx, orgID)
@@ -134,7 +134,7 @@ func resourceMongoDBAtlasOrganizationUpdate(ctx context.Context, d *schema.Resou
 
 	clients, _ := cfg.NewClient(ctx)
 	conn := clients.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 
 	updateRequest := new(matlas.Organization)
@@ -158,7 +158,7 @@ func resourceMongoDBAtlasOrganizationDelete(ctx context.Context, d *schema.Resou
 
 	clients, _ := cfg.NewClient(ctx)
 	conn := clients.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 
 	if _, err := conn.Organizations.Delete(ctx, orgID); err != nil {

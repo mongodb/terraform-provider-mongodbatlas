@@ -288,7 +288,7 @@ func resourceOnlineRefreshFunc(ctx context.Context, projectID, clusterName, arch
 
 func resourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*MongoDBClient).AtlasV2
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 
 	archiveID := ids["archive_id"]
 	projectID := ids["project_id"]
@@ -315,7 +315,7 @@ func resourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.Resour
 
 func resourceMongoDBAtlasOnlineArchiveDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	atlasID := ids["archive_id"]
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -424,7 +424,7 @@ func mapToArchivePayload(d *schema.ResourceData) admin.BackupOnlineArchiveCreate
 func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*MongoDBClient).AtlasV2
 
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 
 	atlasID := ids["archive_id"]
 	projectID := ids["project_id"]

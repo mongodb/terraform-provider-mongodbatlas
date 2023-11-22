@@ -98,7 +98,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitCreate(ctx context.Context, d *sc
 
 func resourceMongoDBFederatedDatabaseQueryLimitRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	tenantName := ids["tenant_name"]
 	limitName := ids["limit_name"]
@@ -128,7 +128,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitRead(ctx context.Context, d *sche
 func resourceMongoDBFederatedDatabaseQueryLimitUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	tenantName := ids["tenant_name"]
 	limitName := ids["limit_name"]
@@ -148,7 +148,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitUpdate(ctx context.Context, d *sc
 func resourceMongoDBFederatedDatabaseQueryLimitDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	tenantName := ids["tenant_name"]
 	limitName := ids["limit_name"]

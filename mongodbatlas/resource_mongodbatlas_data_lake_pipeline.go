@@ -282,7 +282,7 @@ func resourceMongoDBAtlasDataLakePipelineCreate(ctx context.Context, d *schema.R
 
 func resourceMongoDBAtlasDataLakePipelineRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	name := ids["name"]
 
@@ -373,7 +373,7 @@ func resourceMongoDBAtlasDataLakePipelineUpdate(ctx context.Context, d *schema.R
 
 func resourceMongoDBAtlasDataLakePipelineDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	name := ids["name"]
 

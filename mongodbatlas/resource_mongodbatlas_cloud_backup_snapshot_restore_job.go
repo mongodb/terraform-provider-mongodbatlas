@@ -161,7 +161,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobCreate(ctx context.Context
 func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
 		JobID:       ids["snapshot_restore_job_id"],
@@ -216,7 +216,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead(ctx context.Context, 
 
 func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
 		JobID:       ids["snapshot_restore_job_id"],
@@ -399,7 +399,7 @@ func buildRequestSnapshotReq(d *schema.ResourceData) *matlas.CloudProviderSnapsh
 		}
 
 		return &matlas.CloudProviderSnapshotRestoreJob{
-			SnapshotID:            config.GetEncodedID(d.Get("snapshot_id").(string), "snapshot_id"),
+			SnapshotID:            getEncodedID(d.Get("snapshot_id").(string), "snapshot_id"),
 			DeliveryType:          deliveryType,
 			TargetClusterName:     delivery["target_cluster_name"].(string),
 			TargetGroupID:         delivery["target_project_id"].(string),

@@ -104,8 +104,8 @@ func dataSourceMongoDBAtlasPrivateEndpointServiceLinkRead(ctx context.Context, d
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
-	privateLinkID := config.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
-	endpointServiceID := config.GetEncodedID(d.Get("endpoint_service_id").(string), "endpoint_service_id")
+	privateLinkID := getEncodedID(d.Get("private_link_id").(string), "private_link_id")
+	endpointServiceID := getEncodedID(d.Get("endpoint_service_id").(string), "endpoint_service_id")
 	providerName := d.Get("provider_name").(string)
 
 	serviceEndpoint, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(ctx, projectID, providerName, privateLinkID, endpointServiceID)

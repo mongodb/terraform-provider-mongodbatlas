@@ -85,7 +85,7 @@ func resourceMongoDBAtlasTeamCreate(ctx context.Context, d *schema.ResourceData,
 func resourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	teamID := ids["id"]
 
@@ -129,7 +129,7 @@ func resourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, m
 func resourceMongoDBAtlasTeamUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	teamID := ids["id"]
 
@@ -218,7 +218,7 @@ func resourceMongoDBAtlasTeamUpdate(ctx context.Context, d *schema.ResourceData,
 
 func resourceMongoDBAtlasTeamDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	id := ids["id"]
 

@@ -127,7 +127,7 @@ func resourceMongoDBAtlasCloudBackupSnapshot() *schema.Resource {
 func resourceMongoDBAtlasCloudBackupSnapshotRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
 		SnapshotID:  ids["snapshot_id"],
@@ -263,7 +263,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotCreate(ctx context.Context, d *schem
 func resourceMongoDBAtlasCloudBackupSnapshotDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
 		SnapshotID:  ids["snapshot_id"],

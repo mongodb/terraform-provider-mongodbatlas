@@ -248,7 +248,7 @@ func (r *ProjectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	decodedIDMap := config.DecodeStateID(projectIPAccessListModelState.ID.ValueString())
+	decodedIDMap := decodeStateID(projectIPAccessListModelState.ID.ValueString())
 	if len(decodedIDMap) != 2 {
 		resp.Diagnostics.AddError("error during the reading operation", "the provided resource ID is not correct")
 		return

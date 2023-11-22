@@ -116,7 +116,7 @@ func resourceMongoDBAtlasCloudProviderAccessCreate(ctx context.Context, d *schem
 func resourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// sadly there is no just get API
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleID := ids["id"]
 
@@ -142,7 +142,7 @@ func resourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schema.
 
 func resourceMongoDBAtlasCloudProviderAccessUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 
 	projectID := ids["project_id"]
 	roleID := ids["id"]
@@ -172,7 +172,7 @@ func resourceMongoDBAtlasCloudProviderAccessUpdate(ctx context.Context, d *schem
 
 func resourceMongoDBAtlasCloudProviderAccessDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 
 	projectID := ids["project_id"]
 	roleID := ids["id"]

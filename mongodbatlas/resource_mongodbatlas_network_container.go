@@ -152,7 +152,7 @@ func resourceMongoDBAtlasNetworkContainerCreate(ctx context.Context, d *schema.R
 func resourceMongoDBAtlasNetworkContainerRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	containerID := ids["container_id"]
 
@@ -216,7 +216,7 @@ func resourceMongoDBAtlasNetworkContainerRead(ctx context.Context, d *schema.Res
 func resourceMongoDBAtlasNetworkContainerUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	containerID := ids["container_id"]
 
@@ -268,7 +268,7 @@ func resourceMongoDBAtlasNetworkContainerDelete(ctx context.Context, d *schema.R
 	// Wait, catching any errors
 	_, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorContainerDelete, config.DecodeStateID(d.Id())["container_id"], err))
+		return diag.FromErr(fmt.Errorf(errorContainerDelete, decodeStateID(d.Id())["container_id"], err))
 	}
 
 	return nil
@@ -316,7 +316,7 @@ func resourceMongoDBAtlasNetworkContainerImportState(ctx context.Context, d *sch
 
 func resourceNetworkContainerRefreshFunc(ctx context.Context, d *schema.ResourceData, client *matlas.Client) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		ids := config.DecodeStateID(d.Id())
+		ids := decodeStateID(d.Id())
 		projectID := ids["project_id"]
 		containerID := ids["container_id"]
 

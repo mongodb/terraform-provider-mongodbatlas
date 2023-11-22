@@ -89,7 +89,7 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointRead(ctx context.Context, d *schem
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
-	privateLinkID := config.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
+	privateLinkID := getEncodedID(d.Get("private_link_id").(string), "private_link_id")
 	providerName := d.Get("provider_name").(string)
 
 	privateEndpoint, _, err := conn.PrivateEndpoints.Get(ctx, projectID, providerName, privateLinkID)

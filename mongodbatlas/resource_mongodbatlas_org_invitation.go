@@ -68,7 +68,7 @@ func resourceMongoDBAtlasOrgInvitation() *schema.Resource {
 func resourceMongoDBAtlasOrgInvitationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
@@ -167,7 +167,7 @@ func resourceMongoDBAtlasOrgInvitationCreate(ctx context.Context, d *schema.Reso
 
 func resourceMongoDBAtlasOrgInvitationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
@@ -196,7 +196,7 @@ func resourceMongoDBAtlasOrgInvitationDelete(ctx context.Context, d *schema.Reso
 
 func resourceMongoDBAtlasOrgInvitationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	username := ids["username"]
 	invitationID := ids["invitation_id"]

@@ -123,7 +123,7 @@ func resourceMongoDBAtlasAccessListAPIKeyCreate(ctx context.Context, d *schema.R
 func resourceMongoDBAtlasAccessListAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
 
@@ -163,7 +163,7 @@ func resourceMongoDBAtlasAccessListAPIKeyUpdate(ctx context.Context, d *schema.R
 
 func resourceMongoDBAtlasAccessListAPIKeyDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
 
