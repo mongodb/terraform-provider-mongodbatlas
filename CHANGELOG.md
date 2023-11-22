@@ -1,20 +1,20 @@
 # Changelog
 
-## [v1.13.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.13.1) (2023-11-22)
+## [v1.13.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.13.1) (2023-11-23)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.13.0...v1.13.1)
 
 **Enhancements**
 
-- feat: Unit test resource and data source schemas in Terraform Plugin Framework [\#1646](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1646) ([lantoli](https://github.com/lantoli))
+- feat: Unit test resource and data source schemas in [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework-benefits) [\#1646](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1646) ([lantoli](https://github.com/lantoli))
 
 **Bug Fixes**
 
-- fix: uses SchemaConfigModeAttr for list attributes in `cluster` resource. [\#1654](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1654) ([marcosuma](https://github.com/marcosuma))
-- fix: handles attributes as computed in `cluster` resource. [\#1642](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1642) ([marcosuma](https://github.com/marcosuma))
+- fix: uses SchemaConfigModeAttr for list attributes in `mongodbatlas_cluster` resource. [\#1654](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1654) ([marcosuma](https://github.com/marcosuma))
+- fix: handles attributes as computed in `mongodbatlas_cluster` resource. [\#1642](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1642) ([marcosuma](https://github.com/marcosuma))
 - fix: avoids error when removing project api key assignment for deleted project [\#1641](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1641) ([AgustinBettati](https://github.com/AgustinBettati))
 - fix!: handles paused clusters with errors when updating. [\#1640](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1640) ([marcosuma](https://github.com/marcosuma))
-- fix: adds `data_process_region` field to online archive resource [\#1634](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1634) ([marcosuma](https://github.com/marcosuma))
+- fix: adds `data_process_region` field to `mongodbatlas_online_archive` resource [\#1634](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1634) ([marcosuma](https://github.com/marcosuma))
 
 **Internal Improvements**
 
