@@ -559,7 +559,7 @@ func fromOnlineArchiveToMap(in *admin.BackupOnlineArchive) map[string]any {
 	}
 
 	var dataProcessRegion map[string]any
-	if in.DataProcessRegion != nil && in.DataProcessRegion.CloudProvider != nil && in.DataProcessRegion.Region != nil {
+	if in.DataProcessRegion != nil && (in.DataProcessRegion.CloudProvider != nil || in.DataProcessRegion.Region != nil) {
 		dataProcessRegion = map[string]any{
 			"cloud_provider": in.DataProcessRegion.CloudProvider,
 			"region":         in.DataProcessRegion.Region,
