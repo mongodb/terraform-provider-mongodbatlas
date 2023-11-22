@@ -179,11 +179,14 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
 
 For more information on configuring and managing programmatic API Keys see the [MongoDB Atlas Documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html).
 
-## Terraform Version Requirement
+## HashiCorp Terraform Version Requirement
 | MongoDB Atlas Provider version  | Required Terraform version |
 | ------------- | ------------- |
 | `1.12.0` and above  | `1.0+`  |
 | below `1.12.0`  | `0.13+` |
+
+* While we support minimum of HashiCorp Terraform version 1.0+ (as we have migrated to [Plugin Protocol Version 6](https://developer.hashicorp.com/terraform/plugin/terraform-plugin-protocol#protocol-version-6)), for your safety we strongly recommend only consuming versions of Terraform that are currently receiving Security/Maintenance Updates. For latest Terraform versions see: https://endoflife.date/terraform 
+
 ## Supported OS and Architectures
 As per [HashiCorp's recommendations](https://developer.hashicorp.com/terraform/registry/providers/os-arch), we fully support the following operating system / architecture combinations:
 - Darwin / AMD64
