@@ -1,7 +1,10 @@
 package mongodbatlas
 
 import (
+	"testing"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 const (
@@ -26,4 +29,8 @@ func getEncodedID(stateID, keyPosition string) string {
 
 func decodeStateID(stateID string) map[string]string {
 	return config.DecodeStateID(stateID)
+}
+
+func testAccPreCheckBasic(tb testing.TB) {
+	acc.PreCheckBasic(tb)
 }

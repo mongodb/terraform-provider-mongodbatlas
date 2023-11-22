@@ -24,6 +24,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/todo"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
@@ -390,27 +391,27 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 
 func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		mongodbatlas.NewProjectDS,
-		mongodbatlas.NewProjectsDS,
-		mongodbatlas.NewDatabaseUserDS,
-		mongodbatlas.NewDatabaseUsersDS,
+		todo.NewProjectDS,
+		todo.NewProjectsDS,
+		todo.NewDatabaseUserDS,
+		todo.NewDatabaseUsersDS,
 		alertconfiguration.NewAlertConfigurationDS,
 		alertconfiguration.NewAlertConfigurationsDS,
-		mongodbatlas.NewProjectIPAccessListDS,
-		mongodbatlas.NewAtlasUserDS,
-		mongodbatlas.NewAtlasUsersDS,
-		mongodbatlas.NewSearchDeploymentDS,
+		todo.NewProjectIPAccessListDS,
+		todo.NewAtlasUserDS,
+		todo.NewAtlasUsersDS,
+		todo.NewSearchDeploymentDS,
 	}
 }
 
 func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		mongodbatlas.NewProjectRS,
-		mongodbatlas.NewEncryptionAtRestRS,
-		mongodbatlas.NewDatabaseUserRS,
+		todo.NewProjectRS,
+		todo.NewEncryptionAtRestRS,
+		todo.NewDatabaseUserRS,
 		alertconfiguration.NewAlertConfigurationRS,
-		mongodbatlas.NewProjectIPAccessListRS,
-		mongodbatlas.NewSearchDeploymentRS,
+		todo.NewProjectIPAccessListRS,
+		todo.NewSearchDeploymentRS,
 	}
 }
 
