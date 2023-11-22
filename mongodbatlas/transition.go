@@ -4,6 +4,14 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
+const (
+	DeprecationMessageParameterToResource = config.DeprecationMessageParameterToResource
+	DeprecationByDateMessageParameter     = config.DeprecationByDateMessageParameter
+	DeprecationByDateWithReplacement      = config.DeprecationByDateWithReplacement
+	DeprecationByVersionMessageParameter  = config.DeprecationByVersionMessageParameter
+	DeprecationMessage                    = config.DeprecationMessage
+)
+
 type MongoDBClient = config.MongoDBClient
 
 func encodeStateID(values map[string]string) string {

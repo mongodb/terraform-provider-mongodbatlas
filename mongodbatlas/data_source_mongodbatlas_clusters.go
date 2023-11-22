@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -290,7 +289,7 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 						"labels": {
 							Type:       schema.TypeSet,
 							Computed:   true,
-							Deprecated: fmt.Sprintf(config.DeprecationByDateWithReplacement, "September 2024", "tags"),
+							Deprecated: fmt.Sprintf(DeprecationByDateWithReplacement, "September 2024", "tags"),
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"key": {

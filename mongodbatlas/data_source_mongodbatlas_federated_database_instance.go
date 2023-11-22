@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func dataSourceMongoDBAtlasFederatedDatabaseInstance() *schema.Resource {
@@ -230,7 +229,7 @@ func schemaFederatedDatabaseInstanceStoresDataSource() *schema.Schema {
 				"cluster_id": {
 					Type:       schema.TypeString,
 					Computed:   true,
-					Deprecated: fmt.Sprintf(config.DeprecationByDateMessageParameter, "September 2024")},
+					Deprecated: fmt.Sprintf(DeprecationByDateMessageParameter, "September 2024")},
 				"project_id": {
 					Type:     schema.TypeString,
 					Computed: true,

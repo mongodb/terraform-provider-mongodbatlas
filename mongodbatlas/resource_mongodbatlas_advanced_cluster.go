@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 )
@@ -119,7 +118,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 				Type:       schema.TypeSet,
 				Optional:   true,
 				Set:        HashFunctionForKeyValuePair,
-				Deprecated: fmt.Sprintf(config.DeprecationByDateWithReplacement, "September 2024", "tags"),
+				Deprecated: fmt.Sprintf(DeprecationByDateWithReplacement, "September 2024", "tags"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
