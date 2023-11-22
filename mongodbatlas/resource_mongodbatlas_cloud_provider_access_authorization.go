@@ -306,7 +306,7 @@ func authorizeRole(ctx context.Context, client *matlas.Client, d *schema.Resourc
 	if role.ProviderName == config.AZURE {
 		resourceID = *role.AzureID
 	}
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"id":         resourceID,
 		"project_id": projectID,
 	}))

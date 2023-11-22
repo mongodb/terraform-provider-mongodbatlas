@@ -148,7 +148,7 @@ func newTFProjectIPAccessListDSModel(ctx context.Context, accessList *matlas.Pro
 		entry = accessList.AwsSecurityGroup
 	}
 
-	id := config.EncodeStateID(map[string]string{
+	id := encodeStateID(map[string]string{
 		"entry":      entry,
 		"project_id": accessList.GroupID,
 	})

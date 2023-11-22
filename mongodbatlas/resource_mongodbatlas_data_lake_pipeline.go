@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -272,7 +271,7 @@ func resourceMongoDBAtlasDataLakePipelineCreate(ctx context.Context, d *schema.R
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineCreate, err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
 		"name":       dataLakePipeline.Name,
 	}))
@@ -342,7 +341,7 @@ func resourceMongoDBAtlasDataLakePipelineRead(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "ingestion_schedules", name, err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
 		"name":       dataLakePipeline.Name,
 	}))
@@ -434,7 +433,7 @@ func resourceMongoDBAtlasDataLakePipelineImportState(ctx context.Context, d *sch
 		return nil, fmt.Errorf(errorDataLakePipelineImportField, "transformations", name, err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
 		"name":       dataLakePipeline.Name,
 	}))

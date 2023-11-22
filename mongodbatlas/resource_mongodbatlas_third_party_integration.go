@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 var integrationTypes = []string{
@@ -147,7 +146,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationCreate(ctx context.Context, d *sch
 	}
 
 	// ID is equal to project_id+type need to ask
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
 		"type":       integrationType,
 	}))
@@ -180,7 +179,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schem
 		}
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
 		"type":       integrationType,
 	}))
@@ -253,7 +252,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationImportState(ctx context.Context, d
 		return nil, fmt.Errorf("error setting `type` for third party integration (%s): %w", d.Id(), err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
 		"type":       integrationType,
 	}))

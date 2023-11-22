@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func dataSourceMongoDBAtlasOrgInvitation() *schema.Resource {
@@ -99,7 +98,7 @@ func dataSourceMongoDBAtlasOrgInvitationRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf("error getting `roles` for Organization Invitation (%s): %w", d.Id(), err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"username":      username,
 		"org_id":        orgID,
 		"invitation_id": invitationID,

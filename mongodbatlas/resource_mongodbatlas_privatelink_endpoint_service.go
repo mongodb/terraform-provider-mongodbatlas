@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -201,7 +200,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d
 		log.Printf(errorAdvancedClusterListStatus, err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id":          projectID,
 		"private_link_id":     privateLinkID,
 		"endpoint_service_id": endpointServiceID,
@@ -363,7 +362,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(ctx context.Conte
 		return nil, fmt.Errorf(errorEndpointSetting, "provider_name", privateLinkID, err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id":          projectID,
 		"private_link_id":     privateLinkID,
 		"endpoint_service_id": endpointServiceID,

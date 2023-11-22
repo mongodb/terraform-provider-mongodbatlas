@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -149,7 +148,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobCreate(ctx context.Context
 		return diag.FromErr(fmt.Errorf("error restore a snapshot: %s", err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id":              d.Get("project_id").(string),
 		"cluster_name":            d.Get("cluster_name").(string),
 		"snapshot_restore_job_id": cloudProviderSnapshotRestoreJob.ID,
@@ -295,7 +294,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobImportState(ctx context.Co
 		log.Printf("[WARN] Error setting delivery_type for (%s): %s", d.Id(), err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id":              *projectID,
 		"cluster_name":            *clusterName,
 		"snapshot_restore_job_id": *snapshotJobID,

@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -99,7 +98,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx contex
 		return diag.FromErr(fmt.Errorf("error setting role_assignments (%s): %s", d.Id(), err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"federation_settings_id": federationSettingsID,
 		"org_id":                 orgID,
 		"role_mapping_id":        roleMappingID,
@@ -150,7 +149,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingCreate(ctx cont
 		return diag.FromErr(fmt.Errorf("error getting federated settings organization config: %s", err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"federation_settings_id": federationSettingsID.(string),
 		"org_id":                 orgID.(string),
 		"role_mapping_id":        federatedSettingsOrganizationRoleMapping.ID,
@@ -239,7 +238,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingImportState(ctx
 		return nil, fmt.Errorf("error setting role_assignments (%s): %s", d.Id(), err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"federation_settings_id": *federationSettingsID,
 		"org_id":                 *orgID,
 		"role_mapping_id":        *roleMappingID,

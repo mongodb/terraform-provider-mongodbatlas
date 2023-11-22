@@ -163,7 +163,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *
 		resourceID = *role.AzureID
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"id":            resourceID,
 		"project_id":    projectID,
 		"provider_name": role.ProviderName,
@@ -240,7 +240,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupImportState(ctx context.Context
 	}
 
 	// searching id in internal format
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"id":            roleID,
 		"project_id":    projectID,
 		"provider_name": providerName,

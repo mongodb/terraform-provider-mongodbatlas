@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -148,7 +147,7 @@ func resourceMongoDBAtlasCustomDBRoleCreate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf("error creating custom db role: %s", err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
 		"role_name":  customDBRoleReq.RoleName,
 	}))
@@ -275,7 +274,7 @@ func resourceMongoDBAtlasCustomDBRoleImportState(ctx context.Context, d *schema.
 		return nil, fmt.Errorf("couldn't import custom db role %s in project %s, error: %s", roleName, projectID, err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
 		"role_name":  r.RoleName,
 	}))

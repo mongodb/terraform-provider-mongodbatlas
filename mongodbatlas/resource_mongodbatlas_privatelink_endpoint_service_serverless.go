@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -138,7 +137,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate(ctx context.
 		log.Printf(errorServerlessInstanceListStatus, err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id":    projectID,
 		"instance_name": instanceName,
 		"endpoint_id":   endPoint.ID,
@@ -268,7 +267,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessImportState(ctx con
 		}
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id":    projectID,
 		"instance_name": instanceName,
 		"endpoint_id":   endpointID,

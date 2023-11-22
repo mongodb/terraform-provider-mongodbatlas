@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -251,7 +250,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotCreate(ctx context.Context, d *schem
 		return diag.FromErr(err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id":   d.Get("project_id").(string),
 		"cluster_name": d.Get("cluster_name").(string),
 		"snapshot_id":  snapshot.ID,
@@ -313,7 +312,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotImportState(ctx context.Context, d *
 		return nil, fmt.Errorf("couldn't import snapshot %s in project %s, error: %s", requestParameters.ClusterName, requestParameters.GroupID, err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id":   requestParameters.GroupID,
 		"cluster_name": requestParameters.ClusterName,
 		"snapshot_id":  requestParameters.SnapshotID,

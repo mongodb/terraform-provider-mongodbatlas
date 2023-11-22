@@ -363,7 +363,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstanceRead(ctx context.Context, d 
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "hostnames", name, err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
 		"name":       dataFederationInstance.GetName(),
 	}))

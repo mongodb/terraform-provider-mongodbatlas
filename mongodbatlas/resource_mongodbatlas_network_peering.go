@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -255,7 +254,7 @@ func resourceMongoDBAtlasNetworkPeeringCreate(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf(errorPeersCreate, err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id":    projectID,
 		"peer_id":       peer.ID,
 		"provider_name": providerName,
@@ -520,7 +519,7 @@ func resourceMongoDBAtlasNetworkPeeringImportState(ctx context.Context, d *schem
 		log.Printf("[WARN] Error setting provider_name for (%s): %s", peerID, err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id":    projectID,
 		"peer_id":       peer.ID,
 		"provider_name": providerName,

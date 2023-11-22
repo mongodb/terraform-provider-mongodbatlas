@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
@@ -160,7 +159,7 @@ func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.R
 		log.Printf("[WARN] Error setting index_id for (%s): %s", indexID, err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": clusterName,
 		"index_id":     indexID,
@@ -277,7 +276,7 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 		// Wait, catching any errors
 		_, err = stateConf.WaitForStateContext(ctx)
 		if err != nil {
-			d.SetId(config.EncodeStateID(map[string]string{
+			d.SetId(encodeStateID(map[string]string{
 				"project_id":   projectID,
 				"cluster_name": clusterName,
 				"index_id":     indexID,
@@ -458,7 +457,7 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 		// Wait, catching any errors
 		_, err = stateConf.WaitForStateContext(ctx)
 		if err != nil {
-			d.SetId(config.EncodeStateID(map[string]string{
+			d.SetId(encodeStateID(map[string]string{
 				"project_id":   projectID,
 				"cluster_name": clusterName,
 				"index_id":     indexID,
@@ -468,7 +467,7 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 			return diag.FromErr(fmt.Errorf("error creating index in cluster (%s): %s", clusterName, err))
 		}
 	}
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": clusterName,
 		"index_id":     indexID,

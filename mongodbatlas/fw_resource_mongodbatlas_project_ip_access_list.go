@@ -214,7 +214,7 @@ func newTFProjectIPAccessListModel(projectIPAccessListModel *tfProjectIPAccessLi
 		entry = projectIPAccessList.AwsSecurityGroup
 	}
 
-	id := config.EncodeStateID(map[string]string{
+	id := encodeStateID(map[string]string{
 		"entry":      entry,
 		"project_id": projectIPAccessList.GroupID,
 	})
@@ -361,7 +361,7 @@ func (r *ProjectIPAccessListRS) ImportState(ctx context.Context, req resource.Im
 	projectID := parts[0]
 	entry := parts[1]
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), config.EncodeStateID(map[string]string{
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), encodeStateID(map[string]string{
 		"entry":      entry,
 		"project_id": projectID,
 	}))...)

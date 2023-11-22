@@ -5,7 +5,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func dataSourceMongoDBAtlasServerlessInstance() *schema.Resource {
@@ -84,7 +83,7 @@ func dataSourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema
 		return diag.Errorf(errorClusterAdvancedSetting, "tags", d.Id(), err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID.(string),
 		"name":       instanceName.(string),
 	}))

@@ -491,7 +491,7 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 		}
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"cluster_id":   cluster.ID,
 		"project_id":   projectID,
 		"cluster_name": cluster.Name,
@@ -650,7 +650,7 @@ func resourceMongoDBAtlasAdvancedClusterUpgrade(ctx context.Context, d *schema.R
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"cluster_id":   upgradeResponse.ID,
 		"project_id":   projectID,
 		"cluster_name": clusterName,
@@ -839,7 +839,7 @@ func resourceMongoDBAtlasAdvancedClusterImportState(ctx context.Context, d *sche
 		log.Printf(errorClusterAdvancedSetting, "name", u.ID, err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"cluster_id":   u.ID,
 		"project_id":   *projectID,
 		"cluster_name": u.Name,

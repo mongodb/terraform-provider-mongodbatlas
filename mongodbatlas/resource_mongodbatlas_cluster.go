@@ -571,7 +571,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"cluster_id":    cluster.ID,
 		"project_id":    projectID,
 		"cluster_name":  cluster.Name,
@@ -923,7 +923,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
 
-		d.SetId(config.EncodeStateID(map[string]string{
+		d.SetId(encodeStateID(map[string]string{
 			"cluster_id":    updatedCluster.ID,
 			"project_id":    projectID,
 			"cluster_name":  updatedCluster.Name,
@@ -1041,7 +1041,7 @@ func resourceMongoDBAtlasClusterImportState(ctx context.Context, d *schema.Resou
 		return nil, fmt.Errorf("couldn't import cluster backup configuration %s in project %s, error: %s", *name, *projectID, err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"cluster_id":    u.ID,
 		"project_id":    *projectID,
 		"cluster_name":  u.Name,

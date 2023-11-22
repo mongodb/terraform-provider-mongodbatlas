@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -186,7 +185,7 @@ func resourceMongoDBAtlasServerlessInstanceImportState(ctx context.Context, d *s
 		log.Printf(errorClusterSetting, "continuous_backup_enabled", u.ID, err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id": *projectID,
 		"name":       u.Name,
 	}))
@@ -352,7 +351,7 @@ func resourceMongoDBAtlasServerlessInstanceCreate(ctx context.Context, d *schema
 		return diag.Errorf("error creating MongoDB Serverless Instance: %s", err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
 		"name":       name,
 	}))

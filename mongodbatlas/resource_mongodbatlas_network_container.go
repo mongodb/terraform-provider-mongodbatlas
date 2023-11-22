@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -141,7 +140,7 @@ func resourceMongoDBAtlasNetworkContainerCreate(ctx context.Context, d *schema.R
 		return diag.FromErr(fmt.Errorf(errorContainterCreate, err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id":   projectID,
 		"container_id": container.ID,
 	}))
@@ -290,7 +289,7 @@ func resourceMongoDBAtlasNetworkContainerImportState(ctx context.Context, d *sch
 		return nil, fmt.Errorf("couldn't import container %s in project %s, error: %s", containerID, projectID, err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"project_id":   projectID,
 		"container_id": u.ID,
 	}))

@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func dataSourceMongoDBAtlasPrivateLinkEndpoint() *schema.Resource {
@@ -141,7 +140,7 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointRead(ctx context.Context, d *schem
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "service_attachment_names", privateLinkID, err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"private_link_id": privateEndpoint.ID,
 		"project_id":      projectID,
 		"provider_name":   providerName,

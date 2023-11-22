@@ -88,7 +88,7 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf("error setting `org_id`: %s", err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"org_id": organization.Organization.ID,
 	}))
 
@@ -118,7 +118,7 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 		}
 		return diag.FromErr(fmt.Errorf("error reading organization information: %s", err))
 	}
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"org_id": organization.ID,
 	}))
 	return nil
@@ -184,7 +184,7 @@ func resourceMongoDBAtlasOrganizationImportState(ctx context.Context, d *schema.
 		return nil, fmt.Errorf("error setting `org_id`: %s", err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(encodeStateID(map[string]string{
 		"org_id": orgID,
 	}))
 
