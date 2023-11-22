@@ -4,8 +4,6 @@ go 1.21
 
 toolchain go1.21.3
 
-replace go.mongodb.org/atlas => ../go-client-mongodb-atlas
-
 require (
 	github.com/aws/aws-sdk-go v1.48.2
 	github.com/go-test/deep v1.1.0
@@ -25,7 +23,7 @@ require (
 	github.com/mwielbut/pointy v1.1.0
 	github.com/spf13/cast v1.5.1
 	github.com/zclconf/go-cty v1.14.1
-	go.mongodb.org/atlas v0.35.0
+	go.mongodb.org/atlas v0.36.0
 	go.mongodb.org/atlas-sdk/v20231115001 v20231115001.0.0
 	go.mongodb.org/realm v0.1.0
 	golang.org/x/exp v0.0.0-20230809150735-7b3493d9a819
