@@ -1,7 +1,5 @@
 package alertconfiguration_test
 
-/*
-
 import (
 	"fmt"
 	"os"
@@ -272,5 +270,3 @@ data "mongodbatlas_alert_configuration" "test" {
 }
 	`, orgID, projectName, serviceKey, enabled)
 }
-
-*/

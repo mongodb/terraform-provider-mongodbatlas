@@ -1,6 +1,5 @@
 package alertconfiguration_test
 
-/*
 import (
 	"context"
 	"fmt"
@@ -1008,5 +1007,3 @@ resource "mongodbatlas_alert_configuration" "test" {
 }
 	`, orgID, projectName, enabled)
 }
-
-*/

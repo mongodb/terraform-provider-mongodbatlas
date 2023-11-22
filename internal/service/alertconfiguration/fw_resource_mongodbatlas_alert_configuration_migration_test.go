@@ -1,6 +1,5 @@
 package alertconfiguration_test
 
-/*
 import (
 	"fmt"
 	"os"
@@ -287,4 +286,3 @@ func testAccMongoDBAtlasAlertConfigurationConfigEmptyOptionalBlocks(orgID, proje
 		}
 	`, orgID, projectName)
 }
-*/

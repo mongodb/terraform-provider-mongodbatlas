@@ -390,27 +390,27 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 
 func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		//		NewProjectDS,
-		//		NewProjectsDS,
-		//		NewDatabaseUserDS,
-		//		NewDatabaseUsersDS,
+		mongodbatlas.NewProjectDS,
+		mongodbatlas.NewProjectsDS,
+		mongodbatlas.NewDatabaseUserDS,
+		mongodbatlas.NewDatabaseUsersDS,
 		alertconfiguration.NewAlertConfigurationDS,
 		alertconfiguration.NewAlertConfigurationsDS,
-		//	NewProjectIPAccessListDS,
-		//		NewAtlasUserDS,
-		//		NewAtlasUsersDS,
-		//		NewSearchDeploymentDS,
+		mongodbatlas.NewProjectIPAccessListDS,
+		mongodbatlas.NewAtlasUserDS,
+		mongodbatlas.NewAtlasUsersDS,
+		mongodbatlas.NewSearchDeploymentDS,
 	}
 }
 
 func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		//	NewProjectRS,
-		//	NewEncryptionAtRestRS,
-		//	NewDatabaseUserRS,
+		mongodbatlas.NewProjectRS,
+		mongodbatlas.NewEncryptionAtRestRS,
+		mongodbatlas.NewDatabaseUserRS,
 		alertconfiguration.NewAlertConfigurationRS,
-		//		NewProjectIPAccessListRS,
-		//		NewSearchDeploymentRS,
+		mongodbatlas.NewProjectIPAccessListRS,
+		mongodbatlas.NewSearchDeploymentRS,
 	}
 }
 
