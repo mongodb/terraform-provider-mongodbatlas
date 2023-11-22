@@ -42,10 +42,12 @@ func resourceMongoDBAtlasBackupCompliancePolicy() *schema.Resource {
 			"authorized_user_first_name": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"authorized_user_last_name": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"copy_protection_enabled": {
 				Type:     schema.TypeBool,
