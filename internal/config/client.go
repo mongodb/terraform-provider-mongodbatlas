@@ -21,7 +21,6 @@ const (
 	ProviderConfigError                   = "error in configuring the provider."
 	AWS                                   = "AWS"
 	AZURE                                 = "AZURE"
-	GCP                                   = "GCP"
 	MongodbGovCloudURL                    = "https://cloud.mongodbgov.com"
 	ToolName                              = "terraform-provider-mongodbatlas"
 	MissingAuthAttrError                  = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"

@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -36,7 +35,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 			"provider_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{config.AWS, config.AZURE}, false),
+				ValidateFunc: validation.StringInSlice([]string{AWS, AZURE}, false),
 				ForceNew:     true,
 			},
 			"aws_config": {
@@ -159,7 +158,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *
 	roleSchema := roleToSchemaSetup(role)
 
 	resourceID := role.RoleID
-	if role.ProviderName == config.AZURE {
+	if role.ProviderName == AZURE {
 		resourceID = *role.AzureID
 	}
 

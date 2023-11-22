@@ -10,6 +10,8 @@ const (
 	DeprecationByDateWithReplacement      = config.DeprecationByDateWithReplacement
 	DeprecationByVersionMessageParameter  = config.DeprecationByVersionMessageParameter
 	DeprecationMessage                    = config.DeprecationMessage
+	AWS                                   = config.AWS
+	AZURE                                 = config.AZURE
 )
 
 type MongoDBClient = config.MongoDBClient

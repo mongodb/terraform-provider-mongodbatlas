@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -29,7 +28,7 @@ func resourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasCloudProviderAccessImportState,
 		},
-		DeprecationMessage: fmt.Sprintf(config.DeprecationMessage, "v1.14.0", "mongodbatlas_cloud_provider_access_setup and mongodbatlas_cloud_provider_access_authorization"),
+		DeprecationMessage: fmt.Sprintf(DeprecationMessage, "v1.14.0", "mongodbatlas_cloud_provider_access_setup and mongodbatlas_cloud_provider_access_authorization"),
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
