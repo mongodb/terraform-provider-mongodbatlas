@@ -48,6 +48,8 @@ func TestAccClusterRSCluster_basicAWS_simple(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "version_release_system", "LTS"),
 					resource.TestCheckResourceAttr(resourceName, "accept_data_risks_and_force_replica_set_reconfig", ""),
 					resource.TestCheckResourceAttr(resourceName, "auto_scaling_disk_gb_enabled", "true"),
+					resource.TestCheckResourceAttrSet(resourceName, "snapshot_backup_policy"),
+					resource.TestCheckResourceAttrSet(resourceName, "connection_strings"),
 				),
 			},
 			{
