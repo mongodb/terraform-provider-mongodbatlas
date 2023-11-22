@@ -25,20 +25,29 @@ func TestAccGenericBackupRSBackupCompliancePolicy_basic(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasBackupCompliancePolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasBackupCompliancePolicyConfig(projectName, orgID, projectOwnerID),
+				Config: testAccMongoDBAtlasBackupCompliancePolicyConfig(projectName, orgID, projectOwnerID, false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasBackupCompliancePolicyExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "7"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasBackupCompliancePolicyConfig(projectName, orgID, projectOwnerID),
+				Config: testAccMongoDBAtlasBackupCompliancePolicyConfig(projectName, orgID, projectOwnerID, false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasBackupCompliancePolicyExists(resourceName),
 					testAccCheckMongoDBAtlasBackupCompliancePolicyExists("data.mongodbatlas_backup_compliance_policy.backup_policy"),
 					resource.TestCheckResourceAttr("mongodbatlas_backup_compliance_policy.backup_policy_res", "copy_protection_enabled", "false"),
 					resource.TestCheckResourceAttr("mongodbatlas_backup_compliance_policy.backup_policy_res", "encryption_at_rest_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "7"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasBackupCompliancePolicyConfig(projectName, orgID, projectOwnerID, true, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasBackupCompliancePolicyExists(resourceName),
+					testAccCheckMongoDBAtlasBackupCompliancePolicyExists("data.mongodbatlas_backup_compliance_policy.backup_policy"),
+					resource.TestCheckResourceAttr("mongodbatlas_backup_compliance_policy.backup_policy_res", "authorized_user_first_name", "first_name"),
+					resource.TestCheckResourceAttr("mongodbatlas_backup_compliance_policy.backup_policy_res", "authorized_user_last_name", "last_name"),
 				),
 			},
 		},
@@ -94,7 +103,7 @@ func TestAccGenericBackupRSBackupCompliancePolicy_importBasic(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasBackupCompliancePolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasBackupCompliancePolicyConfig(projectName, orgID, projectOwnerID),
+				Config: testAccMongoDBAtlasBackupCompliancePolicyConfig(projectName, orgID, projectOwnerID, false, false),
 			},
 			{
 				ResourceName:            resourceName,
@@ -169,7 +178,14 @@ func testAccCheckMongoDBAtlasBackupCompliancePolicyImportStateIDFunc(resourceNam
 	}
 }
 
-func testAccMongoDBAtlasBackupCompliancePolicyConfig(projectName, orgID, projectOwnerID string) string {
+func testAccMongoDBAtlasBackupCompliancePolicyConfig(projectName, orgID, projectOwnerID string, includeFirstName, includeLastName bool) string {
+	var firstName, lastName string
+	if includeFirstName {
+		firstName = `authorized_user_first_name     = "first_name"`
+	}
+	if includeLastName {
+		lastName = `authorized_user_last_name     = "last_name"`
+	}
 	return fmt.Sprintf(`
 	resource "mongodbatlas_project" "test" {
 		name                                             = "%s"
@@ -190,6 +206,8 @@ func testAccMongoDBAtlasBackupCompliancePolicyConfig(projectName, orgID, project
 	  resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
 		project_id                 = mongodbatlas_project.test.id
 		authorized_email           = "test@example.com"
+		%s
+		%s
 		copy_protection_enabled    = false
 		pit_enabled                = false
 		encryption_at_rest_enabled = false
@@ -227,7 +245,7 @@ func testAccMongoDBAtlasBackupCompliancePolicyConfig(projectName, orgID, project
 		  }
 	  
 	  }
-	`, projectName, orgID, projectOwnerID)
+	`, projectName, orgID, projectOwnerID, firstName, lastName)
 }
 
 func testAccMongoDBAtlasBackupCompliancePolicyConfigWithoutRestoreDays(projectName, orgID, projectOwnerID string) string {
