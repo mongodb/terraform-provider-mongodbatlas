@@ -444,8 +444,9 @@ func flattenCloudProviderSnapshotBackupPolicy(ctx context.Context, d *schema.Res
 
 func computedCloudProviderSnapshotBackupPolicySchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeList,
-		Computed: true,
+		Type:       schema.TypeList,
+		Computed:   true,
+		ConfigMode: schema.SchemaConfigModeAttr,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"cluster_id": {
@@ -477,8 +478,9 @@ func computedCloudProviderSnapshotBackupPolicySchema() *schema.Schema {
 					Computed: true,
 				},
 				"policies": {
-					Type:     schema.TypeList,
-					Computed: true,
+					Type:       schema.TypeList,
+					Computed:   true,
+					ConfigMode: schema.SchemaConfigModeAttr,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"id": {
@@ -486,8 +488,9 @@ func computedCloudProviderSnapshotBackupPolicySchema() *schema.Schema {
 								Computed: true,
 							},
 							"policy_item": {
-								Type:     schema.TypeList,
-								Computed: true,
+								Type:       schema.TypeList,
+								Computed:   true,
+								ConfigMode: schema.SchemaConfigModeAttr,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
 										"id": {
