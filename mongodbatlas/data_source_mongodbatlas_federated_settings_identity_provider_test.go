@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 )
 
 func TestAccFedDSFederatedSettingsIdentityProvider_basic(t *testing.T) {
@@ -17,7 +18,7 @@ func TestAccFedDSFederatedSettingsIdentityProvider_basic(t *testing.T) {
 	)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testCheckFederatedSettings(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataSourceFederatedSettingsIdentityProviderConfig(federatedSettingsID, idpID),

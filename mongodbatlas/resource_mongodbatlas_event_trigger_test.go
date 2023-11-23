@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mwielbut/pointy"
 	"go.mongodb.org/realm/realm"
@@ -50,7 +51,7 @@ func TestEventTriggerDatabase_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -115,7 +116,7 @@ func TestEventTriggerDatabase_eventProccesor(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -173,7 +174,7 @@ func TestEventTriggerAuth_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -233,7 +234,7 @@ func TestEventTriggerAuth_eventProcessor(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -288,7 +289,7 @@ func TestEventTriggerSchedule_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -345,7 +346,7 @@ func TestEventTriggerSchedule_eventProcessor(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -400,7 +401,7 @@ func TestEventTriggerFunction_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -430,7 +431,7 @@ func TestEventTriggerFunction_basic(t *testing.T) {
 func testAccCheckMongoDBAtlasEventTriggerExists(resourceName string, eventTrigger *realm.EventTrigger) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ctx := context.Background()
-		conn, err := testAccProviderSdkV2.Meta().(*MongoDBClient).GetRealmClient(ctx)
+		conn, err := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).GetRealmClient(ctx)
 		if err != nil {
 			return err
 		}
@@ -460,7 +461,7 @@ func testAccCheckMongoDBAtlasEventTriggerExists(resourceName string, eventTrigge
 
 func testAccCheckMongoDBAtlasEventTriggerDestroy(s *terraform.State) error {
 	ctx := context.Background()
-	conn, err := testAccProviderSdkV2.Meta().(*MongoDBClient).GetRealmClient(ctx)
+	conn, err := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).GetRealmClient(ctx)
 	if err != nil {
 		return err
 	}

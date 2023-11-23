@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -22,7 +23,7 @@ func TestAccDataSourceClusterRSDataLakePipeline_basic(t *testing.T) {
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasDataLakePipelineDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -39,7 +40,7 @@ func TestAccDataSourceClusterRSDataLakePipeline_basic(t *testing.T) {
 }
 
 func testAccCheckMongoDBAtlasDataLakePipelineDestroy(s *terraform.State) error {
-	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_data_lake_pipeline" {

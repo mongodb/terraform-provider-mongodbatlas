@@ -46,7 +46,7 @@ func TestAccMigrationAdvancedClusterRS_singleAWSProvider(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasAdvancedClusterConfigSingleProvider(orgID, projectName, rName),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -92,7 +92,7 @@ func TestAccMigrationAdvancedClusterRS_multiCloud(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{

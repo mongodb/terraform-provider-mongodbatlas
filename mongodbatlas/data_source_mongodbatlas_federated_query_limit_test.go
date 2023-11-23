@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -40,7 +41,7 @@ func TestAccDataSourceFederatedDatabaseQueryLimit_basic(t *testing.T) {
 						Source:            "hashicorp/aws",
 					},
 				},
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasFederatedDatabaseQueryLimitDataSourceConfig(policyName, roleName, projectName, orgID, tenantName, testS3Bucket, region),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasFederatedDatabaseDataSourceQueryLimitExists(resourceName, &queryLimit),
@@ -200,7 +201,7 @@ resource "mongodbatlas_federated_query_limit" "test" {
 
 func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceQueryLimitExists(resourceName string, queryLimit *matlas.DataFederationQueryLimit) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

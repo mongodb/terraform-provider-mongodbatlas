@@ -31,7 +31,7 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
@@ -92,7 +92,7 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
@@ -146,7 +146,7 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
@@ -204,7 +204,7 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
@@ -254,7 +254,7 @@ func TestAccClusterAdvancedCluster_UnpausedToPaused(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
@@ -309,7 +309,7 @@ func TestAccClusterAdvancedCluster_PausedToUnpaused(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
@@ -392,7 +392,7 @@ func TestAccClusterAdvancedCluster_advancedConf(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
@@ -470,7 +470,7 @@ func TestAccClusterAdvancedCluster_DefaultWrite(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
@@ -529,7 +529,7 @@ func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
@@ -574,7 +574,7 @@ func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAnalyticsAutoScaling(t 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
@@ -612,7 +612,7 @@ func TestAccClusterAdvancedCluster_WithTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
@@ -695,7 +695,7 @@ var tagsMap3 = map[string]string{
 
 func testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName string, cluster *matlas.AdvancedCluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testMongoDBClient.(*MongoDBClient).Atlas
+		conn := todoacc.TestMongoDBClient.(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

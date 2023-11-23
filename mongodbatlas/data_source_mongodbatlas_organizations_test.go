@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 )
 
 func TestAccConfigDSOrganizations_basic(t *testing.T) {
@@ -12,7 +13,7 @@ func TestAccConfigDSOrganizations_basic(t *testing.T) {
 		datasourceName = "data.mongodbatlas_organizations.test"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasOrganizationsConfigWithDS(true),
@@ -31,7 +32,7 @@ func TestAccConfigDSOrganizations_withPagination(t *testing.T) {
 		datasourceName = "data.mongodbatlas_organizations.test"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasOrganizationsConfigWithPagination(2, 5),

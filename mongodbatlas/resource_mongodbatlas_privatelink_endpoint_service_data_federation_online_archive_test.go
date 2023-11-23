@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 )
 
 var (
@@ -20,7 +21,7 @@ func TestAccMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive_ba
 	testCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -58,7 +59,7 @@ func testAccCheckMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchi
 }
 
 func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDestroy(s *terraform.State) error {
-	client := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	client := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" {
@@ -79,7 +80,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDe
 
 func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		client := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -22,7 +23,7 @@ func TestAccFedRSFederatedSettingsOrganizationConfig_basic(t *testing.T) {
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testCheckFederatedSettings(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config:            testAccMongoDBAtlasFederatedSettingsOrganizationConfig(federationSettingsID, orgID, idpID),
@@ -58,7 +59,7 @@ func TestAccFedRSFederatedSettingsOrganizationConfig_importBasic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testCheckFederatedSettings(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 
 			{
@@ -75,7 +76,7 @@ func TestAccFedRSFederatedSettingsOrganizationConfig_importBasic(t *testing.T) {
 func testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigRExists(resourceName string,
 	federatedSettingsIdentityProvider *matlas.FederatedSettingsConnectedOrganization) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

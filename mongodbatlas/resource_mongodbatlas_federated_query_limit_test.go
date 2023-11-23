@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 )
 
 func TestAccFederatedDatabaseQueryLimit_basic(t *testing.T) {
@@ -36,7 +37,7 @@ func TestAccFederatedDatabaseQueryLimit_basic(t *testing.T) {
 						Source:            "hashicorp/aws",
 					},
 				},
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasFederatedDatabaseQueryLimitConfig(policyName, roleName, projectName, orgID, tenantName, testS3Bucket, region),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -46,7 +47,7 @@ func TestAccFederatedDatabaseQueryLimit_basic(t *testing.T) {
 			},
 			{
 				ResourceName:             resourceName,
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 				ImportStateIdFunc:        testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitImportStateIDFunc(resourceName),
 				ImportState:              true,
 				ImportStateVerify:        true,
@@ -206,7 +207,7 @@ func testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitImportStateIDFunc(resour
 }
 
 func testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitDestroy(s *terraform.State) error {
-	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_federated_query_limit" {

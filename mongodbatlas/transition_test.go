@@ -4,11 +4,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
+
+type MongoDBClient = config.MongoDBClient
 
 const (
 	errorGetRead = "error reading cloud provider access %s"
@@ -109,8 +109,11 @@ func testCheckPeeringEnvAWS(tb testing.TB) {
 
 // TODO INITIALIZE OR LINK TO INTERNAL ************
 // TODO INITIALIZE OR LINK TO INTERNAL ************
+
+/*
 type MongoDBClient = config.MongoDBClient
 
-var testAccProviderV6Factories map[string]func() (tfprotov6.ProviderServer, error)
-var testAccProviderSdkV2 *schema.Provider
+var todoacc.TestAccProviderV6Factories map[string]func() (tfprotov6.ProviderServer, error)
+var todoacc.TestAccProviderSdkV2 *schema.Provider
 var testMongoDBClient any
+*/
