@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 func TestAccProjectDSProject_byID(t *testing.T) {
@@ -26,7 +27,7 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectDSByIDUsingRS(testAccMongoDBAtlasProjectConfig(projectName, orgID,
+				Config: testAccMongoDBAtlasProjectDSByIDUsingRS(acc.ProjectConfig(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
 							TeamID:    teamsIds[0],
@@ -61,7 +62,7 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(testAccMongoDBAtlasProjectConfig(projectName, orgID,
+				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(acc.ProjectConfig(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
 							TeamID:    teamsIds[0],
@@ -97,7 +98,7 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(testAccMongoDBAtlasProjectConfig(projectName, orgID,
+				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(acc.ProjectConfig(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
 							TeamID:    teamsIds[0],

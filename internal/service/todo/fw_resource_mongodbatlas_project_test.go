@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -32,10 +34,10 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
+		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectConfig(projectName, orgID,
+				Config: acc.ProjectConfig(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
 							TeamID:    teamsIds[0],
@@ -57,7 +59,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectConfig(projectName, orgID,
+				Config: acc.ProjectConfig(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
 							TeamID:    teamsIds[0],
@@ -83,7 +85,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectConfig(projectName, orgID,
+				Config: acc.ProjectConfig(projectName, orgID,
 
 					[]*matlas.ProjectTeam{
 						{
@@ -106,7 +108,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectConfig(projectName, orgID, []*matlas.ProjectTeam{}),
+				Config: acc.ProjectConfig(projectName, orgID, []*matlas.ProjectTeam{}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
 					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
@@ -132,7 +134,7 @@ func TestAccProjectRSProject_CreateWithProjectOwner(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasicOwnerID(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
+		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectConfigWithProjectOwner(projectName, orgID, projectOwnerID),
@@ -159,7 +161,7 @@ func TestAccProjectRSGovProject_CreateWithProjectOwner(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckGov(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
+		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasGovProjectConfigWithProjectOwner(projectName, orgID, projectOwnerID),
@@ -185,7 +187,7 @@ func TestAccProjectRSProject_CreateWithFalseDefaultSettings(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasicOwnerID(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
+		CheckDestroy:             todo.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectConfigWithFalseDefaultSettings(projectName, orgID, projectOwnerID),
@@ -212,7 +214,7 @@ func TestAccProjectRSProject_CreateWithFalseDefaultAdvSettings(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasicOwnerID(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
+		CheckDestroy:             todo.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectConfigWithFalseDefaultAdvSettings(projectName, orgID, projectOwnerID),
@@ -241,7 +243,7 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
+		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectConfigWithUpdatedRole(projectName, orgID, teamsIds[0], roleName),
@@ -273,16 +275,16 @@ func TestAccProjectRSProject_importBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
+		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectConfig(projectName, orgID,
+				Config: acc.ProjectConfig(projectName, orgID,
 					[]*matlas.ProjectTeam{},
 				),
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasProjectImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       acc.ImportStateIDFuncProject(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"with_default_alerts_settings"},
@@ -301,7 +303,7 @@ func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
+		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*admin.DataFederationLimit{
@@ -394,7 +396,7 @@ func TestAccProjectRSProject_withInvalidLimitName(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
+		CheckDestroy:             todo.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*admin.DataFederationLimit{
@@ -419,7 +421,7 @@ func TestAccProjectRSProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
+		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*admin.DataFederationLimit{}),
@@ -473,56 +475,6 @@ func testAccCheckMongoDBAtlasProjectAttributes(project *matlas.Project, projectN
 
 		return nil
 	}
-}
-
-func testAccCheckMongoDBAtlasProjectDestroy(s *terraform.State) error {
-	conn := testMongoDBClient.(*MongoDBClient).Atlas
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_project" {
-			continue
-		}
-
-		projectRes, _, _ := conn.Projects.GetOneProjectByName(context.Background(), rs.Primary.ID)
-		if projectRes != nil {
-			return fmt.Errorf("project (%s) still exists", rs.Primary.ID)
-		}
-	}
-
-	return nil
-}
-
-func testAccCheckMongoDBAtlasProjectImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return "", fmt.Errorf("not found: %s", resourceName)
-		}
-
-		return rs.Primary.ID, nil
-	}
-}
-
-func testAccMongoDBAtlasProjectConfig(projectName, orgID string, teams []*matlas.ProjectTeam) string {
-	var ts string
-
-	for _, t := range teams {
-		ts += fmt.Sprintf(`
-		teams {
-			team_id = "%s"
-			role_names = %s
-		}
-		`, t.TeamID, strings.ReplaceAll(fmt.Sprintf("%+q", t.RoleNames), " ", ","))
-	}
-
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name  			 = "%s"
-			org_id 			 = "%s"
-
-			%s
-		}
-	`, projectName, orgID, ts)
 }
 
 func testAccMongoDBAtlasProjectConfigWithUpdatedRole(projectName, orgID, teamID, roleName string) string {

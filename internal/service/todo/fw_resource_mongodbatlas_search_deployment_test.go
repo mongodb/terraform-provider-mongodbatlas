@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 )
 
 func TestAccSearchDeployment_basic(t *testing.T) {
@@ -134,7 +135,7 @@ func testAccCheckMongoDBAtlasSearchNodeExists(resourceName string) resource.Test
 }
 
 func testAccCheckMongoDBAtlasSearchNodeDestroy(state *terraform.State) error {
-	if projectDestroyedErr := testAccCheckMongoDBAtlasProjectDestroy(state); projectDestroyedErr != nil {
+	if projectDestroyedErr := todoacc.CheckDestroyProject(state); projectDestroyedErr != nil {
 		return projectDestroyedErr
 	}
 	if clusterDestroyedErr := testAccCheckMongoDBAtlasAdvancedClusterDestroy(state); clusterDestroyedErr != nil {

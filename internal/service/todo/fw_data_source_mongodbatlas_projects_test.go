@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 func TestAccProjectDSProjects_basic(t *testing.T) {
@@ -93,7 +94,7 @@ func testAccMongoDBAtlasProjectsConfigWithDS(projectName, orgID string, teams []
 	config := fmt.Sprintf(`
 		%s
 		data "mongodbatlas_projects" "test" {}
-	`, testAccMongoDBAtlasProjectConfig(projectName, orgID, teams))
+	`, acc.ProjectConfig(projectName, orgID, teams))
 	return config
 }
 
@@ -104,5 +105,5 @@ func testAccMongoDBAtlasProjectsConfigWithPagination(projectName, orgID string, 
 			page_num = %d
 			items_per_page = %d
 		}
-	`, testAccMongoDBAtlasProjectConfig(projectName, orgID, teams), pageNum, itemPage)
+	`, acc.ProjectConfig(projectName, orgID, teams), pageNum, itemPage)
 }

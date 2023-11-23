@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -26,7 +27,7 @@ func TestAccConfigDSAlertConfigurations_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(orgID, projectName),
@@ -50,7 +51,7 @@ func TestAccConfigDSAlertConfigurations_withOutputTypes(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: configOutputType(orgID, projectName, outputTypes),
@@ -72,7 +73,7 @@ func TestAccConfigDSAlertConfigurations_invalidOutputTypeValue(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config:      configOutputType(orgID, projectName, []string{"resource_hcl", "invalid_type"}),
@@ -91,7 +92,7 @@ func TestAccConfigDSAlertConfigurations_totalCount(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: configTotalCount(orgID, projectName),
@@ -152,7 +153,7 @@ func configTotalCount(orgID, projectName string) string {
 
 func checkCount(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := todoacc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

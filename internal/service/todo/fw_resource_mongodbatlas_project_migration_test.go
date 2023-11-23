@@ -15,6 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 )
 
 var _ plancheck.PlanCheck = debugPlan{}
@@ -42,7 +44,7 @@ func TestAccMigrationProjectRS_NoProps(t *testing.T) {
 	)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy,
+		CheckDestroy: todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
@@ -88,7 +90,7 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 		projectName     = acctest.RandomWithPrefix("test-acc-teams")
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		clusterCount    = "0"
-		configWithTeams = testAccMongoDBAtlasProjectConfig(projectName, orgID,
+		configWithTeams = acc.ProjectConfig(projectName, orgID,
 			[]*matlas.ProjectTeam{
 				{
 					TeamID:    teamsIds[0],
@@ -104,7 +106,7 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy,
+		CheckDestroy: todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
@@ -149,7 +151,7 @@ func TestAccMigrationProjectRS_WithFalseDefaultSettings(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccMigrationPreCheckBasicOwnerID(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy,
+		CheckDestroy: todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
@@ -200,7 +202,7 @@ func TestAccMigrationProjectRS_WithLimits(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy,
+		CheckDestroy: todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{

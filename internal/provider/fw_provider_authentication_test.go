@@ -6,6 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -17,12 +19,12 @@ func TestAccSTSAssumeRole_basic(t *testing.T) {
 		clusterCount = "0"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testCheckSTSAssumeRole(t); testCheckRegularCredsAreEmpty(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
+		PreCheck:                 func() { acc.PreCheckSTSAssumeRole(t); acc.PreCheckRegularCredsAreEmpty(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectConfig(projectName, orgID,
+				Config: acc.ProjectConfig(projectName, orgID,
 					[]*matlas.ProjectTeam{},
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -34,7 +36,7 @@ func TestAccSTSAssumeRole_basic(t *testing.T) {
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasProjectImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       acc.ImportStateIDFuncProject(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"with_default_alerts_settings"},
