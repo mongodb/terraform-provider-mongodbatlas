@@ -2,12 +2,9 @@ package mongodbatlas
 
 import (
 	"hash/crc32"
-	"testing"
 
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 const (
@@ -215,17 +212,3 @@ func GetResourcesMap() map[string]*schema.Resource {
 	}
 	return resourcesMap
 }
-
-func testAccPreCheckBasic(tb testing.TB) {
-	acc.PreCheckBasic(tb)
-}
-
-func testAccPreCheck(tb testing.TB) {
-	acc.PreCheck(tb)
-}
-
-// TODO INITIALIZE OR LINK TO INTERNAL ************
-// TODO INITIALIZE OR LINK TO INTERNAL ************
-var testAccProviderV6Factories map[string]func() (tfprotov6.ProviderServer, error)
-var testAccProviderSdkV2 *schema.Provider
-var testMongoDBClient any
