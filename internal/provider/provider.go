@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"regexp"
-	"sort"
 	"strconv"
 	"time"
 
@@ -18,7 +17,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -26,7 +24,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mwielbut/pointy"
-	"github.com/zclconf/go-cty/cty"
 )
 
 var (
@@ -375,27 +372,6 @@ func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secr
 	}
 
 	return *result.SecretString, err
-}
-
-func appendBlockWithCtyValues(body *hclwrite.Body, name string, labels []string, values map[string]cty.Value) {
-	if len(values) == 0 {
-		return
-	}
-
-	keys := make([]string, 0, len(values))
-
-	for key := range values {
-		keys = append(keys, key)
-	}
-
-	sort.Strings(keys)
-
-	body.AppendNewline()
-	block := body.AppendNewBlock(name, labels).Body()
-
-	for _, k := range keys {
-		block.SetAttributeValue(k, values[k])
-	}
 }
 
 // assumeRoleSchema From aws provider.go
