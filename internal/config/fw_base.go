@@ -16,8 +16,8 @@ const (
 // RSCommon is used as an embedded struct for all framework resources. Implements the following plugin-framework defined functions:
 // - Metadata
 // - Configure
-// client is left empty and populated by the framework when envoking Configure method.
-// resourceName must be defined when creating an instance of a resource.
+// Client is left empty and populated by the framework when envoking Configure method.
+// ResourceName must be defined when creating an instance of a resource.
 type RSCommon struct {
 	Client       *MongoDBClient
 	ResourceName string
@@ -39,7 +39,7 @@ func (r *RSCommon) Configure(ctx context.Context, req resource.ConfigureRequest,
 // DSCommon is used as an embedded struct for all framework data sources. Implements the following plugin-framework defined functions:
 // - Metadata
 // - Configure
-// client is left empty and populated by the framework when envoking Configure method.
+// Client is left empty and populated by the framework when envoking Configure method.
 // DataSourceName must be defined when creating an instance of a data source.
 type DSCommon struct {
 	Client         *MongoDBClient
