@@ -22,6 +22,14 @@ func dataSourceMongoDBAtlasBackupCompliancePolicy() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"authorized_user_first_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"authorized_user_last_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"copy_protection_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -212,6 +220,14 @@ func dataSourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *sc
 
 	if err := d.Set("authorized_email", backupPolicy.AuthorizedEmail); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicySetting, "authorized_email", projectID, err))
+	}
+
+	if err := d.Set("authorized_user_first_name", backupPolicy.AuthorizedUserFirstName); err != nil {
+		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicySetting, "authorized_user_first_name", projectID, err))
+	}
+
+	if err := d.Set("authorized_user_last_name", backupPolicy.AuthorizedUserLastName); err != nil {
+		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicySetting, "authorized_user_last_name", projectID, err))
 	}
 
 	if err := d.Set("state", backupPolicy.State); err != nil {
