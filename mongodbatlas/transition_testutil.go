@@ -16,6 +16,18 @@ func testAccPreCheck(tb testing.TB) {
 	acc.PreCheck(tb)
 }
 
+func SkipTest(tb testing.TB) {
+	acc.SkipTest(tb)
+}
+
+func SkipIfTFAccNotDefined(tb testing.TB) {
+	acc.SkipIfTFAccNotDefined(tb)
+}
+
+func SkipTestForCI(tb testing.TB) {
+	acc.SkipTestForCI(tb)
+}
+
 // TODO INITIALIZE OR LINK TO INTERNAL ************
 // TODO INITIALIZE OR LINK TO INTERNAL ************
 var testAccProviderV6Factories map[string]func() (tfprotov6.ProviderServer, error)

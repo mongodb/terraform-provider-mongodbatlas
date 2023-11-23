@@ -65,27 +65,6 @@ func testCheckTeamsIds(tb testing.TB) {
 	}
 }
 
-func SkipTest(tb testing.TB) {
-	if strings.EqualFold(os.Getenv("SKIP_TEST"), "true") {
-		tb.Skip()
-	}
-}
-
-// SkipIfTFAccNotDefined is added to acceptance tests were you do not want any preparation code executed if the resulting steps will not run.
-// Keep in mind that if TF_ACC is empty, go still runs acceptance tests but terraform-plugin-testing does not execute the resulting steps.
-func SkipIfTFAccNotDefined(tb testing.TB) {
-	if strings.EqualFold(os.Getenv("TF_ACC"), "") {
-		tb.Skip()
-	}
-}
-
-// SkipTestForCI is added to tests that cannot run as part of a CI
-func SkipTestForCI(tb testing.TB) {
-	if strings.EqualFold(os.Getenv("CI"), "true") {
-		tb.Skip()
-	}
-}
-
 func testCheckLDAP(tb testing.TB) {
 	if os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME") == "" ||
 		os.Getenv("MONGODB_ATLAS_LDAP_USERNAME") == "" ||
