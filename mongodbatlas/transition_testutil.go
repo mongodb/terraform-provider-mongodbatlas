@@ -6,14 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 )
-
-func DebugPlan() plancheck.PlanCheck {
-	return testutils.DebugPlan()
-}
 
 func testAccPreCheckBasic(tb testing.TB) {
 	acc.PreCheckBasic(tb)
