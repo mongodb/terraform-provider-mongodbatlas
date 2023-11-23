@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -31,7 +32,7 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAdvancedClusterConfigTenant(orgID, projectName, rName),
@@ -92,7 +93,7 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProvider(orgID, projectName, rName),
@@ -146,7 +147,7 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
@@ -204,7 +205,7 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloudSharded(orgID, projectName, rName),
@@ -254,7 +255,7 @@ func TestAccClusterAdvancedCluster_UnpausedToPaused(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, false, instanceSize),
@@ -309,7 +310,7 @@ func TestAccClusterAdvancedCluster_PausedToUnpaused(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, true, instanceSize),
@@ -392,7 +393,7 @@ func TestAccClusterAdvancedCluster_advancedConf(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAdvancedClusterConfigAdvancedConf(orgID, projectName, rName, processArgs),
@@ -470,7 +471,7 @@ func TestAccClusterAdvancedCluster_DefaultWrite(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAdvancedClusterConfigAdvancedConfDefaultWrite(orgID, projectName, rName, processArgs),
@@ -529,7 +530,7 @@ func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *testing.
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAutoScaling(orgID, projectName, rName, autoScaling),
@@ -574,7 +575,7 @@ func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAnalyticsAutoScaling(t 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAnalyticsAutoScaling(orgID, projectName, rName, autoScaling),
@@ -612,7 +613,7 @@ func TestAccClusterAdvancedCluster_WithTags(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		CheckDestroy:             todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAdvancedClusterConfigWithTags(orgID, projectName, rName, []matlas.Tag{}),
@@ -746,25 +747,6 @@ func testAccCheckMongoDBAtlasAdvancedClusterAnalyticsScaling(cluster *matlas.Adv
 
 		return nil
 	}
-}
-
-func testAccCheckMongoDBAtlasAdvancedClusterDestroy(s *terraform.State) error {
-	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_advanced_cluster" {
-			continue
-		}
-
-		// Try to find the cluster
-		_, _, err := conn.AdvancedClusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
-
-		if err == nil {
-			return fmt.Errorf("cluster (%s:%s) still exists", rs.Primary.Attributes["cluster_name"], rs.Primary.ID)
-		}
-	}
-
-	return nil
 }
 
 func testAccMongoDBAtlasAdvancedClusterConfigTenant(orgID, projectName, name string) string {

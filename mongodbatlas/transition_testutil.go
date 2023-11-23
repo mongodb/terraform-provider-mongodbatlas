@@ -19,6 +19,10 @@ func testAccPreCheckBasic(tb testing.TB) {
 	acc.PreCheckBasic(tb)
 }
 
+func testCheckAwsEnv(tb testing.TB) {
+	acc.PreCheckAwsEnv(tb)
+}
+
 func testAccPreCheck(tb testing.TB) {
 	acc.PreCheck(tb)
 }
@@ -45,12 +49,6 @@ func testCheckDataLakePipelineRun(tb testing.TB) {
 func testCheckDataLakePipelineRuns(tb testing.TB) {
 	if os.Getenv("MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME") == "" {
 		tb.Skip("`MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME` must be set for Projects acceptance testing")
-	}
-}
-
-func testCheckTeamsIds(tb testing.TB) {
-	if os.Getenv("MONGODB_ATLAS_TEAMS_IDS") == "" {
-		tb.Skip("`MONGODB_ATLAS_TEAMS_IDS` must be set for Projects acceptance testing")
 	}
 }
 

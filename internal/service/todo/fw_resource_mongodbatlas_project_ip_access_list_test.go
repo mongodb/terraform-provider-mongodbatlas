@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 )
@@ -113,7 +114,7 @@ func TestAccProjectRSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
 	updatedComment := fmt.Sprintf("TestAcc for awsSecurityGroup updated (%s)", updatedAWSSgroup)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
@@ -250,7 +251,7 @@ func TestAccProjectRSProjectIPAccessList_importIncorrectId(t *testing.T) {
 
 func testAccCheckMongoDBAtlasProjectIPAccessListExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testMongoDBClient.(*MongoDBClient).Atlas
+		conn := todoacc.TestMongoDBClient.(*config.MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -261,7 +262,7 @@ func testAccCheckMongoDBAtlasProjectIPAccessListExists(resourceName string) reso
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		_, _, err := conn.ProjectIPAccessList.Get(context.Background(), ids["project_id"], ids["entry"])
 		if err != nil {
@@ -273,14 +274,14 @@ func testAccCheckMongoDBAtlasProjectIPAccessListExists(resourceName string) reso
 }
 
 func testAccCheckMongoDBAtlasProjectIPAccessListDestroy(s *terraform.State) error {
-	conn := testMongoDBClient.(*MongoDBClient).Atlas
+	conn := todoacc.TestMongoDBClient.(*config.MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_project_ip_access_list" {
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		_, _, err := conn.ProjectIPAccessList.Get(context.Background(), ids["project_id"], ids["entry"])
 		if err == nil {
@@ -298,7 +299,7 @@ func testAccCheckMongoDBAtlasProjectIPAccessListImportStateIDFunc(resourceName s
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s-%s", ids["project_id"], ids["entry"]), nil
 	}
@@ -363,7 +364,7 @@ func testAccMongoDBAtlasProjectIPAccessListConfigSettingAWSSecurityGroup(project
 }
 
 func testAccMongoDBAtlasProjectIPAccessListConfigSettingMultiple(projectName, orgID string, accessList []map[string]string, isUpdate bool) string {
-	config := fmt.Sprintf(`
+	cfg := fmt.Sprintf(`
 			resource "mongodbatlas_project" "test" {
 				name   = %[1]q
 				org_id = %[2]q
@@ -377,7 +378,7 @@ func testAccMongoDBAtlasProjectIPAccessListConfigSettingMultiple(projectName, or
 		}
 
 		if cidr, ok := entry["cidr_block"]; ok {
-			config += fmt.Sprintf(`
+			cfg += fmt.Sprintf(`
 			resource "mongodbatlas_project_ip_access_list" "test_%[1]d" {
 				project_id   = mongodbatlas_project.test.id
 				cidr_block = %[2]q
@@ -385,7 +386,7 @@ func testAccMongoDBAtlasProjectIPAccessListConfigSettingMultiple(projectName, or
 			}
 		`, i, cidr, comment)
 		} else {
-			config += fmt.Sprintf(`
+			cfg += fmt.Sprintf(`
 			resource "mongodbatlas_project_ip_access_list" "test_%[1]d" {
 				project_id   = mongodbatlas_project.test.id
 				ip_address = %[2]q
@@ -394,5 +395,5 @@ func testAccMongoDBAtlasProjectIPAccessListConfigSettingMultiple(projectName, or
 		`, i, entry["ip_address"], comment)
 		}
 	}
-	return config
+	return cfg
 }

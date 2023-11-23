@@ -76,7 +76,7 @@ func TestAccProjectDSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
 	comment := fmt.Sprintf("TestAcc for awsSecurityGroup (%s)", awsSGroup)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{

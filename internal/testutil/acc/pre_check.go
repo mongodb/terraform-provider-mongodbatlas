@@ -45,6 +45,12 @@ func PreCheckAtlasUsername(tb testing.TB) {
 	}
 }
 
+func PreCheckTeamsIds(tb testing.TB) {
+	if os.Getenv("MONGODB_ATLAS_TEAMS_IDS") == "" {
+		tb.Skip("`MONGODB_ATLAS_TEAMS_IDS` must be set for Projects acceptance testing")
+	}
+}
+
 func PreCheckGov(tb testing.TB) {
 	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/todo"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
@@ -78,7 +79,7 @@ func TestAccConfigDSAtlasUsers_ByTeamID(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); testAccPreCheckAtlasUsername(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckAtlasUsername(t) },
 		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyTeam,
 		Steps: []resource.TestStep{
@@ -112,7 +113,7 @@ func TestAccConfigDSAtlasUsers_UsingPagination(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); testAccPreCheckAtlasUsername(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckAtlasUsername(t) },
 		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyTeam,
 		Steps: []resource.TestStep{
@@ -175,7 +176,7 @@ func TestAccConfigDSAtlasUsers_InvalidAttrCombinations(t *testing.T) {
 					team_id = "64c0f3f5ce752426ab9f506b"
 				}
 			`,
-			expectedError: errorMissingAttributesDetail,
+			expectedError: todo.ErrorMissingAttributesDetail,
 		},
 		{
 			name: "invalid empty attributes defined",
@@ -183,7 +184,7 @@ func TestAccConfigDSAtlasUsers_InvalidAttrCombinations(t *testing.T) {
 				data "mongodbatlas_atlas_users" "test" {
 				}
 			`,
-			expectedError: errorMissingAttributesDetail,
+			expectedError: todo.ErrorMissingAttributesDetail,
 		},
 	}
 	for _, tt := range tests {

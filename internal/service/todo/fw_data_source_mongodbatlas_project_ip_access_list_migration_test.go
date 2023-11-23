@@ -111,7 +111,7 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingAWSSecurityGroup(t *tes
 	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheck(t) },
+		PreCheck: func() { acc.PreCheck(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{

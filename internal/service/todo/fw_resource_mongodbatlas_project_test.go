@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
@@ -32,7 +33,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); testCheckTeamsIds(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckTeamsIds(t) },
 		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
@@ -159,7 +160,7 @@ func TestAccProjectRSGovProject_CreateWithProjectOwner(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckGov(t) },
+		PreCheck:                 func() { acc.PreCheckGov(t) },
 		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
@@ -187,7 +188,7 @@ func TestAccProjectRSProject_CreateWithFalseDefaultSettings(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasicOwnerID(t) },
 		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
-		CheckDestroy:             todo.CheckDestroyProject,
+		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectConfigWithFalseDefaultSettings(projectName, orgID, projectOwnerID),
@@ -214,7 +215,7 @@ func TestAccProjectRSProject_CreateWithFalseDefaultAdvSettings(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasicOwnerID(t) },
 		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
-		CheckDestroy:             todo.CheckDestroyProject,
+		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectConfigWithFalseDefaultAdvSettings(projectName, orgID, projectOwnerID),
@@ -241,7 +242,7 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); testCheckTeamsIds(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckTeamsIds(t) },
 		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
@@ -396,7 +397,7 @@ func TestAccProjectRSProject_withInvalidLimitName(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
-		CheckDestroy:             todo.CheckDestroyProject,
+		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*admin.DataFederationLimit{
@@ -445,7 +446,7 @@ func TestAccProjectRSProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 
 func testAccCheckMongoDBAtlasProjectExists(resourceName string, project *matlas.Project) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testMongoDBClient.(*MongoDBClient).Atlas
+		conn := todoacc.TestMongoDBClient.(*config.MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

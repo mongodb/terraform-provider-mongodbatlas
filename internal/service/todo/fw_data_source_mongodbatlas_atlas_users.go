@@ -20,7 +20,7 @@ const (
 	AtlasUsersDataSourceName      = "atlas_users"
 	errorUsersRead                = "error getting atlas users(%s - %s): %s"
 	errorMissingAttributesSummary = "missing required attributes for data source"
-	errorMissingAttributesDetail  = "either org_id, project_id, or team_id with org_id must be configured"
+	ErrorMissingAttributesDetail  = "either org_id, project_id, or team_id with org_id must be configured"
 )
 
 var _ datasource.DataSource = &AtlasUsersDS{}
@@ -170,7 +170,7 @@ func (d *AtlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 	}
 
 	if atlasUsersConfig.OrgID.IsNull() && atlasUsersConfig.ProjectID.IsNull() {
-		resp.Diagnostics.AddError(errorMissingAttributesSummary, errorMissingAttributesDetail)
+		resp.Diagnostics.AddError(errorMissingAttributesSummary, ErrorMissingAttributesDetail)
 		return
 	}
 

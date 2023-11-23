@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/migration"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -23,7 +24,7 @@ func TestAccMigrationAdvancedClusterRS_singleAWSProvider(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { migration.PreCheckBasic(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		CheckDestroy: todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
@@ -69,7 +70,7 @@ func TestAccMigrationAdvancedClusterRS_multiCloud(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { migration.PreCheckBasic(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		CheckDestroy: todoacc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{

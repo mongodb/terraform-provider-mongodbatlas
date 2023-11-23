@@ -32,7 +32,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAWS(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { migration.PreCheck(t); testCheckAwsEnv(t) },
+		PreCheck:     func() { migration.PreCheck(t); acc.PreCheckAwsEnv(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -66,7 +66,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAWS(t *testing.T) {
 }
 
 func TestAccMigrationAdvRS_EncryptionAtRest_WithRole_basicAWS(t *testing.T) {
-	SkipTest(t)
+	acc.SkipTest(t)
 	acc.SkipTestExtCred(t)
 	var (
 		resourceName          = "mongodbatlas_encryption_at_rest.test"
@@ -85,7 +85,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_WithRole_basicAWS(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { migration.PreCheck(t); testCheckAwsEnv(t) },
+		PreCheck:     func() { migration.PreCheck(t); acc.PreCheckAwsEnv(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -149,7 +149,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAzure(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { migration.PreCheck(t); testCheckEncryptionAtRestEnvAzure(t) },
+		PreCheck:     func() { migration.PreCheck(t); acc.PreCheckEncryptionAtRestEnvAzure(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -198,7 +198,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicGCP(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { migration.PreCheck(t); testAccPreCheckGPCEnv(t) },
+		PreCheck:     func() { migration.PreCheck(t); acc.PreCheckGPCEnv(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -246,7 +246,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) 
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { migration.PreCheck(t); testCheckAwsEnv(t) },
+		PreCheck:     func() { migration.PreCheck(t); acc.PreCheckAwsEnv(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{

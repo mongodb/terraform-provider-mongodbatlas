@@ -24,7 +24,7 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); testCheckTeamsIds(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckTeamsIds(t) },
 		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
@@ -59,7 +59,7 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); testCheckTeamsIds(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckTeamsIds(t) },
 		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
@@ -95,7 +95,7 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); testCheckTeamsIds(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckTeamsIds(t) },
 		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{

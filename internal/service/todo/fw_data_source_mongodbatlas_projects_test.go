@@ -23,7 +23,7 @@ func TestAccProjectDSProjects_basic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); testCheckTeamsIds(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckTeamsIds(t) },
 		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
@@ -61,7 +61,7 @@ func TestAccProjectDSProjects_withPagination(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); testCheckTeamsIds(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckTeamsIds(t) },
 		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{

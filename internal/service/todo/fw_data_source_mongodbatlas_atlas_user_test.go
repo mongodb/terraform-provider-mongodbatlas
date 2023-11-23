@@ -44,7 +44,7 @@ func TestAccConfigDSAtlasUser_ByUsername(t *testing.T) {
 		user           = fetchUserByUsername(username, t)
 	)
 	resource.Test(t, resource.TestCase{ // does not run in parallel to avoid changes in fetched user during execution
-		PreCheck:                 func() { acc.PreCheckBasic(t); testAccPreCheckAtlasUsername(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckAtlasUsername(t) },
 		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
@@ -96,7 +96,7 @@ func fetchUser(userID string, t *testing.T) *admin.CloudAppUser {
 }
 
 func fetchUserByUsername(username string, t *testing.T) *admin.CloudAppUser {
-	connV2 := testMongoDBClient.(*MongoDBClient).AtlasV2
+	connV2 := todoacc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 
 	userResp, _, err := connV2.MongoDBCloudUsersApi.GetUserByUsername(context.Background(), username).Execute()
 	if err != nil {

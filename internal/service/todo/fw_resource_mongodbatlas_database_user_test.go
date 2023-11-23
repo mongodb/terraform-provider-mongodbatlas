@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/todo"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -611,7 +612,7 @@ func testAccCheckMongoDBAtlasDatabaseUserImportStateIDFunc(resourceName string) 
 
 func testAccCheckMongoDBAtlasDatabaseUserExists(resourceName string, dbUser *matlas.DatabaseUser) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testMongoDBClient.(*MongoDBClient).Atlas
+		conn := todoacc.TestMongoDBClient.(*config.MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -655,14 +656,14 @@ func testAccCheckMongoDBAtlasDatabaseUserAttributes(dbUser *matlas.DatabaseUser,
 }
 
 func testAccCheckMongoDBAtlasDatabaseUserDestroy(s *terraform.State) error {
-	conn := testMongoDBClient.(*MongoDBClient).Atlas
+	conn := todoacc.TestMongoDBClient.(*config.MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_database_user" {
 			continue
 		}
 
-		projectID, username, authDatabaseName, err := splitDatabaseUserImportID(rs.Primary.ID)
+		projectID, username, authDatabaseName, err := todo.SplitDatabaseUserImportID(rs.Primary.ID)
 		if err != nil {
 			continue
 		}
