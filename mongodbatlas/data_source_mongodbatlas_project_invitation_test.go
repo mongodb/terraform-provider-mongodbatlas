@@ -1,4 +1,4 @@
-package mongodbatlas
+package mongodbatlas_test
 
 import (
 	"fmt"

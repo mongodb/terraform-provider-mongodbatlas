@@ -1,4 +1,4 @@
-package mongodbatlas
+package mongodbatlas_test
 
 import (
 	"os"
@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -49,7 +50,7 @@ func TestAccMigrationAdvancedClusterRS_singleAWSProvider(t *testing.T) {
 				Config:                   testAccMongoDBAtlasAdvancedClusterConfigSingleProvider(orgID, projectName, rName),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						DebugPlan(),
+						testutils.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -95,7 +96,7 @@ func TestAccMigrationAdvancedClusterRS_multiCloud(t *testing.T) {
 				Config:                   testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						DebugPlan(),
+						testutils.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
