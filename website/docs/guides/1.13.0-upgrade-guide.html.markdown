@@ -15,6 +15,10 @@ The Terraform MongoDB Atlas Provider version 1.13.0 has a number of new and exci
 - You can now leverage [`type`](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Atlas-Search/operation/createAtlasSearchIndex) and [`fields`](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Atlas-Search/operation/createAtlasSearchIndex) parameters in [`mongodbatlas_search_index`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/search_index) resource.
 
 
+**Breaking Changes:**   
+- Updates on `paused` clusters now return the error `CANNOT_UPDATE_PAUSED_CLUSTER`. See [Considerations for Paused Clusters](https://www.mongodb.com/docs/atlas/pause-terminate-cluster/#considerations-for-paused-clusters)
+
+
 1.13.0 also includes other general improvements, bug fixes, and several key documentation updates. See the [CHANGELOG](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) for more specific information.
 
 
