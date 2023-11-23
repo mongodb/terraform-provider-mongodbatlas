@@ -95,6 +95,10 @@ website-lint:
 	@echo "==> Checking website against linters..."
 	@misspell -error -source=text website/
 
+.PHONY: website
+website:
+	@echo "Use this site to preview markdown rendering: https://registry.terraform.io/tools/doc-preview"
+
 .PHONY: tflint
 tflint: fmtcheck
 	@scripts/tflint.sh
