@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/migration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 )
 
@@ -26,7 +26,7 @@ func TestAccMigrationConfigRSAlertConfiguration_NotificationsWithMetricThreshold
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { migration.PreCheckBasic(t) },
+		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -68,7 +68,7 @@ func TestAccMigrationConfigRSAlertConfiguration_WithThreshold(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { migration.PreCheckBasic(t) },
+		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -112,7 +112,7 @@ func TestAccMigrationConfigRSAlertConfiguration_EmptyOptionalBlocks(t *testing.T
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { migration.PreCheckBasic(t) },
+		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -167,7 +167,7 @@ func TestAccMigrationConfigRSAlertConfiguration_MultipleMatchers(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { migration.PreCheckBasic(t) },
+		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -209,7 +209,7 @@ func TestAccMigrationConfigRSAlertConfiguration_EmptyOptionalAttributes(t *testi
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { migration.PreCheckBasic(t) },
+		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
