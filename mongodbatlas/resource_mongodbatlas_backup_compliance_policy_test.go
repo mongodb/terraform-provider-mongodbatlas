@@ -38,9 +38,28 @@ func TestAccGenericBackupRSBackupCompliancePolicy_basic(t *testing.T) {
 					testAccCheckMongoDBAtlasBackupCompliancePolicyExists("data.mongodbatlas_backup_compliance_policy.backup_policy"),
 					resource.TestCheckResourceAttr("mongodbatlas_backup_compliance_policy.backup_policy_res", "copy_protection_enabled", "false"),
 					resource.TestCheckResourceAttr("mongodbatlas_backup_compliance_policy.backup_policy_res", "encryption_at_rest_enabled", "false"),
+					resource.TestCheckResourceAttr("mongodbatlas_backup_compliance_policy.backup_policy_res", "authorized_user_first_name", "unknown"),
+					resource.TestCheckResourceAttr("mongodbatlas_backup_compliance_policy.backup_policy_res", "authorized_user_last_name", "unknown"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "7"),
 				),
 			},
+		},
+	})
+}
+
+func TestAccGenericBackupRSBackupCompliancePolicy_withFirstLastName(t *testing.T) {
+	var (
+		resourceName   = "mongodbatlas_backup_compliance_policy.backup_policy_res"
+		projectName    = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasBackupCompliancePolicyDestroy,
+		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasBackupCompliancePolicyConfig(projectName, orgID, projectOwnerID, true, true),
 				Check: resource.ComposeTestCheckFunc(
