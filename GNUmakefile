@@ -7,8 +7,6 @@ PKG_NAME=mongodbatlas
 BINARY_NAME=terraform-provider-mongodbatlas
 DESTINATION=./bin/$(BINARY_NAME)
 
-WEBSITE_REPO=github.com/hashicorp/terraform-website
-
 GOFLAGS=-mod=vendor
 GOOPTS="-p 2"
 
@@ -59,10 +57,6 @@ fmt:
 fmtcheck: # Currently required by tf-deploy compile
 	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
 
-.PHONY: websitefmtcheck
-websitefmtcheck:
-	@sh -c "'$(CURDIR)/scripts/websitefmtcheck.sh'"
-
 .PHONY: lint-fix
 lint-fix:
 	@echo "==> Fixing linters errors..."
@@ -79,7 +73,7 @@ tools:  ## Install dev tools
 	@echo "==> Installing dependencies..."
 	go install github.com/icholy/gomajor@latest
 	go install github.com/client9/misspell/cmd/misspell@latest
-	go install github.com/terraform-linters/tflint@v0.48.0
+	go install github.com/terraform-linters/tflint@v0.49.0
 	go install github.com/rhysd/actionlint/cmd/actionlint@latest
 	go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
@@ -96,31 +90,14 @@ test-compile:
 	fi
 	go test -c $(TEST) $(TESTARGS)
 
-.PHONY: website
-website:
-ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
-	echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."
-	git clone https://$(WEBSITE_REPO) $(GOPATH)/src/$(WEBSITE_REPO)
-endif
-	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
-
 .PHONY: website-lint
 website-lint:
 	@echo "==> Checking website against linters..."
 	@misspell -error -source=text website/
 
-.PHONY: website-test
-website-test:
-ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
-	echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."
-	git clone https://$(WEBSITE_REPO) $(GOPATH)/src/$(WEBSITE_REPO)
-endif
-	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
-
-.PHONY: terratest
-terratest: fmtcheck
-	@$(eval VERSION=acc)
-	 go test $$(go list ./... | grep  /integrationtesting) -v -parallel 20 $(TESTARGS) -timeout 120m -cover -ldflags="$(LINKER_FLAGS)"
+.PHONY: website
+website:
+	@echo "Use this site to preview markdown rendering: https://registry.terraform.io/tools/doc-preview"
 
 .PHONY: tflint
 tflint: fmtcheck
