@@ -173,7 +173,7 @@ func GetResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_access_list_api_key":               resourceMongoDBAtlasAccessListAPIKey(),
 		"mongodbatlas_project_api_key":                   resourceMongoDBAtlasProjectAPIKey(),
 		"mongodbatlas_custom_db_role":                    resourceMongoDBAtlasCustomDBRole(),
-		"mongodbatlas_cluster":                           resourceMongoDBAtlasCluster(),
+		"mongodbatlas_cluster":                           ResourceMongoDBAtlasCluster(),
 		"mongodbatlas_network_container":                 resourceMongoDBAtlasNetworkContainer(),
 		"mongodbatlas_network_peering":                   resourceMongoDBAtlasNetworkPeering(),
 		"mongodbatlas_maintenance_window":                resourceMongoDBAtlasMaintenanceWindow(),

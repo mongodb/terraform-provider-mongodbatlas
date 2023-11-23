@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceMongoDBAtlasClusterResourceV0() *schema.Resource {
+func ResourceMongoDBAtlasClusterResourceV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -323,10 +323,10 @@ func resourceMongoDBAtlasClusterResourceV0() *schema.Resource {
 func resourceMongoDBAtlasClusterStateUpgradeV0(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 	log.Println("[INFO] Found MongoDB Cluser state v0; migrating to v1")
 
-	return migrateAdvancedConfiguration(rawState), nil
+	return MigrateAdvancedConfiguration(rawState), nil
 }
 
-func migrateAdvancedConfiguration(rawState map[string]any) map[string]any {
+func MigrateAdvancedConfiguration(rawState map[string]any) map[string]any {
 	rawState["advanced_configuration"] = []any{}
 
 	return rawState
