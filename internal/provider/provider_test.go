@@ -7,6 +7,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/go-test/deep"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
 )
 
@@ -32,7 +33,7 @@ func TestRemoveLabel(t *testing.T) {
 		{Key: "Type", Value: "testing"},
 	}
 
-	got := removeLabel(labels, toRemove)
+	got := config.RemoveLabel(labels, toRemove)
 
 	if diff := deep.Equal(expected, got); diff != nil {
 		t.Fatalf("Bad removeLabel return \n got = %#v\nwant = %#v \ndiff = %#v", got, expected, diff)

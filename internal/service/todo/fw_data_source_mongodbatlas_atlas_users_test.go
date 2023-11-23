@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
@@ -25,8 +26,8 @@ func TestAccConfigDSAtlasUsers_ByOrgID(t *testing.T) {
 	checks = append(checks, dataSourceChecksForUsers(dataSourceName, orgID, users)...)
 
 	resource.Test(t, resource.TestCase{ // does not run in parallel to avoid changes in fetched users during execution
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasUsersByOrgID(orgID),
@@ -45,8 +46,8 @@ func TestAccConfigDSAtlasUsers_ByProjectID(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t); testAccPreCheckBasicOwnerID(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckBasicOwnerID(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
@@ -76,8 +77,8 @@ func TestAccConfigDSAtlasUsers_ByTeamID(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t); testAccPreCheckAtlasUsername(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t); testAccPreCheckAtlasUsername(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasTeamDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -110,8 +111,8 @@ func TestAccConfigDSAtlasUsers_UsingPagination(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t); testAccPreCheckAtlasUsername(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t); testAccPreCheckAtlasUsername(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasTeamDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -187,8 +188,8 @@ func TestAccConfigDSAtlasUsers_InvalidAttrCombinations(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			resource.ParallelTest(t, resource.TestCase{
-				PreCheck:                 func() { testAccPreCheckBasic(t) },
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				PreCheck:                 func() { acc.PreCheckBasic(t) },
+				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 				Steps: []resource.TestStep{
 					{
 						Config:      tt.config,

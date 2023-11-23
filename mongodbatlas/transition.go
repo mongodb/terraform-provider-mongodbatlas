@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -34,6 +35,10 @@ func decodeStateID(stateID string) map[string]string {
 
 func valRegion(reg any, opt ...string) (string, error) {
 	return config.ValRegion(reg, opt...)
+}
+
+func removeLabel(list []matlas.Label, item matlas.Label) []matlas.Label {
+	return config.RemoveLabel(list, item)
 }
 
 func pointer[T any](x T) *T {

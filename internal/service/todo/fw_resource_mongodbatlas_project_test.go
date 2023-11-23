@@ -32,8 +32,8 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t); testCheckTeamsIds(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
@@ -132,8 +132,8 @@ func TestAccProjectRSProject_CreateWithProjectOwner(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasicOwnerID(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasicOwnerID(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
@@ -160,7 +160,7 @@ func TestAccProjectRSGovProject_CreateWithProjectOwner(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckGov(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
@@ -185,8 +185,8 @@ func TestAccProjectRSProject_CreateWithFalseDefaultSettings(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasicOwnerID(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasicOwnerID(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todo.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
@@ -212,8 +212,8 @@ func TestAccProjectRSProject_CreateWithFalseDefaultAdvSettings(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasicOwnerID(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasicOwnerID(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todo.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
@@ -241,8 +241,8 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t); testCheckTeamsIds(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
@@ -273,8 +273,8 @@ func TestAccProjectRSProject_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
@@ -301,8 +301,8 @@ func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
@@ -394,8 +394,8 @@ func TestAccProjectRSProject_withInvalidLimitName(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todo.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
@@ -419,8 +419,8 @@ func TestAccProjectRSProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{

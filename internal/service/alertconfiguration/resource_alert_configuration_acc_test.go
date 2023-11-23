@@ -10,6 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
 
@@ -22,8 +25,8 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -53,8 +56,8 @@ func TestAccConfigRSAlertConfiguration_EmptyMetricThresholdConfig(t *testing.T) 
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -73,8 +76,8 @@ func TestAccConfigRSAlertConfiguration_EmptyMatcherMetricThresholdConfig(t *test
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -97,8 +100,8 @@ func TestAccConfigRSAlertConfiguration_Notifications(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -128,8 +131,8 @@ func TestAccConfigRSAlertConfiguration_WithMatchers(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -179,8 +182,8 @@ func TestAccConfigRSAlertConfiguration_withMetricUpdated(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -210,8 +213,8 @@ func TestAccConfigRSAlertConfiguration_whitThresholdUpdated(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -248,8 +251,8 @@ func TestAccConfigRSAlertConfiguration_whitoutRoles(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -272,8 +275,8 @@ func TestAccConfigRSAlertConfiguration_withoutOptionalAttributes(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -295,8 +298,8 @@ func TestAccConfigRSAlertConfiguration_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -321,8 +324,8 @@ func TestAccConfigRSAlertConfiguration_importIncorrectId(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -346,8 +349,8 @@ func TestAccConfigRSAlertConfiguration_importConfigNotifications(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -379,8 +382,8 @@ func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -412,8 +415,8 @@ func TestAccConfigRSAlertConfiguration_UpdatePagerDutyWithNotifierId(t *testing.
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -448,8 +451,8 @@ func TestAccConfigRSAlertConfiguration_DataDog(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -473,8 +476,8 @@ func TestAccConfigRSAlertConfiguration_PagerDuty(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -498,8 +501,8 @@ func TestAccConfigRSAlertConfiguration_OpsGenie(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -523,8 +526,8 @@ func TestAccConfigRSAlertConfiguration_VictorOps(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -540,7 +543,7 @@ func TestAccConfigRSAlertConfiguration_VictorOps(t *testing.T) {
 
 func testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName string, alert *admin.GroupAlertsConfig) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connV2 := testMongoDBClient.(*MongoDBClient).AtlasV2
+		connV2 := todoacc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -551,7 +554,7 @@ func testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName string, alert
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		alertResp, _, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID]).Execute()
 		if err != nil {
@@ -565,14 +568,14 @@ func testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName string, alert
 }
 
 func testAccCheckMongoDBAtlasAlertConfigurationDestroy(s *terraform.State) error {
-	conn := testMongoDBClient.(*MongoDBClient).Atlas
+	conn := todoacc.TestMongoDBClient.(*config.MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_alert_configuration" {
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID])
 		if alert != nil {

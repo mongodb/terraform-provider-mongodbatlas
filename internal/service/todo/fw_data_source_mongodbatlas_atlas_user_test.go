@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
@@ -20,8 +22,8 @@ func TestAccConfigDSAtlasUser_ByUserID(t *testing.T) {
 		user           = fetchUser(userID, t)
 	)
 	resource.Test(t, resource.TestCase{ // does not run in parallel to avoid changes in fetched user during execution
-		PreCheck:                 func() { testAccPreCheckBasic(t); testAccPreCheckBasicOwnerID(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckBasicOwnerID(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasUserByUserID(userID),
@@ -41,8 +43,8 @@ func TestAccConfigDSAtlasUser_ByUsername(t *testing.T) {
 		user           = fetchUserByUsername(username, t)
 	)
 	resource.Test(t, resource.TestCase{ // does not run in parallel to avoid changes in fetched user during execution
-		PreCheck:                 func() { testAccPreCheckBasic(t); testAccPreCheckAtlasUsername(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t); testAccPreCheckAtlasUsername(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasUserByUsername(username),
@@ -72,8 +74,8 @@ func dataSourceChecksForUser(dataSourceName, attrPrefix string, user *admin.Clou
 
 func TestAccConfigDSAtlasUser_InvalidAttrCombination(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccDSMongoDBAtlasUserInvalidAttr(),

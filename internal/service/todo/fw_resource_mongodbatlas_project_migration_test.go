@@ -62,7 +62,7 @@ func TestAccMigrationProjectRS_NoProps(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 				Config: fmt.Sprintf(`resource "mongodbatlas_project" "test" {
 					name   = "%s"
 					org_id = "%s"
@@ -125,7 +125,7 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 				Config:                   configWithTeams,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -169,7 +169,7 @@ func TestAccMigrationProjectRS_WithFalseDefaultSettings(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 				Config:                   configWithTeams,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -222,7 +222,7 @@ func TestAccMigrationProjectRS_WithLimits(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 				Config:                   config,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -264,7 +264,7 @@ func TestAccMigrationProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T)
 				),
 			},
 			{
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -306,7 +306,7 @@ func TestAccMigrationProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T)
 				),
 			},
 			{
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(orgID, projectName, cidrBlock, comment),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -363,7 +363,7 @@ func TestAccMigrationProjectRSProjectIPAccessList_Multiple_SettingMultiple(t *te
 				),
 			},
 			{
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasProjectIPAccessListConfigSettingMultiple(projectName, orgID, accessList, false),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{

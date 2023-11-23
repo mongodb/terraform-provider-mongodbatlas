@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 )
 
@@ -20,8 +21,8 @@ func TestAccSearchDeployment_basic(t *testing.T) {
 		clusterName  = acctest.RandomWithPrefix("test-acc-search-dep")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchNodeDestroy,
 		Steps: []resource.TestStep{
 			newSearchNodeTestStep(resourceName, orgID, projectName, clusterName, "S20_HIGHCPU_NVME", 3),

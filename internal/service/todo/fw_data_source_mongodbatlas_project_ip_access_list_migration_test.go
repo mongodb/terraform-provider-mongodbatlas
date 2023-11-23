@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 )
 
 func TestAccMigrationProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T) {
@@ -38,7 +39,7 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T)
 				),
 			},
 			{
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 				Config:                   testAccDataMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -79,7 +80,7 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T)
 				),
 			},
 			{
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 				Config:                   testAccDataMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(orgID, projectName, cidrBlock, comment),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -129,7 +130,7 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingAWSSecurityGroup(t *tes
 				),
 			},
 			{
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 				Config:                   testAccDataMongoDBAtlasProjectIPAccessListConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{

@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -24,8 +26,8 @@ func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -69,8 +71,8 @@ func TestAccConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -100,8 +102,8 @@ func TestAccConfigRSDatabaseUser_withX509TypeManaged(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -130,8 +132,8 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -164,8 +166,8 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType_import(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -201,8 +203,8 @@ func TestAccConfigRSDatabaseUser_WithLabels(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -282,8 +284,8 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -348,8 +350,8 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -410,8 +412,8 @@ func TestAccConfigRSDatabaseUser_withScopesAndEmpty(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -465,8 +467,8 @@ func TestAccConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -494,8 +496,8 @@ func TestAccConfigRSDatabaseUser_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -530,8 +532,8 @@ func TestAccConfigRSDatabaseUser_importX509TypeCustomer(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -567,8 +569,8 @@ func TestAccConfigRSDatabaseUser_importLDAPAuthType(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{

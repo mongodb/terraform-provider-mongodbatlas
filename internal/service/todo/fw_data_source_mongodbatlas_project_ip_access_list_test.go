@@ -7,6 +7,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 )
 
 func TestAccProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T) {
@@ -17,8 +19,8 @@ func TestAccProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T) {
 	comment := fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
@@ -42,8 +44,8 @@ func TestAccProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 	comment := fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(orgID, projectName, cidrBlock, comment),
@@ -75,7 +77,7 @@ func TestAccProjectDSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),

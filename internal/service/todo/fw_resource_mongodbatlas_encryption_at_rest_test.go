@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	"github.com/mwielbut/pointy"
 )
 
@@ -123,7 +124,7 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t); testCheckAwsEnv(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -190,7 +191,7 @@ func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t); testCheckEncryptionAtRestEnvAzure(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -248,7 +249,7 @@ func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t); testAccPreCheckGPCEnv(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -305,7 +306,7 @@ func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 				Source:            "hashicorp/aws",
 			},
 		},
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
