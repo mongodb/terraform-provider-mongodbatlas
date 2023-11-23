@@ -21,7 +21,7 @@
 - fix: Update issues.yml to remove assignee [\#1649](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1649) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - fix: \(INTMDB-1312\) It is not possible to add breaking change label to PR [\#1647](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1647) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - doc: addresses outstanding comments from 1.13.0 docs release [\#1648](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1648) ([oarbusi](https://github.com/oarbusi))
-- chore: migrates `alert_configuration` to new SDK [\#1630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1630) ([oarbusi](https://github.com/oarbusi))
+- chore: migrates `mongodbatlas_alert_configuration` to new SDK [\#1630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1630) ([oarbusi](https://github.com/oarbusi))
 - chore: Bump github.com/hashicorp/terraform-plugin-go from 0.19.0 to 0.19.1 [\#1652](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1652) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore: Bump github.com/aws/aws-sdk-go from 1.47.11 to 1.48.2 [\#1651](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1651) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore: Bump tj-actions/verify-changed-files from 82a523f60ad6816c35b418520f84629024d70e1e to 2e93a84b325e5c4d3544924aee8afb7e1ffe189f [\#1650](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1650) ([dependabot[bot]](https://github.com/apps/dependabot))
