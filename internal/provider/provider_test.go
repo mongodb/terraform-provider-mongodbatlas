@@ -2,7 +2,6 @@ package provider_test
 
 import (
 	"os"
-	"strings"
 	"testing"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -37,12 +36,6 @@ func TestRemoveLabel(t *testing.T) {
 
 	if diff := deep.Equal(expected, got); diff != nil {
 		t.Fatalf("Bad removeLabel return \n got = %#v\nwant = %#v \ndiff = %#v", got, expected, diff)
-	}
-}
-
-func SkipTestExtCred(tb testing.TB) {
-	if strings.EqualFold(os.Getenv("SKIP_TEST_EXTERNAL_CREDENTIALS"), "true") {
-		tb.Skip()
 	}
 }
 

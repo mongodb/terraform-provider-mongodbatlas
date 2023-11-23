@@ -26,3 +26,9 @@ func SkipTestForCI(tb testing.TB) {
 		tb.Skip()
 	}
 }
+
+func SkipTestExtCred(tb testing.TB) {
+	if strings.EqualFold(os.Getenv("SKIP_TEST_EXTERNAL_CREDENTIALS"), "true") {
+		tb.Skip()
+	}
+}
