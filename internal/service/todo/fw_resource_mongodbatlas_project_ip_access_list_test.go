@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 )
 
 func TestAccProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T) {
@@ -27,7 +26,7 @@ func TestAccProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -68,7 +67,7 @@ func TestAccProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -115,7 +114,7 @@ func TestAccProjectRSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -176,7 +175,7 @@ func TestAccProjectRSProjectIPAccessList_SettingMultiple(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -208,7 +207,7 @@ func TestAccProjectRSProjectIPAccessList_importBasic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -233,7 +232,7 @@ func TestAccProjectRSProjectIPAccessList_importIncorrectId(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -251,7 +250,7 @@ func TestAccProjectRSProjectIPAccessList_importIncorrectId(t *testing.T) {
 
 func testAccCheckMongoDBAtlasProjectIPAccessListExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := todoacc.TestMongoDBClient.(*config.MongoDBClient).Atlas
+		conn := acc.TestMongoDBClient.(*config.MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -274,7 +273,7 @@ func testAccCheckMongoDBAtlasProjectIPAccessListExists(resourceName string) reso
 }
 
 func testAccCheckMongoDBAtlasProjectIPAccessListDestroy(s *terraform.State) error {
-	conn := todoacc.TestMongoDBClient.(*config.MongoDBClient).Atlas
+	conn := acc.TestMongoDBClient.(*config.MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_project_ip_access_list" {

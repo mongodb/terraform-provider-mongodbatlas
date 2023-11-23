@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -30,7 +30,7 @@ func TestAccNetworkRSNetworkPeering_basicAWS(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t); testCheckPeeringEnvAWS(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -70,7 +70,7 @@ func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t); testCheckPeeringEnvAzure(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -108,7 +108,7 @@ func TestAccNetworkRSNetworkPeering_basicGCP(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t); testCheckPeeringEnvGCP(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -159,7 +159,7 @@ func TestAccNetworkRSNetworkPeering_AWSDifferentRegionName(t *testing.T) {
 				}
 			}()
 		},
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -213,7 +213,7 @@ func testAccCheckMongoDBAtlasNetworkPeeringImportStateIDFunc(resourceName string
 
 func testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName string, peer *matlas.Peer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -239,7 +239,7 @@ func testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName string, peer *mat
 }
 
 func testAccCheckMongoDBAtlasNetworkPeeringDestroy(s *terraform.State) error {
-	conn := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_network_peering" {

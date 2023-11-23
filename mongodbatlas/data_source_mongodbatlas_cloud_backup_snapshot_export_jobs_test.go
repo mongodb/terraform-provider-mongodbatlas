@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 func TestAccBackupDSCloudBackupSnapshotExportJobs_basic(t *testing.T) {
@@ -20,7 +20,7 @@ func TestAccBackupDSCloudBackupSnapshotExportJobs_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataSourceCloudBackupSnapshotExportJobsConfig(projectID, bucketName, iamRoleID),

@@ -113,7 +113,7 @@ func testCheckPeeringEnvAWS(tb testing.TB) {
 /*
 type MongoDBClient = config.MongoDBClient
 
-var todoacc.TestAccProviderV6Factories map[string]func() (tfprotov6.ProviderServer, error)
-var todoacc.TestAccProviderSdkV2 *schema.Provider
+var acc.TestAccProviderV6Factories map[string]func() (tfprotov6.ProviderServer, error)
+var acc.TestAccProviderSdkV2 *schema.Provider
 var testMongoDBClient any
 */

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 )
 
@@ -29,7 +29,7 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -69,7 +69,7 @@ func TestAccSearchIndexRS_withSearchType(t *testing.T) {
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -109,7 +109,7 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -154,7 +154,7 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -203,7 +203,7 @@ func TestAccSearchIndexRS_importBasic(t *testing.T) {
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -243,7 +243,7 @@ func TestAccSearchIndexRS_withVector(t *testing.T) {
 	}
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -287,7 +287,7 @@ func testAccCheckSearchIndexExists(resourceName string) resource.TestCheckFunc {
 		}
 		ids := decodeStateID(rs.Primary.ID)
 
-		connV2 := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).AtlasV2
+		connV2 := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).AtlasV2
 		_, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(context.Background(), ids["project_id"], ids["cluster_name"], ids["index_id"]).Execute()
 		if err != nil {
 			return fmt.Errorf("index (%s) does not exist", ids["index_id"])
@@ -458,7 +458,7 @@ func testAccCheckMongoDBAtlasSearchIndexDestroy(state *terraform.State) error {
 	if os.Getenv("MONGODB_ATLAS_CLUSTER_NAME") != "" {
 		return nil
 	}
-	conn := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type != "mongodbatlas_search_index" {

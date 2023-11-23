@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 )
 
 func TestAccProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T) {
@@ -20,7 +19,7 @@ func TestAccProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
@@ -45,7 +44,7 @@ func TestAccProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(orgID, projectName, cidrBlock, comment),
@@ -77,7 +76,7 @@ func TestAccProjectDSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
@@ -25,7 +25,7 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstSteps(name, projectName, orgID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -37,7 +37,7 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstStepsUpdate(name, projectName, orgID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -50,7 +50,7 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 			},
 			{
 				ResourceName:             resourceName,
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				ImportStateIdFunc:        testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFunc(resourceName),
 				ImportState:              true,
 				ImportStateVerify:        true,
@@ -83,7 +83,7 @@ func TestAccFederatedDatabaseInstance_S3bucket(t *testing.T) {
 						Source:            "hashicorp/aws",
 					},
 				},
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasFederatedDatabaseInstanceConfigS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, region),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -92,7 +92,7 @@ func TestAccFederatedDatabaseInstance_S3bucket(t *testing.T) {
 			},
 			{
 				ResourceName:             resourceName,
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				ImportStateIdFunc:        testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFuncS3Bucket(resourceName, testS3Bucket),
 				ImportState:              true,
 				ImportStateVerify:        true,
@@ -114,7 +114,7 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasFederatedDatabaseInstanceAtlasProviderConfig(projectName, orgID, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -265,7 +265,7 @@ func testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFunc(resource
 }
 
 func testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy(s *terraform.State) error {
-	connV2 := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).AtlasV2
+	connV2 := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).AtlasV2
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_federated_database_instance" {

@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 func TestAccConfigDSTeam_basic(t *testing.T) {
@@ -20,8 +20,8 @@ func TestAccConfigDSTeam_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
-		CheckDestroy:             todoacc.CheckDestroyTeam,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyTeam,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceMongoDBAtlasTeamConfig(orgID, name, username),
@@ -46,8 +46,8 @@ func TestAccConfigDSTeamByName_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
-		CheckDestroy:             todoacc.CheckDestroyTeam,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyTeam,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceMongoDBAtlasTeamConfigByName(orgID, name, username),

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -30,7 +30,7 @@ func TestAccAdvRSLDAPConfiguration_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t); testCheckLDAP(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasLDAPConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -67,7 +67,7 @@ func TestAccAdvRSLDAPConfigurationWithVerify_CACertificateComplete(t *testing.T)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t); testCheckLDAP(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasLDAPConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -115,7 +115,7 @@ func TestAccAdvRSLDAPConfiguration_importBasic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t); testCheckLDAP(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasLDAPConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -143,7 +143,7 @@ func TestAccAdvRSLDAPConfiguration_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasLDAPConfigurationExists(resourceName string, ldapConf *matlas.LDAPConfiguration) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -166,7 +166,7 @@ func testAccCheckMongoDBAtlasLDAPConfigurationExists(resourceName string, ldapCo
 }
 
 func testAccCheckMongoDBAtlasLDAPConfigurationDestroy(s *terraform.State) error {
-	conn := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_ldap_configuration" {

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -25,7 +25,7 @@ func TestAccConfigRSCustomDBRoles_Basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -129,7 +129,7 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -332,7 +332,7 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -405,7 +405,7 @@ func TestAccConfigRSCustomDBRoles_MultipleResources(t *testing.T) {
 		t.Run(roleName, func(t *testing.T) {
 			resource.ParallelTest(t, resource.TestCase{
 				PreCheck:                 func() { testAccPreCheckBasic(t) },
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 				Steps: []resource.TestStep{
 					{
@@ -438,7 +438,7 @@ func TestAccConfigRSCustomDBRoles_importBasic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -535,7 +535,7 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -588,7 +588,7 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 
 func testAccCheckMongoDBAtlasCustomDBRolesExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -611,7 +611,7 @@ func testAccCheckMongoDBAtlasCustomDBRolesExists(resourceName string) resource.T
 }
 
 func testAccCheckMongoDBAtlasCustomDBRolesDestroy(s *terraform.State) error {
-	conn := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_custom_db_role" {

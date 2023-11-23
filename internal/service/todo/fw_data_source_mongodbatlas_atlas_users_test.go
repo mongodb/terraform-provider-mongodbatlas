@@ -13,7 +13,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/todo"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
 
@@ -29,7 +28,7 @@ func TestAccConfigDSAtlasUsers_ByOrgID(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{ // does not run in parallel to avoid changes in fetched users during execution
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasUsersByOrgID(orgID),
@@ -49,8 +48,8 @@ func TestAccConfigDSAtlasUsers_ByProjectID(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckBasicOwnerID(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
-		CheckDestroy:             todoacc.CheckDestroyProject,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasUsersByProjectID(projectName, orgID, projectOwnerID),
@@ -80,8 +79,8 @@ func TestAccConfigDSAtlasUsers_ByTeamID(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckAtlasUsername(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
-		CheckDestroy:             todoacc.CheckDestroyTeam,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyTeam,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasUsersByTeamID(orgID, teamName, username),
@@ -114,8 +113,8 @@ func TestAccConfigDSAtlasUsers_UsingPagination(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckAtlasUsername(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
-		CheckDestroy:             todoacc.CheckDestroyTeam,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyTeam,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasUsersByTeamWithPagination(orgID, teamName, username, itemsPerPage, pageNum),
@@ -191,7 +190,7 @@ func TestAccConfigDSAtlasUsers_InvalidAttrCombinations(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			resource.ParallelTest(t, resource.TestCase{
 				PreCheck:                 func() { acc.PreCheckBasic(t) },
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Steps: []resource.TestStep{
 					{
 						Config:      tt.config,
@@ -204,7 +203,7 @@ func TestAccConfigDSAtlasUsers_InvalidAttrCombinations(t *testing.T) {
 }
 
 func fetchOrgUsers(orgID string, t *testing.T) *admin.PaginatedAppUser {
-	connV2 := todoacc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
+	connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 	users, _, err := connV2.OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
 	if err != nil {
 		t.Fatalf("the Atlas Users for Org(%s) could not be fetched: %v", orgID, err)
@@ -286,7 +285,7 @@ func testAccDSMongoDBAtlasUsersByTeamWithPagination(orgID, teamName, username st
 
 func testAccCheckMongoDBAtlasOrgWithUsersExists(dataSourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connV2 := todoacc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
+		connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 
 		rs, ok := s.RootModule().Resources[dataSourceName]
 		if !ok {

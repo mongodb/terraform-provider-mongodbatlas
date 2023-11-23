@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -27,7 +27,7 @@ func TestAccProjectRSProjectInvitation_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectInvitationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -73,7 +73,7 @@ func TestAccProjectRSProjectInvitation_importBasic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectInvitationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -99,7 +99,7 @@ func TestAccProjectRSProjectInvitation_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasProjectInvitationExists(t *testing.T, resourceName string, invitation *matlas.Invitation) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -157,7 +157,7 @@ func testAccCheckMongoDBAtlasProjectInvitationRoleAttribute(invitation *matlas.I
 }
 
 func testAccCheckMongoDBAtlasProjectInvitationDestroy(s *terraform.State) error {
-	conn := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_invitations" {

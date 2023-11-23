@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 func TestAccConfigDSOrganization_basic(t *testing.T) {
@@ -14,7 +14,7 @@ func TestAccConfigDSOrganization_basic(t *testing.T) {
 		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasOrganizationConfigWithDS(orgID),

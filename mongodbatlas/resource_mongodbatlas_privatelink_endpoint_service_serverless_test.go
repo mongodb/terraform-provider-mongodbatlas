@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 func TestAccServerlessPrivateLinkEndpointService_basic(t *testing.T) {
@@ -25,7 +25,7 @@ func TestAccServerlessPrivateLinkEndpointService_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasPrivateLinkEndpointServiceServerlessDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -54,7 +54,7 @@ func TestAccServerlessPrivateLinkEndpointService_importBasic(t *testing.T) {
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -76,7 +76,7 @@ func TestAccServerlessPrivateLinkEndpointService_importBasic(t *testing.T) {
 }
 
 func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceServerlessDestroy(state *terraform.State) error {
-	conn := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type != "mongodbatlas_privatelink_endpoint_service_serverless" {
@@ -151,7 +151,7 @@ func testAccMongoDBAtlasPrivateLinkEndpointServiceServerlessConfig(orgID, projec
 
 func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceServerlessExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

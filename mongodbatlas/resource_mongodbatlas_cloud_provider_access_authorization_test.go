@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 func TestAccConfigRSCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
@@ -27,7 +27,7 @@ func TestAccConfigRSCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
 				Source:            "hashicorp/aws",
 			},
 		},
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		// same as regular cloud provider access resource
 		CheckDestroy: testAccCheckMongoDBAtlasProviderAccessDestroy,
 		Steps: []resource.TestStep{
@@ -53,7 +53,7 @@ func TestAccConfigRSCloudProviderAccessAuthorizationAzure_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckCloudProviderAccessAzure(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProviderAccessDestroy,
 		Steps: []resource.TestStep{
 			{

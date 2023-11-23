@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 )
 
@@ -61,7 +61,7 @@ func TestAccMigrationNetworkRSPrivateLinkEndpointService_Complete(t *testing.T) 
 						Source:            "hashicorp/aws",
 					},
 				},
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(
 					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, resourceSuffix,
 				),

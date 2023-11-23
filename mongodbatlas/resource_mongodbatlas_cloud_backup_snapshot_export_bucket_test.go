@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -23,7 +23,7 @@ func TestAccBackupRSBackupSnapshotExportBucket_basic(t *testing.T) {
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasBackupSnapshotExportBucketDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -50,7 +50,7 @@ func TestAccBackupRSBackupSnapshotExportBucket_importBasic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasBackupSnapshotExportBucketDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -68,7 +68,7 @@ func TestAccBackupRSBackupSnapshotExportBucket_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasBackupSnapshotExportBucketExists(resourceName string, snapshotExportBucket *matlas.CloudProviderSnapshotExportBucket) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -92,7 +92,7 @@ func testAccCheckMongoDBAtlasBackupSnapshotExportBucketExists(resourceName strin
 }
 
 func testAccCheckMongoDBAtlasBackupSnapshotExportBucketDestroy(state *terraform.State) error {
-	conn := todoacc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type != "mongodbatlas_cloud_backup_snapshot_export_bucket" {

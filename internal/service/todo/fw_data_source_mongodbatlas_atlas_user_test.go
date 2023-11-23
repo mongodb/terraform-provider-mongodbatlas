@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
@@ -24,7 +23,7 @@ func TestAccConfigDSAtlasUser_ByUserID(t *testing.T) {
 	)
 	resource.Test(t, resource.TestCase{ // does not run in parallel to avoid changes in fetched user during execution
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckBasicOwnerID(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasUserByUserID(userID),
@@ -45,7 +44,7 @@ func TestAccConfigDSAtlasUser_ByUsername(t *testing.T) {
 	)
 	resource.Test(t, resource.TestCase{ // does not run in parallel to avoid changes in fetched user during execution
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckAtlasUsername(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasUserByUsername(username),
@@ -76,7 +75,7 @@ func dataSourceChecksForUser(dataSourceName, attrPrefix string, user *admin.Clou
 func TestAccConfigDSAtlasUser_InvalidAttrCombination(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccDSMongoDBAtlasUserInvalidAttr(),
@@ -87,7 +86,7 @@ func TestAccConfigDSAtlasUser_InvalidAttrCombination(t *testing.T) {
 }
 
 func fetchUser(userID string, t *testing.T) *admin.CloudAppUser {
-	connV2 := todoacc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
+	connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 	userResp, _, err := connV2.MongoDBCloudUsersApi.GetUser(context.Background(), userID).Execute()
 	if err != nil {
 		t.Fatalf("the Atlas User (%s) could not be fetched: %v", userID, err)
@@ -96,7 +95,7 @@ func fetchUser(userID string, t *testing.T) *admin.CloudAppUser {
 }
 
 func fetchUserByUsername(username string, t *testing.T) *admin.CloudAppUser {
-	connV2 := todoacc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
+	connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 
 	userResp, _, err := connV2.MongoDBCloudUsersApi.GetUserByUsername(context.Background(), username).Execute()
 	if err != nil {

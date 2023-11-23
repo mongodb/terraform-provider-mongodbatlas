@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	"github.com/mwielbut/pointy"
 )
 
@@ -126,7 +125,7 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -193,7 +192,7 @@ func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckEncryptionAtRestEnvAzure(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -251,7 +250,7 @@ func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckGPCEnv(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -308,7 +307,7 @@ func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 				Source:            "hashicorp/aws",
 			},
 		},
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -334,7 +333,7 @@ func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 
 func testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := todoacc.TestMongoDBClient.(*config.MongoDBClient).Atlas
+		conn := acc.TestMongoDBClient.(*config.MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -354,7 +353,7 @@ func testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName string) resourc
 }
 
 func testAccCheckMongoDBAtlasEncryptionAtRestDestroy(s *terraform.State) error {
-	conn := todoacc.TestMongoDBClient.(*config.MongoDBClient).Atlas
+	conn := acc.TestMongoDBClient.(*config.MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_encryption_at_rest" {

@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 )
 
@@ -44,7 +43,7 @@ func TestAccMigrationConfigRSDatabaseUser_Basic(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasDatabaseUserConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -87,7 +86,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithX509TypeCustomer(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasDatabaseUserWithX509TypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -128,7 +127,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithAWSIAMType(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasDatabaseUserWithAWSIAMTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -185,7 +184,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithLabels(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config: testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectName, orgID, "atlasAdmin", username,
 					[]matlas.Label{
 						{
@@ -237,7 +236,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithEmptyLabels(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectName, orgID, "atlasAdmin", username, []matlas.Label{}),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -293,7 +292,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithRoles(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config: testAccMongoDBAtlasDatabaseUserWithRoles(username, password, projectName, orgID,
 					[]*matlas.Role{
 						{
@@ -357,7 +356,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config: testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
 					[]*matlas.Scope{
 						{
@@ -410,7 +409,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopesAndEmpty(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config: testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
 					[]*matlas.Scope{},
 				),
@@ -454,7 +453,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithLDAPAuthType(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasDatabaseUserWithLDAPAuthTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{

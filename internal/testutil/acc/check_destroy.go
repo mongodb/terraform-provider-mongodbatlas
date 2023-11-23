@@ -1,4 +1,4 @@
-package todoacc
+package acc
 
 import (
 	"context"

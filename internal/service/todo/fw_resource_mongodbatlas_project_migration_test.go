@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 )
 
@@ -26,7 +25,7 @@ func TestAccMigrationProjectRS_NoProps(t *testing.T) {
 	)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
-		CheckDestroy: todoacc.CheckDestroyProject,
+		CheckDestroy: acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
@@ -44,7 +43,7 @@ func TestAccMigrationProjectRS_NoProps(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config: fmt.Sprintf(`resource "mongodbatlas_project" "test" {
 					name   = "%s"
 					org_id = "%s"
@@ -88,7 +87,7 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
-		CheckDestroy: todoacc.CheckDestroyProject,
+		CheckDestroy: acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
@@ -107,7 +106,7 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configWithTeams,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -133,7 +132,7 @@ func TestAccMigrationProjectRS_WithFalseDefaultSettings(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasicOwnerIDMigration(t) },
-		CheckDestroy: todoacc.CheckDestroyProject,
+		CheckDestroy: acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
@@ -151,7 +150,7 @@ func TestAccMigrationProjectRS_WithFalseDefaultSettings(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configWithTeams,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -184,7 +183,7 @@ func TestAccMigrationProjectRS_WithLimits(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
-		CheckDestroy: todoacc.CheckDestroyProject,
+		CheckDestroy: acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
@@ -204,7 +203,7 @@ func TestAccMigrationProjectRS_WithLimits(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   config,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -246,7 +245,7 @@ func TestAccMigrationProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T)
 				),
 			},
 			{
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -288,7 +287,7 @@ func TestAccMigrationProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T)
 				),
 			},
 			{
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(orgID, projectName, cidrBlock, comment),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -345,7 +344,7 @@ func TestAccMigrationProjectRSProjectIPAccessList_Multiple_SettingMultiple(t *te
 				),
 			},
 			{
-				ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasProjectIPAccessListConfigSettingMultiple(projectName, orgID, accessList, false),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{

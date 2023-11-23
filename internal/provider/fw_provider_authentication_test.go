@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -20,8 +19,8 @@ func TestAccSTSAssumeRole_basic(t *testing.T) {
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckSTSAssumeRole(t); acc.PreCheckRegularCredsAreEmpty(t) },
-		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
-		CheckDestroy:             todoacc.CheckDestroyProject,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ProjectConfig(projectName, orgID,
