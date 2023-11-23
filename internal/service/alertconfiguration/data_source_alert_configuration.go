@@ -259,7 +259,7 @@ func (d *alertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequ
 	projectID := alertConfigurationConfig.ProjectID.ValueString()
 
 	// this is very hard to follow as the data source currently receieves the alert_configuration resource id in alert_configuration_id attribute
-	alertID := config.GetEncodedID(alertConfigurationConfig.AlertConfigurationID.ValueString(), encodedIDKeyAlertID)
+	alertID := config.GetEncodedID(alertConfigurationConfig.AlertConfigurationID.ValueString(), EncodedIDKeyAlertID)
 	outputs := alertConfigurationConfig.Output
 
 	connV2 := d.Client.AtlasV2
@@ -299,8 +299,8 @@ func computeAlertConfigurationOutput(alert *admin.GroupAlertsConfig, definedOutp
 func newTFAlertConfigurationDSModel(apiRespConfig *admin.GroupAlertsConfig, projectID string) tfAlertConfigurationDSModel {
 	return tfAlertConfigurationDSModel{
 		ID: types.StringValue(config.EncodeStateID(map[string]string{
-			encodedIDKeyAlertID:   *apiRespConfig.Id,
-			encodedIDKeyProjectID: projectID,
+			EncodedIDKeyAlertID:   *apiRespConfig.Id,
+			EncodedIDKeyProjectID: projectID,
 		})),
 		ProjectID:             types.StringValue(projectID),
 		AlertConfigurationID:  types.StringValue(*apiRespConfig.Id),

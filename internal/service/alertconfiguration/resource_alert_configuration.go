@@ -34,8 +34,8 @@ const (
 	pagerDuty                      = "PAGER_DUTY"
 	opsGenie                       = "OPS_GENIE"
 	victorOps                      = "VICTOR_OPS"
-	encodedIDKeyAlertID            = "id"
-	encodedIDKeyProjectID          = "project_id"
+	EncodedIDKeyAlertID            = "id"
+	EncodedIDKeyProjectID          = "project_id"
 )
 
 var _ resource.ResourceWithConfigure = &alertConfigurationRS{}
@@ -404,8 +404,8 @@ func (r *alertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	encodedID := config.EncodeStateID(map[string]string{
-		encodedIDKeyAlertID:   util.SafeString(apiResp.Id),
-		encodedIDKeyProjectID: projectID,
+		EncodedIDKeyAlertID:   util.SafeString(apiResp.Id),
+		EncodedIDKeyProjectID: projectID,
 	})
 	alertConfigPlan.ID = types.StringValue(encodedID)
 
@@ -428,7 +428,7 @@ func (r *alertConfigurationRS) Read(ctx context.Context, req resource.ReadReques
 
 	ids := config.DecodeStateID(alertConfigState.ID.ValueString())
 
-	alert, getResp, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID]).Execute()
+	alert, getResp, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[EncodedIDKeyProjectID], ids[EncodedIDKeyAlertID]).Execute()
 	if err != nil {
 		// deleted in the backend case
 		if getResp != nil && getResp.StatusCode == http.StatusNotFound {
@@ -459,7 +459,7 @@ func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 
 	// In order to update an alert config it is necessary to send the original alert configuration request again, if not the
 	// server returns an error 500
-	apiReq, _, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(ctx, ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID]).Execute()
+	apiReq, _, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(ctx, ids[EncodedIDKeyProjectID], ids[EncodedIDKeyAlertID]).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(errorReadAlertConf, err.Error())
 		return
@@ -505,9 +505,9 @@ func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 		reflect.DeepEqual(apiReq, &admin.GroupAlertsConfig{Enabled: pointy.Bool(false)}) {
 		// this code seems unreachable, as notifications are always being set
 		updatedAlertConfigResp, _, err = connV2.AlertConfigurationsApi.ToggleAlertConfiguration(
-			context.Background(), ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID], &admin.AlertsToggle{Enabled: apiReq.Enabled}).Execute()
+			context.Background(), ids[EncodedIDKeyProjectID], ids[EncodedIDKeyAlertID], &admin.AlertsToggle{Enabled: apiReq.Enabled}).Execute()
 	} else {
-		updatedAlertConfigResp, _, err = connV2.AlertConfigurationsApi.UpdateAlertConfiguration(context.Background(), ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID], apiReq).Execute()
+		updatedAlertConfigResp, _, err = connV2.AlertConfigurationsApi.UpdateAlertConfiguration(context.Background(), ids[EncodedIDKeyProjectID], ids[EncodedIDKeyAlertID], apiReq).Execute()
 	}
 
 	if err != nil {
@@ -532,7 +532,7 @@ func (r *alertConfigurationRS) Delete(ctx context.Context, req resource.DeleteRe
 
 	ids := config.DecodeStateID(alertConfigState.ID.ValueString())
 
-	_, err := conn.AlertConfigurations.Delete(ctx, ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID])
+	_, err := conn.AlertConfigurations.Delete(ctx, ids[EncodedIDKeyProjectID], ids[EncodedIDKeyAlertID])
 	if err != nil {
 		resp.Diagnostics.AddError(errorReadAlertConf, err.Error())
 	}

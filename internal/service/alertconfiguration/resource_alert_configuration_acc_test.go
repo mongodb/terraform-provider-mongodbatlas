@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
@@ -556,9 +557,9 @@ func testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName string, alert
 
 		ids := config.DecodeStateID(rs.Primary.ID)
 
-		alertResp, _, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID]).Execute()
+		alertResp, _, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID]).Execute()
 		if err != nil {
-			return fmt.Errorf("the Alert Configuration(%s) does not exist", ids[encodedIDKeyAlertID])
+			return fmt.Errorf("the Alert Configuration(%s) does not exist", ids[alertconfiguration.EncodedIDKeyAlertID])
 		}
 
 		alert = alertResp
@@ -577,9 +578,9 @@ func testAccCheckMongoDBAtlasAlertConfigurationDestroy(s *terraform.State) error
 
 		ids := config.DecodeStateID(rs.Primary.ID)
 
-		alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID])
+		alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID])
 		if alert != nil {
-			return fmt.Errorf("the Project Alert Configuration(%s) still exists %s", ids[encodedIDKeyAlertID], err)
+			return fmt.Errorf("the Project Alert Configuration(%s) still exists %s", ids[alertconfiguration.EncodedIDKeyAlertID], err)
 		}
 	}
 

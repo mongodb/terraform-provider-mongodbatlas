@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/migration"
 )
 
 var _ plancheck.PlanCheck = debugPlan{}
@@ -43,7 +44,7 @@ func TestAccMigrationProjectRS_NoProps(t *testing.T) {
 		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
+		PreCheck:     func() { migration.PreCheckBasic(t) },
 		CheckDestroy: todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
@@ -105,7 +106,7 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
+		PreCheck:     func() { migration.PreCheckBasic(t) },
 		CheckDestroy: todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
@@ -150,7 +151,7 @@ func TestAccMigrationProjectRS_WithFalseDefaultSettings(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccMigrationPreCheckBasicOwnerID(t) },
+		PreCheck:     func() { migration.PreCheckBasicOwnerID(t) },
 		CheckDestroy: todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
@@ -201,7 +202,7 @@ func TestAccMigrationProjectRS_WithLimits(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
+		PreCheck:     func() { migration.PreCheckBasic(t) },
 		CheckDestroy: todoacc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
@@ -244,7 +245,7 @@ func TestAccMigrationProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T)
 	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
+		PreCheck:     func() { migration.PreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -286,7 +287,7 @@ func TestAccMigrationProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T)
 	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
+		PreCheck:     func() { migration.PreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -347,7 +348,7 @@ func TestAccMigrationProjectRSProjectIPAccessList_Multiple_SettingMultiple(t *te
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
+		PreCheck:     func() { migration.PreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{

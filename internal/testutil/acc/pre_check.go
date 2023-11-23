@@ -13,13 +13,6 @@ func PreCheckBasic(tb testing.TB) {
 	}
 }
 
-func MigrationPreCheck(tb testing.TB) {
-	PreCheck(tb)
-	if os.Getenv("MONGODB_ATLAS_LAST_VERSION") == "" {
-		tb.Fatal("`MONGODB_ATLAS_LAST_VERSION` must be set for migration acceptance testing")
-	}
-}
-
 func PreCheck(tb testing.TB) {
 	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
@@ -29,26 +22,12 @@ func PreCheck(tb testing.TB) {
 	}
 }
 
-func MigrationPreCheckBasic(tb testing.TB) {
-	PreCheckBasic(tb)
-	if os.Getenv("MONGODB_ATLAS_LAST_VERSION") == "" {
-		tb.Fatal("`MONGODB_ATLAS_LAST_VERSION` must be set for migration acceptance testing")
-	}
-}
-
 func PreCheckCloudProviderAccessAzure(tb testing.TB) {
 	PreCheckBasic(tb)
 	if os.Getenv("AZURE_ATLAS_APP_ID") == "" ||
 		os.Getenv("AZURE_SERVICE_PRINCIPAL_ID") == "" ||
 		os.Getenv("AZURE_TENANT_ID") == "" {
 		tb.Fatal("`AZURE_ATLAS_APP_ID`, `AZURE_SERVICE_PRINCIPAL_ID`, and `AZURE_TENANT_ID` must be set for acceptance testing")
-	}
-}
-
-func MigrationPreCheckBasicOwnerID(tb testing.TB) {
-	MigrationPreCheckBasic(tb)
-	if os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID") == "" {
-		tb.Fatal("`MONGODB_ATLAS_PROJECT_OWNER_ID` must be set ")
 	}
 }
 
