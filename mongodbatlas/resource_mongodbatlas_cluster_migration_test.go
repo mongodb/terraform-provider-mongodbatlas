@@ -22,7 +22,7 @@ func TestAccClusterRSClusterMigrateState_empty_advancedConfig(t *testing.T) {
 	}
 
 	v0Config := terraform.NewResourceConfigRaw(v0State)
-	diags := resourceMongoDBAtlasClusterResourceV0().Validate(v0Config)
+	diags := mongodbatlas.ResourceMongoDBAtlasClusterResourceV0().Validate(v0Config)
 
 	if len(diags) > 0 {
 		t.Error("test precondition failed - invalid mongodb cluster v0 config")
@@ -66,7 +66,7 @@ func TestAccClusterRSClusterMigrateState_with_advancedConfig(t *testing.T) {
 	}
 
 	v0Config := terraform.NewResourceConfigRaw(v0State)
-	diags := resourceMongoDBAtlasClusterResourceV0().Validate(v0Config)
+	diags := mongodbatlas.resourceMongoDBAtlasClusterResourceV0().Validate(v0Config)
 	if len(diags) > 0 {
 		t.Error("test precondition failed - invalid mongodb cluster v0 config")
 
@@ -109,7 +109,7 @@ func TestAccClusterRSClusterMigrateState_with_defaultAdvancedConfig_v0_5_1(t *te
 	}
 
 	v0Config := terraform.NewResourceConfigRaw(v0State)
-	diags := resourceMongoDBAtlasClusterResourceV0().Validate(v0Config)
+	diags := mongodbatlas.ResourceMongoDBAtlasClusterResourceV0().Validate(v0Config)
 	if len(diags) > 0 {
 		t.Error("test precondition failed - invalid mongodb cluster v0 config")
 

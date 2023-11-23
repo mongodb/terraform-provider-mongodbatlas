@@ -87,7 +87,7 @@ func TestAccConfigRSTeam_importBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             todo.CheckDestroyTeam,
+		CheckDestroy:             todoacc.CheckDestroyTeam,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasTeamConfig(orgID, name, []string{username}),

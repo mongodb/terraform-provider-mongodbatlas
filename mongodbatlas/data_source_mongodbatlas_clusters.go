@@ -376,7 +376,7 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 			"backup_enabled":                          clusters[i].BackupEnabled,
 			"provider_backup_enabled":                 clusters[i].ProviderBackupEnabled,
 			"cluster_type":                            clusters[i].ClusterType,
-			"connection_strings":                      flattenConnectionStrings(clusters[i].ConnectionStrings),
+			"connection_strings":                      FlattenConnectionStrings(clusters[i].ConnectionStrings),
 			"disk_size_gb":                            clusters[i].DiskSizeGB,
 			"encryption_at_rest_provider":             clusters[i].EncryptionAtRestProvider,
 			"mongo_db_major_version":                  clusters[i].MongoDBMajorVersion,

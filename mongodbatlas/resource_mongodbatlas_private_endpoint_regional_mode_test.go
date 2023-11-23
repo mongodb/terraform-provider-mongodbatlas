@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 )
 
 func TestAccNetworkRSPrivateEndpointRegionalMode_conn(t *testing.T) {
@@ -191,7 +192,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(project
 		cluster, _, _ := conn.Clusters.Get(context.Background(), projectID, clusterName)
 
 		fmt.Printf("testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate %#v \n", rs.Primary.Attributes)
-		fmt.Printf("cluster.ConnectionStrings %#v \n", flattenConnectionStrings(cluster.ConnectionStrings))
+		fmt.Printf("cluster.ConnectionStrings %#v \n", mongodbatlas.FlattenConnectionStrings(cluster.ConnectionStrings))
 
 		if rsPrivateEndpointCount != len(cluster.ConnectionStrings.PrivateEndpoint) {
 			return fmt.Errorf("Cluster PrivateEndpoint count does not match resource")

@@ -10,8 +10,16 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+const (
+	errorGetRead = "error reading cloud provider access %s"
+)
+
 func decodeStateID(stateID string) map[string]string {
 	return config.DecodeStateID(stateID)
+}
+
+func encodeStateID(values map[string]string) string {
+	return config.EncodeStateID(values)
 }
 
 func testAccPreCheckBasic(tb testing.TB) {
@@ -24,6 +32,18 @@ func testCheckAwsEnv(tb testing.TB) {
 
 func testAccPreCheck(tb testing.TB) {
 	acc.PreCheck(tb)
+}
+
+func testCheckPeeringEnvGCP(tb testing.TB) {
+	acc.PreCheckPeeringEnvGCP(tb)
+}
+
+func testCheckPeeringEnvAzure(tb testing.TB) {
+	acc.PreCheckPeeringEnvAzure(tb)
+}
+
+func testAccPreCheckCloudProviderAccessAzure(tb testing.TB) {
+	acc.PreCheckCloudProviderAccessAzure(tb)
 }
 
 func SkipTest(tb testing.TB) {

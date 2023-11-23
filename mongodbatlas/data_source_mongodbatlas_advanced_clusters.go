@@ -279,7 +279,7 @@ func flattenAdvancedClusters(ctx context.Context, conn *matlas.Client, clusters 
 			"bi_connector_config":            flattenBiConnectorConfig(clusters[i].BiConnector),
 			"cluster_type":                   clusters[i].ClusterType,
 			"create_date":                    clusters[i].CreateDate,
-			"connection_strings":             flattenConnectionStrings(clusters[i].ConnectionStrings),
+			"connection_strings":             FlattenConnectionStrings(clusters[i].ConnectionStrings),
 			"disk_size_gb":                   clusters[i].DiskSizeGB,
 			"encryption_at_rest_provider":    clusters[i].EncryptionAtRestProvider,
 			"labels":                         flattenLabels(clusters[i].Labels),

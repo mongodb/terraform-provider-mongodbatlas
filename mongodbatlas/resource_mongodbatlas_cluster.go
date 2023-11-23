@@ -634,7 +634,7 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "cluster_type", clusterName, err))
 	}
 
-	if err := d.Set("connection_strings", flattenConnectionStrings(cluster.ConnectionStrings)); err != nil {
+	if err := d.Set("connection_strings", FlattenConnectionStrings(cluster.ConnectionStrings)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "connection_strings", clusterName, err))
 	}
 
@@ -1469,7 +1469,7 @@ func formatMongoDBMajorVersion(val any) string {
 	return fmt.Sprintf("%.1f", cast.ToFloat32(val))
 }
 
-func flattenConnectionStrings(connectionStrings *matlas.ConnectionStrings) []map[string]any {
+func FlattenConnectionStrings(connectionStrings *matlas.ConnectionStrings) []map[string]any {
 	connections := make([]map[string]any, 0)
 
 	connections = append(connections, map[string]any{

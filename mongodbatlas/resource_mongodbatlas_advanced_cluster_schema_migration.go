@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func resourceMongoDBAtlasAdvancedClusterResourceV0() *schema.Resource {
+func ResourceMongoDBAtlasAdvancedClusterResourceV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -233,10 +233,10 @@ func resourceMongoDBAtlasAdvancedClusterResourceV0() *schema.Resource {
 }
 
 func resourceMongoDBAtlasAdvancedClusterStateUpgradeV0(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
-	return migrateBIConnectorConfig(rawState), nil
+	return MigrateBIConnectorConfig(rawState), nil
 }
 
-func migrateBIConnectorConfig(rawState map[string]any) map[string]any {
+func MigrateBIConnectorConfig(rawState map[string]any) map[string]any {
 	rawState["bi_connector_config"] = rawState["bi_connector"]
 	rawState["bi_connector"] = nil
 	return rawState

@@ -10,10 +10,6 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-const (
-	errorGetRead = "error reading cloud provider access %s"
-)
-
 func dataSourceMongoDBAtlasCloudProviderAccessList() *schema.Resource {
 	return &schema.Resource{
 		ReadContext:        dataSourceMongoDBAtlasCloudProviderAccessRead,

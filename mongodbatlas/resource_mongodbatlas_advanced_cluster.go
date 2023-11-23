@@ -38,7 +38,7 @@ const (
 
 var upgradeRequestCtxKey acCtxKey = "upgradeRequest"
 
-func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
+func ResourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateWithoutTimeout: resourceMongoDBAtlasAdvancedClusterCreate,
 		ReadWithoutTimeout:   resourceMongoDBAtlasAdvancedClusterRead,
@@ -50,7 +50,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
 			{
-				Type:    resourceMongoDBAtlasAdvancedClusterResourceV0().CoreConfigSchema().ImpliedType(),
+				Type:    ResourceMongoDBAtlasAdvancedClusterResourceV0().CoreConfigSchema().ImpliedType(),
 				Upgrade: resourceMongoDBAtlasAdvancedClusterStateUpgradeV0,
 				Version: 0,
 			},
@@ -534,7 +534,7 @@ func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "cluster_type", clusterName, err))
 	}
 
-	if err := d.Set("connection_strings", flattenConnectionStrings(cluster.ConnectionStrings)); err != nil {
+	if err := d.Set("connection_strings", FlattenConnectionStrings(cluster.ConnectionStrings)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "connection_strings", clusterName, err))
 	}
 

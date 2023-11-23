@@ -17,6 +17,7 @@ const (
 	AWS                                   = config.AWS
 	AZURE                                 = config.AZURE
 	errorProjectSetting                   = config.ErrorProjectSetting
+	errorGetRead                          = "error reading cloud provider access %s"
 )
 
 type MongoDBClient = config.MongoDBClient
@@ -167,7 +168,7 @@ func GetDataSourcesMap() map[string]*schema.Resource {
 
 func GetResourcesMap() map[string]*schema.Resource {
 	resourcesMap := map[string]*schema.Resource{
-		"mongodbatlas_advanced_cluster":                  resourceMongoDBAtlasAdvancedCluster(),
+		"mongodbatlas_advanced_cluster":                  ResourceMongoDBAtlasAdvancedCluster(),
 		"mongodbatlas_api_key":                           resourceMongoDBAtlasAPIKey(),
 		"mongodbatlas_access_list_api_key":               resourceMongoDBAtlasAccessListAPIKey(),
 		"mongodbatlas_project_api_key":                   resourceMongoDBAtlasProjectAPIKey(),
