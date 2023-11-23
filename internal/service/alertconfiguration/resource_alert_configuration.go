@@ -38,18 +38,18 @@ const (
 	encodedIDKeyProjectID          = "project_id"
 )
 
-var _ resource.ResourceWithConfigure = &RS{}
-var _ resource.ResourceWithImportState = &RS{}
+var _ resource.ResourceWithConfigure = &alertConfigurationRS{}
+var _ resource.ResourceWithImportState = &alertConfigurationRS{}
 
 func NewAlertConfigurationRS() resource.Resource {
-	return &RS{
+	return &alertConfigurationRS{
 		RSCommon: config.RSCommon{
 			ResourceName: alertConfigurationResourceName,
 		},
 	}
 }
 
-type RS struct {
+type alertConfigurationRS struct {
 	config.RSCommon
 }
 
@@ -114,7 +114,7 @@ type tfNotificationModel struct {
 	EmailEnabled             types.Bool   `tfsdk:"email_enabled"`
 }
 
-func (r *RS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -369,7 +369,7 @@ func (r *RS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resou
 	}
 }
 
-func (r *RS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *alertConfigurationRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	connV2 := r.Client.AtlasV2
 
 	var alertConfigPlan tfAlertConfigurationRSModel
@@ -415,7 +415,7 @@ func (r *RS) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	resp.Diagnostics.Append(resp.State.Set(ctx, newAlertConfigurationState)...)
 }
 
-func (r *RS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *alertConfigurationRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	connV2 := r.Client.AtlasV2
 
 	var alertConfigState tfAlertConfigurationRSModel
@@ -445,7 +445,7 @@ func (r *RS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newAlertConfigurationState)...)
 }
 
-func (r *RS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	connV2 := r.Client.AtlasV2
 
 	var alertConfigState, alertConfigPlan tfAlertConfigurationRSModel
@@ -521,7 +521,7 @@ func (r *RS) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newAlertConfigurationState)...)
 }
 
-func (r *RS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *alertConfigurationRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	conn := r.Client.Atlas
 
 	var alertConfigState tfAlertConfigurationRSModel
@@ -538,7 +538,7 @@ func (r *RS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	}
 }
 
-func (r *RS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *alertConfigurationRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	parts := strings.SplitN(req.ID, "-", 2)
 
 	if len(parts) != 2 {

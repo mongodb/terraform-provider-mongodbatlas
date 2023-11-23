@@ -17,8 +17,8 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
 
-var _ datasource.DataSource = &DS{}
-var _ datasource.DataSourceWithConfigure = &DS{}
+var _ datasource.DataSource = &alertConfigurationDS{}
+var _ datasource.DataSourceWithConfigure = &alertConfigurationDS{}
 
 type tfAlertConfigurationDSModel struct {
 	ID                    types.String                      `tfsdk:"id"`
@@ -42,14 +42,14 @@ type tfAlertConfigurationOutputModel struct {
 }
 
 func NewAlertConfigurationDS() datasource.DataSource {
-	return &DS{
+	return &alertConfigurationDS{
 		DSCommon: config.DSCommon{
 			DataSourceName: alertConfigurationResourceName,
 		},
 	}
 }
 
-type DS struct {
+type alertConfigurationDS struct {
 	config.DSCommon
 }
 
@@ -241,14 +241,14 @@ var alertConfigDSSchemaAttributes = map[string]schema.Attribute{
 	},
 }
 
-func (d *DS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *alertConfigurationDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: alertConfigDSSchemaAttributes,
 		Blocks:     alertConfigDSSchemaBlocks,
 	}
 }
 
-func (d *DS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *alertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var alertConfigurationConfig tfAlertConfigurationDSModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &alertConfigurationConfig)...)

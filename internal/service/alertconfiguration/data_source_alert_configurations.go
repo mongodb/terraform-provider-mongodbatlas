@@ -16,8 +16,8 @@ import (
 
 const alertConfigurationsDataSourceName = "alert_configurations"
 
-var _ datasource.DataSource = &DS{}
-var _ datasource.DataSourceWithConfigure = &DS{}
+var _ datasource.DataSource = &alertConfigurationDS{}
+var _ datasource.DataSourceWithConfigure = &alertConfigurationDS{}
 
 type tfAlertConfigurationsDSModel struct {
 	ID          types.String                  `tfsdk:"id"`
