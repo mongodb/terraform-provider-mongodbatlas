@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
@@ -15,7 +16,7 @@ import (
 )
 
 func TestAccConfigDSAtlasUser_ByUserID(t *testing.T) {
-	SkipIfTFAccNotDefined(t)
+	acc.SkipIfTFAccNotDefined(t)
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_user.test"
 		userID         = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
@@ -36,7 +37,7 @@ func TestAccConfigDSAtlasUser_ByUserID(t *testing.T) {
 }
 
 func TestAccConfigDSAtlasUser_ByUsername(t *testing.T) {
-	SkipIfTFAccNotDefined(t)
+	acc.SkipIfTFAccNotDefined(t)
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_user.test"
 		username       = os.Getenv("MONGODB_ATLAS_USERNAME_CLOUD_DEV")
@@ -86,7 +87,7 @@ func TestAccConfigDSAtlasUser_InvalidAttrCombination(t *testing.T) {
 }
 
 func fetchUser(userID string, t *testing.T) *admin.CloudAppUser {
-	connV2 := testMongoDBClient.(*MongoDBClient).AtlasV2
+	connV2 := todoacc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 	userResp, _, err := connV2.MongoDBCloudUsersApi.GetUser(context.Background(), userID).Execute()
 	if err != nil {
 		t.Fatalf("the Atlas User (%s) could not be fetched: %v", userID, err)

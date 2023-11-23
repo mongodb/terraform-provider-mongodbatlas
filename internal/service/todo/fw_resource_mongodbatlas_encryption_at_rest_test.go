@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	"github.com/mwielbut/pointy"
 )
@@ -98,7 +99,7 @@ data "aws_iam_role" "test" {
 )
 
 func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -159,7 +160,7 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 }
 
 func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -229,7 +230,7 @@ func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
 }
 
 func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -282,7 +283,7 @@ func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
 
 func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 	SkipTest(t) // For now it will skipped because of aws errors reasons, already made another test using terratest.
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

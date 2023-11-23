@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -27,7 +28,7 @@ func TestAccConfigRSTeam_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasTeamDestroy,
+		CheckDestroy:             todoacc.CheckDestroyTeam,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasTeamConfig(orgID, name,
@@ -86,7 +87,7 @@ func TestAccConfigRSTeam_importBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasTeamDestroy,
+		CheckDestroy:             todo.CheckDestroyTeam,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasTeamConfig(orgID, name, []string{username}),
@@ -150,29 +151,6 @@ func testAccCheckMongoDBAtlasTeamAttributes(team *matlas.Team, name string) reso
 
 		return nil
 	}
-}
-
-func testAccCheckMongoDBAtlasTeamDestroy(s *terraform.State) error {
-	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_teams" {
-			continue
-		}
-
-		ids := decodeStateID(rs.Primary.ID)
-
-		orgID := ids["org_id"]
-		id := ids["id"]
-
-		// Try to find the team
-		_, _, err := conn.Teams.Get(context.Background(), orgID, id)
-		if err == nil {
-			return fmt.Errorf("team (%s) still exists", id)
-		}
-	}
-
-	return nil
 }
 
 func testAccCheckMongoDBAtlasTeamStateIDFunc(resourceName string) resource.ImportStateIdFunc {

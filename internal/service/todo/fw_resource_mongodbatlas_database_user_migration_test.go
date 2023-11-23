@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/migration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 )
 
 func TestAccMigrationConfigRSDatabaseUser_Basic(t *testing.T) {
@@ -47,7 +48,7 @@ func TestAccMigrationConfigRSDatabaseUser_Basic(t *testing.T) {
 				Config:                   testAccMongoDBAtlasDatabaseUserConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						DebugPlan(),
+						testutils.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -90,7 +91,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithX509TypeCustomer(t *testing.T) {
 				Config:                   testAccMongoDBAtlasDatabaseUserWithX509TypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						DebugPlan(),
+						testutils.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -131,7 +132,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithAWSIAMType(t *testing.T) {
 				Config:                   testAccMongoDBAtlasDatabaseUserWithAWSIAMTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						DebugPlan(),
+						testutils.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -199,7 +200,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithLabels(t *testing.T) {
 				),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						DebugPlan(),
+						testutils.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -240,7 +241,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithEmptyLabels(t *testing.T) {
 				Config:                   testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectName, orgID, "atlasAdmin", username, []matlas.Label{}),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						DebugPlan(),
+						testutils.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -309,7 +310,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithRoles(t *testing.T) {
 				),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						DebugPlan(),
+						testutils.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -367,7 +368,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 				),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						DebugPlan(),
+						testutils.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -415,7 +416,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopesAndEmpty(t *testing.T) {
 				),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						DebugPlan(),
+						testutils.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -457,7 +458,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithLDAPAuthType(t *testing.T) {
 				Config:                   testAccMongoDBAtlasDatabaseUserWithLDAPAuthTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						DebugPlan(),
+						testutils.DebugPlan(),
 					},
 				},
 				PlanOnly: true,

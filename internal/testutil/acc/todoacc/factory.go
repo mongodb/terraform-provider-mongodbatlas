@@ -17,7 +17,7 @@ const (
 
 var TestAccProviderV6Factories map[string]func() (tfprotov6.ProviderServer, error)
 
-// only being used in tests obtaining client: .Meta().(*MongoDBClient)
+// TestAccProviderSdkV2 is only being used in tests obtaining client: .Meta().(*MongoDBClient)
 // this provider instance has to be passed into mux server factory for its configure method to be invoked
 var TestAccProviderSdkV2 *schema.Provider
 

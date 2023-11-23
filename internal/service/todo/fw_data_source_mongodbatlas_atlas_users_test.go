@@ -10,13 +10,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc/todoacc"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
 
 func TestAccConfigDSAtlasUsers_ByOrgID(t *testing.T) {
-	SkipIfTFAccNotDefined(t)
+	acc.SkipIfTFAccNotDefined(t)
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -79,7 +80,7 @@ func TestAccConfigDSAtlasUsers_ByTeamID(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); testAccPreCheckAtlasUsername(t) },
 		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasTeamDestroy,
+		CheckDestroy:             todoacc.CheckDestroyTeam,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasUsersByTeamID(orgID, teamName, username),
@@ -113,7 +114,7 @@ func TestAccConfigDSAtlasUsers_UsingPagination(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); testAccPreCheckAtlasUsername(t) },
 		ProtoV6ProviderFactories: todoacc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasTeamDestroy,
+		CheckDestroy:             todoacc.CheckDestroyTeam,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasUsersByTeamWithPagination(orgID, teamName, username, itemsPerPage, pageNum),
@@ -202,7 +203,7 @@ func TestAccConfigDSAtlasUsers_InvalidAttrCombinations(t *testing.T) {
 }
 
 func fetchOrgUsers(orgID string, t *testing.T) *admin.PaginatedAppUser {
-	connV2 := testMongoDBClient.(*MongoDBClient).AtlasV2
+	connV2 := todoacc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 	users, _, err := connV2.OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
 	if err != nil {
 		t.Fatalf("the Atlas Users for Org(%s) could not be fetched: %v", orgID, err)
@@ -284,7 +285,7 @@ func testAccDSMongoDBAtlasUsersByTeamWithPagination(orgID, teamName, username st
 
 func testAccCheckMongoDBAtlasOrgWithUsersExists(dataSourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connV2 := testMongoDBClient.(*MongoDBClient).AtlasV2
+		connV2 := todoacc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 
 		rs, ok := s.RootModule().Resources[dataSourceName]
 		if !ok {

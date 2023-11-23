@@ -24,3 +24,26 @@ func CheckDestroyProject(s *terraform.State) error {
 
 	return nil
 }
+
+func CheckDestroyTeam(s *terraform.State) error {
+	conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "mongodbatlas_teams" {
+			continue
+		}
+
+		ids := config.DecodeStateID(rs.Primary.ID)
+
+		orgID := ids["org_id"]
+		id := ids["id"]
+
+		// Try to find the team
+		_, _, err := conn.Teams.Get(context.Background(), orgID, id)
+		if err == nil {
+			return fmt.Errorf("team (%s) still exists", id)
+		}
+	}
+
+	return nil
+}
