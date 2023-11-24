@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 )
@@ -287,7 +288,7 @@ func testAccCheckSearchIndexExists(resourceName string) resource.TestCheckFunc {
 		}
 		ids := decodeStateID(rs.Primary.ID)
 
-		connV2 := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).AtlasV2
+		connV2 := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).AtlasV2
 		_, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(context.Background(), ids["project_id"], ids["cluster_name"], ids["index_id"]).Execute()
 		if err != nil {
 			return fmt.Errorf("index (%s) does not exist", ids["index_id"])
@@ -458,7 +459,7 @@ func testAccCheckMongoDBAtlasSearchIndexDestroy(state *terraform.State) error {
 	if os.Getenv("MONGODB_ATLAS_CLUSTER_NAME") != "" {
 		return nil
 	}
-	conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
 
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type != "mongodbatlas_search_index" {

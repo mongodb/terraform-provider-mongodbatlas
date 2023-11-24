@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -61,7 +62,7 @@ func getServerlessList(ctx context.Context, meta any, projectID string, options 
 	// Get client connection.
 	var list []*matlas.Cluster
 	options.PageNum++
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	serverlessInstances, _, err := conn.ServerlessInstances.List(ctx, projectID, options)
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -83,7 +84,7 @@ func dataSourceMongoDBAtlasCustomDBRoles() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasCustomDBRolesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
 	customDBRoles, _, err := conn.CustomDBRoles.List(ctx, projectID, nil)

@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -281,7 +282,7 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 
 func resourceMongoDBAtlasCloudBackupScheduleCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	var diags diag.Diagnostics
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
@@ -313,7 +314,7 @@ func resourceMongoDBAtlasCloudBackupScheduleCreate(ctx context.Context, d *schem
 
 func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -384,7 +385,7 @@ func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.
 }
 
 func resourceMongoDBAtlasCloudBackupScheduleUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -406,7 +407,7 @@ func resourceMongoDBAtlasCloudBackupScheduleUpdate(ctx context.Context, d *schem
 
 func resourceMongoDBAtlasCloudBackupScheduleDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -422,7 +423,7 @@ func resourceMongoDBAtlasCloudBackupScheduleDelete(ctx context.Context, d *schem
 }
 
 func resourceMongoDBAtlasCloudBackupScheduleImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {

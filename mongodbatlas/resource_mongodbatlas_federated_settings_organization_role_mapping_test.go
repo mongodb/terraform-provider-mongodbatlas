@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -69,7 +70,7 @@ func TestAccFedRSFederatedSettingsOrganizationRoleMapping_importBasic(t *testing
 func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingExists(resourceName string,
 	federatedSettingsOrganizationRoleMapping *matlas.FederatedSettingsOrganizationRoleMapping) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -95,7 +96,7 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingExists(reso
 }
 
 func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy(state *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
 
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type != "mongodbatlas_federated_settings_org_role_mapping" {

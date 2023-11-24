@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -102,15 +103,15 @@ func TestAccConfigDSThirdPartyIntegration_basic(t *testing.T) {
 		targetIntegration = matlas.ThirdPartyIntegration{}
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		apiKey            = os.Getenv("OPS_GENIE_API_KEY")
-		config            = testAccCreateThirdPartyIntegrationConfig()
+		cfg               = testAccCreateThirdPartyIntegrationConfig()
 
-		testExecutionName = "test_" + config.AccountID
+		testExecutionName = "test_" + cfg.AccountID
 		resourceName      = "data.mongodbatlas_third_party_integration." + testExecutionName
 
 		seedConfig = thirdPartyConfig{
 			Name:        testExecutionName,
 			ProjectID:   projectID,
-			Integration: *config,
+			Integration: *cfg,
 		}
 	)
 	seedConfig.Integration.APIKey = apiKey
@@ -123,16 +124,16 @@ func TestAccConfigDSThirdPartyIntegration_basic(t *testing.T) {
 				Config: testAccMongoDBAtlasThirdPartyIntegrationDataSourceConfig(&seedConfig),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckThirdPartyIntegrationExists(resourceName, &targetIntegration),
-					resource.TestCheckResourceAttr(resourceName, "type", config.Type),
+					resource.TestCheckResourceAttr(resourceName, "type", cfg.Type),
 				),
 			},
 		},
 	})
 }
 
-func testAccMongoDBAtlasThirdPartyIntegrationDataSourceConfig(config *thirdPartyConfig) string {
-	// create the resource config first
-	resourceConfig := testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(config)
+func testAccMongoDBAtlasThirdPartyIntegrationDataSourceConfig(cfg *thirdPartyConfig) string {
+	// create the resource cfg first
+	resourceConfig := testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(cfg)
 
 	return fmt.Sprintf(`
 	%[1]s
@@ -141,71 +142,71 @@ func testAccMongoDBAtlasThirdPartyIntegrationDataSourceConfig(config *thirdParty
 		project_id = mongodbatlas_third_party_integration.%[2]s.project_id
 		type = mongodbatlas_third_party_integration.%[2]s.type
 	}
-	`, resourceConfig, config.Name)
+	`, resourceConfig, cfg.Name)
 }
 
-func testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(config *thirdPartyConfig) string {
-	switch config.Integration.Type {
+func testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(cfg *thirdPartyConfig) string {
+	switch cfg.Integration.Type {
 	case "PAGER_DUTY":
 		return fmt.Sprintf(PAGERDUTY,
-			config.Name,
-			config.ProjectID,
-			config.Integration.Type,
-			config.Integration.ServiceKey,
+			cfg.Name,
+			cfg.ProjectID,
+			cfg.Integration.Type,
+			cfg.Integration.ServiceKey,
 		)
 	case "DATADOG":
 		return fmt.Sprintf(DATADOG,
-			config.Name,
-			config.ProjectID,
-			config.Integration.Type,
-			config.Integration.APIKey,
-			config.Integration.Region,
+			cfg.Name,
+			cfg.ProjectID,
+			cfg.Integration.Type,
+			cfg.Integration.APIKey,
+			cfg.Integration.Region,
 		)
 	case "OPS_GENIE":
 		return fmt.Sprintf(OPSGENIE,
-			config.Name,
-			config.ProjectID,
-			config.Integration.Type,
-			config.Integration.APIKey,
-			config.Integration.Region,
+			cfg.Name,
+			cfg.ProjectID,
+			cfg.Integration.Type,
+			cfg.Integration.APIKey,
+			cfg.Integration.Region,
 		)
 	case "VICTOR_OPS":
 		return fmt.Sprintf(VICTOROPS,
-			config.Name,
-			config.ProjectID,
-			config.Integration.Type,
-			config.Integration.APIKey,
-			config.Integration.RoutingKey,
+			cfg.Name,
+			cfg.ProjectID,
+			cfg.Integration.Type,
+			cfg.Integration.APIKey,
+			cfg.Integration.RoutingKey,
 		)
 	case "WEBHOOK":
 		return fmt.Sprintf(WEBHOOK,
-			config.Name,
-			config.ProjectID,
-			config.Integration.Type,
-			config.Integration.URL,
+			cfg.Name,
+			cfg.ProjectID,
+			cfg.Integration.Type,
+			cfg.Integration.URL,
 		)
 	case "MICROSOFT_TEAMS":
 		return fmt.Sprintf(MICROSOFTTEAMS,
-			config.Name,
-			config.ProjectID,
-			config.Integration.Type,
-			config.Integration.MicrosoftTeamsWebhookURL,
+			cfg.Name,
+			cfg.ProjectID,
+			cfg.Integration.Type,
+			cfg.Integration.MicrosoftTeamsWebhookURL,
 		)
 	case "PROMETHEUS":
 		return fmt.Sprintf(PROMETHEUS,
-			config.Name,
-			config.ProjectID,
-			config.Integration.Type,
-			config.Integration.UserName,
-			config.Integration.Password,
-			config.Integration.ServiceDiscovery,
-			config.Integration.Scheme,
+			cfg.Name,
+			cfg.ProjectID,
+			cfg.Integration.Type,
+			cfg.Integration.UserName,
+			cfg.Integration.Password,
+			cfg.Integration.ServiceDiscovery,
+			cfg.Integration.Scheme,
 		)
 	default:
 		return fmt.Sprintf(Unknown3rdParty,
-			config.Name,
-			config.ProjectID,
-			config.Integration.Type,
+			cfg.Name,
+			cfg.ProjectID,
+			cfg.Integration.Type,
 		)
 	}
 }
@@ -247,7 +248,7 @@ func testGenString(length int, charSet string) string {
 
 func testAccCheckThirdPartyIntegrationExists(resourceName string, integration *matlas.ThirdPartyIntegration) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

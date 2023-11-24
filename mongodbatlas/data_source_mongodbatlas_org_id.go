@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -25,7 +26,7 @@ func dataSourceMongoDBAtlasOrgID() *schema.Resource {
 
 func dataSourceMongoDBAtlasOrgIDRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	var (
 		err  error

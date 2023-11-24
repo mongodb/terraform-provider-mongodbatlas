@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func dataSourceMongoDBAtlasFederatedDatabaseInstances() *schema.Resource {
@@ -111,7 +112,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstances() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasFederatedDatabaseInstancesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 

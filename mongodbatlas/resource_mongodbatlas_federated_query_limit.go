@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -71,7 +72,7 @@ func resourceMongoDBAtlasFederatedDatabaseQueryLimit() *schema.Resource {
 }
 
 func resourceMongoDBFederatedDatabaseQueryLimitCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	projectID := d.Get(string("project_id")).(string)
 	tenantName := d.Get("tenant_name").(string)
@@ -96,7 +97,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitCreate(ctx context.Context, d *sc
 }
 
 func resourceMongoDBFederatedDatabaseQueryLimitRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	tenantName := ids["tenant_name"]
@@ -125,7 +126,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitRead(ctx context.Context, d *sche
 }
 
 func resourceMongoDBFederatedDatabaseQueryLimitUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -145,7 +146,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitUpdate(ctx context.Context, d *sc
 }
 
 func resourceMongoDBFederatedDatabaseQueryLimitDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -160,7 +161,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitDelete(ctx context.Context, d *sc
 }
 
 func resourceMongoDBAtlasFederatedDatabaseQueryLimitImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	parts := strings.Split(d.Id(), "--")
 
 	var projectID, tenantName, limitName string

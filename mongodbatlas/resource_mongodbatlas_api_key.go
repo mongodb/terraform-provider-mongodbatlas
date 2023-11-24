@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -56,7 +57,7 @@ func resourceMongoDBAtlasAPIKey() *schema.Resource {
 }
 
 func resourceMongoDBAtlasAPIKeyCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	orgID := d.Get("org_id").(string)
 	createRequest := new(matlas.APIKeyInput)
 
@@ -88,7 +89,7 @@ func resourceMongoDBAtlasAPIKeyCreate(ctx context.Context, d *schema.ResourceDat
 
 func resourceMongoDBAtlasAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
@@ -123,7 +124,7 @@ func resourceMongoDBAtlasAPIKeyRead(ctx context.Context, d *schema.ResourceData,
 }
 
 func resourceMongoDBAtlasAPIKeyUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
@@ -145,7 +146,7 @@ func resourceMongoDBAtlasAPIKeyUpdate(ctx context.Context, d *schema.ResourceDat
 }
 
 func resourceMongoDBAtlasAPIKeyDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
@@ -158,7 +159,7 @@ func resourceMongoDBAtlasAPIKeyDelete(ctx context.Context, d *schema.ResourceDat
 }
 
 func resourceMongoDBAtlasAPIKeyImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {

@@ -65,7 +65,7 @@ func resourceMongoDBAtlasOrganization() *schema.Resource {
 }
 
 func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	organization, resp, err := conn.Organizations.Create(ctx, newCreateOrganizationRequest(d))
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
@@ -100,11 +100,11 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 	cfg := config.Config{
 		PublicKey:  d.Get("public_key").(string),
 		PrivateKey: d.Get("private_key").(string),
-		BaseURL:    meta.(*MongoDBClient).Config.BaseURL,
+		BaseURL:    meta.(*config.MongoDBClient).Config.BaseURL,
 	}
 
 	clients, _ := cfg.NewClient(ctx)
-	conn := clients.(*MongoDBClient).Atlas
+	conn := clients.(*config.MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
@@ -129,11 +129,11 @@ func resourceMongoDBAtlasOrganizationUpdate(ctx context.Context, d *schema.Resou
 	cfg := config.Config{
 		PublicKey:  d.Get("public_key").(string),
 		PrivateKey: d.Get("private_key").(string),
-		BaseURL:    meta.(*MongoDBClient).Config.BaseURL,
+		BaseURL:    meta.(*config.MongoDBClient).Config.BaseURL,
 	}
 
 	clients, _ := cfg.NewClient(ctx)
-	conn := clients.(*MongoDBClient).Atlas
+	conn := clients.(*config.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 
@@ -153,11 +153,11 @@ func resourceMongoDBAtlasOrganizationDelete(ctx context.Context, d *schema.Resou
 	cfg := config.Config{
 		PublicKey:  d.Get("public_key").(string),
 		PrivateKey: d.Get("private_key").(string),
-		BaseURL:    meta.(*MongoDBClient).Config.BaseURL,
+		BaseURL:    meta.(*config.MongoDBClient).Config.BaseURL,
 	}
 
 	clients, _ := cfg.NewClient(ctx)
-	conn := clients.(*MongoDBClient).Atlas
+	conn := clients.(*config.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 
@@ -168,7 +168,7 @@ func resourceMongoDBAtlasOrganizationDelete(ctx context.Context, d *schema.Resou
 }
 
 func resourceMongoDBAtlasOrganizationImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	orgID := d.Id()
 
 	r, _, err := conn.Organizations.Get(ctx, orgID)

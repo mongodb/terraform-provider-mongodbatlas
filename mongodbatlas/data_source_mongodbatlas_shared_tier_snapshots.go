@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 // This datasource does not have a resource: we tested it manually
@@ -69,7 +70,7 @@ func dataSourceMongoDBAtlasSharedTierSnapshots() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasSharedTierSnapshotsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).AtlasV2
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)

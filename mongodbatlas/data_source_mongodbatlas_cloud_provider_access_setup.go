@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func dataSourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
@@ -83,7 +84,7 @@ func dataSourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	roleID := d.Get("role_id").(string)
 

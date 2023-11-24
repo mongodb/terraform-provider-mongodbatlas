@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -36,7 +37,7 @@ func resourceMongoDBAtlasServerlessInstance() *schema.Resource {
 
 func resourceMongoDBAtlasServerlessInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	instanceName := ids["name"]
@@ -161,7 +162,7 @@ func returnServerlessInstanceSchema() map[string]*schema.Schema {
 }
 
 func resourceMongoDBAtlasServerlessInstanceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	projectID, name, err := splitServerlessInstanceImportID(d.Id())
 	if err != nil {
@@ -195,7 +196,7 @@ func resourceMongoDBAtlasServerlessInstanceImportState(ctx context.Context, d *s
 
 func resourceMongoDBAtlasServerlessInstanceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	serverlessName := ids["name"]
@@ -228,7 +229,7 @@ func resourceMongoDBAtlasServerlessInstanceDelete(ctx context.Context, d *schema
 
 func resourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	instanceName := ids["name"]
@@ -304,7 +305,7 @@ func resourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.R
 
 func resourceMongoDBAtlasServerlessInstanceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
 	name := d.Get("name").(string)

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
@@ -90,7 +91,7 @@ func TestAccDataSourceFederatedDatabaseInstance_S3Bucket(t *testing.T) {
 
 func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName string, dataFederatedInstance *admin.DataLakeTenant) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connV2 := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).AtlasV2
+		connV2 := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).AtlasV2
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -101,7 +102,7 @@ func resourceMongoDBAtlasGlobalCluster() *schema.Resource {
 
 func resourceMongoDBAtlasGlobalClusterCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
@@ -169,7 +170,7 @@ func resourceMongoDBAtlasGlobalClusterCreate(ctx context.Context, d *schema.Reso
 
 func resourceMongoDBAtlasGlobalClusterRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -197,7 +198,7 @@ func resourceMongoDBAtlasGlobalClusterRead(ctx context.Context, d *schema.Resour
 
 func resourceMongoDBAtlasGlobalClusterUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -258,7 +259,7 @@ func resourceMongoDBAtlasGlobalClusterUpdate(ctx context.Context, d *schema.Reso
 
 func resourceMongoDBAtlasGlobalClusterDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]

@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -216,7 +217,7 @@ func resourceMongoDBAtlasBackupCompliancePolicy() *schema.Resource {
 }
 
 func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
 	backupPolicy := matlas.BackupCompliancePolicy{}
@@ -300,7 +301,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 
 func resourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -375,7 +376,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *sche
 }
 
 func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -473,7 +474,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyDelete(ctx context.Context, d *sc
 }
 
 func resourceMongoDBAtlasBackupCompliancePolicyImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 1 {

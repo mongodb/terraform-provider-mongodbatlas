@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -218,7 +219,7 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 
 func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestMongoDBClient.(*MongoDBClient).Atlas
+		conn := acc.TestMongoDBClient.(*config.MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

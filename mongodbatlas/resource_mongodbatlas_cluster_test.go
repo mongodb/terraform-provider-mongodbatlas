@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -1426,7 +1427,7 @@ func TestAccClusterRSCluster_withDefaultBiConnectorAndAdvancedConfiguration_main
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-		config       = testAccMongoDBAtlasClusterConfigAWS(orgID, projectName, name, true, true)
+		cfg          = testAccMongoDBAtlasClusterConfigAWS(orgID, projectName, name, true, true)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1440,7 +1441,7 @@ func TestAccClusterRSCluster_withDefaultBiConnectorAndAdvancedConfiguration_main
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
-				Config: config,
+				Config: cfg,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
@@ -1450,7 +1451,7 @@ func TestAccClusterRSCluster_withDefaultBiConnectorAndAdvancedConfiguration_main
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   config,
+				Config:                   cfg,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
 						acc.DebugPlan(),
@@ -1482,7 +1483,7 @@ func testAccGetMongoDBAtlasMajorVersion() string {
 
 func testAccCheckMongoDBAtlasClusterExists(resourceName string, cluster *matlas.Cluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -1517,7 +1518,7 @@ func testAccCheckMongoDBAtlasClusterAttributes(cluster *matlas.Cluster, name str
 }
 
 func testAccCheckMongoDBAtlasClusterDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_cluster" {

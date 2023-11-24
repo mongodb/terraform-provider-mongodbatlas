@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -86,7 +87,7 @@ func dataSourceMongoDBAtlasDataLakePipelineRun() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasDataLakeRunRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	name := d.Get("pipeline_name").(string)
 	pipelineRunID := d.Get("pipeline_run_id").(string)

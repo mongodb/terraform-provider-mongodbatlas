@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -18,18 +19,18 @@ func TestAccConfigRSThirdPartyIntegration_basic(t *testing.T) {
 		targetIntegration = matlas.ThirdPartyIntegration{}
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		apiKey            = os.Getenv("OPS_GENIE_API_KEY")
-		config            = testAccCreateThirdPartyIntegrationConfig()
-		testExecutionName = "test_3rd_party_" + config.AccountID
+		cfg               = testAccCreateThirdPartyIntegrationConfig()
+		testExecutionName = "test_3rd_party_" + cfg.AccountID
 		resourceName      = "mongodbatlas_third_party_integration." + testExecutionName
 	)
 
-	config.Type = "OPS_GENIE"
-	config.APIKey = apiKey
+	cfg.Type = "OPS_GENIE"
+	cfg.APIKey = apiKey
 
 	seedConfig := thirdPartyConfig{
 		Name:        testExecutionName,
 		ProjectID:   projectID,
-		Integration: *config,
+		Integration: *cfg,
 	}
 
 	resource.Test(t, resource.TestCase{
@@ -41,9 +42,9 @@ func TestAccConfigRSThirdPartyIntegration_basic(t *testing.T) {
 				Config: testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(&seedConfig),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckThirdPartyIntegrationExists(resourceName, &targetIntegration),
-					resource.TestCheckResourceAttr(resourceName, "type", config.Type),
-					resource.TestCheckResourceAttr(resourceName, "api_key", config.APIKey),
-					resource.TestCheckResourceAttr(resourceName, "region", config.Region),
+					resource.TestCheckResourceAttr(resourceName, "type", cfg.Type),
+					resource.TestCheckResourceAttr(resourceName, "api_key", cfg.APIKey),
+					resource.TestCheckResourceAttr(resourceName, "region", cfg.Region),
 				),
 			},
 		},
@@ -57,18 +58,18 @@ func TestAccConfigRSThirdPartyIntegration_importBasic(t *testing.T) {
 		targetIntegration = matlas.ThirdPartyIntegration{}
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		apiKey            = os.Getenv("OPS_GENIE_API_KEY")
-		config            = testAccCreateThirdPartyIntegrationConfig()
-		testExecutionName = "test_3rd_party_" + config.AccountID
+		cfg               = testAccCreateThirdPartyIntegrationConfig()
+		testExecutionName = "test_3rd_party_" + cfg.AccountID
 		resourceName      = "mongodbatlas_third_party_integration." + testExecutionName
 	)
 
-	config.Type = "OPS_GENIE"
-	config.APIKey = apiKey
+	cfg.Type = "OPS_GENIE"
+	cfg.APIKey = apiKey
 
 	seedConfig := thirdPartyConfig{
 		Name:        testExecutionName,
 		ProjectID:   projectID,
-		Integration: *config,
+		Integration: *cfg,
 	}
 
 	resource.Test(t, resource.TestCase{
@@ -80,8 +81,8 @@ func TestAccConfigRSThirdPartyIntegration_importBasic(t *testing.T) {
 				Config: testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(&seedConfig),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckThirdPartyIntegrationExists(resourceName, &targetIntegration),
-					resource.TestCheckResourceAttr(resourceName, "type", config.Type),
-					resource.TestCheckResourceAttr(resourceName, "region", config.Region),
+					resource.TestCheckResourceAttr(resourceName, "type", cfg.Type),
+					resource.TestCheckResourceAttr(resourceName, "region", cfg.Region),
 				),
 			},
 			{
@@ -101,23 +102,23 @@ func TestAccConfigRSThirdPartyIntegration_updateBasic(t *testing.T) {
 		targetIntegration = matlas.ThirdPartyIntegration{}
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		apiKey            = os.Getenv("OPS_GENIE_API_KEY")
-		config            = testAccCreateThirdPartyIntegrationConfig()
+		cfg               = testAccCreateThirdPartyIntegrationConfig()
 		updatedConfig     = testAccCreateThirdPartyIntegrationConfig()
-		testExecutionName = "test_3rd_party_" + config.AccountID
+		testExecutionName = "test_3rd_party_" + cfg.AccountID
 		resourceName      = "mongodbatlas_third_party_integration." + testExecutionName
 	)
 
 	// setting type
-	config.Type = "OPS_GENIE"
+	cfg.Type = "OPS_GENIE"
 	updatedConfig.Type = "OPS_GENIE"
 	updatedConfig.Region = "US"
-	config.APIKey = apiKey
+	cfg.APIKey = apiKey
 	updatedConfig.APIKey = apiKey
 
 	seedInitialConfig := thirdPartyConfig{
 		Name:        testExecutionName,
 		ProjectID:   projectID,
-		Integration: *config,
+		Integration: *cfg,
 	}
 
 	seedUpdatedConfig := thirdPartyConfig{
@@ -135,9 +136,9 @@ func TestAccConfigRSThirdPartyIntegration_updateBasic(t *testing.T) {
 				Config: testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(&seedInitialConfig),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckThirdPartyIntegrationExists(resourceName, &targetIntegration),
-					resource.TestCheckResourceAttr(resourceName, "type", config.Type),
-					resource.TestCheckResourceAttr(resourceName, "api_key", config.APIKey),
-					resource.TestCheckResourceAttr(resourceName, "region", config.Region),
+					resource.TestCheckResourceAttr(resourceName, "type", cfg.Type),
+					resource.TestCheckResourceAttr(resourceName, "api_key", cfg.APIKey),
+					resource.TestCheckResourceAttr(resourceName, "region", cfg.Region),
 				),
 			},
 			{
@@ -155,7 +156,7 @@ func TestAccConfigRSThirdPartyIntegration_updateBasic(t *testing.T) {
 }
 
 func testAccCheckMongoDBAtlasThirdPartyIntegrationDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_third_party_integration" {
 			continue

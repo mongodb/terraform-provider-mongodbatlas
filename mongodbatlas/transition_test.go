@@ -8,8 +8,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-type MongoDBClient = config.MongoDBClient
-
 const (
 	errorGetRead = "error reading cloud provider access %s"
 )

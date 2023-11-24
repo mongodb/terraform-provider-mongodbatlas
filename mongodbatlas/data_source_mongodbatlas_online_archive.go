@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func dataSourceMongoDBAtlasOnlineArchives() *schema.Resource {
@@ -214,7 +215,7 @@ func schemaOnlineArchive() map[string]*schema.Schema {
 }
 
 func dataSourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 	archiveID := d.Get("archive_id").(string)
@@ -243,7 +244,7 @@ func dataSourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.Reso
 }
 
 func dataSourceMongoDBAtlasOnlineArchivesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 

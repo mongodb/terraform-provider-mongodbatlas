@@ -20,8 +20,6 @@ const (
 	errorGetRead                          = "error reading cloud provider access %s"
 )
 
-type MongoDBClient = config.MongoDBClient
-
 func encodeStateID(values map[string]string) string {
 	return config.EncodeStateID(values)
 }

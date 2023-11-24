@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -90,7 +91,7 @@ func resourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 
 func resourceMongoDBAtlasMaintenanceWindowCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 
@@ -138,7 +139,7 @@ func resourceMongoDBAtlasMaintenanceWindowCreate(ctx context.Context, d *schema.
 
 func resourceMongoDBAtlasMaintenanceWindowRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	maintenanceWindow, resp, err := conn.MaintenanceWindows.Get(context.Background(), d.Id())
 	if err != nil {
@@ -183,7 +184,7 @@ func resourceMongoDBAtlasMaintenanceWindowRead(ctx context.Context, d *schema.Re
 
 func resourceMongoDBAtlasMaintenanceWindowUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	maintenanceWindowReq := &matlas.MaintenanceWindow{}
 
@@ -227,7 +228,7 @@ func resourceMongoDBAtlasMaintenanceWindowUpdate(ctx context.Context, d *schema.
 
 func resourceMongoDBAtlasMaintenanceWindowDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	_, err := conn.MaintenanceWindows.Reset(ctx, d.Id())
 	if err != nil {

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -91,7 +92,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 }
 
 func resourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleID := ids["id"]
@@ -119,7 +120,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *sc
 func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	projectID := d.Get("project_id").(string)
 
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	requestParameters := &matlas.CloudProviderAccessRoleRequest{
 		ProviderName: d.Get("provider_name").(string),
@@ -178,7 +179,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *
 }
 
 func resourceMongoDBAtlasCloudProviderAccessSetupDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
 	projectID := ids["project_id"]

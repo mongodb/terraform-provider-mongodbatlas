@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/spf13/cast"
 
@@ -138,7 +139,7 @@ func TestAccAdvRSLDAPVerify_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasLDAPVerifyExists(resourceName string, ldapConf *matlas.LDAPConfiguration) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -161,7 +162,7 @@ func testAccCheckMongoDBAtlasLDAPVerifyExists(resourceName string, ldapConf *mat
 }
 
 func testAccCheckMongoDBAtlasLDAPVerifyDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_ldap_verify" {

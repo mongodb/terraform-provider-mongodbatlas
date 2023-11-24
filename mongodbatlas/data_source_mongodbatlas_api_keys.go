@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -60,7 +61,7 @@ func dataSourceMongoDBAtlasAPIKeys() *schema.Resource {
 
 func dataSourceMongoDBAtlasAPIKeysRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	options := &matlas.ListOptions{
 		PageNum:      d.Get("page_num").(int),
 		ItemsPerPage: d.Get("items_per_page").(int),

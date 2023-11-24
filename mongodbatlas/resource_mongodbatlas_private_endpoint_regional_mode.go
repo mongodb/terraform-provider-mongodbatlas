@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 type permCtxKey string
@@ -62,7 +63,7 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeCreate(ctx context.Context, 
 }
 
 func resourceMongoDBAtlasPrivateEndpointRegionalModeRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	projectID := d.Id()
 
@@ -84,7 +85,7 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeRead(ctx context.Context, d 
 }
 
 func resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	projectID := d.Id()
 	enabled := d.Get("enabled").(bool)
@@ -135,7 +136,7 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeDelete(ctx context.Context, 
 }
 
 func resourceMongoDBAtlasPrivateEndpointRegionalModeImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Id()
 
 	setting, _, err := conn.PrivateEndpoints.GetRegionalizedPrivateEndpointSetting(ctx, projectID)

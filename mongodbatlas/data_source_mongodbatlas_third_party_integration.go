@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func dataSourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
@@ -108,7 +109,7 @@ func dataSourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *sch
 	projectID := d.Get("project_id").(string)
 	queryType := d.Get("type").(string)
 
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	integration, _, err := conn.Integrations.Get(ctx, projectID, queryType)
 

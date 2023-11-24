@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -89,7 +90,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorization() *schema.Resource {
 
 func resourceMongoDBAtlasCloudProviderAccessAuthorizationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// sadly there is no just get API
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
 	roleID := ids["id"] // atlas ID
@@ -127,7 +128,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationRead(ctx context.Contex
 }
 
 func resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 	roleID := d.Get("role_id").(string)
@@ -147,7 +148,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate(ctx context.Cont
 }
 
 func resourceMongoDBAtlasCloudProviderAccessAuthorizationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
 	roleID := ids["id"]

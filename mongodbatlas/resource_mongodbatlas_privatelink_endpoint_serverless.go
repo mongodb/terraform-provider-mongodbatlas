@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 const (
@@ -72,7 +73,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerless() *schema.Resource {
 
 func resourceMongoDBAtlasPrivateLinkEndpointServerlessCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	instanceName := d.Get("instance_name").(string)
 
@@ -111,7 +112,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessCreate(ctx context.Context
 
 func resourceMongoDBAtlasPrivateLinkEndpointServerlessRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	instanceName := ids["instance_name"]
@@ -154,7 +155,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessRead(ctx context.Context, 
 
 func resourceMongoDBAtlasPrivateLinkEndpointServerlessDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	instanceName := ids["instance_name"]
@@ -195,7 +196,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessDelete(ctx context.Context
 }
 
 func resourceMongoDBAtlasPrivateLinkEndpointServerlessImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "--", 3)
 	if len(parts) != 3 {
