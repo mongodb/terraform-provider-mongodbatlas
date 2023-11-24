@@ -201,7 +201,7 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 		if len(newAssignments) > 0 {
 			for _, apiKey := range newAssignments {
 				projectID := apiKey.(map[string]any)["project_id"].(string)
-				roles := expandStringList(apiKey.(map[string]any)["role_names"].(*schema.Set).List())
+				roles := config.ExpandStringList(apiKey.(map[string]any)["role_names"].(*schema.Set).List())
 				_, err := conn.ProjectAPIKeys.Assign(ctx, projectID, apiKeyID, &matlas.AssignAPIKey{
 					Roles: roles,
 				})
@@ -226,7 +226,7 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 		// Updating the role names for the project assignments
 		for _, apiKey := range changedAssignments {
 			projectID := apiKey.(map[string]any)["project_id"].(string)
-			roles := expandStringList(apiKey.(map[string]any)["role_names"].(*schema.Set).List())
+			roles := config.ExpandStringList(apiKey.(map[string]any)["role_names"].(*schema.Set).List())
 			_, err := conn.ProjectAPIKeys.Assign(ctx, projectID, apiKeyID, &matlas.AssignAPIKey{
 				Roles: roles,
 			})
@@ -363,7 +363,7 @@ func ExpandProjectAssignmentSet(projectAssignments *schema.Set) []*APIProjectAss
 		v := value.(map[string]any)
 		res[i] = &APIProjectAssignmentKeyInput{
 			ProjectID: v["project_id"].(string),
-			RoleNames: expandStringList(v["role_names"].(*schema.Set).List()),
+			RoleNames: config.ExpandStringList(v["role_names"].(*schema.Set).List()),
 		}
 	}
 

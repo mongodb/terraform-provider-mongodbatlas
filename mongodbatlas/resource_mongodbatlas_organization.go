@@ -196,7 +196,7 @@ func newCreateOrganizationRequest(d *schema.ResourceData) *matlas.CreateOrganiza
 		Name:       d.Get("name").(string),
 		OrgOwnerID: pointy.String(d.Get("org_owner_id").(string)),
 		APIKey: &matlas.APIKeyInput{
-			Roles: expandStringList(d.Get("role_names").(*schema.Set).List()),
+			Roles: config.ExpandStringList(d.Get("role_names").(*schema.Set).List()),
 			Desc:  d.Get("description").(string),
 		},
 	}

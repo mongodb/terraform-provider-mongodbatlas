@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/uti"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -269,7 +270,7 @@ func authorizeRole(ctx context.Context, client *matlas.Client, d *schema.Resourc
 			return diag.FromErr(fmt.Errorf("error CloudProviderAccessAuthorization missing iam_assumed_role_arn"))
 		}
 
-		req.IAMAssumedRoleARN = pointer(roleAWS.([]any)[0].(map[string]any)["iam_assumed_role_arn"].(string))
+		req.IAMAssumedRoleARN = uti.Pointer(roleAWS.([]any)[0].(map[string]any)["iam_assumed_role_arn"].(string))
 	}
 
 	if targetRole.ProviderName == config.AZURE {

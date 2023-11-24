@@ -273,7 +273,7 @@ func ResourceCluster() *schema.Resource {
 					buf.WriteString(fmt.Sprintf("%d", m["num_shards"].(int)))
 					buf.WriteString(m["zone_name"].(string))
 					buf.WriteString(fmt.Sprintf("%+v", m["regions_config"].(*schema.Set)))
-					return HashCodeString(buf.String())
+					return config.HashCodeString(buf.String())
 				},
 			},
 			"mongo_db_version": {
@@ -710,7 +710,7 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "replication_factor", clusterName, err))
 	}
 
-	if err := d.Set("labels", flattenLabels(removeLabel(cluster.Labels, defaultLabel))); err != nil {
+	if err := d.Set("labels", flattenLabels(config.RemoveLabel(cluster.Labels, defaultLabel))); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "labels", clusterName, err))
 	}
 
@@ -1104,7 +1104,7 @@ func getInstanceSizeToInt(instanceSize string) int {
 
 func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, error) {
 	var (
-		region, _          = valRegion(d.Get("provider_region_name"))
+		region, _          = config.ValRegion(d.Get("provider_region_name"))
 		minInstanceSize    = getInstanceSizeToInt(d.Get("provider_auto_scaling_compute_min_instance_size").(string))
 		maxInstanceSize    = getInstanceSizeToInt(d.Get("provider_auto_scaling_compute_max_instance_size").(string))
 		instanceSize       = getInstanceSizeToInt(d.Get("provider_instance_size_name").(string))
@@ -1298,13 +1298,13 @@ func expandRegionsConfig(regions []any, originalRegion, replaceRegion string) (m
 	for _, r := range regions {
 		region := r.(map[string]any)
 
-		r, err := valRegion(region["region_name"])
+		r, err := config.ValRegion(region["region_name"])
 		if err != nil {
 			return regionsConfig, err
 		}
 
 		if replaceRegion != "" && r == originalRegion {
-			r, err = valRegion(replaceRegion)
+			r, err = config.ValRegion(replaceRegion)
 		}
 		if err != nil {
 			return regionsConfig, err

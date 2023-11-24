@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/uti"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -150,7 +151,7 @@ func resourceMongoDBAtlasCloudProviderAccessUpdate(ctx context.Context, d *schem
 	if d.HasChanges("provider_name", "iam_assumed_role_arn") {
 		req := &matlas.CloudProviderAccessRoleRequest{
 			ProviderName:      d.Get("provider_name").(string),
-			IAMAssumedRoleARN: pointer(d.Get("iam_assumed_role_arn").(string)),
+			IAMAssumedRoleARN: uti.Pointer(d.Get("iam_assumed_role_arn").(string)),
 		}
 
 		role, _, err := conn.CloudProviderAccess.AuthorizeRole(ctx, projectID, roleID, req)

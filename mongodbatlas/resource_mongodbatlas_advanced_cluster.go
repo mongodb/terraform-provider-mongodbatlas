@@ -344,7 +344,7 @@ func HashFunctionForKeyValuePair(v any) int {
 	m := v.(map[string]any)
 	buf.WriteString(m["key"].(string))
 	buf.WriteString(m["value"].(string))
-	return HashCodeString(buf.String())
+	return config.HashCodeString(buf.String())
 }
 
 func advancedClusterRegionConfigsSpecsSchema() *schema.Schema {
@@ -551,7 +551,7 @@ func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "encryption_at_rest_provider", clusterName, err))
 	}
 
-	if err := d.Set("labels", flattenLabels(removeLabel(cluster.Labels, defaultLabel))); err != nil {
+	if err := d.Set("labels", flattenLabels(config.RemoveLabel(cluster.Labels, defaultLabel))); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "labels", clusterName, err))
 	}
 

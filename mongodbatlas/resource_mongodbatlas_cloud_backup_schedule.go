@@ -616,7 +616,7 @@ func expandCopySetting(tfMap map[string]any) *matlas.CopySetting {
 
 	copySetting := &matlas.CopySetting{
 		CloudProvider:     pointy.String(tfMap["cloud_provider"].(string)),
-		Frequencies:       expandStringList(tfMap["frequencies"].(*schema.Set).List()),
+		Frequencies:       config.ExpandStringList(tfMap["frequencies"].(*schema.Set).List()),
 		RegionName:        pointy.String(tfMap["region_name"].(string)),
 		ReplicationSpecID: pointy.String(tfMap["replication_spec_id"].(string)),
 		ShouldCopyOplogs:  pointy.Bool(tfMap["should_copy_oplogs"].(bool)),
