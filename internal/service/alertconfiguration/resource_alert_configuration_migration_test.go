@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 )
 
 func TestAccMigrationConfigRSAlertConfiguration_NotificationsWithMetricThreshold(t *testing.T) {
@@ -47,7 +46,7 @@ func TestAccMigrationConfigRSAlertConfiguration_NotificationsWithMetricThreshold
 				Config:                   config,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						testutils.DebugPlan(),
+						acc.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -91,7 +90,7 @@ func TestAccMigrationConfigRSAlertConfiguration_WithThreshold(t *testing.T) {
 				Config:                   config,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						testutils.DebugPlan(),
+						acc.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -136,7 +135,7 @@ func TestAccMigrationConfigRSAlertConfiguration_EmptyOptionalBlocks(t *testing.T
 				Config:                   config,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						testutils.DebugPlan(),
+						acc.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -188,7 +187,7 @@ func TestAccMigrationConfigRSAlertConfiguration_MultipleMatchers(t *testing.T) {
 				Config:                   config,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						testutils.DebugPlan(),
+						acc.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -230,7 +229,7 @@ func TestAccMigrationConfigRSAlertConfiguration_EmptyOptionalAttributes(t *testi
 				Config:                   config,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						testutils.DebugPlan(),
+						acc.DebugPlan(),
 					},
 				},
 				PlanOnly: true,

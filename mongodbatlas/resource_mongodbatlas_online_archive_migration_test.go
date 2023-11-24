@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 )
 
 func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing.T) {
@@ -59,7 +58,7 @@ func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing
 				Config:                   testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 1, 7),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						testutils.DebugPlan(),
+						acc.DebugPlan(),
 					},
 				},
 				PlanOnly: true,

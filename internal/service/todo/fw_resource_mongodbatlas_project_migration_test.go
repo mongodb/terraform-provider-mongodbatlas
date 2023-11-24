@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 )
 
 func TestAccMigrationProjectRS_NoProps(t *testing.T) {
@@ -50,7 +49,7 @@ func TestAccMigrationProjectRS_NoProps(t *testing.T) {
 				  }`, projectName, orgID),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						testutils.DebugPlan(),
+						acc.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -110,7 +109,7 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 				Config:                   configWithTeams,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						testutils.DebugPlan(),
+						acc.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -154,7 +153,7 @@ func TestAccMigrationProjectRS_WithFalseDefaultSettings(t *testing.T) {
 				Config:                   configWithTeams,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						testutils.DebugPlan(),
+						acc.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -207,7 +206,7 @@ func TestAccMigrationProjectRS_WithLimits(t *testing.T) {
 				Config:                   config,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						testutils.DebugPlan(),
+						acc.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -249,7 +248,7 @@ func TestAccMigrationProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T)
 				Config:                   testAccMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						testutils.DebugPlan(),
+						acc.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -291,7 +290,7 @@ func TestAccMigrationProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T)
 				Config:                   testAccMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(orgID, projectName, cidrBlock, comment),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						testutils.DebugPlan(),
+						acc.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -348,7 +347,7 @@ func TestAccMigrationProjectRSProjectIPAccessList_Multiple_SettingMultiple(t *te
 				Config:                   testAccMongoDBAtlasProjectIPAccessListConfigSettingMultiple(projectName, orgID, accessList, false),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						testutils.DebugPlan(),
+						acc.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
