@@ -213,7 +213,7 @@ func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceQueryLimitExists(resourc
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		if queryLimitResp, _, err := conn.DataFederation.GetQueryLimit(context.Background(), ids["project_id"], ids["tenant_name"], ids["limit_name"]); err == nil {
 			*queryLimit = *queryLimitResp

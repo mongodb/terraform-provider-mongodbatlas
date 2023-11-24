@@ -232,7 +232,7 @@ func testAccCheckMongoDBAtlasProjectAPIKeyDestroy(s *terraform.State) error {
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		projectAPIKeys, _, err := conn.ProjectAPIKeys.List(context.Background(), ids["project_id"], nil)
 		if err != nil {

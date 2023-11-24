@@ -600,7 +600,7 @@ func testAccCheckMongoDBAtlasCustomDBRolesExists(resourceName string) resource.T
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		_, _, err := conn.CustomDBRoles.Get(context.Background(), ids["project_id"], ids["role_name"])
 		if err != nil {
@@ -619,7 +619,7 @@ func testAccCheckMongoDBAtlasCustomDBRolesDestroy(s *terraform.State) error {
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		_, _, err := conn.CustomDBRoles.Get(context.Background(), ids["project_id"], ids["role_name"])
 		if err == nil {

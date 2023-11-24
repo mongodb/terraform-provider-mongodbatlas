@@ -144,7 +144,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointCreate(ctx context.Context, d *schem
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsCreate, err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"private_link_id": privateEndpointConn.ID,
 		"project_id":      projectID,
 		"provider_name":   providerName,
@@ -157,7 +157,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointCreate(ctx context.Context, d *schem
 func resourceMongoDBAtlasPrivateLinkEndpointRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	privateLinkID := ids["private_link_id"]
 	providerName := ids["provider_name"]
@@ -231,7 +231,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointRead(ctx context.Context, d *schema.
 func resourceMongoDBAtlasPrivateLinkEndpointDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	privateLinkID := ids["private_link_id"]
 	projectID := ids["project_id"]
 	providerName := ids["provider_name"]
@@ -293,7 +293,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointImportState(ctx context.Context, d *
 		log.Printf(errorPrivateLinkEndpointsSetting, "project_id", privateLinkID, err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"private_link_id": privateEndpoint.ID,
 		"project_id":      projectID,
 		"provider_name":   providerName,

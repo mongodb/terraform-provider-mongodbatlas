@@ -146,7 +146,7 @@ func dataSourceMongoDBAtlasDataLakeRunRead(ctx context.Context, d *schema.Resour
 		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "storage_stores", name, err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":      projectID,
 		"pipeline_name":   name,
 		"pipeline_run_id": pipelineRunID,

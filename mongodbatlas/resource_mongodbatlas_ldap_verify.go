@@ -157,7 +157,7 @@ func resourceMongoDBAtlasLDAPVerifyCreate(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(fmt.Errorf(errorLDAPVerifyCreate, projectID, err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"request_id": ldap.RequestID,
 	}))
@@ -168,7 +168,7 @@ func resourceMongoDBAtlasLDAPVerifyCreate(ctx context.Context, d *schema.Resourc
 func resourceMongoDBAtlasLDAPVerifyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	requestID := ids["request_id"]
 
@@ -261,7 +261,7 @@ func resourceMongoDBAtlasLDAPVerifyImportState(ctx context.Context, d *schema.Re
 		return nil, fmt.Errorf(errorLDAPVerifySetting, "request_id", requestID, err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"request_id": requestID,
 	}))

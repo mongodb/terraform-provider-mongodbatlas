@@ -48,7 +48,7 @@ func testAccCheckMongoDBAtlasDataLakePipelineDestroy(s *terraform.State) error {
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 		// Try to find the data lake pipeline
 		_, _, err := conn.DataLakePipeline.Get(context.Background(), ids["project_id"], ids["name"])
 		if err == nil {

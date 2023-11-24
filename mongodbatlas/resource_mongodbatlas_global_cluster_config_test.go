@@ -220,7 +220,7 @@ func testAccCheckMongoDBAtlasGlobalClusterExists(resourceName string, globalConf
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		globalConfigResp, _, err := conn.GlobalClusters.Get(context.Background(), ids["project_id"], ids["cluster_name"])
 		if err == nil {
@@ -242,7 +242,7 @@ func testAccCheckMongoDBAtlasGlobalClusterImportStateIDFunc(resourceName string)
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s-%s", ids["project_id"], ids["cluster_name"]), nil
 	}

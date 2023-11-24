@@ -304,7 +304,7 @@ func resourceMongoDBAtlasCloudBackupScheduleCreate(ctx context.Context, d *schem
 		return diags
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": clusterName,
 	}))
@@ -316,7 +316,7 @@ func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
@@ -387,7 +387,7 @@ func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.
 func resourceMongoDBAtlasCloudBackupScheduleUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
@@ -408,7 +408,7 @@ func resourceMongoDBAtlasCloudBackupScheduleUpdate(ctx context.Context, d *schem
 func resourceMongoDBAtlasCloudBackupScheduleDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
@@ -446,7 +446,7 @@ func resourceMongoDBAtlasCloudBackupScheduleImportState(ctx context.Context, d *
 		return nil, fmt.Errorf(errorSnapshotBackupScheduleSetting, "cluster_name", clusterName, err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": clusterName,
 	}))

@@ -147,7 +147,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationCreate(ctx context.Context, d *sch
 	}
 
 	// ID is equal to project_id+type need to ask
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"type":       integrationType,
 	}))
@@ -157,7 +157,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationCreate(ctx context.Context, d *sch
 
 func resourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 
 	projectID := ids["project_id"]
 	integrationType := ids["type"]
@@ -180,7 +180,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schem
 		}
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"type":       integrationType,
 	}))
@@ -190,7 +190,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schem
 
 func resourceMongoDBAtlasThirdPartyIntegrationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 
 	projectID := ids["project_id"]
 	integrationType := ids["type"]
@@ -216,7 +216,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationUpdate(ctx context.Context, d *sch
 
 func resourceMongoDBAtlasThirdPartyIntegrationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 
 	projectID := ids["project_id"]
 	integrationType := ids["type"]
@@ -253,7 +253,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationImportState(ctx context.Context, d
 		return nil, fmt.Errorf("error setting `type` for third party integration (%s): %w", d.Id(), err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"type":       integrationType,
 	}))

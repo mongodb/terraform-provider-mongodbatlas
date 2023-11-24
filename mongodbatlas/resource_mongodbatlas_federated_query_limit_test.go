@@ -201,7 +201,7 @@ func testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitImportStateIDFunc(resour
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s--%s--%s", ids["project_id"], ids["tenant_name"], ids["limit_name"]), nil
 	}
@@ -215,7 +215,7 @@ func testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitDestroy(s *terraform.Sta
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 		_, _, err := conn.DataFederation.GetQueryLimit(context.Background(), ids["project_id"], ids["tenant_name"], ids["limit_name"])
 		if err == nil {
 			return fmt.Errorf("federated database query limit (%s) for project (%s) and tenant (%s)still exists", ids["project_id"], ids["tenant_name"], ids["limit_name"])

@@ -127,7 +127,7 @@ func resourceMongoDBAtlasCloudBackupSnapshot() *schema.Resource {
 func resourceMongoDBAtlasCloudBackupSnapshotRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
 		SnapshotID:  ids["snapshot_id"],
@@ -251,7 +251,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotCreate(ctx context.Context, d *schem
 		return diag.FromErr(err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":   d.Get("project_id").(string),
 		"cluster_name": d.Get("cluster_name").(string),
 		"snapshot_id":  snapshot.ID,
@@ -263,7 +263,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotCreate(ctx context.Context, d *schem
 func resourceMongoDBAtlasCloudBackupSnapshotDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
 		SnapshotID:  ids["snapshot_id"],
@@ -313,7 +313,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotImportState(ctx context.Context, d *
 		return nil, fmt.Errorf("couldn't import snapshot %s in project %s, error: %s", requestParameters.ClusterName, requestParameters.GroupID, err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":   requestParameters.GroupID,
 		"cluster_name": requestParameters.ClusterName,
 		"snapshot_id":  requestParameters.SnapshotID,

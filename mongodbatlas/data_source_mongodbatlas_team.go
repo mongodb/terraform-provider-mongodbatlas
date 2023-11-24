@@ -91,7 +91,7 @@ func dataSourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(fmt.Errorf(errorTeamSetting, "usernames", d.Id(), err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"org_id": orgID,
 		"id":     team.ID,
 	}))

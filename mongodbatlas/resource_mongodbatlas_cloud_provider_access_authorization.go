@@ -91,7 +91,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorization() *schema.Resource {
 func resourceMongoDBAtlasCloudProviderAccessAuthorizationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// sadly there is no just get API
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 
 	roleID := ids["id"] // atlas ID
 	projectID := ids["project_id"]
@@ -149,7 +149,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate(ctx context.Cont
 
 func resourceMongoDBAtlasCloudProviderAccessAuthorizationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 
 	roleID := ids["id"]
 	projectID := ids["project_id"]
@@ -306,7 +306,7 @@ func authorizeRole(ctx context.Context, client *matlas.Client, d *schema.Resourc
 	if role.ProviderName == config.AZURE {
 		resourceID = *role.AzureID
 	}
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"id":         resourceID,
 		"project_id": projectID,
 	}))

@@ -148,7 +148,7 @@ func resourceMongoDBAtlasCustomDBRoleCreate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf("error creating custom db role: %s", err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"role_name":  customDBRoleReq.RoleName,
 	}))
@@ -158,7 +158,7 @@ func resourceMongoDBAtlasCustomDBRoleCreate(ctx context.Context, d *schema.Resou
 
 func resourceMongoDBAtlasCustomDBRoleRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleName := ids["role_name"]
 
@@ -191,7 +191,7 @@ func resourceMongoDBAtlasCustomDBRoleUpdate(ctx context.Context, d *schema.Resou
 	customRoleLock.Lock()
 	defer customRoleLock.Unlock()
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleName := ids["role_name"]
 
@@ -221,7 +221,7 @@ func resourceMongoDBAtlasCustomDBRoleUpdate(ctx context.Context, d *schema.Resou
 
 func resourceMongoDBAtlasCustomDBRoleDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleName := ids["role_name"]
 
@@ -275,7 +275,7 @@ func resourceMongoDBAtlasCustomDBRoleImportState(ctx context.Context, d *schema.
 		return nil, fmt.Errorf("couldn't import custom db role %s in project %s, error: %s", roleName, projectID, err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"role_name":  r.RoleName,
 	}))

@@ -112,7 +112,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceImportStateIDFunc(resourc
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s--%s--%s--%s", ids["project_id"], ids["private_link_id"], ids["endpoint_service_id"], ids["provider_name"]), nil
 	}
@@ -131,7 +131,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceExists(resourceName strin
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		_, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), ids["project_id"], ids["provider_name"], ids["private_link_id"], ids["endpoint_service_id"])
 		if err == nil {
@@ -150,7 +150,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy(s *terraform.Stat
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 		_, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), ids["project_id"], ids["provider_name"], ids["private_link_id"], ids["endpoint_service_id"])
 		if err == nil {
 			return fmt.Errorf("the MongoDB Private Endpoint(%s) still exists", ids["endpoint_service_id"])

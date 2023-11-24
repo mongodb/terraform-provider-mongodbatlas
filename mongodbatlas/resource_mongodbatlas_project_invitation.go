@@ -63,7 +63,7 @@ func resourceMongoDBAtlasProjectInvitation() *schema.Resource {
 func resourceMongoDBAtlasProjectInvitationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
@@ -108,7 +108,7 @@ func resourceMongoDBAtlasProjectInvitationRead(ctx context.Context, d *schema.Re
 		return diag.FromErr(fmt.Errorf("error getting `roles` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"username":      username,
 		"project_id":    projectID,
 		"invitation_id": invitationID,
@@ -132,7 +132,7 @@ func resourceMongoDBAtlasProjectInvitationCreate(ctx context.Context, d *schema.
 		return diag.FromErr(fmt.Errorf("error creating Project invitation for user %s: %w", d.Get("username").(string), err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"username":      invitationRes.Username,
 		"project_id":    invitationRes.GroupID,
 		"invitation_id": invitationRes.ID,
@@ -143,7 +143,7 @@ func resourceMongoDBAtlasProjectInvitationCreate(ctx context.Context, d *schema.
 
 func resourceMongoDBAtlasProjectInvitationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
@@ -158,7 +158,7 @@ func resourceMongoDBAtlasProjectInvitationDelete(ctx context.Context, d *schema.
 
 func resourceMongoDBAtlasProjectInvitationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
@@ -201,7 +201,7 @@ func resourceMongoDBAtlasProjectInvitationImportState(ctx context.Context, d *sc
 		if err := d.Set("invitation_id", projectInvitation.ID); err != nil {
 			return nil, fmt.Errorf("error getting `invitation_id` for Project Invitation (%s): %w", username, err)
 		}
-		d.SetId(encodeStateID(map[string]string{
+		d.SetId(config.EncodeStateID(map[string]string{
 			"username":      username,
 			"project_id":    projectID,
 			"invitation_id": projectInvitation.ID,

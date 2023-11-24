@@ -102,12 +102,12 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigRExists(resource
 
 func testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigImportStateIDFunc(resourceName, federationSettingsID, orgID string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
-		ID := encodeStateID(map[string]string{
+		ID := config.EncodeStateID(map[string]string{
 			"federation_settings_id": federationSettingsID,
 			"org_id":                 orgID,
 		})
 
-		ids := decodeStateID(ID)
+		ids := config.DecodeStateID(ID)
 		return fmt.Sprintf("%s-%s", ids["federation_settings_id"], ids["org_id"]), nil
 	}
 }

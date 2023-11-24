@@ -98,7 +98,7 @@ func resourceMongoDBAtlasCloudProviderAccessCreate(ctx context.Context, d *schem
 
 	roleSchema := roleToSchema(role)
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"id":            role.RoleID,
 		"project_id":    projectID,
 		"provider_name": role.ProviderName,
@@ -116,7 +116,7 @@ func resourceMongoDBAtlasCloudProviderAccessCreate(ctx context.Context, d *schem
 func resourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// sadly there is no just get API
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleID := ids["id"]
 
@@ -142,7 +142,7 @@ func resourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schema.
 
 func resourceMongoDBAtlasCloudProviderAccessUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 
 	projectID := ids["project_id"]
 	roleID := ids["id"]
@@ -172,7 +172,7 @@ func resourceMongoDBAtlasCloudProviderAccessUpdate(ctx context.Context, d *schem
 
 func resourceMongoDBAtlasCloudProviderAccessDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 
 	projectID := ids["project_id"]
 	roleID := ids["id"]
@@ -201,7 +201,7 @@ func resourceMongoDBAtlasCloudProviderAccessImportState(ctx context.Context, d *
 	}
 
 	// searching id in internal format
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"id":            roleID,
 		"project_id":    projectID,
 		"provider_name": providerName,

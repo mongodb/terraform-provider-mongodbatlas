@@ -122,7 +122,7 @@ func testAccCheckMongoDBAtlasBackupCompliancePolicyExists(resourceName string) r
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
 
 		schedule, _, err := conn.BackupCompliancePolicy.Get(context.Background(), projectID)
@@ -146,7 +146,7 @@ func testAccCheckMongoDBAtlasBackupCompliancePolicyDestroy(s *terraform.State) e
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
 
 		compliancePolicy, _, err := conn.BackupCompliancePolicy.Get(context.Background(), projectID)
@@ -165,7 +165,7 @@ func testAccCheckMongoDBAtlasBackupCompliancePolicyImportStateIDFunc(resourceNam
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		return ids["project_id"], nil
 	}

@@ -285,7 +285,7 @@ func setDataLakeResourceData(
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "ingestion_schedules", pipeline.Name, err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": pipeline.GroupID,
 		"name":       pipeline.Name,
 	}))

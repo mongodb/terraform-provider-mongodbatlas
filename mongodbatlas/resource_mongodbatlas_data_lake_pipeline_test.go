@@ -53,7 +53,7 @@ func testAccCheckMongoDBAtlasDataLakePipelineImportStateIDFunc(resourceName stri
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s--%s", ids["project_id"], ids["name"]), nil
 	}
@@ -72,7 +72,7 @@ func testAccCheckMongoDBAtlasDataLakePipelineExists(resourceName string, pipelin
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		response, _, err := conn.DataLakePipeline.Get(context.Background(), ids["project_id"], ids["name"])
 		if err == nil {

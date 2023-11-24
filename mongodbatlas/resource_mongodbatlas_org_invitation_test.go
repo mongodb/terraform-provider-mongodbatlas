@@ -101,7 +101,7 @@ func testAccCheckMongoDBAtlasOrgInvitationExists(t *testing.T, resourceName stri
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		orgID := ids["org_id"]
 		username := ids["username"]
@@ -157,7 +157,7 @@ func testAccCheckMongoDBAtlasOrgInvitationDestroy(s *terraform.State) error {
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		orgID := ids["org_id"]
 		invitationID := ids["invitation_id"]

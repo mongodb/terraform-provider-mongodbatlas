@@ -259,7 +259,7 @@ func testAccCheckThirdPartyIntegrationExists(resourceName string, integration *m
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		if integrationResponse, _, err := conn.Integrations.Get(context.Background(), ids["project_id"], ids["type"]); err == nil {
 			*integration = *integrationResponse

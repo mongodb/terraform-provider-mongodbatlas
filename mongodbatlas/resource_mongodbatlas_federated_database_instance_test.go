@@ -246,7 +246,7 @@ func testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFuncS3Bucket(
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s--%s--%s", ids["project_id"], ids["name"], s3Bucket), nil
 	}
@@ -259,7 +259,7 @@ func testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFunc(resource
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s--%s", ids["project_id"], ids["name"]), nil
 	}
@@ -273,7 +273,7 @@ func testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy(s *terraform.State
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 		_, _, err := connV2.DataFederationApi.GetFederatedDatabase(context.Background(), ids["project_id"], ids["name"]).Execute()
 		if err == nil {
 			return fmt.Errorf("federated database instance (%s) still exists", ids["project_id"])

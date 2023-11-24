@@ -304,7 +304,7 @@ func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf(errorEventTriggersCreate, projectID, err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"app_id":     appID,
 		"trigger_id": eventResp.ID,
@@ -319,7 +319,7 @@ func resourceMongoDBAtlasEventTriggersRead(ctx context.Context, d *schema.Resour
 		return diag.FromErr(err)
 	}
 
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	appID := ids["app_id"]
 	triggerID := ids["trigger_id"]
@@ -410,7 +410,7 @@ func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.Reso
 		return diag.FromErr(err)
 	}
 
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	appID := ids["app_id"]
 	triggerID := ids["trigger_id"]
@@ -463,7 +463,7 @@ func resourceMongoDBAtlasEventTriggersDelete(ctx context.Context, d *schema.Reso
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 
 	projectID := ids["project_id"]
 	appID := ids["app_id"]
@@ -546,7 +546,7 @@ func resourceMongoDBAtlasEventTriggerImportState(ctx context.Context, d *schema.
 		return nil, fmt.Errorf(errorEventTriggersSetting, "app_id", projectID, appID, err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"app_id":     appID,
 		"trigger_id": triggerID,

@@ -88,7 +88,7 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf("error setting `org_id`: %s", err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"org_id": organization.Organization.ID,
 	}))
 
@@ -106,7 +106,7 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 	clients, _ := cfg.NewClient(ctx)
 	conn := clients.(*config.MongoDBClient).Atlas
 
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
 	organization, resp, err := conn.Organizations.Get(ctx, orgID)
@@ -118,7 +118,7 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 		}
 		return diag.FromErr(fmt.Errorf("error reading organization information: %s", err))
 	}
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"org_id": organization.ID,
 	}))
 	return nil
@@ -134,7 +134,7 @@ func resourceMongoDBAtlasOrganizationUpdate(ctx context.Context, d *schema.Resou
 
 	clients, _ := cfg.NewClient(ctx)
 	conn := clients.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
 	updateRequest := new(matlas.Organization)
@@ -158,7 +158,7 @@ func resourceMongoDBAtlasOrganizationDelete(ctx context.Context, d *schema.Resou
 
 	clients, _ := cfg.NewClient(ctx)
 	conn := clients.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
 	if _, err := conn.Organizations.Delete(ctx, orgID); err != nil {
@@ -184,7 +184,7 @@ func resourceMongoDBAtlasOrganizationImportState(ctx context.Context, d *schema.
 		return nil, fmt.Errorf("error setting `org_id`: %s", err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"org_id": orgID,
 	}))
 

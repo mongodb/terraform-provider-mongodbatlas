@@ -83,7 +83,7 @@ func testAccCheckMongoDBAtlasOrganizationExists(resourceName string) resource.Te
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		organizationOptions := &matlas.OrganizationsListOptions{}
 		orgs, _, err := conn.Organizations.List(context.Background(), organizationOptions)
@@ -108,7 +108,7 @@ func testAccCheckMongoDBAtlasOrganizationDestroy(s *terraform.State) error {
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		organizationOptions := &matlas.OrganizationsListOptions{}
 		orgs, _, err := conn.Organizations.List(context.Background(), organizationOptions)

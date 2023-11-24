@@ -105,7 +105,7 @@ func dataSourceMongoDBAtlasPrivateEndpointServiceServerlessLinkRead(ctx context.
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_ip_address", endpointID, err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":    projectID,
 		"instance_name": instanceName,
 		"endpoint_id":   endpointID,

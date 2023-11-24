@@ -126,7 +126,7 @@ func testAccCheckMongoDBAtlasAccessListAPIKeyExists(resourceName string) resourc
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		_, _, err := conn.AccessListAPIKeys.Get(context.Background(), ids["org_id"], ids["api_key_id"], ids["entry"])
 		if err != nil {
@@ -145,7 +145,7 @@ func testAccCheckMongoDBAtlasAccessListAPIKeyDestroy(s *terraform.State) error {
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		_, _, err := conn.AccessListAPIKeys.Get(context.Background(), ids["project_id"], ids["api_key_id"], ids["entry"])
 		if err == nil {
@@ -163,7 +163,7 @@ func testAccCheckMongoDBAtlasAccessListAPIKeyImportStateIDFunc(resourceName stri
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s-%s-%s", ids["org_id"], ids["api_key_id"], ids["entry"]), nil
 	}

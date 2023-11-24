@@ -185,7 +185,7 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		}
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":   projectID.(string),
 		"cluster_name": clusterName.(string),
 		"index_id":     indexID.(string),

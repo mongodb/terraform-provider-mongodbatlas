@@ -53,7 +53,7 @@ func testAccCheckMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchi
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s--%s", ids["project_id"], ids["endpoint_id"]), nil
 	}
@@ -67,7 +67,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDe
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		_, _, err := client.DataLakes.GetPrivateLinkEndpoint(context.Background(), ids["project_id"], ids["endpoint_id"])
 
@@ -93,7 +93,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveEx
 			return fmt.Errorf("Private endpoint service data federation online archive ID not set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 		_, _, err := client.DataLakes.GetPrivateLinkEndpoint(context.Background(), ids["project_id"], ids["endpoint_id"])
 
 		if err != nil {

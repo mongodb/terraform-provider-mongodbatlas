@@ -122,7 +122,7 @@ func testAccCheckMongoDBAtlasTeamExists(resourceName string, team *matlas.Team) 
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		orgID := ids["org_id"]
 		id := ids["id"]

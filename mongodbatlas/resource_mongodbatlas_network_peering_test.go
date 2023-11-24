@@ -206,7 +206,7 @@ func testAccCheckMongoDBAtlasNetworkPeeringImportStateIDFunc(resourceName string
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s-%s-%s", ids["project_id"], ids["peer_id"], ids["provider_name"]), nil
 	}
@@ -225,7 +225,7 @@ func testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName string, peer *mat
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 		log.Printf("[DEBUG] projectID: %s", ids["project_id"])
 
 		if peerResp, _, err := conn.Peers.Get(context.Background(), ids["project_id"], ids["peer_id"]); err == nil {
@@ -247,7 +247,7 @@ func testAccCheckMongoDBAtlasNetworkPeeringDestroy(s *terraform.State) error {
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 		_, _, err := conn.Peers.Get(context.Background(), ids["project_id"], ids["peer_id"])
 
 		if err == nil {

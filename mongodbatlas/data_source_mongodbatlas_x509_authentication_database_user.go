@@ -86,7 +86,7 @@ func dataSourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":          projectID,
 		"username":            username,
 		"current_certificate": "",

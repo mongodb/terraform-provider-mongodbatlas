@@ -58,7 +58,7 @@ func dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":  projectID,
 		"endpoint_id": endopointID,
 	}))

@@ -102,7 +102,7 @@ func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceN
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 		if dataLakeResp, _, err := connV2.DataFederationApi.GetFederatedDatabase(context.Background(), ids["project_id"], ids["name"]).Execute(); err == nil {
 			*dataFederatedInstance = *dataLakeResp
 			return nil

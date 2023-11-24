@@ -272,7 +272,7 @@ func resourceMongoDBAtlasDataLakePipelineCreate(ctx context.Context, d *schema.R
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineCreate, err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"name":       dataLakePipeline.Name,
 	}))
@@ -282,7 +282,7 @@ func resourceMongoDBAtlasDataLakePipelineCreate(ctx context.Context, d *schema.R
 
 func resourceMongoDBAtlasDataLakePipelineRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	name := ids["name"]
 
@@ -342,7 +342,7 @@ func resourceMongoDBAtlasDataLakePipelineRead(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "ingestion_schedules", name, err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"name":       dataLakePipeline.Name,
 	}))
@@ -373,7 +373,7 @@ func resourceMongoDBAtlasDataLakePipelineUpdate(ctx context.Context, d *schema.R
 
 func resourceMongoDBAtlasDataLakePipelineDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	name := ids["name"]
 
@@ -434,7 +434,7 @@ func resourceMongoDBAtlasDataLakePipelineImportState(ctx context.Context, d *sch
 		return nil, fmt.Errorf(errorDataLakePipelineImportField, "transformations", name, err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"name":       dataLakePipeline.Name,
 	}))

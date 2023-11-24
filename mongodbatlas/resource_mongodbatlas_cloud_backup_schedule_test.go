@@ -406,7 +406,7 @@ func testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName string) reso
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
 		clusterName := ids["cluster_name"]
 
@@ -431,7 +431,7 @@ func testAccCheckMongoDBAtlasCloudBackupScheduleDestroy(s *terraform.State) erro
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
 		clusterName := ids["cluster_name"]
 
@@ -914,7 +914,7 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotBackupPolicyImportStateIDFunc(
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s-%s", ids["project_id"], ids["cluster_name"]), nil
 	}

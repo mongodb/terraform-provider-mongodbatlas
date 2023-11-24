@@ -103,7 +103,7 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy(sta
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		roleMapping, _, err := conn.FederatedSettings.GetRoleMapping(context.Background(), ids["federation_settings_id"], ids["org_id"], ids["role_mapping_id"])
 		if err == nil && roleMapping != nil {
@@ -121,7 +121,7 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingImportState
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s-%s-%s", ids["federation_settings_id"], ids["org_id"], ids["role_mapping_id"]), nil
 	}

@@ -8,18 +8,6 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func encodeStateID(values map[string]string) string {
-	return config.EncodeStateID(values)
-}
-
-func getEncodedID(stateID, keyPosition string) string {
-	return config.GetEncodedID(stateID, keyPosition)
-}
-
-func decodeStateID(stateID string) map[string]string {
-	return config.DecodeStateID(stateID)
-}
-
 func valRegion(reg any, opt ...string) (string, error) {
 	return config.ValRegion(reg, opt...)
 }

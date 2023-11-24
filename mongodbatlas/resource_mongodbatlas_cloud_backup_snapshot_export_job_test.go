@@ -80,7 +80,7 @@ func testAccCheckMongoDBAtlasBackupSnapshotExportJobExists(resourceName string, 
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		response, _, err := conn.CloudProviderSnapshotExportJobs.Get(context.Background(), ids["project_id"], ids["cluster_name"], ids["export_job_id"])
 		if err == nil {
@@ -100,7 +100,7 @@ func testAccCheckMongoDBAtlasBackupSnapshotExportJobDestroy(state *terraform.Sta
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		snapshotExportBucket, _, err := conn.CloudProviderSnapshotExportJobs.Get(context.Background(), ids["project_id"], ids["cluster_name"], ids["export_job_id"])
 		if err == nil && snapshotExportBucket != nil {
@@ -118,7 +118,7 @@ func testAccCheckMongoDBAtlasBackupSnapshotExportJobImportStateIDFunc(resourceNa
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s-%s-%s", ids["project_id"], ids["cluster_name"], ids["export_job_id"]), nil
 	}

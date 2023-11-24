@@ -84,7 +84,7 @@ func testAccCheckMongoDBAtlasCloudProviderAccessImportStateIDFunc(resourceName s
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s-%s-%s", ids["project_id"], ids["provider_name"], ids["id"]), nil
 	}
@@ -97,7 +97,7 @@ func testAccCheckMongoDBAtlasProviderAccessDestroy(s *terraform.State) error {
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		roles, _, err := conn.CloudProviderAccess.ListRoles(context.Background(), ids["project_id"])
 
@@ -138,7 +138,7 @@ func testAccCheckMongoDBAtlasProviderAccessExists(resourceName string, targetRol
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 		providerName := ids["provider_name"]
 		id := ids["id"]
 

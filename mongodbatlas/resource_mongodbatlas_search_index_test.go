@@ -286,7 +286,7 @@ func testAccCheckSearchIndexExists(resourceName string) resource.TestCheckFunc {
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		connV2 := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).AtlasV2
 		_, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(context.Background(), ids["project_id"], ids["cluster_name"], ids["index_id"]).Execute()
@@ -466,7 +466,7 @@ func testAccCheckMongoDBAtlasSearchIndexDestroy(state *terraform.State) error {
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		searchIndex, _, err := conn.Search.GetIndex(context.Background(), ids["project_id"], ids["cluster_name"], ids["index_id"])
 		if err == nil && searchIndex != nil {
@@ -484,7 +484,7 @@ func testAccCheckMongoDBAtlasSearchIndexImportStateIDFunc(resourceName string) r
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s--%s--%s", ids["project_id"], ids["cluster_name"], ids["index_id"]), nil
 	}

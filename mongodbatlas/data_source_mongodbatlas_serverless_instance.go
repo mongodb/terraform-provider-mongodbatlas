@@ -84,7 +84,7 @@ func dataSourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema
 		return diag.Errorf(errorClusterAdvancedSetting, "tags", d.Id(), err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID.(string),
 		"name":       instanceName.(string),
 	}))

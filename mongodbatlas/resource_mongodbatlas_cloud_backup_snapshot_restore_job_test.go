@@ -121,7 +121,7 @@ func testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobExists(resourceName st
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		if ids["snapshot_restore_job_id"] == "" {
 			return fmt.Errorf("no ID is set")
@@ -162,7 +162,7 @@ func testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobDestroy(s *terraform.S
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		requestParameters := &matlas.SnapshotReqPathParameters{
 			GroupID:     ids["project_id"],

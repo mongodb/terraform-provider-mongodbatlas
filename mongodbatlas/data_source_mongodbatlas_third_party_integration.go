@@ -125,7 +125,7 @@ func dataSourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *sch
 		}
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"type":       queryType,
 	}))

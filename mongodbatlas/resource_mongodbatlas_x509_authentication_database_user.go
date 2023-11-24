@@ -123,7 +123,7 @@ func resourceMongoDBAtlasX509AuthDBUserCreate(ctx context.Context, d *schema.Res
 		}
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":    projectID,
 		"username":      username,
 		"serial_number": serialNumber,
@@ -135,7 +135,7 @@ func resourceMongoDBAtlasX509AuthDBUserCreate(ctx context.Context, d *schema.Res
 func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
 
@@ -165,7 +165,7 @@ func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":    projectID,
 		"username":      username,
 		"serial_number": serialNumber,
@@ -177,7 +177,7 @@ func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.Resou
 func resourceMongoDBAtlasX509AuthDBUserDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	currentCertificate := ids["current_certificate"]
 	projectID := ids["project_id"]
 
@@ -232,7 +232,7 @@ func resourceMongoDBAtlasX509AuthDBUserImportState(ctx context.Context, d *schem
 		return nil, fmt.Errorf(errorX509AuthDBUsersSetting, "project_id", username, err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":          projectID,
 		"username":            username,
 		"current_certificate": "",

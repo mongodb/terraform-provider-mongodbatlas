@@ -160,7 +160,7 @@ func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.R
 		log.Printf("[WARN] Error setting index_id for (%s): %s", indexID, err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": clusterName,
 		"index_id":     indexID,
@@ -170,7 +170,7 @@ func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.R
 }
 
 func resourceMongoDBAtlasSearchIndexDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 	indexID := ids["index_id"]
@@ -185,7 +185,7 @@ func resourceMongoDBAtlasSearchIndexDelete(ctx context.Context, d *schema.Resour
 
 func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 	indexID := ids["index_id"]
@@ -277,7 +277,7 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 		// Wait, catching any errors
 		_, err = stateConf.WaitForStateContext(ctx)
 		if err != nil {
-			d.SetId(encodeStateID(map[string]string{
+			d.SetId(config.EncodeStateID(map[string]string{
 				"project_id":   projectID,
 				"cluster_name": clusterName,
 				"index_id":     indexID,
@@ -292,7 +292,7 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 }
 
 func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 	indexID := ids["index_id"]
@@ -458,7 +458,7 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 		// Wait, catching any errors
 		_, err = stateConf.WaitForStateContext(ctx)
 		if err != nil {
-			d.SetId(encodeStateID(map[string]string{
+			d.SetId(config.EncodeStateID(map[string]string{
 				"project_id":   projectID,
 				"cluster_name": clusterName,
 				"index_id":     indexID,
@@ -468,7 +468,7 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 			return diag.FromErr(fmt.Errorf("error creating index in cluster (%s): %s", clusterName, err))
 		}
 	}
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": clusterName,
 		"index_id":     indexID,

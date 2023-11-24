@@ -263,7 +263,7 @@ func dataSourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *sc
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_monthly", projectID, err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id": projectID,
 	}))
 

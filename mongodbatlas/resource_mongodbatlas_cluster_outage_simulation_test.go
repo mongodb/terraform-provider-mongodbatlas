@@ -157,7 +157,7 @@ func testAccCheckMongoDBAtlasClusterOutageSimulationDestroy(s *terraform.State) 
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 		_, _, err := conn.ClusterOutageSimulation.GetOutageSimulation(context.Background(), ids["project_id"], ids["cluster_name"])
 		if err == nil {
 			return fmt.Errorf("cluster outage simulation for project (%s) and cluster (%s) still exists", ids["project_id"], ids["cluster_name"])

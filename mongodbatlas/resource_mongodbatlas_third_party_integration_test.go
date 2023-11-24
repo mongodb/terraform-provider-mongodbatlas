@@ -162,7 +162,7 @@ func testAccCheckMongoDBAtlasThirdPartyIntegrationDestroy(s *terraform.State) er
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 		_, _, err := conn.Integrations.Get(context.Background(), ids["project_id"], ids["type"])
 
 		if err == nil {
@@ -180,7 +180,7 @@ func testAccCheckMongoDBAtlasThirdPartyIntegrationImportStateIDFunc(resourceName
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s-%s", ids["project_id"], ids["type"]), nil
 	}

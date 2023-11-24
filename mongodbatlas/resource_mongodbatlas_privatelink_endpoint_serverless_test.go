@@ -75,7 +75,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessDestroy(state *terrafo
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		privateLink, _, err := conn.ServerlessPrivateEndpoints.Get(context.Background(), ids["project_id"], ids["instance_name"], ids["endpoint_id"])
 		if err == nil && privateLink != nil {
@@ -112,7 +112,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessExists(resourceName st
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		_, _, err := conn.ServerlessPrivateEndpoints.Get(context.Background(), ids["project_id"], ids["instance_name"], ids["endpoint_id"])
 		if err == nil {
@@ -130,7 +130,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessImportStateIDFunc(reso
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s--%s--%s", ids["project_id"], ids["instance_name"], ids["endpoint_id"]), nil
 	}

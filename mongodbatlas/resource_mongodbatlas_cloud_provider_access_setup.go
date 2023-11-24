@@ -93,7 +93,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 
 func resourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleID := ids["id"]
 
@@ -163,7 +163,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *
 		resourceID = *role.AzureID
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"id":            resourceID,
 		"project_id":    projectID,
 		"provider_name": role.ProviderName,
@@ -180,7 +180,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *
 
 func resourceMongoDBAtlasCloudProviderAccessSetupDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 
 	projectID := ids["project_id"]
 	roleID := ids["id"]
@@ -240,7 +240,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupImportState(ctx context.Context
 	}
 
 	// searching id in internal format
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"id":            roleID,
 		"project_id":    projectID,
 		"provider_name": providerName,

@@ -91,7 +91,7 @@ func testAccCheckMongoDBAtlasAPIKeyExists(resourceName string) resource.TestChec
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		_, _, err := conn.APIKeys.Get(context.Background(), ids["org_id"], ids["api_key_id"])
 		if err != nil {
@@ -110,7 +110,7 @@ func testAccCheckMongoDBAtlasAPIKeyDestroy(s *terraform.State) error {
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		_, _, err := conn.APIKeys.Get(context.Background(), ids["org_id"], ids["role_name"])
 		if err == nil {

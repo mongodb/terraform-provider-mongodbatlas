@@ -76,7 +76,7 @@ func dataSourceMongoDBAtlasClusterOutageSimulationRead(ctx context.Context, d *s
 		return diag.FromErr(err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":   projectID.(string),
 		"cluster_name": clusterName.(string),
 	}))

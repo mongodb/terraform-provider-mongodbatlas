@@ -491,7 +491,7 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 		}
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"cluster_id":   cluster.ID,
 		"project_id":   projectID,
 		"cluster_name": cluster.Name,
@@ -503,7 +503,7 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
@@ -634,7 +634,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdateOrUpgrade(ctx context.Context, d *
 
 func resourceMongoDBAtlasAdvancedClusterUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
@@ -650,7 +650,7 @@ func resourceMongoDBAtlasAdvancedClusterUpgrade(ctx context.Context, d *schema.R
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"cluster_id":   upgradeResponse.ID,
 		"project_id":   projectID,
 		"cluster_name": clusterName,
@@ -662,7 +662,7 @@ func resourceMongoDBAtlasAdvancedClusterUpgrade(ctx context.Context, d *schema.R
 func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
@@ -782,7 +782,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 func resourceMongoDBAtlasAdvancedClusterDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := decodeStateID(d.Id())
+	ids := config.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
@@ -839,7 +839,7 @@ func resourceMongoDBAtlasAdvancedClusterImportState(ctx context.Context, d *sche
 		log.Printf(errorClusterAdvancedSetting, "name", u.ID, err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"cluster_id":   u.ID,
 		"project_id":   *projectID,
 		"cluster_name": u.Name,

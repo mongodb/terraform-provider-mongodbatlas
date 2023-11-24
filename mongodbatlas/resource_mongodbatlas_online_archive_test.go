@@ -230,7 +230,7 @@ func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resour
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		log.Printf("[DEBUG] projectID: %s, name %s", ids["project_id"], ids["cluster_name"])
 

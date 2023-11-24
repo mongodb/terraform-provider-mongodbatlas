@@ -169,7 +169,7 @@ func testAccCheckMongoDBAtlasServerlessInstanceExists(resourceName string, serve
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		serverlessResponse, _, err := conn.ServerlessInstances.Get(context.Background(), ids["project_id"], ids["name"])
 		if err == nil {
@@ -189,7 +189,7 @@ func testAccCheckMongoDBAtlasServerlessInstanceDestroy(state *terraform.State) e
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		serverlessInstance, _, err := conn.ServerlessInstances.Get(context.Background(), ids["project_id"], ids["name"])
 		if err == nil && serverlessInstance != nil {
@@ -207,7 +207,7 @@ func testAccCheckMongoDBAtlasServerlessInstanceImportStateIDFunc(resourceName st
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 		return fmt.Sprintf("%s-%s", ids["project_id"], ids["name"]), nil
 	}
 }

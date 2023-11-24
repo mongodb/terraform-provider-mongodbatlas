@@ -234,7 +234,7 @@ func dataSourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.Reso
 		}
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	d.SetId(config.EncodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": clusterName,
 		"archive_id":   archiveID,

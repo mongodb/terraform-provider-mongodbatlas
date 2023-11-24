@@ -71,7 +71,7 @@ func testAccCheckMongoDBAtlasCloudBackupSnapshotExists(resourceName string, clou
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		if ids["snapshot_id"] == "" {
 			return fmt.Errorf("no ID is set")
@@ -113,7 +113,7 @@ func testAccCheckMongoDBAtlasCloudBackupSnapshotDestroy(s *terraform.State) erro
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		ids := config.DecodeStateID(rs.Primary.ID)
 
 		requestParameters := &matlas.SnapshotReqPathParameters{
 			SnapshotID:  ids["snapshot_id"],
