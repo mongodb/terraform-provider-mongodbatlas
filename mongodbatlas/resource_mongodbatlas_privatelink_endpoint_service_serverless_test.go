@@ -25,7 +25,7 @@ func TestAccServerlessPrivateLinkEndpointService_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasPrivateLinkEndpointServiceServerlessDestroy,
 		Steps: []resource.TestStep{
@@ -54,7 +54,7 @@ func TestAccServerlessPrivateLinkEndpointService_importBasic(t *testing.T) {
 		commentOrigin = "this is a comment for serverless private link endpoint"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{

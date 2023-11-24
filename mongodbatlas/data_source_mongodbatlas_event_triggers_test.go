@@ -13,7 +13,7 @@ import (
 )
 
 func TestEventTriggers_basic(t *testing.T) {
-	SkipTestForCI(t)
+	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -39,7 +39,7 @@ func TestEventTriggers_basic(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{

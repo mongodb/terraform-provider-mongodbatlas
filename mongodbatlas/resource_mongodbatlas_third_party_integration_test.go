@@ -14,7 +14,7 @@ import (
 )
 
 func TestAccConfigRSThirdPartyIntegration_basic(t *testing.T) {
-	SkipTestForCI(t)
+	acc.SkipTestForCI(t)
 	var (
 		targetIntegration = matlas.ThirdPartyIntegration{}
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -34,7 +34,7 @@ func TestAccConfigRSThirdPartyIntegration_basic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasThirdPartyIntegrationDestroy,
 		Steps: []resource.TestStep{
@@ -53,7 +53,7 @@ func TestAccConfigRSThirdPartyIntegration_basic(t *testing.T) {
 }
 
 func TestAccConfigRSThirdPartyIntegration_importBasic(t *testing.T) {
-	SkipTestForCI(t)
+	acc.SkipTestForCI(t)
 	var (
 		targetIntegration = matlas.ThirdPartyIntegration{}
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -73,7 +73,7 @@ func TestAccConfigRSThirdPartyIntegration_importBasic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasThirdPartyIntegrationDestroy,
 		Steps: []resource.TestStep{
@@ -97,7 +97,7 @@ func TestAccConfigRSThirdPartyIntegration_importBasic(t *testing.T) {
 }
 
 func TestAccConfigRSThirdPartyIntegration_updateBasic(t *testing.T) {
-	SkipTestForCI(t)
+	acc.SkipTestForCI(t)
 	var (
 		targetIntegration = matlas.ThirdPartyIntegration{}
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -128,7 +128,7 @@ func TestAccConfigRSThirdPartyIntegration_updateBasic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasThirdPartyIntegrationDestroy,
 		Steps: []resource.TestStep{

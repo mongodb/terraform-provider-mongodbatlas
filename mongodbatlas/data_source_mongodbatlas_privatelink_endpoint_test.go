@@ -10,14 +10,14 @@ import (
 )
 
 func TestAccNetworkDSPrivateLinkEndpoint_basic(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	resourceName := "data.mongodbatlas_privatelink_endpoint.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	region := os.Getenv("AWS_REGION")
 	providerName := "AWS"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{

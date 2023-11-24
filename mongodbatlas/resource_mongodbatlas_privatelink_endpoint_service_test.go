@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		resourceSuffix = "test"
 		resourceName   = fmt.Sprintf("mongodbatlas_privatelink_endpoint_service.%s", resourceSuffix)
@@ -30,7 +30,7 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t); testCheckAwsEnv(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
 		CheckDestroy:             testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		ExternalProviders: map[string]resource.ExternalProvider{
@@ -56,7 +56,7 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
 }
 
 func TestAccNetworkRSPrivateLinkEndpointServiceAWS_import(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		resourceSuffix = "test"
 		resourceName   = fmt.Sprintf("mongodbatlas_privatelink_endpoint_service.%s", resourceSuffix)
@@ -73,7 +73,7 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_import(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t); testCheckAwsEnv(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
 		CheckDestroy:             testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		ExternalProviders: map[string]resource.ExternalProvider{

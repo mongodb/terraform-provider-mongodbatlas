@@ -14,7 +14,7 @@ import (
 )
 
 func TestAccFedDSFederatedSettings_basic(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		federatedSettings matlas.FederatedSettings
 		resourceName      = "data.mongodbatlas_federated_settings.test"
@@ -22,7 +22,7 @@ func TestAccFedDSFederatedSettings_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testCheckFederatedSettings(t) },
+		PreCheck:                 func() { acc.PreCheckFederatedSettings(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{

@@ -18,7 +18,7 @@ func TestAccConfigDSAPIKeys_basic(t *testing.T) {
 	roleName := "ORG_MEMBER"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAPIKeyDestroy,
 		Steps: []resource.TestStep{

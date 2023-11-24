@@ -25,7 +25,7 @@ func TestAccConfigRSCustomDBRoles_Basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{
@@ -129,7 +129,7 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{
@@ -332,7 +332,7 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{
@@ -405,7 +405,7 @@ func TestAccConfigRSCustomDBRoles_MultipleResources(t *testing.T) {
 
 		t.Run(roleName, func(t *testing.T) {
 			resource.ParallelTest(t, resource.TestCase{
-				PreCheck:                 func() { testAccPreCheckBasic(t) },
+				PreCheck:                 func() { acc.PreCheckBasic(t) },
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 				Steps: []resource.TestStep{
@@ -438,7 +438,7 @@ func TestAccConfigRSCustomDBRoles_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{
@@ -535,7 +535,7 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{

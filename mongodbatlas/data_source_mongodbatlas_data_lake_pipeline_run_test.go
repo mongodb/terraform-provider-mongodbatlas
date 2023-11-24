@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccBackupDSDataLakePipelineRun_basic(t *testing.T) {
-	testCheckDataLakePipelineRun(t)
+	acc.PreCheckDataLakePipelineRun(t)
 	var (
 		dataSourceName = "data.mongodbatlas_data_lake_pipeline_run.test"
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -19,7 +19,7 @@ func TestAccBackupDSDataLakePipelineRun_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{

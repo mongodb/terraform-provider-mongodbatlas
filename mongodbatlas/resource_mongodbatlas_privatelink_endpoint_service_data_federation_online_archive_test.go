@@ -19,9 +19,9 @@ var (
 )
 
 func TestAccMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
-	testCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t)
+	acc.PreCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t)
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDestroy,
 		Steps: []resource.TestStep{

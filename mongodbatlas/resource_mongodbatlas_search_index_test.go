@@ -29,7 +29,7 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 		databaseName                                     = acctest.RandomWithPrefix("test-acc-db")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
+		PreCheck:                 func() { acc.PreCheckSearchIndex(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
@@ -69,7 +69,7 @@ func TestAccSearchIndexRS_withSearchType(t *testing.T) {
 		databaseName                                     = acctest.RandomWithPrefix("test-acc-db")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
+		PreCheck:                 func() { acc.PreCheckSearchIndex(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
@@ -109,7 +109,7 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 		databaseName                                     = acctest.RandomWithPrefix("test-acc-db")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
+		PreCheck:                 func() { acc.PreCheckSearchIndex(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
@@ -154,7 +154,7 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 		databaseName                                     = acctest.RandomWithPrefix("test-acc-db")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
+		PreCheck:                 func() { acc.PreCheckSearchIndex(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
@@ -203,7 +203,7 @@ func TestAccSearchIndexRS_importBasic(t *testing.T) {
 		databaseName                                     = acctest.RandomWithPrefix("test-acc-db")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
+		PreCheck:                 func() { acc.PreCheckSearchIndex(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
@@ -243,7 +243,7 @@ func TestAccSearchIndexRS_withVector(t *testing.T) {
 		},
 	}
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
+		PreCheck:                 func() { acc.PreCheckSearchIndex(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{

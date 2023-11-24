@@ -11,7 +11,7 @@ import (
 )
 
 func TestAccBackupDSCloudBackupSnapshotExportBucket_basic(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		snapshotExportBackup matlas.CloudProviderSnapshotExportBucket
 		projectID            = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -20,7 +20,7 @@ func TestAccBackupDSCloudBackupSnapshotExportBucket_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{

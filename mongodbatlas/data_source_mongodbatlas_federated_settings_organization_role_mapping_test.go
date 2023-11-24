@@ -11,7 +11,7 @@ import (
 )
 
 func TestAccFedDSFederatedSettingsOrganizationRoleMapping_basic(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		federatedSettingsOrganizationRoleMapping matlas.FederatedSettingsOrganizationRoleMapping
 		resourceName                             = "data.mongodbatlas_federated_settings_org_role_mapping.test"
@@ -21,7 +21,7 @@ func TestAccFedDSFederatedSettingsOrganizationRoleMapping_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testCheckFederatedSettings(t) },
+		PreCheck:                 func() { acc.PreCheckFederatedSettings(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{

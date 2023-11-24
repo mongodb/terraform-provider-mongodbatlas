@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccAdvDSLDAPVerify_basic(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		ldapVerify   matlas.LDAPConfiguration
 		resourceName = "mongodbatlas_ldap_verify.test"
@@ -27,7 +27,7 @@ func TestAccAdvDSLDAPVerify_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t); testCheckLDAP(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckLDAP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasLDAPConfigurationDestroy,
 		Steps: []resource.TestStep{

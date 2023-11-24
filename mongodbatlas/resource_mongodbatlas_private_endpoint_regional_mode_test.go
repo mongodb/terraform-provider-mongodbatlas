@@ -17,7 +17,7 @@ import (
 )
 
 func TestAccNetworkRSPrivateEndpointRegionalMode_conn(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		endpointResourceSuffix = "atlasple"
 		resourceSuffix         = "atlasrm"
@@ -44,7 +44,7 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_conn(t *testing.T) {
 	dependencies := []string{clusterResource, clusterDataSource, endpointResources}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasPrivateEndpointRegionalModeDestroy,
 		Steps: []resource.TestStep{
@@ -80,7 +80,7 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasPrivateEndpointRegionalModeDestroy,
 		Steps: []resource.TestStep{

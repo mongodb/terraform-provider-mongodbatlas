@@ -28,7 +28,7 @@ func TestAccClusterRSCluster_basicAWS_simple(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -86,7 +86,7 @@ func TestAccClusterRSCluster_basicAWS_instanceScale(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -128,7 +128,7 @@ func TestAccClusterRSCluster_basic_Partial_AdvancedConf(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -199,7 +199,7 @@ func TestAccClusterRSCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -259,7 +259,7 @@ func TestAccClusterRSCluster_emptyAdvancedConf(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -304,7 +304,7 @@ func TestAccClusterRSCluster_basicAdvancedConf(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -370,7 +370,7 @@ func TestAccClusterRSCluster_basicAzure(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -411,7 +411,7 @@ func TestAccClusterRSCluster_AzureUpdateToNVME(t *testing.T) {
 		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -455,7 +455,7 @@ func TestAccClusterRSCluster_basicGCP(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -499,7 +499,7 @@ func TestAccClusterRSCluster_WithBiConnectorGCP(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -571,7 +571,7 @@ func TestAccClusterRSCluster_MultiRegion(t *testing.T) {
 				}`
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -622,7 +622,7 @@ func TestAccClusterRSCluster_Global(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -658,7 +658,7 @@ func TestAccClusterRSCluster_AWSWithLabels(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -740,7 +740,7 @@ func TestAccClusterRSCluster_WithTags(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -815,7 +815,7 @@ func TestAccClusterRSCluster_WithTags(t *testing.T) {
 }
 
 func TestAccClusterRSCluster_withPrivateEndpointLink(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.with_endpoint_link"
@@ -834,7 +834,7 @@ func TestAccClusterRSCluster_withPrivateEndpointLink(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t); testCheckAwsEnv(t); testCheckPeeringEnvAWS(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t); acc.PreCheckPeeringEnvAWS(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -851,7 +851,7 @@ func TestAccClusterRSCluster_withPrivateEndpointLink(t *testing.T) {
 }
 
 func TestAccClusterRSCluster_withAzureNetworkPeering(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.with_azure_peering"
@@ -869,7 +869,7 @@ func TestAccClusterRSCluster_withAzureNetworkPeering(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -886,7 +886,7 @@ func TestAccClusterRSCluster_withAzureNetworkPeering(t *testing.T) {
 }
 
 func TestAccClusterRSCluster_withGCPNetworkPeering(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		cluster          matlas.Cluster
 		resourceName     = "mongodbatlas_cluster.test"
@@ -900,7 +900,7 @@ func TestAccClusterRSCluster_withGCPNetworkPeering(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t); testCheckPeeringEnvGCP(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPeeringEnvGCP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -922,7 +922,7 @@ func TestAccClusterRSCluster_withGCPNetworkPeering(t *testing.T) {
 }
 
 func TestAccClusterRSCluster_withAzureAndContainerID(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		resourceName      = "mongodbatlas_cluster.test"
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -936,7 +936,7 @@ func TestAccClusterRSCluster_withAzureAndContainerID(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t); testCheckPeeringEnvAzure(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPeeringEnvAzure(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -953,7 +953,7 @@ func TestAccClusterRSCluster_withAzureAndContainerID(t *testing.T) {
 }
 
 func TestAccClusterRSCluster_withAWSAndContainerID(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_cluster.test"
 
@@ -969,7 +969,7 @@ func TestAccClusterRSCluster_withAWSAndContainerID(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -986,7 +986,7 @@ func TestAccClusterRSCluster_withAWSAndContainerID(t *testing.T) {
 }
 
 func TestAccClusterRSCluster_withGCPAndContainerID(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		resourceName     = "mongodbatlas_cluster.test"
 		gcpProjectID     = os.Getenv("GCP_PROJECT_ID")
@@ -999,7 +999,7 @@ func TestAccClusterRSCluster_withGCPAndContainerID(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t); testCheckPeeringEnvGCP(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPeeringEnvGCP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -1038,7 +1038,7 @@ func TestAccClusterRSCluster_withAutoScalingAWS(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -1093,7 +1093,7 @@ func TestAccClusterRSCluster_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -1123,7 +1123,7 @@ func TestAccClusterRSCluster_tenant(t *testing.T) {
 	dbMajorVersion := testAccGetMongoDBAtlasMajorVersion()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -1163,7 +1163,7 @@ func TestAccClusterRSCluster_tenant_m5(t *testing.T) {
 	dbMajorVersion := testAccGetMongoDBAtlasMajorVersion()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -1192,7 +1192,7 @@ func TestAccClusterRSCluster_basicGCPRegionNameWesternUS(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -1218,7 +1218,7 @@ func TestAccClusterRSCluster_basicGCPRegionNameUSWest2(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -1235,7 +1235,7 @@ func TestAccClusterRSCluster_basicGCPRegionNameUSWest2(t *testing.T) {
 }
 
 func TestAccClusterRSCluster_RegionsConfig(t *testing.T) {
-	SkipTest(t)
+	acc.SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_cluster.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -1297,7 +1297,7 @@ func TestAccClusterRSCluster_RegionsConfig(t *testing.T) {
 	}`
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -1331,7 +1331,7 @@ func TestAccClusterRSCluster_basicAWS_UnpauseToPaused(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -1384,7 +1384,7 @@ func TestAccClusterRSCluster_basicAWS_PausedToUnpaused(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -1431,7 +1431,7 @@ func TestAccClusterRSCluster_withDefaultBiConnectorAndAdvancedConfiguration_main
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
+		PreCheck:     func() { acc.PreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{

@@ -31,7 +31,7 @@ func TestAccNetworkRSNetworkContainer_basicAWS(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasNetworkContainerDestroy,
 		Steps: []resource.TestStep{
@@ -81,7 +81,7 @@ func TestAccNetworkRSNetworkContainer_basicAzure(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasNetworkContainerDestroy,
 		Steps: []resource.TestStep{
@@ -123,7 +123,7 @@ func TestAccNetworkRSNetworkContainer_basicGCP(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasNetworkContainerDestroy,
 		Steps: []resource.TestStep{
@@ -165,7 +165,7 @@ func TestAccNetworkRSNetworkContainer_WithRegionsGCP(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasNetworkContainerDestroy,
 		Steps: []resource.TestStep{
@@ -200,7 +200,7 @@ func TestAccNetworkRSNetworkContainer_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasNetworkContainerDestroy,
 		Steps: []resource.TestStep{

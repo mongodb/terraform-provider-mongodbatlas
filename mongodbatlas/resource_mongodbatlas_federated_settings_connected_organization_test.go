@@ -14,7 +14,7 @@ import (
 )
 
 func TestAccFedRSFederatedSettingsOrganizationConfig_basic(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		federatedSettingsIdentityProvider matlas.FederatedSettingsConnectedOrganization
 		resourceName                      = "mongodbatlas_federated_settings_org_config.test"
@@ -23,7 +23,7 @@ func TestAccFedRSFederatedSettingsOrganizationConfig_basic(t *testing.T) {
 		idpID                             = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testCheckFederatedSettings(t) },
+		PreCheck:                 func() { acc.PreCheckFederatedSettings(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
@@ -50,7 +50,7 @@ func TestAccFedRSFederatedSettingsOrganizationConfig_basic(t *testing.T) {
 }
 
 func TestAccFedRSFederatedSettingsOrganizationConfig_importBasic(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		resourceName         = "mongodbatlas_federated_settings_org_config.test"
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
@@ -59,7 +59,7 @@ func TestAccFedRSFederatedSettingsOrganizationConfig_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testCheckFederatedSettings(t) },
+		PreCheck:                 func() { acc.PreCheckFederatedSettings(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 

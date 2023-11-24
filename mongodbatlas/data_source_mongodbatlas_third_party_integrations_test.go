@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccConfigDSThirdPartyIntegrations_basic(t *testing.T) {
-	SkipTestForCI(t)
+	acc.SkipTestForCI(t)
 	var (
 		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		intgTypes       = []string{"OPS_GENIE", "DATADOG", "VICTOR_OPS", "WEBHOOK", "PROMETHEUS"}
@@ -41,7 +41,7 @@ func TestAccConfigDSThirdPartyIntegrations_basic(t *testing.T) {
 	intgResourcesHCL := testAccMongoDBAtlasThirdPartyIntegrationsDataSourceConfig(hclConfig, projectID)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{

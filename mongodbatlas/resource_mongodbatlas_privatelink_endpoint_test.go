@@ -23,7 +23,7 @@ func TestAccNetworkRSPrivateLinkEndpointAWS_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasPrivateLinkEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -52,7 +52,7 @@ func TestAccNetworkRSPrivateLinkEndpointAWS_import(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasPrivateLinkEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -86,7 +86,7 @@ func TestAccNetworkRSPrivateLinkEndpointAzure_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasPrivateLinkEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -115,7 +115,7 @@ func TestAccNetworkRSPrivateLinkEndpointAzure_import(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasPrivateLinkEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -150,7 +150,7 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasPrivateLinkEndpointDestroy,
 		Steps: []resource.TestStep{

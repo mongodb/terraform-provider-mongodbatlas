@@ -20,7 +20,7 @@ func TestAccConfigDSMaintenanceWindow_basic(t *testing.T) {
 	hourOfDay := 3
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{

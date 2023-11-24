@@ -11,7 +11,7 @@ import (
 )
 
 func TestAccNetworkDSNetworkPeering_basic(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var peer matlas.Peer
 
 	resourceName := "mongodbatlas_network_peering.basic"
@@ -23,7 +23,7 @@ func TestAccNetworkDSNetworkPeering_basic(t *testing.T) {
 	awsRegion := os.Getenv("AWS_REGION")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t); testCheckPeeringEnvAWS(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPeeringEnvAWS(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasNetworkPeeringDestroy,
 		Steps: []resource.TestStep{

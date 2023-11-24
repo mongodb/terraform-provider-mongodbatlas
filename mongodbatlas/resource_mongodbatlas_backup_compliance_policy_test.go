@@ -22,7 +22,7 @@ func TestAccGenericBackupRSBackupCompliancePolicy_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasBackupCompliancePolicyDestroy,
 		Steps: []resource.TestStep{
@@ -56,7 +56,7 @@ func TestAccGenericBackupRSBackupCompliancePolicy_withoutRestoreWindowDays(t *te
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasBackupCompliancePolicyDestroy,
 		Steps: []resource.TestStep{
@@ -91,7 +91,7 @@ func TestAccGenericBackupRSBackupCompliancePolicy_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasBackupCompliancePolicyDestroy,
 		Steps: []resource.TestStep{

@@ -14,7 +14,7 @@ import (
 )
 
 func TestEventTrigger_basic(t *testing.T) {
-	SkipTestForCI(t)
+	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -37,7 +37,7 @@ func TestEventTrigger_basic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
 		Steps: []resource.TestStep{

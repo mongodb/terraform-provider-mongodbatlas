@@ -25,7 +25,7 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
 		Steps: []resource.TestStep{
@@ -138,7 +138,7 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 }
 
 func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -152,7 +152,7 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 
 		Steps: []resource.TestStep{
@@ -183,7 +183,7 @@ func TestAccBackupRSCloudBackupSchedule_onepolicy(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
 		Steps: []resource.TestStep{
@@ -250,7 +250,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
 		Steps: []resource.TestStep{
@@ -299,7 +299,7 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
 		Steps: []resource.TestStep{
@@ -352,7 +352,7 @@ func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
 		Steps: []resource.TestStep{

@@ -31,7 +31,7 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
@@ -92,7 +92,7 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
@@ -146,7 +146,7 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
@@ -204,7 +204,7 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
@@ -242,7 +242,7 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_UnpausedToPaused(t *testing.T) {
-	SkipTest(t)
+	acc.SkipTest(t)
 	var (
 		cluster             matlas.AdvancedCluster
 		resourceName        = "mongodbatlas_advanced_cluster.test"
@@ -254,7 +254,7 @@ func TestAccClusterAdvancedCluster_UnpausedToPaused(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
@@ -298,7 +298,7 @@ func TestAccClusterAdvancedCluster_UnpausedToPaused(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_PausedToUnpaused(t *testing.T) {
-	SkipTest(t)
+	acc.SkipTest(t)
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
@@ -309,7 +309,7 @@ func TestAccClusterAdvancedCluster_PausedToUnpaused(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
@@ -392,7 +392,7 @@ func TestAccClusterAdvancedCluster_advancedConf(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
@@ -470,7 +470,7 @@ func TestAccClusterAdvancedCluster_DefaultWrite(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
@@ -529,7 +529,7 @@ func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *testing.
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
@@ -574,7 +574,7 @@ func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAnalyticsAutoScaling(t 
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
@@ -612,7 +612,7 @@ func TestAccClusterAdvancedCluster_WithTags(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{

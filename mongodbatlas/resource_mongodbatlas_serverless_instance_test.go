@@ -25,7 +25,7 @@ func TestAccServerlessInstance_basic(t *testing.T) {
 		datasourceInstancesName = "data.mongodbatlas_serverless_instances.test"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasServerlessInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -67,7 +67,7 @@ func TestAccServerlessInstance_WithTags(t *testing.T) {
 		dataSourceInstancesName = "data.mongodbatlas_serverless_instances.test"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasServerlessInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -139,7 +139,7 @@ func TestAccServerlessInstance_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasServerlessInstanceDestroy,
 		Steps: []resource.TestStep{

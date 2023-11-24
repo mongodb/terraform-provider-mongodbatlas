@@ -11,7 +11,7 @@ import (
 )
 
 func TestAccConfigRSCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		policyName      = acctest.RandomWithPrefix("tf-acc")
@@ -20,7 +20,7 @@ func TestAccConfigRSCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheck(t) },
+		PreCheck: func() { acc.PreCheck(t) },
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"aws": {
 				VersionConstraint: "5.1.0",
@@ -52,7 +52,7 @@ func TestAccConfigRSCloudProviderAccessAuthorizationAzure_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckCloudProviderAccessAzure(t) },
+		PreCheck:                 func() { acc.PreCheckCloudProviderAccessAzure(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProviderAccessDestroy,
 		Steps: []resource.TestStep{

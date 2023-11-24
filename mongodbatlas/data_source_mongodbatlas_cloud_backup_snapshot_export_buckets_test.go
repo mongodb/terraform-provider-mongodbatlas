@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccBackupDSCloudBackupSnapshotExportBuckets_basic(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		bucketName     = os.Getenv("AWS_S3_BUCKET")
@@ -19,7 +19,7 @@ func TestAccBackupDSCloudBackupSnapshotExportBuckets_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{

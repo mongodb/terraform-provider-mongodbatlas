@@ -17,7 +17,7 @@ import (
 )
 
 func TestAccNetworkRSNetworkPeering_basicAWS(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		peer         matlas.Peer
 		resourceName = "mongodbatlas_network_peering.test"
@@ -30,7 +30,7 @@ func TestAccNetworkRSNetworkPeering_basicAWS(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t); testCheckPeeringEnvAWS(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPeeringEnvAWS(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
@@ -57,7 +57,7 @@ func TestAccNetworkRSNetworkPeering_basicAWS(t *testing.T) {
 }
 
 func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		peer              matlas.Peer
 		resourceName      = "mongodbatlas_network_peering.test"
@@ -70,7 +70,7 @@ func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t); testCheckPeeringEnvAzure(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPeeringEnvAzure(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
@@ -97,7 +97,7 @@ func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
 }
 
 func TestAccNetworkRSNetworkPeering_basicGCP(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		peer         matlas.Peer
 		resourceName = "mongodbatlas_network_peering.test"
@@ -108,7 +108,7 @@ func TestAccNetworkRSNetworkPeering_basicGCP(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t); testCheckPeeringEnvGCP(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPeeringEnvGCP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
@@ -136,7 +136,7 @@ func TestAccNetworkRSNetworkPeering_basicGCP(t *testing.T) {
 }
 
 func TestAccNetworkRSNetworkPeering_AWSDifferentRegionName(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		peer                  matlas.Peer
 		resourcePeerName      = "mongodbatlas_network_peering.diff_region"
@@ -152,8 +152,8 @@ func TestAccNetworkRSNetworkPeering_AWSDifferentRegionName(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
-			testAccPreCheck(t)
-			testCheckPeeringEnvAWS(t)
+			acc.PreCheck(t)
+			acc.PreCheckPeeringEnvAWS(t)
 			func() {
 				if strings.EqualFold(containerRegion, peerRegion) {
 					t.Fatalf("the `AWS_REGION` (%s) must be different region than %s", peerRegion, containerRegion)

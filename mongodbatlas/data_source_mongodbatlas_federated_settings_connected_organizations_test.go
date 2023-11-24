@@ -13,14 +13,14 @@ import (
 )
 
 func TestAccFedDSFederatedSettingsOrganizationConfigs_basic(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		resourceName        = "data.mongodbatlas_federated_settings_org_configs.test"
 		federatedSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testCheckFederatedSettings(t) },
+		PreCheck:                 func() { acc.PreCheckFederatedSettings(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{

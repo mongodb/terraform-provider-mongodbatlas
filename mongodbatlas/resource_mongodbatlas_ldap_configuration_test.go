@@ -16,7 +16,7 @@ import (
 )
 
 func TestAccAdvRSLDAPConfiguration_basic(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		ldapConfiguration matlas.LDAPConfiguration
 		resourceName      = "mongodbatlas_ldap_configuration.test"
@@ -30,7 +30,7 @@ func TestAccAdvRSLDAPConfiguration_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t); testCheckLDAP(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckLDAP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasLDAPConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -51,7 +51,7 @@ func TestAccAdvRSLDAPConfiguration_basic(t *testing.T) {
 }
 
 func TestAccAdvRSLDAPConfigurationWithVerify_CACertificateComplete(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		ldapConfiguration  matlas.LDAPConfiguration
 		resourceName       = "mongodbatlas_ldap_configuration.test"
@@ -67,7 +67,7 @@ func TestAccAdvRSLDAPConfigurationWithVerify_CACertificateComplete(t *testing.T)
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t); testCheckLDAP(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckLDAP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasLDAPConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -101,7 +101,7 @@ func TestAccAdvRSLDAPConfigurationWithVerify_CACertificateComplete(t *testing.T)
 }
 
 func TestAccAdvRSLDAPConfiguration_importBasic(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		ldapConf     = matlas.LDAPConfiguration{}
 		resourceName = "mongodbatlas_ldap_configuration.test"
@@ -115,7 +115,7 @@ func TestAccAdvRSLDAPConfiguration_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t); testCheckLDAP(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckLDAP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasLDAPConfigurationDestroy,
 		Steps: []resource.TestStep{

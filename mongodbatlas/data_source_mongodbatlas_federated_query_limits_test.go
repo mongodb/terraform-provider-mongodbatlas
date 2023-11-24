@@ -11,7 +11,7 @@ import (
 )
 
 func TestAccDataSourceFederatedDatabaseQueryLimits_basic(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		resourceName = "data.mongodbatlas_federated_query_limits.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -24,7 +24,7 @@ func TestAccDataSourceFederatedDatabaseQueryLimits_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acc.PreCheck(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitDestroy,
 		Steps: []resource.TestStep{
 			{

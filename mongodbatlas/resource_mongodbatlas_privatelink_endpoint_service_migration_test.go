@@ -11,7 +11,7 @@ import (
 )
 
 func TestAccMigrationNetworkRSPrivateLinkEndpointService_Complete(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		resourceSuffix = "test"
 		resourceName   = fmt.Sprintf("mongodbatlas_privatelink_endpoint_service.%s", resourceSuffix)
@@ -29,7 +29,7 @@ func TestAccMigrationNetworkRSPrivateLinkEndpointService_Complete(t *testing.T) 
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testCheckAwsEnv(t) },
+		PreCheck:     func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
 		Steps: []resource.TestStep{
 			{

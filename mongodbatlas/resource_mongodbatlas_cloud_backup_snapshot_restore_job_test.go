@@ -32,7 +32,7 @@ func TestAccBackupRSCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobDestroy,
 		Steps: []resource.TestStep{
@@ -71,7 +71,7 @@ func TestAccBackupRSCloudBackupSnapshotRestoreJob_basicDownload(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobDestroy,
 		Steps: []resource.TestStep{
@@ -88,7 +88,7 @@ func TestAccBackupRSCloudBackupSnapshotRestoreJob_basicDownload(t *testing.T) {
 }
 
 func TestAccBackupRSCloudBackupSnapshotRestoreJobWithPointTime_basic(t *testing.T) {
-	SkipTestForCI(t)
+	acc.SkipTestForCI(t)
 	var (
 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName       = acctest.RandomWithPrefix("test-acc")
@@ -100,7 +100,7 @@ func TestAccBackupRSCloudBackupSnapshotRestoreJobWithPointTime_basic(t *testing.
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobDestroy,
 		Steps: []resource.TestStep{

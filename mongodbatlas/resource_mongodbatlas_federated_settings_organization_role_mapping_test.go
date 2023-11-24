@@ -14,7 +14,7 @@ import (
 )
 
 func TestAccFedRSFederatedSettingsOrganizationRoleMapping_basic(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		federatedSettingsOrganizationRoleMapping matlas.FederatedSettingsOrganizationRoleMapping
 		resourceName                             = "mongodbatlas_federated_settings_org_role_mapping.test"
@@ -23,7 +23,7 @@ func TestAccFedRSFederatedSettingsOrganizationRoleMapping_basic(t *testing.T) {
 		groupID                                  = os.Getenv("MONGODB_ATLAS_FEDERATED_GROUP_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testCheckFederatedSettings(t) },
+		PreCheck:                 func() { acc.PreCheckFederatedSettings(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy,
 		Steps: []resource.TestStep{
@@ -42,7 +42,7 @@ func TestAccFedRSFederatedSettingsOrganizationRoleMapping_basic(t *testing.T) {
 }
 
 func TestAccFedRSFederatedSettingsOrganizationRoleMapping_importBasic(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		resourceName         = "mongodbatlas_federated_settings_org_role_mapping.test"
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
@@ -51,7 +51,7 @@ func TestAccFedRSFederatedSettingsOrganizationRoleMapping_importBasic(t *testing
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testCheckFederatedSettings(t) },
+		PreCheck:                 func() { acc.PreCheckFederatedSettings(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy,
 		Steps: []resource.TestStep{

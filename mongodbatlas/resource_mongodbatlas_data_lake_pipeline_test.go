@@ -23,7 +23,7 @@ func TestAccClusterRSDataLakePipeline_basic(t *testing.T) {
 		name         = acctest.RandomWithPrefix("test-acc-index")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{

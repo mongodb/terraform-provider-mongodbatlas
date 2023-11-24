@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccNetworkDSPrivateLinkEndpointServiceAWS_basic(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	resourceName := "data.mongodbatlas_privatelink_endpoint_service.test"
 
 	awsAccessKey := os.Getenv("AWS_ACCESS_KEY_ID")
@@ -25,7 +25,7 @@ func TestAccNetworkDSPrivateLinkEndpointServiceAWS_basic(t *testing.T) {
 	securityGroupID := os.Getenv("AWS_SECURITY_GROUP_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t); testCheckAwsEnv(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{

@@ -97,7 +97,7 @@ type thirdPartyConfig struct {
 }
 
 func TestAccConfigDSThirdPartyIntegration_basic(t *testing.T) {
-	SkipTestForCI(t) // TODO: Address failures in v1.4.6
+	acc.SkipTestForCI(t) // TODO: Address failures in v1.4.6
 
 	var (
 		targetIntegration = matlas.ThirdPartyIntegration{}
@@ -117,7 +117,7 @@ func TestAccConfigDSThirdPartyIntegration_basic(t *testing.T) {
 	seedConfig.Integration.APIKey = apiKey
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{

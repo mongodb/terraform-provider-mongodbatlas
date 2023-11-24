@@ -14,7 +14,7 @@ import (
 )
 
 func TestAccBackupRSBackupSnapshotExportBucket_basic(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		snapshotExportBucket matlas.CloudProviderSnapshotExportBucket
 		resourceName         = "mongodbatlas_cloud_backup_snapshot_export_bucket.test"
@@ -23,7 +23,7 @@ func TestAccBackupRSBackupSnapshotExportBucket_basic(t *testing.T) {
 		iamRoleID            = os.Getenv("IAM_ROLE_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasBackupSnapshotExportBucketDestroy,
 		Steps: []resource.TestStep{
@@ -41,7 +41,7 @@ func TestAccBackupRSBackupSnapshotExportBucket_basic(t *testing.T) {
 }
 
 func TestAccBackupRSBackupSnapshotExportBucket_importBasic(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_cloud_backup_snapshot_export_bucket.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -50,7 +50,7 @@ func TestAccBackupRSBackupSnapshotExportBucket_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasBackupSnapshotExportBucketDestroy,
 		Steps: []resource.TestStep{

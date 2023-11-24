@@ -25,7 +25,7 @@ func TestAccDataSourceFederatedDatabaseInstance_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
+		PreCheck:     func() { acc.PreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -52,7 +52,7 @@ func TestAccDataSourceFederatedDatabaseInstance_basic(t *testing.T) {
 }
 
 func TestAccDataSourceFederatedDatabaseInstance_S3Bucket(t *testing.T) {
-	SkipTestExtCred(t)
+	acc.SkipTestExtCred(t)
 	var (
 		resourceName      = "data.mongodbatlas_federated_database_instance.test"
 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -66,7 +66,7 @@ func TestAccDataSourceFederatedDatabaseInstance_S3Bucket(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
+		PreCheck:     func() { acc.PreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy,
 		Steps: []resource.TestStep{
 			{

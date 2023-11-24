@@ -25,7 +25,7 @@ func TestAccConfigRSProjectAPIKey_Basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
 		Steps: []resource.TestStep{
@@ -53,7 +53,7 @@ func TestAccConfigRSProjectAPIKey_Multiple(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
 		Steps: []resource.TestStep{
@@ -88,7 +88,7 @@ func TestAccConfigRSProjectAPIKey_UpdateDescription(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
 		Steps: []resource.TestStep{
@@ -122,7 +122,7 @@ func TestAccConfigRSProjectAPIKey_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
 		Steps: []resource.TestStep{
@@ -152,7 +152,7 @@ func TestAccConfigRSProjectAPIKey_RecreateWhenDeletedExternally(t *testing.T) {
 	projectAPIKeyConfig := testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
 		Steps: []resource.TestStep{
@@ -187,7 +187,7 @@ func TestAccConfigRSProjectAPIKey_DeleteProjectAndAssignment(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
 		Steps: []resource.TestStep{
