@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func dataSourceMongoDBAtlasFederatedSettingsIdentityProvider() *schema.Resource {
+func DataSourceMongoDBAtlasFederatedSettingsIdentityProvider() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead,
 		Schema: map[string]*schema.Schema{

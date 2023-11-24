@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func dataSourceMongoDBAtlasCustomDNSConfigurationAWS() *schema.Resource {
+func DataSourceMongoDBAtlasCustomDNSConfigurationAWS() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasCustomDNSConfigurationAWSRead,
 		Schema: map[string]*schema.Schema{

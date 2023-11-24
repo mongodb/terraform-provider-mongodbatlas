@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func dataSourceMongoDBAtlasAccessListAPIKey() *schema.Resource {
+func DataSourceMongoDBAtlasAccessListAPIKey() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasAccessListAPIKeyRead,
 		Schema: map[string]*schema.Schema{

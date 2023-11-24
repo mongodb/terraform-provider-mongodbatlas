@@ -28,7 +28,7 @@ const (
 
 // https://docs.atlas.mongodb.com/reference/api/cloud-backup/schedule/modify-one-schedule/
 // same as resourceMongoDBAtlasCloudProviderSnapshotBackupPolicy
-func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
+func ResourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasCloudBackupScheduleCreate,
 		ReadContext:   resourceMongoDBAtlasCloudBackupScheduleRead,

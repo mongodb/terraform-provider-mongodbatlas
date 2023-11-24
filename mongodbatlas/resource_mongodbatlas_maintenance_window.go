@@ -22,7 +22,7 @@ const (
 	errorMaintenanceAutoDefer = "error auto deferring the MongoDB Atlas Maintenance Window (%s): %s"
 )
 
-func resourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
+func ResourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasMaintenanceWindowCreate,
 		ReadContext:   resourceMongoDBAtlasMaintenanceWindowRead,

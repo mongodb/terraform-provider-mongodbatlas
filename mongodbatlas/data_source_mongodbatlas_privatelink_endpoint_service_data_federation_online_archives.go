@@ -13,7 +13,7 @@ import (
 
 const errorPrivateEndpointServiceDataFederationOnlineArchiveList = "error reading Private Endpoings for projectId %s: %s"
 
-func dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchives() *schema.Resource {
+func DataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchives() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchivesRead,
 		Schema: map[string]*schema.Schema{

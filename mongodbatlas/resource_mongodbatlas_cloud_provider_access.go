@@ -20,7 +20,7 @@ const (
 	errorCloudProviderAccessImporter = "error importing cloud provider access %s"
 )
 
-func resourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
+func ResourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasCloudProviderAccessCreate,
 		ReadContext:   resourceMongoDBAtlasCloudProviderAccessRead,

@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func dataSourceMongoDBAtlasOrgInvitation() *schema.Resource {
+func DataSourceMongoDBAtlasOrgInvitation() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasOrgInvitationRead,
 		Schema: map[string]*schema.Schema{

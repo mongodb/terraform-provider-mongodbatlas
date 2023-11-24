@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func dataSourceMongoDBAtlasFederatedSettings() *schema.Resource {
+func DataSourceMongoDBAtlasFederatedSettings() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasFederatedSettingsRead,
 		Schema: map[string]*schema.Schema{

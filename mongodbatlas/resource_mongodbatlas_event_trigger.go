@@ -27,7 +27,7 @@ const (
 	errorEventTriggersSetting = "error setting `%s` for EventTriggers(%s)%s: %s"
 )
 
-func resourceMongoDBAtlasEventTriggers() *schema.Resource {
+func ResourceMongoDBAtlasEventTriggers() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasEventTriggersCreate,
 		ReadContext:   resourceMongoDBAtlasEventTriggersRead,

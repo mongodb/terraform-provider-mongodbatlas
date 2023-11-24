@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func dataSourceMongoDBAtlasFederatedDatabaseQueryLimits() *schema.Resource {
+func DataSourceMongoDBAtlasFederatedDatabaseQueryLimits() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasFederatedDatabaseQueryLimitsRead,
 		Schema: map[string]*schema.Schema{

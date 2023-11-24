@@ -22,7 +22,7 @@ const (
 	vectorSearch = "vectorSearch"
 )
 
-func resourceMongoDBAtlasSearchIndex() *schema.Resource {
+func ResourceMongoDBAtlasSearchIndex() *schema.Resource {
 	return &schema.Resource{
 		CreateWithoutTimeout: resourceMongoDBAtlasSearchIndexCreate,
 		ReadContext:          resourceMongoDBAtlasSearchIndexRead,

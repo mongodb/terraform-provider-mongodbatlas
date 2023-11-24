@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func dataSourceMongoDBAtlasCustomDBRole() *schema.Resource {
+func DataSourceMongoDBAtlasCustomDBRole() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasCustomDBRoleRead,
 		Schema: map[string]*schema.Schema{

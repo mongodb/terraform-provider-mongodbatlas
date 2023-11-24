@@ -10,7 +10,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func dataSourceMongoDBAtlasDataLakePipeline() *schema.Resource {
+func DataSourceMongoDBAtlasDataLakePipeline() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasDataLakePipelineRead,
 		Schema: map[string]*schema.Schema{

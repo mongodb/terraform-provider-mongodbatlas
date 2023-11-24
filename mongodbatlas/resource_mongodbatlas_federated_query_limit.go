@@ -21,7 +21,7 @@ const (
 	errorFederatedDatabaseQueryLimit       = "error setting `%s` for Atlas Federated Database Query Limit (%s): %s"
 )
 
-func resourceMongoDBAtlasFederatedDatabaseQueryLimit() *schema.Resource {
+func ResourceMongoDBAtlasFederatedDatabaseQueryLimit() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBFederatedDatabaseQueryLimitCreate,
 		ReadContext:   resourceMongoDBFederatedDatabaseQueryLimitRead,

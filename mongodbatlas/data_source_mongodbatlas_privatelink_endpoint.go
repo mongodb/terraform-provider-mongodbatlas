@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func dataSourceMongoDBAtlasPrivateLinkEndpoint() *schema.Resource {
+func DataSourceMongoDBAtlasPrivateLinkEndpoint() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasPrivateLinkEndpointRead,
 		Schema: map[string]*schema.Schema{

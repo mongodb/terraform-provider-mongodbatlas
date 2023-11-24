@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func dataSourceMongoDBAtlasPrivateEndpointRegionalMode() *schema.Resource {
+func DataSourceMongoDBAtlasPrivateEndpointRegionalMode() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasPrivateEndpointRegionalModeRead,
 		Schema: map[string]*schema.Schema{

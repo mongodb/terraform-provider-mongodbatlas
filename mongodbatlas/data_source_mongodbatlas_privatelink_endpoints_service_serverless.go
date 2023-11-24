@@ -10,7 +10,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func dataSourceMongoDBAtlasPrivateLinkEndpointsServiceServerless() *schema.Resource {
+func DataSourceMongoDBAtlasPrivateLinkEndpointsServiceServerless() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasPrivateLinkEndpointsServiceServerlessRead,
 		Schema: map[string]*schema.Schema{

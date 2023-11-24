@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func dataSourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
+func DataSourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasCloudProviderAccessSetupRead,
 		Schema: map[string]*schema.Schema{

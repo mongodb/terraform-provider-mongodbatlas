@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func dataSourceMongoDBAtlasLDAPConfiguration() *schema.Resource {
+func DataSourceMongoDBAtlasLDAPConfiguration() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasLDAPConfigurationRead,
 		Schema: map[string]*schema.Schema{

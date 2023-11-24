@@ -18,7 +18,7 @@ import (
 	-> The delete deletes and deauthorize the role
 */
 
-func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
+func ResourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 	return &schema.Resource{
 		ReadContext:   resourceMongoDBAtlasCloudProviderAccessSetupRead,
 		CreateContext: resourceMongoDBAtlasCloudProviderAccessSetupCreate,

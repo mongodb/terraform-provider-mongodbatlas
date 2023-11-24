@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-func dataSourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
+func DataSourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasMaintenanceWindowRead,
 		Schema: map[string]*schema.Schema{

@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func dataSourceMongoDBAtlasNetworkContainer() *schema.Resource {
+func DataSourceMongoDBAtlasNetworkContainer() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasNetworkContainerRead,
 		Schema: map[string]*schema.Schema{

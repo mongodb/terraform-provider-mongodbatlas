@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func dataSourceMongoDBAtlasX509AuthDBUser() *schema.Resource {
+func DataSourceMongoDBAtlasX509AuthDBUser() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasX509AuthDBUserRead,
 		Schema: map[string]*schema.Schema{

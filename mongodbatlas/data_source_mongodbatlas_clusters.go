@@ -13,7 +13,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func dataSourceMongoDBAtlasClusters() *schema.Resource {
+func DataSourceMongoDBAtlasClusters() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasClustersRead,
 		Schema: map[string]*schema.Schema{

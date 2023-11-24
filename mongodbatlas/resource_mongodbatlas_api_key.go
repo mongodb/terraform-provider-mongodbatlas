@@ -14,7 +14,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func resourceMongoDBAtlasAPIKey() *schema.Resource {
+func ResourceMongoDBAtlasAPIKey() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasAPIKeyCreate,
 		ReadContext:   resourceMongoDBAtlasAPIKeyRead,

@@ -26,7 +26,7 @@ const (
 	errorTeamSetting  = "error setting `%s` for Team (%s): %s"
 )
 
-func resourceMongoDBAtlasTeam() *schema.Resource {
+func ResourceMongoDBAtlasTeam() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasTeamCreate,
 		ReadContext:   resourceMongoDBAtlasTeamRead,

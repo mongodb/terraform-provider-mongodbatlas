@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func dataSourceMongoDBAtlasFederatedDatabaseQueryLimit() *schema.Resource {
+func DataSourceMongoDBAtlasFederatedDatabaseQueryLimit() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasFederatedDatabaseQueryLimitRead,
 		Schema:      schemaMongoDBAtlasFederatedDatabaseQueryLimitDataSource(),

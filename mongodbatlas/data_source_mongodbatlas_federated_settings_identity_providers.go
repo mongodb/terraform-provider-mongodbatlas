@@ -13,7 +13,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func dataSourceMongoDBAtlasFederatedSettingsIdentityProviders() *schema.Resource {
+func DataSourceMongoDBAtlasFederatedSettingsIdentityProviders() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead,
 		Schema: map[string]*schema.Schema{

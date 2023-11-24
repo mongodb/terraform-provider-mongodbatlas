@@ -21,7 +21,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func resourceMongoDBAtlasCustomDBRole() *schema.Resource {
+func ResourceMongoDBAtlasCustomDBRole() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasCustomDBRoleCreate,
 		ReadContext:   resourceMongoDBAtlasCustomDBRoleRead,

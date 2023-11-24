@@ -22,7 +22,7 @@ const (
 	errorBackupPolicySetting = "error setting `%s` for Backup Compliance Policy : %s: %s"
 )
 
-func resourceMongoDBAtlasBackupCompliancePolicy() *schema.Resource {
+func ResourceMongoDBAtlasBackupCompliancePolicy() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasBackupCompliancePolicyCreate,
 		UpdateContext: resourceMongoDBAtlasBackupCompliancePolicyUpdate,

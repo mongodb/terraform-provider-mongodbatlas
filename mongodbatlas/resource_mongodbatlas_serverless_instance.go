@@ -22,7 +22,7 @@ const (
 	errorServerlessInstanceSetting    = "error setting `%s` for serverless instance (%s): %s"
 )
 
-func resourceMongoDBAtlasServerlessInstance() *schema.Resource {
+func ResourceMongoDBAtlasServerlessInstance() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasServerlessInstanceCreate,
 		ReadContext:   resourceMongoDBAtlasServerlessInstanceRead,

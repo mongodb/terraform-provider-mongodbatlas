@@ -8,7 +8,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func dataSourceMongoDBAtlasServerlessInstance() *schema.Resource {
+func DataSourceMongoDBAtlasServerlessInstance() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasServerlessInstanceRead,
 		Schema:      returnServerlessInstanceDSSchema(),

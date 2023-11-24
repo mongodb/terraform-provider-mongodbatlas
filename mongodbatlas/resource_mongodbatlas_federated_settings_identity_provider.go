@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-func resourceMongoDBAtlasFederatedSettingsIdentityProvider() *schema.Resource {
+func ResourceMongoDBAtlasFederatedSettingsIdentityProvider() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasFederatedSettingsIdentityProviderRead,
 		ReadContext:   resourceMongoDBAtlasFederatedSettingsIdentityProviderRead,

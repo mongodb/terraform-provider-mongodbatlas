@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func dataSourceMongoDBAtlasThirdPartyIntegrations() *schema.Resource {
+func DataSourceMongoDBAtlasThirdPartyIntegrations() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasThirdPartyIntegrationsRead,
 		Schema: map[string]*schema.Schema{

@@ -23,7 +23,7 @@ const (
 	defaultOutageFilterType             = "REGION"
 )
 
-func resourceMongoDBAtlasClusterOutageSimulation() *schema.Resource {
+func ResourceMongoDBAtlasClusterOutageSimulation() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBClusterOutageSimulationCreate,
 		ReadContext:   resourceMongoDBAClusterOutageSimulationRead,

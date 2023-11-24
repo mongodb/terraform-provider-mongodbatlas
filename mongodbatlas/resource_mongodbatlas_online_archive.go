@@ -25,7 +25,7 @@ const (
 	scheduleTypeDefault       = "DEFAULT"
 )
 
-func resourceMongoDBAtlasOnlineArchive() *schema.Resource {
+func ResourceMongoDBAtlasOnlineArchive() *schema.Resource {
 	return &schema.Resource{
 		Schema:        getMongoDBAtlasOnlineArchiveSchema(),
 		CreateContext: resourceMongoDBAtlasOnlineArchiveCreate,

@@ -13,7 +13,7 @@ import (
 )
 
 // This datasource does not have a resource: we tested it manually
-func dataSourceMongoDBAtlasCloudSharedTierRestoreJobs() *schema.Resource {
+func DataSourceMongoDBAtlasCloudSharedTierRestoreJobs() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasCloudSharedTierRestoreJobRead,
 		Schema: map[string]*schema.Schema{

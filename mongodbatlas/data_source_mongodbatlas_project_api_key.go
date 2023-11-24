@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func dataSourceMongoDBAtlasProjectAPIKey() *schema.Resource {
+func DataSourceMongoDBAtlasProjectAPIKey() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasProjectAPIKeyRead,
 		Schema: map[string]*schema.Schema{
