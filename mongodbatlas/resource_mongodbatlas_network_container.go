@@ -26,7 +26,7 @@ const (
 	errorContainerUpdate  = "error updating MongoDB Network Peering Container (%s): %s"
 )
 
-func ResourceMongoDBAtlasNetworkContainer() *schema.Resource {
+func ResourceNetworkContainer() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasNetworkContainerCreate,
 		ReadContext:   resourceMongoDBAtlasNetworkContainerRead,

@@ -24,7 +24,7 @@ const (
 	errorPrivateLinkEndpointsSetting = "error setting `%s` for MongoDB Private Endpoints Connection(%s): %s"
 )
 
-func ResourceMongoDBAtlasPrivateLinkEndpoint() *schema.Resource {
+func ResourcePrivateLinkEndpoint() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasPrivateLinkEndpointCreate,
 		ReadContext:   resourceMongoDBAtlasPrivateLinkEndpointRead,

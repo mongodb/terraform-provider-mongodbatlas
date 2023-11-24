@@ -12,7 +12,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourceMongoDBAtlasProjectAPIKeys() *schema.Resource {
+func DataSourceProjectAPIKeys() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasProjectAPIKeysRead,
 		Schema: map[string]*schema.Schema{

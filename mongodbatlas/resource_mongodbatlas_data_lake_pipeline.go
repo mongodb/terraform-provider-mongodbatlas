@@ -24,7 +24,7 @@ const (
 	errorDataLakeSetting             = "error setting `%s` for MongoDB Atlas DataLake (%s): %s"
 )
 
-func ResourceMongoDBAtlasDataLakePipeline() *schema.Resource {
+func ResourceDataLakePipeline() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasDataLakePipelineCreate,
 		ReadContext:   resourceMongoDBAtlasDataLakePipelineRead,

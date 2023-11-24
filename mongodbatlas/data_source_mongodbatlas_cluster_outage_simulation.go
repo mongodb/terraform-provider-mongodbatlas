@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceMongoDBAtlasClusterOutageSimulation() *schema.Resource {
+func DataSourceClusterOutageSimulation() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasClusterOutageSimulationRead,
 		Schema: map[string]*schema.Schema{

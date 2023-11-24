@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceMongoDBAtlasLDAPVerify() *schema.Resource {
+func DataSourceLDAPVerify() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasLDAPVerifyRead,
 		Schema: map[string]*schema.Schema{

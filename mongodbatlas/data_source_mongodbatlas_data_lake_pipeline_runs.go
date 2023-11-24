@@ -13,7 +13,7 @@ import (
 
 const errorDataLakePipelineRunList = "error reading MongoDB Atlas DataLake Runs (%s): %s"
 
-func DataSourceMongoDBAtlasDataLakePipelineRuns() *schema.Resource {
+func DataSourceDataLakePipelineRuns() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasDataLakeRunsRead,
 		Schema: map[string]*schema.Schema{

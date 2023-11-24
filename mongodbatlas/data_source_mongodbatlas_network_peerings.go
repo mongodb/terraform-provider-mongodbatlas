@@ -12,7 +12,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourceMongoDBAtlasNetworkPeerings() *schema.Resource {
+func DataSourceNetworkPeerings() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasNetworkPeeringsRead,
 		Schema: map[string]*schema.Schema{

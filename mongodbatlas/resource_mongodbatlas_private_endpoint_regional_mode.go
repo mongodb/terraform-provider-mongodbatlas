@@ -23,7 +23,7 @@ const (
 
 var regionalModeTimeoutCtxKey permCtxKey = "regionalModeTimeout"
 
-func ResourceMongoDBAtlasPrivateEndpointRegionalMode() *schema.Resource {
+func ResourcePrivateEndpointRegionalMode() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasPrivateEndpointRegionalModeCreate,
 		ReadContext:   resourceMongoDBAtlasPrivateEndpointRegionalModeRead,

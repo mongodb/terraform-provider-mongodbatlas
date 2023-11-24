@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourceMongoDBAtlasBackupCompliancePolicy() *schema.Resource {
+func DataSourceBackupCompliancePolicy() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasBackupCompliancePolicyRead,
 		Schema: map[string]*schema.Schema{

@@ -32,7 +32,7 @@ var requiredPerType = map[string][]string{
 	"PROMETHEUS":      {"user_name", "password", "service_discovery", "scheme", "enabled"},
 }
 
-func ResourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
+func ResourceThirdPartyIntegration() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasThirdPartyIntegrationCreate,
 		ReadContext:   resourceMongoDBAtlasThirdPartyIntegrationRead,

@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceMongoDBAtlasGlobalCluster() *schema.Resource {
+func DataSourceGlobalCluster() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasGlobalClusterRead,
 		Schema: map[string]*schema.Schema{

@@ -8,7 +8,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceMongoDBAtlasSearchIndex() *schema.Resource {
+func DataSourceSearchIndex() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasSearchIndexRead,
 		Schema:      returnSearchIndexDSSchema(),

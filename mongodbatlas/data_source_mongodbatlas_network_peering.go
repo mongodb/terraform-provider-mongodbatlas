@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceMongoDBAtlasNetworkPeering() *schema.Resource {
+func DataSourceNetworkPeering() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasNetworkPeeringRead,
 		Schema: map[string]*schema.Schema{

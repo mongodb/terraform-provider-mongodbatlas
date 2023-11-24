@@ -22,7 +22,7 @@ const (
 	errorCustomerX509AuthDBUsersDelete = "error deleting Customer X509 Authentication in the project(%s): %s"
 )
 
-func ResourceMongoDBAtlasX509AuthDBUser() *schema.Resource {
+func ResourceX509AuthDBUser() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasX509AuthDBUserCreate,
 		ReadContext:   resourceMongoDBAtlasX509AuthDBUserRead,

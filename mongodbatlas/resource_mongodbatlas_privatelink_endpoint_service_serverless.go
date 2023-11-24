@@ -21,7 +21,7 @@ const (
 	errorServerlessServiceEndpointDelete = "error deleting MongoDB Serverless PrivateLink Endpoint Connection(%s): %s"
 )
 
-func ResourceMongoDBAtlasPrivateLinkEndpointServiceServerless() *schema.Resource {
+func ResourcePrivateLinkEndpointServiceServerless() *schema.Resource {
 	return &schema.Resource{
 		CreateWithoutTimeout: resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate,
 		ReadWithoutTimeout:   resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessRead,

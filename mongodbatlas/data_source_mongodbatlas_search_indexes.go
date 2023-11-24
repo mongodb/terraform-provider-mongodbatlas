@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
 
-func DataSourceMongoDBAtlasSearchIndexes() *schema.Resource {
+func DataSourceSearchIndexes() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasSearchIndexesRead,
 		Schema: map[string]*schema.Schema{

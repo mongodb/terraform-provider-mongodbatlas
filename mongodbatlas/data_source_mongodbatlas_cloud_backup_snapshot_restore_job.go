@@ -10,7 +10,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourceMongoDBAtlasCloudBackupSnapshotRestoreJob() *schema.Resource {
+func DataSourceCloudBackupSnapshotRestoreJob() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead,
 		Schema: map[string]*schema.Schema{

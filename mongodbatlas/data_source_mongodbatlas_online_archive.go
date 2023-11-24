@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceMongoDBAtlasOnlineArchives() *schema.Resource {
+func DataSourceOnlineArchives() *schema.Resource {
 	singleElement := schemaOnlineArchive()
 	// overwritten to make them read only
 	singleElement["project_id"] = &schema.Schema{
@@ -57,7 +57,7 @@ func DataSourceMongoDBAtlasOnlineArchives() *schema.Resource {
 	}
 }
 
-func DataSourceMongoDBAtlasOnlineArchive() *schema.Resource {
+func DataSourceOnlineArchive() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasOnlineArchiveRead,
 		Schema:      schemaOnlineArchive(),

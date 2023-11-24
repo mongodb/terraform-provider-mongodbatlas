@@ -10,7 +10,7 @@ import (
 )
 
 // This datasource does not have a resource: we tested it manually
-func DataSourceMongoDBAtlasSharedTierSnapshot() *schema.Resource {
+func DataSourceSharedTierSnapshot() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasSharedTierSnapshotRead,
 		Schema: map[string]*schema.Schema{

@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-func ResourceMongoDBAtlasFederatedSettingsOrganizationConfig() *schema.Resource {
+func ResourceFederatedSettingsOrganizationConfig() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead,
 		ReadContext:   resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead,

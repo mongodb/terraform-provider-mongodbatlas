@@ -20,7 +20,7 @@ const (
 	errorLDAPConfigurationSetting = "error setting `%s` for LDAPConfiguration(%s): %s"
 )
 
-func ResourceMongoDBAtlasLDAPConfiguration() *schema.Resource {
+func ResourceLDAPConfiguration() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasLDAPConfigurationCreate,
 		ReadContext:   resourceMongoDBAtlasLDAPConfigurationRead,

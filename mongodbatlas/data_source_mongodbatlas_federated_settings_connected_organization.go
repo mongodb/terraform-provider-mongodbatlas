@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceMongoDBAtlasFederatedSettingsOrganizationConfig() *schema.Resource {
+func DataSourceFederatedSettingsOrganizationConfig() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigRead,
 		Schema: map[string]*schema.Schema{

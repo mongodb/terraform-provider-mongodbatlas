@@ -23,7 +23,7 @@ const (
 	endpointType                                                 = "DATA_LAKE"
 )
 
-func ResourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive() *schema.Resource {
+func ResourcePrivatelinkEndpointServiceDataFederationOnlineArchive() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveCreate,
 		ReadContext:   resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveRead,

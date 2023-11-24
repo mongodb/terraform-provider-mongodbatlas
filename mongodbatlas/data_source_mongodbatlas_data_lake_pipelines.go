@@ -13,7 +13,7 @@ import (
 
 const errorDataLakePipelineList = "error creating MongoDB Atlas DataLake Pipelines: %s"
 
-func DataSourceMongoDBAtlasDataLakePipelines() *schema.Resource {
+func DataSourceDataLakePipelines() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasDataLakePipelinesRead,
 		Schema: map[string]*schema.Schema{

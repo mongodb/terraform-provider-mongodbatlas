@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceMongoDBAtlasAuditing() *schema.Resource {
+func DataSourceAuditing() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasAuditingRead,
 		Schema: map[string]*schema.Schema{

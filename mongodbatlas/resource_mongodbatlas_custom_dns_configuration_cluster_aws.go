@@ -20,7 +20,7 @@ const (
 	errorCustomDNSConfigurationSetting = "error setting `%s` for custom dns configuration cluster aws (%s): %s"
 )
 
-func ResourceMongoDBAtlasCustomDNSConfiguration() *schema.Resource {
+func ResourceCustomDNSConfiguration() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasCustomDNSConfigurationCreate,
 		ReadContext:   resourceMongoDBAtlasCustomDNSConfigurationRead,

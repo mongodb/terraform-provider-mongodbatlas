@@ -22,7 +22,7 @@ const (
 	errorFederatedDatabaseInstanceSetting = "error setting `%s` for MongoDB Atlas Federated Database Instace (%s): %s"
 )
 
-func ResourceMongoDBAtlasFederatedDatabaseInstance() *schema.Resource {
+func ResourceFederatedDatabaseInstance() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBFederatedDatabaseInstanceCreate,
 		ReadContext:   resourceMongoDBAFederatedDatabaseInstanceRead,

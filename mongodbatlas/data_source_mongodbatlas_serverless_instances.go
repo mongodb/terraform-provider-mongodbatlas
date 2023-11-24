@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourceMongoDBAtlasServerlessInstances() *schema.Resource {
+func DataSourceServerlessInstances() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasServerlessInstancesRead,
 		Schema: map[string]*schema.Schema{

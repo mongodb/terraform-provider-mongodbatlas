@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/realm/realm"
 )
 
-func DataSourceMongoDBAtlasEventTriggers() *schema.Resource {
+func DataSourceEventTriggers() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceMongoDBAtlasEventTriggersRead,
 		Schema: map[string]*schema.Schema{

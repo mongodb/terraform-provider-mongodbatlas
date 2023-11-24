@@ -13,7 +13,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func ResourceMongoDBAtlasOrganization() *schema.Resource {
+func ResourceOrganization() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasOrganizationCreate,
 		ReadContext:   resourceMongoDBAtlasOrganizationRead,

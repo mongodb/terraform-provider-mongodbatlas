@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
+func DataSourceThirdPartyIntegration() *schema.Resource {
 	integration := thirdPartyIntegrationSchema()
 	integration.Schema["project_id"] = &schema.Schema{
 		Type:     schema.TypeString,

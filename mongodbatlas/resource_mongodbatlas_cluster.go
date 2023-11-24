@@ -35,7 +35,7 @@ const (
 
 var defaultLabel = matlas.Label{Key: "Infrastructure Tool", Value: "MongoDB Atlas Terraform Provider"}
 
-func ResourceMongoDBAtlasCluster() *schema.Resource {
+func ResourceCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateWithoutTimeout: resourceMongoDBAtlasClusterCreate,
 		ReadWithoutTimeout:   resourceMongoDBAtlasClusterRead,
@@ -47,7 +47,7 @@ func ResourceMongoDBAtlasCluster() *schema.Resource {
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
 			{
-				Type:    ResourceMongoDBAtlasClusterResourceV0().CoreConfigSchema().ImpliedType(),
+				Type:    ResourceClusterResourceV0().CoreConfigSchema().ImpliedType(),
 				Upgrade: resourceMongoDBAtlasClusterStateUpgradeV0,
 				Version: 0,
 			},

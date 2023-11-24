@@ -22,7 +22,7 @@ const (
 	errorLDAPVerifySetting = "error setting `%s` for LDAPVerify(%s): %s"
 )
 
-func ResourceMongoDBAtlasLDAPVerify() *schema.Resource {
+func ResourceLDAPVerify() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasLDAPVerifyCreate,
 		ReadContext:   resourceMongoDBAtlasLDAPVerifyRead,

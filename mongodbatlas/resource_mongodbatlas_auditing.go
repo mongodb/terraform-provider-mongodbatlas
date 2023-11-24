@@ -18,7 +18,7 @@ const (
 	errorAuditingRead   = "error reading MongoDB Auditing (%s): %s"
 )
 
-func ResourceMongoDBAtlasAuditing() *schema.Resource {
+func ResourceAuditing() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasAuditingCreate,
 		ReadContext:   resourceMongoDBAtlasAuditingRead,

@@ -25,7 +25,7 @@ const (
 	errorPeersUpdate = "error updating MongoDB Network Peering Connection (%s): %s"
 )
 
-func ResourceMongoDBAtlasNetworkPeering() *schema.Resource {
+func ResourceNetworkPeering() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasNetworkPeeringCreate,
 		ReadContext:   resourceMongoDBAtlasNetworkPeeringRead,

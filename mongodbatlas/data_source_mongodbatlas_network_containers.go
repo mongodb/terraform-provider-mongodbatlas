@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourceMongoDBAtlasNetworkContainers() *schema.Resource {
+func DataSourceNetworkContainers() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasNetworkContainersRead,
 		Schema: map[string]*schema.Schema{

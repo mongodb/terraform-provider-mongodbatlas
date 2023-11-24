@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceMongoDBAtlasFederatedDatabaseInstance() *schema.Resource {
+func DataSourceFederatedDatabaseInstance() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasFederatedDatabaseInstanceRead,
 		Schema: map[string]*schema.Schema{

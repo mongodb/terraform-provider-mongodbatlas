@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceMongoDBAtlasEventTrigger() *schema.Resource {
+func DataSourceEventTrigger() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasEventTriggerRead,
 		Schema: map[string]*schema.Schema{

@@ -23,7 +23,7 @@ const (
 	errorGlobalClusterUpdate = "error updating MongoDB Global Cluster Configuration (%s): %s"
 )
 
-func ResourceMongoDBAtlasGlobalCluster() *schema.Resource {
+func ResourceGlobalCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasGlobalClusterCreate,
 		ReadContext:   resourceMongoDBAtlasGlobalClusterRead,

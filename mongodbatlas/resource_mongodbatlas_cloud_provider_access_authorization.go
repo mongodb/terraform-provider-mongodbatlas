@@ -17,7 +17,7 @@ import (
 	A cloud provider access authorization
 */
 
-func ResourceMongoDBAtlasCloudProviderAccessAuthorization() *schema.Resource {
+func ResourceCloudProviderAccessAuthorization() *schema.Resource {
 	return &schema.Resource{
 		ReadContext:   resourceMongoDBAtlasCloudProviderAccessAuthorizationRead,
 		CreateContext: resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate,

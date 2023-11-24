@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-func DataSourceMongoDBAtlasPrivateEndpointServiceLink() *schema.Resource {
+func DataSourcePrivateEndpointServiceLink() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasPrivateEndpointServiceLinkRead,
 		Schema: map[string]*schema.Schema{
