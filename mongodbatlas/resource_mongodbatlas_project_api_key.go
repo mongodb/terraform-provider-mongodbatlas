@@ -46,7 +46,8 @@ func resourceMongoDBAtlasProjectAPIKey() *schema.Resource {
 			},
 			"project_assignment": {
 				Type:     schema.TypeSet,
-				Optional: true,
+				Required: true,
+				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"project_id": {
