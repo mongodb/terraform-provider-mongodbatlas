@@ -18,21 +18,6 @@ import (
 	"go.mongodb.org/realm/realm"
 )
 
-const (
-	ProviderConfigError                   = "error in configuring the provider."
-	AWS                                   = "AWS"
-	AZURE                                 = "AZURE"
-	MongodbGovCloudURL                    = "https://cloud.mongodbgov.com"
-	ToolName                              = "terraform-provider-mongodbatlas"
-	MissingAuthAttrError                  = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
-	DeprecationMessageParameterToResource = "this parameter is deprecated and will be removed in %s, please transition to %s"
-	DeprecationByDateMessageParameter     = "this parameter is deprecated and will be removed by %s"
-	DeprecationByDateWithReplacement      = "this parameter is deprecated and will be removed by %s, please transition to %s"
-	DeprecationByVersionMessageParameter  = "this parameter is deprecated and will be removed in version %s"
-	DeprecationMessage                    = "this resource is deprecated and will be removed in %s, please transition to %s"
-	ErrorProjectSetting                   = "error setting `%s` for project (%s): %s"
-)
-
 var userAgent = fmt.Sprintf("%s/%s", ToolName, version.ProviderVersion)
 
 // Config contains the configurations needed to use SDKs

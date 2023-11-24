@@ -102,7 +102,7 @@ func testAccCheckMongoDBAtlasProviderAccessDestroy(s *terraform.State) error {
 		roles, _, err := conn.CloudProviderAccess.ListRoles(context.Background(), ids["project_id"])
 
 		if err != nil {
-			return fmt.Errorf(errorGetRead, err)
+			return fmt.Errorf(config.ErrorGetRead, err)
 		}
 
 		var targetRole matlas.CloudProviderAccessRole
@@ -145,7 +145,7 @@ func testAccCheckMongoDBAtlasProviderAccessExists(resourceName string, targetRol
 		roles, _, err := conn.CloudProviderAccess.ListRoles(context.Background(), ids["project_id"])
 
 		if err != nil {
-			return fmt.Errorf(errorGetRead, err)
+			return fmt.Errorf(config.ErrorGetRead, err)
 		}
 
 		if providerName == "AWS" {

@@ -34,12 +34,12 @@ func dataSourceMongoDBAtlasSearchIndexes() *schema.Resource {
 			"page_num": {
 				Type:       schema.TypeInt,
 				Optional:   true,
-				Deprecated: fmt.Sprintf(DeprecationByVersionMessageParameter, "1.15.0"),
+				Deprecated: fmt.Sprintf(config.DeprecationParamByVersion, "1.15.0"),
 			},
 			"items_per_page": {
 				Type:       schema.TypeInt,
 				Optional:   true,
-				Deprecated: fmt.Sprintf(DeprecationByVersionMessageParameter, "1.15.0"),
+				Deprecated: fmt.Sprintf(config.DeprecationParamByVersion, "1.15.0"),
 			},
 			"results": {
 				Type:     schema.TypeList,

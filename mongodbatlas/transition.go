@@ -8,18 +8,6 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-const (
-	DeprecationMessageParameterToResource = config.DeprecationMessageParameterToResource
-	DeprecationByDateMessageParameter     = config.DeprecationByDateMessageParameter
-	DeprecationByDateWithReplacement      = config.DeprecationByDateWithReplacement
-	DeprecationByVersionMessageParameter  = config.DeprecationByVersionMessageParameter
-	DeprecationMessage                    = config.DeprecationMessage
-	AWS                                   = config.AWS
-	AZURE                                 = config.AZURE
-	errorProjectSetting                   = config.ErrorProjectSetting
-	errorGetRead                          = "error reading cloud provider access %s"
-)
-
 func encodeStateID(values map[string]string) string {
 	return config.EncodeStateID(values)
 }

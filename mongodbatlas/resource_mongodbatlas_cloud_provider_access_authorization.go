@@ -108,18 +108,18 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationRead(ctx context.Contex
 	}
 
 	if targetRole == nil {
-		return diag.FromErr(fmt.Errorf(errorGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
+		return diag.FromErr(fmt.Errorf(config.ErrorGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
 	}
 
 	roleSchema := roleToSchemaAuthorization(targetRole)
 	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
-			return diag.FromErr(fmt.Errorf(errorGetRead, err))
+			return diag.FromErr(fmt.Errorf(config.ErrorGetRead, err))
 		}
 	}
 
 	// If not authorize , then request the authorization
-	if targetRole.ProviderName == AWS && targetRole.AuthorizedDate == "" && !d.IsNewResource() {
+	if targetRole.ProviderName == config.AWS && targetRole.AuthorizedDate == "" && !d.IsNewResource() {
 		d.SetId("")
 		return nil
 	}
@@ -141,7 +141,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate(ctx context.Cont
 	}
 
 	if targetRole == nil {
-		return diag.FromErr(fmt.Errorf(errorGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
+		return diag.FromErr(fmt.Errorf(config.ErrorGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
 	}
 
 	return authorizeRole(ctx, conn, d, projectID, targetRole)
@@ -161,7 +161,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationUpdate(ctx context.Cont
 	}
 
 	if targetRole == nil {
-		return diag.FromErr(fmt.Errorf(errorGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
+		return diag.FromErr(fmt.Errorf(config.ErrorGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
 	}
 
 	if d.HasChange("aws") || d.HasChange("azure") {
@@ -209,7 +209,7 @@ func roleToSchemaAuthorization(role *matlas.CloudProviderAccessRole) map[string]
 func FindRole(ctx context.Context, conn *matlas.Client, projectID, roleID string) (*matlas.CloudProviderAccessRole, error) {
 	role, _, err := conn.CloudProviderAccess.GetRole(ctx, projectID, roleID)
 	if err != nil {
-		return nil, fmt.Errorf(errorGetRead, err)
+		return nil, fmt.Errorf(config.ErrorGetRead, err)
 	}
 
 	return role, nil
@@ -263,7 +263,7 @@ func authorizeRole(ctx context.Context, client *matlas.Client, d *schema.Resourc
 	}
 
 	roleID := targetRole.RoleID
-	if targetRole.ProviderName == AWS {
+	if targetRole.ProviderName == config.AWS {
 		roleAWS, ok := d.GetOk("aws")
 		if !ok {
 			return diag.FromErr(fmt.Errorf("error CloudProviderAccessAuthorization missing iam_assumed_role_arn"))
@@ -272,7 +272,7 @@ func authorizeRole(ctx context.Context, client *matlas.Client, d *schema.Resourc
 		req.IAMAssumedRoleARN = pointer(roleAWS.([]any)[0].(map[string]any)["iam_assumed_role_arn"].(string))
 	}
 
-	if targetRole.ProviderName == AZURE {
+	if targetRole.ProviderName == config.AZURE {
 		req.AtlasAzureAppID = targetRole.AtlasAzureAppID
 		req.AzureTenantID = targetRole.AzureTenantID
 		req.AzureServicePrincipalID = targetRole.AzureServicePrincipalID
@@ -303,7 +303,7 @@ func authorizeRole(ctx context.Context, client *matlas.Client, d *schema.Resourc
 	authSchema := roleToSchemaAuthorization(role)
 
 	resourceID := role.RoleID
-	if role.ProviderName == AZURE {
+	if role.ProviderName == config.AZURE {
 		resourceID = *role.AzureID
 	}
 	d.SetId(encodeStateID(map[string]string{

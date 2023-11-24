@@ -36,7 +36,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 			"provider_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{AWS, AZURE}, false),
+				ValidateFunc: validation.StringInSlice([]string{config.AWS, config.AZURE}, false),
 				ForceNew:     true,
 			},
 			"aws_config": {
@@ -104,13 +104,13 @@ func resourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *sc
 			return nil
 		}
 
-		return diag.FromErr(fmt.Errorf(errorGetRead, err))
+		return diag.FromErr(fmt.Errorf(config.ErrorGetRead, err))
 	}
 
 	roleSchema := roleToSchemaSetup(role)
 	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
-			return diag.FromErr(fmt.Errorf(errorGetRead, err))
+			return diag.FromErr(fmt.Errorf(config.ErrorGetRead, err))
 		}
 	}
 
@@ -159,7 +159,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *
 	roleSchema := roleToSchemaSetup(role)
 
 	resourceID := role.RoleID
-	if role.ProviderName == AZURE {
+	if role.ProviderName == config.AZURE {
 		resourceID = *role.AzureID
 	}
 

@@ -14,7 +14,7 @@ import (
 func dataSourceMongoDBAtlasCloudProviderAccessList() *schema.Resource {
 	return &schema.Resource{
 		ReadContext:        dataSourceMongoDBAtlasCloudProviderAccessRead,
-		DeprecationMessage: fmt.Sprintf(DeprecationMessage, "v1.14.0", "mongodbatlas_cloud_provider_access_setup"),
+		DeprecationMessage: fmt.Sprintf(config.DeprecationResourceByDateWithReplacement, "v1.14.0", "mongodbatlas_cloud_provider_access_setup"),
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -91,11 +91,11 @@ func dataSourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schem
 	roles, _, err := conn.CloudProviderAccess.ListRoles(ctx, projectID)
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorGetRead, err))
+		return diag.FromErr(fmt.Errorf(config.ErrorGetRead, err))
 	}
 
 	if err = d.Set("aws_iam_roles", flatCloudProviderAccessRolesAWS(roles)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorGetRead, err))
+		return diag.FromErr(fmt.Errorf(config.ErrorGetRead, err))
 	}
 
 	d.SetId(id.UniqueId())

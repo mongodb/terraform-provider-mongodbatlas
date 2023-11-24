@@ -29,7 +29,7 @@ func resourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasCloudProviderAccessImportState,
 		},
-		DeprecationMessage: fmt.Sprintf(DeprecationMessage, "v1.14.0", "mongodbatlas_cloud_provider_access_setup and mongodbatlas_cloud_provider_access_authorization"),
+		DeprecationMessage: fmt.Sprintf(config.DeprecationResourceByDateWithReplacement, "v1.14.0", "mongodbatlas_cloud_provider_access_setup and mongodbatlas_cloud_provider_access_authorization"),
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -127,13 +127,13 @@ func resourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schema.
 			return nil
 		}
 
-		return diag.FromErr(fmt.Errorf(errorGetRead, err))
+		return diag.FromErr(fmt.Errorf(config.ErrorGetRead, err))
 	}
 
 	roleSchema := roleToSchema(role)
 	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
-			return diag.FromErr(fmt.Errorf(errorGetRead, err))
+			return diag.FromErr(fmt.Errorf(config.ErrorGetRead, err))
 		}
 	}
 
@@ -162,7 +162,7 @@ func resourceMongoDBAtlasCloudProviderAccessUpdate(ctx context.Context, d *schem
 
 		for key, val := range roleSchema {
 			if err := d.Set(key, val); err != nil {
-				return diag.FromErr(fmt.Errorf(errorGetRead, err))
+				return diag.FromErr(fmt.Errorf(config.ErrorGetRead, err))
 			}
 		}
 	}
