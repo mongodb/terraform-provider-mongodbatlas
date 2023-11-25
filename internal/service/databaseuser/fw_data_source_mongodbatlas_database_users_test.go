@@ -1,4 +1,4 @@
-package todo_test
+package databaseuser_test
 
 import (
 	"fmt"

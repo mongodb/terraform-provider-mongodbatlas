@@ -24,6 +24,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/todo"
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
@@ -392,8 +393,8 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 	return []func() datasource.DataSource{
 		todo.NewProjectDS,
 		todo.NewProjectsDS,
-		todo.NewDatabaseUserDS,
-		todo.NewDatabaseUsersDS,
+		databaseuser.NewDatabaseUserDS,
+		databaseuser.NewDatabaseUsersDS,
 		alertconfiguration.NewAlertConfigurationDS,
 		alertconfiguration.NewAlertConfigurationsDS,
 		todo.NewProjectIPAccessListDS,
@@ -407,7 +408,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 	return []func() resource.Resource{
 		todo.NewProjectRS,
 		todo.NewEncryptionAtRestRS,
-		todo.NewDatabaseUserRS,
+		databaseuser.NewDatabaseUserRS,
 		alertconfiguration.NewAlertConfigurationRS,
 		todo.NewProjectIPAccessListRS,
 		todo.NewSearchDeploymentRS,

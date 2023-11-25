@@ -1,4 +1,4 @@
-package todo
+package databaseuser
 
 import (
 	"context"
@@ -12,12 +12,12 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-type DatabaseUserDS struct {
+type databaseUserDS struct {
 	config.DSCommon
 }
 
 func NewDatabaseUserDS() datasource.DataSource {
-	return &DatabaseUserDS{
+	return &databaseUserDS{
 		DSCommon: config.DSCommon{
 			DataSourceName: databaseUserResourceName,
 		},
@@ -39,10 +39,10 @@ type tfDatabaseUserDSModel struct {
 	Scopes           []tfScopeModel `tfsdk:"scopes"`
 }
 
-var _ datasource.DataSource = &DatabaseUserDS{}
-var _ datasource.DataSourceWithConfigure = &DatabaseUserDS{}
+var _ datasource.DataSource = &databaseUserDS{}
+var _ datasource.DataSourceWithConfigure = &databaseUserDS{}
 
-func (d *DatabaseUserDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *databaseUserDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -119,7 +119,7 @@ func (d *DatabaseUserDS) Schema(ctx context.Context, req datasource.SchemaReques
 	}
 }
 
-func (d *DatabaseUserDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *databaseUserDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var databaseDSUserModel *tfDatabaseUserDSModel
 	var err error
 	resp.Diagnostics.Append(req.Config.Get(ctx, &databaseDSUserModel)...)

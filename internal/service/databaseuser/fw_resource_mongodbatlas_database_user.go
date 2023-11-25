@@ -1,10 +1,8 @@
-package todo
+package databaseuser
 
 import (
 	"context"
-	"errors"
 	"net/http"
-	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -26,15 +24,15 @@ const (
 	databaseUserResourceName = "database_user"
 )
 
-var _ resource.ResourceWithConfigure = &DatabaseUserRS{}
-var _ resource.ResourceWithImportState = &DatabaseUserRS{}
+var _ resource.ResourceWithConfigure = &databaseUserRS{}
+var _ resource.ResourceWithImportState = &databaseUserRS{}
 
-type DatabaseUserRS struct {
+type databaseUserRS struct {
 	config.RSCommon
 }
 
 func NewDatabaseUserRS() resource.Resource {
-	return &DatabaseUserRS{
+	return &databaseUserRS{
 		RSCommon: config.RSCommon{
 			ResourceName: databaseUserResourceName,
 		},
@@ -88,7 +86,7 @@ var ScopeObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"type": types.StringType,
 }}
 
-func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *databaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -205,7 +203,7 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 	}
 }
 
-func (r *DatabaseUserRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *databaseUserRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var databaseUserPlan *tfDatabaseUserModel
 
 	diags := req.Plan.Get(ctx, &databaseUserPlan)
@@ -239,7 +237,7 @@ func (r *DatabaseUserRS) Create(ctx context.Context, req resource.CreateRequest,
 	}
 }
 
-func (r *DatabaseUserRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *databaseUserRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var databaseUserState *tfDatabaseUserModel
 	var err error
 	resp.Diagnostics.Append(req.State.Get(ctx, &databaseUserState)...)
@@ -253,7 +251,7 @@ func (r *DatabaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 
 	// Use the ID only with the IMPORT operation
 	if databaseUserState.ID.ValueString() != "" && (username == "" || projectID == "" || authDatabaseName == "") {
-		projectID, username, authDatabaseName, err = SplitDatabaseUserImportID(databaseUserState.ID.ValueString())
+		projectID, username, authDatabaseName, err = config.SplitDatabaseUserImportID(databaseUserState.ID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError("error splitting database User info from ID", err.Error())
 			return
@@ -286,7 +284,7 @@ func (r *DatabaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 }
 
-func (r *DatabaseUserRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *databaseUserRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var databaseUserPlan *tfDatabaseUserModel
 
 	diags := req.Plan.Get(ctx, &databaseUserPlan)
@@ -320,7 +318,7 @@ func (r *DatabaseUserRS) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 }
 
-func (r *DatabaseUserRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *databaseUserRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var databaseUserState *tfDatabaseUserModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &databaseUserState)...)
@@ -336,7 +334,7 @@ func (r *DatabaseUserRS) Delete(ctx context.Context, req resource.DeleteRequest,
 	}
 }
 
-func (r *DatabaseUserRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *databaseUserRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
@@ -518,20 +516,4 @@ func newMongoDBAtlasScopes(scopes []*tfScopeModel) []matlas.Scope {
 	}
 
 	return out
-}
-
-func SplitDatabaseUserImportID(id string) (projectID, username, authDatabaseName string, err error) {
-	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([$a-z]{1,15})$`)
-	parts := re.FindStringSubmatch(id)
-
-	if len(parts) != 4 {
-		err = errors.New("import format error: to import a Database User, use the format {project_id}-{username}-{auth_database_name}")
-		return
-	}
-
-	projectID = parts[1]
-	username = parts[2]
-	authDatabaseName = parts[3]
-
-	return
 }

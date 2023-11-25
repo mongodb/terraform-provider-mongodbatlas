@@ -66,3 +66,25 @@ func CheckDestroyTeamAdvancedCluster(s *terraform.State) error {
 
 	return nil
 }
+
+func CheckDestroyDatabaseUser(s *terraform.State) error {
+	conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "mongodbatlas_database_user" {
+			continue
+		}
+
+		projectID, username, authDatabaseName, err := config.SplitDatabaseUserImportID(rs.Primary.ID)
+		if err != nil {
+			continue
+		}
+		// Try to find the database user
+		_, _, err = conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
+		if err == nil {
+			return fmt.Errorf("database user (%s) still exists", projectID)
+		}
+	}
+
+	return nil
+}

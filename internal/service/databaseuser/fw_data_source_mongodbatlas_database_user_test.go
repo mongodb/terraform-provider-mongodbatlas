@@ -1,4 +1,4 @@
-package todo_test
+package databaseuser_test
 
 import (
 	"fmt"
@@ -27,8 +27,8 @@ func TestAccConfigDSDatabaseUser_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasDatabaseUserDataSourceConfig(orgID, projectName, roleName, username),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),

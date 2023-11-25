@@ -1,9 +1,7 @@
-package todo_test
+package databaseuser_test
 
 import (
-	"context"
 	"fmt"
-	"log"
 	"os"
 	"testing"
 
@@ -11,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/todo"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -28,13 +25,13 @@ func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				Config: acc.DatabaseUserConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
@@ -44,10 +41,10 @@ func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasDatabaseUserConfig(projectName, orgID, "read", username, "Second Key", "Second value"),
+				Config: acc.DatabaseUserConfig(projectName, orgID, "read", username, "Second Key", "Second value"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
@@ -73,13 +70,13 @@ func TestAccConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithX509TypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
+				Config: acc.DatabaseUserWithX509TypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "x509_type", x509Type),
@@ -104,13 +101,13 @@ func TestAccConfigRSDatabaseUser_withX509TypeManaged(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithX509TypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
+				Config: acc.DatabaseUserWithX509TypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "x509_type", x509Type),
@@ -134,13 +131,13 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithAWSIAMTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				Config: acc.DatabaseUserWithAWSIAMTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "aws_iam_type", "USER"),
@@ -168,13 +165,13 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType_import(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithAWSIAMTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				Config: acc.DatabaseUserWithAWSIAMTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "aws_iam_type", "USER"),
@@ -205,13 +202,13 @@ func TestAccConfigRSDatabaseUser_WithLabels(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectName, orgID, "atlasAdmin", username, []matlas.Label{}),
+				Config: acc.DatabaseUserWithLabelsConfig(projectName, orgID, "atlasAdmin", username, []matlas.Label{}),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
@@ -220,7 +217,7 @@ func TestAccConfigRSDatabaseUser_WithLabels(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectName, orgID, "atlasAdmin", username,
+				Config: acc.DatabaseUserWithLabelsConfig(projectName, orgID, "atlasAdmin", username,
 					[]matlas.Label{
 						{
 							Key:   "key 1",
@@ -233,8 +230,8 @@ func TestAccConfigRSDatabaseUser_WithLabels(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
@@ -243,7 +240,7 @@ func TestAccConfigRSDatabaseUser_WithLabels(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectName, orgID, "read", username,
+				Config: acc.DatabaseUserWithLabelsConfig(projectName, orgID, "read", username,
 					[]matlas.Label{
 						{
 							Key:   "key 4",
@@ -260,8 +257,8 @@ func TestAccConfigRSDatabaseUser_WithLabels(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
@@ -286,10 +283,10 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithRoles(username, password, projectName, orgID,
+				Config: acc.DatabaseUserWithRoles(username, password, projectName, orgID,
 					[]*matlas.Role{
 						{
 							RoleName:       "read",
@@ -304,8 +301,8 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", password),
@@ -316,7 +313,7 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithRoles(username, password, projectName, orgID,
+				Config: acc.DatabaseUserWithRoles(username, password, projectName, orgID,
 					[]*matlas.Role{
 						{
 							RoleName:     "read",
@@ -325,8 +322,8 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", password),
@@ -352,10 +349,10 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
+				Config: acc.DatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
 					[]*matlas.Scope{
 						{
 							Name: "test-acc-nurk4llu2z",
@@ -368,8 +365,8 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", password),
@@ -378,7 +375,7 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
+				Config: acc.DatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
 					[]*matlas.Scope{
 						{
 							Name: "test-acc-nurk4llu2z",
@@ -387,8 +384,8 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", password),
@@ -414,10 +411,10 @@ func TestAccConfigRSDatabaseUser_withScopesAndEmpty(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
+				Config: acc.DatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
 					[]*matlas.Scope{
 						{
 							Name: "test-acc-nurk4llu2z",
@@ -430,8 +427,8 @@ func TestAccConfigRSDatabaseUser_withScopesAndEmpty(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", password),
@@ -440,12 +437,12 @@ func TestAccConfigRSDatabaseUser_withScopesAndEmpty(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
+				Config: acc.DatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
 					[]*matlas.Scope{},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", password),
@@ -469,13 +466,13 @@ func TestAccConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithLDAPAuthTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				Config: acc.DatabaseUserWithLDAPAuthTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "ldap_auth_type", "USER"),
@@ -498,10 +495,10 @@ func TestAccConfigRSDatabaseUser_importBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserConfig(projectName, orgID, "read", username, "First Key", "First value"),
+				Config: acc.DatabaseUserConfig(projectName, orgID, "read", username, "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -534,13 +531,13 @@ func TestAccConfigRSDatabaseUser_importX509TypeCustomer(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithX509TypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
+				Config: acc.DatabaseUserWithX509TypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "x509_type", x509Type),
@@ -571,13 +568,13 @@ func TestAccConfigRSDatabaseUser_importLDAPAuthType(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithLDAPAuthTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				Config: acc.DatabaseUserWithLDAPAuthTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "ldap_auth_type", "USER"),
@@ -607,306 +604,4 @@ func testAccCheckMongoDBAtlasDatabaseUserImportStateIDFunc(resourceName string) 
 
 		return fmt.Sprintf("%s-%s-%s", ids["project_id"], ids["username"], ids["auth_database_name"]), nil
 	}
-}
-
-func testAccCheckMongoDBAtlasDatabaseUserExists(resourceName string, dbUser *matlas.DatabaseUser) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acc.TestMongoDBClient.(*config.MongoDBClient).Atlas
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-
-		if rs.Primary.Attributes["project_id"] == "" {
-			return fmt.Errorf("no project_id is set")
-		}
-
-		if rs.Primary.Attributes["auth_database_name"] == "" {
-			return fmt.Errorf("no auth_database_name is set")
-		}
-
-		if rs.Primary.Attributes["username"] == "" {
-			return fmt.Errorf("no username is set")
-		}
-
-		authDB := rs.Primary.Attributes["auth_database_name"]
-		projectID := rs.Primary.Attributes["project_id"]
-		username := rs.Primary.Attributes["username"]
-
-		if dbUserResp, _, err := conn.DatabaseUsers.Get(context.Background(), authDB, projectID, username); err == nil {
-			*dbUser = *dbUserResp
-			return nil
-		}
-
-		return fmt.Errorf("database user(%s-%s-%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["username"], rs.Primary.Attributes["auth_database_name"])
-	}
-}
-
-func testAccCheckMongoDBAtlasDatabaseUserAttributes(dbUser *matlas.DatabaseUser, username string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		log.Printf("[DEBUG] difference dbUser.Username: %s , username : %s", dbUser.Username, username)
-		if dbUser.Username != username {
-			return fmt.Errorf("bad username: %s", dbUser.Username)
-		}
-
-		return nil
-	}
-}
-
-func testAccCheckMongoDBAtlasDatabaseUserDestroy(s *terraform.State) error {
-	conn := acc.TestMongoDBClient.(*config.MongoDBClient).Atlas
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_database_user" {
-			continue
-		}
-
-		projectID, username, authDatabaseName, err := todo.SplitDatabaseUserImportID(rs.Primary.ID)
-		if err != nil {
-			continue
-		}
-		// Try to find the database user
-		_, _, err = conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
-		if err == nil {
-			return fmt.Errorf("database user (%s) still exists", projectID)
-		}
-	}
-
-	return nil
-}
-
-func testAccMongoDBAtlasDatabaseUserConfig(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
-		}
-
-		resource "mongodbatlas_database_user" "basic_ds" {
-			username           = "%[4]s"
-			password           = "test-acc-password"
-			project_id         = "${mongodbatlas_project.test.id}"
-			auth_database_name = "admin"
-
-			roles {
-				role_name     = "%[3]s"
-				database_name = "admin"
-			}
-
-			labels {
-				key   = "%s"
-				value = "%s"
-			}
-		}
-	`, projectName, orgID, roleName, username, keyLabel, valueLabel)
-}
-
-func testAccMongoDBAtlasDatabaseUserWithX509TypeConfig(projectName, orgID, roleName, username, keyLabel, valueLabel, x509Type string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
-		}
-
-		resource "mongodbatlas_database_user" "test" {
-			username           = "%[4]s"
-			x509_type          = "%[7]s"
-			project_id         = "${mongodbatlas_project.test.id}"
-			auth_database_name = "$external"
-
-			roles {
-				role_name     = "%[3]s"
-				database_name = "admin"
-			}
-
-			labels {
-				key   = "%s"
-				value = "%s"
-			}
-		}
-	`, projectName, orgID, roleName, username, keyLabel, valueLabel, x509Type)
-}
-
-func testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectName, orgID, roleName, username string, labels []matlas.Label) string {
-	var labelsConf string
-	for _, label := range labels {
-		labelsConf += fmt.Sprintf(`
-			labels {
-				key   = "%s"
-				value = "%s"
-			}
-		`, label.Key, label.Value)
-	}
-
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
-		}
-
-		resource "mongodbatlas_database_user" "test" {
-			username           = "%[4]s"
-			password           = "test-acc-password"
-			project_id         = "${mongodbatlas_project.test.id}"
-			auth_database_name = "admin"
-
-			roles {
-				role_name     = "%[3]s"
-				database_name = "admin"
-			}
-
-			%[5]s
-
-		}
-	`, projectName, orgID, roleName, username, labelsConf)
-}
-
-func testAccMongoDBAtlasDatabaseUserWithRoles(username, password, projectName, orgID string, rolesArr []*matlas.Role) string {
-	var roles string
-
-	for _, role := range rolesArr {
-		var roleName, databaseName, collection string
-
-		if role.RoleName != "" {
-			roleName = fmt.Sprintf(`role_name = %q`, role.RoleName)
-		}
-
-		if role.DatabaseName != "" {
-			databaseName = fmt.Sprintf(`database_name = %q`, role.DatabaseName)
-		}
-
-		if role.CollectionName != "" {
-			collection = fmt.Sprintf(`collection_name = %q`, role.CollectionName)
-		}
-
-		roles += fmt.Sprintf(`
-			roles {
-				%s
-				%s
-				%s
-			}
-		`, roleName, databaseName, collection)
-	}
-
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
-		}
-
-		resource "mongodbatlas_database_user" "test" {
-			username           = "%s"
-			password           = "%s"
-			project_id         = "${mongodbatlas_project.test.id}"
-			auth_database_name = "admin"
-
-			%s
-
-		}
-	`, projectName, orgID, username, password, roles)
-}
-
-func testAccMongoDBAtlasDatabaseUserWithAWSIAMTypeConfig(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
-		}
-
-		resource "mongodbatlas_database_user" "test" {
-			username           = "%[4]s"
-			aws_iam_type       = "USER"
-			project_id         = "${mongodbatlas_project.test.id}"
-			auth_database_name = "$external"
-
-			roles {
-				role_name     = "%[3]s"
-				database_name = "admin"
-			}
-
-			labels {
-				key   = "%s"
-				value = "%s"
-			}
-		}
-	`, projectName, orgID, roleName, username, keyLabel, valueLabel)
-}
-
-func testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, orgID, roleName, clusterName string, scopesArr []*matlas.Scope) string {
-	var scopes string
-
-	for _, scope := range scopesArr {
-		var scopeType string
-
-		if scope.Type != "" {
-			scopeType = fmt.Sprintf(`type = %q`, scope.Type)
-		}
-
-		scopes += fmt.Sprintf(`
-			scopes {
-				name = "${mongodbatlas_cluster.my_cluster.name}"
-				%s
-			}
-		`, scopeType)
-	}
-
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
-		}
-
-		resource "mongodbatlas_cluster" "my_cluster" {
-			project_id   = "${mongodbatlas_project.test.id}"
-			name         = "%s"
-			
-			// Provider Settings "block"
-			provider_name               = "AWS"
-			provider_region_name        = "US_EAST_2"
-			provider_instance_size_name = "M10"
-			cloud_backup                = true //enable cloud provider snapshots
-		}
-
-		resource "mongodbatlas_database_user" "test" {
-			username           = "%s"
-			password           = "%s"
-			project_id         = "${mongodbatlas_project.test.id}"
-			auth_database_name = "admin"
-
-			roles {
-				role_name     = "%s"
-				database_name = "admin"
-			}
-
-			%s
-
-		}
-	`, projectName, orgID, clusterName, username, password, roleName, scopes)
-}
-
-func testAccMongoDBAtlasDatabaseUserWithLDAPAuthTypeConfig(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
-		}
-
-		resource "mongodbatlas_database_user" "test" {
-			username           = "%[4]s"
-			ldap_auth_type     = "USER"
-			project_id         = "${mongodbatlas_project.test.id}"
-			auth_database_name = "$external"
-
-			roles {
-				role_name     = "%[3]s"
-				database_name = "admin"
-			}
-
-			labels {
-				key   = "%s"
-				value = "%s"
-			}
-		}
-	`, projectName, orgID, roleName, username, keyLabel, valueLabel)
 }
