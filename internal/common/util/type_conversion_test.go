@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/util"
 )
 
 func TestTimeToStringWithoutNanos(t *testing.T) {

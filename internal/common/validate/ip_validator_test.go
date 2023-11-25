@@ -1,4 +1,4 @@
-package validator
+package validate_test
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
 
 func TestValidIP(t *testing.T) {
@@ -44,7 +45,7 @@ func TestValidIP(t *testing.T) {
 	for _, tt := range tests {
 		val := tt.ip
 		wantErr := tt.wantErr
-		cidrValidator := IPValidator{}
+		cidrValidator := validate.IPValidator{}
 
 		validatorRequest := validator.StringRequest{
 			ConfigValue: types.StringValue(val),

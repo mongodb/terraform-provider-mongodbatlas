@@ -13,9 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/util"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/uti"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
 
@@ -197,11 +196,11 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 	}
 
 	if d.HasChange("type") {
-		searchIndex.Type = uti.StringPtr(d.Get("type").(string))
+		searchIndex.Type = util.StringPtr(d.Get("type").(string))
 	}
 
 	if d.HasChange("analyzer") {
-		searchIndex.Analyzer = uti.StringPtr(d.Get("analyzer").(string))
+		searchIndex.Analyzer = util.StringPtr(d.Get("analyzer").(string))
 	}
 
 	if d.HasChange("collection_name") {
@@ -217,7 +216,7 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 	}
 
 	if d.HasChange("search_analyzer") {
-		searchIndex.SearchAnalyzer = uti.StringPtr(d.Get("search_analyzer").(string))
+		searchIndex.SearchAnalyzer = util.StringPtr(d.Get("search_analyzer").(string))
 	}
 
 	if d.HasChange("analyzers") {
@@ -259,7 +258,7 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 		searchIndex.Synonyms = expandSearchIndexSynonyms(d)
 	}
 
-	searchIndex.IndexID = uti.StringPtr("")
+	searchIndex.IndexID = util.StringPtr("")
 	if _, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchIndex(ctx, projectID, clusterName, indexID, searchIndex).Execute(); err != nil {
 		return diag.Errorf("error updating search index (%s): %s", searchIndex.Name, err)
 	}
@@ -407,13 +406,13 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 	indexType := d.Get("type").(string)
 
 	searchIndexRequest := &admin.ClusterSearchIndex{
-		Type:           uti.StringPtr(indexType),
-		Analyzer:       uti.StringPtr(d.Get("analyzer").(string)),
+		Type:           util.StringPtr(indexType),
+		Analyzer:       util.StringPtr(d.Get("analyzer").(string)),
 		CollectionName: d.Get("collection_name").(string),
 		Database:       d.Get("database").(string),
 		Name:           d.Get("name").(string),
-		SearchAnalyzer: uti.StringPtr(d.Get("search_analyzer").(string)),
-		Status:         uti.StringPtr(d.Get("status").(string)),
+		SearchAnalyzer: util.StringPtr(d.Get("search_analyzer").(string)),
+		Status:         util.StringPtr(d.Get("status").(string)),
 		Synonyms:       expandSearchIndexSynonyms(d),
 	}
 

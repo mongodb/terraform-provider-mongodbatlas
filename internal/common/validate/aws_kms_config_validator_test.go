@@ -1,4 +1,4 @@
-package validator
+package validate_test
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
 
 func TestValidAwsKmsConfig(t *testing.T) {
@@ -84,7 +85,7 @@ func TestValidAwsKmsConfig(t *testing.T) {
 	for _, tt := range tests {
 		wantErr := tt.wantErr
 
-		awsKmsConfigValidator := awsKmsConfigValidator{}
+		AwsKmsConfigValidator := validate.AwsKmsConfigValidator{}
 		validatorRequest := validator.ObjectRequest{
 			ConfigValue: types.ObjectValueMust(tt.awsKmsConfigType, tt.awsKmsConfigValue),
 		}
@@ -95,7 +96,7 @@ func TestValidAwsKmsConfig(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			awsKmsConfigValidator.ValidateObject(context.Background(), validatorRequest, &validatorResponse)
+			AwsKmsConfigValidator.ValidateObject(context.Background(), validatorRequest, &validatorResponse)
 
 			if validatorResponse.Diagnostics.HasError() && !wantErr {
 				t.Errorf("error = %v, wantErr %v", validatorResponse.Diagnostics.Errors(), wantErr)

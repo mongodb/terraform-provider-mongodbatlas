@@ -1,4 +1,4 @@
-package validator
+package validate_test
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
 
 func TestValidDurationBetween(t *testing.T) {
@@ -62,7 +63,7 @@ func TestValidDurationBetween(t *testing.T) {
 	}
 	for _, tt := range tests {
 		wantErr := tt.wantErr
-		cidrValidator := durationValidator{
+		cidrValidator := validate.DurationValidator{
 			MinMinutes: tt.minMinutes,
 			MaxMinutes: tt.maxMinutes,
 		}

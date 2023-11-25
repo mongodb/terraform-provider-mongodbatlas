@@ -1,4 +1,4 @@
-package validator
+package validate_test
 
 import (
 	"context"
@@ -7,39 +7,44 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
 
-func TestValidCIDR(t *testing.T) {
+func TestStringIsJSON(t *testing.T) {
 	tests := []struct {
 		name    string
-		cidr    string
+		json    string
 		wantErr bool
 	}{
 		{
-			name:    "Valid Value",
-			cidr:    "192.0.0.0/28",
+			name: "Valid JSON",
+			json: `{
+				"test": "value"
+			}`,
 			wantErr: false,
 		},
 		{
 			name:    "invalid value",
-			cidr:    "12312321",
+			json:    "12312321",
 			wantErr: true,
 		},
 		{
-			name:    "missing slash",
-			cidr:    "192.0.0.8",
+			name: "missing comma",
+			json: `{
+				"test" "value"
+			}`,
 			wantErr: true,
 		},
 		{
 			name:    "empty",
-			cidr:    "",
+			json:    "",
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
-		val := tt.cidr
+		val := tt.json
 		wantErr := tt.wantErr
-		cidrValidator := CIDRValidator{}
+		cidrValidator := validate.JSONStringValidator{}
 
 		validatorRequest := validator.StringRequest{
 			ConfigValue: types.StringValue(val),

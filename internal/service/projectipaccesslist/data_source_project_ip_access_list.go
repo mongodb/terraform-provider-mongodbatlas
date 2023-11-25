@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -57,7 +57,7 @@ func (d *projectIPAccessListDS) Schema(ctx context.Context, req datasource.Schem
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
-					cstmvalidator.ValidCIDR(),
+					validate.ValidCIDR(),
 					stringvalidator.ConflictsWith(path.Expressions{
 						path.MatchRelative().AtParent().AtName("aws_security_group"),
 						path.MatchRelative().AtParent().AtName("ip_address"),
@@ -68,7 +68,7 @@ func (d *projectIPAccessListDS) Schema(ctx context.Context, req datasource.Schem
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
-					cstmvalidator.ValidIP(),
+					validate.ValidIP(),
 					stringvalidator.ConflictsWith(path.Expressions{
 						path.MatchRelative().AtParent().AtName("aws_security_group"),
 						path.MatchRelative().AtParent().AtName("cidr_block"),

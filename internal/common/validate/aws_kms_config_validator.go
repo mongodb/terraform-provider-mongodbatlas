@@ -1,4 +1,4 @@
-package validator
+package validate
 
 import (
 	"context"
@@ -7,18 +7,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
-type awsKmsConfigValidator struct{}
+type AwsKmsConfigValidator struct{}
 
-func (v awsKmsConfigValidator) Description(_ context.Context) string {
+func (v AwsKmsConfigValidator) Description(_ context.Context) string {
 	return "for credentials: `access_key_id` and `secret_access_key` are allowed but not `role_id`." +
 		" For roles: `access_key_id` and `secret_access_key` are not allowed but `role_id` is allowed"
 }
 
-func (v awsKmsConfigValidator) MarkdownDescription(ctx context.Context) string {
+func (v AwsKmsConfigValidator) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
 
-func (v awsKmsConfigValidator) ValidateObject(ctx context.Context, req validator.ObjectRequest, response *validator.ObjectResponse) {
+func (v AwsKmsConfigValidator) ValidateObject(ctx context.Context, req validator.ObjectRequest, response *validator.ObjectResponse) {
 	// If the value is unknown or null, there is nothing to validate.
 	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
 		return
@@ -50,5 +50,5 @@ func (v awsKmsConfigValidator) ValidateObject(ctx context.Context, req validator
 }
 
 func AwsKmsConfig() validator.Object {
-	return awsKmsConfigValidator{}
+	return AwsKmsConfigValidator{}
 }

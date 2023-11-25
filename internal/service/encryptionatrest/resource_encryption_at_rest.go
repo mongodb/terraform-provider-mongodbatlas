@@ -19,12 +19,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/util"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
-	retrystrategy "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/retry"
-	validators "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -131,7 +130,7 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 							Optional: true,
 						},
 					},
-					Validators: []validator.Object{validators.AwsKmsConfig()},
+					Validators: []validator.Object{validate.AwsKmsConfig()},
 				},
 			},
 			"azure_key_vault_config": schema.ListNestedBlock{
@@ -488,9 +487,9 @@ func newTFAwsKmsConfig(ctx context.Context, awsKms *matlas.AwsKms, currStateSlic
 	newState.Enabled = types.BoolPointerValue(awsKms.Enabled)
 	newState.CustomerMasterKeyID = types.StringValue(awsKms.CustomerMasterKeyID)
 	newState.Region = types.StringValue(awsKms.Region)
-	newState.AccessKeyID = conversion.StringNullIfEmpty(awsKms.AccessKeyID)
-	newState.SecretAccessKey = conversion.StringNullIfEmpty(awsKms.SecretAccessKey)
-	newState.RoleID = conversion.StringNullIfEmpty(awsKms.RoleID)
+	newState.AccessKeyID = util.StringNullIfEmpty(awsKms.AccessKeyID)
+	newState.SecretAccessKey = util.StringNullIfEmpty(awsKms.SecretAccessKey)
+	newState.RoleID = util.StringNullIfEmpty(awsKms.RoleID)
 
 	return []tfAwsKmsConfigModel{newState}
 }
@@ -509,7 +508,7 @@ func newTFAzureKeyVaultConfig(ctx context.Context, az *matlas.AzureKeyVault, cur
 	newState.KeyVaultName = types.StringValue(az.KeyVaultName)
 	newState.KeyIdentifier = types.StringValue(az.KeyIdentifier)
 	newState.TenantID = types.StringValue(az.TenantID)
-	newState.Secret = conversion.StringNullIfEmpty(az.Secret)
+	newState.Secret = util.StringNullIfEmpty(az.Secret)
 
 	return []tfAzureKeyVaultConfigModel{newState}
 }
@@ -522,7 +521,7 @@ func newTFGcpKmsConfig(ctx context.Context, gcpKms *matlas.GoogleCloudKms, currS
 
 	newState.Enabled = types.BoolPointerValue(gcpKms.Enabled)
 	newState.KeyVersionResourceID = types.StringValue(gcpKms.KeyVersionResourceID)
-	newState.ServiceAccountKey = conversion.StringNullIfEmpty(gcpKms.ServiceAccountKey)
+	newState.ServiceAccountKey = util.StringNullIfEmpty(gcpKms.ServiceAccountKey)
 
 	return []tfGcpKmsConfigModel{newState}
 }

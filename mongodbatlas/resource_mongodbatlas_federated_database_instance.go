@@ -11,8 +11,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/util"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/uti"
 )
 
 const (
@@ -344,7 +344,7 @@ func resourceMongoDBFederatedDatabaseInstanceCreate(ctx context.Context, d *sche
 	name := d.Get("name").(string)
 
 	if _, _, err := connV2.DataFederationApi.CreateFederatedDatabase(ctx, projectID, &admin.DataLakeTenant{
-		Name:                uti.StringPtr(name),
+		Name:                util.StringPtr(name),
 		CloudProviderConfig: newCloudProviderConfig(d),
 		DataProcessRegion:   newDataProcessRegion(d),
 		Storage:             newDataFederationStorage(d),
@@ -416,7 +416,7 @@ func resourceMongoDBFederatedDatabaseInstanceUpdate(ctx context.Context, d *sche
 	name := ids["name"]
 
 	dataLakeTenant := &admin.DataLakeTenant{
-		Name:                uti.StringPtr(name),
+		Name:                util.StringPtr(name),
 		CloudProviderConfig: newCloudProviderConfig(d),
 		DataProcessRegion:   newDataProcessRegion(d),
 		Storage:             newDataFederationStorage(d),
@@ -542,15 +542,15 @@ func newStores(d *schema.ResourceData) []admin.DataLakeStoreSettings {
 	for i, storeFromConf := range storesFromConf {
 		storeFromConfMap := storeFromConf.(map[string]any)
 		stores[i] = admin.DataLakeStoreSettings{
-			Name:                     uti.StringPtr(storeFromConfMap["name"].(string)),
+			Name:                     util.StringPtr(storeFromConfMap["name"].(string)),
 			Provider:                 storeFromConfMap["provider"].(string),
-			Region:                   uti.StringPtr(storeFromConfMap["region"].(string)),
-			ProjectId:                uti.StringPtr(storeFromConfMap["project_id"].(string)),
-			Bucket:                   uti.StringPtr(storeFromConfMap["bucket"].(string)),
-			ClusterName:              uti.StringPtr(storeFromConfMap["cluster_name"].(string)),
-			Prefix:                   uti.StringPtr(storeFromConfMap["prefix"].(string)),
-			Delimiter:                uti.StringPtr(storeFromConfMap["delimiter"].(string)),
-			IncludeTags:              uti.Pointer(storeFromConfMap["include_tags"].(bool)),
+			Region:                   util.StringPtr(storeFromConfMap["region"].(string)),
+			ProjectId:                util.StringPtr(storeFromConfMap["project_id"].(string)),
+			Bucket:                   util.StringPtr(storeFromConfMap["bucket"].(string)),
+			ClusterName:              util.StringPtr(storeFromConfMap["cluster_name"].(string)),
+			Prefix:                   util.StringPtr(storeFromConfMap["prefix"].(string)),
+			Delimiter:                util.StringPtr(storeFromConfMap["delimiter"].(string)),
+			IncludeTags:              util.Pointer(storeFromConfMap["include_tags"].(bool)),
 			AdditionalStorageClasses: newAdditionalStorageClasses(storeFromConfMap["additional_storage_classes"].([]any)),
 			ReadPreference:           newReadPreference(storeFromConfMap),
 		}
@@ -579,8 +579,8 @@ func newReadPreference(storeFromConfMap map[string]any) *admin.DataLakeAtlasStor
 	}
 	readPreferenceFromConfMap := readPreferenceFromConf[0].(map[string]any)
 	return &admin.DataLakeAtlasStoreReadPreference{
-		Mode:                uti.StringPtr(readPreferenceFromConfMap["mode"].(string)),
-		MaxStalenessSeconds: uti.IntPtr(readPreferenceFromConfMap["max_staleness_seconds"].(int)),
+		Mode:                util.StringPtr(readPreferenceFromConfMap["mode"].(string)),
+		MaxStalenessSeconds: util.IntPtr(readPreferenceFromConfMap["max_staleness_seconds"].(int)),
 		TagSets:             newTagSets(readPreferenceFromConfMap),
 	}
 }
@@ -602,8 +602,8 @@ func newTagSets(readPreferenceFromConfMap map[string]any) [][]admin.DataLakeAtla
 			tagFromConfMap := tagsFromConfigMap[t].(map[string]any)
 
 			atlastags = append(atlastags, admin.DataLakeAtlasStoreReadPreferenceTag{
-				Name:  uti.StringPtr(tagFromConfMap["name"].(string)),
-				Value: uti.StringPtr(tagFromConfMap["value"].(string)),
+				Name:  util.StringPtr(tagFromConfMap["name"].(string)),
+				Value: util.StringPtr(tagFromConfMap["value"].(string)),
 			})
 		}
 
@@ -623,8 +623,8 @@ func newDataFederationDatabase(d *schema.ResourceData) []admin.DataLakeDatabaseI
 		storageDBFromConfMap := storageDBFromConf.(map[string]any)
 
 		dbs[i] = admin.DataLakeDatabaseInstance{
-			Name:                   uti.StringPtr(storageDBFromConfMap["name"].(string)),
-			MaxWildcardCollections: uti.IntPtr(storageDBFromConfMap["max_wildcard_collections"].(int)),
+			Name:                   util.StringPtr(storageDBFromConfMap["name"].(string)),
+			MaxWildcardCollections: util.IntPtr(storageDBFromConfMap["max_wildcard_collections"].(int)),
 			Collections:            newDataFederationCollections(storageDBFromConfMap),
 		}
 	}
@@ -641,7 +641,7 @@ func newDataFederationCollections(storageDBFromConfMap map[string]any) []admin.D
 	collections := make([]admin.DataLakeDatabaseCollection, len(collectionsFromConf))
 	for i, collectionFromConf := range collectionsFromConf {
 		collections[i] = admin.DataLakeDatabaseCollection{
-			Name:        uti.StringPtr(collectionFromConf.(map[string]any)["name"].(string)),
+			Name:        util.StringPtr(collectionFromConf.(map[string]any)["name"].(string)),
 			DataSources: newDataFederationDataSource(collectionFromConf.(map[string]any)),
 		}
 	}
@@ -659,16 +659,16 @@ func newDataFederationDataSource(collectionFromConf map[string]any) []admin.Data
 		dataSourceFromConfMap := dataSourceFromConf.(map[string]any)
 
 		dataSources[i] = admin.DataLakeDatabaseDataSourceSettings{
-			AllowInsecure:       uti.Pointer(dataSourceFromConfMap["allow_insecure"].(bool)),
-			Database:            uti.StringPtr(dataSourceFromConfMap["database"].(string)),
-			Collection:          uti.StringPtr(dataSourceFromConfMap["collection"].(string)),
-			CollectionRegex:     uti.StringPtr(dataSourceFromConfMap["collection_regex"].(string)),
-			DatabaseRegex:       uti.StringPtr(dataSourceFromConfMap["database_regex"].(string)),
-			DefaultFormat:       uti.StringPtr(dataSourceFromConfMap["default_format"].(string)),
-			Path:                uti.StringPtr(dataSourceFromConfMap["path"].(string)),
-			ProvenanceFieldName: uti.StringPtr(dataSourceFromConfMap["provenance_field_name"].(string)),
-			StoreName:           uti.StringPtr(dataSourceFromConfMap["store_name"].(string)),
-			DatasetName:         uti.StringPtr(dataSourceFromConfMap["dataset_name"].(string)),
+			AllowInsecure:       util.Pointer(dataSourceFromConfMap["allow_insecure"].(bool)),
+			Database:            util.StringPtr(dataSourceFromConfMap["database"].(string)),
+			Collection:          util.StringPtr(dataSourceFromConfMap["collection"].(string)),
+			CollectionRegex:     util.StringPtr(dataSourceFromConfMap["collection_regex"].(string)),
+			DatabaseRegex:       util.StringPtr(dataSourceFromConfMap["database_regex"].(string)),
+			DefaultFormat:       util.StringPtr(dataSourceFromConfMap["default_format"].(string)),
+			Path:                util.StringPtr(dataSourceFromConfMap["path"].(string)),
+			ProvenanceFieldName: util.StringPtr(dataSourceFromConfMap["provenance_field_name"].(string)),
+			StoreName:           util.StringPtr(dataSourceFromConfMap["store_name"].(string)),
+			DatasetName:         util.StringPtr(dataSourceFromConfMap["dataset_name"].(string)),
 			Urls:                newUrls(dataSourceFromConfMap["urls"].([]any)),
 		}
 	}

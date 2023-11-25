@@ -1,4 +1,4 @@
-package retry
+package retrystrategy
 
 const (
 	RetryStrategyPendingState   = "PENDING"

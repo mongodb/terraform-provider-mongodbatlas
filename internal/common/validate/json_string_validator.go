@@ -1,4 +1,4 @@
-package validator
+package validate
 
 import (
 	"context"
@@ -8,17 +8,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 )
 
-type jsonStringValidator struct{}
+type JSONStringValidator struct{}
 
-func (v jsonStringValidator) Description(_ context.Context) string {
+func (v JSONStringValidator) Description(_ context.Context) string {
 	return "string value must be a valid JSON"
 }
 
-func (v jsonStringValidator) MarkdownDescription(ctx context.Context) string {
+func (v JSONStringValidator) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
 
-func (v jsonStringValidator) ValidateString(ctx context.Context, req validator.StringRequest, response *validator.StringResponse) {
+func (v JSONStringValidator) ValidateString(ctx context.Context, req validator.StringRequest, response *validator.StringResponse) {
 	// If the value is unknown or null, there is nothing to validate.
 	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
 		return
@@ -34,5 +34,5 @@ func (v jsonStringValidator) ValidateString(ctx context.Context, req validator.S
 }
 
 func StringIsJSON() validator.String {
-	return jsonStringValidator{}
+	return JSONStringValidator{}
 }

@@ -22,6 +22,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 	sdkv2schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/util"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
@@ -30,8 +32,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
-	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
@@ -145,7 +145,7 @@ var fwAssumeRoleSchema = schema.ListNestedBlock{
 				Optional:    true,
 				Description: "The duration, between 15 minutes and 12 hours, of the role session. Valid time units are ns, us (or µs), ms, s, h, or m.",
 				Validators: []validator.String{
-					cstmvalidator.ValidDurationBetween(15, 12*60),
+					validate.ValidDurationBetween(15, 12*60),
 				},
 			},
 			"external_id": schema.StringAttribute{
@@ -160,7 +160,7 @@ var fwAssumeRoleSchema = schema.ListNestedBlock{
 				Optional:    true,
 				Description: "IAM Policy JSON describing further restricting permissions for the IAM Role being assumed.",
 				Validators: []validator.String{
-					cstmvalidator.StringIsJSON(),
+					validate.StringIsJSON(),
 				},
 			},
 			"policy_arns": schema.SetAttribute{
