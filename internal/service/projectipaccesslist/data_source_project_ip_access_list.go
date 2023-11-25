@@ -1,4 +1,4 @@
-package todo
+package projectipaccesslist
 
 import (
 	"bytes"
@@ -20,20 +20,20 @@ const (
 	projectIPAccessList = "project_ip_access_list"
 )
 
-type ProjectIPAccessListDS struct {
+type projectIPAccessListDS struct {
 	config.DSCommon
 }
 
 func NewProjectIPAccessListDS() datasource.DataSource {
-	return &ProjectIPAccessListDS{
+	return &projectIPAccessListDS{
 		DSCommon: config.DSCommon{
 			DataSourceName: projectIPAccessList,
 		},
 	}
 }
 
-var _ datasource.DataSource = &ProjectIPAccessListDS{}
-var _ datasource.DataSourceWithConfigure = &ProjectIPAccessListDS{}
+var _ datasource.DataSource = &projectIPAccessListDS{}
+var _ datasource.DataSourceWithConfigure = &projectIPAccessListDS{}
 
 type tfProjectIPAccessListDSModel struct {
 	ID               types.String `tfsdk:"id"`
@@ -44,7 +44,7 @@ type tfProjectIPAccessListDSModel struct {
 	Comment          types.String `tfsdk:"comment"`
 }
 
-func (d *ProjectIPAccessListDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *projectIPAccessListDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -92,7 +92,7 @@ func (d *ProjectIPAccessListDS) Schema(ctx context.Context, req datasource.Schem
 	}
 }
 
-func (d *ProjectIPAccessListDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *projectIPAccessListDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var databaseDSUserConfig *tfProjectIPAccessListDSModel
 	var err error
 	resp.Diagnostics.Append(req.Config.Get(ctx, &databaseDSUserConfig)...)

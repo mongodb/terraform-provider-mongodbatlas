@@ -1,4 +1,4 @@
-package todo_test
+package projectipaccesslist_test
 
 import (
 	"fmt"
@@ -119,7 +119,7 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingAWSSecurityGroup(t *tes
 				},
 				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectIPAccessListExists(dataSourceName),
+					acc.CheckProjectIPAccessListExists(dataSourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "aws_security_group"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "comment"),

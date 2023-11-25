@@ -1,4 +1,4 @@
-package todo
+package projectipaccesslist
 
 import (
 	"context"
@@ -43,22 +43,22 @@ type tfProjectIPAccessListModel struct {
 	Timeouts         timeouts.Value `tfsdk:"timeouts"`
 }
 
-type ProjectIPAccessListRS struct {
+type projectIPAccessListRS struct {
 	config.RSCommon
 }
 
 func NewProjectIPAccessListRS() resource.Resource {
-	return &ProjectIPAccessListRS{
+	return &projectIPAccessListRS{
 		RSCommon: config.RSCommon{
 			ResourceName: projectIPAccessList,
 		},
 	}
 }
 
-var _ resource.ResourceWithConfigure = &ProjectIPAccessListRS{}
-var _ resource.ResourceWithImportState = &ProjectIPAccessListRS{}
+var _ resource.ResourceWithConfigure = &projectIPAccessListRS{}
+var _ resource.ResourceWithImportState = &projectIPAccessListRS{}
 
-func (r *ProjectIPAccessListRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *projectIPAccessListRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -128,7 +128,7 @@ func (r *ProjectIPAccessListRS) Schema(ctx context.Context, req resource.SchemaR
 	}
 }
 
-func (r *ProjectIPAccessListRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *projectIPAccessListRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var projectIPAccessListModel *tfProjectIPAccessListModel
 
 	diags := req.Plan.Get(ctx, &projectIPAccessListModel)
@@ -241,7 +241,7 @@ func newMongoDBProjectIPAccessList(projectIPAccessListModel *tfProjectIPAccessLi
 	}
 }
 
-func (r *ProjectIPAccessListRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *projectIPAccessListRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var projectIPAccessListModelState *tfProjectIPAccessListModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &projectIPAccessListModelState)...)
 	if resp.Diagnostics.HasError() {
@@ -290,7 +290,7 @@ func (r *ProjectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 	}
 }
 
-func (r *ProjectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var projectIPAccessListModelState *tfProjectIPAccessListModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &projectIPAccessListModelState)...)
@@ -350,7 +350,7 @@ func (r *ProjectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 	}
 }
 
-func (r *ProjectIPAccessListRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *projectIPAccessListRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	parts := strings.SplitN(req.ID, "-", 2)
 
 	if len(parts) != 2 {
@@ -394,5 +394,5 @@ func isEntryInProjectAccessList(ctx context.Context, conn *matlas.Client, projec
 }
 
 // Update is not supported
-func (r *ProjectIPAccessListRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *projectIPAccessListRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 }
