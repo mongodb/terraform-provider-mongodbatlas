@@ -1,4 +1,4 @@
-package todo
+package searchdeployment
 
 import (
 	"context"
@@ -27,8 +27,8 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
 
-var _ resource.ResourceWithConfigure = &SearchDeploymentRS{}
-var _ resource.ResourceWithImportState = &SearchDeploymentRS{}
+var _ resource.ResourceWithConfigure = &searchDeploymentRS{}
+var _ resource.ResourceWithImportState = &searchDeploymentRS{}
 
 const (
 	searchDeploymentDoesNotExistsError = "ATLAS_FTS_DEPLOYMENT_DOES_NOT_EXIST"
@@ -36,14 +36,14 @@ const (
 )
 
 func NewSearchDeploymentRS() resource.Resource {
-	return &SearchDeploymentRS{
+	return &searchDeploymentRS{
 		RSCommon: config.RSCommon{
 			ResourceName: searchDeploymentName,
 		},
 	}
 }
 
-type SearchDeploymentRS struct {
+type searchDeploymentRS struct {
 	config.RSCommon
 }
 
@@ -66,7 +66,7 @@ var SpecObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"node_count":    types.Int64Type,
 }}
 
-func (r *SearchDeploymentRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *searchDeploymentRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -115,7 +115,7 @@ func (r *SearchDeploymentRS) Schema(ctx context.Context, req resource.SchemaRequ
 
 const defaultSearchNodeTimeout time.Duration = 3 * time.Hour
 
-func (r *SearchDeploymentRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *searchDeploymentRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var searchDeploymentPlan tfSearchDeploymentRSModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &searchDeploymentPlan)...)
 	if resp.Diagnostics.HasError() {
@@ -149,7 +149,7 @@ func (r *SearchDeploymentRS) Create(ctx context.Context, req resource.CreateRequ
 	resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
 }
 
-func (r *SearchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *searchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var searchDeploymentPlan tfSearchDeploymentRSModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &searchDeploymentPlan)...)
 	if resp.Diagnostics.HasError() {
@@ -173,7 +173,7 @@ func (r *SearchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest,
 	resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
 }
 
-func (r *SearchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *searchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var searchDeploymentPlan tfSearchDeploymentRSModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &searchDeploymentPlan)...)
 	if resp.Diagnostics.HasError() {
@@ -207,7 +207,7 @@ func (r *SearchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequ
 	resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
 }
 
-func (r *SearchDeploymentRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *searchDeploymentRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var searchDeploymentState *tfSearchDeploymentRSModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &searchDeploymentState)...)
 	if resp.Diagnostics.HasError() {
@@ -233,7 +233,7 @@ func (r *SearchDeploymentRS) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 }
 
-func (r *SearchDeploymentRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *searchDeploymentRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	projectID, clusterName, err := splitSearchNodeImportID(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("error splitting search deployment import ID", err.Error())

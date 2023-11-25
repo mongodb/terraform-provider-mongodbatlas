@@ -1,4 +1,4 @@
-package todo_test
+package searchdeployment_test
 
 import (
 	"context"

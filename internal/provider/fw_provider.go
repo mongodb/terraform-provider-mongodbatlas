@@ -29,7 +29,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/todo"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 
@@ -404,7 +404,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		projectipaccesslist.NewProjectIPAccessListDS,
 		atlasuser.NewAtlasUserDS,
 		atlasuser.NewAtlasUsersDS,
-		todo.NewSearchDeploymentDS,
+		searchdeployment.NewSearchDeploymentDS,
 	}
 }
 
@@ -415,7 +415,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		databaseuser.NewDatabaseUserRS,
 		alertconfiguration.NewAlertConfigurationRS,
 		projectipaccesslist.NewProjectIPAccessListRS,
-		todo.NewSearchDeploymentRS,
+		searchdeployment.NewSearchDeploymentRS,
 	}
 }
 

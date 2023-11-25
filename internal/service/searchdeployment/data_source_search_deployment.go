@@ -1,4 +1,4 @@
-package todo
+package searchdeployment
 
 import (
 	"context"
@@ -9,11 +9,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-var _ datasource.DataSource = &SearchDeploymentDS{}
-var _ datasource.DataSourceWithConfigure = &SearchDeploymentDS{}
+var _ datasource.DataSource = &searchDeploymentDS{}
+var _ datasource.DataSourceWithConfigure = &searchDeploymentDS{}
 
 func NewSearchDeploymentDS() datasource.DataSource {
-	return &SearchDeploymentDS{
+	return &searchDeploymentDS{
 		DSCommon: config.DSCommon{
 			DataSourceName: searchDeploymentName,
 		},
@@ -28,11 +28,11 @@ type tfSearchDeploymentDSModel struct {
 	StateName   types.String `tfsdk:"state_name"`
 }
 
-type SearchDeploymentDS struct {
+type searchDeploymentDS struct {
 	config.DSCommon
 }
 
-func (d *SearchDeploymentDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *searchDeploymentDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -64,7 +64,7 @@ func (d *SearchDeploymentDS) Schema(ctx context.Context, req datasource.SchemaRe
 	}
 }
 
-func (d *SearchDeploymentDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *searchDeploymentDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var searchDeploymentConfig tfSearchDeploymentDSModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &searchDeploymentConfig)...)
 	if resp.Diagnostics.HasError() {
