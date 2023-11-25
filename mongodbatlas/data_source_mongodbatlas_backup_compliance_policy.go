@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -208,7 +209,7 @@ func dataSourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *sc
 		return nil
 	}
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicyRead, projectID, err))
+		return diag.FromErr(fmt.Errorf(cluster.ErrorSnapshotBackupPolicyRead, projectID, err))
 	}
 
 	if err := d.Set("authorized_email", backupPolicy.AuthorizedEmail); err != nil {

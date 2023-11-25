@@ -1,4 +1,4 @@
-package mongodbatlas
+package advancedcluster
 
 import (
 	"context"
@@ -26,7 +26,7 @@ func DataSourceAdvancedClusters() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"advanced_configuration": clusterAdvancedConfigurationSchemaComputed(),
+						"advanced_configuration": ClusterAdvancedConfigurationSchemaComputed(),
 						"backup_enabled": {
 							Type:     schema.TypeBool,
 							Computed: true,
@@ -53,7 +53,7 @@ func DataSourceAdvancedClusters() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"connection_strings": clusterConnectionStringsSchema(),
+						"connection_strings": ClusterConnectionStringsSchema(),
 						"create_date": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -83,7 +83,7 @@ func DataSourceAdvancedClusters() *schema.Resource {
 								},
 							},
 						},
-						"tags": &dsTagsSchema,
+						"tags": &DSTagsSchema,
 						"mongo_db_major_version": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -255,7 +255,7 @@ func dataSourceMongoDBAtlasAdvancedClustersRead(ctx context.Context, d *schema.R
 	}
 
 	if err := d.Set("results", flattenAdvancedClusters(ctx, conn, clusters.Results, d)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "results", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "results", d.Id(), err))
 	}
 
 	return nil
@@ -275,16 +275,16 @@ func flattenAdvancedClusters(ctx context.Context, conn *matlas.Client, clusters 
 		}
 
 		result := map[string]any{
-			"advanced_configuration":         flattenProcessArgs(processArgs),
+			"advanced_configuration":         FlattenProcessArgs(processArgs),
 			"backup_enabled":                 clusters[i].BackupEnabled,
-			"bi_connector_config":            flattenBiConnectorConfig(clusters[i].BiConnector),
+			"bi_connector_config":            FlattenBiConnectorConfig(clusters[i].BiConnector),
 			"cluster_type":                   clusters[i].ClusterType,
 			"create_date":                    clusters[i].CreateDate,
 			"connection_strings":             FlattenConnectionStrings(clusters[i].ConnectionStrings),
 			"disk_size_gb":                   clusters[i].DiskSizeGB,
 			"encryption_at_rest_provider":    clusters[i].EncryptionAtRestProvider,
-			"labels":                         flattenLabels(clusters[i].Labels),
-			"tags":                           flattenTags(&clusters[i].Tags),
+			"labels":                         FlattenLabels(clusters[i].Labels),
+			"tags":                           FlattenTags(&clusters[i].Tags),
 			"mongo_db_major_version":         clusters[i].MongoDBMajorVersion,
 			"mongo_db_version":               clusters[i].MongoDBVersion,
 			"name":                           clusters[i].Name,

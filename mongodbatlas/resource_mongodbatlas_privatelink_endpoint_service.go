@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -190,7 +191,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d
 	clusterConf := &retry.StateChangeConf{
 		Pending:    []string{"REPEATING", "PENDING"},
 		Target:     []string{"IDLE", "DELETED"},
-		Refresh:    resourceClusterListAdvancedRefreshFunc(ctx, projectID, conn),
+		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, conn),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 5 * time.Second,
 		Delay:      5 * time.Minute,
@@ -198,7 +199,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d
 
 	if _, err = clusterConf.WaitForStateContext(ctx); err != nil {
 		// error awaiting advanced clusters IDLE should not result in failure to apply changes to this resource
-		log.Printf(errorAdvancedClusterListStatus, err)
+		log.Printf(advancedcluster.ErrorAdvancedClusterListStatus, err)
 	}
 
 	d.SetId(config.EncodeStateID(map[string]string{
@@ -314,7 +315,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d
 		clusterConf := &retry.StateChangeConf{
 			Pending:    []string{"REPEATING", "PENDING"},
 			Target:     []string{"IDLE", "DELETED"},
-			Refresh:    resourceClusterListAdvancedRefreshFunc(ctx, projectID, conn),
+			Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, conn),
 			Timeout:    d.Timeout(schema.TimeoutDelete),
 			MinTimeout: 5 * time.Second,
 			Delay:      5 * time.Minute,
@@ -322,7 +323,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d
 
 		if _, err = clusterConf.WaitForStateContext(ctx); err != nil {
 			// error awaiting advanced clusters IDLE should not result in failure to apply changes to this resource
-			log.Printf(errorAdvancedClusterListStatus, err)
+			log.Printf(advancedcluster.ErrorAdvancedClusterListStatus, err)
 		}
 	}
 

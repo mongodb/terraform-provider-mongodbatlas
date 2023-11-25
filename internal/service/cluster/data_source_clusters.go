@@ -1,4 +1,4 @@
-package mongodbatlas
+package cluster
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -30,7 +31,7 @@ func DataSourceClusters() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"advanced_configuration": clusterAdvancedConfigurationSchemaComputed(),
+						"advanced_configuration": advancedcluster.ClusterAdvancedConfigurationSchemaComputed(),
 						"auto_scaling_disk_gb_enabled": {
 							Type:     schema.TypeBool,
 							Computed: true,
@@ -304,7 +305,7 @@ func DataSourceClusters() *schema.Resource {
 								},
 							},
 						},
-						"tags":                   &dsTagsSchema,
+						"tags":                   &advancedcluster.DSTagsSchema,
 						"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
 						"container_id": {
 							Type:     schema.TypeString,
@@ -341,7 +342,7 @@ func dataSourceMongoDBAtlasClustersRead(ctx context.Context, d *schema.ResourceD
 	}
 
 	if err := d.Set("results", flattenClusters(ctx, d, conn, clusters)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterSetting, "results", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "results", d.Id(), err))
 	}
 
 	return nil
@@ -370,14 +371,14 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 			containerID = getContainerID(containers, &clusters[i])
 		}
 		result := map[string]any{
-			"advanced_configuration":                  flattenProcessArgs(processArgs),
+			"advanced_configuration":                  advancedcluster.FlattenProcessArgs(processArgs),
 			"auto_scaling_compute_enabled":            clusters[i].AutoScaling.Compute.Enabled,
 			"auto_scaling_compute_scale_down_enabled": clusters[i].AutoScaling.Compute.ScaleDownEnabled,
 			"auto_scaling_disk_gb_enabled":            clusters[i].BackupEnabled,
 			"backup_enabled":                          clusters[i].BackupEnabled,
 			"provider_backup_enabled":                 clusters[i].ProviderBackupEnabled,
 			"cluster_type":                            clusters[i].ClusterType,
-			"connection_strings":                      FlattenConnectionStrings(clusters[i].ConnectionStrings),
+			"connection_strings":                      advancedcluster.FlattenConnectionStrings(clusters[i].ConnectionStrings),
 			"disk_size_gb":                            clusters[i].DiskSizeGB,
 			"encryption_at_rest_provider":             clusters[i].EncryptionAtRestProvider,
 			"mongo_db_major_version":                  clusters[i].MongoDBMajorVersion,
@@ -401,10 +402,10 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 			"provider_instance_size_name":                     clusters[i].ProviderSettings.InstanceSizeName,
 			"provider_name":                                   clusters[i].ProviderSettings.ProviderName,
 			"provider_region_name":                            clusters[i].ProviderSettings.RegionName,
-			"bi_connector_config":                             flattenBiConnectorConfig(clusters[i].BiConnector),
+			"bi_connector_config":                             advancedcluster.FlattenBiConnectorConfig(clusters[i].BiConnector),
 			"replication_specs":                               flattenReplicationSpecs(clusters[i].ReplicationSpecs),
-			"labels":                                          flattenLabels(clusters[i].Labels),
-			"tags":                                            flattenTags(clusters[i].Tags),
+			"labels":                                          advancedcluster.FlattenLabels(clusters[i].Labels),
+			"tags":                                            advancedcluster.FlattenTags(clusters[i].Tags),
 			"snapshot_backup_policy":                          snapshotBackupPolicy,
 			"termination_protection_enabled":                  clusters[i].TerminationProtectionEnabled,
 			"version_release_system":                          clusters[i].VersionReleaseSystem,

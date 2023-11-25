@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 )
 
 // Note: the schema is the same as dataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicy
@@ -227,7 +228,7 @@ func dataSourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schem
 
 	backupPolicy, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
 	if err != nil {
-		return diag.Errorf(errorSnapshotBackupPolicyRead, clusterName, err)
+		return diag.Errorf(cluster.ErrorSnapshotBackupPolicyRead, clusterName, err)
 	}
 
 	if err := d.Set("cluster_id", backupPolicy.ClusterID); err != nil {

@@ -1,11 +1,11 @@
-package mongodbatlas_test
+package advancedcluster_test
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
 func TestAccClusterRSAdvancedClusterMigrateState_empty_advancedConfig(t *testing.T) {
@@ -39,7 +39,7 @@ func TestAccClusterRSAdvancedClusterMigrateState_empty_advancedConfig(t *testing
 	}
 
 	v0Config := terraform.NewResourceConfigRaw(v0State)
-	diags := mongodbatlas.ResourceAdvancedClusterResourceV0().Validate(v0Config)
+	diags := advancedcluster.ResourceAdvancedClusterResourceV0().Validate(v0Config)
 
 	if len(diags) > 0 {
 		t.Error("test precondition failed - invalid mongodb cluster v0 config")
@@ -48,10 +48,10 @@ func TestAccClusterRSAdvancedClusterMigrateState_empty_advancedConfig(t *testing
 	}
 
 	// test migrate function
-	v1State := mongodbatlas.MigrateBIConnectorConfig(v0State)
+	v1State := advancedcluster.MigrateBIConnectorConfig(v0State)
 
 	v1Config := terraform.NewResourceConfigRaw(v1State)
-	diags = mongodbatlas.ResourceAdvancedCluster().Validate(v1Config)
+	diags = advancedcluster.ResourceAdvancedCluster().Validate(v1Config)
 	if len(diags) > 0 {
 		fmt.Println(diags)
 		t.Error("migrated cluster advanced config is invalid")
@@ -104,7 +104,7 @@ func TestAccClusterRSAdvancedClusterV0StateUpgrade_ReplicationSpecs(t *testing.T
 	}
 
 	v0Config := terraform.NewResourceConfigRaw(v0State)
-	diags := mongodbatlas.ResourceAdvancedClusterResourceV0().Validate(v0Config)
+	diags := advancedcluster.ResourceAdvancedClusterResourceV0().Validate(v0Config)
 
 	if len(diags) > 0 {
 		fmt.Println(diags)
@@ -114,10 +114,10 @@ func TestAccClusterRSAdvancedClusterV0StateUpgrade_ReplicationSpecs(t *testing.T
 	}
 
 	// test migrate function
-	v1State := mongodbatlas.MigrateBIConnectorConfig(v0State)
+	v1State := advancedcluster.MigrateBIConnectorConfig(v0State)
 
 	v1Config := terraform.NewResourceConfigRaw(v1State)
-	diags = mongodbatlas.ResourceAdvancedCluster().Validate(v1Config)
+	diags = advancedcluster.ResourceAdvancedCluster().Validate(v1Config)
 	if len(diags) > 0 {
 		fmt.Println(diags)
 		t.Error("migrated advanced cluster replication_specs invalid")

@@ -33,7 +33,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
+		CheckDestroy:             acc.CheckClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				// We need this step to pupulate the cluster with Sample Data
@@ -133,7 +133,7 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
+		CheckDestroy:             acc.CheckClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				// We need this step to pupulate the cluster with Sample Data
@@ -183,7 +183,7 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
+		CheckDestroy:             acc.CheckClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				// We need this step to pupulate the cluster with Sample Data

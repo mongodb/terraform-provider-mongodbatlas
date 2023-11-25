@@ -21,6 +21,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mwielbut/pointy"
@@ -107,8 +109,8 @@ func NewSdkV2Provider() *schema.Provider {
 
 func getDataSourcesMap() map[string]*schema.Resource {
 	dataSourcesMap := map[string]*schema.Resource{
-		"mongodbatlas_advanced_cluster":                  mongodbatlas.DataSourceAdvancedCluster(),
-		"mongodbatlas_advanced_clusters":                 mongodbatlas.DataSourceAdvancedClusters(),
+		"mongodbatlas_advanced_cluster":                  advancedcluster.DataSourceAdvancedCluster(),
+		"mongodbatlas_advanced_clusters":                 advancedcluster.DataSourceAdvancedClusters(),
 		"mongodbatlas_custom_db_role":                    mongodbatlas.DataSourceCustomDBRole(),
 		"mongodbatlas_custom_db_roles":                   mongodbatlas.DataSourceCustomDBRoles(),
 		"mongodbatlas_api_key":                           mongodbatlas.DataSourceAPIKey(),
@@ -118,8 +120,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_project_api_key":                   mongodbatlas.DataSourceProjectAPIKey(),
 		"mongodbatlas_project_api_keys":                  mongodbatlas.DataSourceProjectAPIKeys(),
 		"mongodbatlas_roles_org_id":                      mongodbatlas.DataSourceOrgID(),
-		"mongodbatlas_cluster":                           mongodbatlas.DataSourceCluster(),
-		"mongodbatlas_clusters":                          mongodbatlas.DataSourceClusters(),
+		"mongodbatlas_cluster":                           cluster.DataSourceCluster(),
+		"mongodbatlas_clusters":                          cluster.DataSourceClusters(),
 		"mongodbatlas_network_container":                 mongodbatlas.DataSourceNetworkContainer(),
 		"mongodbatlas_network_containers":                mongodbatlas.DataSourceNetworkContainers(),
 		"mongodbatlas_network_peering":                   mongodbatlas.DataSourceNetworkPeering(),
@@ -192,12 +194,12 @@ func getDataSourcesMap() map[string]*schema.Resource {
 
 func getResourcesMap() map[string]*schema.Resource {
 	resourcesMap := map[string]*schema.Resource{
-		"mongodbatlas_advanced_cluster":                  mongodbatlas.ResourceAdvancedCluster(),
+		"mongodbatlas_advanced_cluster":                  advancedcluster.ResourceAdvancedCluster(),
 		"mongodbatlas_api_key":                           mongodbatlas.ResourceAPIKey(),
 		"mongodbatlas_access_list_api_key":               mongodbatlas.ResourceAccessListAPIKey(),
 		"mongodbatlas_project_api_key":                   mongodbatlas.ResourceProjectAPIKey(),
 		"mongodbatlas_custom_db_role":                    mongodbatlas.ResourceCustomDBRole(),
-		"mongodbatlas_cluster":                           mongodbatlas.ResourceCluster(),
+		"mongodbatlas_cluster":                           cluster.ResourceCluster(),
 		"mongodbatlas_network_container":                 mongodbatlas.ResourceNetworkContainer(),
 		"mongodbatlas_network_peering":                   mongodbatlas.ResourceNetworkPeering(),
 		"mongodbatlas_maintenance_window":                mongodbatlas.ResourceMaintenanceWindow(),

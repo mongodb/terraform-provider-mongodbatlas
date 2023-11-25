@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 )
 
 func TestAccNetworkRSPrivateEndpointRegionalMode_conn(t *testing.T) {
@@ -35,7 +35,7 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_conn(t *testing.T) {
 		clusterResourceName = "global_cluster"
 	)
 
-	clusterResource := testAccMongoDBAtlasClusterConfigGlobal(clusterResourceName, orgID, projectName, clusterName, "false")
+	clusterResource := acc.ConfigClusterGlobal(clusterResourceName, orgID, projectName, clusterName, "false")
 	clusterDataSource := testAccMongoDBAtlasPrivateEndpointRegionalModeClusterData(clusterResourceName, resourceSuffix, endpointResourceSuffix)
 	endpointResources := testAccMongoDBAtlasPrivateLinkEndpointServiceConfigUnmanagedAWS(
 		awsAccessKey, awsSecretKey, projectID, providerName, region, endpointResourceSuffix,
@@ -191,20 +191,20 @@ func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(project
 			return fmt.Errorf("Connection strings private endpoint count is not a number")
 		}
 
-		cluster, _, _ := conn.Clusters.Get(context.Background(), projectID, clusterName)
+		c, _, _ := conn.Clusters.Get(context.Background(), projectID, clusterName)
 
 		fmt.Printf("testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate %#v \n", rs.Primary.Attributes)
-		fmt.Printf("cluster.ConnectionStrings %#v \n", mongodbatlas.FlattenConnectionStrings(cluster.ConnectionStrings))
+		fmt.Printf("cluster.ConnectionStrings %#v \n", advancedcluster.FlattenConnectionStrings(c.ConnectionStrings))
 
-		if rsPrivateEndpointCount != len(cluster.ConnectionStrings.PrivateEndpoint) {
+		if rsPrivateEndpointCount != len(c.ConnectionStrings.PrivateEndpoint) {
 			return fmt.Errorf("Cluster PrivateEndpoint count does not match resource")
 		}
 
-		if rs.Primary.Attributes["connection_strings.0.standard"] != cluster.ConnectionStrings.Standard {
+		if rs.Primary.Attributes["connection_strings.0.standard"] != c.ConnectionStrings.Standard {
 			return fmt.Errorf("Cluster standard connection_string does not match resource")
 		}
 
-		if rs.Primary.Attributes["connection_strings.0.standard_srv"] != cluster.ConnectionStrings.StandardSrv {
+		if rs.Primary.Attributes["connection_strings.0.standard_srv"] != c.ConnectionStrings.StandardSrv {
 			return fmt.Errorf("Cluster standard connection_string does not match resource")
 		}
 

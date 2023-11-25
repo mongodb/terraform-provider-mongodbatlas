@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -15,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/spf13/cast"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -217,7 +216,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotCreate(ctx context.Context, d *schem
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING"},
 		Target:     []string{"IDLE"},
-		Refresh:    resourceClusterRefreshFunc(ctx, d.Get("cluster_name").(string), d.Get("project_id").(string), conn),
+		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, d.Get("cluster_name").(string), d.Get("project_id").(string), conn),
 		Timeout:    10 * time.Minute,
 		MinTimeout: 10 * time.Second,
 		Delay:      3 * time.Minute,
@@ -385,142 +384,5 @@ func flattenCloudMembers(apiObjects []*matlas.Member) []any {
 // Support functions moved from deprecated cloud_provider resources
 
 const (
-	errorSnapshotBackupPolicyRead    = "error getting a Cloud Provider Snapshot Backup Policy for the cluster(%s): %s"
 	errorSnapshotBackupPolicySetting = "error setting `%s` for Cloud Provider Snapshot Backup Policy(%s): %s"
 )
-
-func flattenPolicies(policies []matlas.Policy) []map[string]any {
-	actionList := make([]map[string]any, 0)
-	for _, v := range policies {
-		actionList = append(actionList, map[string]any{
-			"id":          v.ID,
-			"policy_item": flattenPolicyItems(v.PolicyItems),
-		})
-	}
-
-	return actionList
-}
-
-func flattenPolicyItems(items []matlas.PolicyItem) []map[string]any {
-	policyItems := make([]map[string]any, 0)
-	for _, v := range items {
-		policyItems = append(policyItems, map[string]any{
-			"id":                 v.ID,
-			"frequency_interval": v.FrequencyInterval,
-			"frequency_type":     v.FrequencyType,
-			"retention_unit":     v.RetentionUnit,
-			"retention_value":    v.RetentionValue,
-		})
-	}
-
-	return policyItems
-}
-
-func flattenCloudProviderSnapshotBackupPolicy(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, projectID, clusterName string) ([]map[string]any, error) {
-	backupPolicy, res, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
-	if err != nil {
-		if res.StatusCode == http.StatusNotFound ||
-			strings.Contains(err.Error(), "BACKUP_CONFIG_NOT_FOUND") ||
-			strings.Contains(err.Error(), "Not Found") ||
-			strings.Contains(err.Error(), "404") {
-			return []map[string]any{}, nil
-		}
-
-		return []map[string]any{}, fmt.Errorf(errorSnapshotBackupPolicyRead, clusterName, err)
-	}
-
-	return []map[string]any{
-		{
-			"cluster_id":               backupPolicy.ClusterID,
-			"cluster_name":             backupPolicy.ClusterName,
-			"next_snapshot":            backupPolicy.NextSnapshot,
-			"reference_hour_of_day":    backupPolicy.ReferenceHourOfDay,
-			"reference_minute_of_hour": backupPolicy.ReferenceMinuteOfHour,
-			"restore_window_days":      backupPolicy.RestoreWindowDays,
-			"update_snapshots":         cast.ToBool(backupPolicy.UpdateSnapshots),
-			"policies":                 flattenPolicies(backupPolicy.Policies),
-		},
-	}, nil
-}
-
-func computedCloudProviderSnapshotBackupPolicySchema() *schema.Schema {
-	return &schema.Schema{
-		Type:       schema.TypeList,
-		Computed:   true,
-		ConfigMode: schema.SchemaConfigModeAttr,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"cluster_id": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"cluster_name": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"next_snapshot": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"reference_hour_of_day": {
-					Type:     schema.TypeInt,
-					Computed: true,
-				},
-				"reference_minute_of_hour": {
-					Type:     schema.TypeInt,
-					Computed: true,
-				},
-				"restore_window_days": {
-					Type:     schema.TypeInt,
-					Computed: true,
-				},
-				"update_snapshots": {
-					Type:     schema.TypeBool,
-					Computed: true,
-				},
-				"policies": {
-					Type:       schema.TypeList,
-					Computed:   true,
-					ConfigMode: schema.SchemaConfigModeAttr,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"id": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
-							"policy_item": {
-								Type:       schema.TypeList,
-								Computed:   true,
-								ConfigMode: schema.SchemaConfigModeAttr,
-								Elem: &schema.Resource{
-									Schema: map[string]*schema.Schema{
-										"id": {
-											Type:     schema.TypeString,
-											Computed: true,
-										},
-										"frequency_interval": {
-											Type:     schema.TypeInt,
-											Computed: true,
-										},
-										"frequency_type": {
-											Type:     schema.TypeString,
-											Computed: true,
-										},
-										"retention_unit": {
-											Type:     schema.TypeString,
-											Computed: true,
-										},
-										"retention_value": {
-											Type:     schema.TypeInt,
-											Computed: true,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-}

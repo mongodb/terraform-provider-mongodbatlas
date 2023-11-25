@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package advancedcluster_test
 
 import (
 	"context"
@@ -73,7 +73,7 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
+				ImportStateIdFunc: acc.ImportStateClusterIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -124,7 +124,7 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       acc.ImportStateClusterIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"replication_specs", "retain_backups_enabled"},
@@ -184,7 +184,7 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       acc.ImportStateClusterIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"replication_specs", "retain_backups_enabled"},
@@ -232,7 +232,7 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       acc.ImportStateClusterIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"replication_specs"},
@@ -288,7 +288,7 @@ func TestAccClusterAdvancedCluster_UnpausedToPaused(t *testing.T) {
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       acc.ImportStateClusterIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"replication_specs"},
@@ -346,7 +346,7 @@ func TestAccClusterAdvancedCluster_PausedToUnpaused(t *testing.T) {
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       acc.ImportStateClusterIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"replication_specs"},
@@ -645,14 +645,14 @@ func TestAccClusterAdvancedCluster_WithTags(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", tagsMap1),
-					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", tagsMap2),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", acc.ClusterTagsMap1),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", acc.ClusterTagsMap2),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", tagsMap1),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", tagsMap2),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", acc.ClusterTagsMap1),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", acc.ClusterTagsMap2),
 					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", tagsMap1),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", tagsMap2),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", acc.ClusterTagsMap1),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", acc.ClusterTagsMap2),
 				),
 			},
 			{
@@ -668,30 +668,15 @@ func TestAccClusterAdvancedCluster_WithTags(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", tagsMap3),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", acc.ClusterTagsMap3),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", tagsMap3),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", acc.ClusterTagsMap3),
 					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", tagsMap3),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", acc.ClusterTagsMap3),
 				),
 			},
 		},
 	})
-}
-
-var tagsMap1 = map[string]string{
-	"key":   "key 1",
-	"value": "value 1",
-}
-
-var tagsMap2 = map[string]string{
-	"key":   "key 2",
-	"value": "value 2",
-}
-
-var tagsMap3 = map[string]string{
-	"key":   "key 3",
-	"value": "value 3",
 }
 
 func testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName string, cluster *matlas.AdvancedCluster) resource.TestCheckFunc {

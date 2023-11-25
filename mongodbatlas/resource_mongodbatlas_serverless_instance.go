@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -53,7 +54,7 @@ func resourceMongoDBAtlasServerlessInstanceUpdate(ctx context.Context, d *schema
 		}
 
 		if d.HasChange("tags") {
-			tags := expandTagSliceFromSetSchema(d)
+			tags := advancedcluster.ExpandTagSliceFromSetSchema(d)
 			ServerlessUpdateRequestParams.Tag = &tags
 		}
 
@@ -157,7 +158,7 @@ func returnServerlessInstanceSchema() map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 		},
-		"tags": &tagsSchema,
+		"tags": &advancedcluster.RSTagsSchema,
 	}
 }
 
@@ -175,15 +176,15 @@ func resourceMongoDBAtlasServerlessInstanceImportState(ctx context.Context, d *s
 	}
 
 	if err := d.Set("project_id", u.GroupID); err != nil {
-		log.Printf(errorClusterSetting, "project_id", u.ID, err)
+		log.Printf(advancedcluster.ErrorClusterSetting, "project_id", u.ID, err)
 	}
 
 	if err := d.Set("name", u.Name); err != nil {
-		log.Printf(errorClusterSetting, "name", u.ID, err)
+		log.Printf(advancedcluster.ErrorClusterSetting, "name", u.ID, err)
 	}
 
 	if err := d.Set("continuous_backup_enabled", u.ServerlessBackupOptions.ServerlessContinuousBackupEnabled); err != nil {
-		log.Printf(errorClusterSetting, "continuous_backup_enabled", u.ID, err)
+		log.Printf(advancedcluster.ErrorClusterSetting, "continuous_backup_enabled", u.ID, err)
 	}
 
 	d.SetId(config.EncodeStateID(map[string]string{
@@ -296,7 +297,7 @@ func resourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.R
 		return diag.Errorf(errorServerlessInstanceSetting, "continuous_backup_enabled", d.Id(), err)
 	}
 
-	if err := d.Set("tags", flattenTags(serverlessInstance.Tags)); err != nil {
+	if err := d.Set("tags", advancedcluster.FlattenTags(serverlessInstance.Tags)); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "tags", d.Id(), err)
 	}
 
@@ -328,7 +329,7 @@ func resourceMongoDBAtlasServerlessInstanceCreate(ctx context.Context, d *schema
 	}
 
 	if _, ok := d.GetOk("tags"); ok {
-		tagsSlice := expandTagSliceFromSetSchema(d)
+		tagsSlice := advancedcluster.ExpandTagSliceFromSetSchema(d)
 		serverlessInstanceRequest.Tag = &tagsSlice
 	}
 

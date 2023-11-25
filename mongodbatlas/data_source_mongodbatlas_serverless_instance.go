@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
 func DataSourceServerlessInstance() *schema.Resource {
@@ -80,8 +81,8 @@ func dataSourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema
 	if err := d.Set("continuous_backup_enabled", serverlessInstance.ServerlessBackupOptions.ServerlessContinuousBackupEnabled); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "continuous_backup_enabled", d.Id(), err)
 	}
-	if err := d.Set("tags", flattenTags(serverlessInstance.Tags)); err != nil {
-		return diag.Errorf(errorClusterAdvancedSetting, "tags", d.Id(), err)
+	if err := d.Set("tags", advancedcluster.FlattenTags(serverlessInstance.Tags)); err != nil {
+		return diag.Errorf(advancedcluster.ErrorClusterAdvancedSetting, "tags", d.Id(), err)
 	}
 
 	d.SetId(config.EncodeStateID(map[string]string{
@@ -167,6 +168,6 @@ func returnServerlessInstanceDSSchema() map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 		},
-		"tags": &dsTagsSchema,
+		"tags": &advancedcluster.DSTagsSchema,
 	}
 }

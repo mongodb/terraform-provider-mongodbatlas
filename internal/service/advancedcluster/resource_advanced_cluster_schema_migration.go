@@ -1,4 +1,4 @@
-package mongodbatlas
+package advancedcluster
 
 import (
 	"context"
@@ -49,7 +49,7 @@ func ResourceAdvancedClusterResourceV0() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"connection_strings": clusterConnectionStringsSchema(),
+			"connection_strings": ClusterConnectionStringsSchema(),
 			"create_date": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -88,7 +88,7 @@ func ResourceAdvancedClusterResourceV0() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Computed:  true,
-				StateFunc: formatMongoDBMajorVersion,
+				StateFunc: FormatMongoDBMajorVersion,
 			},
 			"mongo_db_version": {
 				Type:     schema.TypeString,
@@ -222,7 +222,7 @@ func ResourceAdvancedClusterResourceV0() *schema.Resource {
 				Default:      "LTS",
 				ValidateFunc: validation.StringInSlice([]string{"LTS", "CONTINUOUS"}, false),
 			},
-			"advanced_configuration": clusterAdvancedConfigurationSchema(),
+			"advanced_configuration": ClusterAdvancedConfigurationSchema(),
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(3 * time.Hour),
