@@ -27,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/share"
 
 	conversion "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 )
@@ -357,14 +356,14 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("error when getting project after create", fmt.Sprintf(share.ErrorProjectRead, projectID, err.Error()))
+		resp.Diagnostics.AddError("error when getting project after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
 	// get project props
 	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, projectID)
 	if err != nil {
-		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(share.ErrorProjectRead, projectID, err.Error()))
+		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
@@ -404,14 +403,14 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("error when getting project from Atlas", fmt.Sprintf(share.ErrorProjectRead, projectID, err.Error()))
+		resp.Diagnostics.AddError("error when getting project from Atlas", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
 	// get project props
 	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, projectID)
 	if err != nil {
-		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(share.ErrorProjectRead, projectID, err.Error()))
+		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
@@ -474,14 +473,14 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("error when getting project after create", fmt.Sprintf(share.ErrorProjectRead, projectID, err.Error()))
+		resp.Diagnostics.AddError("error when getting project after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
 	// get project props
 	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, projectID)
 	if err != nil {
-		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(share.ErrorProjectRead, projectID, err.Error()))
+		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 	var planLimits []tfLimitModel
