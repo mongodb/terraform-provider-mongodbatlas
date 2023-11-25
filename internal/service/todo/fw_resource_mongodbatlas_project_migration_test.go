@@ -70,7 +70,7 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 		projectName     = acctest.RandomWithPrefix("test-acc-teams")
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		clusterCount    = "0"
-		configWithTeams = acc.ProjectConfig(projectName, orgID,
+		configWithTeams = acc.ConfigProject(projectName, orgID,
 			[]*matlas.ProjectTeam{
 				{
 					TeamID:    teamsIds[0],
@@ -97,8 +97,8 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 				},
 				Config: configWithTeams,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
-					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
+					acc.CheckProjectExists(resourceName, &project),
+					acc.CheckProjectAttributes(&project, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
@@ -125,7 +125,7 @@ func TestAccMigrationProjectRS_WithFalseDefaultSettings(t *testing.T) {
 		projectName           = acctest.RandomWithPrefix("tf-acc-project")
 		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID        = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
-		configWithTeams       = testAccMongoDBAtlasProjectConfigWithFalseDefaultSettings(projectName, orgID, projectOwnerID)
+		configWithTeams       = acc.ConfigProjectWithFalseDefaultSettings(projectName, orgID, projectOwnerID)
 		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
 
@@ -142,8 +142,8 @@ func TestAccMigrationProjectRS_WithFalseDefaultSettings(t *testing.T) {
 				},
 				Config: configWithTeams,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
-					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
+					acc.CheckProjectExists(resourceName, &project),
+					acc.CheckProjectAttributes(&project, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
@@ -167,7 +167,7 @@ func TestAccMigrationProjectRS_WithLimits(t *testing.T) {
 		resourceName = "mongodbatlas_project.test"
 		projectName  = acctest.RandomWithPrefix("tf-acc-project")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		config       = testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+		config       = acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
 			{
 				Name:  "atlas.project.deployment.clusters",
 				Value: 1,

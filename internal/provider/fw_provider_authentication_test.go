@@ -23,7 +23,7 @@ func TestAccSTSAssumeRole_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ProjectConfig(projectName, orgID,
+				Config: acc.ConfigProject(projectName, orgID,
 					[]*matlas.ProjectTeam{},
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -35,7 +35,7 @@ func TestAccSTSAssumeRole_basic(t *testing.T) {
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       acc.ImportStateIDFuncProject(resourceName),
+				ImportStateIdFunc:       acc.ImportStateProjectIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"with_default_alerts_settings"},

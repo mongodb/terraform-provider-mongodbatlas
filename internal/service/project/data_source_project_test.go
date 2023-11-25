@@ -1,4 +1,4 @@
-package todo_test
+package project_test
 
 import (
 	"fmt"
@@ -27,7 +27,7 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectDSByIDUsingRS(acc.ProjectConfig(projectName, orgID,
+				Config: testAccMongoDBAtlasProjectDSByIDUsingRS(acc.ConfigProject(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
 							TeamID:    teamsIds[0],
@@ -62,7 +62,7 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(acc.ProjectConfig(projectName, orgID,
+				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(acc.ConfigProject(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
 							TeamID:    teamsIds[0],
@@ -98,7 +98,7 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(acc.ProjectConfig(projectName, orgID,
+				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(acc.ConfigProject(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
 							TeamID:    teamsIds[0],
@@ -136,7 +136,7 @@ func TestAccProjectDSProject_limits(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*admin.DataFederationLimit{})),
+				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{})),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("data.mongodbatlas_project.test", "org_id"),

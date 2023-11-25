@@ -1,9 +1,6 @@
-package todo_test
+package project_test
 
 import (
-	"context"
-	"fmt"
-	"log"
 	"os"
 	"regexp"
 	"strings"
@@ -11,8 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -37,7 +32,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ProjectConfig(projectName, orgID,
+				Config: acc.ConfigProject(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
 							TeamID:    teamsIds[0],
@@ -50,8 +45,8 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
-					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
+					acc.CheckProjectExists(resourceName, &project),
+					acc.CheckProjectAttributes(&project, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
@@ -59,7 +54,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ProjectConfig(projectName, orgID,
+				Config: acc.ConfigProject(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
 							TeamID:    teamsIds[0],
@@ -76,8 +71,8 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
-					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
+					acc.CheckProjectExists(resourceName, &project),
+					acc.CheckProjectAttributes(&project, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
@@ -85,7 +80,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ProjectConfig(projectName, orgID,
+				Config: acc.ConfigProject(projectName, orgID,
 
 					[]*matlas.ProjectTeam{
 						{
@@ -99,8 +94,8 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
-					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
+					acc.CheckProjectExists(resourceName, &project),
+					acc.CheckProjectAttributes(&project, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
@@ -108,10 +103,10 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ProjectConfig(projectName, orgID, []*matlas.ProjectTeam{}),
+				Config: acc.ConfigProject(projectName, orgID, []*matlas.ProjectTeam{}),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
-					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
+					acc.CheckProjectExists(resourceName, &project),
+					acc.CheckProjectAttributes(&project, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
@@ -137,10 +132,10 @@ func TestAccProjectRSProject_CreateWithProjectOwner(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectConfigWithProjectOwner(projectName, orgID, projectOwnerID),
+				Config: acc.ConfigProjectWithOwner(projectName, orgID, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
-					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
+					acc.CheckProjectExists(resourceName, &project),
+					acc.CheckProjectAttributes(&project, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
@@ -164,10 +159,10 @@ func TestAccProjectRSGovProject_CreateWithProjectOwner(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasGovProjectConfigWithProjectOwner(projectName, orgID, projectOwnerID),
+				Config: acc.ConfigProjectGovWithOwner(projectName, orgID, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
-					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
+					acc.CheckProjectExists(resourceName, &project),
+					acc.CheckProjectAttributes(&project, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
@@ -190,10 +185,10 @@ func TestAccProjectRSProject_CreateWithFalseDefaultSettings(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectConfigWithFalseDefaultSettings(projectName, orgID, projectOwnerID),
+				Config: acc.ConfigProjectWithFalseDefaultSettings(projectName, orgID, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
-					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
+					acc.CheckProjectExists(resourceName, &project),
+					acc.CheckProjectAttributes(&project, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
@@ -217,10 +212,10 @@ func TestAccProjectRSProject_CreateWithFalseDefaultAdvSettings(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectConfigWithFalseDefaultAdvSettings(projectName, orgID, projectOwnerID),
+				Config: acc.ConfigProjectWithFalseDefaultAdvSettings(projectName, orgID, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
-					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
+					acc.CheckProjectExists(resourceName, &project),
+					acc.CheckProjectAttributes(&project, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
@@ -246,7 +241,7 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectConfigWithUpdatedRole(projectName, orgID, teamsIds[0], roleName),
+				Config: acc.ConfigProjectWithUpdatedRole(projectName, orgID, teamsIds[0], roleName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -254,7 +249,7 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectConfigWithUpdatedRole(projectName, orgID, teamsIds[0], roleNameUpdated),
+				Config: acc.ConfigProjectWithUpdatedRole(projectName, orgID, teamsIds[0], roleNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -278,13 +273,13 @@ func TestAccProjectRSProject_importBasic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ProjectConfig(projectName, orgID,
+				Config: acc.ConfigProject(projectName, orgID,
 					[]*matlas.ProjectTeam{},
 				),
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       acc.ImportStateIDFuncProject(resourceName),
+				ImportStateIdFunc:       acc.ImportStateProjectIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"with_default_alerts_settings"},
@@ -306,7 +301,7 @@ func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
 					{
 						Name:  "atlas.project.deployment.clusters",
 						Value: 1,
@@ -326,7 +321,7 @@ func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
 					{
 						Name:  "atlas.project.deployment.nodesPerPrivateLinkRegion",
 						Value: 2,
@@ -340,7 +335,7 @@ func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
 					{
 						Name:  "atlas.project.deployment.nodesPerPrivateLinkRegion",
 						Value: 3,
@@ -399,7 +394,7 @@ func TestAccProjectRSProject_withInvalidLimitName(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
 					{
 						Name:  "incorrect.name",
 						Value: 1,
@@ -424,14 +419,14 @@ func TestAccProjectRSProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*admin.DataFederationLimit{}),
+				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
 					{
 						Name:  "incorrect.name",
 						Value: 1,
@@ -441,123 +436,4 @@ func TestAccProjectRSProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccCheckMongoDBAtlasProjectExists(resourceName string, project *matlas.Project) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acc.TestMongoDBClient.(*config.MongoDBClient).Atlas
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("no ID is set")
-		}
-
-		log.Printf("[DEBUG] projectID: %s", rs.Primary.ID)
-
-		if projectResp, _, err := conn.Projects.GetOneProjectByName(context.Background(), rs.Primary.Attributes["name"]); err == nil {
-			*project = *projectResp
-			return nil
-		}
-
-		return fmt.Errorf("project (%s) does not exist", rs.Primary.ID)
-	}
-}
-
-func testAccCheckMongoDBAtlasProjectAttributes(project *matlas.Project, projectName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if project.Name != projectName {
-			return fmt.Errorf("bad project name: %s", project.Name)
-		}
-
-		return nil
-	}
-}
-
-func testAccMongoDBAtlasProjectConfigWithUpdatedRole(projectName, orgID, teamID, roleName string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
-
-			teams {
-				team_id = "%s"
-				role_names = ["%s"]
-			}
-		}
-	`, projectName, orgID, teamID, roleName)
-}
-
-func testAccMongoDBAtlasProjectConfigWithProjectOwner(projectName, orgID, projectOwnerID string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   			 = "%[1]s"
-			org_id 			 = "%[2]s"
-		    project_owner_id = "%[3]s"
-		}
-	`, projectName, orgID, projectOwnerID)
-}
-
-func testAccMongoDBAtlasGovProjectConfigWithProjectOwner(projectName, orgID, projectOwnerID string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   			 = "%[1]s"
-			org_id 			 = "%[2]s"
-		    project_owner_id = "%[3]s"
-			region_usage_restrictions = "GOV_REGIONS_ONLY"
-		}
-	`, projectName, orgID, projectOwnerID)
-}
-
-func testAccMongoDBAtlasProjectConfigWithFalseDefaultSettings(projectName, orgID, projectOwnerID string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   			 = "%[1]s"
-			org_id 			 = "%[2]s"
-			project_owner_id = "%[3]s"
-			with_default_alerts_settings = false
-		}
-	`, projectName, orgID, projectOwnerID)
-}
-
-func testAccMongoDBAtlasProjectConfigWithFalseDefaultAdvSettings(projectName, orgID, projectOwnerID string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   			 = "%[1]s"
-			org_id 			 = "%[2]s"
-			project_owner_id = "%[3]s"
-			with_default_alerts_settings = false
-			is_collect_database_specifics_statistics_enabled = false
-			is_data_explorer_enabled = false
-			is_extended_storage_sizes_enabled = false
-			is_performance_advisor_enabled = false
-			is_realtime_performance_panel_enabled = false
-			is_schema_advisor_enabled = false
-		}
-	`, projectName, orgID, projectOwnerID)
-}
-
-func testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID string, limits []*admin.DataFederationLimit) string {
-	var limitsString string
-
-	for _, limit := range limits {
-		limitsString += fmt.Sprintf(`
-		limits {
-			name = "%s"
-			value = %d
-		}
-		`, limit.Name, limit.Value)
-	}
-
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   			 = "%s"
-			org_id 			 = "%s"
-
-			%s
-		}
-	`, projectName, orgID, limitsString)
 }

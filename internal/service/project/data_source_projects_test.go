@@ -1,4 +1,4 @@
-package todo_test
+package project_test
 
 import (
 	"fmt"
@@ -94,7 +94,7 @@ func testAccMongoDBAtlasProjectsConfigWithDS(projectName, orgID string, teams []
 	config := fmt.Sprintf(`
 		%s
 		data "mongodbatlas_projects" "test" {}
-	`, acc.ProjectConfig(projectName, orgID, teams))
+	`, acc.ConfigProject(projectName, orgID, teams))
 	return config
 }
 
@@ -105,5 +105,5 @@ func testAccMongoDBAtlasProjectsConfigWithPagination(projectName, orgID string, 
 			page_num = %d
 			items_per_page = %d
 		}
-	`, acc.ProjectConfig(projectName, orgID, teams), pageNum, itemPage)
+	`, acc.ConfigProject(projectName, orgID, teams), pageNum, itemPage)
 }

@@ -1,4 +1,4 @@
-package todo
+package project
 
 import (
 	"context"
@@ -14,20 +14,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/share"
 )
 
-var _ datasource.DataSource = &ProjectDS{}
-var _ datasource.DataSourceWithConfigure = &ProjectDS{}
+var _ datasource.DataSource = &projectDS{}
+var _ datasource.DataSourceWithConfigure = &projectDS{}
 
 func NewProjectDS() datasource.DataSource {
-	return &ProjectDS{
+	return &projectDS{
 		DSCommon: config.DSCommon{
 			DataSourceName: projectResourceName,
 		},
 	}
 }
 
-type ProjectDS struct {
+type projectDS struct {
 	config.DSCommon
 }
 
@@ -54,7 +55,7 @@ type tfTeamDSModel struct {
 	RoleNames types.List   `tfsdk:"role_names"`
 }
 
-func (d *ProjectDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -142,7 +143,7 @@ func (d *ProjectDS) Schema(ctx context.Context, req datasource.SchemaRequest, re
 	}
 }
 
-func (d *ProjectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var projectState tfProjectDSModel
 	conn := d.Client.Atlas
 	connV2 := d.Client.AtlasV2
@@ -163,21 +164,21 @@ func (d *ProjectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		projectID := projectState.ProjectID.ValueString()
 		project, _, err = conn.Projects.GetOneProject(ctx, projectID)
 		if err != nil {
-			resp.Diagnostics.AddError("error when getting project from Atlas", fmt.Sprintf(errorProjectRead, projectID, err.Error()))
+			resp.Diagnostics.AddError("error when getting project from Atlas", fmt.Sprintf(share.ErrorProjectRead, projectID, err.Error()))
 			return
 		}
 	} else {
 		name := projectState.Name.ValueString()
 		project, _, err = conn.Projects.GetOneProjectByName(ctx, name)
 		if err != nil {
-			resp.Diagnostics.AddError("error when getting project from Atlas", fmt.Sprintf(errorProjectRead, name, err.Error()))
+			resp.Diagnostics.AddError("error when getting project from Atlas", fmt.Sprintf(share.ErrorProjectRead, name, err.Error()))
 			return
 		}
 	}
 
 	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, project.ID)
 	if err != nil {
-		resp.Diagnostics.AddError("error when getting project properties", fmt.Sprintf(errorProjectRead, project.ID, err.Error()))
+		resp.Diagnostics.AddError("error when getting project properties", fmt.Sprintf(share.ErrorProjectRead, project.ID, err.Error()))
 		return
 	}
 

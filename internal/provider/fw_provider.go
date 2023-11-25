@@ -25,6 +25,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/todo"
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
@@ -391,8 +392,8 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 
 func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		todo.NewProjectDS,
-		todo.NewProjectsDS,
+		project.NewProjectDS,
+		project.NewProjectsDS,
 		databaseuser.NewDatabaseUserDS,
 		databaseuser.NewDatabaseUsersDS,
 		alertconfiguration.NewAlertConfigurationDS,
@@ -406,7 +407,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 
 func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		todo.NewProjectRS,
+		project.NewProjectRS,
 		todo.NewEncryptionAtRestRS,
 		databaseuser.NewDatabaseUserRS,
 		alertconfiguration.NewAlertConfigurationRS,
