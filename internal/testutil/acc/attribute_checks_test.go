@@ -1,6 +1,10 @@
-package testutils
+package acc_test
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+)
 
 func TestIntGreaterThan(t *testing.T) {
 	testCases := []struct {
@@ -18,7 +22,7 @@ func TestIntGreaterThan(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			checkFunc := IntGreatThan(tc.value)
+			checkFunc := acc.IntGreatThan(tc.value)
 			err := checkFunc(tc.input)
 			if (err != nil) != tc.wantErr {
 				t.Errorf("IntGreatThan() error = %v, wantErr %v", err, tc.wantErr)
@@ -47,7 +51,7 @@ func TestJSONEquals(t *testing.T) {
 		"nilvar": null
 	}
 `
-	if err := JSONEquals(objMap)(strMap); err != nil {
+	if err := acc.JSONEquals(objMap)(strMap); err != nil {
 		t.Errorf("JSONEquals() error = %v", err)
 	}
 }

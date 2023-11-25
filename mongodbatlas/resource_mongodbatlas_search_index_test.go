@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 )
 
 const (
@@ -258,7 +257,7 @@ func TestAccSearchIndexRS_withVector(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(resourceName, "type", "vectorSearch"),
 					resource.TestCheckResourceAttrSet(resourceName, "fields"),
-					resource.TestCheckResourceAttrWith(resourceName, "fields", testutils.JSONEquals(fields)),
+					resource.TestCheckResourceAttrWith(resourceName, "fields", acc.JSONEquals(fields)),
 
 					resource.TestCheckResourceAttr(datasourceName, "type", "vectorSearch"),
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
@@ -269,7 +268,7 @@ func TestAccSearchIndexRS_withVector(t *testing.T) {
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(datasourceName, "index_id"),
 					resource.TestCheckResourceAttrSet(datasourceName, "fields"),
-					resource.TestCheckResourceAttrWith(datasourceName, "fields", testutils.JSONEquals(fields)),
+					resource.TestCheckResourceAttrWith(datasourceName, "fields", acc.JSONEquals(fields)),
 				),
 			},
 		},

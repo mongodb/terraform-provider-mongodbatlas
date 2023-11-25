@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
 
@@ -93,10 +92,10 @@ func TestAccConfigDSAlertConfiguration_withOutput(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "notification.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "output.0.label", outputLabel),
 					resource.TestCheckResourceAttr(dataSourceName, "output.0.type", "resource_import"),
-					resource.TestCheckResourceAttrWith(dataSourceName, "output.0.value", testutils.MatchesExpression("terraform import mongodbatlas_alert_configuration.*")),
+					resource.TestCheckResourceAttrWith(dataSourceName, "output.0.value", acc.MatchesExpression("terraform import mongodbatlas_alert_configuration.*")),
 					resource.TestCheckResourceAttr(dataSourceName, "output.1.label", outputLabel),
 					resource.TestCheckResourceAttr(dataSourceName, "output.1.type", "resource_hcl"),
-					resource.TestCheckResourceAttrWith(dataSourceName, "output.1.value", testutils.MatchesExpression("resource \"mongodbatlas_alert_configuration\".*")),
+					resource.TestCheckResourceAttrWith(dataSourceName, "output.1.value", acc.MatchesExpression("resource \"mongodbatlas_alert_configuration\".*")),
 				),
 			},
 		},
