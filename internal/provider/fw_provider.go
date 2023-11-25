@@ -25,6 +25,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/todo"
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
@@ -408,7 +409,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		project.NewProjectRS,
-		todo.NewEncryptionAtRestRS,
+		encryptionatrest.NewEncryptionAtRestRS,
 		databaseuser.NewDatabaseUserRS,
 		alertconfiguration.NewAlertConfigurationRS,
 		todo.NewProjectIPAccessListRS,

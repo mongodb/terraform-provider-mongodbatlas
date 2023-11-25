@@ -1,4 +1,4 @@
-package todo
+package encryptionatrest
 
 import (
 	"context"
@@ -36,18 +36,18 @@ const (
 	errorUpdateEncryptionAtRest  = "error updating Encryption At Rest: %s"
 )
 
-var _ resource.ResourceWithConfigure = &EncryptionAtRestRS{}
-var _ resource.ResourceWithImportState = &EncryptionAtRestRS{}
+var _ resource.ResourceWithConfigure = &encryptionAtRestRS{}
+var _ resource.ResourceWithImportState = &encryptionAtRestRS{}
 
 func NewEncryptionAtRestRS() resource.Resource {
-	return &EncryptionAtRestRS{
+	return &encryptionAtRestRS{
 		RSCommon: config.RSCommon{
 			ResourceName: encryptionAtRestResourceName,
 		},
 	}
 }
 
-type EncryptionAtRestRS struct {
+type encryptionAtRestRS struct {
 	config.RSCommon
 }
 
@@ -84,7 +84,7 @@ type tfGcpKmsConfigModel struct {
 	Enabled              types.Bool   `tfsdk:"enabled"`
 }
 
-func (r *EncryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -203,7 +203,7 @@ func (r *EncryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 	}
 }
 
-func (r *EncryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var encryptionAtRestPlan *tfEncryptionAtRestRSModel
 	var encryptionAtRestConfig *tfEncryptionAtRestRSModel
 	conn := r.Client.Atlas
@@ -274,7 +274,7 @@ func resourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx context.Context, 
 	}
 }
 
-func (r *EncryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *encryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var encryptionAtRestState tfEncryptionAtRestRSModel
 	var isImport bool
 
@@ -311,7 +311,7 @@ func (r *EncryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest,
 	}
 }
 
-func (r *EncryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *encryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var encryptionAtRestState *tfEncryptionAtRestRSModel
 	var encryptionAtRestConfig *tfEncryptionAtRestRSModel
 	var encryptionAtRestPlan *tfEncryptionAtRestRSModel
@@ -368,7 +368,7 @@ func (r *EncryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 	resp.Diagnostics.Append(resp.State.Set(ctx, &encryptionAtRestStateNew)...)
 }
 
-func (r *EncryptionAtRestRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *encryptionAtRestRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var encryptionAtRestState *tfEncryptionAtRestRSModel
 
 	// read prior state data into the model
@@ -387,7 +387,7 @@ func (r *EncryptionAtRestRS) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 }
 
-func (r *EncryptionAtRestRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *encryptionAtRestRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
