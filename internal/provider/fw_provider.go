@@ -24,6 +24,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
@@ -401,8 +402,8 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		alertconfiguration.NewAlertConfigurationDS,
 		alertconfiguration.NewAlertConfigurationsDS,
 		projectipaccesslist.NewProjectIPAccessListDS,
-		todo.NewAtlasUserDS,
-		todo.NewAtlasUsersDS,
+		atlasuser.NewAtlasUserDS,
+		atlasuser.NewAtlasUsersDS,
 		todo.NewSearchDeploymentDS,
 	}
 }

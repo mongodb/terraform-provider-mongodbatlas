@@ -1,4 +1,4 @@
-package todo
+package atlasuser
 
 import (
 	"context"
@@ -23,18 +23,18 @@ const (
 	ErrorMissingAttributesDetail  = "either org_id, project_id, or team_id with org_id must be configured"
 )
 
-var _ datasource.DataSource = &AtlasUsersDS{}
-var _ datasource.DataSourceWithConfigure = &AtlasUsersDS{}
+var _ datasource.DataSource = &atlasUsersDS{}
+var _ datasource.DataSourceWithConfigure = &atlasUsersDS{}
 
 func NewAtlasUsersDS() datasource.DataSource {
-	return &AtlasUsersDS{
+	return &atlasUsersDS{
 		DSCommon: config.DSCommon{
 			DataSourceName: AtlasUsersDataSourceName,
 		},
 	}
 }
 
-type AtlasUsersDS struct {
+type atlasUsersDS struct {
 	config.DSCommon
 }
 
@@ -49,7 +49,7 @@ type tfAtlasUsersDSModel struct {
 	TotalCount   types.Int64          `tfsdk:"total_count"`
 }
 
-func (d *AtlasUsersDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *atlasUsersDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{ // required by hashicorps terraform plugin testing framework: https://github.com/hashicorp/terraform-plugin-testing/issues/84#issuecomment-1480006432
@@ -160,7 +160,7 @@ func (d *AtlasUsersDS) Schema(ctx context.Context, req datasource.SchemaRequest,
 	}
 }
 
-func (d *AtlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	connV2 := d.Client.AtlasV2
 
 	var atlasUsersConfig tfAtlasUsersDSModel

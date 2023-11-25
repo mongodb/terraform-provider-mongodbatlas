@@ -1,4 +1,4 @@
-package todo_test
+package atlasuser_test
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/todo"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
@@ -175,7 +175,7 @@ func TestAccConfigDSAtlasUsers_InvalidAttrCombinations(t *testing.T) {
 					team_id = "64c0f3f5ce752426ab9f506b"
 				}
 			`,
-			expectedError: todo.ErrorMissingAttributesDetail,
+			expectedError: atlasuser.ErrorMissingAttributesDetail,
 		},
 		{
 			name: "invalid empty attributes defined",
@@ -183,7 +183,7 @@ func TestAccConfigDSAtlasUsers_InvalidAttrCombinations(t *testing.T) {
 				data "mongodbatlas_atlas_users" "test" {
 				}
 			`,
-			expectedError: todo.ErrorMissingAttributesDetail,
+			expectedError: atlasuser.ErrorMissingAttributesDetail,
 		},
 	}
 	for _, tt := range tests {
