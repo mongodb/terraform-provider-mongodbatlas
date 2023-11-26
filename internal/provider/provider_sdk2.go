@@ -402,15 +402,6 @@ func setValueFromConfigOrEnv(d *schema.ResourceData, attrName string, envVars []
 	return d.Set(attrName, val)
 }
 
-func MultiEnvDefaultFunc(ks []string, def any) any {
-	for _, k := range ks {
-		if v := os.Getenv(k); v != "" {
-			return v
-		}
-	}
-	return def
-}
-
 func configureCredentialsSTS(cfg config.Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (config.Config, error) {
 	ep, err := endpoints.GetSTSRegionalEndpoint("regional")
 	if err != nil {

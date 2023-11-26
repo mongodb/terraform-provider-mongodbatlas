@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"log"
+	"os"
 	"regexp"
 	"time"
 
@@ -291,7 +292,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 		data.BaseURL = types.StringValue(config.MongodbGovCloudURL)
 	}
 	if data.BaseURL.ValueString() == "" {
-		data.BaseURL = types.StringValue(config.MultiEnvDefaultFunc([]string{
+		data.BaseURL = types.StringValue(MultiEnvDefaultFunc([]string{
 			"MONGODB_ATLAS_BASE_URL",
 			"MCLI_OPS_MANAGER_URL",
 		}, "").(string))
@@ -299,7 +300,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 
 	awsRoleDefined := false
 	if len(data.AssumeRole.Elements()) == 0 {
-		assumeRoleArn := config.MultiEnvDefaultFunc([]string{
+		assumeRoleArn := MultiEnvDefaultFunc([]string{
 			"ASSUME_ROLE_ARN",
 			"TF_VAR_ASSUME_ROLE_ARN",
 		}, "").(string)
@@ -323,7 +324,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 	}
 
 	if data.PublicKey.ValueString() == "" {
-		data.PublicKey = types.StringValue(config.MultiEnvDefaultFunc([]string{
+		data.PublicKey = types.StringValue(MultiEnvDefaultFunc([]string{
 			"MONGODB_ATLAS_PUBLIC_KEY",
 			"MCLI_PUBLIC_API_KEY",
 		}, "").(string))
@@ -333,7 +334,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 	}
 
 	if data.PrivateKey.ValueString() == "" {
-		data.PrivateKey = types.StringValue(config.MultiEnvDefaultFunc([]string{
+		data.PrivateKey = types.StringValue(MultiEnvDefaultFunc([]string{
 			"MONGODB_ATLAS_PRIVATE_KEY",
 			"MCLI_PRIVATE_API_KEY",
 		}, "").(string))
@@ -343,48 +344,48 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 	}
 
 	if data.RealmBaseURL.ValueString() == "" {
-		data.RealmBaseURL = types.StringValue(config.MultiEnvDefaultFunc([]string{
+		data.RealmBaseURL = types.StringValue(MultiEnvDefaultFunc([]string{
 			"MONGODB_REALM_BASE_URL",
 		}, "").(string))
 	}
 
 	if data.Region.ValueString() == "" {
-		data.Region = types.StringValue(config.MultiEnvDefaultFunc([]string{
+		data.Region = types.StringValue(MultiEnvDefaultFunc([]string{
 			"AWS_REGION",
 			"TF_VAR_AWS_REGION",
 		}, "").(string))
 	}
 
 	if data.StsEndpoint.ValueString() == "" {
-		data.StsEndpoint = types.StringValue(config.MultiEnvDefaultFunc([]string{
+		data.StsEndpoint = types.StringValue(MultiEnvDefaultFunc([]string{
 			"STS_ENDPOINT",
 			"TF_VAR_STS_ENDPOINT",
 		}, "").(string))
 	}
 
 	if data.AwsAccessKeyID.ValueString() == "" {
-		data.AwsAccessKeyID = types.StringValue(config.MultiEnvDefaultFunc([]string{
+		data.AwsAccessKeyID = types.StringValue(MultiEnvDefaultFunc([]string{
 			"AWS_ACCESS_KEY_ID",
 			"TF_VAR_AWS_ACCESS_KEY_ID",
 		}, "").(string))
 	}
 
 	if data.AwsSecretAccessKeyID.ValueString() == "" {
-		data.AwsSecretAccessKeyID = types.StringValue(config.MultiEnvDefaultFunc([]string{
+		data.AwsSecretAccessKeyID = types.StringValue(MultiEnvDefaultFunc([]string{
 			"AWS_SECRET_ACCESS_KEY",
 			"TF_VAR_AWS_SECRET_ACCESS_KEY",
 		}, "").(string))
 	}
 
 	if data.AwsSessionToken.ValueString() == "" {
-		data.AwsSessionToken = types.StringValue(config.MultiEnvDefaultFunc([]string{
+		data.AwsSessionToken = types.StringValue(MultiEnvDefaultFunc([]string{
 			"AWS_SESSION_TOKEN",
 			"TF_VAR_AWS_SESSION_TOKEN",
 		}, "").(string))
 	}
 
 	if data.SecretName.ValueString() == "" {
-		data.SecretName = types.StringValue(config.MultiEnvDefaultFunc([]string{
+		data.SecretName = types.StringValue(MultiEnvDefaultFunc([]string{
 			"SECRET_NAME",
 			"TF_VAR_SECRET_NAME",
 		}, "").(string))
@@ -450,4 +451,13 @@ func MuxedProviderFactoryFn(sdkV2Provider *sdkv2schema.Provider) func() tfprotov
 		log.Fatal(err)
 	}
 	return muxServer.ProviderServer
+}
+
+func MultiEnvDefaultFunc(ks []string, def any) any {
+	for _, k := range ks {
+		if v := os.Getenv(k); v != "" {
+			return v
+		}
+	}
+	return def
 }

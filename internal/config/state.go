@@ -4,19 +4,9 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
-	"os"
 	"sort"
 	"strings"
 )
-
-func MultiEnvDefaultFunc(ks []string, def any) any {
-	for _, k := range ks {
-		if v := os.Getenv(k); v != "" {
-			return v
-		}
-	}
-	return def
-}
 
 func GetEncodedID(stateID, keyPosition string) string {
 	id := ""
