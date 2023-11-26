@@ -47,6 +47,23 @@ func CheckProjectAttributes(project *matlas.Project, projectName string) resourc
 	}
 }
 
+func CheckDestroyProject(s *terraform.State) error {
+	conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "mongodbatlas_project" {
+			continue
+		}
+
+		projectRes, _, _ := conn.Projects.GetOneProjectByName(context.Background(), rs.Primary.ID)
+		if projectRes != nil {
+			return fmt.Errorf("project (%s) still exists", rs.Primary.ID)
+		}
+	}
+
+	return nil
+}
+
 func ConfigProject(projectName, orgID string, teams []*matlas.ProjectTeam) string {
 	var ts string
 
