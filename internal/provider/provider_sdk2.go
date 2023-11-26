@@ -589,7 +589,7 @@ func expandAssumeRole(tfMap map[string]any) *config.AssumeRole {
 	}
 
 	if v, ok := tfMap["policy_arns"].(*schema.Set); ok && v.Len() > 0 {
-		assumeRole.PolicyARNs = config.ExpandStringList(v.List())
+		assumeRole.PolicyARNs = conversion.ExpandStringList(v.List())
 	}
 
 	if v, ok := tfMap["role_arn"].(string); ok && v != "" {
@@ -605,7 +605,7 @@ func expandAssumeRole(tfMap map[string]any) *config.AssumeRole {
 	}
 
 	if v, ok := tfMap["transitive_tag_keys"].(*schema.Set); ok && v.Len() > 0 {
-		assumeRole.TransitiveTagKeys = config.ExpandStringList(v.List())
+		assumeRole.TransitiveTagKeys = conversion.ExpandStringList(v.List())
 	}
 
 	return &assumeRole

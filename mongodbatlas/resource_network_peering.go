@@ -168,7 +168,7 @@ func resourceMongoDBAtlasNetworkPeeringCreate(ctx context.Context, d *schema.Res
 	}
 
 	if providerName == "AWS" {
-		region, err := config.ValRegion(d.Get("accepter_region_name"), "network_peering")
+		region, err := conversion.ValRegion(d.Get("accepter_region_name"), "network_peering")
 		if err != nil {
 			return diag.FromErr(errors.New("`accepter_region_name` must be set when `provider_name` is `AWS`"))
 		}
@@ -427,7 +427,7 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(ctx context.Context, d *schema.Res
 			peer.VNetName = d.Get("vnet_name").(string)
 		}
 	default: // AWS by default
-		region, _ := config.ValRegion(d.Get("accepter_region_name"), "network_peering")
+		region, _ := conversion.ValRegion(d.Get("accepter_region_name"), "network_peering")
 		peer.AccepterRegionName = region
 		peer.AWSAccountID = d.Get("aws_account_id").(string)
 		peer.RouteTableCIDRBlock = d.Get("route_table_cidr_block").(string)

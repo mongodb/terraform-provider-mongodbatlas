@@ -1075,7 +1075,7 @@ func getInstanceSizeToInt(instanceSize string) int {
 
 func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, error) {
 	var (
-		region, _          = config.ValRegion(d.Get("provider_region_name"))
+		region, _          = conversion.ValRegion(d.Get("provider_region_name"))
 		minInstanceSize    = getInstanceSizeToInt(d.Get("provider_auto_scaling_compute_min_instance_size").(string))
 		maxInstanceSize    = getInstanceSizeToInt(d.Get("provider_auto_scaling_compute_max_instance_size").(string))
 		instanceSize       = getInstanceSizeToInt(d.Get("provider_instance_size_name").(string))
@@ -1265,13 +1265,13 @@ func expandRegionsConfig(regions []any, originalRegion, replaceRegion string) (m
 	for _, r := range regions {
 		region := r.(map[string]any)
 
-		r, err := config.ValRegion(region["region_name"])
+		r, err := conversion.ValRegion(region["region_name"])
 		if err != nil {
 			return regionsConfig, err
 		}
 
 		if replaceRegion != "" && r == originalRegion {
-			r, err = config.ValRegion(replaceRegion)
+			r, err = conversion.ValRegion(replaceRegion)
 		}
 		if err != nil {
 			return regionsConfig, err

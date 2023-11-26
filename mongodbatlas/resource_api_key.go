@@ -64,7 +64,7 @@ func resourceMongoDBAtlasAPIKeyCreate(ctx context.Context, d *schema.ResourceDat
 
 	createRequest.Desc = d.Get("description").(string)
 
-	createRequest.Roles = config.ExpandStringList(d.Get("role_names").(*schema.Set).List())
+	createRequest.Roles = conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List())
 
 	apiKey, resp, err := conn.APIKeys.Create(ctx, orgID, createRequest)
 	if err != nil {
@@ -135,7 +135,7 @@ func resourceMongoDBAtlasAPIKeyUpdate(ctx context.Context, d *schema.ResourceDat
 	if d.HasChange("description") || d.HasChange("role_names") {
 		updateRequest.Desc = d.Get("description").(string)
 
-		updateRequest.Roles = config.ExpandStringList(d.Get("role_names").(*schema.Set).List())
+		updateRequest.Roles = conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List())
 
 		_, _, err := conn.APIKeys.Update(ctx, orgID, apiKeyID, updateRequest)
 		if err != nil {
