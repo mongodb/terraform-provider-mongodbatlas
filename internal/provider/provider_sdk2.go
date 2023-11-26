@@ -446,7 +446,7 @@ func configureCredentialsSTS(cfg config.Config, secret, region, awsAccessKeyID, 
 		log.Printf("STS get credentials error: %s", err)
 		return cfg, err
 	}
-	secretString, err := config.SecretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
+	secretString, err := SecretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
 	if err != nil {
 		log.Printf("Get Secrets error: %s", err)
 		return cfg, err
