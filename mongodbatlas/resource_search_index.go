@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/util"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
@@ -196,11 +196,11 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 	}
 
 	if d.HasChange("type") {
-		searchIndex.Type = util.StringPtr(d.Get("type").(string))
+		searchIndex.Type = conversion.StringPtr(d.Get("type").(string))
 	}
 
 	if d.HasChange("analyzer") {
-		searchIndex.Analyzer = util.StringPtr(d.Get("analyzer").(string))
+		searchIndex.Analyzer = conversion.StringPtr(d.Get("analyzer").(string))
 	}
 
 	if d.HasChange("collection_name") {
@@ -216,7 +216,7 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 	}
 
 	if d.HasChange("search_analyzer") {
-		searchIndex.SearchAnalyzer = util.StringPtr(d.Get("search_analyzer").(string))
+		searchIndex.SearchAnalyzer = conversion.StringPtr(d.Get("search_analyzer").(string))
 	}
 
 	if d.HasChange("analyzers") {
@@ -258,7 +258,7 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 		searchIndex.Synonyms = expandSearchIndexSynonyms(d)
 	}
 
-	searchIndex.IndexID = util.StringPtr("")
+	searchIndex.IndexID = conversion.StringPtr("")
 	if _, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchIndex(ctx, projectID, clusterName, indexID, searchIndex).Execute(); err != nil {
 		return diag.Errorf("error updating search index (%s): %s", searchIndex.Name, err)
 	}
@@ -406,13 +406,13 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 	indexType := d.Get("type").(string)
 
 	searchIndexRequest := &admin.ClusterSearchIndex{
-		Type:           util.StringPtr(indexType),
-		Analyzer:       util.StringPtr(d.Get("analyzer").(string)),
+		Type:           conversion.StringPtr(indexType),
+		Analyzer:       conversion.StringPtr(d.Get("analyzer").(string)),
 		CollectionName: d.Get("collection_name").(string),
 		Database:       d.Get("database").(string),
 		Name:           d.Get("name").(string),
-		SearchAnalyzer: util.StringPtr(d.Get("search_analyzer").(string)),
-		Status:         util.StringPtr(d.Get("status").(string)),
+		SearchAnalyzer: conversion.StringPtr(d.Get("search_analyzer").(string)),
+		Status:         conversion.StringPtr(d.Get("status").(string)),
 		Synonyms:       expandSearchIndexSynonyms(d),
 	}
 
@@ -443,7 +443,7 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 	if err != nil {
 		return diag.Errorf("error creating index: %s", err)
 	}
-	indexID := util.SafeString(dbSearchIndexRes.IndexID)
+	indexID := conversion.SafeString(dbSearchIndexRes.IndexID)
 	if d.Get("wait_for_index_build_completion").(bool) {
 		timeout := d.Timeout(schema.TimeoutCreate)
 		stateConf := &retry.StateChangeConf{
@@ -582,7 +582,7 @@ func unmarshalSearchIndexAnalyzersFields(mappingString string) ([]admin.ApiAtlas
 func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID, indexID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		searchIndex, resp, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
-		status := util.SafeString(searchIndex.Status)
+		status := conversion.SafeString(searchIndex.Status)
 		if err != nil {
 			return nil, "ERROR", err
 		}

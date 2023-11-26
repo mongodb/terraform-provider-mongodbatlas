@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/util"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -128,27 +128,27 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *
 	}
 
 	if value, ok := d.GetOk("azure_config.0.atlas_azure_app_id"); ok {
-		requestParameters.AtlasAzureAppID = util.Pointer(value.(string))
+		requestParameters.AtlasAzureAppID = conversion.Pointer(value.(string))
 	}
 
 	if value, ok := d.GetOk("azure_config.0.service_principal_id"); ok {
-		requestParameters.AzureServicePrincipalID = util.Pointer(value.(string))
+		requestParameters.AzureServicePrincipalID = conversion.Pointer(value.(string))
 	}
 
 	if value, ok := d.GetOk("azure_config.0.tenant_id"); ok {
-		requestParameters.AzureTenantID = util.Pointer(value.(string))
+		requestParameters.AzureTenantID = conversion.Pointer(value.(string))
 	}
 
 	if value, ok := d.GetOk("azure_config.0.atlas_azure_app_id"); ok {
-		requestParameters.AtlasAzureAppID = util.Pointer(value.(string))
+		requestParameters.AtlasAzureAppID = conversion.Pointer(value.(string))
 	}
 
 	if value, ok := d.GetOk("azure_config.0.service_principal_id"); ok {
-		requestParameters.AzureServicePrincipalID = util.Pointer(value.(string))
+		requestParameters.AzureServicePrincipalID = conversion.Pointer(value.(string))
 	}
 
 	if value, ok := d.GetOk("azure_config.0.tenant_id"); ok {
-		requestParameters.AzureTenantID = util.Pointer(value.(string))
+		requestParameters.AzureTenantID = conversion.Pointer(value.(string))
 	}
 
 	role, _, err := conn.CloudProviderAccess.CreateRole(ctx, projectID, requestParameters)

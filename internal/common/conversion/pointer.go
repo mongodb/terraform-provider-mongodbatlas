@@ -1,4 +1,4 @@
-package util
+package conversion
 
 func Pointer[T any](x T) *T {
 	return &x

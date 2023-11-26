@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 	sdkv2schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/util"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
@@ -228,7 +228,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	if awsRoleDefined {
 		cfg.AssumeRole = parseTfModel(ctx, &assumeRoles[0])
 		secret := data.SecretName.ValueString()
-		region := util.MongoDBRegionToAWSRegion(data.Region.ValueString())
+		region := conversion.MongoDBRegionToAWSRegion(data.Region.ValueString())
 		awsAccessKeyID := data.AwsAccessKeyID.ValueString()
 		awsSecretAccessKey := data.AwsSecretAccessKeyID.ValueString()
 		awsSessionToken := data.AwsSessionToken.ValueString()

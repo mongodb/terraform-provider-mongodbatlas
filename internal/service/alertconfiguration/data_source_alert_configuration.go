@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/util"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/zclconf/go-cty/cty"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
@@ -305,8 +305,8 @@ func newTFAlertConfigurationDSModel(apiRespConfig *admin.GroupAlertsConfig, proj
 		ProjectID:             types.StringValue(projectID),
 		AlertConfigurationID:  types.StringValue(*apiRespConfig.Id),
 		EventType:             types.StringValue(*apiRespConfig.EventTypeName),
-		Created:               types.StringPointerValue(util.TimePtrToStringPtr(apiRespConfig.Created)),
-		Updated:               types.StringPointerValue(util.TimePtrToStringPtr(apiRespConfig.Updated)),
+		Created:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Created)),
+		Updated:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Updated)),
 		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
 		MetricThresholdConfig: newTFMetricThresholdConfigModel(apiRespConfig.MetricThreshold, []tfMetricThresholdConfigModel{}),
 		ThresholdConfig:       newTFThresholdConfigModel(apiRespConfig.Threshold, []tfThresholdConfigModel{}),
@@ -401,15 +401,15 @@ func convertThresholdToCtyValues(threshold *admin.GreaterThanRawThreshold) map[s
 func convertNotificationToCtyValues(notification *admin.AlertsNotificationRootForGroup) map[string]cty.Value {
 	values := map[string]cty.Value{}
 
-	if util.IsStringPresent(notification.ChannelName) {
+	if conversion.IsStringPresent(notification.ChannelName) {
 		values["channel_name"] = cty.StringVal(*notification.ChannelName)
 	}
 
-	if util.IsStringPresent(notification.DatadogRegion) {
+	if conversion.IsStringPresent(notification.DatadogRegion) {
 		values["datadog_region"] = cty.StringVal(*notification.DatadogRegion)
 	}
 
-	if util.IsStringPresent(notification.EmailAddress) {
+	if conversion.IsStringPresent(notification.EmailAddress) {
 		values["email_address"] = cty.StringVal(*notification.EmailAddress)
 	}
 
@@ -417,31 +417,31 @@ func convertNotificationToCtyValues(notification *admin.AlertsNotificationRootFo
 		values["interval_min"] = cty.NumberIntVal(int64(*notification.IntervalMin))
 	}
 
-	if util.IsStringPresent(notification.MobileNumber) {
+	if conversion.IsStringPresent(notification.MobileNumber) {
 		values["mobile_number"] = cty.StringVal(*notification.MobileNumber)
 	}
 
-	if util.IsStringPresent(notification.OpsGenieRegion) {
+	if conversion.IsStringPresent(notification.OpsGenieRegion) {
 		values["ops_genie_region"] = cty.StringVal(*notification.OpsGenieRegion)
 	}
 
-	if util.IsStringPresent(notification.TeamId) {
+	if conversion.IsStringPresent(notification.TeamId) {
 		values["team_id"] = cty.StringVal(*notification.TeamId)
 	}
 
-	if util.IsStringPresent(notification.TeamName) {
+	if conversion.IsStringPresent(notification.TeamName) {
 		values["team_name"] = cty.StringVal(*notification.TeamName)
 	}
 
-	if util.IsStringPresent(notification.NotifierId) {
+	if conversion.IsStringPresent(notification.NotifierId) {
 		values["notifier_id"] = cty.StringVal(*notification.NotifierId)
 	}
 
-	if util.IsStringPresent(notification.TypeName) {
+	if conversion.IsStringPresent(notification.TypeName) {
 		values["type_name"] = cty.StringVal(*notification.TypeName)
 	}
 
-	if util.IsStringPresent(notification.Username) {
+	if conversion.IsStringPresent(notification.Username) {
 		values["username"] = cty.StringVal(*notification.Username)
 	}
 

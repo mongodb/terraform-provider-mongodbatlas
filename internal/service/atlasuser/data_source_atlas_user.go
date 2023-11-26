@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/util"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
@@ -183,10 +183,10 @@ func newTFAtlasUserDSModel(user *admin.CloudAppUser) tfAtlasUserDSModel {
 		UserID:       types.StringPointerValue(user.Id),
 		Username:     types.StringValue(user.Username),
 		Country:      types.StringValue(user.Country),
-		CreatedAt:    types.StringPointerValue(util.TimePtrToStringPtr(user.CreatedAt)),
+		CreatedAt:    types.StringPointerValue(conversion.TimePtrToStringPtr(user.CreatedAt)),
 		EmailAddress: types.StringValue(user.EmailAddress),
 		FirstName:    types.StringValue(user.FirstName),
-		LastAuth:     types.StringPointerValue(util.TimePtrToStringPtr(user.LastAuth)),
+		LastAuth:     types.StringPointerValue(conversion.TimePtrToStringPtr(user.LastAuth)),
 		LastName:     types.StringValue(user.LastName),
 		MobileNumber: types.StringValue(user.MobileNumber),
 		TeamIDs:      user.TeamIds,

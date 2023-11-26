@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/util"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
@@ -184,8 +184,8 @@ func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 		projectID := atlasUsersConfig.ProjectID.ValueString()
 		apiResp, _, err := connV2.ProjectsApi.ListProjectUsersWithParams(ctx, &admin.ListProjectUsersApiParams{
 			GroupId:      projectID,
-			PageNum:      util.Int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
-			ItemsPerPage: util.Int64PtrToIntPtr(atlasUsersConfig.ItemsPerPage.ValueInt64Pointer()),
+			PageNum:      conversion.Int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
+			ItemsPerPage: conversion.Int64PtrToIntPtr(atlasUsersConfig.ItemsPerPage.ValueInt64Pointer()),
 		}).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("error when getting users from Atlas", fmt.Sprintf(errorUsersRead, "project", projectID, err.Error()))
@@ -198,8 +198,8 @@ func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 		apiResp, _, err := connV2.TeamsApi.ListTeamUsersWithParams(ctx, &admin.ListTeamUsersApiParams{
 			OrgId:        atlasUsersConfig.OrgID.ValueString(),
 			TeamId:       teamID,
-			PageNum:      util.Int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
-			ItemsPerPage: util.Int64PtrToIntPtr(atlasUsersConfig.ItemsPerPage.ValueInt64Pointer()),
+			PageNum:      conversion.Int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
+			ItemsPerPage: conversion.Int64PtrToIntPtr(atlasUsersConfig.ItemsPerPage.ValueInt64Pointer()),
 		}).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("error when getting users from Atlas", fmt.Sprintf(errorUsersRead, "team", teamID, err.Error()))
@@ -211,8 +211,8 @@ func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 		orgID := atlasUsersConfig.OrgID.ValueString()
 		apiResp, _, err := connV2.OrganizationsApi.ListOrganizationUsersWithParams(ctx, &admin.ListOrganizationUsersApiParams{
 			OrgId:        atlasUsersConfig.OrgID.ValueString(),
-			PageNum:      util.Int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
-			ItemsPerPage: util.Int64PtrToIntPtr(atlasUsersConfig.ItemsPerPage.ValueInt64Pointer()),
+			PageNum:      conversion.Int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
+			ItemsPerPage: conversion.Int64PtrToIntPtr(atlasUsersConfig.ItemsPerPage.ValueInt64Pointer()),
 		}).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("error when getting users from Atlas", fmt.Sprintf(errorUsersRead, "org", orgID, err.Error()))

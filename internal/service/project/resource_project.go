@@ -26,7 +26,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/util"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -621,7 +621,7 @@ func toAtlasProjectTeams(ctx context.Context, teams []tfTeamModel) []*matlas.Pro
 	for i, team := range teams {
 		res[i] = &matlas.ProjectTeam{
 			TeamID:    team.TeamID.ValueString(),
-			RoleNames: util.TypesSetToString(ctx, team.RoleNames),
+			RoleNames: conversion.TypesSetToString(ctx, team.RoleNames),
 		}
 	}
 	return res
@@ -753,7 +753,7 @@ func updateProjectTeams(ctx context.Context, conn *matlas.Client, projectState, 
 
 		_, _, err := conn.Teams.UpdateTeamRoles(ctx, projectID, teamID,
 			&matlas.TeamUpdateRoles{
-				RoleNames: util.TypesSetToString(ctx, team.RoleNames),
+				RoleNames: conversion.TypesSetToString(ctx, team.RoleNames),
 			},
 		)
 		if err != nil {

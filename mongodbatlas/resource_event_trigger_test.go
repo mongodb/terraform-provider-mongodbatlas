@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/util"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mwielbut/pointy"
@@ -84,7 +84,7 @@ func TestEventTriggerDatabase_eventProccesor(t *testing.T) {
 		resourceName            = "mongodbatlas_event_trigger.test"
 		projectID               = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		eventBridgeAwsAccountID = os.Getenv("AWS_EVENTBRIDGE_ACCOUNT_ID")
-		eventBridgeAwsRegion    = util.MongoDBRegionToAWSRegion(os.Getenv("AWS_REGION"))
+		eventBridgeAwsRegion    = conversion.MongoDBRegionToAWSRegion(os.Getenv("AWS_REGION"))
 		appID                   = os.Getenv("MONGODB_REALM_APP_ID")
 		eventResp               = realm.EventTrigger{}
 	)
@@ -207,7 +207,7 @@ func TestEventTriggerAuth_eventProcessor(t *testing.T) {
 		resourceName            = "mongodbatlas_event_trigger.test"
 		projectID               = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		eventBridgeAwsAccountID = os.Getenv("AWS_EVENTBRIDGE_ACCOUNT_ID")
-		eventBridgeAwsRegion    = util.MongoDBRegionToAWSRegion(os.Getenv("AWS_REGION"))
+		eventBridgeAwsRegion    = conversion.MongoDBRegionToAWSRegion(os.Getenv("AWS_REGION"))
 		appID                   = os.Getenv("MONGODB_REALM_APP_ID")
 		eventResp               = realm.EventTrigger{}
 	)
@@ -322,7 +322,7 @@ func TestEventTriggerSchedule_eventProcessor(t *testing.T) {
 		resourceName            = "mongodbatlas_event_trigger.test"
 		projectID               = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		eventBridgeAwsAccountID = os.Getenv("AWS_EVENTBRIDGE_ACCOUNT_ID")
-		eventBridgeAwsRegion    = util.MongoDBRegionToAWSRegion(os.Getenv("AWS_REGION"))
+		eventBridgeAwsRegion    = conversion.MongoDBRegionToAWSRegion(os.Getenv("AWS_REGION"))
 		appID                   = os.Getenv("MONGODB_REALM_APP_ID")
 		eventResp               = realm.EventTrigger{}
 	)
