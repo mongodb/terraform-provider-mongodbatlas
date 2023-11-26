@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -65,7 +66,7 @@ func CheckDestroyDatabaseUser(s *terraform.State) error {
 			continue
 		}
 
-		projectID, username, authDatabaseName, err := config.SplitDatabaseUserImportID(rs.Primary.ID)
+		projectID, username, authDatabaseName, err := databaseuser.SplitDatabaseUserImportID(rs.Primary.ID)
 		if err != nil {
 			continue
 		}

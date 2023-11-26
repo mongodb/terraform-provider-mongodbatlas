@@ -2,7 +2,9 @@ package databaseuser
 
 import (
 	"context"
+	"errors"
 	"net/http"
+	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -251,7 +253,7 @@ func (r *databaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 
 	// Use the ID only with the IMPORT operation
 	if databaseUserState.ID.ValueString() != "" && (username == "" || projectID == "" || authDatabaseName == "") {
-		projectID, username, authDatabaseName, err = config.SplitDatabaseUserImportID(databaseUserState.ID.ValueString())
+		projectID, username, authDatabaseName, err = SplitDatabaseUserImportID(databaseUserState.ID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError("error splitting database User info from ID", err.Error())
 			return
@@ -336,6 +338,22 @@ func (r *databaseUserRS) Delete(ctx context.Context, req resource.DeleteRequest,
 
 func (r *databaseUserRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func SplitDatabaseUserImportID(id string) (projectID, username, authDatabaseName string, err error) {
+	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([$a-z]{1,15})$`)
+	parts := re.FindStringSubmatch(id)
+
+	if len(parts) != 4 {
+		err = errors.New("import format error: to import a Database User, use the format {project_id}-{username}-{auth_database_name}")
+		return
+	}
+
+	projectID = parts[1]
+	username = parts[2]
+	authDatabaseName = parts[3]
+
+	return
 }
 
 func newMongoDBDatabaseUser(ctx context.Context, dbUserModel *tfDatabaseUserModel) (*matlas.DatabaseUser, diag.Diagnostics) {
