@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -19,6 +20,7 @@ const (
 	errorCloudProviderAccessUpdate   = "error updating cloud provider access %s"
 	errorCloudProviderAccessDelete   = "error deleting cloud provider access %s"
 	errorCloudProviderAccessImporter = "error importing cloud provider access %s"
+	ErrorCloudProviderGetRead        = "error reading cloud provider access %s"
 )
 
 func ResourceCloudProviderAccess() *schema.Resource {
@@ -30,7 +32,7 @@ func ResourceCloudProviderAccess() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasCloudProviderAccessImportState,
 		},
-		DeprecationMessage: fmt.Sprintf(config.DeprecationResourceByDateWithReplacement, "v1.14.0", "mongodbatlas_cloud_provider_access_setup and mongodbatlas_cloud_provider_access_authorization"),
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationResourceByDateWithReplacement, "v1.14.0", "mongodbatlas_cloud_provider_access_setup and mongodbatlas_cloud_provider_access_authorization"),
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -128,13 +130,13 @@ func resourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schema.
 			return nil
 		}
 
-		return diag.FromErr(fmt.Errorf(config.ErrorGetRead, err))
+		return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
 	}
 
 	roleSchema := roleToSchema(role)
 	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
-			return diag.FromErr(fmt.Errorf(config.ErrorGetRead, err))
+			return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
 		}
 	}
 
@@ -163,7 +165,7 @@ func resourceMongoDBAtlasCloudProviderAccessUpdate(ctx context.Context, d *schem
 
 		for key, val := range roleSchema {
 			if err := d.Set(key, val); err != nil {
-				return diag.FromErr(fmt.Errorf(config.ErrorGetRead, err))
+				return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
 			}
 		}
 	}

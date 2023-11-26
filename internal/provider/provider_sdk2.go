@@ -293,7 +293,7 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 
 	mongodbgovCloud := pointy.Bool(d.Get("is_mongodbgov_cloud").(bool))
 	if *mongodbgovCloud {
-		if err := d.Set("base_url", config.MongodbGovCloudURL); err != nil {
+		if err := d.Set("base_url", MongodbGovCloudURL); err != nil {
 			return append(diagnostics, diag.FromErr(err)...)
 		}
 	}
@@ -329,7 +329,7 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 		return append(diagnostics, diag.FromErr(err)...)
 	}
 	if d.Get("public_key").(string) == "" && !awsRoleDefined {
-		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: config.MissingAuthAttrError})
+		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
 	}
 
 	if err := setValueFromConfigOrEnv(d, "private_key", []string{
@@ -340,7 +340,7 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 	}
 
 	if d.Get("private_key").(string) == "" && !awsRoleDefined {
-		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: config.MissingAuthAttrError})
+		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
 	}
 
 	if err := setValueFromConfigOrEnv(d, "realm_base_url", []string{

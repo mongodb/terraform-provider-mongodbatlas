@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -14,7 +15,7 @@ import (
 func DataSourceCloudProviderAccessList() *schema.Resource {
 	return &schema.Resource{
 		ReadContext:        dataSourceMongoDBAtlasCloudProviderAccessRead,
-		DeprecationMessage: fmt.Sprintf(config.DeprecationResourceByDateWithReplacement, "v1.14.0", "mongodbatlas_cloud_provider_access_setup"),
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationResourceByDateWithReplacement, "v1.14.0", "mongodbatlas_cloud_provider_access_setup"),
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -91,11 +92,11 @@ func dataSourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schem
 	roles, _, err := conn.CloudProviderAccess.ListRoles(ctx, projectID)
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(config.ErrorGetRead, err))
+		return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
 	}
 
 	if err = d.Set("aws_iam_roles", flatCloudProviderAccessRolesAWS(roles)); err != nil {
-		return diag.FromErr(fmt.Errorf(config.ErrorGetRead, err))
+		return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
 	}
 
 	d.SetId(id.UniqueId())

@@ -15,6 +15,10 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
+const (
+	ErrorProjectSetting = "error setting `%s` for project (%s): %s"
+)
+
 func ResourceProjectAPIKey() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasProjectAPIKeyCreate,
@@ -164,7 +168,7 @@ func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Resour
 
 		if projectAssignments, err := newProjectAssignment(ctx, conn, apiKeyID); err == nil {
 			if err := d.Set("project_assignment", projectAssignments); err != nil {
-				return diag.Errorf(config.ErrorProjectSetting, `created`, projectID, err)
+				return diag.Errorf(ErrorProjectSetting, `created`, projectID, err)
 			}
 		}
 	}

@@ -37,6 +37,12 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
+const (
+	MongodbGovCloudURL   = "https://cloud.mongodbgov.com"
+	ProviderConfigError  = "error in configuring the provider."
+	MissingAuthAttrError = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
+)
+
 type MongodbtlasProvider struct{}
 
 type tfMongodbAtlasProviderModel struct {
@@ -289,7 +295,7 @@ func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *co
 
 func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasProviderModel, resp *provider.ConfigureResponse) tfMongodbAtlasProviderModel {
 	if mongodbgovCloud := data.IsMongodbGovCloud.ValueBool(); mongodbgovCloud {
-		data.BaseURL = types.StringValue(config.MongodbGovCloudURL)
+		data.BaseURL = types.StringValue(MongodbGovCloudURL)
 	}
 	if data.BaseURL.ValueString() == "" {
 		data.BaseURL = types.StringValue(MultiEnvDefaultFunc([]string{
@@ -329,7 +335,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 			"MCLI_PUBLIC_API_KEY",
 		}, "").(string))
 		if data.PublicKey.ValueString() == "" && !awsRoleDefined {
-			resp.Diagnostics.AddWarning(config.ProviderConfigError, config.MissingAuthAttrError)
+			resp.Diagnostics.AddWarning(ProviderConfigError, MissingAuthAttrError)
 		}
 	}
 
@@ -339,7 +345,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 			"MCLI_PRIVATE_API_KEY",
 		}, "").(string))
 		if data.PrivateKey.ValueString() == "" && !awsRoleDefined {
-			resp.Diagnostics.AddWarning(config.ProviderConfigError, config.MissingAuthAttrError)
+			resp.Diagnostics.AddWarning(ProviderConfigError, MissingAuthAttrError)
 		}
 	}
 

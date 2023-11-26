@@ -42,7 +42,7 @@ func dataSourceMongoDBAtlasOrgIDRead(ctx context.Context, d *schema.ResourceData
 	for idx, role := range apiKeyOrgList.APIKey.Roles {
 		if strings.HasPrefix(role.RoleName, "ORG_") {
 			if err := d.Set("org_id", apiKeyOrgList.APIKey.Roles[idx].OrgID); err != nil {
-				return diag.Errorf(config.ErrorProjectSetting, `org_id`, root.APIKey.ID, err)
+				return diag.Errorf(ErrorProjectSetting, `org_id`, root.APIKey.ID, err)
 			}
 			d.SetId(apiKeyOrgList.APIKey.Roles[idx].OrgID)
 			return nil

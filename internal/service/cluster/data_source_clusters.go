@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -291,7 +292,7 @@ func DataSourceClusters() *schema.Resource {
 						"labels": {
 							Type:       schema.TypeSet,
 							Computed:   true,
-							Deprecated: fmt.Sprintf(config.DeprecationParamByDateWithReplacement, "September 2024", "tags"),
+							Deprecated: fmt.Sprintf(constant.DeprecationParamByDateWithReplacement, "September 2024", "tags"),
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"key": {

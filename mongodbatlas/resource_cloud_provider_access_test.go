@@ -12,6 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -103,7 +104,7 @@ func testAccCheckMongoDBAtlasProviderAccessDestroy(s *terraform.State) error {
 		roles, _, err := conn.CloudProviderAccess.ListRoles(context.Background(), ids["project_id"])
 
 		if err != nil {
-			return fmt.Errorf(config.ErrorGetRead, err)
+			return fmt.Errorf(mongodbatlas.ErrorCloudProviderGetRead, err)
 		}
 
 		var targetRole matlas.CloudProviderAccessRole
@@ -146,7 +147,7 @@ func testAccCheckMongoDBAtlasProviderAccessExists(resourceName string, targetRol
 		roles, _, err := conn.CloudProviderAccess.ListRoles(context.Background(), ids["project_id"])
 
 		if err != nil {
-			return fmt.Errorf(config.ErrorGetRead, err)
+			return fmt.Errorf(mongodbatlas.ErrorCloudProviderGetRead, err)
 		}
 
 		if providerName == "AWS" {

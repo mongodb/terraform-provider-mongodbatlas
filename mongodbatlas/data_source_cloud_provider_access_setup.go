@@ -90,13 +90,13 @@ func dataSourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *
 
 	role, _, err := conn.CloudProviderAccess.GetRole(ctx, projectID, roleID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(config.ErrorGetRead, err))
+		return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
 	}
 
 	roleSchema := roleToSchemaSetup(role)
 	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
-			return diag.FromErr(fmt.Errorf(config.ErrorGetRead, err))
+			return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
 		}
 	}
 

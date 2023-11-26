@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -37,7 +38,7 @@ func ResourceCloudProviderAccessSetup() *schema.Resource {
 			"provider_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{config.AWS, config.AZURE}, false),
+				ValidateFunc: validation.StringInSlice([]string{constant.AWS, constant.AZURE}, false),
 				ForceNew:     true,
 			},
 			"aws_config": {
@@ -105,13 +106,13 @@ func resourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *sc
 			return nil
 		}
 
-		return diag.FromErr(fmt.Errorf(config.ErrorGetRead, err))
+		return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
 	}
 
 	roleSchema := roleToSchemaSetup(role)
 	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
-			return diag.FromErr(fmt.Errorf(config.ErrorGetRead, err))
+			return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
 		}
 	}
 
@@ -160,7 +161,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *
 	roleSchema := roleToSchemaSetup(role)
 
 	resourceID := role.RoleID
-	if role.ProviderName == config.AZURE {
+	if role.ProviderName == constant.AZURE {
 		resourceID = *role.AzureID
 	}
 

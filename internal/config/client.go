@@ -18,7 +18,13 @@ import (
 	"go.mongodb.org/realm/realm"
 )
 
-var userAgent = fmt.Sprintf("%s/%s", ToolName, version.ProviderVersion)
+const (
+	toolName = "terraform-provider-mongodbatlas"
+)
+
+var (
+	userAgent = fmt.Sprintf("%s/%s", toolName, version.ProviderVersion)
+)
 
 // Config contains the configurations needed to use SDKs
 type Config struct {
