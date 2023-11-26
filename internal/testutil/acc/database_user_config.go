@@ -1,12 +1,63 @@
 package acc
 
 import (
+	"context"
 	"fmt"
+	"log"
+
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DatabaseUserConfig(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
+func CheckDatabaseUserExists(resourceName string, dbUser *matlas.DatabaseUser) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
+
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+
+		if rs.Primary.Attributes["project_id"] == "" {
+			return fmt.Errorf("no project_id is set")
+		}
+
+		if rs.Primary.Attributes["auth_database_name"] == "" {
+			return fmt.Errorf("no auth_database_name is set")
+		}
+
+		if rs.Primary.Attributes["username"] == "" {
+			return fmt.Errorf("no username is set")
+		}
+
+		authDB := rs.Primary.Attributes["auth_database_name"]
+		projectID := rs.Primary.Attributes["project_id"]
+		username := rs.Primary.Attributes["username"]
+
+		if dbUserResp, _, err := conn.DatabaseUsers.Get(context.Background(), authDB, projectID, username); err == nil {
+			*dbUser = *dbUserResp
+			return nil
+		}
+
+		return fmt.Errorf("database user(%s-%s-%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["username"], rs.Primary.Attributes["auth_database_name"])
+	}
+}
+
+func CheckDatabaseUserAttributes(dbUser *matlas.DatabaseUser, username string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		log.Printf("[DEBUG] difference dbUser.Username: %s , username : %s", dbUser.Username, username)
+		if dbUser.Username != username {
+			return fmt.Errorf("bad username: %s", dbUser.Username)
+		}
+
+		return nil
+	}
+}
+
+func ConfigDatabaseUserBasic(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = "%s"
@@ -32,7 +83,7 @@ func DatabaseUserConfig(projectName, orgID, roleName, username, keyLabel, valueL
 	`, projectName, orgID, roleName, username, keyLabel, valueLabel)
 }
 
-func DatabaseUserWithX509TypeConfig(projectName, orgID, roleName, username, keyLabel, valueLabel, x509Type string) string {
+func ConfigDatabaseUserWithX509Type(projectName, orgID, roleName, username, keyLabel, valueLabel, x509Type string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = "%s"
@@ -58,7 +109,7 @@ func DatabaseUserWithX509TypeConfig(projectName, orgID, roleName, username, keyL
 	`, projectName, orgID, roleName, username, keyLabel, valueLabel, x509Type)
 }
 
-func DatabaseUserWithLabelsConfig(projectName, orgID, roleName, username string, labels []matlas.Label) string {
+func ConfigDatabaseUserWithLabels(projectName, orgID, roleName, username string, labels []matlas.Label) string {
 	var labelsConf string
 	for _, label := range labels {
 		labelsConf += fmt.Sprintf(`
@@ -92,7 +143,7 @@ func DatabaseUserWithLabelsConfig(projectName, orgID, roleName, username string,
 	`, projectName, orgID, roleName, username, labelsConf)
 }
 
-func DatabaseUserWithRoles(username, password, projectName, orgID string, rolesArr []*matlas.Role) string {
+func ConfigDatabaseUserWithRoles(username, password, projectName, orgID string, rolesArr []*matlas.Role) string {
 	var roles string
 
 	for _, role := range rolesArr {
@@ -137,7 +188,7 @@ func DatabaseUserWithRoles(username, password, projectName, orgID string, rolesA
 	`, projectName, orgID, username, password, roles)
 }
 
-func DatabaseUserWithAWSIAMTypeConfig(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
+func ConfigDatabaseUserWithAWSIAMType(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = "%s"
@@ -163,7 +214,7 @@ func DatabaseUserWithAWSIAMTypeConfig(projectName, orgID, roleName, username, ke
 	`, projectName, orgID, roleName, username, keyLabel, valueLabel)
 }
 
-func DatabaseUserWithScopes(username, password, projectName, orgID, roleName, clusterName string, scopesArr []*matlas.Scope) string {
+func ConfigDatabaseUserWithScopes(username, password, projectName, orgID, roleName, clusterName string, scopesArr []*matlas.Scope) string {
 	var scopes string
 
 	for _, scope := range scopesArr {
@@ -215,7 +266,7 @@ func DatabaseUserWithScopes(username, password, projectName, orgID, roleName, cl
 	`, projectName, orgID, clusterName, username, password, roleName, scopes)
 }
 
-func DatabaseUserWithLDAPAuthTypeConfig(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
+func ConfigDatabaseUserWithLDAPAuthType(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = "%s"

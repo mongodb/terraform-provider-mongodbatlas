@@ -28,7 +28,7 @@ func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.DatabaseUserConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				Config: acc.ConfigDatabaseUserBasic(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckDatabaseUserExists(resourceName, &dbUser),
 					acc.CheckDatabaseUserAttributes(&dbUser, username),
@@ -41,7 +41,7 @@ func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.DatabaseUserConfig(projectName, orgID, "read", username, "Second Key", "Second value"),
+				Config: acc.ConfigDatabaseUserBasic(projectName, orgID, "read", username, "Second Key", "Second value"),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckDatabaseUserExists(resourceName, &dbUser),
 					acc.CheckDatabaseUserAttributes(&dbUser, username),
@@ -73,7 +73,7 @@ func TestAccConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.DatabaseUserWithX509TypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
+				Config: acc.ConfigDatabaseUserWithX509Type(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckDatabaseUserExists(resourceName, &dbUser),
 					acc.CheckDatabaseUserAttributes(&dbUser, username),
@@ -104,7 +104,7 @@ func TestAccConfigRSDatabaseUser_withX509TypeManaged(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.DatabaseUserWithX509TypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
+				Config: acc.ConfigDatabaseUserWithX509Type(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckDatabaseUserExists(resourceName, &dbUser),
 					acc.CheckDatabaseUserAttributes(&dbUser, username),
@@ -134,7 +134,7 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.DatabaseUserWithAWSIAMTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				Config: acc.ConfigDatabaseUserWithAWSIAMType(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckDatabaseUserExists(resourceName, &dbUser),
 					acc.CheckDatabaseUserAttributes(&dbUser, username),
@@ -168,7 +168,7 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType_import(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.DatabaseUserWithAWSIAMTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				Config: acc.ConfigDatabaseUserWithAWSIAMType(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckDatabaseUserExists(resourceName, &dbUser),
 					acc.CheckDatabaseUserAttributes(&dbUser, username),
@@ -205,7 +205,7 @@ func TestAccConfigRSDatabaseUser_WithLabels(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.DatabaseUserWithLabelsConfig(projectName, orgID, "atlasAdmin", username, []matlas.Label{}),
+				Config: acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username, []matlas.Label{}),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckDatabaseUserExists(resourceName, &dbUser),
 					acc.CheckDatabaseUserAttributes(&dbUser, username),
@@ -217,7 +217,7 @@ func TestAccConfigRSDatabaseUser_WithLabels(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.DatabaseUserWithLabelsConfig(projectName, orgID, "atlasAdmin", username,
+				Config: acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username,
 					[]matlas.Label{
 						{
 							Key:   "key 1",
@@ -240,7 +240,7 @@ func TestAccConfigRSDatabaseUser_WithLabels(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.DatabaseUserWithLabelsConfig(projectName, orgID, "read", username,
+				Config: acc.ConfigDatabaseUserWithLabels(projectName, orgID, "read", username,
 					[]matlas.Label{
 						{
 							Key:   "key 4",
@@ -286,7 +286,7 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.DatabaseUserWithRoles(username, password, projectName, orgID,
+				Config: acc.ConfigDatabaseUserWithRoles(username, password, projectName, orgID,
 					[]*matlas.Role{
 						{
 							RoleName:       "read",
@@ -313,7 +313,7 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.DatabaseUserWithRoles(username, password, projectName, orgID,
+				Config: acc.ConfigDatabaseUserWithRoles(username, password, projectName, orgID,
 					[]*matlas.Role{
 						{
 							RoleName:     "read",
@@ -352,7 +352,7 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.DatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
 					[]*matlas.Scope{
 						{
 							Name: "test-acc-nurk4llu2z",
@@ -375,7 +375,7 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.DatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
 					[]*matlas.Scope{
 						{
 							Name: "test-acc-nurk4llu2z",
@@ -414,7 +414,7 @@ func TestAccConfigRSDatabaseUser_withScopesAndEmpty(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.DatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
 					[]*matlas.Scope{
 						{
 							Name: "test-acc-nurk4llu2z",
@@ -437,7 +437,7 @@ func TestAccConfigRSDatabaseUser_withScopesAndEmpty(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.DatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
 					[]*matlas.Scope{},
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -469,7 +469,7 @@ func TestAccConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.DatabaseUserWithLDAPAuthTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				Config: acc.ConfigDatabaseUserWithLDAPAuthType(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckDatabaseUserExists(resourceName, &dbUser),
 					acc.CheckDatabaseUserAttributes(&dbUser, username),
@@ -498,7 +498,7 @@ func TestAccConfigRSDatabaseUser_importBasic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.DatabaseUserConfig(projectName, orgID, "read", username, "First Key", "First value"),
+				Config: acc.ConfigDatabaseUserBasic(projectName, orgID, "read", username, "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -534,7 +534,7 @@ func TestAccConfigRSDatabaseUser_importX509TypeCustomer(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.DatabaseUserWithX509TypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
+				Config: acc.ConfigDatabaseUserWithX509Type(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckDatabaseUserExists(resourceName, &dbUser),
 					acc.CheckDatabaseUserAttributes(&dbUser, username),
@@ -571,7 +571,7 @@ func TestAccConfigRSDatabaseUser_importLDAPAuthType(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.DatabaseUserWithLDAPAuthTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				Config: acc.ConfigDatabaseUserWithLDAPAuthType(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckDatabaseUserExists(resourceName, &dbUser),
 					acc.CheckDatabaseUserAttributes(&dbUser, username),
