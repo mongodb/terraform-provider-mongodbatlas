@@ -241,7 +241,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		awsSessionToken := data.AwsSessionToken.ValueString()
 		endpoint := data.StsEndpoint.ValueString()
 		var err error
-		cfg, err = config.ConfigureCredentialsSTS(cfg, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+		cfg, err = ConfigureCredentialsSTS(cfg, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
 		if err != nil {
 			resp.Diagnostics.AddError("failed to configure credentials STS", err.Error())
 			return

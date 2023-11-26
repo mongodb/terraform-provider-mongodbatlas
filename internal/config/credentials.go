@@ -1,22 +1,13 @@
 package config
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
-)
-
-const (
-	EndPointSTSDefault = "https://sts.amazonaws.com"
 )
 
 type AssumeRole struct {
@@ -36,77 +27,7 @@ type SecretData struct {
 	PrivateKey string `json:"private_key"`
 }
 
-func ConfigureCredentialsSTS(config Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (Config, error) {
-	ep, err := endpoints.GetSTSRegionalEndpoint("regional")
-	if err != nil {
-		log.Printf("GetSTSRegionalEndpoint error: %s", err)
-		return config, err
-	}
-
-	defaultResolver := endpoints.DefaultResolver()
-	stsCustResolverFn := func(service, region string, optFns ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
-		if service == endpoints.StsServiceID {
-			if endpoint == "" {
-				return endpoints.ResolvedEndpoint{
-					URL:           EndPointSTSDefault,
-					SigningRegion: region,
-				}, nil
-			}
-			return endpoints.ResolvedEndpoint{
-				URL:           endpoint,
-				SigningRegion: region,
-			}, nil
-		}
-
-		return defaultResolver.EndpointFor(service, region, optFns...)
-	}
-
-	cfg := aws.Config{
-		Region:              aws.String(region),
-		Credentials:         credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, awsSessionToken),
-		STSRegionalEndpoint: ep,
-		EndpointResolver:    endpoints.ResolverFunc(stsCustResolverFn),
-	}
-
-	sess := session.Must(session.NewSession(&cfg))
-
-	creds := stscreds.NewCredentials(sess, config.AssumeRole.RoleARN)
-
-	_, err = sess.Config.Credentials.Get()
-	if err != nil {
-		log.Printf("Session get credentials error: %s", err)
-		return config, err
-	}
-	_, err = creds.Get()
-	if err != nil {
-		log.Printf("STS get credentials error: %s", err)
-		return config, err
-	}
-	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
-	if err != nil {
-		log.Printf("Get Secrets error: %s", err)
-		return config, err
-	}
-
-	var secretData SecretData
-	err = json.Unmarshal([]byte(secretString), &secretData)
-	if err != nil {
-		return config, err
-	}
-	if secretData.PrivateKey == "" {
-		return config, fmt.Errorf("secret missing value for credential PrivateKey")
-	}
-
-	if secretData.PublicKey == "" {
-		return config, fmt.Errorf("secret missing value for credential PublicKey")
-	}
-
-	config.PublicKey = secretData.PublicKey
-	config.PrivateKey = secretData.PrivateKey
-	return config, nil
-}
-
-func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) (string, error) {
+func SecretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) (string, error) {
 	svc := secretsmanager.New(sess, creds)
 	input := &secretsmanager.GetSecretValueInput{
 		SecretId:     aws.String(secret),

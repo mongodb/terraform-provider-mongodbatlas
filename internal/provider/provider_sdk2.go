@@ -11,12 +11,10 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -414,7 +412,7 @@ func configureCredentialsSTS(cfg config.Config, secret, region, awsAccessKeyID, 
 		if service == endpoints.StsServiceID {
 			if endpoint == "" {
 				return endpoints.ResolvedEndpoint{
-					URL:           config.EndPointSTSDefault,
+					URL:           EndPointSTSDefault,
 					SigningRegion: region,
 				}, nil
 			}
@@ -448,7 +446,7 @@ func configureCredentialsSTS(cfg config.Config, secret, region, awsAccessKeyID, 
 		log.Printf("STS get credentials error: %s", err)
 		return cfg, err
 	}
-	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
+	secretString, err := config.SecretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
 	if err != nil {
 		log.Printf("Get Secrets error: %s", err)
 		return cfg, err
@@ -470,39 +468,6 @@ func configureCredentialsSTS(cfg config.Config, secret, region, awsAccessKeyID, 
 	cfg.PublicKey = secretData.PublicKey
 	cfg.PrivateKey = secretData.PrivateKey
 	return cfg, nil
-}
-
-func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) (string, error) {
-	svc := secretsmanager.New(sess, creds)
-	input := &secretsmanager.GetSecretValueInput{
-		SecretId:     aws.String(secret),
-		VersionStage: aws.String("AWSCURRENT"),
-	}
-
-	result, err := svc.GetSecretValue(input)
-	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			switch aerr.Code() {
-			case secretsmanager.ErrCodeResourceNotFoundException:
-				log.Println(secretsmanager.ErrCodeResourceNotFoundException, aerr.Error())
-			case secretsmanager.ErrCodeInvalidParameterException:
-				log.Println(secretsmanager.ErrCodeInvalidParameterException, aerr.Error())
-			case secretsmanager.ErrCodeInvalidRequestException:
-				log.Println(secretsmanager.ErrCodeInvalidRequestException, aerr.Error())
-			case secretsmanager.ErrCodeDecryptionFailure:
-				log.Println(secretsmanager.ErrCodeDecryptionFailure, aerr.Error())
-			case secretsmanager.ErrCodeInternalServiceError:
-				log.Println(secretsmanager.ErrCodeInternalServiceError, aerr.Error())
-			default:
-				log.Println(aerr.Error())
-			}
-		} else {
-			log.Println(err.Error())
-		}
-		return "", err
-	}
-
-	return *result.SecretString, err
 }
 
 // assumeRoleSchema From aws provider.go
