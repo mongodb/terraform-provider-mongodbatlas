@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/mongodb-forks/digest"
@@ -26,6 +27,13 @@ var (
 	userAgent = fmt.Sprintf("%s/%s", toolName, version.ProviderVersion)
 )
 
+// MongoDBClient contains the mongodbatlas clients and configurations
+type MongoDBClient struct {
+	Atlas   *matlasClient.Client
+	AtlasV2 *atlasSDK.APIClient
+	Config  *Config
+}
+
 // Config contains the configurations needed to use SDKs
 type Config struct {
 	AssumeRole   *AssumeRole
@@ -35,11 +43,21 @@ type Config struct {
 	RealmBaseURL string
 }
 
-// MongoDBClient contains the mongodbatlas clients and configurations
-type MongoDBClient struct {
-	Atlas   *matlasClient.Client
-	AtlasV2 *atlasSDK.APIClient
-	Config  *Config
+type AssumeRole struct {
+	Tags              map[string]string
+	RoleARN           string
+	ExternalID        string
+	Policy            string
+	SessionName       string
+	SourceIdentity    string
+	PolicyARNs        []string
+	TransitiveTagKeys []string
+	Duration          time.Duration
+}
+
+type SecretData struct {
+	PublicKey  string `json:"public_key"`
+	PrivateKey string `json:"private_key"`
 }
 
 // NewClient func...
