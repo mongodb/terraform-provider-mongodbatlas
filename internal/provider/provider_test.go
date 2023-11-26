@@ -1,40 +1,75 @@
 package provider_test
 
 import (
+	"context"
 	"testing"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
-
-	"github.com/go-test/deep"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	providerfw "github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
 )
 
-func TestSdkV2Provider(t *testing.T) {
-	if err := provider.NewSdkV2Provider().InternalValidate(); err != nil {
-		t.Fatalf("err: %s", err)
+func TestResourceSchemas(t *testing.T) {
+	t.Parallel()
+	ctxProvider := context.Background()
+	prov := provider.NewFrameworkProvider()
+	var provReq providerfw.MetadataRequest
+	var provRes providerfw.MetadataResponse
+	prov.Metadata(ctxProvider, provReq, &provRes)
+	for _, fn := range prov.Resources(ctxProvider) {
+		ctx := context.Background()
+		res := fn()
+		metadataReq := resource.MetadataRequest{
+			ProviderTypeName: provRes.TypeName,
+		}
+		var metadataRes resource.MetadataResponse
+		res.Metadata(ctx, metadataReq, &metadataRes)
+
+		t.Run(metadataRes.TypeName, func(t *testing.T) {
+			schemaRequest := resource.SchemaRequest{}
+			schemaResponse := &resource.SchemaResponse{}
+			res.Schema(ctx, schemaRequest, schemaResponse)
+
+			if schemaResponse.Diagnostics.HasError() {
+				t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+			}
+
+			if diagnostics := schemaResponse.Schema.ValidateImplementation(ctx); diagnostics.HasError() {
+				t.Fatalf("Schema validation diagnostics: %+v", diagnostics)
+			}
+		})
 	}
 }
 
-func TestRemoveLabel(t *testing.T) {
-	toRemove := matlas.Label{Key: "To Remove", Value: "To remove value"}
+func TestDataSourceSchemas(t *testing.T) {
+	t.Parallel()
+	ctxProvider := context.Background()
+	prov := provider.NewFrameworkProvider()
+	var provReq providerfw.MetadataRequest
+	var provRes providerfw.MetadataResponse
+	prov.Metadata(ctxProvider, provReq, &provRes)
+	for _, fn := range prov.DataSources(ctxProvider) {
+		ctx := context.Background()
+		res := fn()
+		metadataReq := datasource.MetadataRequest{
+			ProviderTypeName: provRes.TypeName,
+		}
+		var metadataRes datasource.MetadataResponse
+		res.Metadata(ctx, metadataReq, &metadataRes)
 
-	expected := []matlas.Label{
-		{Key: "Name", Value: "Test"},
-		{Key: "Version", Value: "1.0"},
-		{Key: "Type", Value: "testing"},
-	}
+		t.Run(metadataRes.TypeName, func(t *testing.T) {
+			schemaRequest := datasource.SchemaRequest{}
+			schemaResponse := &datasource.SchemaResponse{}
+			res.Schema(ctx, schemaRequest, schemaResponse)
 
-	labels := []matlas.Label{
-		{Key: "Name", Value: "Test"},
-		{Key: "Version", Value: "1.0"},
-		{Key: "To Remove", Value: "To remove value"},
-		{Key: "Type", Value: "testing"},
-	}
+			if schemaResponse.Diagnostics.HasError() {
+				t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+			}
 
-	got := config.RemoveLabel(labels, toRemove)
-
-	if diff := deep.Equal(expected, got); diff != nil {
-		t.Fatalf("Bad removeLabel return \n got = %#v\nwant = %#v \ndiff = %#v", got, expected, diff)
+			if diagnostics := schemaResponse.Schema.ValidateImplementation(ctx); diagnostics.HasError() {
+				t.Fatalf("Schema validation diagnostics: %+v", diagnostics)
+			}
+		})
 	}
 }

@@ -2,655 +2,452 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"log"
-	"os"
 	"regexp"
-	"strconv"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
+	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
+	sdkv2schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/util"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
-	"github.com/mwielbut/pointy"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
-var (
-	ProviderEnableBeta, _ = strconv.ParseBool(os.Getenv("MONGODB_ATLAS_ENABLE_BETA"))
-)
+type MongodbtlasProvider struct{}
 
-type SecretData struct {
-	PublicKey  string `json:"public_key"`
-	PrivateKey string `json:"private_key"`
+type tfMongodbAtlasProviderModel struct {
+	AssumeRole           types.List   `tfsdk:"assume_role"`
+	PublicKey            types.String `tfsdk:"public_key"`
+	PrivateKey           types.String `tfsdk:"private_key"`
+	BaseURL              types.String `tfsdk:"base_url"`
+	RealmBaseURL         types.String `tfsdk:"realm_base_url"`
+	SecretName           types.String `tfsdk:"secret_name"`
+	Region               types.String `tfsdk:"region"`
+	StsEndpoint          types.String `tfsdk:"sts_endpoint"`
+	AwsAccessKeyID       types.String `tfsdk:"aws_access_key_id"`
+	AwsSecretAccessKeyID types.String `tfsdk:"aws_secret_access_key"`
+	AwsSessionToken      types.String `tfsdk:"aws_session_token"`
+	IsMongodbGovCloud    types.Bool   `tfsdk:"is_mongodbgov_cloud"`
 }
 
-// NewSdkV2Provider returns the provider to be use by the code.
-func NewSdkV2Provider() *schema.Provider {
-	provider := &schema.Provider{
-		Schema: map[string]*schema.Schema{
-			"public_key": {
-				Type:        schema.TypeString,
+type tfAssumeRoleModel struct {
+	PolicyARNs        types.Set    `tfsdk:"policy_arns"`
+	TransitiveTagKeys types.Set    `tfsdk:"transitive_tag_keys"`
+	Tags              types.Map    `tfsdk:"tags"`
+	Duration          types.String `tfsdk:"duration"`
+	ExternalID        types.String `tfsdk:"external_id"`
+	Policy            types.String `tfsdk:"policy"`
+	RoleARN           types.String `tfsdk:"role_arn"`
+	SessionName       types.String `tfsdk:"session_name"`
+	SourceIdentity    types.String `tfsdk:"source_identity"`
+}
+
+var AssumeRoleType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"policy_arns":         types.SetType{ElemType: types.StringType},
+	"transitive_tag_keys": types.SetType{ElemType: types.StringType},
+	"tags":                types.MapType{ElemType: types.StringType},
+	"duration":            types.StringType,
+	"external_id":         types.StringType,
+	"policy":              types.StringType,
+	"role_arn":            types.StringType,
+	"session_name":        types.StringType,
+	"source_identity":     types.StringType,
+}}
+
+func (p *MongodbtlasProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+	resp.TypeName = "mongodbatlas"
+	resp.Version = version.ProviderVersion
+}
+
+func (p *MongodbtlasProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Blocks: map[string]schema.Block{
+			"assume_role": fwAssumeRoleSchema,
+		},
+		Attributes: map[string]schema.Attribute{
+			"public_key": schema.StringAttribute{
 				Optional:    true,
 				Description: "MongoDB Atlas Programmatic Public Key",
 			},
-			"private_key": {
-				Type:        schema.TypeString,
+			"private_key": schema.StringAttribute{
 				Optional:    true,
 				Description: "MongoDB Atlas Programmatic Private Key",
 				Sensitive:   true,
 			},
-			"base_url": {
-				Type:        schema.TypeString,
+			"base_url": schema.StringAttribute{
 				Optional:    true,
 				Description: "MongoDB Atlas Base URL",
 			},
-			"realm_base_url": {
-				Type:        schema.TypeString,
+			"realm_base_url": schema.StringAttribute{
 				Optional:    true,
 				Description: "MongoDB Realm Base URL",
 			},
-			"is_mongodbgov_cloud": {
-				Type:        schema.TypeBool,
+			"is_mongodbgov_cloud": schema.BoolAttribute{
 				Optional:    true,
 				Description: "MongoDB Atlas Base URL default to gov",
 			},
-			"assume_role": assumeRoleSchema(),
-			"secret_name": {
-				Type:        schema.TypeString,
+			"secret_name": schema.StringAttribute{
 				Optional:    true,
 				Description: "Name of secret stored in AWS Secret Manager.",
 			},
-			"region": {
-				Type:        schema.TypeString,
+			"region": schema.StringAttribute{
 				Optional:    true,
 				Description: "Region where secret is stored as part of AWS Secret Manager.",
 			},
-			"sts_endpoint": {
-				Type:        schema.TypeString,
+			"sts_endpoint": schema.StringAttribute{
 				Optional:    true,
 				Description: "AWS Security Token Service endpoint. Required for cross-AWS region or cross-AWS account secrets.",
 			},
-			"aws_access_key_id": {
-				Type:        schema.TypeString,
+			"aws_access_key_id": schema.StringAttribute{
 				Optional:    true,
 				Description: "AWS API Access Key.",
 			},
-			"aws_secret_access_key": {
-				Type:        schema.TypeString,
+			"aws_secret_access_key": schema.StringAttribute{
 				Optional:    true,
 				Description: "AWS API Access Secret Key.",
 			},
-			"aws_session_token": {
-				Type:        schema.TypeString,
+			"aws_session_token": schema.StringAttribute{
 				Optional:    true,
 				Description: "AWS Security Token Service provided session token.",
 			},
 		},
-		DataSourcesMap:       getDataSourcesMap(),
-		ResourcesMap:         getResourcesMap(),
-		ConfigureContextFunc: providerConfigure,
 	}
-	addBetaFeatures(provider)
-	return provider
 }
 
-func getDataSourcesMap() map[string]*schema.Resource {
-	dataSourcesMap := map[string]*schema.Resource{
-		"mongodbatlas_advanced_cluster":                  advancedcluster.DataSourceAdvancedCluster(),
-		"mongodbatlas_advanced_clusters":                 advancedcluster.DataSourceAdvancedClusters(),
-		"mongodbatlas_custom_db_role":                    mongodbatlas.DataSourceCustomDBRole(),
-		"mongodbatlas_custom_db_roles":                   mongodbatlas.DataSourceCustomDBRoles(),
-		"mongodbatlas_api_key":                           mongodbatlas.DataSourceAPIKey(),
-		"mongodbatlas_api_keys":                          mongodbatlas.DataSourceAPIKeys(),
-		"mongodbatlas_access_list_api_key":               mongodbatlas.DataSourceAccessListAPIKey(),
-		"mongodbatlas_access_list_api_keys":              mongodbatlas.DataSourceAccessListAPIKeys(),
-		"mongodbatlas_project_api_key":                   mongodbatlas.DataSourceProjectAPIKey(),
-		"mongodbatlas_project_api_keys":                  mongodbatlas.DataSourceProjectAPIKeys(),
-		"mongodbatlas_roles_org_id":                      mongodbatlas.DataSourceOrgID(),
-		"mongodbatlas_cluster":                           cluster.DataSourceCluster(),
-		"mongodbatlas_clusters":                          cluster.DataSourceClusters(),
-		"mongodbatlas_network_container":                 mongodbatlas.DataSourceNetworkContainer(),
-		"mongodbatlas_network_containers":                mongodbatlas.DataSourceNetworkContainers(),
-		"mongodbatlas_network_peering":                   mongodbatlas.DataSourceNetworkPeering(),
-		"mongodbatlas_network_peerings":                  mongodbatlas.DataSourceNetworkPeerings(),
-		"mongodbatlas_maintenance_window":                mongodbatlas.DataSourceMaintenanceWindow(),
-		"mongodbatlas_auditing":                          mongodbatlas.DataSourceAuditing(),
-		"mongodbatlas_team":                              mongodbatlas.DataSourceTeam(),
-		"mongodbatlas_teams":                             mongodbatlas.DataSourceTeam(),
-		"mongodbatlas_global_cluster_config":             mongodbatlas.DataSourceGlobalCluster(),
-		"mongodbatlas_x509_authentication_database_user": mongodbatlas.DataSourceX509AuthDBUser(),
-		"mongodbatlas_private_endpoint_regional_mode":    mongodbatlas.DataSourcePrivateEndpointRegionalMode(),
-		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive":  mongodbatlas.DataSourcePrivatelinkEndpointServiceDataFederationOnlineArchive(),
-		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archives": mongodbatlas.DataSourcePrivatelinkEndpointServiceDataFederationOnlineArchives(),
-		"mongodbatlas_privatelink_endpoint":                                         mongodbatlas.DataSourcePrivateLinkEndpoint(),
-		"mongodbatlas_privatelink_endpoint_service":                                 mongodbatlas.DataSourcePrivateEndpointServiceLink(),
-		"mongodbatlas_privatelink_endpoint_service_serverless":                      mongodbatlas.DataSourcePrivateLinkEndpointServerless(),
-		"mongodbatlas_privatelink_endpoints_service_serverless":                     mongodbatlas.DataSourcePrivateLinkEndpointsServiceServerless(),
-		"mongodbatlas_cloud_backup_schedule":                                        mongodbatlas.DataSourceCloudBackupSchedule(),
-		"mongodbatlas_third_party_integration":                                      mongodbatlas.DataSourceThirdPartyIntegration(),
-		"mongodbatlas_third_party_integrations":                                     mongodbatlas.DataSourceThirdPartyIntegrations(),
-		"mongodbatlas_cloud_provider_access":                                        mongodbatlas.DataSourceCloudProviderAccessList(),
-		"mongodbatlas_cloud_provider_access_setup":                                  mongodbatlas.DataSourceCloudProviderAccessSetup(),
-		"mongodbatlas_custom_dns_configuration_cluster_aws":                         mongodbatlas.DataSourceCustomDNSConfigurationAWS(),
-		"mongodbatlas_online_archive":                                               mongodbatlas.DataSourceOnlineArchive(),
-		"mongodbatlas_online_archives":                                              mongodbatlas.DataSourceOnlineArchives(),
-		"mongodbatlas_ldap_configuration":                                           mongodbatlas.DataSourceLDAPConfiguration(),
-		"mongodbatlas_ldap_verify":                                                  mongodbatlas.DataSourceLDAPVerify(),
-		"mongodbatlas_search_index":                                                 mongodbatlas.DataSourceSearchIndex(),
-		"mongodbatlas_search_indexes":                                               mongodbatlas.DataSourceSearchIndexes(),
-		"mongodbatlas_data_lake_pipeline_run":                                       mongodbatlas.DataSourceDataLakePipelineRun(),
-		"mongodbatlas_data_lake_pipeline_runs":                                      mongodbatlas.DataSourceDataLakePipelineRuns(),
-		"mongodbatlas_data_lake_pipeline":                                           mongodbatlas.DataSourceDataLakePipeline(),
-		"mongodbatlas_data_lake_pipelines":                                          mongodbatlas.DataSourceDataLakePipelines(),
-		"mongodbatlas_event_trigger":                                                mongodbatlas.DataSourceEventTrigger(),
-		"mongodbatlas_event_triggers":                                               mongodbatlas.DataSourceEventTriggers(),
-		"mongodbatlas_project_invitation":                                           mongodbatlas.DataSourceProjectInvitation(),
-		"mongodbatlas_org_invitation":                                               mongodbatlas.DataSourceOrgInvitation(),
-		"mongodbatlas_organization":                                                 mongodbatlas.DataSourceOrganization(),
-		"mongodbatlas_organizations":                                                mongodbatlas.DataSourceOrganizations(),
-		"mongodbatlas_cloud_backup_snapshot":                                        mongodbatlas.DataSourceCloudBackupSnapshot(),
-		"mongodbatlas_cloud_backup_snapshots":                                       mongodbatlas.DataSourceCloudBackupSnapshots(),
-		"mongodbatlas_backup_compliance_policy":                                     mongodbatlas.DataSourceBackupCompliancePolicy(),
-		"mongodbatlas_cloud_backup_snapshot_restore_job":                            mongodbatlas.DataSourceCloudBackupSnapshotRestoreJob(),
-		"mongodbatlas_cloud_backup_snapshot_restore_jobs":                           mongodbatlas.DataSourceCloudBackupSnapshotRestoreJobs(),
-		"mongodbatlas_cloud_backup_snapshot_export_bucket":                          mongodbatlas.DatasourceMongoDBAtlasCloudBackupSnapshotExportBucket(),
-		"mongodbatlas_cloud_backup_snapshot_export_buckets":                         mongodbatlas.DatasourceMongoDBAtlasCloudBackupSnapshotExportBuckets(),
-		"mongodbatlas_cloud_backup_snapshot_export_job":                             mongodbatlas.DatasourceMongoDBAtlasCloudBackupSnapshotExportJob(),
-		"mongodbatlas_cloud_backup_snapshot_export_jobs":                            mongodbatlas.DatasourceMongoDBAtlasCloudBackupSnapshotExportJobs(),
-		"mongodbatlas_federated_settings":                                           mongodbatlas.DataSourceFederatedSettings(),
-		"mongodbatlas_federated_settings_identity_provider":                         mongodbatlas.DataSourceFederatedSettingsIdentityProvider(),
-		"mongodbatlas_federated_settings_identity_providers":                        mongodbatlas.DataSourceFederatedSettingsIdentityProviders(),
-		"mongodbatlas_federated_settings_org_config":                                mongodbatlas.DataSourceFederatedSettingsOrganizationConfig(),
-		"mongodbatlas_federated_settings_org_configs":                               mongodbatlas.DataSourceFederatedSettingsOrganizationConfigs(),
-		"mongodbatlas_federated_settings_org_role_mapping":                          mongodbatlas.DataSourceFederatedSettingsOrganizationRoleMapping(),
-		"mongodbatlas_federated_settings_org_role_mappings":                         mongodbatlas.DataSourceFederatedSettingsOrganizationRoleMappings(),
-		"mongodbatlas_federated_database_instance":                                  mongodbatlas.DataSourceFederatedDatabaseInstance(),
-		"mongodbatlas_federated_database_instances":                                 mongodbatlas.DataSourceFederatedDatabaseInstances(),
-		"mongodbatlas_federated_query_limit":                                        mongodbatlas.DataSourceFederatedDatabaseQueryLimit(),
-		"mongodbatlas_federated_query_limits":                                       mongodbatlas.DataSourceFederatedDatabaseQueryLimits(),
-		"mongodbatlas_serverless_instance":                                          mongodbatlas.DataSourceServerlessInstance(),
-		"mongodbatlas_serverless_instances":                                         mongodbatlas.DataSourceServerlessInstances(),
-		"mongodbatlas_cluster_outage_simulation":                                    mongodbatlas.DataSourceClusterOutageSimulation(),
-		"mongodbatlas_shared_tier_restore_job":                                      mongodbatlas.DataSourceCloudSharedTierRestoreJob(),
-		"mongodbatlas_shared_tier_restore_jobs":                                     mongodbatlas.DataSourceCloudSharedTierRestoreJobs(),
-		"mongodbatlas_shared_tier_snapshot":                                         mongodbatlas.DataSourceSharedTierSnapshot(),
-		"mongodbatlas_shared_tier_snapshots":                                        mongodbatlas.DataSourceSharedTierSnapshots(),
-	}
-	return dataSourcesMap
+var fwAssumeRoleSchema = schema.ListNestedBlock{
+	Validators: []validator.List{listvalidator.SizeAtMost(1)},
+	NestedObject: schema.NestedBlockObject{
+		Attributes: map[string]schema.Attribute{
+			"duration": schema.StringAttribute{
+				Optional:    true,
+				Description: "The duration, between 15 minutes and 12 hours, of the role session. Valid time units are ns, us (or µs), ms, s, h, or m.",
+				Validators: []validator.String{
+					validate.ValidDurationBetween(15, 12*60),
+				},
+			},
+			"external_id": schema.StringAttribute{
+				Optional:    true,
+				Description: "A unique identifier that might be required when you assume a role in another account.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(2, 1224),
+					stringvalidator.RegexMatches(regexp.MustCompile(`[\w+=,.@:/\-]*`), ""),
+				},
+			},
+			"policy": schema.StringAttribute{
+				Optional:    true,
+				Description: "IAM Policy JSON describing further restricting permissions for the IAM Role being assumed.",
+				Validators: []validator.String{
+					validate.StringIsJSON(),
+				},
+			},
+			"policy_arns": schema.SetAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "Amazon Resource Names (ARNs) of IAM Policies describing further restricting permissions for the IAM Role being assumed.",
+			},
+			"role_arn": schema.StringAttribute{
+				Optional:    true,
+				Description: "Amazon Resource Name (ARN) of an IAM Role to assume prior to making API calls.",
+			},
+			"session_name": schema.StringAttribute{
+				Optional:    true,
+				Description: "An identifier for the assumed role session.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(2, 64),
+					stringvalidator.RegexMatches(regexp.MustCompile(`[\w+=,.@\-]*`), ""),
+				},
+			},
+			"source_identity": schema.StringAttribute{
+				Optional:    true,
+				Description: "Source identity specified by the principal assuming the role.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(2, 64),
+					stringvalidator.RegexMatches(regexp.MustCompile(`[\w+=,.@\-]*`), ""),
+				},
+			},
+			"tags": schema.MapAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "Assume role session tags.",
+			},
+			"transitive_tag_keys": schema.SetAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "Assume role session tag keys to pass to any subsequent sessions.",
+			},
+		},
+	},
 }
 
-func getResourcesMap() map[string]*schema.Resource {
-	resourcesMap := map[string]*schema.Resource{
-		"mongodbatlas_advanced_cluster":                  advancedcluster.ResourceAdvancedCluster(),
-		"mongodbatlas_api_key":                           mongodbatlas.ResourceAPIKey(),
-		"mongodbatlas_access_list_api_key":               mongodbatlas.ResourceAccessListAPIKey(),
-		"mongodbatlas_project_api_key":                   mongodbatlas.ResourceProjectAPIKey(),
-		"mongodbatlas_custom_db_role":                    mongodbatlas.ResourceCustomDBRole(),
-		"mongodbatlas_cluster":                           cluster.ResourceCluster(),
-		"mongodbatlas_network_container":                 mongodbatlas.ResourceNetworkContainer(),
-		"mongodbatlas_network_peering":                   mongodbatlas.ResourceNetworkPeering(),
-		"mongodbatlas_maintenance_window":                mongodbatlas.ResourceMaintenanceWindow(),
-		"mongodbatlas_auditing":                          mongodbatlas.ResourceAuditing(),
-		"mongodbatlas_team":                              mongodbatlas.ResourceTeam(),
-		"mongodbatlas_teams":                             mongodbatlas.ResourceTeam(),
-		"mongodbatlas_global_cluster_config":             mongodbatlas.ResourceGlobalCluster(),
-		"mongodbatlas_x509_authentication_database_user": mongodbatlas.ResourceX509AuthDBUser(),
-		"mongodbatlas_private_endpoint_regional_mode":    mongodbatlas.ResourcePrivateEndpointRegionalMode(),
-		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive": mongodbatlas.ResourcePrivatelinkEndpointServiceDataFederationOnlineArchive(),
-		"mongodbatlas_privatelink_endpoint":                                        mongodbatlas.ResourcePrivateLinkEndpoint(),
-		"mongodbatlas_privatelink_endpoint_serverless":                             mongodbatlas.ResourcePrivateLinkEndpointServerless(),
-		"mongodbatlas_privatelink_endpoint_service":                                mongodbatlas.ResourcePrivateEndpointServiceLink(),
-		"mongodbatlas_privatelink_endpoint_service_serverless":                     mongodbatlas.ResourcePrivateLinkEndpointServiceServerless(),
-		"mongodbatlas_third_party_integration":                                     mongodbatlas.ResourceThirdPartyIntegration(),
-		"mongodbatlas_cloud_provider_access":                                       mongodbatlas.ResourceCloudProviderAccess(),
-		"mongodbatlas_online_archive":                                              mongodbatlas.ResourceOnlineArchive(),
-		"mongodbatlas_custom_dns_configuration_cluster_aws":                        mongodbatlas.ResourceCustomDNSConfiguration(),
-		"mongodbatlas_ldap_configuration":                                          mongodbatlas.ResourceLDAPConfiguration(),
-		"mongodbatlas_ldap_verify":                                                 mongodbatlas.ResourceLDAPVerify(),
-		"mongodbatlas_cloud_provider_access_setup":                                 mongodbatlas.ResourceCloudProviderAccessSetup(),
-		"mongodbatlas_cloud_provider_access_authorization":                         mongodbatlas.ResourceCloudProviderAccessAuthorization(),
-		"mongodbatlas_search_index":                                                mongodbatlas.ResourceSearchIndex(),
-		"mongodbatlas_data_lake_pipeline":                                          mongodbatlas.ResourceDataLakePipeline(),
-		"mongodbatlas_event_trigger":                                               mongodbatlas.ResourceEventTriggers(),
-		"mongodbatlas_cloud_backup_schedule":                                       mongodbatlas.ResourceCloudBackupSchedule(),
-		"mongodbatlas_project_invitation":                                          mongodbatlas.ResourceProjectInvitation(),
-		"mongodbatlas_org_invitation":                                              mongodbatlas.ResourceOrgInvitation(),
-		"mongodbatlas_organization":                                                mongodbatlas.ResourceOrganization(),
-		"mongodbatlas_cloud_backup_snapshot":                                       mongodbatlas.ResourceCloudBackupSnapshot(),
-		"mongodbatlas_backup_compliance_policy":                                    mongodbatlas.ResourceBackupCompliancePolicy(),
-		"mongodbatlas_cloud_backup_snapshot_restore_job":                           mongodbatlas.ResourceCloudBackupSnapshotRestoreJob(),
-		"mongodbatlas_cloud_backup_snapshot_export_bucket":                         mongodbatlas.ResourceCloudBackupSnapshotExportBucket(),
-		"mongodbatlas_cloud_backup_snapshot_export_job":                            mongodbatlas.ResourceCloudBackupSnapshotExportJob(),
-		"mongodbatlas_federated_settings_org_config":                               mongodbatlas.ResourceFederatedSettingsOrganizationConfig(),
-		"mongodbatlas_federated_settings_org_role_mapping":                         mongodbatlas.ResourceFederatedSettingsOrganizationRoleMapping(),
-		"mongodbatlas_federated_settings_identity_provider":                        mongodbatlas.ResourceFederatedSettingsIdentityProvider(),
-		"mongodbatlas_federated_database_instance":                                 mongodbatlas.ResourceFederatedDatabaseInstance(),
-		"mongodbatlas_federated_query_limit":                                       mongodbatlas.ResourceFederatedDatabaseQueryLimit(),
-		"mongodbatlas_serverless_instance":                                         mongodbatlas.ResourceServerlessInstance(),
-		"mongodbatlas_cluster_outage_simulation":                                   mongodbatlas.ResourceClusterOutageSimulation(),
-	}
-	return resourcesMap
-}
+func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	var data tfMongodbAtlasProviderModel
 
-func addBetaFeatures(provider *schema.Provider) {
-	if ProviderEnableBeta {
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
-}
 
-func providerConfigure(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
-	diagnostics := setDefaultsAndValidations(d)
-	if diagnostics.HasError() {
-		return nil, diagnostics
+	data = setDefaultValuesWithValidations(ctx, &data, resp)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	cfg := config.Config{
-		PublicKey:    d.Get("public_key").(string),
-		PrivateKey:   d.Get("private_key").(string),
-		BaseURL:      d.Get("base_url").(string),
-		RealmBaseURL: d.Get("realm_base_url").(string),
+		PublicKey:    data.PublicKey.ValueString(),
+		PrivateKey:   data.PrivateKey.ValueString(),
+		BaseURL:      data.BaseURL.ValueString(),
+		RealmBaseURL: data.RealmBaseURL.ValueString(),
 	}
 
-	assumeRoleValue, ok := d.GetOk("assume_role")
-	awsRoleDefined := ok && len(assumeRoleValue.([]any)) > 0 && assumeRoleValue.([]any)[0] != nil
+	var assumeRoles []tfAssumeRoleModel
+	data.AssumeRole.ElementsAs(ctx, &assumeRoles, true)
+	awsRoleDefined := len(assumeRoles) > 0
 	if awsRoleDefined {
-		cfg.AssumeRole = expandAssumeRole(assumeRoleValue.([]any)[0].(map[string]any))
-		secret := d.Get("secret_name").(string)
-		region := util.MongoDBRegionToAWSRegion(d.Get("region").(string))
-		awsAccessKeyID := d.Get("aws_access_key_id").(string)
-		awsSecretAccessKey := d.Get("aws_secret_access_key").(string)
-		awsSessionToken := d.Get("aws_session_token").(string)
-		endpoint := d.Get("sts_endpoint").(string)
+		cfg.AssumeRole = parseTfModel(ctx, &assumeRoles[0])
+		secret := data.SecretName.ValueString()
+		region := util.MongoDBRegionToAWSRegion(data.Region.ValueString())
+		awsAccessKeyID := data.AwsAccessKeyID.ValueString()
+		awsSecretAccessKey := data.AwsSecretAccessKeyID.ValueString()
+		awsSessionToken := data.AwsSessionToken.ValueString()
+		endpoint := data.StsEndpoint.ValueString()
 		var err error
-		cfg, err = configureCredentialsSTS(cfg, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+		cfg, err = config.ConfigureCredentialsSTS(cfg, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
 		if err != nil {
-			return nil, append(diagnostics, diag.FromErr(err)...)
+			resp.Diagnostics.AddError("failed to configure credentials STS", err.Error())
+			return
 		}
 	}
 
 	client, err := cfg.NewClient(ctx)
+
 	if err != nil {
-		return nil, append(diagnostics, diag.FromErr(err)...)
+		resp.Diagnostics.AddError(
+			"failed to initialize a new client",
+			err.Error(),
+		)
+		return
 	}
-	return client, diagnostics
+
+	resp.DataSourceData = client
+	resp.ResourceData = client
 }
 
-func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
-	diagnostics := []diag.Diagnostic{}
+// parseTfModel extracts the values from tfAssumeRoleModel creating a new instance of our internal model AssumeRole used in Config
+func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *config.AssumeRole {
+	assumeRole := config.AssumeRole{}
 
-	mongodbgovCloud := pointy.Bool(d.Get("is_mongodbgov_cloud").(bool))
-	if *mongodbgovCloud {
-		if err := d.Set("base_url", config.MongodbGovCloudURL); err != nil {
-			return append(diagnostics, diag.FromErr(err)...)
-		}
+	if !tfAssumeRoleModel.Duration.IsNull() {
+		duration, _ := time.ParseDuration(tfAssumeRoleModel.Duration.ValueString())
+		assumeRole.Duration = duration
 	}
 
-	if err := setValueFromConfigOrEnv(d, "base_url", []string{
-		"MONGODB_ATLAS_BASE_URL",
-		"MCLI_OPS_MANAGER_URL",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
+	assumeRole.ExternalID = tfAssumeRoleModel.ExternalID.ValueString()
+	assumeRole.Policy = tfAssumeRoleModel.Policy.ValueString()
+
+	if !tfAssumeRoleModel.PolicyARNs.IsNull() {
+		var policiesARNs []string
+		tfAssumeRoleModel.PolicyARNs.ElementsAs(ctx, &policiesARNs, true)
+		assumeRole.PolicyARNs = policiesARNs
+	}
+
+	assumeRole.RoleARN = tfAssumeRoleModel.RoleARN.ValueString()
+	assumeRole.SessionName = tfAssumeRoleModel.SessionName.ValueString()
+	assumeRole.SourceIdentity = tfAssumeRoleModel.SourceIdentity.ValueString()
+
+	if !tfAssumeRoleModel.TransitiveTagKeys.IsNull() {
+		var transitiveTagKeys []string
+		tfAssumeRoleModel.TransitiveTagKeys.ElementsAs(ctx, &transitiveTagKeys, true)
+		assumeRole.TransitiveTagKeys = transitiveTagKeys
+	}
+
+	return &assumeRole
+}
+
+func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasProviderModel, resp *provider.ConfigureResponse) tfMongodbAtlasProviderModel {
+	if mongodbgovCloud := data.IsMongodbGovCloud.ValueBool(); mongodbgovCloud {
+		data.BaseURL = types.StringValue(config.MongodbGovCloudURL)
+	}
+	if data.BaseURL.ValueString() == "" {
+		data.BaseURL = types.StringValue(config.MultiEnvDefaultFunc([]string{
+			"MONGODB_ATLAS_BASE_URL",
+			"MCLI_OPS_MANAGER_URL",
+		}, "").(string))
 	}
 
 	awsRoleDefined := false
-	assumeRoles := d.Get("assume_role").([]any)
-	if len(assumeRoles) == 0 {
-		roleArn := MultiEnvDefaultFunc([]string{
+	if len(data.AssumeRole.Elements()) == 0 {
+		assumeRoleArn := config.MultiEnvDefaultFunc([]string{
 			"ASSUME_ROLE_ARN",
 			"TF_VAR_ASSUME_ROLE_ARN",
 		}, "").(string)
-		if roleArn != "" {
+		if assumeRoleArn != "" {
 			awsRoleDefined = true
-			if err := d.Set("assume_role", []map[string]any{{"role_arn": roleArn}}); err != nil {
-				return append(diagnostics, diag.FromErr(err)...)
+			var diags diag.Diagnostics
+			data.AssumeRole, diags = types.ListValueFrom(ctx, AssumeRoleType, []tfAssumeRoleModel{
+				{
+					Tags:              types.MapNull(types.StringType),
+					PolicyARNs:        types.SetNull(types.StringType),
+					TransitiveTagKeys: types.SetNull(types.StringType),
+					RoleARN:           types.StringValue(assumeRoleArn),
+				},
+			})
+			if diags.HasError() {
+				resp.Diagnostics.Append(diags...)
 			}
 		}
 	} else {
 		awsRoleDefined = true
 	}
 
-	if err := setValueFromConfigOrEnv(d, "public_key", []string{
-		"MONGODB_ATLAS_PUBLIC_KEY",
-		"MCLI_PUBLIC_API_KEY",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-	if d.Get("public_key").(string) == "" && !awsRoleDefined {
-		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: config.MissingAuthAttrError})
-	}
-
-	if err := setValueFromConfigOrEnv(d, "private_key", []string{
-		"MONGODB_ATLAS_PRIVATE_KEY",
-		"MCLI_PRIVATE_API_KEY",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if d.Get("private_key").(string) == "" && !awsRoleDefined {
-		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: config.MissingAuthAttrError})
-	}
-
-	if err := setValueFromConfigOrEnv(d, "realm_base_url", []string{
-		"MONGODB_REALM_BASE_URL",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "region", []string{
-		"AWS_REGION",
-		"TF_VAR_AWS_REGION",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "sts_endpoint", []string{
-		"STS_ENDPOINT",
-		"TF_VAR_STS_ENDPOINT",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "aws_access_key_id", []string{
-		"AWS_ACCESS_KEY_ID",
-		"TF_VAR_AWS_ACCESS_KEY_ID",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "aws_secret_access_key", []string{
-		"AWS_SECRET_ACCESS_KEY",
-		"TF_VAR_AWS_SECRET_ACCESS_KEY",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "secret_name", []string{
-		"SECRET_NAME",
-		"TF_VAR_SECRET_NAME",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "aws_session_token", []string{
-		"AWS_SESSION_TOKEN",
-		"TF_VAR_AWS_SESSION_TOKEN",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	return diagnostics
-}
-
-func setValueFromConfigOrEnv(d *schema.ResourceData, attrName string, envVars []string) error {
-	var val = d.Get(attrName).(string)
-	if val == "" {
-		val = MultiEnvDefaultFunc(envVars, "").(string)
-	}
-	return d.Set(attrName, val)
-}
-
-func MultiEnvDefaultFunc(ks []string, def any) any {
-	for _, k := range ks {
-		if v := os.Getenv(k); v != "" {
-			return v
+	if data.PublicKey.ValueString() == "" {
+		data.PublicKey = types.StringValue(config.MultiEnvDefaultFunc([]string{
+			"MONGODB_ATLAS_PUBLIC_KEY",
+			"MCLI_PUBLIC_API_KEY",
+		}, "").(string))
+		if data.PublicKey.ValueString() == "" && !awsRoleDefined {
+			resp.Diagnostics.AddWarning(config.ProviderConfigError, config.MissingAuthAttrError)
 		}
 	}
-	return def
-}
 
-func configureCredentialsSTS(cfg config.Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (config.Config, error) {
-	ep, err := endpoints.GetSTSRegionalEndpoint("regional")
-	if err != nil {
-		log.Printf("GetSTSRegionalEndpoint error: %s", err)
-		return cfg, err
-	}
-
-	defaultResolver := endpoints.DefaultResolver()
-	stsCustResolverFn := func(service, region string, optFns ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
-		if service == endpoints.StsServiceID {
-			if endpoint == "" {
-				return endpoints.ResolvedEndpoint{
-					URL:           config.EndPointSTSDefault,
-					SigningRegion: region,
-				}, nil
-			}
-			return endpoints.ResolvedEndpoint{
-				URL:           endpoint,
-				SigningRegion: region,
-			}, nil
+	if data.PrivateKey.ValueString() == "" {
+		data.PrivateKey = types.StringValue(config.MultiEnvDefaultFunc([]string{
+			"MONGODB_ATLAS_PRIVATE_KEY",
+			"MCLI_PRIVATE_API_KEY",
+		}, "").(string))
+		if data.PrivateKey.ValueString() == "" && !awsRoleDefined {
+			resp.Diagnostics.AddWarning(config.ProviderConfigError, config.MissingAuthAttrError)
 		}
-
-		return defaultResolver.EndpointFor(service, region, optFns...)
 	}
 
-	configAWS := aws.Config{
-		Region:              aws.String(region),
-		Credentials:         credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, awsSessionToken),
-		STSRegionalEndpoint: ep,
-		EndpointResolver:    endpoints.ResolverFunc(stsCustResolverFn),
+	if data.RealmBaseURL.ValueString() == "" {
+		data.RealmBaseURL = types.StringValue(config.MultiEnvDefaultFunc([]string{
+			"MONGODB_REALM_BASE_URL",
+		}, "").(string))
 	}
 
-	sess := session.Must(session.NewSession(&configAWS))
-
-	creds := stscreds.NewCredentials(sess, cfg.AssumeRole.RoleARN)
-
-	_, err = sess.Config.Credentials.Get()
-	if err != nil {
-		log.Printf("Session get credentials error: %s", err)
-		return cfg, err
-	}
-	_, err = creds.Get()
-	if err != nil {
-		log.Printf("STS get credentials error: %s", err)
-		return cfg, err
-	}
-	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
-	if err != nil {
-		log.Printf("Get Secrets error: %s", err)
-		return cfg, err
+	if data.Region.ValueString() == "" {
+		data.Region = types.StringValue(config.MultiEnvDefaultFunc([]string{
+			"AWS_REGION",
+			"TF_VAR_AWS_REGION",
+		}, "").(string))
 	}
 
-	var secretData SecretData
-	err = json.Unmarshal([]byte(secretString), &secretData)
-	if err != nil {
-		return cfg, err
-	}
-	if secretData.PrivateKey == "" {
-		return cfg, fmt.Errorf("secret missing value for credential PrivateKey")
+	if data.StsEndpoint.ValueString() == "" {
+		data.StsEndpoint = types.StringValue(config.MultiEnvDefaultFunc([]string{
+			"STS_ENDPOINT",
+			"TF_VAR_STS_ENDPOINT",
+		}, "").(string))
 	}
 
-	if secretData.PublicKey == "" {
-		return cfg, fmt.Errorf("secret missing value for credential PublicKey")
+	if data.AwsAccessKeyID.ValueString() == "" {
+		data.AwsAccessKeyID = types.StringValue(config.MultiEnvDefaultFunc([]string{
+			"AWS_ACCESS_KEY_ID",
+			"TF_VAR_AWS_ACCESS_KEY_ID",
+		}, "").(string))
 	}
 
-	cfg.PublicKey = secretData.PublicKey
-	cfg.PrivateKey = secretData.PrivateKey
-	return cfg, nil
+	if data.AwsSecretAccessKeyID.ValueString() == "" {
+		data.AwsSecretAccessKeyID = types.StringValue(config.MultiEnvDefaultFunc([]string{
+			"AWS_SECRET_ACCESS_KEY",
+			"TF_VAR_AWS_SECRET_ACCESS_KEY",
+		}, "").(string))
+	}
+
+	if data.AwsSessionToken.ValueString() == "" {
+		data.AwsSessionToken = types.StringValue(config.MultiEnvDefaultFunc([]string{
+			"AWS_SESSION_TOKEN",
+			"TF_VAR_AWS_SESSION_TOKEN",
+		}, "").(string))
+	}
+
+	if data.SecretName.ValueString() == "" {
+		data.SecretName = types.StringValue(config.MultiEnvDefaultFunc([]string{
+			"SECRET_NAME",
+			"TF_VAR_SECRET_NAME",
+		}, "").(string))
+	}
+
+	return *data
 }
 
-func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) (string, error) {
-	svc := secretsmanager.New(sess, creds)
-	input := &secretsmanager.GetSecretValueInput{
-		SecretId:     aws.String(secret),
-		VersionStage: aws.String("AWSCURRENT"),
+func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.DataSource {
+	return []func() datasource.DataSource{
+		project.NewProjectDS,
+		project.NewProjectsDS,
+		databaseuser.NewDatabaseUserDS,
+		databaseuser.NewDatabaseUsersDS,
+		alertconfiguration.NewAlertConfigurationDS,
+		alertconfiguration.NewAlertConfigurationsDS,
+		projectipaccesslist.NewProjectIPAccessListDS,
+		atlasuser.NewAtlasUserDS,
+		atlasuser.NewAtlasUsersDS,
+		searchdeployment.NewSearchDeploymentDS,
 	}
-
-	result, err := svc.GetSecretValue(input)
-	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			switch aerr.Code() {
-			case secretsmanager.ErrCodeResourceNotFoundException:
-				log.Println(secretsmanager.ErrCodeResourceNotFoundException, aerr.Error())
-			case secretsmanager.ErrCodeInvalidParameterException:
-				log.Println(secretsmanager.ErrCodeInvalidParameterException, aerr.Error())
-			case secretsmanager.ErrCodeInvalidRequestException:
-				log.Println(secretsmanager.ErrCodeInvalidRequestException, aerr.Error())
-			case secretsmanager.ErrCodeDecryptionFailure:
-				log.Println(secretsmanager.ErrCodeDecryptionFailure, aerr.Error())
-			case secretsmanager.ErrCodeInternalServiceError:
-				log.Println(secretsmanager.ErrCodeInternalServiceError, aerr.Error())
-			default:
-				log.Println(aerr.Error())
-			}
-		} else {
-			log.Println(err.Error())
-		}
-		return "", err
-	}
-
-	return *result.SecretString, err
 }
 
-// assumeRoleSchema From aws provider.go
-func assumeRoleSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"duration": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					Description:  "The duration, between 15 minutes and 12 hours, of the role session. Valid time units are ns, us (or µs), ms, s, h, or m.",
-					ValidateFunc: validAssumeRoleDuration,
-				},
-				"external_id": {
-					Type:        schema.TypeString,
-					Optional:    true,
-					Description: "A unique identifier that might be required when you assume a role in another account.",
-					ValidateFunc: validation.All(
-						validation.StringLenBetween(2, 1224),
-						validation.StringMatch(regexp.MustCompile(`[\w+=,.@:/\-]*`), ""),
-					),
-				},
-				"policy": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					Description:  "IAM Policy JSON describing further restricting permissions for the IAM Role being assumed.",
-					ValidateFunc: validation.StringIsJSON,
-				},
-				"policy_arns": {
-					Type:        schema.TypeSet,
-					Optional:    true,
-					Description: "Amazon Resource Names (ARNs) of IAM Policies describing further restricting permissions for the IAM Role being assumed.",
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
-					},
-				},
-				"role_arn": {
-					Type:        schema.TypeString,
-					Optional:    true,
-					Description: "Amazon Resource Name (ARN) of an IAM Role to assume prior to making API calls.",
-				},
-				"session_name": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					Description:  "An identifier for the assumed role session.",
-					ValidateFunc: validAssumeRoleSessionName,
-				},
-				"source_identity": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					Description:  "Source identity specified by the principal assuming the role.",
-					ValidateFunc: validAssumeRoleSourceIdentity,
-				},
-				"tags": {
-					Type:        schema.TypeMap,
-					Optional:    true,
-					Description: "Assume role session tags.",
-					Elem:        &schema.Schema{Type: schema.TypeString},
-				},
-				"transitive_tag_keys": {
-					Type:        schema.TypeSet,
-					Optional:    true,
-					Description: "Assume role session tag keys to pass to any subsequent sessions.",
-					Elem:        &schema.Schema{Type: schema.TypeString},
-				},
-			},
+func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resource {
+	return []func() resource.Resource{
+		project.NewProjectRS,
+		encryptionatrest.NewEncryptionAtRestRS,
+		databaseuser.NewDatabaseUserRS,
+		alertconfiguration.NewAlertConfigurationRS,
+		projectipaccesslist.NewProjectIPAccessListRS,
+		searchdeployment.NewSearchDeploymentRS,
+	}
+}
+
+func NewFrameworkProvider() provider.Provider {
+	return &MongodbtlasProvider{}
+}
+
+func MuxedProviderFactory() func() tfprotov6.ProviderServer {
+	return MuxedProviderFactoryFn(NewSdkV2Provider())
+}
+
+// MuxedProviderFactoryFn creates mux provider using existing sdk v2 provider passed as parameter and creating new instance of framework provider.
+// Used in testing where existing sdk v2 provider has to be used.
+func MuxedProviderFactoryFn(sdkV2Provider *sdkv2schema.Provider) func() tfprotov6.ProviderServer {
+	fwProvider := NewFrameworkProvider()
+
+	ctx := context.Background()
+	upgradedSdkProvider, err := tf5to6server.UpgradeServer(ctx, sdkV2Provider.GRPCProvider)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	providers := []func() tfprotov6.ProviderServer{
+		func() tfprotov6.ProviderServer {
+			return upgradedSdkProvider
 		},
+		providerserver.NewProtocol6(fwProvider),
 	}
-}
 
-var validAssumeRoleSessionName = validation.All(
-	validation.StringLenBetween(2, 64),
-	validation.StringMatch(regexp.MustCompile(`[\w+=,.@\-]*`), ""),
-)
-
-var validAssumeRoleSourceIdentity = validation.All(
-	validation.StringLenBetween(2, 64),
-	validation.StringMatch(regexp.MustCompile(`[\w+=,.@\-]*`), ""),
-)
-
-// validAssumeRoleDuration validates a string can be parsed as a valid time.Duration
-// and is within a minimum of 15 minutes and maximum of 12 hours
-func validAssumeRoleDuration(v any, k string) (ws []string, errorResults []error) {
-	duration, err := time.ParseDuration(v.(string))
-
+	muxServer, err := tf6muxserver.NewMuxServer(ctx, providers...)
 	if err != nil {
-		errorResults = append(errorResults, fmt.Errorf("%q cannot be parsed as a duration: %w", k, err))
-		return
+		log.Fatal(err)
 	}
-
-	if duration.Minutes() < 15 || duration.Hours() > 12 {
-		errorResults = append(errorResults, fmt.Errorf("duration %q must be between 15 minutes (15m) and 12 hours (12h), inclusive", k))
-	}
-
-	return
-}
-
-func expandAssumeRole(tfMap map[string]any) *config.AssumeRole {
-	if tfMap == nil {
-		return nil
-	}
-
-	assumeRole := config.AssumeRole{}
-
-	if v, ok := tfMap["duration"].(string); ok && v != "" {
-		duration, _ := time.ParseDuration(v)
-		assumeRole.Duration = duration
-	}
-
-	if v, ok := tfMap["external_id"].(string); ok && v != "" {
-		assumeRole.ExternalID = v
-	}
-
-	if v, ok := tfMap["policy"].(string); ok && v != "" {
-		assumeRole.Policy = v
-	}
-
-	if v, ok := tfMap["policy_arns"].(*schema.Set); ok && v.Len() > 0 {
-		assumeRole.PolicyARNs = config.ExpandStringList(v.List())
-	}
-
-	if v, ok := tfMap["role_arn"].(string); ok && v != "" {
-		assumeRole.RoleARN = v
-	}
-
-	if v, ok := tfMap["session_name"].(string); ok && v != "" {
-		assumeRole.SessionName = v
-	}
-
-	if v, ok := tfMap["source_identity"].(string); ok && v != "" {
-		assumeRole.SourceIdentity = v
-	}
-
-	if v, ok := tfMap["transitive_tag_keys"].(*schema.Set); ok && v.Len() > 0 {
-		assumeRole.TransitiveTagKeys = config.ExpandStringList(v.List())
-	}
-
-	return &assumeRole
+	return muxServer.ProviderServer
 }
