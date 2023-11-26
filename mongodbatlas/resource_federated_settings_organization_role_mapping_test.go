@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -103,7 +104,7 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy(sta
 			continue
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		roleMapping, _, err := conn.FederatedSettings.GetRoleMapping(context.Background(), ids["federation_settings_id"], ids["org_id"], ids["role_mapping_id"])
 		if err == nil && roleMapping != nil {
@@ -121,7 +122,7 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingImportState
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s-%s-%s", ids["federation_settings_id"], ids["org_id"], ids["role_mapping_id"]), nil
 	}

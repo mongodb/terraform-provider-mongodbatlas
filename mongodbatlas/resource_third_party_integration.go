@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -147,7 +148,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationCreate(ctx context.Context, d *sch
 	}
 
 	// ID is equal to project_id+type need to ask
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"type":       integrationType,
 	}))
@@ -157,7 +158,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationCreate(ctx context.Context, d *sch
 
 func resourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 
 	projectID := ids["project_id"]
 	integrationType := ids["type"]
@@ -180,7 +181,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schem
 		}
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"type":       integrationType,
 	}))
@@ -190,7 +191,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schem
 
 func resourceMongoDBAtlasThirdPartyIntegrationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 
 	projectID := ids["project_id"]
 	integrationType := ids["type"]
@@ -216,7 +217,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationUpdate(ctx context.Context, d *sch
 
 func resourceMongoDBAtlasThirdPartyIntegrationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 
 	projectID := ids["project_id"]
 	integrationType := ids["type"]
@@ -253,7 +254,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationImportState(ctx context.Context, d
 		return nil, fmt.Errorf("error setting `type` for third party integration (%s): %w", d.Id(), err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"type":       integrationType,
 	}))

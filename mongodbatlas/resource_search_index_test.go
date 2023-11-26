@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -285,7 +286,7 @@ func testAccCheckSearchIndexExists(resourceName string) resource.TestCheckFunc {
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		connV2 := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).AtlasV2
 		_, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(context.Background(), ids["project_id"], ids["cluster_name"], ids["index_id"]).Execute()
@@ -465,7 +466,7 @@ func testAccCheckMongoDBAtlasSearchIndexDestroy(state *terraform.State) error {
 			continue
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		searchIndex, _, err := conn.Search.GetIndex(context.Background(), ids["project_id"], ids["cluster_name"], ids["index_id"])
 		if err == nil && searchIndex != nil {
@@ -483,7 +484,7 @@ func testAccCheckMongoDBAtlasSearchIndexImportStateIDFunc(resourceName string) r
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s--%s--%s", ids["project_id"], ids["cluster_name"], ids["index_id"]), nil
 	}

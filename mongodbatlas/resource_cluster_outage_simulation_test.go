@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -157,7 +158,7 @@ func testAccCheckMongoDBAtlasClusterOutageSimulationDestroy(s *terraform.State) 
 			continue
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 		_, _, err := conn.ClusterOutageSimulation.GetOutageSimulation(context.Background(), ids["project_id"], ids["cluster_name"])
 		if err == nil {
 			return fmt.Errorf("cluster outage simulation for project (%s) and cluster (%s) still exists", ids["project_id"], ids["cluster_name"])

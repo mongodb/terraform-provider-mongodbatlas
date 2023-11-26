@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -554,7 +555,7 @@ func testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName string, alert
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		alertResp, _, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID]).Execute()
 		if err != nil {
@@ -575,7 +576,7 @@ func testAccCheckMongoDBAtlasAlertConfigurationDestroy(s *terraform.State) error
 			continue
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID])
 		if alert != nil {

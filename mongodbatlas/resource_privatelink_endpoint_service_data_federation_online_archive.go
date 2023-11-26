@@ -12,6 +12,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -74,7 +75,7 @@ func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveCr
 		return diag.FromErr(fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveCreate, projectID, err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":  projectID,
 		"endpoint_id": endpointID,
 	}))
@@ -84,7 +85,7 @@ func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveCr
 
 func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	endopointID := ids["endpoint_id"]
 
@@ -115,7 +116,7 @@ func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveRe
 
 func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	endpointID := ids["endpoint_id"]
 
@@ -161,7 +162,7 @@ func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveIm
 		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":  projectID,
 		"endpoint_id": endpointID,
 	}))

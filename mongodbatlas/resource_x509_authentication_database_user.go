@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -123,7 +124,7 @@ func resourceMongoDBAtlasX509AuthDBUserCreate(ctx context.Context, d *schema.Res
 		}
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":    projectID,
 		"username":      username,
 		"serial_number": serialNumber,
@@ -135,7 +136,7 @@ func resourceMongoDBAtlasX509AuthDBUserCreate(ctx context.Context, d *schema.Res
 func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
 
@@ -165,7 +166,7 @@ func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":    projectID,
 		"username":      username,
 		"serial_number": serialNumber,
@@ -177,7 +178,7 @@ func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.Resou
 func resourceMongoDBAtlasX509AuthDBUserDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	currentCertificate := ids["current_certificate"]
 	projectID := ids["project_id"]
 
@@ -232,7 +233,7 @@ func resourceMongoDBAtlasX509AuthDBUserImportState(ctx context.Context, d *schem
 		return nil, fmt.Errorf(errorX509AuthDBUsersSetting, "project_id", username, err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":          projectID,
 		"username":            username,
 		"current_certificate": "",

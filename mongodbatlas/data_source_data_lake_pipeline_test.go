@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -48,7 +49,7 @@ func testAccCheckMongoDBAtlasDataLakePipelineDestroy(s *terraform.State) error {
 			continue
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 		// Try to find the data lake pipeline
 		_, _, err := conn.DataLakePipeline.Get(context.Background(), ids["project_id"], ids["name"])
 		if err == nil {

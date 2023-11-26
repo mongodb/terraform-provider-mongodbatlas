@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -408,7 +409,7 @@ func newTFDatabaseUserModel(ctx context.Context, model *tfDatabaseUserModel, dbU
 	}
 
 	// ID is encoded to preserve format defined in previous versions.
-	encodedID := config.EncodeStateID(map[string]string{
+	encodedID := conversion.EncodeStateID(map[string]string{
 		"project_id":         dbUser.GroupID,
 		"username":           dbUser.Username,
 		"auth_database_name": dbUser.DatabaseName,

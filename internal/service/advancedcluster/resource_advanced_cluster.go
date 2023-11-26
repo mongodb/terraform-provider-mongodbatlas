@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
@@ -464,7 +465,7 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 		}
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"cluster_id":   cluster.ID,
 		"project_id":   projectID,
 		"cluster_name": cluster.Name,
@@ -476,7 +477,7 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
@@ -607,7 +608,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdateOrUpgrade(ctx context.Context, d *
 
 func resourceMongoDBAtlasAdvancedClusterUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
@@ -623,7 +624,7 @@ func resourceMongoDBAtlasAdvancedClusterUpgrade(ctx context.Context, d *schema.R
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"cluster_id":   upgradeResponse.ID,
 		"project_id":   projectID,
 		"cluster_name": clusterName,
@@ -635,7 +636,7 @@ func resourceMongoDBAtlasAdvancedClusterUpgrade(ctx context.Context, d *schema.R
 func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
@@ -755,7 +756,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 func resourceMongoDBAtlasAdvancedClusterDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
@@ -812,7 +813,7 @@ func resourceMongoDBAtlasAdvancedClusterImportState(ctx context.Context, d *sche
 		log.Printf(ErrorClusterAdvancedSetting, "name", u.ID, err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"cluster_id":   u.ID,
 		"project_id":   *projectID,
 		"cluster_name": u.Name,

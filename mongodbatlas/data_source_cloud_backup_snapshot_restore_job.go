@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -96,7 +97,7 @@ func dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead(ctx context.Context
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
-		JobID:       config.GetEncodedID(d.Get("job_id").(string), "snapshot_restore_job_id"),
+		JobID:       conversion.GetEncodedID(d.Get("job_id").(string), "snapshot_restore_job_id"),
 		GroupID:     d.Get("project_id").(string),
 		ClusterName: d.Get("cluster_name").(string),
 	}

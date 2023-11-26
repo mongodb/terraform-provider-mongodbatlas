@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -22,7 +23,7 @@ func CheckProjectIPAccessListExists(resourceName string) resource.TestCheckFunc 
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		_, _, err := conn.ProjectIPAccessList.Get(context.Background(), ids["project_id"], ids["entry"])
 		if err != nil {
@@ -41,7 +42,7 @@ func CheckDestroyProjectIPAccessList(s *terraform.State) error {
 			continue
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		_, _, err := conn.ProjectIPAccessList.Get(context.Background(), ids["project_id"], ids["entry"])
 		if err == nil {
@@ -152,7 +153,7 @@ func ImportStateProjecIPAccessListtIDFunc(resourceName string) resource.ImportSt
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s-%s", ids["project_id"], ids["entry"]), nil
 	}

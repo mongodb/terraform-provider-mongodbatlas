@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
@@ -304,7 +305,7 @@ func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf(errorEventTriggersCreate, projectID, err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"app_id":     appID,
 		"trigger_id": eventResp.ID,
@@ -319,7 +320,7 @@ func resourceMongoDBAtlasEventTriggersRead(ctx context.Context, d *schema.Resour
 		return diag.FromErr(err)
 	}
 
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	appID := ids["app_id"]
 	triggerID := ids["trigger_id"]
@@ -410,7 +411,7 @@ func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.Reso
 		return diag.FromErr(err)
 	}
 
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	appID := ids["app_id"]
 	triggerID := ids["trigger_id"]
@@ -463,7 +464,7 @@ func resourceMongoDBAtlasEventTriggersDelete(ctx context.Context, d *schema.Reso
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 
 	projectID := ids["project_id"]
 	appID := ids["app_id"]
@@ -546,7 +547,7 @@ func resourceMongoDBAtlasEventTriggerImportState(ctx context.Context, d *schema.
 		return nil, fmt.Errorf(errorEventTriggersSetting, "app_id", projectID, appID, err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"app_id":     appID,
 		"trigger_id": triggerID,

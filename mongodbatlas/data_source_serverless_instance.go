@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
@@ -85,7 +86,7 @@ func dataSourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema
 		return diag.Errorf(advancedcluster.ErrorClusterAdvancedSetting, "tags", d.Id(), err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id": projectID.(string),
 		"name":       instanceName.(string),
 	}))

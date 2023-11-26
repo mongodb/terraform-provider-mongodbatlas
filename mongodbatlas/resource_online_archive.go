@@ -232,7 +232,7 @@ func resourceMongoDBAtlasOnlineArchiveCreate(ctx context.Context, d *schema.Reso
 
 	archiveID := *outputRequest.Id
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": clusterName,
 		"archive_id":   archiveID,
@@ -288,7 +288,7 @@ func resourceOnlineRefreshFunc(ctx context.Context, projectID, clusterName, arch
 
 func resourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 
 	archiveID := ids["archive_id"]
 	projectID := ids["project_id"]
@@ -315,7 +315,7 @@ func resourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.Resour
 
 func resourceMongoDBAtlasOnlineArchiveDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	atlasID := ids["archive_id"]
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -369,7 +369,7 @@ func resourceMongoDBAtlasOnlineArchiveImportState(ctx context.Context, d *schema
 		}
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"archive_id":   conversion.SafeString(outOnlineArchive.Id),
 		"cluster_name": conversion.SafeString(outOnlineArchive.ClusterName),
 		"project_id":   projectID,
@@ -424,7 +424,7 @@ func mapToArchivePayload(d *schema.ResourceData) admin.BackupOnlineArchiveCreate
 func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 
 	atlasID := ids["archive_id"]
 	projectID := ids["project_id"]

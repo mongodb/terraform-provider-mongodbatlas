@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -91,7 +92,7 @@ func testAccCheckMongoDBAtlasAPIKeyExists(resourceName string) resource.TestChec
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		_, _, err := conn.APIKeys.Get(context.Background(), ids["org_id"], ids["api_key_id"])
 		if err != nil {
@@ -110,7 +111,7 @@ func testAccCheckMongoDBAtlasAPIKeyDestroy(s *terraform.State) error {
 			continue
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		_, _, err := conn.APIKeys.Get(context.Background(), ids["org_id"], ids["role_name"])
 		if err == nil {

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -126,7 +127,7 @@ func testAccCheckMongoDBAtlasAccessListAPIKeyExists(resourceName string) resourc
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		_, _, err := conn.AccessListAPIKeys.Get(context.Background(), ids["org_id"], ids["api_key_id"], ids["entry"])
 		if err != nil {
@@ -145,7 +146,7 @@ func testAccCheckMongoDBAtlasAccessListAPIKeyDestroy(s *terraform.State) error {
 			continue
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		_, _, err := conn.AccessListAPIKeys.Get(context.Background(), ids["project_id"], ids["api_key_id"], ids["entry"])
 		if err == nil {
@@ -163,7 +164,7 @@ func testAccCheckMongoDBAtlasAccessListAPIKeyImportStateIDFunc(resourceName stri
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s-%s-%s", ids["org_id"], ids["api_key_id"], ids["entry"]), nil
 	}

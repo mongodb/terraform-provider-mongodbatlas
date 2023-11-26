@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -80,7 +81,7 @@ func testAccCheckMongoDBAtlasBackupSnapshotExportJobExists(resourceName string, 
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		response, _, err := conn.CloudProviderSnapshotExportJobs.Get(context.Background(), ids["project_id"], ids["cluster_name"], ids["export_job_id"])
 		if err == nil {
@@ -100,7 +101,7 @@ func testAccCheckMongoDBAtlasBackupSnapshotExportJobDestroy(state *terraform.Sta
 			continue
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		snapshotExportBucket, _, err := conn.CloudProviderSnapshotExportJobs.Get(context.Background(), ids["project_id"], ids["cluster_name"], ids["export_job_id"])
 		if err == nil && snapshotExportBucket != nil {
@@ -118,7 +119,7 @@ func testAccCheckMongoDBAtlasBackupSnapshotExportJobImportStateIDFunc(resourceNa
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s-%s-%s", ids["project_id"], ids["cluster_name"], ids["export_job_id"]), nil
 	}

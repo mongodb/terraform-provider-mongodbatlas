@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -89,7 +90,7 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointRead(ctx context.Context, d *schem
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
-	privateLinkID := config.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
+	privateLinkID := conversion.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
 	providerName := d.Get("provider_name").(string)
 
 	privateEndpoint, _, err := conn.PrivateEndpoints.Get(ctx, projectID, providerName, privateLinkID)
@@ -141,7 +142,7 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointRead(ctx context.Context, d *schem
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "service_attachment_names", privateLinkID, err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"private_link_id": privateEndpoint.ID,
 		"project_id":      projectID,
 		"provider_name":   providerName,

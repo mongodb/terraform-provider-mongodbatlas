@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -122,7 +123,7 @@ func returnCloudBackupSnapshotExportJobSchema() map[string]*schema.Schema {
 func resourceMongoDBAtlasCloudBackupSnapshotExportJobRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 	exportID := ids["export_job_id"]
@@ -245,7 +246,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportJobCreate(ctx context.Context,
 		return diag.Errorf("error creating snapshot export job: %s", err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":    projectID,
 		"cluster_name":  clusterName,
 		"export_job_id": jobResponse.ID,
@@ -286,7 +287,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportJobImportState(ctx context.Con
 		return nil, fmt.Errorf("couldn't import snapshot export job %s in project %s and cluster %s, error: %s", exportID, projectID, clusterName, err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":    projectID,
 		"cluster_name":  clusterName,
 		"export_job_id": exportID,

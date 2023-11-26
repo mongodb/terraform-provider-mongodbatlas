@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -87,7 +88,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitCreate(ctx context.Context, d *sc
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseQueryLimitCreate, limitName, err))
 	}
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":  projectID,
 		"tenant_name": federatedDatabaseQueryLimit.TenantName,
 		"limit_name":  federatedDatabaseQueryLimit.Name,
@@ -98,7 +99,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitCreate(ctx context.Context, d *sc
 
 func resourceMongoDBFederatedDatabaseQueryLimitRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	tenantName := ids["tenant_name"]
 	limitName := ids["limit_name"]
@@ -116,7 +117,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitRead(ctx context.Context, d *sche
 		return diag.FromErr(err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":  projectID,
 		"tenant_name": queryLimit.TenantName,
 		"limit_name":  queryLimit.Name,
@@ -128,7 +129,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitRead(ctx context.Context, d *sche
 func resourceMongoDBFederatedDatabaseQueryLimitUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	tenantName := ids["tenant_name"]
 	limitName := ids["limit_name"]
@@ -148,7 +149,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitUpdate(ctx context.Context, d *sc
 func resourceMongoDBFederatedDatabaseQueryLimitDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	tenantName := ids["tenant_name"]
 	limitName := ids["limit_name"]
@@ -181,7 +182,7 @@ func resourceMongoDBAtlasFederatedDatabaseQueryLimitImportState(ctx context.Cont
 		return nil, err
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":  projectID,
 		"tenant_name": queryLimit.TenantName,
 		"limit_name":  queryLimit.Name,

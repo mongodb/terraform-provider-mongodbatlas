@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -53,7 +54,7 @@ func testAccCheckMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchi
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s--%s", ids["project_id"], ids["endpoint_id"]), nil
 	}
@@ -67,7 +68,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDe
 			continue
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		_, _, err := client.DataLakes.GetPrivateLinkEndpoint(context.Background(), ids["project_id"], ids["endpoint_id"])
 
@@ -93,7 +94,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveEx
 			return fmt.Errorf("Private endpoint service data federation online archive ID not set")
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 		_, _, err := client.DataLakes.GetPrivateLinkEndpoint(context.Background(), ids["project_id"], ids["endpoint_id"])
 
 		if err != nil {

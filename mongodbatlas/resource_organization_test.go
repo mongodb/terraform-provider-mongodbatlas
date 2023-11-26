@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -83,7 +84,7 @@ func testAccCheckMongoDBAtlasOrganizationExists(resourceName string) resource.Te
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		organizationOptions := &matlas.OrganizationsListOptions{}
 		orgs, _, err := conn.Organizations.List(context.Background(), organizationOptions)
@@ -108,7 +109,7 @@ func testAccCheckMongoDBAtlasOrganizationDestroy(s *terraform.State) error {
 			continue
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		organizationOptions := &matlas.OrganizationsListOptions{}
 		orgs, _, err := conn.Organizations.List(context.Background(), organizationOptions)

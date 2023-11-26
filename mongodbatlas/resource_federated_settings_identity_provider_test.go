@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -104,12 +105,12 @@ func testAccCheckMongoDBAtlasFederatedSettingsIdentityProviderExists(resourceNam
 
 func testAccCheckMongoDBAtlasFederatedSettingsIdentityProviderImportStateIDFunc(resourceName, federationSettingsID, idpID string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
-		ID := config.EncodeStateID(map[string]string{
+		ID := conversion.EncodeStateID(map[string]string{
 			"federation_settings_id": federationSettingsID,
 			"okta_idp_id":            idpID,
 		})
 
-		ids := config.DecodeStateID(ID)
+		ids := conversion.DecodeStateID(ID)
 		return fmt.Sprintf("%s-%s", ids["federation_settings_id"], ids["okta_idp_id"]), nil
 	}
 }

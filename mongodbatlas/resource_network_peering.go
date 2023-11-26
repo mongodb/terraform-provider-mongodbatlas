@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -162,7 +163,7 @@ func resourceMongoDBAtlasNetworkPeeringCreate(ctx context.Context, d *schema.Res
 
 	// Get the required ones
 	peerRequest := &matlas.Peer{
-		ContainerID:  config.GetEncodedID(d.Get("container_id").(string), "container_id"),
+		ContainerID:  conversion.GetEncodedID(d.Get("container_id").(string), "container_id"),
 		ProviderName: providerName,
 	}
 
@@ -255,7 +256,7 @@ func resourceMongoDBAtlasNetworkPeeringCreate(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf(errorPeersCreate, err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":    projectID,
 		"peer_id":       peer.ID,
 		"provider_name": providerName,
@@ -267,7 +268,7 @@ func resourceMongoDBAtlasNetworkPeeringCreate(ctx context.Context, d *schema.Res
 func resourceMongoDBAtlasNetworkPeeringRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	peerID := ids["peer_id"]
 	providerName := ids["provider_name"]
@@ -394,14 +395,14 @@ func resourceMongoDBAtlasNetworkPeeringRead(ctx context.Context, d *schema.Resou
 func resourceMongoDBAtlasNetworkPeeringUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	peerID := ids["peer_id"]
 
 	// All the request to update the peer require the ProviderName and ContainerID attribute.
 	peer := &matlas.Peer{
 		ProviderName: ids["provider_name"],
-		ContainerID:  config.GetEncodedID(d.Get("container_id").(string), "container_id"),
+		ContainerID:  conversion.GetEncodedID(d.Get("container_id").(string), "container_id"),
 	}
 
 	// Depending of the Provider name the request will be set
@@ -462,7 +463,7 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(ctx context.Context, d *schema.Res
 func resourceMongoDBAtlasNetworkPeeringDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	peerID := ids["peer_id"]
 
@@ -520,7 +521,7 @@ func resourceMongoDBAtlasNetworkPeeringImportState(ctx context.Context, d *schem
 		log.Printf("[WARN] Error setting provider_name for (%s): %s", peerID, err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":    projectID,
 		"peer_id":       peer.ID,
 		"provider_name": providerName,

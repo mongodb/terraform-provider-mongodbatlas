@@ -402,7 +402,7 @@ func (r *alertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	encodedID := config.EncodeStateID(map[string]string{
+	encodedID := conversion.EncodeStateID(map[string]string{
 		EncodedIDKeyAlertID:   conversion.SafeString(apiResp.Id),
 		EncodedIDKeyProjectID: projectID,
 	})
@@ -425,7 +425,7 @@ func (r *alertConfigurationRS) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	ids := config.DecodeStateID(alertConfigState.ID.ValueString())
+	ids := conversion.DecodeStateID(alertConfigState.ID.ValueString())
 
 	alert, getResp, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[EncodedIDKeyProjectID], ids[EncodedIDKeyAlertID]).Execute()
 	if err != nil {
@@ -454,7 +454,7 @@ func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	ids := config.DecodeStateID(alertConfigState.ID.ValueString())
+	ids := conversion.DecodeStateID(alertConfigState.ID.ValueString())
 
 	// In order to update an alert config it is necessary to send the original alert configuration request again, if not the
 	// server returns an error 500
@@ -529,7 +529,7 @@ func (r *alertConfigurationRS) Delete(ctx context.Context, req resource.DeleteRe
 		return
 	}
 
-	ids := config.DecodeStateID(alertConfigState.ID.ValueString())
+	ids := conversion.DecodeStateID(alertConfigState.ID.ValueString())
 
 	_, err := conn.AlertConfigurations.Delete(ctx, ids[EncodedIDKeyProjectID], ids[EncodedIDKeyAlertID])
 	if err != nil {
@@ -548,7 +548,7 @@ func (r *alertConfigurationRS) ImportState(ctx context.Context, req resource.Imp
 	projectID := parts[0]
 	alertConfigurationID := parts[1]
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), config.EncodeStateID(map[string]string{
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), conversion.EncodeStateID(map[string]string{
 		"id":         alertConfigurationID,
 		"project_id": projectID,
 	}))...)

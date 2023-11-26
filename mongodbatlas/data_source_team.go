@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -91,7 +92,7 @@ func dataSourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(fmt.Errorf(errorTeamSetting, "usernames", d.Id(), err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"org_id": orgID,
 		"id":     team.ID,
 	}))

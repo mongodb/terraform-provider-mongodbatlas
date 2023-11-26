@@ -442,7 +442,7 @@ func testAccCheckMongoDBAtlasEventTriggerExists(resourceName string, eventTrigge
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		if ids["trigger_id"] == "" {
 			return fmt.Errorf("no ID is set")
@@ -472,7 +472,7 @@ func testAccCheckMongoDBAtlasEventTriggerDestroy(s *terraform.State) error {
 			continue
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		res, _, _ := conn.EventTriggers.Get(ctx, ids["project_id"], ids["app_id"], ids["trigger_id"])
 

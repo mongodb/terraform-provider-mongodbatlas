@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -214,7 +215,7 @@ func newTFProjectIPAccessListModel(projectIPAccessListModel *tfProjectIPAccessLi
 		entry = projectIPAccessList.AwsSecurityGroup
 	}
 
-	id := config.EncodeStateID(map[string]string{
+	id := conversion.EncodeStateID(map[string]string{
 		"entry":      entry,
 		"project_id": projectIPAccessList.GroupID,
 	})
@@ -248,7 +249,7 @@ func (r *projectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	decodedIDMap := config.DecodeStateID(projectIPAccessListModelState.ID.ValueString())
+	decodedIDMap := conversion.DecodeStateID(projectIPAccessListModelState.ID.ValueString())
 	if len(decodedIDMap) != 2 {
 		resp.Diagnostics.AddError("error during the reading operation", "the provided resource ID is not correct")
 		return
@@ -361,7 +362,7 @@ func (r *projectIPAccessListRS) ImportState(ctx context.Context, req resource.Im
 	projectID := parts[0]
 	entry := parts[1]
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), config.EncodeStateID(map[string]string{
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), conversion.EncodeStateID(map[string]string{
 		"entry":      entry,
 		"project_id": projectID,
 	}))...)

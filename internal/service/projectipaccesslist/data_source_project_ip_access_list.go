@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -148,7 +149,7 @@ func newTFProjectIPAccessListDSModel(ctx context.Context, accessList *matlas.Pro
 		entry = accessList.AwsSecurityGroup
 	}
 
-	id := config.EncodeStateID(map[string]string{
+	id := conversion.EncodeStateID(map[string]string{
 		"entry":      entry,
 		"project_id": accessList.GroupID,
 	})

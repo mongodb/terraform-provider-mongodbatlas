@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -138,7 +139,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate(ctx context.
 		log.Printf(errorServerlessInstanceListStatus, err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":    projectID,
 		"instance_name": instanceName,
 		"endpoint_id":   endPoint.ID,
@@ -150,7 +151,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate(ctx context.
 func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	instanceName := ids["instance_name"]
 	endpointID := ids["endpoint_id"]
@@ -207,7 +208,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessRead(ctx context.Co
 func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	instanceName := ids["instance_name"]
 	endpointID := ids["endpoint_id"]
@@ -268,7 +269,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessImportState(ctx con
 		}
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":    projectID,
 		"instance_name": instanceName,
 		"endpoint_id":   endpointID,

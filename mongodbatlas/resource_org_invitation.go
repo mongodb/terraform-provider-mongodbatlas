@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -68,7 +69,7 @@ func ResourceOrgInvitation() *schema.Resource {
 func resourceMongoDBAtlasOrgInvitationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
@@ -123,7 +124,7 @@ func resourceMongoDBAtlasOrgInvitationRead(ctx context.Context, d *schema.Resour
 			return diag.Errorf("error getting `roles` for Organization Invitation (%s): %s", d.Id(), err)
 		}
 	}
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"username":      username,
 		"org_id":        orgID,
 		"invitation_id": invitationID,
@@ -145,7 +146,7 @@ func resourceMongoDBAtlasOrgInvitationCreate(ctx context.Context, d *schema.Reso
 
 	accepted, _ := validateOrgInvitationAlreadyAccepted(ctx, meta.(*config.MongoDBClient), invitationReq.Username, orgID)
 	if accepted {
-		d.SetId(config.EncodeStateID(map[string]string{
+		d.SetId(conversion.EncodeStateID(map[string]string{
 			"username":      invitationReq.Username,
 			"org_id":        orgID,
 			"invitation_id": orgID,
@@ -156,7 +157,7 @@ func resourceMongoDBAtlasOrgInvitationCreate(ctx context.Context, d *schema.Reso
 			return diag.Errorf("error creating Organization invitation for user %s: %s", d.Get("username").(string), err)
 		}
 
-		d.SetId(config.EncodeStateID(map[string]string{
+		d.SetId(conversion.EncodeStateID(map[string]string{
 			"username":      invitationRes.Username,
 			"org_id":        invitationRes.OrgID,
 			"invitation_id": invitationRes.ID,
@@ -167,7 +168,7 @@ func resourceMongoDBAtlasOrgInvitationCreate(ctx context.Context, d *schema.Reso
 
 func resourceMongoDBAtlasOrgInvitationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
@@ -196,7 +197,7 @@ func resourceMongoDBAtlasOrgInvitationDelete(ctx context.Context, d *schema.Reso
 
 func resourceMongoDBAtlasOrgInvitationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
@@ -239,7 +240,7 @@ func resourceMongoDBAtlasOrgInvitationImportState(ctx context.Context, d *schema
 		if err := d.Set("invitation_id", orgInvitation.ID); err != nil {
 			return nil, fmt.Errorf("error getting `invitation_id` for Organization Invitation (%s): %s", username, err)
 		}
-		d.SetId(config.EncodeStateID(map[string]string{
+		d.SetId(conversion.EncodeStateID(map[string]string{
 			"username":      username,
 			"org_id":        orgID,
 			"invitation_id": orgInvitation.ID,

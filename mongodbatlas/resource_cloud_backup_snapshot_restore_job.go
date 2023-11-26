@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -149,7 +150,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobCreate(ctx context.Context
 		return diag.FromErr(fmt.Errorf("error restore a snapshot: %s", err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":              d.Get("project_id").(string),
 		"cluster_name":            d.Get("cluster_name").(string),
 		"snapshot_restore_job_id": cloudProviderSnapshotRestoreJob.ID,
@@ -161,7 +162,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobCreate(ctx context.Context
 func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
 		JobID:       ids["snapshot_restore_job_id"],
@@ -216,7 +217,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead(ctx context.Context, 
 
 func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
 		JobID:       ids["snapshot_restore_job_id"],
@@ -295,7 +296,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobImportState(ctx context.Co
 		log.Printf("[WARN] Error setting delivery_type for (%s): %s", d.Id(), err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":              *projectID,
 		"cluster_name":            *clusterName,
 		"snapshot_restore_job_id": *snapshotJobID,
@@ -399,7 +400,7 @@ func buildRequestSnapshotReq(d *schema.ResourceData) *matlas.CloudProviderSnapsh
 		}
 
 		return &matlas.CloudProviderSnapshotRestoreJob{
-			SnapshotID:            config.GetEncodedID(d.Get("snapshot_id").(string), "snapshot_id"),
+			SnapshotID:            conversion.GetEncodedID(d.Get("snapshot_id").(string), "snapshot_id"),
 			DeliveryType:          deliveryType,
 			TargetClusterName:     delivery["target_cluster_name"].(string),
 			TargetGroupID:         delivery["target_project_id"].(string),

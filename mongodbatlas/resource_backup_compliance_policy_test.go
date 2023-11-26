@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -122,7 +123,7 @@ func testAccCheckMongoDBAtlasBackupCompliancePolicyExists(resourceName string) r
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
 
 		schedule, _, err := conn.BackupCompliancePolicy.Get(context.Background(), projectID)
@@ -146,7 +147,7 @@ func testAccCheckMongoDBAtlasBackupCompliancePolicyDestroy(s *terraform.State) e
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
 
 		compliancePolicy, _, err := conn.BackupCompliancePolicy.Get(context.Background(), projectID)
@@ -165,7 +166,7 @@ func testAccCheckMongoDBAtlasBackupCompliancePolicyImportStateIDFunc(resourceNam
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		ids := config.DecodeStateID(rs.Primary.ID)
+		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		return ids["project_id"], nil
 	}

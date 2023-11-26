@@ -352,7 +352,7 @@ func resourceMongoDBFederatedDatabaseInstanceCreate(ctx context.Context, d *sche
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceCreate, err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"name":       name,
 	}))
@@ -362,7 +362,7 @@ func resourceMongoDBFederatedDatabaseInstanceCreate(ctx context.Context, d *sche
 
 func resourceMongoDBAFederatedDatabaseInstanceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	name := ids["name"]
 
@@ -400,7 +400,7 @@ func resourceMongoDBAFederatedDatabaseInstanceRead(ctx context.Context, d *schem
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "hostnames", name, err))
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"name":       name,
 	}))
@@ -411,7 +411,7 @@ func resourceMongoDBAFederatedDatabaseInstanceRead(ctx context.Context, d *schem
 func resourceMongoDBFederatedDatabaseInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	name := ids["name"]
 
@@ -437,7 +437,7 @@ func resourceMongoDBFederatedDatabaseInstanceUpdate(ctx context.Context, d *sche
 func resourceMongoDBAtlasFederatedDatabaseInstanceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
-	ids := config.DecodeStateID(d.Id())
+	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	name := ids["name"]
 
@@ -517,7 +517,7 @@ func resourceMongoDBAtlasFederatedDatabaseInstanceImportState(ctx context.Contex
 		return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "hostnames", name, err)
 	}
 
-	d.SetId(config.EncodeStateID(map[string]string{
+	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"name":       *dataFederationInstance.Name,
 	}))
