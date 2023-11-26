@@ -16,10 +16,10 @@ import (
 )
 
 const (
-	EndPointSTSDefault = "https://sts.amazonaws.com"
+	endPointSTSDefault = "https://sts.amazonaws.com"
 )
 
-func ConfigureCredentialsSTS(cfg config.Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (config.Config, error) {
+func configureCredentialsSTS(cfg config.Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (config.Config, error) {
 	ep, err := endpoints.GetSTSRegionalEndpoint("regional")
 	if err != nil {
 		log.Printf("GetSTSRegionalEndpoint error: %s", err)
@@ -31,7 +31,7 @@ func ConfigureCredentialsSTS(cfg config.Config, secret, region, awsAccessKeyID, 
 		if service == endpoints.StsServiceID {
 			if endpoint == "" {
 				return endpoints.ResolvedEndpoint{
-					URL:           EndPointSTSDefault,
+					URL:           endPointSTSDefault,
 					SigningRegion: region,
 				}, nil
 			}
@@ -63,7 +63,7 @@ func ConfigureCredentialsSTS(cfg config.Config, secret, region, awsAccessKeyID, 
 		log.Printf("STS get credentials error: %s", err)
 		return cfg, err
 	}
-	secretString, err := SecretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
+	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
 	if err != nil {
 		log.Printf("Get Secrets error: %s", err)
 		return cfg, err
@@ -87,7 +87,7 @@ func ConfigureCredentialsSTS(cfg config.Config, secret, region, awsAccessKeyID, 
 	return cfg, nil
 }
 
-func SecretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) (string, error) {
+func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) (string, error) {
 	svc := secretsmanager.New(sess, creds)
 	input := &secretsmanager.GetSecretValueInput{
 		SecretId:     aws.String(secret),
