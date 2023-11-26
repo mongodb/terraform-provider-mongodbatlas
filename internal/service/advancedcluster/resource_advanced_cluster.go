@@ -524,7 +524,7 @@ func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "encryption_at_rest_provider", clusterName, err))
 	}
 
-	if err := d.Set("labels", FlattenLabels(config.RemoveLabel(cluster.Labels, DefaultLabel))); err != nil {
+	if err := d.Set("labels", FlattenLabels(RemoveLabel(cluster.Labels, DefaultLabel))); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "labels", clusterName, err))
 	}
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"hash/crc32"
 	"log"
 	"reflect"
 	"strings"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -60,6 +60,25 @@ var (
 	}
 )
 
+func RemoveLabel(list []matlas.Label, item matlas.Label) []matlas.Label {
+	var pos int
+
+	for _, v := range list {
+		if reflect.DeepEqual(v, item) {
+			list = append(list[:pos], list[pos+1:]...)
+
+			if pos > 0 {
+				pos--
+			}
+
+			continue
+		}
+		pos++
+	}
+
+	return list
+}
+
 func ContainsLabelOrKey(list []matlas.Label, item matlas.Label) bool {
 	for _, v := range list {
 		if reflect.DeepEqual(v, item) || v.Key == item.Key {
@@ -75,7 +94,24 @@ func HashFunctionForKeyValuePair(v any) int {
 	m := v.(map[string]any)
 	buf.WriteString(m["key"].(string))
 	buf.WriteString(m["value"].(string))
-	return config.HashCodeString(buf.String())
+	return HashCodeString(buf.String())
+}
+
+// HashCodeString hashes a string to a unique hashcode.
+//
+// crc32 returns a uint32, but for our use we need
+// and non negative integer. Here we cast to an integer
+// and invert it if the result is negative.
+func HashCodeString(s string) int {
+	v := int(crc32.ChecksumIEEE([]byte(s)))
+	if v >= 0 {
+		return v
+	}
+	if -v >= 0 {
+		return -v
+	}
+	// v == MinInt
+	return 0
 }
 
 func IsSharedTier(instanceSize string) bool {

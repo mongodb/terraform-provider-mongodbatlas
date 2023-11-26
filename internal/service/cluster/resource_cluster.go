@@ -271,7 +271,7 @@ func ResourceCluster() *schema.Resource {
 					buf.WriteString(fmt.Sprintf("%d", m["num_shards"].(int)))
 					buf.WriteString(m["zone_name"].(string))
 					buf.WriteString(fmt.Sprintf("%+v", m["regions_config"].(*schema.Set)))
-					return config.HashCodeString(buf.String())
+					return advancedcluster.HashCodeString(buf.String())
 				},
 			},
 			"mongo_db_version": {
@@ -708,7 +708,7 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "replication_factor", clusterName, err))
 	}
 
-	if err := d.Set("labels", advancedcluster.FlattenLabels(config.RemoveLabel(cluster.Labels, advancedcluster.DefaultLabel))); err != nil {
+	if err := d.Set("labels", advancedcluster.FlattenLabels(advancedcluster.RemoveLabel(cluster.Labels, advancedcluster.DefaultLabel))); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "labels", clusterName, err))
 	}
 
