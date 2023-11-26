@@ -13,6 +13,40 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
+func CheckProjectExists(resourceName string, project *matlas.Project) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
+
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no ID is set")
+		}
+
+		log.Printf("[DEBUG] projectID: %s", rs.Primary.ID)
+
+		if projectResp, _, err := conn.Projects.GetOneProjectByName(context.Background(), rs.Primary.Attributes["name"]); err == nil {
+			*project = *projectResp
+			return nil
+		}
+
+		return fmt.Errorf("project (%s) does not exist", rs.Primary.ID)
+	}
+}
+
+func CheckProjectAttributes(project *matlas.Project, projectName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if project.Name != projectName {
+			return fmt.Errorf("bad project name: %s", project.Name)
+		}
+
+		return nil
+	}
+}
+
 func ConfigProject(projectName, orgID string, teams []*matlas.ProjectTeam) string {
 	var ts string
 
@@ -118,40 +152,6 @@ func ConfigProjectWithLimits(projectName, orgID string, limits []*admin.DataFede
 			%s
 		}
 	`, projectName, orgID, limitsString)
-}
-
-func CheckProjectExists(resourceName string, project *matlas.Project) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("no ID is set")
-		}
-
-		log.Printf("[DEBUG] projectID: %s", rs.Primary.ID)
-
-		if projectResp, _, err := conn.Projects.GetOneProjectByName(context.Background(), rs.Primary.Attributes["name"]); err == nil {
-			*project = *projectResp
-			return nil
-		}
-
-		return fmt.Errorf("project (%s) does not exist", rs.Primary.ID)
-	}
-}
-
-func CheckProjectAttributes(project *matlas.Project, projectName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if project.Name != projectName {
-			return fmt.Errorf("bad project name: %s", project.Name)
-		}
-
-		return nil
-	}
 }
 
 func ImportStateProjectIDFunc(resourceName string) resource.ImportStateIdFunc {

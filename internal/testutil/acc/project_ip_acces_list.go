@@ -9,6 +9,49 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
+func CheckProjectIPAccessListExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
+
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no ID is set")
+		}
+
+		ids := config.DecodeStateID(rs.Primary.ID)
+
+		_, _, err := conn.ProjectIPAccessList.Get(context.Background(), ids["project_id"], ids["entry"])
+		if err != nil {
+			return fmt.Errorf("project ip access list entry (%s) does not exist", ids["entry"])
+		}
+
+		return nil
+	}
+}
+
+func CheckDestroyProjectIPAccessList(s *terraform.State) error {
+	conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "mongodbatlas_project_ip_access_list" {
+			continue
+		}
+
+		ids := config.DecodeStateID(rs.Primary.ID)
+
+		_, _, err := conn.ProjectIPAccessList.Get(context.Background(), ids["project_id"], ids["entry"])
+		if err == nil {
+			return fmt.Errorf("project ip access list entry (%s) still exists", ids["entry"])
+		}
+	}
+
+	return nil
+}
+
 func ConfigProjectIPAccessListWithIPAddress(orgID, projectName, ipAddress, comment string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
@@ -100,49 +143,6 @@ func ConfigProjectIPAccessListWithMultiple(projectName, orgID string, accessList
 		}
 	}
 	return cfg
-}
-
-func CheckProjectIPAccessListExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("no ID is set")
-		}
-
-		ids := config.DecodeStateID(rs.Primary.ID)
-
-		_, _, err := conn.ProjectIPAccessList.Get(context.Background(), ids["project_id"], ids["entry"])
-		if err != nil {
-			return fmt.Errorf("project ip access list entry (%s) does not exist", ids["entry"])
-		}
-
-		return nil
-	}
-}
-
-func CheckDestroyProjectIPAccessList(s *terraform.State) error {
-	conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_project_ip_access_list" {
-			continue
-		}
-
-		ids := config.DecodeStateID(rs.Primary.ID)
-
-		_, _, err := conn.ProjectIPAccessList.Get(context.Background(), ids["project_id"], ids["entry"])
-		if err == nil {
-			return fmt.Errorf("project ip access list entry (%s) still exists", ids["entry"])
-		}
-	}
-
-	return nil
 }
 
 func ImportStateProjecIPAccessListtIDFunc(resourceName string) resource.ImportStateIdFunc {

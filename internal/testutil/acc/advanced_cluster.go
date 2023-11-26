@@ -26,6 +26,25 @@ var (
 	}
 )
 
+func CheckClusterDestroy(s *terraform.State) error {
+	conn := TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "mongodbatlas_cluster" {
+			continue
+		}
+
+		// Try to find the cluster
+		_, _, err := conn.Clusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
+
+		if err == nil {
+			return fmt.Errorf("cluster (%s:%s) still exists", rs.Primary.Attributes["cluster_name"], rs.Primary.ID)
+		}
+	}
+
+	return nil
+}
+
 func ConfigClusterGlobal(resourceName, orgID, projectName, name, backupEnabled string) string {
 	return fmt.Sprintf(`
 
@@ -68,25 +87,6 @@ func ConfigClusterGlobal(resourceName, orgID, projectName, name, backupEnabled s
 			}
 		}
 	`, resourceName, orgID, projectName, name, backupEnabled)
-}
-
-func CheckClusterDestroy(s *terraform.State) error {
-	conn := TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_cluster" {
-			continue
-		}
-
-		// Try to find the cluster
-		_, _, err := conn.Clusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
-
-		if err == nil {
-			return fmt.Errorf("cluster (%s:%s) still exists", rs.Primary.Attributes["cluster_name"], rs.Primary.ID)
-		}
-	}
-
-	return nil
 }
 
 func ImportStateClusterIDFunc(resourceName string) resource.ImportStateIdFunc {
