@@ -27,9 +27,9 @@ type tfAlertConfigurationDSModel struct {
 	EventType             types.String                      `tfsdk:"event_type"`
 	Created               types.String                      `tfsdk:"created"`
 	Updated               types.String                      `tfsdk:"updated"`
-	Matcher               []tfMatcherModel                  `tfsdk:"matcher"`
+	Matcher               []TfMatcherModel                  `tfsdk:"matcher"`
 	MetricThresholdConfig []TfMetricThresholdConfigModel    `tfsdk:"metric_threshold_config"`
-	ThresholdConfig       []tfThresholdConfigModel          `tfsdk:"threshold_config"`
+	ThresholdConfig       []TfThresholdConfigModel          `tfsdk:"threshold_config"`
 	Notification          []TfNotificationModel             `tfsdk:"notification"`
 	Output                []tfAlertConfigurationOutputModel `tfsdk:"output"`
 	Enabled               types.Bool                        `tfsdk:"enabled"`
@@ -309,9 +309,9 @@ func newTFAlertConfigurationDSModel(apiRespConfig *admin.GroupAlertsConfig, proj
 		Updated:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Updated)),
 		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
 		MetricThresholdConfig: NewTFMetricThresholdConfigModel(apiRespConfig.MetricThreshold, []TfMetricThresholdConfigModel{}),
-		ThresholdConfig:       newTFThresholdConfigModel(apiRespConfig.Threshold, []tfThresholdConfigModel{}),
+		ThresholdConfig:       NewTFThresholdConfigModel(apiRespConfig.Threshold, []TfThresholdConfigModel{}),
 		Notification:          NewTFNotificationModelList(apiRespConfig.Notifications, []TfNotificationModel{}),
-		Matcher:               newTFMatcherModelList(apiRespConfig.Matchers, []tfMatcherModel{}),
+		Matcher:               NewTFMatcherModelList(apiRespConfig.Matchers, []TfMatcherModel{}),
 	}
 }
 

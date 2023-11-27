@@ -33,6 +33,20 @@ type sdkToTFMetricThresholdModelTestCase struct {
 	name                        string
 }
 
+type sdkToTFMatcherModelTestCase struct {
+	SDKResp             []map[string]interface{}
+	currentStateMatcher []alertconfiguration.TfMatcherModel
+	expectedTFModel     []alertconfiguration.TfMatcherModel
+	name                string
+}
+
+type sdkToTFThresholdConfigModelTestCase struct {
+	SDKResp             *admin.GreaterThanRawThreshold
+	currentStateMatcher []alertconfiguration.TfThresholdConfigModel
+	expectedTFModel     []alertconfiguration.TfThresholdConfigModel
+	name                string
+}
+
 const (
 	group               string  = "GROUP"
 	previousIntervalMin int     = 10
@@ -149,11 +163,76 @@ func TestMetricThresholdSDKToTFModel(t *testing.T) {
 }
 
 func TestThresholdConfigSDKToTFModel(t *testing.T) {
+	testCases := []sdkToTFThresholdConfigModelTestCase{
+		{
+			name: "Complete SDK response",
+			SDKResp: &admin.GreaterThanRawThreshold{
+				Threshold: admin.Int64PtrToIntPtr(admin.PtrInt64(1.0)),
+				Operator:  admin.PtrString("LESS_THAN"),
+				Units:     admin.PtrString("HOURS"),
+			},
+			currentStateMatcher: []alertconfiguration.TfThresholdConfigModel{
+				{
+					Threshold: types.Float64Value(1.0),
+					Operator:  types.StringValue("LESS_THAN"),
+					Units:     types.StringValue("MINUTES"),
+				},
+			},
+			expectedTFModel: []alertconfiguration.TfThresholdConfigModel{
+				{
+					Threshold: types.Float64Value(1.0),
+					Operator:  types.StringValue("LESS_THAN"),
+					Units:     types.StringValue("HOURS"),
+				},
+			},
+		},
+	}
 
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel := alertconfiguration.NewTFThresholdConfigModel(tc.SDKResp, tc.currentStateMatcher)
+			if !reflect.DeepEqual(resultModel, tc.expectedTFModel) {
+				t.Errorf("created terraform model did not match expected output")
+			}
+		})
+	}
 }
 
 func TestMatcherSDKToTFModel(t *testing.T) {
+	testCases := []sdkToTFMatcherModelTestCase{
+		{
+			name: "Complete SDK response",
+			SDKResp: []map[string]interface{}{{
+				"fieldName": "HOSTNAME",
+				"operator":  "EQUALS",
+				"value":     "PRIMARY",
+			},
+			},
+			currentStateMatcher: []alertconfiguration.TfMatcherModel{
+				{
+					FieldName: types.StringValue("HOSTNAME"),
+					Operator:  types.StringValue("EQUALS"),
+					Value:     types.StringValue("SECONDARY"),
+				},
+			},
+			expectedTFModel: []alertconfiguration.TfMatcherModel{
+				{
+					FieldName: types.StringValue("HOSTNAME"),
+					Operator:  types.StringValue("EQUALS"),
+					Value:     types.StringValue("PRIMARY"),
+				},
+			},
+		},
+	}
 
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel := alertconfiguration.NewTFMatcherModelList(tc.SDKResp, tc.currentStateMatcher)
+			if !reflect.DeepEqual(resultModel, tc.expectedTFModel) {
+				t.Errorf("created terraform model did not match expected output")
+			}
+		})
+	}
 }
 
 func TestAlertConfigurationSDKToTFModel(t *testing.T) {

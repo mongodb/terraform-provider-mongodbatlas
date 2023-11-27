@@ -59,14 +59,14 @@ type tfAlertConfigurationRSModel struct {
 	EventType             types.String                   `tfsdk:"event_type"`
 	Created               types.String                   `tfsdk:"created"`
 	Updated               types.String                   `tfsdk:"updated"`
-	Matcher               []tfMatcherModel               `tfsdk:"matcher"`
+	Matcher               []TfMatcherModel               `tfsdk:"matcher"`
 	MetricThresholdConfig []TfMetricThresholdConfigModel `tfsdk:"metric_threshold_config"`
-	ThresholdConfig       []tfThresholdConfigModel       `tfsdk:"threshold_config"`
+	ThresholdConfig       []TfThresholdConfigModel       `tfsdk:"threshold_config"`
 	Notification          []TfNotificationModel          `tfsdk:"notification"`
 	Enabled               types.Bool                     `tfsdk:"enabled"`
 }
 
-type tfMatcherModel struct {
+type TfMatcherModel struct {
 	FieldName types.String `tfsdk:"field_name"`
 	Operator  types.String `tfsdk:"operator"`
 	Value     types.String `tfsdk:"value"`
@@ -80,7 +80,7 @@ type TfMetricThresholdConfigModel struct {
 	Mode       types.String  `tfsdk:"mode"`
 }
 
-type tfThresholdConfigModel struct {
+type TfThresholdConfigModel struct {
 	Threshold types.Float64 `tfsdk:"threshold"`
 	Operator  types.String  `tfsdk:"operator"`
 	Units     types.String  `tfsdk:"units"`
@@ -384,7 +384,7 @@ func (r *alertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 	apiReq := &admin.GroupAlertsConfig{
 		EventTypeName:   alertConfigPlan.EventType.ValueStringPointer(),
 		Enabled:         alertConfigPlan.Enabled.ValueBoolPointer(),
-		Matchers:        newMatcherList(alertConfigPlan.Matcher),
+		Matchers:        NewMatcherList(alertConfigPlan.Matcher),
 		MetricThreshold: newMetricThreshold(alertConfigPlan.MetricThresholdConfig),
 		Threshold:       newThreshold(alertConfigPlan.ThresholdConfig),
 	}
@@ -486,7 +486,7 @@ func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	if !reflect.DeepEqual(alertConfigPlan.Matcher, alertConfigState.Matcher) {
-		apiReq.Matchers = newMatcherList(alertConfigPlan.Matcher)
+		apiReq.Matchers = NewMatcherList(alertConfigPlan.Matcher)
 	}
 
 	// Always refresh structure to handle service keys being obfuscated coming back from read API call
@@ -600,7 +600,7 @@ func newNotificationList(tfNotificationSlice []TfNotificationModel) ([]admin.Ale
 	return notifications, nil
 }
 
-func newThreshold(tfThresholdConfigSlice []tfThresholdConfigModel) *admin.GreaterThanRawThreshold {
+func newThreshold(tfThresholdConfigSlice []TfThresholdConfigModel) *admin.GreaterThanRawThreshold {
 	if len(tfThresholdConfigSlice) < 1 {
 		return nil
 	}
@@ -627,7 +627,7 @@ func newMetricThreshold(tfMetricThresholdConfigSlice []TfMetricThresholdConfigMo
 	}
 }
 
-func newMatcherList(tfMatcherSlice []tfMatcherModel) []map[string]interface{} {
+func NewMatcherList(tfMatcherSlice []TfMatcherModel) []map[string]interface{} {
 	matchers := make([]map[string]interface{}, 0)
 
 	for i := range tfMatcherSlice {
@@ -651,9 +651,9 @@ func newTFAlertConfigurationModel(apiRespConfig *admin.GroupAlertsConfig, currSt
 		Updated:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Updated)),
 		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
 		MetricThresholdConfig: NewTFMetricThresholdConfigModel(apiRespConfig.MetricThreshold, currState.MetricThresholdConfig),
-		ThresholdConfig:       newTFThresholdConfigModel(apiRespConfig.Threshold, currState.ThresholdConfig),
+		ThresholdConfig:       NewTFThresholdConfigModel(apiRespConfig.Threshold, currState.ThresholdConfig),
 		Notification:          NewTFNotificationModelList(apiRespConfig.Notifications, currState.Notification),
-		Matcher:               newTFMatcherModelList(apiRespConfig.Matchers, currState.Matcher),
+		Matcher:               NewTFMatcherModelList(apiRespConfig.Matchers, currState.Matcher),
 	}
 }
 
@@ -774,13 +774,13 @@ func NewTFMetricThresholdConfigModel(t *admin.ServerlessMetricThreshold, currSta
 	return []TfMetricThresholdConfigModel{newState}
 }
 
-func newTFThresholdConfigModel(t *admin.GreaterThanRawThreshold, currStateSlice []tfThresholdConfigModel) []tfThresholdConfigModel {
+func NewTFThresholdConfigModel(t *admin.GreaterThanRawThreshold, currStateSlice []TfThresholdConfigModel) []TfThresholdConfigModel {
 	if t == nil {
-		return []tfThresholdConfigModel{}
+		return []TfThresholdConfigModel{}
 	}
 
 	if len(currStateSlice) == 0 { // threshold was created elsewhere from terraform, or import statement is being called
-		return []tfThresholdConfigModel{
+		return []TfThresholdConfigModel{
 			{
 				Operator:  conversion.StringNullIfEmpty(*t.Operator),
 				Threshold: types.Float64Value(float64(*t.Threshold)), // int in new SDK but keeping float64 for backward compatibility
@@ -789,7 +789,7 @@ func newTFThresholdConfigModel(t *admin.GreaterThanRawThreshold, currStateSlice 
 		}
 	}
 	currState := currStateSlice[0]
-	newState := tfThresholdConfigModel{}
+	newState := TfThresholdConfigModel{}
 	if !currState.Operator.IsNull() {
 		newState.Operator = conversion.StringNullIfEmpty(*t.Operator)
 	}
@@ -798,17 +798,17 @@ func newTFThresholdConfigModel(t *admin.GreaterThanRawThreshold, currStateSlice 
 	}
 	newState.Threshold = types.Float64Value(float64(*t.Threshold))
 
-	return []tfThresholdConfigModel{newState}
+	return []TfThresholdConfigModel{newState}
 }
 
-func newTFMatcherModelList(m []map[string]any, currStateSlice []tfMatcherModel) []tfMatcherModel {
-	matchers := make([]tfMatcherModel, len(m))
+func NewTFMatcherModelList(m []map[string]any, currStateSlice []TfMatcherModel) []TfMatcherModel {
+	matchers := make([]TfMatcherModel, len(m))
 	if len(m) != len(currStateSlice) { // matchers were modified elsewhere from terraform, or import statement is being called
 		for i, matcher := range m {
 			fieldName, _ := matcher["fieldName"].(string)
 			operator, _ := matcher["operator"].(string)
 			value, _ := matcher["value"].(string)
-			matchers[i] = tfMatcherModel{
+			matchers[i] = TfMatcherModel{
 				FieldName: conversion.StringNullIfEmpty(fieldName),
 				Operator:  conversion.StringNullIfEmpty(operator),
 				Value:     conversion.StringNullIfEmpty(value),
@@ -818,7 +818,7 @@ func newTFMatcherModelList(m []map[string]any, currStateSlice []tfMatcherModel) 
 	}
 	for i, matcher := range m {
 		currState := currStateSlice[i]
-		newState := tfMatcherModel{}
+		newState := TfMatcherModel{}
 		if !currState.FieldName.IsNull() {
 			fieldName, _ := matcher["fieldName"].(string)
 			newState.FieldName = conversion.StringNullIfEmpty(fieldName)
