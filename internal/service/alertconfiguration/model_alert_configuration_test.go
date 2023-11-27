@@ -10,38 +10,38 @@ import (
 )
 
 type sdkToTFNotificationModelTestCase struct {
+	name                      string
 	SDKResp                   *[]admin.AlertsNotificationRootForGroup
 	currentStateNotifications []alertconfiguration.TfNotificationModel
 	expectedTFModel           []alertconfiguration.TfNotificationModel
-	name                      string
 }
 
 type sdkToTFMetricThresholdModelTestCase struct {
+	name                        string
 	SDKResp                     *admin.ServerlessMetricThreshold
 	currentStateMetricThreshold []alertconfiguration.TfMetricThresholdConfigModel
 	expectedTFModel             []alertconfiguration.TfMetricThresholdConfigModel
-	name                        string
 }
 
 type sdkToTFMatcherModelTestCase struct {
+	name                string
 	SDKResp             []map[string]interface{}
 	currentStateMatcher []alertconfiguration.TfMatcherModel
 	expectedTFModel     []alertconfiguration.TfMatcherModel
-	name                string
 }
 
 type sdkToTFThresholdConfigModelTestCase struct {
+	name                        string
 	SDKResp                     *admin.GreaterThanRawThreshold
 	currentStateThresholdConfig []alertconfiguration.TfThresholdConfigModel
 	expectedTFModel             []alertconfiguration.TfThresholdConfigModel
-	name                        string
 }
 
 type sdkToTFAlertConfigurationModelTestCase struct {
+	name                           string
 	SDKResp                        *admin.GroupAlertsConfig
 	currentStateAlertConfiguration *alertconfiguration.TfAlertConfigurationRSModel
 	expectedTFModel                alertconfiguration.TfAlertConfigurationRSModel
-	name                           string
 }
 
 const (
