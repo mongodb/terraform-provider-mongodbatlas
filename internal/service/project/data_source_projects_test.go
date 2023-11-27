@@ -86,7 +86,9 @@ func TestAccProjectDSProjects_withPagination(t *testing.T) {
 func testAccMongoDBAtlasProjectsConfigWithDS(projectName, orgID string, teams []*matlas.ProjectTeam) string {
 	config := fmt.Sprintf(`
 		%s
-		data "mongodbatlas_projects" "test" {}
+		data "mongodbatlas_projects" "test" {
+			depends_on = ["mongodbatlas_project.test"]
+		}
 	`, acc.ConfigProject(projectName, orgID, teams))
 	return config
 }
@@ -97,6 +99,7 @@ func testAccMongoDBAtlasProjectsConfigWithPagination(projectName, orgID string, 
 		data "mongodbatlas_projects" "test" {
 			page_num = %d
 			items_per_page = %d
+			depends_on = ["mongodbatlas_project.test"]
 		}
 	`, acc.ConfigProject(projectName, orgID, teams), pageNum, itemPage)
 }
