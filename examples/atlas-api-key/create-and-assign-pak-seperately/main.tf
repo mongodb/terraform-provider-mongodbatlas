@@ -5,7 +5,6 @@ resource "mongodbatlas_project" "atlas-project" {
 
 resource "mongodbatlas_project_api_key" "api_1" {
   description = "test api_key multi"
-  project_id  = mongodbatlas_project.atlas-project.id
 
   project_assignment {
     project_id = mongodbatlas_project.atlas-project.id
