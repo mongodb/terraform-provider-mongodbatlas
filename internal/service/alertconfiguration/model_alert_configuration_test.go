@@ -31,10 +31,17 @@ type sdkToTFMatcherModelTestCase struct {
 }
 
 type sdkToTFThresholdConfigModelTestCase struct {
-	SDKResp             *admin.GreaterThanRawThreshold
-	currentStateMatcher []alertconfiguration.TfThresholdConfigModel
-	expectedTFModel     []alertconfiguration.TfThresholdConfigModel
-	name                string
+	SDKResp                     *admin.GreaterThanRawThreshold
+	currentStateThresholdConfig []alertconfiguration.TfThresholdConfigModel
+	expectedTFModel             []alertconfiguration.TfThresholdConfigModel
+	name                        string
+}
+
+type sdkToTFAlertConfigurationModelTestCase struct {
+	SDKResp                        *admin.GroupAlertsConfig
+	currentStateAlertConfiguration *alertconfiguration.TfAlertConfigurationRSModel
+	expectedTFModel                alertconfiguration.TfAlertConfigurationRSModel
+	name                           string
 }
 
 const (
@@ -161,7 +168,7 @@ func TestThresholdConfigSDKToTFModel(t *testing.T) {
 				Operator:  admin.PtrString("LESS_THAN"),
 				Units:     admin.PtrString("HOURS"),
 			},
-			currentStateMatcher: []alertconfiguration.TfThresholdConfigModel{
+			currentStateThresholdConfig: []alertconfiguration.TfThresholdConfigModel{
 				{
 					Threshold: types.Float64Value(1.0),
 					Operator:  types.StringValue("LESS_THAN"),
@@ -180,7 +187,7 @@ func TestThresholdConfigSDKToTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := alertconfiguration.NewTFThresholdConfigModel(tc.SDKResp, tc.currentStateMatcher)
+			resultModel := alertconfiguration.NewTFThresholdConfigModel(tc.SDKResp, tc.currentStateThresholdConfig)
 			if !reflect.DeepEqual(resultModel, tc.expectedTFModel) {
 				t.Errorf("created terraform model did not match expected output")
 			}
@@ -226,5 +233,46 @@ func TestMatcherSDKToTFModel(t *testing.T) {
 }
 
 func TestAlertConfigurationSDKToTFModel(t *testing.T) {
+	testCases := []sdkToTFAlertConfigurationModelTestCase{
+		{
+			name: "Complete SKD response",
+			SDKResp: &admin.GroupAlertsConfig{
+				Enabled:       admin.PtrBool(true),
+				EventTypeName: admin.PtrString("EventType"),
+				GroupId:       admin.PtrString("projectId"),
+				Id:            admin.PtrString("alertConfigurationId"),
+			},
+			currentStateAlertConfiguration: &alertconfiguration.TfAlertConfigurationRSModel{
+				ID:                    types.StringValue("id"),
+				ProjectID:             types.StringValue("projectId"),
+				AlertConfigurationID:  types.StringValue("alertConfigurationId"),
+				EventType:             types.StringValue("EventType"),
+				Matcher:               []alertconfiguration.TfMatcherModel{},
+				MetricThresholdConfig: []alertconfiguration.TfMetricThresholdConfigModel{},
+				ThresholdConfig:       []alertconfiguration.TfThresholdConfigModel{},
+				Notification:          []alertconfiguration.TfNotificationModel{},
+				Enabled:               types.BoolValue(true),
+			},
+			expectedTFModel: alertconfiguration.TfAlertConfigurationRSModel{
+				ID:                    types.StringValue("id"),
+				ProjectID:             types.StringValue("projectId"),
+				AlertConfigurationID:  types.StringValue("alertConfigurationId"),
+				EventType:             types.StringValue("EventType"),
+				Matcher:               []alertconfiguration.TfMatcherModel{},
+				MetricThresholdConfig: []alertconfiguration.TfMetricThresholdConfigModel{},
+				ThresholdConfig:       []alertconfiguration.TfThresholdConfigModel{},
+				Notification:          []alertconfiguration.TfNotificationModel{},
+				Enabled:               types.BoolValue(true),
+			},
+		},
+	}
 
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel := alertconfiguration.NewTFAlertConfigurationModel(tc.SDKResp, tc.currentStateAlertConfiguration)
+			if !reflect.DeepEqual(resultModel, tc.expectedTFModel) {
+				t.Errorf("created terraform model did not match expected output")
+			}
+		})
+	}
 }

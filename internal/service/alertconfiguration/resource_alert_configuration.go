@@ -51,7 +51,7 @@ type alertConfigurationRS struct {
 	config.RSCommon
 }
 
-type tfAlertConfigurationRSModel struct {
+type TfAlertConfigurationRSModel struct {
 	ID                    types.String                   `tfsdk:"id"`
 	ProjectID             types.String                   `tfsdk:"project_id"`
 	AlertConfigurationID  types.String                   `tfsdk:"alert_configuration_id"`
@@ -370,7 +370,7 @@ func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 func (r *alertConfigurationRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	connV2 := r.Client.AtlasV2
 
-	var alertConfigPlan tfAlertConfigurationRSModel
+	var alertConfigPlan TfAlertConfigurationRSModel
 
 	diags := req.Plan.Get(ctx, &alertConfigPlan)
 	resp.Diagnostics.Append(diags...)
@@ -407,7 +407,7 @@ func (r *alertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 	})
 	alertConfigPlan.ID = types.StringValue(encodedID)
 
-	newAlertConfigurationState := newTFAlertConfigurationModel(apiResp, &alertConfigPlan)
+	newAlertConfigurationState := NewTFAlertConfigurationModel(apiResp, &alertConfigPlan)
 
 	// set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, newAlertConfigurationState)...)
@@ -416,7 +416,7 @@ func (r *alertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 func (r *alertConfigurationRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	connV2 := r.Client.AtlasV2
 
-	var alertConfigState tfAlertConfigurationRSModel
+	var alertConfigState TfAlertConfigurationRSModel
 
 	// get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &alertConfigState)...)
@@ -437,7 +437,7 @@ func (r *alertConfigurationRS) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	newAlertConfigurationState := newTFAlertConfigurationModel(alert, &alertConfigState)
+	newAlertConfigurationState := NewTFAlertConfigurationModel(alert, &alertConfigState)
 
 	// save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newAlertConfigurationState)...)
@@ -446,7 +446,7 @@ func (r *alertConfigurationRS) Read(ctx context.Context, req resource.ReadReques
 func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	connV2 := r.Client.AtlasV2
 
-	var alertConfigState, alertConfigPlan tfAlertConfigurationRSModel
+	var alertConfigState, alertConfigPlan TfAlertConfigurationRSModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &alertConfigState)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &alertConfigPlan)...)
 	if resp.Diagnostics.HasError() {
@@ -513,7 +513,7 @@ func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	newAlertConfigurationState := newTFAlertConfigurationModel(updatedAlertConfigResp, &alertConfigPlan)
+	newAlertConfigurationState := NewTFAlertConfigurationModel(updatedAlertConfigResp, &alertConfigPlan)
 
 	// save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newAlertConfigurationState)...)
@@ -522,7 +522,7 @@ func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 func (r *alertConfigurationRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	conn := r.Client.Atlas
 
-	var alertConfigState tfAlertConfigurationRSModel
+	var alertConfigState TfAlertConfigurationRSModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &alertConfigState)...)
 	if resp.Diagnostics.HasError() {
 		return

@@ -96,8 +96,8 @@ func newMatcherList(tfMatcherSlice []TfMatcherModel) []map[string]interface{} {
 	return matchers
 }
 
-func newTFAlertConfigurationModel(apiRespConfig *admin.GroupAlertsConfig, currState *tfAlertConfigurationRSModel) tfAlertConfigurationRSModel {
-	return tfAlertConfigurationRSModel{
+func NewTFAlertConfigurationModel(apiRespConfig *admin.GroupAlertsConfig, currState *TfAlertConfigurationRSModel) TfAlertConfigurationRSModel {
+	return TfAlertConfigurationRSModel{
 		ID:                    currState.ID,
 		ProjectID:             currState.ProjectID,
 		AlertConfigurationID:  types.StringValue(conversion.SafeString(apiRespConfig.Id)),
