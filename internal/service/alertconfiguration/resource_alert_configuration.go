@@ -60,9 +60,9 @@ type tfAlertConfigurationRSModel struct {
 	Created               types.String                   `tfsdk:"created"`
 	Updated               types.String                   `tfsdk:"updated"`
 	Matcher               []tfMatcherModel               `tfsdk:"matcher"`
-	MetricThresholdConfig []tfMetricThresholdConfigModel `tfsdk:"metric_threshold_config"`
+	MetricThresholdConfig []TfMetricThresholdConfigModel `tfsdk:"metric_threshold_config"`
 	ThresholdConfig       []tfThresholdConfigModel       `tfsdk:"threshold_config"`
-	Notification          []tfNotificationModel          `tfsdk:"notification"`
+	Notification          []TfNotificationModel          `tfsdk:"notification"`
 	Enabled               types.Bool                     `tfsdk:"enabled"`
 }
 
@@ -72,7 +72,7 @@ type tfMatcherModel struct {
 	Value     types.String `tfsdk:"value"`
 }
 
-type tfMetricThresholdConfigModel struct {
+type TfMetricThresholdConfigModel struct {
 	Threshold  types.Float64 `tfsdk:"threshold"`
 	MetricName types.String  `tfsdk:"metric_name"`
 	Operator   types.String  `tfsdk:"operator"`
@@ -86,7 +86,7 @@ type tfThresholdConfigModel struct {
 	Units     types.String  `tfsdk:"units"`
 }
 
-type tfNotificationModel struct {
+type TfNotificationModel struct {
 	OpsGenieRegion           types.String `tfsdk:"ops_genie_region"`
 	Username                 types.String `tfsdk:"username"`
 	APIToken                 types.String `tfsdk:"api_token"`
@@ -555,7 +555,7 @@ func (r *alertConfigurationRS) ImportState(ctx context.Context, req resource.Imp
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
 }
 
-func newNotificationList(tfNotificationSlice []tfNotificationModel) ([]admin.AlertsNotificationRootForGroup, error) {
+func newNotificationList(tfNotificationSlice []TfNotificationModel) ([]admin.AlertsNotificationRootForGroup, error) {
 	notifications := make([]admin.AlertsNotificationRootForGroup, 0)
 
 	for i := range tfNotificationSlice {
@@ -613,7 +613,7 @@ func newThreshold(tfThresholdConfigSlice []tfThresholdConfigModel) *admin.Greate
 	}
 }
 
-func newMetricThreshold(tfMetricThresholdConfigSlice []tfMetricThresholdConfigModel) *admin.ServerlessMetricThreshold {
+func newMetricThreshold(tfMetricThresholdConfigSlice []TfMetricThresholdConfigModel) *admin.ServerlessMetricThreshold {
 	if len(tfMetricThresholdConfigSlice) < 1 {
 		return nil
 	}
@@ -650,20 +650,20 @@ func newTFAlertConfigurationModel(apiRespConfig *admin.GroupAlertsConfig, currSt
 		Created:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Created)),
 		Updated:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Updated)),
 		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
-		MetricThresholdConfig: newTFMetricThresholdConfigModel(apiRespConfig.MetricThreshold, currState.MetricThresholdConfig),
+		MetricThresholdConfig: NewTFMetricThresholdConfigModel(apiRespConfig.MetricThreshold, currState.MetricThresholdConfig),
 		ThresholdConfig:       newTFThresholdConfigModel(apiRespConfig.Threshold, currState.ThresholdConfig),
-		Notification:          newTFNotificationModelList(apiRespConfig.Notifications, currState.Notification),
+		Notification:          NewTFNotificationModelList(apiRespConfig.Notifications, currState.Notification),
 		Matcher:               newTFMatcherModelList(apiRespConfig.Matchers, currState.Matcher),
 	}
 }
 
-func newTFNotificationModelList(n []admin.AlertsNotificationRootForGroup, currStateNotifications []tfNotificationModel) []tfNotificationModel {
-	notifications := make([]tfNotificationModel, len(n))
+func NewTFNotificationModelList(n []admin.AlertsNotificationRootForGroup, currStateNotifications []TfNotificationModel) []TfNotificationModel {
+	notifications := make([]TfNotificationModel, len(n))
 
 	if len(n) != len(currStateNotifications) { // notifications were modified elsewhere from terraform, or import statement is being called
 		for i := range n {
 			value := n[i]
-			notifications[i] = tfNotificationModel{
+			notifications[i] = TfNotificationModel{
 				TeamName:       conversion.StringPtrNullIfEmpty(value.TeamName),
 				Roles:          value.Roles,
 				ChannelName:    conversion.StringPtrNullIfEmpty(value.ChannelName),
@@ -687,7 +687,7 @@ func newTFNotificationModelList(n []admin.AlertsNotificationRootForGroup, currSt
 	for i := range n {
 		value := n[i]
 		currState := currStateNotifications[i]
-		newState := tfNotificationModel{
+		newState := TfNotificationModel{
 			TeamName: conversion.StringPtrNullIfEmpty(value.TeamName),
 			Roles:    value.Roles,
 		}
@@ -741,12 +741,12 @@ func newTFNotificationModelList(n []admin.AlertsNotificationRootForGroup, currSt
 	return notifications
 }
 
-func newTFMetricThresholdConfigModel(t *admin.ServerlessMetricThreshold, currStateSlice []tfMetricThresholdConfigModel) []tfMetricThresholdConfigModel {
+func NewTFMetricThresholdConfigModel(t *admin.ServerlessMetricThreshold, currStateSlice []TfMetricThresholdConfigModel) []TfMetricThresholdConfigModel {
 	if t == nil {
-		return []tfMetricThresholdConfigModel{}
+		return []TfMetricThresholdConfigModel{}
 	}
 	if len(currStateSlice) == 0 { // metric threshold was created elsewhere from terraform, or import statement is being called
-		return []tfMetricThresholdConfigModel{
+		return []TfMetricThresholdConfigModel{
 			{
 				MetricName: conversion.StringNullIfEmpty(t.MetricName),
 				Operator:   conversion.StringNullIfEmpty(*t.Operator),
@@ -757,7 +757,7 @@ func newTFMetricThresholdConfigModel(t *admin.ServerlessMetricThreshold, currSta
 		}
 	}
 	currState := currStateSlice[0]
-	newState := tfMetricThresholdConfigModel{}
+	newState := TfMetricThresholdConfigModel{}
 	if !currState.MetricName.IsNull() {
 		newState.MetricName = conversion.StringNullIfEmpty(t.MetricName)
 	}
@@ -771,7 +771,7 @@ func newTFMetricThresholdConfigModel(t *admin.ServerlessMetricThreshold, currSta
 		newState.Mode = conversion.StringNullIfEmpty(*t.Mode)
 	}
 	newState.Threshold = types.Float64Value(*t.Threshold)
-	return []tfMetricThresholdConfigModel{newState}
+	return []TfMetricThresholdConfigModel{newState}
 }
 
 func newTFThresholdConfigModel(t *admin.GreaterThanRawThreshold, currStateSlice []tfThresholdConfigModel) []tfThresholdConfigModel {
