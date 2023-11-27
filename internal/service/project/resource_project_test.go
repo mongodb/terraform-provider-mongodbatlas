@@ -3,7 +3,6 @@ package project_test
 import (
 	"os"
 	"regexp"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -20,14 +19,9 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		clusterCount = "0"
-		teamsIds     = strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
 	)
-	if len(teamsIds) < 3 {
-		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 3 team ids for this acceptance testing")
-	}
-
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckTeamsIds(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIds(t, 3) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
@@ -35,11 +29,11 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 				Config: acc.ConfigProject(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
-							TeamID:    teamsIds[0],
+							TeamID:    acc.GetProjectTeamsIds(0),
 							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
-							TeamID:    teamsIds[1],
+							TeamID:    acc.GetProjectTeamsIds(1),
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
@@ -57,15 +51,15 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 				Config: acc.ConfigProject(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
-							TeamID:    teamsIds[0],
+							TeamID:    acc.GetProjectTeamsIds(0),
 							RoleNames: []string{"GROUP_OWNER"},
 						},
 						{
-							TeamID:    teamsIds[1],
+							TeamID:    acc.GetProjectTeamsIds(1),
 							RoleNames: []string{"GROUP_DATA_ACCESS_READ_WRITE"},
 						},
 						{
-							TeamID:    teamsIds[2],
+							TeamID:    acc.GetProjectTeamsIds(2),
 							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 					},
@@ -84,11 +78,11 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 
 					[]*matlas.ProjectTeam{
 						{
-							TeamID:    teamsIds[0],
+							TeamID:    acc.GetProjectTeamsIds(0),
 							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_READ_ONLY"},
 						},
 						{
-							TeamID:    teamsIds[1],
+							TeamID:    acc.GetProjectTeamsIds(1),
 							RoleNames: []string{"GROUP_OWNER", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 					},
@@ -232,16 +226,14 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 		roleName        = "GROUP_DATA_ACCESS_ADMIN"
 		roleNameUpdated = "GROUP_READ_ONLY"
 		clusterCount    = "0"
-		teamsIds        = strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
 	)
-
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckTeamsIds(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIds(t, 1) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectWithUpdatedRole(projectName, orgID, teamsIds[0], roleName),
+				Config: acc.ConfigProjectWithUpdatedRole(projectName, orgID, acc.GetProjectTeamsIds(0), roleName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -249,7 +241,7 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigProjectWithUpdatedRole(projectName, orgID, teamsIds[0], roleNameUpdated),
+				Config: acc.ConfigProjectWithUpdatedRole(projectName, orgID, acc.GetProjectTeamsIds(0), roleNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
