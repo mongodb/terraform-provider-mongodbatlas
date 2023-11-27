@@ -11,6 +11,7 @@ Provides a Search Deployment resource.
 `mongodbatlas_search_deployment` provides a Search Deployment resource. The resource lets you create, edit and delete dedicated search nodes in a cluster.
 
 -> **NOTE:** For details on supported cloud providers and existing limitations you can visit the [Search Node Documentation](https://www.mongodb.com/docs/atlas/cluster-config/multi-cloud-distribution/#search-nodes-for-workload-isolation).
+
 -> **NOTE:** Only a single search deployment resource can be defined for each cluster.
 
 

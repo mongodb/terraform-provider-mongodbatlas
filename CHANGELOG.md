@@ -1,5 +1,31 @@
 # Changelog
 
+## [v1.13.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.13.1) (2023-11-23)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.13.0...v1.13.1)
+
+**Enhancements**
+
+- feat: Unit test resource and data source schemas in [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework-benefits) [\#1646](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1646) ([lantoli](https://github.com/lantoli))
+
+**Bug Fixes**
+
+- fix: uses SchemaConfigModeAttr for list attributes in `mongodbatlas_cluster` resource. [\#1654](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1654) ([marcosuma](https://github.com/marcosuma))
+- fix: handles attributes as computed in `mongodbatlas_cluster` resource. [\#1642](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1642) ([marcosuma](https://github.com/marcosuma))
+- fix: avoids error when removing project api key assignment for deleted project [\#1641](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1641) ([AgustinBettati](https://github.com/AgustinBettati))
+- **Breaking Change**: fix!: handles paused clusters with errors when updating. [\#1640](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1640) ([marcosuma](https://github.com/marcosuma))
+- fix: adds `data_process_region` field to `mongodbatlas_online_archive` resource [\#1634](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1634) ([marcosuma](https://github.com/marcosuma))
+
+**Internal Improvements**
+
+- fix: Update issues.yml to remove assignee [\#1649](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1649) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- fix: \(INTMDB-1312\) It is not possible to add breaking change label to PR [\#1647](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1647) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- doc: addresses outstanding comments from 1.13.0 docs release [\#1648](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1648) ([oarbusi](https://github.com/oarbusi))
+- chore: migrates `mongodbatlas_alert_configuration` to new SDK [\#1630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1630) ([oarbusi](https://github.com/oarbusi))
+- chore: Bump github.com/hashicorp/terraform-plugin-go from 0.19.0 to 0.19.1 [\#1652](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1652) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore: Bump github.com/aws/aws-sdk-go from 1.47.11 to 1.48.2 [\#1651](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1651) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore: Bump tj-actions/verify-changed-files from 82a523f60ad6816c35b418520f84629024d70e1e to 2e93a84b325e5c4d3544924aee8afb7e1ffe189f [\#1650](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1650) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v1.13.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.13.0) (2023-11-21)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.12.3...v1.13.0)

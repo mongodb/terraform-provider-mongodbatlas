@@ -1529,8 +1529,9 @@ func getContainerID(containers []matlas.Container, cluster *matlas.Cluster) stri
 
 func clusterConnectionStringsSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeList,
-		Computed: true,
+		Type:       schema.TypeList,
+		Computed:   true,
+		ConfigMode: schema.SchemaConfigModeAttr,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"standard": {
@@ -1550,8 +1551,9 @@ func clusterConnectionStringsSchema() *schema.Schema {
 					Computed: true,
 				},
 				"private_endpoint": {
-					Type:     schema.TypeList,
-					Computed: true,
+					Type:       schema.TypeList,
+					Computed:   true,
+					ConfigMode: schema.SchemaConfigModeAttr,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"connection_string": {
@@ -1559,8 +1561,9 @@ func clusterConnectionStringsSchema() *schema.Schema {
 								Computed: true,
 							},
 							"endpoints": {
-								Type:     schema.TypeList,
-								Computed: true,
+								Type:       schema.TypeList,
+								Computed:   true,
+								ConfigMode: schema.SchemaConfigModeAttr,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
 										"endpoint_id": {

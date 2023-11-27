@@ -17,8 +17,8 @@ Bugs should be filed under the Issues section of this repo.
 Feature requests can be submitted at https://feedback.mongodb.com/forums/924145-atlas - just select the Terraform plugin as the category or vote for an already suggested feature.
 
 ## Requirements
-- [Terraform](https://www.terraform.io/downloads.html) 1.0+
-- [Go](https://golang.org/doc/install) 1.21 (to build the provider plugin)
+- [Terraform Version](https://www.terraform.io/downloads.html) While we support minimum of HashiCorp Terraform version 1.0+ (as we have migrated to [Plugin Protocol Version 6](https://developer.hashicorp.com/terraform/plugin/terraform-plugin-protocol#protocol-version-6)), for your safety we strongly recommend only consuming versions of Terraform that are currently receiving Security/Maintenance Updates. For latest Terraform versions see: https://endoflife.date/terraform 
+- [Go Version](https://golang.org/doc/install) 1.21 (to build the provider plugin)
 
 ## Using the Provider
 
