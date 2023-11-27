@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 	}
 	err := tf6server.Serve(
 		"registry.terraform.io/mongodb/mongodbatlas",
-		mongodbatlas.MuxedProviderFactory(),
+		provider.MuxedProviderFactory(),
 		serveOpts...,
 	)
 	if err != nil {

@@ -51,7 +51,7 @@ jobs:
           cluster:
             - 'mongodbatlas/**mongodbatlas_cluster**.go'
           search_deployment:
-            - 'mongodbatlas/**search_deployment**.go'
+            - 'internal/service/searchdeployment/*.go'
           generic:
             - 'mongodbatlas/data_source_mongodbatlas_backup_compliance_policy*.go'
             - 'mongodbatlas/resource_mongodbatlas_backup_compliance_policy*.go'
