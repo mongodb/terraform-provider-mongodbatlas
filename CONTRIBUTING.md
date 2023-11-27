@@ -268,7 +268,7 @@ To do this you can:
 - Migration tests are in `_migration_test.go` files.
 - Helper methods must have their own tests, e.g. `common_advanced_cluster_test.go` has tests for `common_advanced_cluster.go`.
 - `internal/testutils/acc` contains helper test methods for Acceptance and Migration tests.
-- Tests that need the provider binary like End-to-End tests don’t belong to the source code packages and go in a different structure.
+- Tests that need the provider binary like End-to-End tests don’t belong to the source code packages and go in `test/e2e`.
 
 ## Documentation Best Practises
 
