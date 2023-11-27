@@ -18,7 +18,7 @@ func TestAccProjectDSProjects_basic(t *testing.T) {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
 	if len(teamsIds) < 2 {
-		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
+		t.Fatal("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
 	}
 
 	resource.Test(t, resource.TestCase{
