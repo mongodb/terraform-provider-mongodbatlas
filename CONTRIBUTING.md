@@ -97,7 +97,6 @@ You must also configure the following environment variables before running the t
 - For `Project(s)` resource configuration:
   ```bash
   $ export MONGODB_ATLAS_TEAMS_IDS=<YOUR_TEAMS_IDS>
-  $ export MONGODB_ATLAS_API_KEYS_IDS=<API_KEYS_IDS>
   ```
 ~> **Notice:** It should be at least one team id up to 3 teams ids depending of acceptance testing using separator comma like this `teamId1,teamdId2,teamId3`.
 
