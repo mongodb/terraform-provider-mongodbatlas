@@ -80,7 +80,7 @@ func (d *searchDeploymentDS) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	newSearchDeploymentModel, diagnostics := newTFSearchDeployment(ctx, clusterName, deploymentResp, nil)
+	newSearchDeploymentModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, nil)
 	resp.Diagnostics.Append(diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -89,7 +89,7 @@ func (d *searchDeploymentDS) Read(ctx context.Context, req datasource.ReadReques
 	resp.Diagnostics.Append(resp.State.Set(ctx, dsModel)...)
 }
 
-func convertToDSModel(inputModel *tfSearchDeploymentRSModel) tfSearchDeploymentDSModel {
+func convertToDSModel(inputModel *TFSearchDeploymentRSModel) tfSearchDeploymentDSModel {
 	return tfSearchDeploymentDSModel{
 		ID:          inputModel.ID,
 		ClusterName: inputModel.ClusterName,
