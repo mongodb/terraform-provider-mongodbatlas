@@ -260,7 +260,15 @@ To do this you can:
 
 - Lastly, in the terminal run `terraform init` again and this time terraform will pull provider version from `tf_cache` network mirror. You can confirm this by noting the `Terraform has been successfully initialized! Using mongodb/mongodbatlas Vx.x.x from the shared cache directory` message.  
 
+## Code and Test Best Practices
 
+- Each resource (and associated data sources) is in a package in `internal/service`.
+- There can be multiple helper classes and they can also be used from other resources, e.g. `common_advanced_cluster.go` defines functions that are also used from other resources using `advancedcluster.FunctionName`.
+- Unit and Acceptances tests are in the same `_test.go` file. They are not in the same package as the code tests, e.g. `advancedcluster` tests are in `advancedcluster_test` package so coupling is minimized.
+- Migration tests are in `_migration_test.go` files.
+- Helper methods can have their own tests, e.g. `common_advanced_cluster_test.go` has tests for `common_advanced_cluster.go`.
+- `internal/testutils/acc` contains helper test methods for Acceptance and Migration tests.
+- Tests that need the provider binary like End-to-End tests don’t belong to the source code packages and go in a different structure.
 
 ## Documentation Best Practises
 
