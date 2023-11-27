@@ -47,9 +47,9 @@ jobs:
           cluster_outage_simulation:
             - 'mongodbatlas/**cluster_outage_simulation**.go'
           advanced_cluster:
-            - 'mongodbatlas/**advanced_cluster**.go'
+            - 'internal/service/advancedcluster/*.go'
           cluster:
-            - 'mongodbatlas/**mongodbatlas_cluster**.go'
+            - 'internal/service/cluster/*.go'
           search_deployment:
             - 'mongodbatlas/**search_deployment**.go'
           generic:
@@ -64,11 +64,11 @@ jobs:
           backup_schedule:
             - 'mongodbatlas/**backup_schedule**.go'
           project:
+            - 'internal/service/project/*.go'
+            - 'internal/service/projectipaccesslist/*.go'
             - 'mongodbatlas/data_source_mongodbatlas_project_invitation*.go'
-            - 'mongodbatlas/fw_data_source_mongodbatlas_project_ip_access_list*.go'
             - 'mongodbatlas/resource_mongodbatlas_access_list_api_key*.go'
             - 'mongodbatlas/resource_mongodbatlas_project_invitation*.go'
-            - 'mongodbatlas/fw_resource_mongodbatlas_project_ip_access_list*.go'
           serverless:
             - 'mongodbatlas/**_serverless**.go' 
           network:
@@ -78,29 +78,27 @@ jobs:
           federation:
             - 'mongodbatlas/**_federated_database_instance**.go'
           config:
+            - 'internal/service/alertconfiguration/*.go'
+            - 'internal/service/atlasuser/*.go'
+            - 'internal/service/databaseuser/*.go'
             - 'mongodbatlas/data_source_mongodbatlas_accesslist_api_key*.go'
-            - 'mongodbatlas/fw_data_source_mongodbatlas_alert_configuration*.go'
             - 'mongodbatlas/data_source_mongodbatlas_api_key*.go'
             - 'mongodbatlas/data_source_mongodbatlas_cloud_provider_access_setup*.go'
             - 'mongodbatlas/data_source_mongodbatlas_cloud_provider_access*.go'
             - 'mongodbatlas/data_source_mongodbatlas_custom_db_role*.go'
             - 'mongodbatlas/data_source_mongodbatlas_custom_dns_configuration_cluster_aws*.go'
-            - 'mongodbatlas/fw_data_source_mongodbatlas_database_user*.go'
             - 'mongodbatlas/data_source_mongodbatlas_maintenance_window*.go'
             - 'mongodbatlas/data_source_mongodbatlas_org_id*.go'
             - 'mongodbatlas/data_source_mongodbatlas_org_invitation*.go'
             - 'mongodbatlas/data_source_mongodbatlas_organization*.go'
             - 'mongodbatlas/data_source_mongodbatlas_project_api_key*.go'
             - 'mongodbatlas/data_source_mongodbatlas_team*.go'
-            - 'mongodbatlas/fw_data_source_mongodbatlas_atlas_user*.go'
             - 'mongodbatlas/data_source_mongodbatlas_third_party_integration*.go'
             - 'mongodbatlas/resource_mongodbatlas_api_key*.go'
-            - 'mongodbatlas/fw_resource_mongodbatlas_alert_configuration*.go'
             - 'mongodbatlas/resource_mongodbatlas_cloud_provider_access_setup*.go'
             - 'mongodbatlas/resource_mongodbatlas_cloud_provider_access*.go'
             - 'mongodbatlas/resource_mongodbatlas_custom_db_role*.go'
             - 'mongodbatlas/resource_mongodbatlas_custom_dns_configuration_cluster_aws*.go'
-            - 'mongodbatlas/fw_resource_mongodbatlas_database_user*.go'
             - 'mongodbatlas/resource_mongodbatlas_maintenance_window*.go'
             - 'mongodbatlas/resource_mongodbatlas_org_invitation*.go'
             - 'mongodbatlas/resource_mongodbatlas_organization*.go'
