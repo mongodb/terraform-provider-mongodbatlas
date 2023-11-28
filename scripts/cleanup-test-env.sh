@@ -29,6 +29,33 @@ echo "${projects}" | jq -c '.results[].id' | while read -r id; do
         continue
     fi
 
+    countAWS=$(atlas privateEndpoints aws list --projectId "${clean_project_id}" -o=go-template="{{len .}}")
+    if [ "${countAWS}" != "0" ]; then
+        echo "Project ${clean_project_id} contains AWS endpoints, will start deleting it now and will try to delete the project in the next execution"
+        idAWS=$(atlas privateEndpoints aws list --projectId "${clean_project_id}" -o=go-template="{{(index . 0).Id}}")
+        atlas privateEndpoints aws delete "${idAWS}" --force --projectId "${clean_project_id}" || \
+        echo "Failed to delete AWS private endpoint with project ID ${clean_project_id}, endpoint ID: ${idAWS}"
+        continue
+    fi
+
+    countGCP=$(atlas privateEndpoints gcp list --projectId "${clean_project_id}" -o=go-template="{{len .}}")
+    if [ "${countGCP}" != "0" ]; then
+        echo "Project ${clean_project_id} contains GCP endpoints, will start deleting it now and will try to delete the project in the next execution"
+        idGCP=$(atlas privateEndpoints gcp list --projectId "${clean_project_id}" -o=go-template="{{(index . 0).Id}}")
+        atlas privateEndpoints gcp delete "${idGCP}" --force --projectId "${clean_project_id}" || \
+        echo "Failed to delete GCP private endpoint with project ID ${clean_project_id}, endpoint ID: ${idGCP}"
+        continue
+    fi
+
+    countAzure=$(atlas privateEndpoints azure list --projectId "${clean_project_id}" -o=go-template="{{len .}}")
+    if [ "${countAzure}" != "0" ]; then
+        echo "Project ${clean_project_id} contains Azure endpoints, will start deleting it now and will try to delete the project in the next execution"
+        idAzure=$(atlas privateEndpoints azure list --projectId "${clean_project_id}" -o=go-template="{{(index . 0).Id}}")
+        atlas privateEndpoints azure delete "${idAzure}" --force --projectId "${clean_project_id}" || \
+        echo "Failed to delete Azure private endpoint with project ID ${clean_project_id}, endpoint ID: ${idAzure}"
+        continue
+    fi
+
     clusters=$(atlas cluster ls --projectId "${clean_project_id}" -o=go-template="{{.TotalCount}}")
     if [ "${clusters}" != "0" ]; then
         echo "Project ${clean_project_id} contains clusters. Skipping..."
