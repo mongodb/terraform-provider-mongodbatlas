@@ -26,7 +26,7 @@ func TestAccProjectDSProjects_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectsConfigWithDS(projectName, orgID,
+				Config: testAccMongoDBAtlasProjectsConfigWithDS(t, projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
 							TeamID:    acc.GetProjectTeamsIds(0),
@@ -87,11 +87,13 @@ func TestAccProjectDSProjects_withPagination(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasProjectsConfigWithDS(projectName, orgID string, teams []*matlas.ProjectTeam) string {
+func testAccMongoDBAtlasProjectsConfigWithDS(t *testing.T, projectName, orgID string, teams []*matlas.ProjectTeam) string {
 	config := fmt.Sprintf(`
 		%s
 		data "mongodbatlas_projects" "test" {}
 	`, acc.ConfigProject(projectName, orgID, teams))
+
+	t.Logf("TERRAFORM FILE:%s\nEND\n", config)
 	return config
 }
 
