@@ -276,7 +276,6 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 
 		_, _, err := conn.Projects.AddTeamsToProject(ctx, project.ID, toAtlasProjectTeams(ctx, teams))
 		if err != nil {
-			fmt.Println("DELETING PROJECT A " + project.ID)
 			errd := deleteProject(ctx, r.Client.Atlas, project.ID)
 			if errd != nil {
 				resp.Diagnostics.AddError("error during project deletion when adding teams", fmt.Sprintf(errorProjectDelete, project.ID, err.Error()))
@@ -298,7 +297,6 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 			}
 			_, _, err := connV2.ProjectsApi.SetProjectLimit(ctx, limit.Name.ValueString(), project.ID, dataFederationLimit).Execute()
 			if err != nil {
-				fmt.Println("DELETING PROJECT B " + project.ID)
 				errd := deleteProject(ctx, r.Client.Atlas, project.ID)
 				if errd != nil {
 					resp.Diagnostics.AddError("error during project deletion when adding limits", fmt.Sprintf(errorProjectDelete, project.ID, err.Error()))
@@ -313,7 +311,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	// add settings
 	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, project.ID)
 	if err != nil {
-		fmt.Println("DELETING PROJECT C " + project.ID)
+		fmt.Println("DELETING PROJECT 1 " + project.ID)
 		errd := deleteProject(ctx, r.Client.Atlas, project.ID)
 		if errd != nil {
 			resp.Diagnostics.AddError("error during project deletion when getting project settings", fmt.Sprintf(errorProjectDelete, project.ID, err.Error()))
@@ -345,7 +343,6 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	if _, _, err = conn.Projects.UpdateProjectSettings(ctx, project.ID, projectSettings); err != nil {
-		fmt.Println("DELETING PROJECT D " + project.ID)
 		errd := deleteProject(ctx, r.Client.Atlas, project.ID)
 		if errd != nil {
 			resp.Diagnostics.AddError("error during project deletion when updating project settings", fmt.Sprintf(errorProjectDelete, project.ID, err.Error()))
@@ -515,7 +512,6 @@ func (r *projectRS) Delete(ctx context.Context, req resource.DeleteRequest, resp
 	}
 
 	projectID := project.ID.ValueString()
-	fmt.Println("DELETING PROJECT E " + projectID)
 	err := deleteProject(ctx, r.Client.Atlas, projectID)
 
 	if err != nil {
