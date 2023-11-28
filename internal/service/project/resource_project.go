@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"reflect"
+	"runtime/debug"
 	"sort"
 	"time"
 
@@ -360,7 +361,9 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	// get project props
+	fmt.Println("BEGIN getProjectPropsFromAPI FROM RS1 " + projectID)
 	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, projectID)
+	fmt.Println("END getProjectPropsFromAPI FROM RS1 " + projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -407,7 +410,9 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	// get project props
+	fmt.Println("BEGIN getProjectPropsFromAPI FROM RS2 " + projectID)
 	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, projectID)
+	fmt.Println("END getProjectPropsFromAPI FROM RS2 " + projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -477,7 +482,9 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	}
 
 	// get project props
+	fmt.Println("BEGIN getProjectPropsFromAPI FROM RS3 " + projectID)
 	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, projectID)
+	fmt.Println("END getProjectPropsFromAPI FROM RS3 " + projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -541,6 +548,8 @@ func filterUserDefinedLimits(allAtlasLimits []admin.DataFederationLimit, tflimit
 func getProjectPropsFromAPI(ctx context.Context, conn *matlas.Client, connV2 *admin.APIClient, projectID string) (*matlas.TeamsAssigned, []admin.DataFederationLimit, *matlas.ProjectSettings, error) {
 	teams, _, err := conn.Projects.GetProjectTeamsAssigned(ctx, projectID)
 	if err != nil {
+		fmt.Println("BEGIN getProjectPropsFromAPI WRTING TRACE " + projectID)
+		debug.PrintStack()
 		return nil, nil, nil, fmt.Errorf("error getting project's teams assigned (%s): %v", projectID, err.Error())
 	}
 
