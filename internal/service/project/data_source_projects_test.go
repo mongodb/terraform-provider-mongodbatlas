@@ -51,6 +51,45 @@ func TestAccProjectDSProjects_basic(t *testing.T) {
 	})
 }
 
+func TestAccProjectDSProjects_basic2(t *testing.T) {
+	var (
+		projectName = fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+	)
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			acc.DebugVersion(t, "TestAccProjectDSProjects_basic2", projectName)
+			acc.PreCheckBasic(t)
+			acc.PreCheckProjectTeamsIds(t, 2)
+		},
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasProjectsConfigWithDS(t, projectName, orgID,
+					[]*matlas.ProjectTeam{
+						{
+							TeamID:    acc.GetProjectTeamsIds(0),
+							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+						},
+						{
+							TeamID:    acc.GetProjectTeamsIds(1),
+							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+						},
+					},
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
+					resource.TestCheckResourceAttr("mongodbatlas_project.test", "teams.#", "2"),
+					// Test for Data source
+					resource.TestCheckResourceAttrSet("data.mongodbatlas_projects.test", "total_count"),
+					resource.TestCheckResourceAttrSet("data.mongodbatlas_projects.test", "results.#"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccProjectDSProjects_withPagination(t *testing.T) {
 	var (
 		projectName = fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
