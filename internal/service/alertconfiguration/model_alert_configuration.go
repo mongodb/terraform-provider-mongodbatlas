@@ -290,3 +290,22 @@ func NewTFMatcherModelList(m []map[string]any, currStateSlice []TfMatcherModel) 
 	}
 	return matchers
 }
+
+func NewTfAlertConfigurationDSModel(apiRespConfig *admin.GroupAlertsConfig, projectID string) TfAlertConfigurationDSModel {
+	return TfAlertConfigurationDSModel{
+		ID: types.StringValue(conversion.EncodeStateID(map[string]string{
+			EncodedIDKeyAlertID:   *apiRespConfig.Id,
+			EncodedIDKeyProjectID: projectID,
+		})),
+		ProjectID:             types.StringValue(projectID),
+		AlertConfigurationID:  types.StringValue(*apiRespConfig.Id),
+		EventType:             types.StringValue(*apiRespConfig.EventTypeName),
+		Created:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Created)),
+		Updated:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Updated)),
+		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
+		MetricThresholdConfig: NewTFMetricThresholdConfigModel(apiRespConfig.MetricThreshold, []TfMetricThresholdConfigModel{}),
+		ThresholdConfig:       NewTFThresholdConfigModel(apiRespConfig.Threshold, []TfThresholdConfigModel{}),
+		Notification:          NewTFNotificationModelList(apiRespConfig.Notifications, []TfNotificationModel{}),
+		Matcher:               NewTFMatcherModelList(apiRespConfig.Matchers, []TfMatcherModel{}),
+	}
+}

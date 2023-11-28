@@ -20,7 +20,7 @@ import (
 var _ datasource.DataSource = &alertConfigurationDS{}
 var _ datasource.DataSourceWithConfigure = &alertConfigurationDS{}
 
-type tfAlertConfigurationDSModel struct {
+type TfAlertConfigurationDSModel struct {
 	ID                    types.String                      `tfsdk:"id"`
 	ProjectID             types.String                      `tfsdk:"project_id"`
 	AlertConfigurationID  types.String                      `tfsdk:"alert_configuration_id"`
@@ -249,7 +249,7 @@ func (d *alertConfigurationDS) Schema(ctx context.Context, req datasource.Schema
 }
 
 func (d *alertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var alertConfigurationConfig tfAlertConfigurationDSModel
+	var alertConfigurationConfig TfAlertConfigurationDSModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &alertConfigurationConfig)...)
 	if resp.Diagnostics.HasError() {
@@ -269,7 +269,7 @@ func (d *alertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	resultAlertConfigModel := newTFAlertConfigurationDSModel(alert, projectID)
+	resultAlertConfigModel := NewTfAlertConfigurationDSModel(alert, projectID)
 	resultAlertConfigModel.Output = computeAlertConfigurationOutput(alert, outputs, *alert.EventTypeName)
 
 	// setting initial value for backwards compatibility, but setting the alert_configuration resource id here is not consistent with the resource
@@ -294,25 +294,6 @@ func computeAlertConfigurationOutput(alert *admin.GroupAlertsConfig, definedOutp
 		resultOutputs[i] = resultOutput
 	}
 	return resultOutputs
-}
-
-func newTFAlertConfigurationDSModel(apiRespConfig *admin.GroupAlertsConfig, projectID string) tfAlertConfigurationDSModel {
-	return tfAlertConfigurationDSModel{
-		ID: types.StringValue(conversion.EncodeStateID(map[string]string{
-			EncodedIDKeyAlertID:   *apiRespConfig.Id,
-			EncodedIDKeyProjectID: projectID,
-		})),
-		ProjectID:             types.StringValue(projectID),
-		AlertConfigurationID:  types.StringValue(*apiRespConfig.Id),
-		EventType:             types.StringValue(*apiRespConfig.EventTypeName),
-		Created:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Created)),
-		Updated:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Updated)),
-		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
-		MetricThresholdConfig: NewTFMetricThresholdConfigModel(apiRespConfig.MetricThreshold, []TfMetricThresholdConfigModel{}),
-		ThresholdConfig:       NewTFThresholdConfigModel(apiRespConfig.Threshold, []TfThresholdConfigModel{}),
-		Notification:          NewTFNotificationModelList(apiRespConfig.Notifications, []TfNotificationModel{}),
-		Matcher:               NewTFMatcherModelList(apiRespConfig.Matchers, []TfMatcherModel{}),
-	}
 }
 
 func outputAlertConfiguration(alert *admin.GroupAlertsConfig, outputType, resourceLabel string) string {

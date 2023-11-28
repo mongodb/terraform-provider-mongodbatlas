@@ -25,7 +25,7 @@ type tfAlertConfigurationsDSModel struct {
 	ProjectID   types.String                  `tfsdk:"project_id"`
 	OutputType  []string                      `tfsdk:"output_type"`
 	ListOptions []tfListOptionsModel          `tfsdk:"list_options"`
-	Results     []tfAlertConfigurationDSModel `tfsdk:"results"`
+	Results     []TfAlertConfigurationDSModel `tfsdk:"results"`
 	TotalCount  types.Int64                   `tfsdk:"total_count"`
 }
 
@@ -152,7 +152,7 @@ func (d *AlertConfigurationsDS) Read(ctx context.Context, req datasource.ReadReq
 	resp.Diagnostics.Append(resp.State.Set(ctx, &alertConfigurationsConfig)...)
 }
 
-func newTFAlertConfigurationDSModelList(alerts []admin.GroupAlertsConfig, projectID string, definedOutputs []string) []tfAlertConfigurationDSModel {
+func newTFAlertConfigurationDSModelList(alerts []admin.GroupAlertsConfig, projectID string, definedOutputs []string) []TfAlertConfigurationDSModel {
 	outputConfigurations := make([]tfAlertConfigurationOutputModel, len(definedOutputs))
 	for i, output := range definedOutputs {
 		outputConfigurations[i] = tfAlertConfigurationOutputModel{
@@ -160,12 +160,12 @@ func newTFAlertConfigurationDSModelList(alerts []admin.GroupAlertsConfig, projec
 		}
 	}
 
-	results := make([]tfAlertConfigurationDSModel, len(alerts))
+	results := make([]TfAlertConfigurationDSModel, len(alerts))
 
 	for i := 0; i < len(alerts); i++ {
 		alert := alerts[i]
 		label := fmt.Sprintf("%s_%d", *alert.EventTypeName, i)
-		resultAlertConfigModel := newTFAlertConfigurationDSModel(&alerts[i], projectID)
+		resultAlertConfigModel := NewTfAlertConfigurationDSModel(&alerts[i], projectID)
 		computedOutputs := computeAlertConfigurationOutput(&alert, outputConfigurations, label)
 		resultAlertConfigModel.Output = computedOutputs
 		results[i] = resultAlertConfigModel

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
@@ -447,6 +448,51 @@ func TestMatcherTFModelToSDK(t *testing.T) {
 			apiReqResult := alertconfiguration.NewMatcherList(tc.tfModel)
 			if !reflect.DeepEqual(apiReqResult, tc.expectedSDKReq) {
 				t.Errorf("created sdk model did not match expected output")
+			}
+		})
+	}
+}
+
+type sdkToTFDSAlertConfigurationModelTestCase struct {
+	name            string
+	apiRespConfig   *admin.GroupAlertsConfig
+	projectID       string
+	expectedTFModel alertconfiguration.TfAlertConfigurationDSModel
+}
+
+func TestAlertConfigurationSdkToTFDSModel(t *testing.T) {
+	testCases := []sdkToTFDSAlertConfigurationModelTestCase{
+		{
+			name: "Complete SDK model",
+			apiRespConfig: &admin.GroupAlertsConfig{
+				Enabled:       admin.PtrBool(true),
+				EventTypeName: admin.PtrString("EventType"),
+				GroupId:       admin.PtrString("projectId"),
+				Id:            admin.PtrString("alertConfigurationId"),
+			},
+			projectID: "123",
+			expectedTFModel: alertconfiguration.TfAlertConfigurationDSModel{
+				ID: types.StringValue(conversion.EncodeStateID(map[string]string{
+					"id":         "alertConfigurationId",
+					"project_id": "123",
+				})),
+				ProjectID:             types.StringValue("123"),
+				AlertConfigurationID:  types.StringValue("alertConfigurationId"),
+				EventType:             types.StringValue("EventType"),
+				Enabled:               types.BoolValue(true),
+				Matcher:               []alertconfiguration.TfMatcherModel{},
+				MetricThresholdConfig: []alertconfiguration.TfMetricThresholdConfigModel{},
+				ThresholdConfig:       []alertconfiguration.TfThresholdConfigModel{},
+				Notification:          []alertconfiguration.TfNotificationModel{},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel := alertconfiguration.NewTfAlertConfigurationDSModel(tc.apiRespConfig, tc.projectID)
+			if !reflect.DeepEqual(resultModel, tc.expectedTFModel) {
+				t.Errorf("created terraform model did not match expected output")
 			}
 		})
 	}
