@@ -311,14 +311,11 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	// add settings
 	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, project.ID)
 	if err != nil {
-		fmt.Println("DELETING PROJECT 1 " + project.ID)
 		errd := deleteProject(ctx, r.Client.Atlas, project.ID)
 		if errd != nil {
 			resp.Diagnostics.AddError("error during project deletion when getting project settings", fmt.Sprintf(errorProjectDelete, project.ID, err.Error()))
 			return
 		}
-		fmt.Println("BEGIN getProjectPropsFromAPI WRTING TRACE 1 " + project.ID)
-		debug.PrintStack()
 		resp.Diagnostics.AddError(fmt.Sprintf("error getting project's settings assigned (%s):", project.ID), err.Error())
 		return
 	}
@@ -563,9 +560,6 @@ func getProjectPropsFromAPI(ctx context.Context, conn *matlas.Client, connV2 *ad
 
 	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, projectID)
 	if err != nil {
-		fmt.Println("BEGIN getProjectPropsFromAPI WRTING TRACE 2 " + projectID)
-		fmt.Println("DELETING PROJECT 1 " + projectID)
-		debug.PrintStack()
 		return nil, nil, nil, fmt.Errorf("error getting project's settings assigned (%s): %v", projectID, err.Error())
 	}
 
@@ -647,8 +641,6 @@ func updateProjectSettings(ctx context.Context, conn *matlas.Client, projectStat
 	projectID := projectState.ID.ValueString()
 	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, projectID)
 	if err != nil {
-		fmt.Println("BEGIN getProjectPropsFromAPI WRTING TRACE 3 " + projectID)
-		debug.PrintStack()
 		return fmt.Errorf("error getting project's settings assigned: %v", err.Error())
 	}
 
@@ -827,9 +819,6 @@ func newProjectUpdateRequest(tfProject *tfProjectRSModel) *matlas.ProjectUpdateR
 }
 
 func deleteProject(ctx context.Context, conn *matlas.Client, projectID string) error {
-	fmt.Println("BEGIN getProjectPropsFromAPI DELETE TRACE" + projectID)
-	debug.PrintStack()
-
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{projectDependentsStateDeleting, projectDependentsStateRetry},
 		Target:     []string{projectDependentsStateIdle},
