@@ -171,17 +171,14 @@ func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 }
 
 func populateProjectsDataSourceModel(ctx context.Context, conn *matlas.Client, connV2 *admin.APIClient, stateModel *tfProjectsDSModel, projectsRes *matlas.Projects) error {
-	results := make([]*tfProjectDSModel, len(projectsRes.Results))
-
-	for i, project := range projectsRes.Results {
+	results := make([]*tfProjectDSModel, 0, len(projectsRes.Results))
+	for _, project := range projectsRes.Results {
 		atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, project.ID)
-		if err != nil {
-			return fmt.Errorf("error while getting project properties for project %s: %v", project.ID, err.Error())
+		if err == nil { // if the project is still valid, e.g. could have just been deleted
+			projectModel := newTFProjectDataSourceModel(ctx, project, atlasTeams, atlasProjectSettings, atlasLimits)
+			results = append(results, &projectModel)
 		}
-		projectModel := newTFProjectDataSourceModel(ctx, project, atlasTeams, atlasProjectSettings, atlasLimits)
-		results[i] = &projectModel
 	}
-
 	stateModel.Results = results
 	stateModel.TotalCount = types.Int64Value(int64(projectsRes.TotalCount))
 	stateModel.ID = types.StringValue(id.UniqueId())
