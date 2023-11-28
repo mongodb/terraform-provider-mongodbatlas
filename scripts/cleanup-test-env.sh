@@ -16,6 +16,24 @@
 
 set -Eeou pipefail
 
+delete_endpoint() {
+    provider=$1
+    set +e
+    count=$(atlas privateEndpoints "${provider}" list --projectId "${clean_project_id}" -o=go-template="{{len .}}")
+    retVal=$?
+    if [ $retVal -ne 0 ]; then
+        count=0
+    fi
+    set -e
+    if [ "${count}" != "0" ]; then
+        echo "Project ${clean_project_id} contains ${provider} endpoints, will start deleting it now and will try to delete the project in the next execution"
+        id=$(atlas privateEndpoints "${provider}" list --projectId "${clean_project_id}" -o=go-template="{{(index . 0).Id}}")
+        atlas privateEndpoints "${provider}" delete "${id}" --force --projectId "${clean_project_id}" || \
+        echo "Failed to delete ${provider}  private endpoint with project ID ${clean_project_id}, endpoint ID: ${id}"
+    fi
+    set -e
+}
+
 projectToSkip="${PROJECT_TO_NOT_DELETE:-NONE}"
 
 if [ -z "${MONGODB_ATLAS_ORG_ID}" ]; then
@@ -35,32 +53,9 @@ echo "${projects}" | jq -c '.results[].id' | while read -r id; do
         continue
     fi
 
-    countAWS=$(atlas privateEndpoints aws list --projectId "${clean_project_id}" -o=go-template="{{len .}}")
-    if [ "${countAWS}" != "0" ]; then
-        echo "Project ${clean_project_id} contains AWS endpoints, will start deleting it now and will try to delete the project in the next execution"
-        idAWS=$(atlas privateEndpoints aws list --projectId "${clean_project_id}" -o=go-template="{{(index . 0).Id}}")
-        atlas privateEndpoints aws delete "${idAWS}" --force --projectId "${clean_project_id}" || \
-        echo "Failed to delete AWS private endpoint with project ID ${clean_project_id}, endpoint ID: ${idAWS}"
-        continue
-    fi
-
-    countGCP=$(atlas privateEndpoints gcp list --projectId "${clean_project_id}" -o=go-template="{{len .}}")
-    if [ "${countGCP}" != "0" ]; then
-        echo "Project ${clean_project_id} contains GCP endpoints, will start deleting it now and will try to delete the project in the next execution"
-        idGCP=$(atlas privateEndpoints gcp list --projectId "${clean_project_id}" -o=go-template="{{(index . 0).Id}}")
-        atlas privateEndpoints gcp delete "${idGCP}" --force --projectId "${clean_project_id}" || \
-        echo "Failed to delete GCP private endpoint with project ID ${clean_project_id}, endpoint ID: ${idGCP}"
-        continue
-    fi
-
-    countAzure=$(atlas privateEndpoints azure list --projectId "${clean_project_id}" -o=go-template="{{len .}}")
-    if [ "${countAzure}" != "0" ]; then
-        echo "Project ${clean_project_id} contains Azure endpoints, will start deleting it now and will try to delete the project in the next execution"
-        idAzure=$(atlas privateEndpoints azure list --projectId "${clean_project_id}" -o=go-template="{{(index . 0).Id}}")
-        atlas privateEndpoints azure delete "${idAzure}" --force --projectId "${clean_project_id}" || \
-        echo "Failed to delete Azure private endpoint with project ID ${clean_project_id}, endpoint ID: ${idAzure}"
-        continue
-    fi
+    delete_endpoint "aws"
+    delete_endpoint "gcp"
+    delete_endpoint "azure"
 
     clusters=$(atlas cluster ls --projectId "${clean_project_id}" -o=go-template="{{.TotalCount}}")
     if [ "${clusters}" != "0" ]; then
