@@ -226,7 +226,6 @@ func ResourceBackupCompliancePolicy() *schema.Resource {
 }
 
 func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	printWarningMessageForFirstLastNameFields()
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
@@ -314,7 +313,6 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 }
 
 func resourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	printWarningMessageForFirstLastNameFields()
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 
@@ -399,7 +397,6 @@ func resourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *sche
 }
 
 func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	printWarningMessageForFirstLastNameFields()
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	ids := conversion.DecodeStateID(d.Id())
@@ -560,8 +557,4 @@ func expandDemandBackupPolicyItem(d *schema.ResourceData) *matlas.PolicyItem {
 	}
 
 	return &onDemand
-}
-
-func printWarningMessageForFirstLastNameFields() {
-	log.Printf("[WARN] Note: Starting from v1.14.0 authorized_user_first_name and authorized_user_last_name will become mandatory. Please update your script accordingly.")
 }
