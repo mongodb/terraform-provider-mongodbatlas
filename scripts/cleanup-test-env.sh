@@ -19,7 +19,7 @@ set -Eeou pipefail
 projectToSkip="${PROJECT_TO_NOT_DELETE:-NONE}"
 
 # Get all project Ids inside the organization
-projects=$(atlas project ls -o json)
+projects=$(atlas project ls --limit 500 -o json)
 
 echo "${projects}" | jq -c '.results[].id' | while read -r id; do
     # Trim the quotes from the id
