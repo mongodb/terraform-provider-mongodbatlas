@@ -383,12 +383,12 @@ func (r *alertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 	apiReq := &admin.GroupAlertsConfig{
 		EventTypeName:   alertConfigPlan.EventType.ValueStringPointer(),
 		Enabled:         alertConfigPlan.Enabled.ValueBoolPointer(),
-		Matchers:        newMatcherList(alertConfigPlan.Matcher),
-		MetricThreshold: newMetricThreshold(alertConfigPlan.MetricThresholdConfig),
-		Threshold:       newThreshold(alertConfigPlan.ThresholdConfig),
+		Matchers:        NewMatcherList(alertConfigPlan.Matcher),
+		MetricThreshold: NewMetricThreshold(alertConfigPlan.MetricThresholdConfig),
+		Threshold:       NewThreshold(alertConfigPlan.ThresholdConfig),
 	}
 
-	notifications, err := newNotificationList(alertConfigPlan.Notification)
+	notifications, err := NewNotificationList(alertConfigPlan.Notification)
 	if err != nil {
 		resp.Diagnostics.AddError(errorCreateAlertConf, err.Error())
 		return
@@ -477,19 +477,19 @@ func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	if !reflect.DeepEqual(alertConfigPlan.MetricThresholdConfig, alertConfigState.MetricThresholdConfig) {
-		apiReq.MetricThreshold = newMetricThreshold(alertConfigPlan.MetricThresholdConfig)
+		apiReq.MetricThreshold = NewMetricThreshold(alertConfigPlan.MetricThresholdConfig)
 	}
 
 	if !reflect.DeepEqual(alertConfigPlan.ThresholdConfig, alertConfigState.ThresholdConfig) {
-		apiReq.Threshold = newThreshold(alertConfigPlan.ThresholdConfig)
+		apiReq.Threshold = NewThreshold(alertConfigPlan.ThresholdConfig)
 	}
 
 	if !reflect.DeepEqual(alertConfigPlan.Matcher, alertConfigState.Matcher) {
-		apiReq.Matchers = newMatcherList(alertConfigPlan.Matcher)
+		apiReq.Matchers = NewMatcherList(alertConfigPlan.Matcher)
 	}
 
 	// Always refresh structure to handle service keys being obfuscated coming back from read API call
-	notifications, err := newNotificationList(alertConfigPlan.Notification)
+	notifications, err := NewNotificationList(alertConfigPlan.Notification)
 	if err != nil {
 		resp.Diagnostics.AddError(errorUpdateAlertConf, err.Error())
 		return

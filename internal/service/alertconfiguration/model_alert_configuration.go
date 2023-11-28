@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
 
-func newNotificationList(tfNotificationSlice []TfNotificationModel) ([]admin.AlertsNotificationRootForGroup, error) {
+func NewNotificationList(tfNotificationSlice []TfNotificationModel) ([]admin.AlertsNotificationRootForGroup, error) {
 	notifications := make([]admin.AlertsNotificationRootForGroup, 0)
 
 	for i := range tfNotificationSlice {
@@ -55,7 +55,7 @@ func newNotificationList(tfNotificationSlice []TfNotificationModel) ([]admin.Ale
 	return notifications, nil
 }
 
-func newThreshold(tfThresholdConfigSlice []TfThresholdConfigModel) *admin.GreaterThanRawThreshold {
+func NewThreshold(tfThresholdConfigSlice []TfThresholdConfigModel) *admin.GreaterThanRawThreshold {
 	if len(tfThresholdConfigSlice) < 1 {
 		return nil
 	}
@@ -68,7 +68,7 @@ func newThreshold(tfThresholdConfigSlice []TfThresholdConfigModel) *admin.Greate
 	}
 }
 
-func newMetricThreshold(tfMetricThresholdConfigSlice []TfMetricThresholdConfigModel) *admin.ServerlessMetricThreshold {
+func NewMetricThreshold(tfMetricThresholdConfigSlice []TfMetricThresholdConfigModel) *admin.ServerlessMetricThreshold {
 	if len(tfMetricThresholdConfigSlice) < 1 {
 		return nil
 	}
@@ -82,7 +82,7 @@ func newMetricThreshold(tfMetricThresholdConfigSlice []TfMetricThresholdConfigMo
 	}
 }
 
-func newMatcherList(tfMatcherSlice []TfMatcherModel) []map[string]interface{} {
+func NewMatcherList(tfMatcherSlice []TfMatcherModel) []map[string]interface{} {
 	matchers := make([]map[string]interface{}, 0)
 
 	for i := range tfMatcherSlice {

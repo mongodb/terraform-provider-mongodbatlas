@@ -276,3 +276,178 @@ func TestAlertConfigurationSDKToTFModel(t *testing.T) {
 		})
 	}
 }
+
+type tfToSDKNotificationModelTestCase struct {
+	name           string
+	expectedSDKReq *[]admin.AlertsNotificationRootForGroup
+	tfModel        []alertconfiguration.TfNotificationModel
+}
+
+type tfToSDKMetricThresholdModelTestCase struct {
+	name           string
+	expectedSDKReq *admin.ServerlessMetricThreshold
+	tfModel        []alertconfiguration.TfMetricThresholdConfigModel
+}
+
+type tfToSDKMatcherModelTestCase struct {
+	name           string
+	expectedSDKReq []map[string]interface{}
+	tfModel        []alertconfiguration.TfMatcherModel
+}
+
+type tfToSDKThresholdModelTestCase struct {
+	name           string
+	expectedSDKReq *admin.GreaterThanRawThreshold
+	tfModel        []alertconfiguration.TfThresholdConfigModel
+}
+
+func TestNotificationTFModelToSDK(t *testing.T) {
+	testCases := []tfToSDKNotificationModelTestCase{
+		{
+			name: "Complete TF model",
+			tfModel: []alertconfiguration.TfNotificationModel{
+				{
+					TypeName:     types.StringValue(group),
+					IntervalMin:  types.Int64Value(int64(intervalMin)),
+					DelayMin:     types.Int64Value(int64(delayMin)),
+					SMSEnabled:   types.BoolValue(disabled),
+					EmailEnabled: types.BoolValue(enabled),
+					Roles: []string{
+						"GROUP_DATA_ACCESS_READ_ONLY",
+						"GROUP_CLUSTER_MANAGER",
+						"GROUP_DATA_ACCESS_ADMIN",
+					},
+				},
+			},
+			expectedSDKReq: &[]admin.AlertsNotificationRootForGroup{
+				{
+					TypeName:     admin.PtrString(group),
+					IntervalMin:  admin.PtrInt(intervalMin),
+					DelayMin:     admin.PtrInt(delayMin),
+					SmsEnabled:   admin.PtrBool(disabled),
+					EmailEnabled: admin.PtrBool(enabled),
+					Roles: []string{
+						"GROUP_DATA_ACCESS_READ_ONLY",
+						"GROUP_CLUSTER_MANAGER",
+						"GROUP_DATA_ACCESS_ADMIN",
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			apiReqResult, _ := alertconfiguration.NewNotificationList(tc.tfModel)
+			if !reflect.DeepEqual(apiReqResult, *tc.expectedSDKReq) {
+				t.Errorf("created sdk model did not match expected output")
+			}
+		})
+	}
+}
+
+func TestThresholdTFModelToSDK(t *testing.T) {
+	testCases := []tfToSDKThresholdModelTestCase{
+		{
+			name:           "Empty TF model",
+			tfModel:        []alertconfiguration.TfThresholdConfigModel{},
+			expectedSDKReq: nil,
+		},
+		{
+			name: "Complete TF model",
+			tfModel: []alertconfiguration.TfThresholdConfigModel{
+				{
+					Threshold: types.Float64Value(1.0),
+					Operator:  types.StringValue("LESS_THAN"),
+					Units:     types.StringValue("MINUTES"),
+				},
+			},
+			expectedSDKReq: &admin.GreaterThanRawThreshold{
+				Threshold: admin.Int64PtrToIntPtr(admin.PtrInt64(1.0)),
+				Operator:  admin.PtrString("LESS_THAN"),
+				Units:     admin.PtrString("MINUTES"),
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			apiReqResult := alertconfiguration.NewThreshold(tc.tfModel)
+			if !reflect.DeepEqual(apiReqResult, tc.expectedSDKReq) {
+				t.Errorf("created sdk model did not match expected output")
+			}
+		})
+	}
+}
+
+func TestMetricThresholdTFModelToSDK(t *testing.T) {
+	testCases := []tfToSDKMetricThresholdModelTestCase{
+		{
+			name:           "Empty TF model",
+			tfModel:        []alertconfiguration.TfMetricThresholdConfigModel{},
+			expectedSDKReq: nil,
+		},
+		{
+			name: "Complete TF model",
+			tfModel: []alertconfiguration.TfMetricThresholdConfigModel{
+				{
+					Threshold:  types.Float64Value(threshold),
+					MetricName: types.StringValue("ASSERT_REGULAR"),
+					Operator:   types.StringValue(operator),
+					Units:      types.StringValue(units),
+					Mode:       types.StringValue(mode),
+				},
+			},
+			expectedSDKReq: &admin.ServerlessMetricThreshold{
+				MetricName: "ASSERT_REGULAR",
+				Operator:   admin.PtrString(operator),
+				Threshold:  admin.PtrFloat64(threshold),
+				Units:      admin.PtrString(units),
+				Mode:       admin.PtrString(mode),
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			apiReqResult := alertconfiguration.NewMetricThreshold(tc.tfModel)
+			if !reflect.DeepEqual(apiReqResult, tc.expectedSDKReq) {
+				t.Errorf("created sdk model did not match expected output")
+			}
+		})
+	}
+}
+
+func TestMatcherTFModelToSDK(t *testing.T) {
+	testCases := []tfToSDKMatcherModelTestCase{
+		{
+			name:           "Empty TF model",
+			tfModel:        []alertconfiguration.TfMatcherModel{},
+			expectedSDKReq: make([]map[string]interface{}, 0),
+		},
+		{
+			name: "Complete TF model",
+			tfModel: []alertconfiguration.TfMatcherModel{
+				{
+					FieldName: types.StringValue("HOSTNAME"),
+					Operator:  types.StringValue("EQUALS"),
+					Value:     types.StringValue("PRIMARY"),
+				},
+			},
+			expectedSDKReq: []map[string]interface{}{{
+				"fieldName": "HOSTNAME",
+				"operator":  "EQUALS",
+				"value":     "PRIMARY",
+			}},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			apiReqResult := alertconfiguration.NewMatcherList(tc.tfModel)
+			if !reflect.DeepEqual(apiReqResult, tc.expectedSDKReq) {
+				t.Errorf("created sdk model did not match expected output")
+			}
+		})
+	}
+}
