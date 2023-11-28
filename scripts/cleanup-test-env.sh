@@ -18,8 +18,14 @@ set -Eeou pipefail
 
 projectToSkip="${PROJECT_TO_NOT_DELETE:-NONE}"
 
+if [ -z "${MONGODB_ATLAS_ORG_ID}" ]; then
+  echo "Error: MONGODB_ATLAS_ORG_ID environment variable must be set"
+  exit 1
+fi
+org_id="${MONGODB_ATLAS_ORG_ID}"
+
 # Get all project Ids inside the organization
-projects=$(atlas project ls --limit 500 -o json)
+projects=$(atlas project ls --limit 500 --orgId ${org_id}  -o json)
 
 echo "${projects}" | jq -c '.results[].id' | while read -r id; do
     # Trim the quotes from the id
