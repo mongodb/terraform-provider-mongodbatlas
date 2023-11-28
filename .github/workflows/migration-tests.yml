@@ -36,6 +36,8 @@ jobs:
             - 'internal/service/alertconfiguration/*.go'
             - 'internal/service/atlasuser/*.go'
             - 'internal/service/databaseuser/*.go'
+            - 'mongodbatlas/data_source_project_api_key*.go'
+            - 'mongodbatlas/resource_project_api_key*.go'
           backup_online_archive:
             - 'mongodbatlas/**online_archive**.go'
           advanced_cluster:
