@@ -43,13 +43,11 @@ func ResourceBackupCompliancePolicy() *schema.Resource {
 			},
 			"authorized_user_first_name": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Required: true,
 			},
 			"authorized_user_last_name": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Required: true,
 			},
 			"copy_protection_enabled": {
 				Type:     schema.TypeBool,
@@ -242,6 +240,10 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 
 	backupCompliancePolicyReq.AuthorizedEmail = d.Get("authorized_email").(string)
 
+	backupCompliancePolicyReq.AuthorizedUserFirstName = d.Get("authorized_user_first_name").(string)
+
+	backupCompliancePolicyReq.AuthorizedUserLastName = d.Get("authorized_user_last_name").(string)
+
 	backupCompliancePolicyReq.CopyProtectionEnabled = pointy.Bool(d.Get("copy_protection_enabled").(bool))
 
 	backupCompliancePolicyReq.EncryptionAtRestEnabled = pointy.Bool(d.Get("encryption_at_rest_enabled").(bool))
@@ -251,14 +253,6 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 	backupCompliancePolicyReq.RestoreWindowDays = pointy.Int64(cast.ToInt64(d.Get("restore_window_days")))
 
 	backupCompliancePolicyReq.OnDemandPolicyItem = *expandDemandBackupPolicyItem(d)
-
-	if v, ok := d.GetOk("authorized_user_first_name"); ok {
-		backupCompliancePolicyReq.AuthorizedUserFirstName = v.(string)
-	}
-
-	if v, ok := d.GetOk("authorized_user_last_name"); ok {
-		backupCompliancePolicyReq.AuthorizedUserLastName = v.(string)
-	}
 
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
 		item := v.([]any)
@@ -421,13 +415,9 @@ func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *sc
 
 	backupCompliancePolicyUpdate.AuthorizedEmail = d.Get("authorized_email").(string)
 
-	if d.HasChange("authorized_user_fist_name") {
-		backupCompliancePolicyUpdate.AuthorizedUserFirstName = d.Get("authorized_user_fist_name").(string)
-	}
+	backupCompliancePolicyUpdate.AuthorizedUserFirstName = d.Get("authorized_user_fist_name").(string)
 
-	if d.HasChange("authorized_user_last_name") {
-		backupCompliancePolicyUpdate.AuthorizedUserLastName = d.Get("authorized_user_last_name").(string)
-	}
+	backupCompliancePolicyUpdate.AuthorizedUserLastName = d.Get("authorized_user_last_name").(string)
 
 	if d.HasChange("copy_protection_enabled") {
 		backupCompliancePolicyUpdate.CopyProtectionEnabled = pointy.Bool(d.Get("copy_protection_enabled").(bool))
