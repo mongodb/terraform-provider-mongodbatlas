@@ -31,7 +31,7 @@ func ResourceProjectAPIKey() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"api_key_id": {
 				Type:     schema.TypeString,
@@ -79,42 +79,41 @@ type APIProjectAssignmentKeyInput struct {
 	RoleNames []string `json:"roles,omitempty"`
 }
 
+const errorNoProjectAssignmentDefined = "could not obtain a project id as no assignments are defined"
+
 func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	projectID := d.Get("project_id").(string)
-	createRequest := new(matlas.APIKeyInput)
 
 	var apiKey *matlas.APIKey
 	var err error
 	var resp *matlas.Response
 
+	createRequest := new(matlas.APIKeyInput)
 	createRequest.Desc = d.Get("description").(string)
 	if projectAssignments, ok := d.GetOk("project_assignment"); ok {
 		projectAssignmentList := ExpandProjectAssignmentSet(projectAssignments.(*schema.Set))
-		for _, apiKeyList := range projectAssignmentList {
-			if apiKeyList.ProjectID == projectID {
-				createRequest.Roles = apiKeyList.RoleNames
-				apiKey, resp, err = conn.ProjectAPIKeys.Create(ctx, projectID, createRequest)
-				if err != nil {
-					if resp != nil && resp.StatusCode == http.StatusNotFound {
-						d.SetId("")
-						return nil
-					}
-				}
+
+		// creates api key using project id of first defined project assignment
+		firstAssignment := projectAssignmentList[0]
+		createRequest.Roles = firstAssignment.RoleNames
+		apiKey, resp, err = conn.ProjectAPIKeys.Create(ctx, firstAssignment.ProjectID, createRequest)
+		if err != nil {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
+				d.SetId("")
+				return nil
 			}
 		}
 
-		for _, apiKeyList := range projectAssignmentList {
-			if apiKeyList.ProjectID != projectID {
-				createRequest.Roles = apiKeyList.RoleNames
-				_, err := conn.ProjectAPIKeys.Assign(ctx, apiKeyList.ProjectID, apiKey.ID, &matlas.AssignAPIKey{
-					Roles: createRequest.Roles,
-				})
-				if err != nil {
-					if resp != nil && resp.StatusCode == http.StatusNotFound {
-						d.SetId("")
-						return nil
-					}
+		// assign created api key to remaining project assignments
+		for _, apiKeyList := range projectAssignmentList[1:] {
+			createRequest.Roles = apiKeyList.RoleNames
+			_, err := conn.ProjectAPIKeys.Assign(ctx, apiKeyList.ProjectID, apiKey.ID, &matlas.AssignAPIKey{
+				Roles: createRequest.Roles,
+			})
+			if err != nil {
+				if resp != nil && resp.StatusCode == http.StatusNotFound {
+					d.SetId("")
+					return nil
 				}
 			}
 		}
@@ -128,8 +127,12 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
 	}
 
+	firstProjectID, err := getFirstProjectIDFromAssignments(d)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("could not obtain a project id from state: %s", err))
+	}
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"project_id": projectID,
+		"project_id": *firstProjectID, // defined to avoid breaking changes (preserve id format), can be removed when root project_id is removed.
 		"api_key_id": apiKey.ID,
 	}))
 
@@ -140,10 +143,14 @@ func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Resour
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
-	projectID := ids["project_id"]
 	apiKeyID := ids["api_key_id"]
 
-	projectAPIKeys, _, err := conn.ProjectAPIKeys.List(ctx, projectID, nil)
+	firstProjectID, err := getFirstProjectIDFromAssignments(d)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("could not obtain a project id from state: %s", err))
+	}
+
+	projectAPIKeys, _, err := conn.ProjectAPIKeys.List(ctx, *firstProjectID, nil)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 	}
@@ -168,7 +175,7 @@ func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Resour
 
 		if projectAssignments, err := newProjectAssignment(ctx, conn, apiKeyID); err == nil {
 			if err := d.Set("project_assignment", projectAssignments); err != nil {
-				return diag.Errorf(ErrorProjectSetting, `created`, projectID, err)
+				return diag.Errorf("error setting `project_assignment` : %s", err)
 			}
 		}
 	}
@@ -178,15 +185,6 @@ func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Resour
 		return nil
 	}
 
-	if err := d.Set("project_id", projectID); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `project_id`: %s", err))
-	}
-
-	d.SetId(conversion.EncodeStateID(map[string]string{
-		"project_id": projectID,
-		"api_key_id": apiKeyID,
-	}))
-
 	return nil
 }
 
@@ -195,7 +193,6 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
-	projectID := ids["project_id"]
 	apiKeyID := ids["api_key_id"]
 
 	if d.HasChange("project_assignment") {
@@ -241,9 +238,14 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 		}
 	}
 
+	firstProjectID, err := getFirstProjectIDFromAssignments(d)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("could not obtain a project id from state: %s", err))
+	}
+
 	if d.HasChange("description") {
 		newDescription := d.Get("description").(string)
-		if _, _, err := connV2.ProgrammaticAPIKeysApi.UpdateApiKeyRoles(ctx, projectID, apiKeyID, &admin.UpdateAtlasProjectApiKey{
+		if _, _, err := connV2.ProgrammaticAPIKeysApi.UpdateApiKeyRoles(ctx, *firstProjectID, apiKeyID, &admin.UpdateAtlasProjectApiKey{
 			Desc: &newDescription,
 		}).Execute(); err != nil {
 			return diag.Errorf("error updating description in api key(%s): %s", apiKeyID, err)
@@ -256,11 +258,15 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 func resourceMongoDBAtlasProjectAPIKeyDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
-	projectID := ids["project_id"]
 	apiKeyID := ids["api_key_id"]
 	var orgID string
 
-	projectAPIKeys, _, err := conn.ProjectAPIKeys.List(ctx, projectID, nil)
+	firstProjectID, err := getFirstProjectIDFromAssignments(d)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("could not obtain a project id from state: %s", err))
+	}
+
+	projectAPIKeys, _, err := conn.ProjectAPIKeys.List(ctx, *firstProjectID, nil)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 	}
@@ -275,28 +281,20 @@ func resourceMongoDBAtlasProjectAPIKeyDelete(ctx context.Context, d *schema.Reso
 		}
 	}
 
-	_, roleOk := d.GetOk("role_names")
-	if !roleOk {
-		options := &matlas.ListOptions{}
+	options := &matlas.ListOptions{}
 
-		apiKeyOrgList, _, err := conn.Root.List(ctx, options)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
-		}
+	apiKeyOrgList, _, err := conn.Root.List(ctx, options)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
+	}
 
-		projectAssignments, err := getAPIProjectAssignments(ctx, conn, apiKeyOrgList, apiKeyID)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
-		}
+	projectAssignments, err := getAPIProjectAssignments(ctx, conn, apiKeyOrgList, apiKeyID)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
+	}
 
-		for _, apiKey := range projectAssignments {
-			_, err = conn.ProjectAPIKeys.Unassign(ctx, apiKey.ProjectID, apiKeyID)
-			if err != nil {
-				return diag.FromErr(fmt.Errorf("error deleting project api key: %s", err))
-			}
-		}
-	} else {
-		_, err = conn.ProjectAPIKeys.Unassign(ctx, projectID, apiKeyID)
+	for _, apiKey := range projectAssignments {
+		_, err = conn.ProjectAPIKeys.Unassign(ctx, apiKey.ProjectID, apiKeyID)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error deleting project api key: %s", err))
 		}
@@ -316,7 +314,7 @@ func resourceMongoDBAtlasProjectAPIKeyImportState(ctx context.Context, d *schema
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {
-		return nil, errors.New("import format error: to import a api key use the format {org_id}-{api_key_id}")
+		return nil, errors.New("import format error: to import a api key use the format {project_id}-{api_key_id}")
 	}
 
 	projectID := parts[0]
@@ -336,6 +334,12 @@ func resourceMongoDBAtlasProjectAPIKeyImportState(ctx context.Context, d *schema
 				return nil, fmt.Errorf("error setting `public_key`: %s", err)
 			}
 
+			if projectAssignments, err := newProjectAssignment(ctx, conn, apiKeyID); err == nil {
+				if err := d.Set("project_assignment", projectAssignments); err != nil {
+					return nil, fmt.Errorf("error setting  `project_assignment`: %s", err)
+				}
+			}
+
 			d.SetId(conversion.EncodeStateID(map[string]string{
 				"project_id": projectID,
 				"api_key_id": val.ID,
@@ -343,6 +347,17 @@ func resourceMongoDBAtlasProjectAPIKeyImportState(ctx context.Context, d *schema
 		}
 	}
 	return []*schema.ResourceData{d}, nil
+}
+
+func getFirstProjectIDFromAssignments(d *schema.ResourceData) (*string, error) {
+	if projectAssignments, ok := d.GetOk("project_assignment"); ok {
+		projectAssignmentList := ExpandProjectAssignmentSet(projectAssignments.(*schema.Set))
+		if len(projectAssignmentList) < 1 {
+			return nil, errors.New(errorNoProjectAssignmentDefined)
+		}
+		return admin.PtrString(projectAssignmentList[0].ProjectID), nil // can safely assume at least one assigment is defined because of schema definition
+	}
+	return nil, errors.New(errorNoProjectAssignmentDefined)
 }
 
 func flattenProjectAPIKeyRoles(projectID string, apiKeyRoles []matlas.AtlasRole) []string {
