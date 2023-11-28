@@ -42,7 +42,7 @@ fi
 org_id="${MONGODB_ATLAS_ORG_ID}"
 
 # Get all project Ids inside the organization
-projects=$(atlas project ls --limit 500 --orgId ${org_id}  -o json)
+projects=$(atlas project ls --limit 500 --orgId "${org_id}"  -o json)
 
 echo "${projects}" | jq -c '.results[].id' | while read -r id; do
     # Trim the quotes from the id
