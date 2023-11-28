@@ -338,7 +338,7 @@ jobs:
           MONGODB_ATLAS_TEAMS_IDS: ${{ vars.MONGODB_ATLAS_TEAMS_IDS }}
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
+          TF_LOG: "DEBUG"
           TF_ACC: 1
           PARALLEL_GO_TEST: 20
           CI: true
