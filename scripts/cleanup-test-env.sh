@@ -38,6 +38,11 @@ if [ -z "${MONGODB_ATLAS_ORG_ID}" ]; then
 fi
 org_id="${MONGODB_ATLAS_ORG_ID}"
 
+export MCLI_OPS_MANAGER_URL="${MONGODB_ATLAS_BASE_URL}"
+export MCLI_PRIVATE_API_KEY="${MONGODB_ATLAS_PRIVATE_KEY}"
+export MCLI_PUBLIC_API_KEY="${MONGODB_ATLAS_PUBLIC_KEY}"
+export MCLI_ORG_ID="${MONGODB_ATLAS_ORG_ID}"
+
 # Get all project Ids inside the organization
 projects=$(atlas project ls --limit 500 --orgId "${org_id}"  -o json)
 
