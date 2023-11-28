@@ -284,6 +284,8 @@ func testAccMongoDBAtlasBackupCompliancePolicyConfigWithoutRestoreDays(projectNa
 	  resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
 		project_id                 = mongodbatlas_project.test.id
 		authorized_email           = "test@example.com"
+		authorized_user_first_name = "First"
+		authorized_user_last_name  = "Last"
 		copy_protection_enabled    = false
 		pit_enabled                = false
 		encryption_at_rest_enabled = false
