@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"go.mongodb.org/atlas-sdk/v20231115001/admin"
+	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
 type DeploymentService interface {

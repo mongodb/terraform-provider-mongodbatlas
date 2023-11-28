@@ -17,7 +17,6 @@ description: |-
 ```terraform
 resource "mongodbatlas_project_api_key" "test" {
   description   = "Description of your API key"
-  project_id    = "64259ee860c43338194b0f8e"
   project_assignment {
     project_id = "64259ee860c43338194b0f8e"
     role_names = ["GROUP_OWNER"]
@@ -30,9 +29,8 @@ resource "mongodbatlas_project_api_key" "test" {
 ```terraform
 resource "mongodbatlas_project_api_key" "test" {
   description   = "Description of your API key"
-  project_id  = "64259ee860c43338194b0f8e"
   
- project_assignment {
+  project_assignment {
     project_id = "64259ee860c43338194b0f8e"
     role_names = ["GROUP_READ_ONLY", "GROUP_OWNER"]
   }
@@ -47,8 +45,8 @@ resource "mongodbatlas_project_api_key" "test" {
 
 ## Argument Reference
 
-* `project_id` -Unique 24-hexadecimal digit string that identifies your project.
-* `description` - Description of this Project API key.
+* `description` - (Required) Description of this Project API key.
+* `project_id` - Unique 24-hexadecimal digit string that identifies your project. **WARNING:** this parameter is deprecated as it no longer needs to be defined. It will be removed in version 1.16.0.
 
 ~> **NOTE:** Project created by API Keys must belong to an existing organization.
 

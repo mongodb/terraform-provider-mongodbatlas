@@ -41,6 +41,14 @@ func ResourceBackupCompliancePolicy() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"authorized_user_first_name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"authorized_user_last_name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
 			"copy_protection_enabled": {
 				Type:     schema.TypeBool,
 				Required: true,
@@ -231,6 +239,10 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 
 	backupCompliancePolicyReq.AuthorizedEmail = d.Get("authorized_email").(string)
 
+	backupCompliancePolicyReq.AuthorizedUserFirstName = d.Get("authorized_user_first_name").(string)
+
+	backupCompliancePolicyReq.AuthorizedUserLastName = d.Get("authorized_user_last_name").(string)
+
 	backupCompliancePolicyReq.CopyProtectionEnabled = pointy.Bool(d.Get("copy_protection_enabled").(bool))
 
 	backupCompliancePolicyReq.EncryptionAtRestEnabled = pointy.Bool(d.Get("encryption_at_rest_enabled").(bool))
@@ -321,6 +333,14 @@ func resourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *sche
 		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "authorized_email", projectID, err))
 	}
 
+	if err := d.Set("authorized_user_first_name", backupPolicy.AuthorizedUserFirstName); err != nil {
+		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "authorized_user_first_name", projectID, err))
+	}
+
+	if err := d.Set("authorized_user_last_name", backupPolicy.AuthorizedUserLastName); err != nil {
+		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "authorized_user_last_name", projectID, err))
+	}
+
 	if err := d.Set("restore_window_days", backupPolicy.RestoreWindowDays); err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "restore_window_days", projectID, err))
 	}
@@ -391,6 +411,10 @@ func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *sc
 	backupCompliancePolicyUpdate.ProjectID = projectID
 
 	backupCompliancePolicyUpdate.AuthorizedEmail = d.Get("authorized_email").(string)
+
+	backupCompliancePolicyUpdate.AuthorizedUserFirstName = d.Get("authorized_user_fist_name").(string)
+
+	backupCompliancePolicyUpdate.AuthorizedUserLastName = d.Get("authorized_user_last_name").(string)
 
 	if d.HasChange("copy_protection_enabled") {
 		backupCompliancePolicyUpdate.CopyProtectionEnabled = pointy.Bool(d.Get("copy_protection_enabled").(bool))
