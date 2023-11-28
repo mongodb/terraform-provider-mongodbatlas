@@ -174,9 +174,7 @@ func populateProjectsDataSourceModel(ctx context.Context, conn *matlas.Client, c
 	results := make([]*tfProjectDSModel, len(projectsRes.Results))
 
 	for i, project := range projectsRes.Results {
-		fmt.Println("BEGIN getProjectPropsFromAPI FROM DSS " + project.ID)
 		atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, project.ID)
-		fmt.Println("END getProjectPropsFromAPI FROM DSS " + project.ID)
 		if err != nil {
 			return fmt.Errorf("error while getting project properties for project %s: %v", project.ID, err.Error())
 		}
