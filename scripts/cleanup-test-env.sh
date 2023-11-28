@@ -24,7 +24,6 @@ delete_endpoint() {
     if [ $retVal -ne 0 ]; then
         count=0
     fi
-    set -e
     if [ "${count}" != "0" ]; then
         echo "Project ${clean_project_id} contains ${provider} endpoints, will start deleting it now and will try to delete the project in the next execution"
         id=$(atlas privateEndpoints "${provider}" list --projectId "${clean_project_id}" -o=go-template="{{(index . 0).Id}}")
