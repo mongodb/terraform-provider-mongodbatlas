@@ -18,19 +18,16 @@ set -Eeou pipefail
 
 delete_endpoint() {
     provider=$1
-    set +e
     count=$(atlas privateEndpoints "${provider}" list --projectId "${clean_project_id}" -o=go-template="{{len .}}")
     retVal=$?
     if [ $retVal -ne 0 ]; then
         count=0
     fi
     if [ "${count}" != "0" ]; then
-        echo "Project ${clean_project_id} contains ${provider} endpoints, will start deleting it now and will try to delete the project in the next execution"
+        echo "Project ${clean_project_id} contains ${provider} endpoints, will start deleting"
         id=$(atlas privateEndpoints "${provider}" list --projectId "${clean_project_id}" -o=go-template="{{(index . 0).Id}}")
-        atlas privateEndpoints "${provider}" delete "${id}" --force --projectId "${clean_project_id}" || \
-        echo "Failed to delete ${provider}  private endpoint with project ID ${clean_project_id}, endpoint ID: ${id}"
+        atlas privateEndpoints "${provider}" delete "${id}" --force --projectId "${clean_project_id}"
     fi
-    set -e
 }
 
 projectToSkip="${PROJECT_TO_NOT_DELETE:-NONE}"
@@ -52,15 +49,17 @@ echo "${projects}" | jq -c '.results[].id' | while read -r id; do
         continue
     fi
 
-    delete_endpoint "aws"
-    delete_endpoint "gcp"
-    delete_endpoint "azure"
-
     clusters=$(atlas cluster ls --projectId "${clean_project_id}" -o=go-template="{{.TotalCount}}")
     if [ "${clusters}" != "0" ]; then
         echo "Project ${clean_project_id} contains clusters. Skipping..."
         continue
     fi
+
+    set +e
+    delete_endpoint "aws"
+    delete_endpoint "gcp"
+    delete_endpoint "azure"
+    set -e
 
     echo "Deleting projectId ${clean_project_id}"
     # This command can fail if project has a cluster, a private endpoint, or general failure. The echo command always succeeds so the subshell will succeed and continue
