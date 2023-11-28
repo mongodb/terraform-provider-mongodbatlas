@@ -31,11 +31,107 @@ func TestAccConfigRSProjectAPIKey_Basic(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName),
+				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName, false),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "description", description),
+					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
+					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccConfigRSProjectAPIKey_BasicWithLegacyRootProjectID(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_project_api_key.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		description  = fmt.Sprintf("test-acc-project-api_key-%s", acctest.RandString(5))
+		roleName     = "GROUP_OWNER"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName, true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "description"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
+					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
+					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccConfigRSProjectAPIKey_ChangingSingleProject(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_project_api_key.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName1 = acctest.RandomWithPrefix("test-acc")
+		projectName2 = acctest.RandomWithPrefix("test-acc")
+		description  = fmt.Sprintf("test-acc-project-api_key-%s", acctest.RandString(5))
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasProjectAPIKeyChangingProject(orgID, projectName1, projectName2, description, "mongodbatlas_project.proj1.id"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "description", description),
+					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
+					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasProjectAPIKeyChangingProject(orgID, projectName1, projectName2, description, "mongodbatlas_project.proj2.id"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "description", description),
+					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
+					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccConfigRSProjectAPIKey_RemovingOptionalRootProjectID(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_project_api_key.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		description  = fmt.Sprintf("test-acc-project-api_key-%s", acctest.RandString(5))
+		roleName     = "GROUP_OWNER"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName, true),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "description", description),
+					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
+					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName, false),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "description", description),
+					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
+					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
 				),
 			},
 		},
@@ -61,7 +157,6 @@ func TestAccConfigRSProjectAPIKey_Multiple(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasProjectAPIKeyConfigMultiple(orgID, projectName, description, roleName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttrSet(resourceName, "project_assignment.0.project_id"),
@@ -94,17 +189,15 @@ func TestAccConfigRSProjectAPIKey_UpdateDescription(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName),
+				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName, false),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, updatedDescription, roleName),
+				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, updatedDescription, roleName, false),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 					resource.TestCheckResourceAttr(resourceName, "description", updatedDescription),
 				),
@@ -128,7 +221,7 @@ func TestAccConfigRSProjectAPIKey_importBasic(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName),
+				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName, false),
 			},
 			{
 				ResourceName:      resourceName,
@@ -150,7 +243,7 @@ func TestAccConfigRSProjectAPIKey_RecreateWhenDeletedExternally(t *testing.T) {
 		roleName          = "GROUP_OWNER"
 	)
 
-	projectAPIKeyConfig := testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName)
+	projectAPIKeyConfig := testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName, false)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -160,7 +253,6 @@ func TestAccConfigRSProjectAPIKey_RecreateWhenDeletedExternally(t *testing.T) {
 			{
 				Config: projectAPIKeyConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 				),
 			},
@@ -257,25 +349,53 @@ func testAccCheckMongoDBAtlasProjectAPIKeyImportStateIDFunc(resourceName string)
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["api_key_id"]), nil
+		projectID := rs.Primary.Attributes["project_assignment.0.project_id"]
+
+		return fmt.Sprintf("%s-%s", projectID, rs.Primary.Attributes["api_key_id"]), nil
 	}
 }
 
-func testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleNames string) string {
+func testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleNames string, includeRootProjID bool) string {
+	var rootProjectID string
+	if includeRootProjID {
+		rootProjectID = "project_id = mongodbatlas_project.test.id"
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = %[2]q
 			org_id = %[1]q
+			name   = %[2]q
 		}
 		resource "mongodbatlas_project_api_key" "test" {
-			project_id     = mongodbatlas_project.test.id
-			description  = %[3]q
+			%[3]s
+			description  = %[4]q
 			project_assignment  {
 				project_id = mongodbatlas_project.test.id
-				role_names = [%[4]q]
+				role_names = [%[5]q]
 			}
 		}
-	`, orgID, projectName, description, roleNames)
+	`, orgID, projectName, rootProjectID, description, roleNames)
+}
+
+func testAccMongoDBAtlasProjectAPIKeyChangingProject(orgID, projectName1, projectName2, description, assignedProject string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "proj1" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+
+		resource "mongodbatlas_project" "proj2" {
+			org_id = %[1]q
+			name   = %[3]q
+		}
+
+		resource "mongodbatlas_project_api_key" "test" {
+			description  = %[4]q
+			project_assignment  {
+				project_id = %[5]s
+				role_names = ["GROUP_OWNER"]
+			}
+		}
+	`, orgID, projectName1, projectName2, description, assignedProject)
 }
 
 func testAccMongoDBAtlasProjectAPIKeyConfigMultiple(orgID, projectName, description, roleNames string) string {
@@ -285,7 +405,6 @@ func testAccMongoDBAtlasProjectAPIKeyConfigMultiple(orgID, projectName, descript
 			org_id = %[1]q
 		}
 		resource "mongodbatlas_project_api_key" "test" {
-			project_id     = mongodbatlas_project.test.id
 			description  = %[3]q
 			project_assignment  {
 				project_id = mongodbatlas_project.test.id
@@ -328,7 +447,6 @@ func testAccMongoDBAtlasProjectAPIKeyConfigDeletedProjectAndAssignment(orgID, pr
 		}
 		 %[3]s
 		resource "mongodbatlas_project_api_key" "test" {
-			project_id     = mongodbatlas_project.project1.id
 			description  = %[4]q
 			project_assignment  {
 				project_id = mongodbatlas_project.project1.id

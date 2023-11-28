@@ -30,18 +30,18 @@ jobs:
       with:
         filters: |
           project:
-            - 'mongodbatlas/fw_data_source_mongodbatlas_project_ip_access_list*.go'
-            - 'mongodbatlas/fw_resource_mongodbatlas_project_ip_access_list*.go'
+            - 'internal/service/project/*.go'
+            - 'internal/service/projectipaccesslist/*.go'
           config:
-            - 'mongodbatlas/fw_data_source_mongodbatlas_alert_configuration*.go'
-            - 'mongodbatlas/fw_data_source_mongodbatlas_database_user*.go'
-            - 'mongodbatlas/fw_data_source_mongodbatlas_atlas_user*.go'
-            - 'mongodbatlas/fw_resource_mongodbatlas_alert_configuration*.go'
-            - 'mongodbatlas/fw_resource_mongodbatlas_database_user*.go'
+            - 'internal/service/alertconfiguration/*.go'
+            - 'internal/service/atlasuser/*.go'
+            - 'internal/service/databaseuser/*.go'
+            - 'mongodbatlas/data_source_project_api_key*.go'
+            - 'mongodbatlas/resource_project_api_key*.go'
           backup_online_archive:
             - 'mongodbatlas/**online_archive**.go'
           advanced_cluster:
-            - 'mongodbatlas/**advanced_cluster**.go'
+            - 'internal/service/advancedcluster/*.go'
 
   project: 
     needs: [ change-detection ]
