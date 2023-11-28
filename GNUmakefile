@@ -50,8 +50,7 @@ testaccgov: fmtcheck
 .PHONY: fmt
 fmt:
 	@echo "==> Fixing source code with gofmt..."
-	gofmt -s -w ./main.go
-	gofmt -s -w ./$(PKG_NAME)
+	gofmt -s -w .
 
 .PHONY: fmtcheck
 fmtcheck: # Currently required by tf-deploy compile
