@@ -14,7 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20231115001/admin"
+	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
 func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {

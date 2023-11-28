@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20231115001/admin"
+	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
