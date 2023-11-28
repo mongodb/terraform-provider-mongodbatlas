@@ -18,11 +18,7 @@ func TestAccProjectDSProjects_basic(t *testing.T) {
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			acc.DebugVersion(t, "TestAccProjectDSProjects_basic", projectName)
-			acc.PreCheckBasic(t)
-			acc.PreCheckProjectTeamsIds(t, 2)
-		},
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIds(t, 2) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
