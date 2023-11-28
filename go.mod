@@ -21,7 +21,7 @@ require (
 	github.com/hashicorp/terraform-plugin-testing v1.5.1
 	github.com/mongodb-forks/digest v1.0.5
 	github.com/mwielbut/pointy v1.1.0
-	github.com/spf13/cast v1.5.1
+	github.com/spf13/cast v1.6.0
 	github.com/zclconf/go-cty v1.14.1
 	go.mongodb.org/atlas v0.36.0
 	go.mongodb.org/atlas-sdk/v20231115002 v20231115002.0.0
