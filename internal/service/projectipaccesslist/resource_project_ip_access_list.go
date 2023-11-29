@@ -48,7 +48,7 @@ type projectIPAccessListRS struct {
 	config.RSCommon
 }
 
-func NewProjectIPAccessListRS() resource.Resource {
+func Resource() resource.Resource {
 	return &projectIPAccessListRS{
 		RSCommon: config.RSCommon{
 			ResourceName: projectIPAccessList,

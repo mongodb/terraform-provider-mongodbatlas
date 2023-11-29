@@ -12,7 +12,7 @@ import (
 var _ datasource.DataSource = &searchDeploymentDS{}
 var _ datasource.DataSourceWithConfigure = &searchDeploymentDS{}
 
-func NewSearchDeploymentDS() datasource.DataSource {
+func DataSource() datasource.DataSource {
 	return &searchDeploymentDS{
 		DSCommon: config.DSCommon{
 			DataSourceName: searchDeploymentName,

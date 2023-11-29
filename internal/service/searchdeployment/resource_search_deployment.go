@@ -25,7 +25,7 @@ var _ resource.ResourceWithImportState = &searchDeploymentRS{}
 
 const searchDeploymentName = "search_deployment"
 
-func NewSearchDeploymentRS() resource.Resource {
+func Resource() resource.Resource {
 	return &searchDeploymentRS{
 		RSCommon: config.RSCommon{
 			ResourceName: searchDeploymentName,

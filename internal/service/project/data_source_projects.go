@@ -18,7 +18,7 @@ const projectsDataSourceName = "projects"
 var _ datasource.DataSource = &ProjectsDS{}
 var _ datasource.DataSourceWithConfigure = &ProjectsDS{}
 
-func NewProjectsDS() datasource.DataSource {
+func PluralDataSource() datasource.DataSource {
 	return &ProjectsDS{
 		DSCommon: config.DSCommon{
 			DataSourceName: projectsDataSourceName,

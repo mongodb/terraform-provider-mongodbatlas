@@ -35,7 +35,7 @@ type tfListOptionsModel struct {
 	IncludeCount types.Bool  `tfsdk:"include_count"`
 }
 
-func NewAlertConfigurationsDS() datasource.DataSource {
+func PluralDataSource() datasource.DataSource {
 	return &AlertConfigurationsDS{
 		DSCommon: config.DSCommon{
 			DataSourceName: alertConfigurationsDataSourceName,
