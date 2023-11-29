@@ -24,6 +24,10 @@ const (
 	mode                string  = "AVERAGE"
 )
 
+var (
+	roles = []string{"GROUP_DATA_ACCESS_READ_ONLY", "GROUP_CLUSTER_MANAGER", "GROUP_DATA_ACCESS_ADMIN"}
+)
+
 func TestNotificationSDKToTFModel(t *testing.T) {
 	testCases := []struct {
 		name                      string
@@ -41,11 +45,7 @@ func TestNotificationSDKToTFModel(t *testing.T) {
 					SmsEnabled:   admin.PtrBool(disabled),
 					EmailEnabled: admin.PtrBool(enabled),
 					ChannelName:  admin.PtrString("#channel"),
-					Roles: []string{
-						"GROUP_DATA_ACCESS_READ_ONLY",
-						"GROUP_CLUSTER_MANAGER",
-						"GROUP_DATA_ACCESS_ADMIN",
-					},
+					Roles:        roles,
 				},
 			},
 			currentStateNotifications: []alertconfiguration.TfNotificationModel{
@@ -55,11 +55,7 @@ func TestNotificationSDKToTFModel(t *testing.T) {
 					DelayMin:     types.Int64Value(int64(delayMin)),
 					SMSEnabled:   types.BoolValue(disabled),
 					EmailEnabled: types.BoolValue(enabled),
-					Roles: []string{
-						"GROUP_DATA_ACCESS_READ_ONLY",
-						"GROUP_CLUSTER_MANAGER",
-						"GROUP_DATA_ACCESS_ADMIN",
-					},
+					Roles:        roles,
 				},
 			},
 			expectedTFModel: []alertconfiguration.TfNotificationModel{
@@ -70,11 +66,7 @@ func TestNotificationSDKToTFModel(t *testing.T) {
 					SMSEnabled:   types.BoolValue(disabled),
 					EmailEnabled: types.BoolValue(enabled),
 					ChannelName:  types.StringNull(),
-					Roles: []string{
-						"GROUP_DATA_ACCESS_READ_ONLY",
-						"GROUP_CLUSTER_MANAGER",
-						"GROUP_DATA_ACCESS_ADMIN",
-					},
+					Roles:        roles,
 				},
 			},
 		},
@@ -285,11 +277,7 @@ func TestNotificationTFModelToSDK(t *testing.T) {
 					DelayMin:     types.Int64Value(int64(delayMin)),
 					SMSEnabled:   types.BoolValue(disabled),
 					EmailEnabled: types.BoolValue(enabled),
-					Roles: []string{
-						"GROUP_DATA_ACCESS_READ_ONLY",
-						"GROUP_CLUSTER_MANAGER",
-						"GROUP_DATA_ACCESS_ADMIN",
-					},
+					Roles:        roles,
 				},
 			},
 			expectedSDKReq: &[]admin.AlertsNotificationRootForGroup{
@@ -299,11 +287,7 @@ func TestNotificationTFModelToSDK(t *testing.T) {
 					DelayMin:     admin.PtrInt(delayMin),
 					SmsEnabled:   admin.PtrBool(disabled),
 					EmailEnabled: admin.PtrBool(enabled),
-					Roles: []string{
-						"GROUP_DATA_ACCESS_READ_ONLY",
-						"GROUP_CLUSTER_MANAGER",
-						"GROUP_DATA_ACCESS_ADMIN",
-					},
+					Roles:        roles,
 				},
 			},
 		},
