@@ -25,11 +25,11 @@ func TestAccProjectDSProjects_basic(t *testing.T) {
 				Config: testAccMongoDBAtlasProjectsConfigWithDS(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
-							TeamID:    acc.GetProjectTeamsIds(0),
+							TeamID:    acc.GetProjectTeamsIdsWithPos(0),
 							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
-							TeamID:    acc.GetProjectTeamsIds(1),
+							TeamID:    acc.GetProjectTeamsIdsWithPos(1),
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
@@ -60,11 +60,11 @@ func TestAccProjectDSProjects_withPagination(t *testing.T) {
 				Config: testAccMongoDBAtlasProjectsConfigWithPagination(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
-							TeamID:    acc.GetProjectTeamsIds(0),
+							TeamID:    acc.GetProjectTeamsIdsWithPos(0),
 							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
-							TeamID:    acc.GetProjectTeamsIds(1),
+							TeamID:    acc.GetProjectTeamsIdsWithPos(1),
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},

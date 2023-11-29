@@ -29,11 +29,11 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 				Config: acc.ConfigProject(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
-							TeamID:    acc.GetProjectTeamsIds(0),
+							TeamID:    acc.GetProjectTeamsIdsWithPos(0),
 							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
-							TeamID:    acc.GetProjectTeamsIds(1),
+							TeamID:    acc.GetProjectTeamsIdsWithPos(1),
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
@@ -51,15 +51,15 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 				Config: acc.ConfigProject(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
-							TeamID:    acc.GetProjectTeamsIds(0),
+							TeamID:    acc.GetProjectTeamsIdsWithPos(0),
 							RoleNames: []string{"GROUP_OWNER"},
 						},
 						{
-							TeamID:    acc.GetProjectTeamsIds(1),
+							TeamID:    acc.GetProjectTeamsIdsWithPos(1),
 							RoleNames: []string{"GROUP_DATA_ACCESS_READ_WRITE"},
 						},
 						{
-							TeamID:    acc.GetProjectTeamsIds(2),
+							TeamID:    acc.GetProjectTeamsIdsWithPos(2),
 							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 					},
@@ -78,11 +78,11 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 
 					[]*matlas.ProjectTeam{
 						{
-							TeamID:    acc.GetProjectTeamsIds(0),
+							TeamID:    acc.GetProjectTeamsIdsWithPos(0),
 							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_READ_ONLY"},
 						},
 						{
-							TeamID:    acc.GetProjectTeamsIds(1),
+							TeamID:    acc.GetProjectTeamsIdsWithPos(1),
 							RoleNames: []string{"GROUP_OWNER", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 					},
@@ -233,7 +233,7 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectWithUpdatedRole(projectName, orgID, acc.GetProjectTeamsIds(0), roleName),
+				Config: acc.ConfigProjectWithUpdatedRole(projectName, orgID, acc.GetProjectTeamsIdsWithPos(0), roleName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -241,7 +241,7 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigProjectWithUpdatedRole(projectName, orgID, acc.GetProjectTeamsIds(0), roleNameUpdated),
+				Config: acc.ConfigProjectWithUpdatedRole(projectName, orgID, acc.GetProjectTeamsIdsWithPos(0), roleNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),

@@ -26,11 +26,11 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 				Config: testAccMongoDBAtlasProjectDSByIDUsingRS(acc.ConfigProject(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
-							TeamID:    acc.GetProjectTeamsIds(0),
+							TeamID:    acc.GetProjectTeamsIdsWithPos(0),
 							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
-							TeamID:    acc.GetProjectTeamsIds(1),
+							TeamID:    acc.GetProjectTeamsIdsWithPos(1),
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
@@ -58,12 +58,12 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(acc.ConfigProject(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
-							TeamID:    acc.GetProjectTeamsIds(0),
+							TeamID:    acc.GetProjectTeamsIdsWithPos(0),
 							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
 
-							TeamID:    acc.GetProjectTeamsIds(1),
+							TeamID:    acc.GetProjectTeamsIdsWithPos(1),
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
@@ -91,12 +91,12 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(acc.ConfigProject(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
-							TeamID:    acc.GetProjectTeamsIds(0),
+							TeamID:    acc.GetProjectTeamsIdsWithPos(0),
 							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
 
-							TeamID:    acc.GetProjectTeamsIds(1),
+							TeamID:    acc.GetProjectTeamsIdsWithPos(1),
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},

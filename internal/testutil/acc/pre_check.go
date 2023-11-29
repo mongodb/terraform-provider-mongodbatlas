@@ -58,7 +58,7 @@ func PreCheckProjectTeamsIdsWithMinCount(tb testing.TB, minTeamsCount int) {
 	}
 }
 
-func GetProjectTeamsIds(pos int) string {
+func GetProjectTeamsIdsWithPos(pos int) string {
 	envVar := os.Getenv("MONGODB_ATLAS_TEAMS_IDS")
 	teamsIds := strings.Split(envVar, ",")
 	count := len(teamsIds)
