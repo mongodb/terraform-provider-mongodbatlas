@@ -48,6 +48,21 @@ func TestStreamInstanceSDKToTFModel(t *testing.T) {
 				InstanceName:      types.StringValue(instanceName),
 			},
 		},
+		{
+			name: "Empty hostnames and dataProcessRegion in response", // should never happen, but verifying it is handled gracefully
+			SDKResp: &admin.StreamsTenant{
+				Id:      admin.PtrString(dummyStreamInstanceID),
+				GroupId: admin.PtrString(dummyProjectID),
+				Name:    admin.PtrString(instanceName),
+			},
+			expectedTFModel: &streaminstance.TFStreamInstanceRSModel{
+				ID:                types.StringValue(dummyStreamInstanceID),
+				DataProcessRegion: types.ObjectNull(streaminstance.ProcessRegionObjectType.AttrTypes),
+				ProjectID:         types.StringValue(dummyProjectID),
+				Hostnames:         types.ListNull(types.StringType),
+				InstanceName:      types.StringValue(instanceName),
+			},
+		},
 	}
 
 	for _, tc := range testCases {

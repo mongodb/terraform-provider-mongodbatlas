@@ -27,7 +27,7 @@ func TestAccStreamInstance_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			newStreamInstanceTestStep(resourceName, orgID, projectName, instanceName, "VIRGINIA_USA", "AWS"),
 			{
-				Config:            streamInstanceConfig(orgID, projectName, instanceName, "VIRGINIA_USA", "AWS"),
+				Config:            streamInstanceConfig(orgID, projectName, instanceName, "VIRGINIA_USA", "AWS"), // as of now there are no values that can be updated
 				ResourceName:      resourceName,
 				ImportStateIdFunc: checkStreamInstanceImportStateIDFunc(resourceName),
 				ImportState:       true,
@@ -81,7 +81,6 @@ func checkStreamInstanceImportStateIDFunc(resourceName string) resource.ImportSt
 	}
 }
 
-// TODO reuse methods here?
 func checkSearchInstanceExists() resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2

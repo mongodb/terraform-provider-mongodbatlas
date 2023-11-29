@@ -39,12 +39,16 @@ func NewStreamInstanceUpdateReq(ctx context.Context, plan *TFStreamInstanceRSMod
 
 func NewTFStreamInstance(ctx context.Context, apiResp *admin.StreamsTenant) (*TFStreamInstanceRSModel, diag.Diagnostics) {
 	hostnames, diags := types.ListValueFrom(ctx, types.StringType, apiResp.Hostnames)
-	// TODO check dataRegionIsDefined
-	dataProcessRegion, diagsProcessRegion := types.ObjectValueFrom(ctx, ProcessRegionObjectType.AttrTypes, TFInstanceProcessRegionSpecModel{
-		CloudProvider: types.StringValue(apiResp.DataProcessRegion.CloudProvider),
-		Region:        types.StringValue(apiResp.DataProcessRegion.Region),
-	})
-	diags.Append(diagsProcessRegion...)
+
+	var dataProcessRegion = types.ObjectNull(ProcessRegionObjectType.AttrTypes)
+	if apiResp.DataProcessRegion != nil {
+		returnedProcessRegion, diagsProcessRegion := types.ObjectValueFrom(ctx, ProcessRegionObjectType.AttrTypes, TFInstanceProcessRegionSpecModel{
+			CloudProvider: types.StringValue(apiResp.DataProcessRegion.CloudProvider),
+			Region:        types.StringValue(apiResp.DataProcessRegion.Region),
+		})
+		dataProcessRegion = returnedProcessRegion
+		diags.Append(diagsProcessRegion...)
+	}
 	if diags.HasError() {
 		return nil, diags
 	}
