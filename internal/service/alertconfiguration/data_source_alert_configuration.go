@@ -31,11 +31,11 @@ type TfAlertConfigurationDSModel struct {
 	MetricThresholdConfig []TfMetricThresholdConfigModel    `tfsdk:"metric_threshold_config"`
 	ThresholdConfig       []TfThresholdConfigModel          `tfsdk:"threshold_config"`
 	Notification          []TfNotificationModel             `tfsdk:"notification"`
-	Output                []tfAlertConfigurationOutputModel `tfsdk:"output"`
+	Output                []TfAlertConfigurationOutputModel `tfsdk:"output"`
 	Enabled               types.Bool                        `tfsdk:"enabled"`
 }
 
-type tfAlertConfigurationOutputModel struct {
+type TfAlertConfigurationOutputModel struct {
 	Type  types.String `tfsdk:"type"`
 	Label types.String `tfsdk:"label"`
 	Value types.String `tfsdk:"value"`
@@ -278,10 +278,10 @@ func (d *alertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequ
 	resp.Diagnostics.Append(resp.State.Set(ctx, &resultAlertConfigModel)...)
 }
 
-func computeAlertConfigurationOutput(alert *admin.GroupAlertsConfig, definedOutputs []tfAlertConfigurationOutputModel, defaultLabel string) []tfAlertConfigurationOutputModel {
-	resultOutputs := make([]tfAlertConfigurationOutputModel, len(definedOutputs))
+func computeAlertConfigurationOutput(alert *admin.GroupAlertsConfig, definedOutputs []TfAlertConfigurationOutputModel, defaultLabel string) []TfAlertConfigurationOutputModel {
+	resultOutputs := make([]TfAlertConfigurationOutputModel, len(definedOutputs))
 	for i, defined := range definedOutputs {
-		resultOutput := tfAlertConfigurationOutputModel{}
+		resultOutput := TfAlertConfigurationOutputModel{}
 		resultOutput.Type = defined.Type
 		if defined.Label.IsNull() {
 			resultOutput.Label = types.StringValue(defaultLabel)

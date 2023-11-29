@@ -309,3 +309,25 @@ func NewTfAlertConfigurationDSModel(apiRespConfig *admin.GroupAlertsConfig, proj
 		Matcher:               NewTFMatcherModelList(apiRespConfig.Matchers, []TfMatcherModel{}),
 	}
 }
+
+func NewTFAlertConfigurationDSModelList(alerts []admin.GroupAlertsConfig, projectID string, definedOutputs []string) []TfAlertConfigurationDSModel {
+	outputConfigurations := make([]TfAlertConfigurationOutputModel, len(definedOutputs))
+	for i, output := range definedOutputs {
+		outputConfigurations[i] = TfAlertConfigurationOutputModel{
+			Type: types.StringValue(output),
+		}
+	}
+
+	results := make([]TfAlertConfigurationDSModel, len(alerts))
+
+	for i := 0; i < len(alerts); i++ {
+		alert := alerts[i]
+		label := fmt.Sprintf("%s_%d", *alert.EventTypeName, i)
+		resultAlertConfigModel := NewTfAlertConfigurationDSModel(&alerts[i], projectID)
+		computedOutputs := computeAlertConfigurationOutput(&alert, outputConfigurations, label)
+		resultAlertConfigModel.Output = computedOutputs
+		results[i] = resultAlertConfigModel
+	}
+
+	return results
+}

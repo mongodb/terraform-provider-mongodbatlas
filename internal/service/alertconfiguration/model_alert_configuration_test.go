@@ -497,3 +497,61 @@ func TestAlertConfigurationSdkToTFDSModel(t *testing.T) {
 		})
 	}
 }
+
+type sdkToTfDSAlertConfigurationListModelTestCase struct {
+	name            string
+	projectID       string
+	definedOutputs  []string
+	alerts          []admin.GroupAlertsConfig
+	expectedTfModel []alertconfiguration.TfAlertConfigurationDSModel
+}
+
+func TestAlertConfigurationSdkToDSModelList(t *testing.T) {
+	testCases := []sdkToTfDSAlertConfigurationListModelTestCase{
+		{
+			name: "Complete SDK model",
+			alerts: []admin.GroupAlertsConfig{
+				{
+					Enabled:       admin.PtrBool(true),
+					EventTypeName: admin.PtrString("EventType"),
+					GroupId:       admin.PtrString("projectId"),
+					Id:            admin.PtrString("alertConfigurationId"),
+				},
+			},
+			projectID:      "projectId",
+			definedOutputs: []string{"resource_hcl"},
+			expectedTfModel: []alertconfiguration.TfAlertConfigurationDSModel{
+				{
+					ID: types.StringValue(conversion.EncodeStateID(map[string]string{
+						"id":         "alertConfigurationId",
+						"project_id": "projectId",
+					})),
+					ProjectID:             types.StringValue("projectId"),
+					AlertConfigurationID:  types.StringValue("alertConfigurationId"),
+					EventType:             types.StringValue("EventType"),
+					Enabled:               types.BoolValue(true),
+					Matcher:               []alertconfiguration.TfMatcherModel{},
+					MetricThresholdConfig: []alertconfiguration.TfMetricThresholdConfigModel{},
+					ThresholdConfig:       []alertconfiguration.TfThresholdConfigModel{},
+					Notification:          []alertconfiguration.TfNotificationModel{},
+					Output: []alertconfiguration.TfAlertConfigurationOutputModel{
+						{
+							Type:  types.StringValue("resource_hcl"),
+							Label: types.StringValue("EventType_0"),
+							Value: types.StringValue("resource \"mongodbatlas_alert_configuration\" \"EventType_0\" {\n  project_id = \"projectId\"\n  event_type = \"EventType\"\n  enabled    = true\n}\n"),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel := alertconfiguration.NewTFAlertConfigurationDSModelList(tc.alerts, tc.projectID, tc.definedOutputs)
+			if !reflect.DeepEqual(resultModel, tc.expectedTfModel) {
+				t.Errorf("created terraform model did not match expected output")
+			}
+		})
+	}
+}
