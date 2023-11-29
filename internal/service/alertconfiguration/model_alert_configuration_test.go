@@ -313,7 +313,7 @@ func TestNotificationTFModelToSDK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			apiReqResult, _ := alertconfiguration.NewNotificationList(tc.tfModel)
 			if !reflect.DeepEqual(apiReqResult, *tc.expectedSDKReq) {
-				t.Errorf("created sdk model did not match expected output.\n Expected: %s \n Result: %s", *tc.expectedSDKReq, apiReqResult)
+				t.Errorf("created sdk model did not match expected output")
 			}
 		})
 	}
