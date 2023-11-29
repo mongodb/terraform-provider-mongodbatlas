@@ -249,7 +249,7 @@ func (d *alertConfigurationDS) Schema(ctx context.Context, req datasource.Schema
 }
 
 func (d *alertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var alertConfigurationConfig TfAlertConfigurationDSModel
+	var alertConfigurationConfig TFAlertConfigurationDSModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &alertConfigurationConfig)...)
 	if resp.Diagnostics.HasError() {

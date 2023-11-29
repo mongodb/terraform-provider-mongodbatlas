@@ -24,7 +24,7 @@ type tfAlertConfigurationsDSModel struct {
 	ProjectID   types.String                  `tfsdk:"project_id"`
 	OutputType  []string                      `tfsdk:"output_type"`
 	ListOptions []tfListOptionsModel          `tfsdk:"list_options"`
-	Results     []TfAlertConfigurationDSModel `tfsdk:"results"`
+	Results     []TFAlertConfigurationDSModel `tfsdk:"results"`
 	TotalCount  types.Int64                   `tfsdk:"total_count"`
 }
 
