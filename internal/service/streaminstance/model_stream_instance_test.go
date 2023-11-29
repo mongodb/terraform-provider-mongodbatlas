@@ -63,6 +63,82 @@ func TestStreamInstanceSDKToTFModel(t *testing.T) {
 	}
 }
 
+type tfToSDKCreateModelTestCase struct {
+	tfModel        *streaminstance.TFStreamInstanceRSModel
+	expectedSDKReq *admin.StreamsTenant
+	name           string
+}
+
+func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
+	testCases := []tfToSDKCreateModelTestCase{
+		{
+			name: "Complete TF state",
+			tfModel: &streaminstance.TFStreamInstanceRSModel{
+				DataProcessRegion: tfRegionObject(t, cloudProvider, region),
+				ProjectID:         types.StringValue(dummyProjectID),
+				InstanceName:      types.StringValue(instanceName),
+			},
+			expectedSDKReq: &admin.StreamsTenant{
+				DataProcessRegion: &admin.StreamsDataProcessRegion{
+					CloudProvider: cloudProvider,
+					Region:        region,
+				},
+				GroupId: admin.PtrString(dummyProjectID),
+				Name:    admin.PtrString(instanceName),
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			apiReqResult, diags := streaminstance.NewStreamInstanceCreateReq(context.Background(), tc.tfModel)
+			if diags.HasError() {
+				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
+			}
+			if !reflect.DeepEqual(apiReqResult, tc.expectedSDKReq) {
+				t.Errorf("created sdk model did not match expected output")
+			}
+		})
+	}
+}
+
+type tfToSDKUpdateModelTestCase struct {
+	tfModel        *streaminstance.TFStreamInstanceRSModel
+	expectedSDKReq *admin.StreamsDataProcessRegion
+	name           string
+}
+
+func TestStreamInstanceTFToSDKUpdateModel(t *testing.T) {
+	testCases := []tfToSDKUpdateModelTestCase{
+		{
+			name: "Complete TF state",
+			tfModel: &streaminstance.TFStreamInstanceRSModel{
+				ID:                types.StringValue(dummyStreamInstanceID),
+				DataProcessRegion: tfRegionObject(t, cloudProvider, region),
+				ProjectID:         types.StringValue(dummyProjectID),
+				Hostnames:         tfHostnamesList(t, hostnames),
+				InstanceName:      types.StringValue(instanceName),
+			},
+			expectedSDKReq: &admin.StreamsDataProcessRegion{
+				CloudProvider: cloudProvider,
+				Region:        region,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			apiReqResult, diags := streaminstance.NewStreamInstanceUpdateReq(context.Background(), tc.tfModel)
+			if diags.HasError() {
+				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
+			}
+			if !reflect.DeepEqual(apiReqResult, tc.expectedSDKReq) {
+				t.Errorf("created sdk model did not match expected output")
+			}
+		})
+	}
+}
+
 func tfRegionObject(t *testing.T, cloudProvider, region string) types.Object {
 	dataProcessRegion, diags := types.ObjectValueFrom(context.Background(), streaminstance.ProcessRegionObjectType.AttrTypes, streaminstance.TFInstanceProcessRegionSpecModel{
 		CloudProvider: types.StringValue(cloudProvider),
