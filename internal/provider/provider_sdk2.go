@@ -15,6 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 	"github.com/mwielbut/pointy"
 )
@@ -108,8 +109,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_api_keys":                          mongodbatlas.DataSourceAPIKeys(),
 		"mongodbatlas_access_list_api_key":               mongodbatlas.DataSourceAccessListAPIKey(),
 		"mongodbatlas_access_list_api_keys":              mongodbatlas.DataSourceAccessListAPIKeys(),
-		"mongodbatlas_project_api_key":                   mongodbatlas.DataSourceProjectAPIKey(),
-		"mongodbatlas_project_api_keys":                  mongodbatlas.DataSourceProjectAPIKeys(),
+		"mongodbatlas_project_api_key":                   projectapikey.DataSourceProjectAPIKey(),
+		"mongodbatlas_project_api_keys":                  projectapikey.DataSourceProjectAPIKeys(),
 		"mongodbatlas_roles_org_id":                      mongodbatlas.DataSourceOrgID(),
 		"mongodbatlas_cluster":                           cluster.DataSourceCluster(),
 		"mongodbatlas_clusters":                          cluster.DataSourceClusters(),
@@ -188,7 +189,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_advanced_cluster":                  advancedcluster.ResourceAdvancedCluster(),
 		"mongodbatlas_api_key":                           mongodbatlas.ResourceAPIKey(),
 		"mongodbatlas_access_list_api_key":               mongodbatlas.ResourceAccessListAPIKey(),
-		"mongodbatlas_project_api_key":                   mongodbatlas.ResourceProjectAPIKey(),
+		"mongodbatlas_project_api_key":                   projectapikey.ResourceProjectAPIKey(),
 		"mongodbatlas_custom_db_role":                    mongodbatlas.ResourceCustomDBRole(),
 		"mongodbatlas_cluster":                           cluster.ResourceCluster(),
 		"mongodbatlas_network_container":                 mongodbatlas.ResourceNetworkContainer(),

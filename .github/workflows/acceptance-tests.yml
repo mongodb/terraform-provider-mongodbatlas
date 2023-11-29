@@ -81,6 +81,7 @@ jobs:
             - 'internal/service/alertconfiguration/*.go'
             - 'internal/service/atlasuser/*.go'
             - 'internal/service/databaseuser/*.go'
+            - 'internal/service/projectapikey/*.go'
             - 'mongodbatlas/data_source_accesslist_api_key*.go'
             - 'mongodbatlas/data_source_api_key*.go'
             - 'mongodbatlas/data_source_cloud_provider_access_setup*.go'
@@ -91,7 +92,6 @@ jobs:
             - 'mongodbatlas/data_source_org_id*.go'
             - 'mongodbatlas/data_source_org_invitation*.go'
             - 'mongodbatlas/data_source_organization*.go'
-            - 'mongodbatlas/data_source_project_api_key*.go'
             - 'mongodbatlas/data_source_team*.go'
             - 'mongodbatlas/data_source_third_party_integration*.go'
             - 'mongodbatlas/resource_api_key*.go'
@@ -102,7 +102,6 @@ jobs:
             - 'mongodbatlas/resource_maintenance_window*.go'
             - 'mongodbatlas/resource_org_invitation*.go'
             - 'mongodbatlas/resource_organization*.go'
-            - 'mongodbatlas/resource_project_api_key*.go'
             - 'mongodbatlas/resource_team*.go'
             - 'mongodbatlas/resource_third_party_integration*.go'
           event_trigger:
