@@ -2,6 +2,7 @@ package acc
 
 import (
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -45,10 +46,26 @@ func PreCheckAtlasUsername(tb testing.TB) {
 	}
 }
 
-func PreCheckTeamsIds(tb testing.TB) {
-	if os.Getenv("MONGODB_ATLAS_TEAMS_IDS") == "" {
-		tb.Skip("`MONGODB_ATLAS_TEAMS_IDS` must be set for Projects acceptance testing")
+func PreCheckProjectTeamsIdsWithMinCount(tb testing.TB, minTeamsCount int) {
+	envVar := os.Getenv("MONGODB_ATLAS_TEAMS_IDS")
+	if envVar == "" {
+		tb.Fatal("`MONGODB_ATLAS_TEAMS_IDS` must be set for Projects acceptance testing")
+		return
 	}
+	teamsIds := strings.Split(envVar, ",")
+	if count := len(teamsIds); count < minTeamsCount {
+		tb.Fatalf("`MONGODB_ATLAS_TEAMS_IDS` must have at least %d team ids for this acceptance testing, has %d", minTeamsCount, count)
+	}
+}
+
+func GetProjectTeamsIdsWithPos(pos int) string {
+	envVar := os.Getenv("MONGODB_ATLAS_TEAMS_IDS")
+	teamsIds := strings.Split(envVar, ",")
+	count := len(teamsIds)
+	if envVar == "" || pos >= count {
+		return ""
+	}
+	return teamsIds[pos]
 }
 
 func PreCheckGov(tb testing.TB) {

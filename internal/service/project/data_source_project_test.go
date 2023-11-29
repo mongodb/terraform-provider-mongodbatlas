@@ -3,7 +3,6 @@ package project_test
 import (
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
@@ -15,26 +14,23 @@ import (
 )
 
 func TestAccProjectDSProject_byID(t *testing.T) {
-	projectName := acctest.RandomWithPrefix("test-acc")
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
-	if len(teamsIds) < 2 {
-		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
-	}
-
+	var (
+		projectName = acctest.RandomWithPrefix("test-acc")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckTeamsIds(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIdsWithMinCount(t, 2) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectDSByIDUsingRS(acc.ConfigProject(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
-							TeamID:    teamsIds[0],
+							TeamID:    acc.GetProjectTeamsIdsWithPos(0),
 							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
-							TeamID:    teamsIds[1],
+							TeamID:    acc.GetProjectTeamsIdsWithPos(1),
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
@@ -50,27 +46,24 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 }
 
 func TestAccProjectDSProject_byName(t *testing.T) {
-	projectName := acctest.RandomWithPrefix("test-acc")
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
-	if len(teamsIds) < 2 {
-		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
-	}
-
+	var (
+		projectName = acctest.RandomWithPrefix("test-acc")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckTeamsIds(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIdsWithMinCount(t, 2) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(acc.ConfigProject(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
-							TeamID:    teamsIds[0],
+							TeamID:    acc.GetProjectTeamsIdsWithPos(0),
 							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
 
-							TeamID:    teamsIds[1],
+							TeamID:    acc.GetProjectTeamsIdsWithPos(1),
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
@@ -86,27 +79,24 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 }
 
 func TestAccProjectDSProject_defaultFlags(t *testing.T) {
-	projectName := acctest.RandomWithPrefix("test-acc")
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
-	if len(teamsIds) < 2 {
-		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
-	}
-
+	var (
+		projectName = acctest.RandomWithPrefix("test-acc")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckTeamsIds(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIdsWithMinCount(t, 2) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(acc.ConfigProject(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
-							TeamID:    teamsIds[0],
+							TeamID:    acc.GetProjectTeamsIdsWithPos(0),
 							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
 
-							TeamID:    teamsIds[1],
+							TeamID:    acc.GetProjectTeamsIdsWithPos(1),
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
@@ -128,9 +118,10 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 }
 
 func TestAccProjectDSProject_limits(t *testing.T) {
-	projectName := acctest.RandomWithPrefix("test-acc")
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-
+	var (
+		projectName = acctest.RandomWithPrefix("test-acc")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
