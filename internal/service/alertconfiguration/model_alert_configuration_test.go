@@ -70,6 +70,7 @@ func TestNotificationSDKToTFModel(t *testing.T) {
 					DelayMin:     admin.PtrInt(delayMin),
 					SmsEnabled:   admin.PtrBool(disabled),
 					EmailEnabled: admin.PtrBool(enabled),
+					ChannelName:  admin.PtrString("#channel"),
 					Roles: []string{
 						"GROUP_DATA_ACCESS_READ_ONLY",
 						"GROUP_CLUSTER_MANAGER",
@@ -98,6 +99,7 @@ func TestNotificationSDKToTFModel(t *testing.T) {
 					DelayMin:     types.Int64Value(int64(delayMin)),
 					SMSEnabled:   types.BoolValue(disabled),
 					EmailEnabled: types.BoolValue(enabled),
+					ChannelName:  types.StringNull(),
 					Roles: []string{
 						"GROUP_DATA_ACCESS_READ_ONLY",
 						"GROUP_CLUSTER_MANAGER",
@@ -134,7 +136,7 @@ func TestMetricThresholdSDKToTFModel(t *testing.T) {
 					Threshold:  types.Float64Value(threshold),
 					MetricName: types.StringValue("ASSERT_REGULAR"),
 					Operator:   types.StringValue(previousOperator),
-					Units:      types.StringValue(units),
+					Units:      types.StringNull(),
 					Mode:       types.StringValue(mode),
 				},
 			},
@@ -143,7 +145,7 @@ func TestMetricThresholdSDKToTFModel(t *testing.T) {
 					Threshold:  types.Float64Value(threshold),
 					MetricName: types.StringValue("ASSERT_REGULAR"),
 					Operator:   types.StringValue(operator),
-					Units:      types.StringValue(units),
+					Units:      types.StringNull(),
 					Mode:       types.StringValue(mode),
 				},
 			},
@@ -172,14 +174,14 @@ func TestThresholdConfigSDKToTFModel(t *testing.T) {
 			currentStateThresholdConfig: []alertconfiguration.TfThresholdConfigModel{
 				{
 					Threshold: types.Float64Value(1.0),
-					Operator:  types.StringValue("LESS_THAN"),
+					Operator:  types.StringNull(),
 					Units:     types.StringValue("MINUTES"),
 				},
 			},
 			expectedTFModel: []alertconfiguration.TfThresholdConfigModel{
 				{
 					Threshold: types.Float64Value(1.0),
-					Operator:  types.StringValue("LESS_THAN"),
+					Operator:  types.StringNull(),
 					Units:     types.StringValue("HOURS"),
 				},
 			},

@@ -17,38 +17,39 @@ func NewNotificationList(tfNotificationSlice []TfNotificationModel) ([]admin.Ale
 		if !tfNotificationSlice[i].IntervalMin.IsNull() && tfNotificationSlice[i].IntervalMin.ValueInt64() > 0 {
 			typeName := tfNotificationSlice[i].TypeName.ValueString()
 			if strings.EqualFold(typeName, pagerDuty) || strings.EqualFold(typeName, opsGenie) || strings.EqualFold(typeName, victorOps) {
-				return nil, fmt.Errorf(`'interval_min' doesn't need to be set if type_name is 'PAGER_DUTY', 'OPS_GENIE' or 'VICTOR_OPS'`)
+				return nil, fmt.Errorf(`'interval_min' must not be set if type_name is 'PAGER_DUTY', 'OPS_GENIE' or 'VICTOR_OPS'`)
 			}
 		}
 	}
 
 	for i := range tfNotificationSlice {
+		n := &tfNotificationSlice[i]
 		notification := admin.AlertsNotificationRootForGroup{
-			ApiToken:                 tfNotificationSlice[i].APIToken.ValueStringPointer(),
-			ChannelName:              tfNotificationSlice[i].ChannelName.ValueStringPointer(),
-			DatadogApiKey:            tfNotificationSlice[i].DatadogAPIKey.ValueStringPointer(),
-			DatadogRegion:            tfNotificationSlice[i].DatadogRegion.ValueStringPointer(),
-			DelayMin:                 pointy.Int(int(tfNotificationSlice[i].DelayMin.ValueInt64())),
-			EmailAddress:             tfNotificationSlice[i].EmailAddress.ValueStringPointer(),
-			EmailEnabled:             tfNotificationSlice[i].EmailEnabled.ValueBoolPointer(),
-			IntervalMin:              conversion.Int64PtrToIntPtr(tfNotificationSlice[i].IntervalMin.ValueInt64Pointer()),
-			MobileNumber:             tfNotificationSlice[i].MobileNumber.ValueStringPointer(),
-			OpsGenieApiKey:           tfNotificationSlice[i].OpsGenieAPIKey.ValueStringPointer(),
-			OpsGenieRegion:           tfNotificationSlice[i].OpsGenieRegion.ValueStringPointer(),
-			ServiceKey:               tfNotificationSlice[i].ServiceKey.ValueStringPointer(),
-			SmsEnabled:               tfNotificationSlice[i].SMSEnabled.ValueBoolPointer(),
-			TeamId:                   tfNotificationSlice[i].TeamID.ValueStringPointer(),
-			TypeName:                 tfNotificationSlice[i].TypeName.ValueStringPointer(),
-			Username:                 tfNotificationSlice[i].Username.ValueStringPointer(),
-			VictorOpsApiKey:          tfNotificationSlice[i].VictorOpsAPIKey.ValueStringPointer(),
-			VictorOpsRoutingKey:      tfNotificationSlice[i].VictorOpsRoutingKey.ValueStringPointer(),
-			Roles:                    tfNotificationSlice[i].Roles,
-			MicrosoftTeamsWebhookUrl: tfNotificationSlice[i].MicrosoftTeamsWebhookURL.ValueStringPointer(),
-			WebhookSecret:            tfNotificationSlice[i].WebhookSecret.ValueStringPointer(),
-			WebhookUrl:               tfNotificationSlice[i].WebhookURL.ValueStringPointer(),
+			ApiToken:                 n.APIToken.ValueStringPointer(),
+			ChannelName:              n.ChannelName.ValueStringPointer(),
+			DatadogApiKey:            n.DatadogAPIKey.ValueStringPointer(),
+			DatadogRegion:            n.DatadogRegion.ValueStringPointer(),
+			DelayMin:                 pointy.Int(int(n.DelayMin.ValueInt64())),
+			EmailAddress:             n.EmailAddress.ValueStringPointer(),
+			EmailEnabled:             n.EmailEnabled.ValueBoolPointer(),
+			IntervalMin:              conversion.Int64PtrToIntPtr(n.IntervalMin.ValueInt64Pointer()),
+			MobileNumber:             n.MobileNumber.ValueStringPointer(),
+			OpsGenieApiKey:           n.OpsGenieAPIKey.ValueStringPointer(),
+			OpsGenieRegion:           n.OpsGenieRegion.ValueStringPointer(),
+			ServiceKey:               n.ServiceKey.ValueStringPointer(),
+			SmsEnabled:               n.SMSEnabled.ValueBoolPointer(),
+			TeamId:                   n.TeamID.ValueStringPointer(),
+			TypeName:                 n.TypeName.ValueStringPointer(),
+			Username:                 n.Username.ValueStringPointer(),
+			VictorOpsApiKey:          n.VictorOpsAPIKey.ValueStringPointer(),
+			VictorOpsRoutingKey:      n.VictorOpsRoutingKey.ValueStringPointer(),
+			Roles:                    n.Roles,
+			MicrosoftTeamsWebhookUrl: n.MicrosoftTeamsWebhookURL.ValueStringPointer(),
+			WebhookSecret:            n.WebhookSecret.ValueStringPointer(),
+			WebhookUrl:               n.WebhookURL.ValueStringPointer(),
 		}
-		if !tfNotificationSlice[i].NotifierID.IsUnknown() {
-			notification.NotifierId = tfNotificationSlice[i].NotifierID.ValueStringPointer()
+		if !n.NotifierID.IsUnknown() {
+			notification.NotifierId = n.NotifierID.ValueStringPointer()
 		}
 		notifications = append(notifications, notification)
 	}
@@ -56,7 +57,7 @@ func NewNotificationList(tfNotificationSlice []TfNotificationModel) ([]admin.Ale
 }
 
 func NewThreshold(tfThresholdConfigSlice []TfThresholdConfigModel) *admin.GreaterThanRawThreshold {
-	if len(tfThresholdConfigSlice) < 1 {
+	if len(tfThresholdConfigSlice) == 0 {
 		return nil
 	}
 
@@ -69,7 +70,7 @@ func NewThreshold(tfThresholdConfigSlice []TfThresholdConfigModel) *admin.Greate
 }
 
 func NewMetricThreshold(tfMetricThresholdConfigSlice []TfMetricThresholdConfigModel) *admin.ServerlessMetricThreshold {
-	if len(tfMetricThresholdConfigSlice) < 1 {
+	if len(tfMetricThresholdConfigSlice) == 0 {
 		return nil
 	}
 	v := tfMetricThresholdConfigSlice[0]
@@ -145,18 +146,22 @@ func NewTFNotificationModelList(n []admin.AlertsNotificationRootForGroup, currSt
 		newState := TfNotificationModel{
 			TeamName: conversion.StringPtrNullIfEmpty(value.TeamName),
 			Roles:    value.Roles,
+			// sentive attributes do not use value returned from API
+			APIToken:                 conversion.StringNullIfEmpty(currState.APIToken.ValueString()),
+			DatadogAPIKey:            conversion.StringNullIfEmpty(currState.DatadogAPIKey.ValueString()),
+			OpsGenieAPIKey:           conversion.StringNullIfEmpty(currState.OpsGenieAPIKey.ValueString()),
+			ServiceKey:               conversion.StringNullIfEmpty(currState.ServiceKey.ValueString()),
+			VictorOpsAPIKey:          conversion.StringNullIfEmpty(currState.VictorOpsAPIKey.ValueString()),
+			VictorOpsRoutingKey:      conversion.StringNullIfEmpty(currState.VictorOpsRoutingKey.ValueString()),
+			WebhookURL:               conversion.StringNullIfEmpty(currState.WebhookURL.ValueString()),
+			WebhookSecret:            conversion.StringNullIfEmpty(currState.WebhookSecret.ValueString()),
+			MicrosoftTeamsWebhookURL: conversion.StringNullIfEmpty(currState.MicrosoftTeamsWebhookURL.ValueString()),
+			NotifierID:               types.StringPointerValue(value.NotifierId),
+			IntervalMin:              types.Int64PointerValue(conversion.IntPtrToInt64Ptr(value.IntervalMin)),
+			DelayMin:                 types.Int64PointerValue(conversion.IntPtrToInt64Ptr(value.DelayMin)),
+			EmailEnabled:             types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled),
+			SMSEnabled:               types.BoolValue(value.SmsEnabled != nil && *value.SmsEnabled),
 		}
-
-		// sentive attributes do not use value returned from API
-		newState.APIToken = conversion.StringNullIfEmpty(currState.APIToken.ValueString())
-		newState.DatadogAPIKey = conversion.StringNullIfEmpty(currState.DatadogAPIKey.ValueString())
-		newState.OpsGenieAPIKey = conversion.StringNullIfEmpty(currState.OpsGenieAPIKey.ValueString())
-		newState.ServiceKey = conversion.StringNullIfEmpty(currState.ServiceKey.ValueString())
-		newState.VictorOpsAPIKey = conversion.StringNullIfEmpty(currState.VictorOpsAPIKey.ValueString())
-		newState.VictorOpsRoutingKey = conversion.StringNullIfEmpty(currState.VictorOpsRoutingKey.ValueString())
-		newState.WebhookURL = conversion.StringNullIfEmpty(currState.WebhookURL.ValueString())
-		newState.WebhookSecret = conversion.StringNullIfEmpty(currState.WebhookSecret.ValueString())
-		newState.MicrosoftTeamsWebhookURL = conversion.StringNullIfEmpty(currState.MicrosoftTeamsWebhookURL.ValueString())
 
 		// for optional attributes that are not computed we must check if they were previously defined in state
 		if !currState.ChannelName.IsNull() {
@@ -183,16 +188,8 @@ func NewTFNotificationModelList(n []admin.AlertsNotificationRootForGroup, currSt
 		if !currState.Username.IsNull() {
 			newState.Username = conversion.StringPtrNullIfEmpty(value.Username)
 		}
-
-		newState.NotifierID = types.StringPointerValue(value.NotifierId)
-		newState.IntervalMin = types.Int64PointerValue(conversion.IntPtrToInt64Ptr(value.IntervalMin))
-		newState.DelayMin = types.Int64PointerValue(conversion.IntPtrToInt64Ptr(value.DelayMin))
-		newState.EmailEnabled = types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled)
-		newState.SMSEnabled = types.BoolValue(value.SmsEnabled != nil && *value.SmsEnabled)
-
 		notifications[i] = newState
 	}
-
 	return notifications
 }
 
@@ -212,7 +209,9 @@ func NewTFMetricThresholdConfigModel(t *admin.ServerlessMetricThreshold, currSta
 		}
 	}
 	currState := currStateSlice[0]
-	newState := TfMetricThresholdConfigModel{}
+	newState := TfMetricThresholdConfigModel{
+		Threshold: types.Float64Value(*t.Threshold),
+	}
 	if !currState.MetricName.IsNull() {
 		newState.MetricName = conversion.StringNullIfEmpty(t.MetricName)
 	}
@@ -225,7 +224,6 @@ func NewTFMetricThresholdConfigModel(t *admin.ServerlessMetricThreshold, currSta
 	if !currState.Mode.IsNull() {
 		newState.Mode = conversion.StringNullIfEmpty(*t.Mode)
 	}
-	newState.Threshold = types.Float64Value(*t.Threshold)
 	return []TfMetricThresholdConfigModel{newState}
 }
 
