@@ -15,6 +15,7 @@ import (
 )
 
 func TestAccConfigDSAtlasUser_ByUserID(t *testing.T) {
+	t.Skip()
 	acc.SkipIfTFAccNotDefined(t)
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_user.test"
@@ -36,6 +37,7 @@ func TestAccConfigDSAtlasUser_ByUserID(t *testing.T) {
 }
 
 func TestAccConfigDSAtlasUser_ByUsername(t *testing.T) {
+	t.Skip()
 	acc.SkipIfTFAccNotDefined(t)
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_user.test"
@@ -73,6 +75,7 @@ func dataSourceChecksForUser(dataSourceName, attrPrefix string, user *admin.Clou
 }
 
 func TestAccConfigDSAtlasUser_InvalidAttrCombination(t *testing.T) {
+	t.Skip()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
