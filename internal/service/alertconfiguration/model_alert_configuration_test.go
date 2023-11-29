@@ -46,6 +46,7 @@ func TestNotificationSDKToTFModel(t *testing.T) {
 					EmailEnabled: admin.PtrBool(enabled),
 					ChannelName:  admin.PtrString("#channel"),
 					Roles:        roles,
+					ApiToken:     admin.PtrString("newApiToken"),
 				},
 			},
 			currentStateNotifications: []alertconfiguration.TfNotificationModel{
@@ -55,6 +56,7 @@ func TestNotificationSDKToTFModel(t *testing.T) {
 					DelayMin:     types.Int64Value(int64(delayMin)),
 					SMSEnabled:   types.BoolValue(disabled),
 					EmailEnabled: types.BoolValue(enabled),
+					APIToken:     types.StringValue("apiToken"),
 					Roles:        roles,
 				},
 			},
@@ -66,6 +68,7 @@ func TestNotificationSDKToTFModel(t *testing.T) {
 					SMSEnabled:   types.BoolValue(disabled),
 					EmailEnabled: types.BoolValue(enabled),
 					ChannelName:  types.StringNull(),
+					APIToken:     types.StringValue("apiToken"),
 					Roles:        roles,
 				},
 			},
