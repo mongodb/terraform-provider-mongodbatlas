@@ -10,41 +10,6 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
-type sdkToTFNotificationModelTestCase struct {
-	name                      string
-	SDKResp                   *[]admin.AlertsNotificationRootForGroup
-	currentStateNotifications []alertconfiguration.TfNotificationModel
-	expectedTFModel           []alertconfiguration.TfNotificationModel
-}
-
-type sdkToTFMetricThresholdModelTestCase struct {
-	name                        string
-	SDKResp                     *admin.ServerlessMetricThreshold
-	currentStateMetricThreshold []alertconfiguration.TfMetricThresholdConfigModel
-	expectedTFModel             []alertconfiguration.TfMetricThresholdConfigModel
-}
-
-type sdkToTFMatcherModelTestCase struct {
-	name                string
-	SDKResp             []map[string]interface{}
-	currentStateMatcher []alertconfiguration.TfMatcherModel
-	expectedTFModel     []alertconfiguration.TfMatcherModel
-}
-
-type sdkToTFThresholdConfigModelTestCase struct {
-	name                        string
-	SDKResp                     *admin.GreaterThanRawThreshold
-	currentStateThresholdConfig []alertconfiguration.TfThresholdConfigModel
-	expectedTFModel             []alertconfiguration.TfThresholdConfigModel
-}
-
-type sdkToTFAlertConfigurationModelTestCase struct {
-	name                           string
-	SDKResp                        *admin.GroupAlertsConfig
-	currentStateAlertConfiguration *alertconfiguration.TfAlertConfigurationRSModel
-	expectedTFModel                alertconfiguration.TfAlertConfigurationRSModel
-}
-
 const (
 	group               string  = "GROUP"
 	previousIntervalMin int     = 10
@@ -60,7 +25,12 @@ const (
 )
 
 func TestNotificationSDKToTFModel(t *testing.T) {
-	testCases := []sdkToTFNotificationModelTestCase{
+	testCases := []struct {
+		name                      string
+		SDKResp                   *[]admin.AlertsNotificationRootForGroup
+		currentStateNotifications []alertconfiguration.TfNotificationModel
+		expectedTFModel           []alertconfiguration.TfNotificationModel
+	}{
 		{
 			name: "Complete SDK response",
 			SDKResp: &[]admin.AlertsNotificationRootForGroup{
@@ -121,7 +91,12 @@ func TestNotificationSDKToTFModel(t *testing.T) {
 }
 
 func TestMetricThresholdSDKToTFModel(t *testing.T) {
-	testCases := []sdkToTFMetricThresholdModelTestCase{
+	testCases := []struct {
+		name                        string
+		SDKResp                     *admin.ServerlessMetricThreshold
+		currentStateMetricThreshold []alertconfiguration.TfMetricThresholdConfigModel
+		expectedTFModel             []alertconfiguration.TfMetricThresholdConfigModel
+	}{
 		{
 			name: "Complete SDK response",
 			SDKResp: &admin.ServerlessMetricThreshold{
@@ -163,7 +138,12 @@ func TestMetricThresholdSDKToTFModel(t *testing.T) {
 }
 
 func TestThresholdConfigSDKToTFModel(t *testing.T) {
-	testCases := []sdkToTFThresholdConfigModelTestCase{
+	testCases := []struct {
+		name                        string
+		SDKResp                     *admin.GreaterThanRawThreshold
+		currentStateThresholdConfig []alertconfiguration.TfThresholdConfigModel
+		expectedTFModel             []alertconfiguration.TfThresholdConfigModel
+	}{
 		{
 			name: "Complete SDK response",
 			SDKResp: &admin.GreaterThanRawThreshold{
@@ -199,7 +179,12 @@ func TestThresholdConfigSDKToTFModel(t *testing.T) {
 }
 
 func TestMatcherSDKToTFModel(t *testing.T) {
-	testCases := []sdkToTFMatcherModelTestCase{
+	testCases := []struct {
+		name                string
+		SDKResp             []map[string]interface{}
+		currentStateMatcher []alertconfiguration.TfMatcherModel
+		expectedTFModel     []alertconfiguration.TfMatcherModel
+	}{
 		{
 			name: "Complete SDK response",
 			SDKResp: []map[string]interface{}{{
@@ -236,7 +221,12 @@ func TestMatcherSDKToTFModel(t *testing.T) {
 }
 
 func TestAlertConfigurationSDKToTFModel(t *testing.T) {
-	testCases := []sdkToTFAlertConfigurationModelTestCase{
+	testCases := []struct {
+		name                           string
+		SDKResp                        *admin.GroupAlertsConfig
+		currentStateAlertConfiguration *alertconfiguration.TfAlertConfigurationRSModel
+		expectedTFModel                alertconfiguration.TfAlertConfigurationRSModel
+	}{
 		{
 			name: "Complete SKD response",
 			SDKResp: &admin.GroupAlertsConfig{
@@ -280,32 +270,12 @@ func TestAlertConfigurationSDKToTFModel(t *testing.T) {
 	}
 }
 
-type tfToSDKNotificationModelTestCase struct {
-	name           string
-	expectedSDKReq *[]admin.AlertsNotificationRootForGroup
-	tfModel        []alertconfiguration.TfNotificationModel
-}
-
-type tfToSDKMetricThresholdModelTestCase struct {
-	name           string
-	expectedSDKReq *admin.ServerlessMetricThreshold
-	tfModel        []alertconfiguration.TfMetricThresholdConfigModel
-}
-
-type tfToSDKMatcherModelTestCase struct {
-	name           string
-	expectedSDKReq []map[string]interface{}
-	tfModel        []alertconfiguration.TfMatcherModel
-}
-
-type tfToSDKThresholdModelTestCase struct {
-	name           string
-	expectedSDKReq *admin.GreaterThanRawThreshold
-	tfModel        []alertconfiguration.TfThresholdConfigModel
-}
-
 func TestNotificationTFModelToSDK(t *testing.T) {
-	testCases := []tfToSDKNotificationModelTestCase{
+	testCases := []struct {
+		name           string
+		expectedSDKReq *[]admin.AlertsNotificationRootForGroup
+		tfModel        []alertconfiguration.TfNotificationModel
+	}{
 		{
 			name: "Complete TF model",
 			tfModel: []alertconfiguration.TfNotificationModel{
@@ -350,7 +320,11 @@ func TestNotificationTFModelToSDK(t *testing.T) {
 }
 
 func TestThresholdTFModelToSDK(t *testing.T) {
-	testCases := []tfToSDKThresholdModelTestCase{
+	testCases := []struct {
+		name           string
+		expectedSDKReq *admin.GreaterThanRawThreshold
+		tfModel        []alertconfiguration.TfThresholdConfigModel
+	}{
 		{
 			name:           "Empty TF model",
 			tfModel:        []alertconfiguration.TfThresholdConfigModel{},
@@ -384,7 +358,11 @@ func TestThresholdTFModelToSDK(t *testing.T) {
 }
 
 func TestMetricThresholdTFModelToSDK(t *testing.T) {
-	testCases := []tfToSDKMetricThresholdModelTestCase{
+	testCases := []struct {
+		name           string
+		expectedSDKReq *admin.ServerlessMetricThreshold
+		tfModel        []alertconfiguration.TfMetricThresholdConfigModel
+	}{
 		{
 			name:           "Empty TF model",
 			tfModel:        []alertconfiguration.TfMetricThresholdConfigModel{},
@@ -422,7 +400,11 @@ func TestMetricThresholdTFModelToSDK(t *testing.T) {
 }
 
 func TestMatcherTFModelToSDK(t *testing.T) {
-	testCases := []tfToSDKMatcherModelTestCase{
+	testCases := []struct {
+		name           string
+		expectedSDKReq []map[string]interface{}
+		tfModel        []alertconfiguration.TfMatcherModel
+	}{
 		{
 			name:           "Empty TF model",
 			tfModel:        []alertconfiguration.TfMatcherModel{},
@@ -455,15 +437,13 @@ func TestMatcherTFModelToSDK(t *testing.T) {
 	}
 }
 
-type sdkToTFDSAlertConfigurationModelTestCase struct {
-	name            string
-	apiRespConfig   *admin.GroupAlertsConfig
-	projectID       string
-	expectedTFModel alertconfiguration.TfAlertConfigurationDSModel
-}
-
 func TestAlertConfigurationSdkToTFDSModel(t *testing.T) {
-	testCases := []sdkToTFDSAlertConfigurationModelTestCase{
+	testCases := []struct {
+		name            string
+		apiRespConfig   *admin.GroupAlertsConfig
+		projectID       string
+		expectedTFModel alertconfiguration.TfAlertConfigurationDSModel
+	}{
 		{
 			name: "Complete SDK model",
 			apiRespConfig: &admin.GroupAlertsConfig{
@@ -500,16 +480,14 @@ func TestAlertConfigurationSdkToTFDSModel(t *testing.T) {
 	}
 }
 
-type sdkToTfDSAlertConfigurationListModelTestCase struct {
-	name            string
-	projectID       string
-	definedOutputs  []string
-	alerts          []admin.GroupAlertsConfig
-	expectedTfModel []alertconfiguration.TfAlertConfigurationDSModel
-}
-
 func TestAlertConfigurationSdkToDSModelList(t *testing.T) {
-	testCases := []sdkToTfDSAlertConfigurationListModelTestCase{
+	testCases := []struct {
+		name            string
+		projectID       string
+		definedOutputs  []string
+		alerts          []admin.GroupAlertsConfig
+		expectedTfModel []alertconfiguration.TfAlertConfigurationDSModel
+	}{
 		{
 			name: "Complete SDK model",
 			alerts: []admin.GroupAlertsConfig{
