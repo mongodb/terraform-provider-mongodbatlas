@@ -223,11 +223,9 @@ func dataSourceChecksForUsers(dataSourceName, orgID string, users *admin.Paginat
 		resource.TestCheckResourceAttr(dataSourceName, "total_count", fmt.Sprintf("%d", totalCountValue)),
 	}
 	for i := range users.Results {
-		user := &users.Results[i]
-		if user.Username != os.Getenv("MONGODB_ATLAS_USERNAME_CLOUD_DEV") { // this user can be changed by other tests
-			checks = append(checks, dataSourceChecksForUser(dataSourceName, fmt.Sprintf("results.%d.", i), user)...)
-		}
+		checks = append(checks, dataSourceChecksForUser(dataSourceName, fmt.Sprintf("results.%d.", i), &users.Results[i])...)
 	}
+
 	return checks
 }
 
