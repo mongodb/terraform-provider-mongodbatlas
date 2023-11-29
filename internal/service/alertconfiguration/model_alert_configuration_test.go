@@ -393,7 +393,7 @@ func TestMetricThresholdTFModelToSDK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			apiReqResult := alertconfiguration.NewMetricThreshold(tc.tfModel)
 			if !reflect.DeepEqual(apiReqResult, tc.expectedSDKReq) {
-				t.Errorf("created sdk model did not match expected output)
+				t.Errorf("created sdk model did not match expected output")
 			}
 		})
 	}
