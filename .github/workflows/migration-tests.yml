@@ -81,6 +81,9 @@ jobs:
   config:
     needs: [ change-detection ]
     if: ${{ needs.change-detection.outputs.config == 'true' || github.event.label.name == 'run-testacc-config'||  needs.change-detection.outputs.shouldTriggerResourceTest == 'true'}}
+    concurrency:
+      group: acctest-config
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
