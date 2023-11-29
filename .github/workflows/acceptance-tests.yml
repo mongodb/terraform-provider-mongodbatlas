@@ -218,6 +218,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.6
+          terraform_wrapper: false  
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
