@@ -11,11 +11,6 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
-// TODO: computeAlertConfigurationOutput
-func TestComputeAlertConfigurationOutput(t *testing.T) {
-
-}
-
 func TestAccConfigDSAlertConfiguration_basic(t *testing.T) {
 	var (
 		alert          = &admin.GroupAlertsConfig{}
