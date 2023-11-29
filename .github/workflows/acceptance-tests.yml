@@ -220,7 +220,7 @@ jobs:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.5.6
+          terraform_version: ${{ vars.TF_VERSION_LATEST }}
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
