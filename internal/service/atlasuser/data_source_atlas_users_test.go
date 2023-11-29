@@ -39,7 +39,6 @@ func TestAccConfigDSAtlasUsers_ByOrgID(t *testing.T) {
 }
 
 func TestAccConfigDSAtlasUsers_ByProjectID(t *testing.T) {
-	t.Skip()
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
 		projectName    = acctest.RandomWithPrefix("test-acc")
@@ -71,7 +70,6 @@ func TestAccConfigDSAtlasUsers_ByProjectID(t *testing.T) {
 }
 
 func TestAccConfigDSAtlasUsers_ByTeamID(t *testing.T) {
-	t.Skip()
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -104,7 +102,6 @@ func TestAccConfigDSAtlasUsers_ByTeamID(t *testing.T) {
 }
 
 func TestAccConfigDSAtlasUsers_UsingPagination(t *testing.T) {
-	t.Skip()
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -135,7 +132,6 @@ func TestAccConfigDSAtlasUsers_UsingPagination(t *testing.T) {
 }
 
 func TestAccConfigDSAtlasUsers_InvalidAttrCombinations(t *testing.T) {
-	t.Skip()
 	tests := []struct {
 		name          string
 		config        string
