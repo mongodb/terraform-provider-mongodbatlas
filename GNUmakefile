@@ -2,7 +2,6 @@ TEST?=$$(go list ./... | grep -v /integrationtesting)
 ACCTEST_TIMEOUT?=300m
 PARALLEL_GO_TEST?=5
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
-PKG_NAME=mongodbatlas
 
 BINARY_NAME=terraform-provider-mongodbatlas
 DESTINATION=./bin/$(BINARY_NAME)
@@ -50,8 +49,7 @@ testaccgov: fmtcheck
 .PHONY: fmt
 fmt:
 	@echo "==> Fixing source code with gofmt..."
-	gofmt -s -w ./main.go
-	gofmt -s -w ./$(PKG_NAME)
+	gofmt -s -w .
 
 .PHONY: fmtcheck
 fmtcheck: # Currently required by tf-deploy compile
@@ -83,11 +81,6 @@ check: test lint
 
 .PHONY: test-compile
 test-compile:
-	@if [ "$(TEST)" = "./..." ]; then \
-		echo "ERROR: Set TEST to a specific package. For example,"; \
-		echo "  make test-compile TEST=./$(PKG_NAME)"; \
-		exit 1; \
-	fi
 	go test -c $(TEST) $(TESTARGS)
 
 .PHONY: website-lint
