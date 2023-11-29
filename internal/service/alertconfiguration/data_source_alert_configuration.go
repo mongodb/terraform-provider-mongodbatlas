@@ -20,7 +20,7 @@ import (
 var _ datasource.DataSource = &alertConfigurationDS{}
 var _ datasource.DataSourceWithConfigure = &alertConfigurationDS{}
 
-type TfAlertConfigurationDSModel struct {
+type TFAlertConfigurationDSModel struct {
 	ID                    types.String                      `tfsdk:"id"`
 	ProjectID             types.String                      `tfsdk:"project_id"`
 	AlertConfigurationID  types.String                      `tfsdk:"alert_configuration_id"`
