@@ -46,15 +46,15 @@ func PreCheckAtlasUsername(tb testing.TB) {
 	}
 }
 
-func PreCheckProjectTeamsIds(tb testing.TB, min int) {
+func PreCheckProjectTeamsIdsWithMinCount(tb testing.TB, minTeamsCount int) {
 	envVar := os.Getenv("MONGODB_ATLAS_TEAMS_IDS")
 	if envVar == "" {
 		tb.Fatal("`MONGODB_ATLAS_TEAMS_IDS` must be set for Projects acceptance testing")
 		return
 	}
 	teamsIds := strings.Split(envVar, ",")
-	if count := len(teamsIds); count < min {
-		tb.Fatalf("`MONGODB_ATLAS_TEAMS_IDS` must have at least %d team ids for this acceptance testing, has %d", min, count)
+	if count := len(teamsIds); count < minTeamsCount {
+		tb.Fatalf("`MONGODB_ATLAS_TEAMS_IDS` must have at least %d team ids for this acceptance testing, has %d", minTeamsCount, count)
 	}
 }
 
