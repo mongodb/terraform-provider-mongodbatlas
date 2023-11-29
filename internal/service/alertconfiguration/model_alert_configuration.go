@@ -289,8 +289,8 @@ func NewTFMatcherModelList(m []map[string]any, currStateSlice []TfMatcherModel) 
 	return matchers
 }
 
-func NewTfAlertConfigurationDSModel(apiRespConfig *admin.GroupAlertsConfig, projectID string) TfAlertConfigurationDSModel {
-	return TfAlertConfigurationDSModel{
+func NewTfAlertConfigurationDSModel(apiRespConfig *admin.GroupAlertsConfig, projectID string) TFAlertConfigurationDSModel {
+	return TFAlertConfigurationDSModel{
 		ID: types.StringValue(conversion.EncodeStateID(map[string]string{
 			EncodedIDKeyAlertID:   *apiRespConfig.Id,
 			EncodedIDKeyProjectID: projectID,
@@ -308,7 +308,7 @@ func NewTfAlertConfigurationDSModel(apiRespConfig *admin.GroupAlertsConfig, proj
 	}
 }
 
-func NewTFAlertConfigurationDSModelList(alerts []admin.GroupAlertsConfig, projectID string, definedOutputs []string) []TfAlertConfigurationDSModel {
+func NewTFAlertConfigurationDSModelList(alerts []admin.GroupAlertsConfig, projectID string, definedOutputs []string) []TFAlertConfigurationDSModel {
 	outputConfigurations := make([]TfAlertConfigurationOutputModel, len(definedOutputs))
 	for i, output := range definedOutputs {
 		outputConfigurations[i] = TfAlertConfigurationOutputModel{
@@ -316,7 +316,7 @@ func NewTFAlertConfigurationDSModelList(alerts []admin.GroupAlertsConfig, projec
 		}
 	}
 
-	results := make([]TfAlertConfigurationDSModel, len(alerts))
+	results := make([]TFAlertConfigurationDSModel, len(alerts))
 
 	for i := 0; i < len(alerts); i++ {
 		alert := alerts[i]

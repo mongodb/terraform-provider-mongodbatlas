@@ -442,7 +442,7 @@ func TestAlertConfigurationSdkToTFDSModel(t *testing.T) {
 		name            string
 		apiRespConfig   *admin.GroupAlertsConfig
 		projectID       string
-		expectedTFModel alertconfiguration.TfAlertConfigurationDSModel
+		expectedTFModel alertconfiguration.TFAlertConfigurationDSModel
 	}{
 		{
 			name: "Complete SDK model",
@@ -453,7 +453,7 @@ func TestAlertConfigurationSdkToTFDSModel(t *testing.T) {
 				Id:            admin.PtrString("alertConfigurationId"),
 			},
 			projectID: "123",
-			expectedTFModel: alertconfiguration.TfAlertConfigurationDSModel{
+			expectedTFModel: alertconfiguration.TFAlertConfigurationDSModel{
 				ID: types.StringValue(conversion.EncodeStateID(map[string]string{
 					"id":         "alertConfigurationId",
 					"project_id": "123",
@@ -486,7 +486,7 @@ func TestAlertConfigurationSdkToDSModelList(t *testing.T) {
 		projectID       string
 		definedOutputs  []string
 		alerts          []admin.GroupAlertsConfig
-		expectedTfModel []alertconfiguration.TfAlertConfigurationDSModel
+		expectedTfModel []alertconfiguration.TFAlertConfigurationDSModel
 	}{
 		{
 			name: "Complete SDK model",
@@ -500,7 +500,7 @@ func TestAlertConfigurationSdkToDSModelList(t *testing.T) {
 			},
 			projectID:      "projectId",
 			definedOutputs: []string{"resource_hcl"},
-			expectedTfModel: []alertconfiguration.TfAlertConfigurationDSModel{
+			expectedTfModel: []alertconfiguration.TFAlertConfigurationDSModel{
 				{
 					ID: types.StringValue(conversion.EncodeStateID(map[string]string{
 						"id":         "alertConfigurationId",
