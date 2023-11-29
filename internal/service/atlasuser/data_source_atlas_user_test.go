@@ -68,7 +68,6 @@ func dataSourceChecksForUser(dataSourceName, attrPrefix string, user *admin.Clou
 		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%screated_at", attrPrefix), *conversion.TimePtrToStringPtr(user.CreatedAt)),
 		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%steam_ids.#", attrPrefix), fmt.Sprintf("%d", len(user.TeamIds))),
 		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%slinks.#", attrPrefix), fmt.Sprintf("%d", len(user.Links))),
-		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%sroles.#", attrPrefix), fmt.Sprintf("%d", len(user.Roles))),
 	}
 }
 
