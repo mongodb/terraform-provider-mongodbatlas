@@ -1,0 +1,83 @@
+package streaminstance_test
+
+import (
+	"context"
+	"reflect"
+	"testing"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
+	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+)
+
+type sdkToTFModelTestCase struct {
+	SDKResp         *admin.StreamsTenant
+	expectedTFModel *streaminstance.TFStreamInstanceRSModel
+	name            string
+}
+
+const (
+	dummyProjectID        = "111111111111111111111111"
+	dummyStreamInstanceID = "222222222222222222222222"
+	cloudProvider         = "AWS"
+	region                = "VIRGINIA_USA"
+	instanceName          = "InstanceName"
+)
+
+var hostnames = []string{"atlas-stream.virginia-usa.a.query.mongodb-dev.net"}
+
+func TestStreamInstanceSDKToTFModel(t *testing.T) {
+	testCases := []sdkToTFModelTestCase{
+		{
+			name: "Complete SDK response",
+			SDKResp: &admin.StreamsTenant{
+				Id: admin.PtrString(dummyStreamInstanceID),
+				DataProcessRegion: &admin.StreamsDataProcessRegion{
+					CloudProvider: cloudProvider,
+					Region:        region,
+				},
+				GroupId:   admin.PtrString(dummyProjectID),
+				Hostnames: hostnames,
+				Name:      admin.PtrString(instanceName),
+			},
+			expectedTFModel: &streaminstance.TFStreamInstanceRSModel{
+				ID:                types.StringValue(dummyStreamInstanceID),
+				DataProcessRegion: tfRegionObject(t, cloudProvider, region),
+				ProjectID:         types.StringValue(dummyProjectID),
+				Hostnames:         tfHostnamesList(t, hostnames),
+				InstanceName:      types.StringValue(instanceName),
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel, diags := streaminstance.NewTFStreamInstance(context.Background(), tc.SDKResp)
+			if diags.HasError() {
+				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
+			}
+			if !reflect.DeepEqual(resultModel, tc.expectedTFModel) {
+				t.Errorf("created terraform model did not match expected output")
+			}
+		})
+	}
+}
+
+func tfRegionObject(t *testing.T, cloudProvider, region string) types.Object {
+	dataProcessRegion, diags := types.ObjectValueFrom(context.Background(), streaminstance.ProcessRegionObjectType.AttrTypes, streaminstance.TFInstanceProcessRegionSpecModel{
+		CloudProvider: types.StringValue(cloudProvider),
+		Region:        types.StringValue(region),
+	})
+	if diags.HasError() {
+		t.Errorf("failed to create terraform data process region model: %s", diags.Errors()[0].Summary())
+	}
+	return dataProcessRegion
+}
+
+func tfHostnamesList(t *testing.T, hostnames []string) types.List {
+	resultList, diags := types.ListValueFrom(context.Background(), types.StringType, hostnames)
+	if diags.HasError() {
+		t.Errorf("failed to create terraform hostnames list: %s", diags.Errors()[0].Summary())
+	}
+	return resultList
+}

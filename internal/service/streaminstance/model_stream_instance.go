@@ -9,8 +9,8 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
-func newStreamInstanceCreateReq(ctx context.Context, plan *tfStreamInstanceRSModel) (*admin.StreamsTenant, diag.Diagnostics) {
-	dataProcessRegion := &tfInstanceProcessRegionSpecModel{}
+func NewStreamInstanceCreateReq(ctx context.Context, plan *TFStreamInstanceRSModel) (*admin.StreamsTenant, diag.Diagnostics) {
+	dataProcessRegion := &TFInstanceProcessRegionSpecModel{}
 	diags := plan.DataProcessRegion.As(ctx, dataProcessRegion, basetypes.ObjectAsOptions{})
 	if diags.HasError() {
 		return nil, diags
@@ -25,8 +25,8 @@ func newStreamInstanceCreateReq(ctx context.Context, plan *tfStreamInstanceRSMod
 	}, nil
 }
 
-func newStreamInstanceUpdateReq(ctx context.Context, plan *tfStreamInstanceRSModel) (*admin.StreamsDataProcessRegion, diag.Diagnostics) {
-	dataProcessRegion := &tfInstanceProcessRegionSpecModel{}
+func NewStreamInstanceUpdateReq(ctx context.Context, plan *TFStreamInstanceRSModel) (*admin.StreamsDataProcessRegion, diag.Diagnostics) {
+	dataProcessRegion := &TFInstanceProcessRegionSpecModel{}
 	diags := plan.DataProcessRegion.As(ctx, dataProcessRegion, basetypes.ObjectAsOptions{})
 	if diags.HasError() {
 		return nil, diags
@@ -37,10 +37,10 @@ func newStreamInstanceUpdateReq(ctx context.Context, plan *tfStreamInstanceRSMod
 	}, nil
 }
 
-func newTFStreamInstance(ctx context.Context, apiResp *admin.StreamsTenant) (*tfStreamInstanceRSModel, diag.Diagnostics) {
+func NewTFStreamInstance(ctx context.Context, apiResp *admin.StreamsTenant) (*TFStreamInstanceRSModel, diag.Diagnostics) {
 	hostnames, diags := types.ListValueFrom(ctx, types.StringType, apiResp.Hostnames)
 	// TODO check dataRegionIsDefined
-	dataProcessRegion, diagsProcessRegion := types.ObjectValueFrom(ctx, ProcessRegionObjectType.AttrTypes, tfInstanceProcessRegionSpecModel{
+	dataProcessRegion, diagsProcessRegion := types.ObjectValueFrom(ctx, ProcessRegionObjectType.AttrTypes, TFInstanceProcessRegionSpecModel{
 		CloudProvider: types.StringValue(apiResp.DataProcessRegion.CloudProvider),
 		Region:        types.StringValue(apiResp.DataProcessRegion.Region),
 	})
@@ -49,7 +49,7 @@ func newTFStreamInstance(ctx context.Context, apiResp *admin.StreamsTenant) (*tf
 		return nil, diags
 	}
 
-	return &tfStreamInstanceRSModel{
+	return &TFStreamInstanceRSModel{
 		ID:                types.StringPointerValue(apiResp.Id),
 		InstanceName:      types.StringPointerValue(apiResp.Name),
 		ProjectID:         types.StringPointerValue(apiResp.GroupId),

@@ -30,7 +30,7 @@ type streamInstanceRS struct {
 	config.RSCommon
 }
 
-type tfStreamInstanceRSModel struct {
+type TFStreamInstanceRSModel struct {
 	ID                types.String `tfsdk:"id"`
 	InstanceName      types.String `tfsdk:"instance_name"`
 	ProjectID         types.String `tfsdk:"project_id"`
@@ -38,7 +38,7 @@ type tfStreamInstanceRSModel struct {
 	Hostnames         types.List   `tfsdk:"hostnames"`
 }
 
-type tfInstanceProcessRegionSpecModel struct {
+type TFInstanceProcessRegionSpecModel struct {
 	CloudProvider types.String `tfsdk:"cloud_provider"`
 	Region        types.String `tfsdk:"region"`
 }
@@ -86,7 +86,7 @@ func (r *streamInstanceRS) Schema(ctx context.Context, req resource.SchemaReques
 }
 
 func (r *streamInstanceRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var streamInstancePlan tfStreamInstanceRSModel
+	var streamInstancePlan TFStreamInstanceRSModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &streamInstancePlan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -94,7 +94,7 @@ func (r *streamInstanceRS) Create(ctx context.Context, req resource.CreateReques
 
 	connV2 := r.Client.AtlasV2
 	projectID := streamInstancePlan.ProjectID.ValueString()
-	streamInstanceReq, diags := newStreamInstanceCreateReq(ctx, &streamInstancePlan)
+	streamInstanceReq, diags := NewStreamInstanceCreateReq(ctx, &streamInstancePlan)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -105,7 +105,7 @@ func (r *streamInstanceRS) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	newStreamInstanceModel, diags := newTFStreamInstance(ctx, apiResp)
+	newStreamInstanceModel, diags := NewTFStreamInstance(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -114,7 +114,7 @@ func (r *streamInstanceRS) Create(ctx context.Context, req resource.CreateReques
 }
 
 func (r *streamInstanceRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var streamInstanceState tfStreamInstanceRSModel
+	var streamInstanceState TFStreamInstanceRSModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &streamInstanceState)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -129,7 +129,7 @@ func (r *streamInstanceRS) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 
-	newStreamInstanceModel, diags := newTFStreamInstance(ctx, apiResp)
+	newStreamInstanceModel, diags := NewTFStreamInstance(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -138,7 +138,7 @@ func (r *streamInstanceRS) Read(ctx context.Context, req resource.ReadRequest, r
 }
 
 func (r *streamInstanceRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var streamInstancePlan tfStreamInstanceRSModel
+	var streamInstancePlan TFStreamInstanceRSModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &streamInstancePlan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -147,7 +147,7 @@ func (r *streamInstanceRS) Update(ctx context.Context, req resource.UpdateReques
 	connV2 := r.Client.AtlasV2
 	projectID := streamInstancePlan.ProjectID.ValueString()
 	instanceName := streamInstancePlan.InstanceName.ValueString()
-	streamInstanceReq, diags := newStreamInstanceUpdateReq(ctx, &streamInstancePlan)
+	streamInstanceReq, diags := NewStreamInstanceUpdateReq(ctx, &streamInstancePlan)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -158,7 +158,7 @@ func (r *streamInstanceRS) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
-	newStreamInstanceModel, diags := newTFStreamInstance(ctx, apiResp)
+	newStreamInstanceModel, diags := NewTFStreamInstance(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -167,7 +167,7 @@ func (r *streamInstanceRS) Update(ctx context.Context, req resource.UpdateReques
 }
 
 func (r *streamInstanceRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var streamInstanceState *tfStreamInstanceRSModel
+	var streamInstanceState *TFStreamInstanceRSModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &streamInstanceState)...)
 	if resp.Diagnostics.HasError() {
 		return
