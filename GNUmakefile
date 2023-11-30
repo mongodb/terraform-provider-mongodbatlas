@@ -1,6 +1,6 @@
 TEST?=$$(go list ./... | grep -v /integrationtesting)
 ACCTEST_TIMEOUT?=300m
-PARALLEL_GO_TEST?=5
+PARALLEL_GO_TEST?=20
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 
 BINARY_NAME=terraform-provider-mongodbatlas

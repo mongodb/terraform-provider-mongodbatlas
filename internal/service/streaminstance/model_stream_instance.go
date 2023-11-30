@@ -11,8 +11,7 @@ import (
 
 func NewStreamInstanceCreateReq(ctx context.Context, plan *TFStreamInstanceRSModel) (*admin.StreamsTenant, diag.Diagnostics) {
 	dataProcessRegion := &TFInstanceProcessRegionSpecModel{}
-	diags := plan.DataProcessRegion.As(ctx, dataProcessRegion, basetypes.ObjectAsOptions{})
-	if diags.HasError() {
+	if diags := plan.DataProcessRegion.As(ctx, dataProcessRegion, basetypes.ObjectAsOptions{}); diags.HasError() {
 		return nil, diags
 	}
 	return &admin.StreamsTenant{
@@ -27,8 +26,7 @@ func NewStreamInstanceCreateReq(ctx context.Context, plan *TFStreamInstanceRSMod
 
 func NewStreamInstanceUpdateReq(ctx context.Context, plan *TFStreamInstanceRSModel) (*admin.StreamsDataProcessRegion, diag.Diagnostics) {
 	dataProcessRegion := &TFInstanceProcessRegionSpecModel{}
-	diags := plan.DataProcessRegion.As(ctx, dataProcessRegion, basetypes.ObjectAsOptions{})
-	if diags.HasError() {
+	if diags := plan.DataProcessRegion.As(ctx, dataProcessRegion, basetypes.ObjectAsOptions{}); diags.HasError() {
 		return nil, diags
 	}
 	return &admin.StreamsDataProcessRegion{
