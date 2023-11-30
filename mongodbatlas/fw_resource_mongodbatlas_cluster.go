@@ -1210,7 +1210,7 @@ func hasLabelsChanged(planLabels, stateLables []tfLabelModel) bool {
 	return !reflect.DeepEqual(planLabels, stateLables)
 }
 
-func hasTagsChanged(planTags, stateTags []*tfTagModel) bool {
+func hasTagsChanged(planTags, stateTags []tfTagModel) bool {
 	sort.Slice(planTags, func(i, j int) bool {
 		return planTags[i].Key.ValueString() < planTags[j].Key.ValueString()
 	})
@@ -1233,6 +1233,7 @@ func updateReplicationSpecs(clusterReq *matlas.Cluster, plan, state *tfClusterRS
 
 	if len(vRSpecs) > 0 {
 		for _, newSpec := range vRSpecs { // for each plan.replication_specs
+
 			replaceRegion := ""
 			originalRegion := ""
 			id := ""
@@ -1251,7 +1252,7 @@ func updateReplicationSpecs(clusterReq *matlas.Cluster, plan, state *tfClusterRS
 			var oldSpecs *tfReplicationSpecModel
 			original := state.ReplicationSpecs
 			for _, oldSpecsPtr := range original { // iterate over state.replication_specs
-				oldSpecs = oldSpecsPtr
+				oldSpecs = &oldSpecsPtr
 				if newSpec.ZoneName.ValueString() == oldSpecs.ZoneName.ValueString() { // find plan.replication_specs with matching zone_name
 					id = oldSpecs.ID.ValueString() // and get it's id
 					break
@@ -1273,7 +1274,9 @@ func updateReplicationSpecs(clusterReq *matlas.Cluster, plan, state *tfClusterRS
 				RegionsConfig: regionsConfig,
 			}
 			rSpecs = append(rSpecs, rSpec)
+
 		}
+
 	}
 	clusterReq.ReplicationSpecs = rSpecs
 
@@ -1284,6 +1287,7 @@ func updateRegionConfigs(regions []tfRegionConfigModel, originalRegion, replaceR
 	regionsConfig := make(map[string]matlas.RegionsConfig)
 
 	for _, region := range regions { // for each plan.region_configs
+
 		r, err := valRegion(region.RegionName.ValueString()) // r = plan.region_configs[i].region_name
 		if err != nil {
 			return regionsConfig, err
@@ -1312,6 +1316,7 @@ func updateBiConnectorConfig(clusterReq *matlas.Cluster, plan, state *tfClusterR
 		biConnector, err := newAtlasBiConnectorConfig(plan)
 		if err != nil {
 			return fmt.Errorf(errorClusterCreate, err)
+
 		}
 		clusterReq.BiConnector = biConnector
 	}
@@ -1357,6 +1362,7 @@ func updateProviderSettings(cluster *matlas.Cluster, plan, state *tfClusterRSMod
 			if err != nil {
 				return fmt.Errorf(errorClusterUpdate, plan.Name.ValueString(), err)
 			}
+
 		}
 	}
 
@@ -1453,7 +1459,7 @@ func newTFClusterModel(ctx context.Context, conn *matlas.Client, isImport bool, 
 		StateName:                    types.StringValue(apiResp.StateName),
 		TerminationProtectionEnabled: types.BoolPointerValue(apiResp.TerminationProtectionEnabled),
 		ReplicationFactor:            types.Int64PointerValue(apiResp.ReplicationFactor),
-		ConnectionStrings:            newTFConnectionStringsModelList(ctx, apiResp.ConnectionStrings),
+		ConnectionStrings:            newTFConnectionStringsModel(ctx, apiResp.ConnectionStrings),
 		BiConnectorConfig:            newTFBiConnectorConfigModel(apiResp.BiConnector),
 		ReplicationSpecs:             newTFReplicationSpecsModel(apiResp.ReplicationSpecs),
 		Labels:                       removeDefaultLabel(newTFLabelsModel(apiResp.Labels)),
@@ -1508,7 +1514,7 @@ func newTFClusterModel(ctx context.Context, conn *matlas.Client, isImport bool, 
 		return nil, err
 	}
 
-	clusterModel.SnapshotBackupPolicy, err = newTFSnapshotBackupPolicyRSModel(ctx, conn, projectID, clusterName)
+	clusterModel.SnapshotBackupPolicy, err = newTFSnapshotBackupPolicyModel(ctx, currState, conn, projectID, clusterName)
 	if err != nil {
 		return nil, err
 	}
@@ -1544,26 +1550,20 @@ func setTFProviderSettings(clusterModel *tfClusterRSModel, settings *matlas.Prov
 
 func newTFAdvancedConfigurationModelFromAtlas(ctx context.Context, conn *matlas.Client, projectID, clusterName string) (types.List, error) {
 	processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, projectID, clusterName)
-	if err != nil {
-		return types.ListNull(tfAdvancedConfigurationType), err
-	}
 
-	advConfigModel := newTfAdvancedConfigurationModel(ctx, processArgs)
-	l, _ := types.ListValueFrom(ctx, tfAdvancedConfigurationType, advConfigModel)
-
-	return l, err
+	return newTfAdvancedConfigurationModel(ctx, processArgs), err
 }
 
-func newTfAdvancedConfigurationModel(ctx context.Context, p *matlas.ProcessArgs) []*tfAdvancedConfigurationModel {
-	res := []*tfAdvancedConfigurationModel{
+func newTfAdvancedConfigurationModel(ctx context.Context, p *matlas.ProcessArgs) types.List {
+	res := []tfAdvancedConfigurationModel{
 		{
-			DefaultReadConcern:               conversion.StringNullIfEmpty(p.DefaultReadConcern),
-			DefaultWriteConcern:              conversion.StringNullIfEmpty(p.DefaultWriteConcern),
-			FailIndexKeyTooLong:              types.BoolPointerValue(p.FailIndexKeyTooLong),
-			JavascriptEnabled:                types.BoolPointerValue(p.JavascriptEnabled),
-			MinimumEnabledTLSProtocol:        conversion.StringNullIfEmpty(p.MinimumEnabledTLSProtocol),
-			NoTableScan:                      types.BoolPointerValue(p.NoTableScan),
-			OplogSizeMB:                      types.Int64PointerValue(p.OplogSizeMB),
+			DefaultReadConcern:        conversion.StringNullIfEmpty(p.DefaultReadConcern),
+			DefaultWriteConcern:       conversion.StringNullIfEmpty(p.DefaultWriteConcern),
+			FailIndexKeyTooLong:       types.BoolPointerValue(p.FailIndexKeyTooLong),
+			JavascriptEnabled:         types.BoolPointerValue(p.JavascriptEnabled),
+			MinimumEnabledTLSProtocol: conversion.StringNullIfEmpty(p.MinimumEnabledTLSProtocol),
+			NoTableScan:               types.BoolPointerValue(p.NoTableScan),
+			// OplogSizeMB:                      types.Int64PointerValue(p.OplogSizeMB),
 			OplogMinRetentionHours:           types.Int64Value(cast.ToInt64(p.OplogMinRetentionHours)),
 			SampleSizeBiConnector:            types.Int64PointerValue(p.SampleSizeBIConnector),
 			SampleRefreshIntervalBiConnector: types.Int64PointerValue(p.SampleRefreshIntervalBIConnector),
@@ -1573,7 +1573,9 @@ func newTfAdvancedConfigurationModel(ctx context.Context, p *matlas.ProcessArgs)
 	if p.OplogMinRetentionHours != nil {
 		res[0].OplogMinRetentionHours = types.Int64PointerValue(p.OplogSizeMB)
 	}
-	return res
+
+	s, _ := types.ListValueFrom(ctx, tfAdvancedConfigurationType, res)
+	return s
 }
 
 func removeDefaultLabel(labels []tfLabelModel) []tfLabelModel {
@@ -1589,11 +1591,11 @@ func removeDefaultLabel(labels []tfLabelModel) []tfLabelModel {
 	return result
 }
 
-func newTFTagsModel(tags *[]*matlas.Tag) []*tfTagModel {
-	res := make([]*tfTagModel, len(*tags))
+func newTFTagsModel(tags *[]*matlas.Tag) []tfTagModel {
+	res := make([]tfTagModel, len(*tags))
 
 	for i, v := range *tags {
-		res[i] = &tfTagModel{
+		res[i] = tfTagModel{
 			Key:   types.StringValue(v.Key),
 			Value: types.StringValue(v.Value),
 		}
@@ -1602,11 +1604,11 @@ func newTFTagsModel(tags *[]*matlas.Tag) []*tfTagModel {
 	return res
 }
 
-func newTFReplicationSpecsModel(replicationSpecs []matlas.ReplicationSpec) []*tfReplicationSpecModel {
-	res := make([]*tfReplicationSpecModel, len(replicationSpecs))
+func newTFReplicationSpecsModel(replicationSpecs []matlas.ReplicationSpec) []tfReplicationSpecModel {
+	res := make([]tfReplicationSpecModel, len(replicationSpecs))
 
 	for i, rSpec := range replicationSpecs {
-		res[i] = &tfReplicationSpecModel{
+		res[i] = tfReplicationSpecModel{
 			ID:            conversion.StringNullIfEmpty(rSpec.ID),
 			NumShards:     types.Int64PointerValue(rSpec.NumShards),
 			ZoneName:      conversion.StringNullIfEmpty(rSpec.ZoneName),
@@ -1632,12 +1634,12 @@ func newTFRegionsConfigModel(regionsConfig map[string]matlas.RegionsConfig) []tf
 	return res
 }
 
-func newTFBiConnectorConfigModel(biConnector *matlas.BiConnector) []*tfBiConnectorConfigModel {
+func newTFBiConnectorConfigModel(biConnector *matlas.BiConnector) []tfBiConnectorConfigModel {
 	if biConnector == nil {
-		return []*tfBiConnectorConfigModel{}
+		return []tfBiConnectorConfigModel{}
 	}
 
-	return []*tfBiConnectorConfigModel{
+	return []tfBiConnectorConfigModel{
 		{
 			Enabled:        types.BoolPointerValue(biConnector.Enabled),
 			ReadPreference: conversion.StringNullIfEmpty(biConnector.ReadPreference),
@@ -1645,18 +1647,9 @@ func newTFBiConnectorConfigModel(biConnector *matlas.BiConnector) []*tfBiConnect
 	}
 }
 
-func newTFSnapshotBackupPolicyRSModel(ctx context.Context, conn *matlas.Client, projectID, clusterName string) (types.List, error) {
-	res, err := newTFSnapshotBackupPolicyModel(ctx, conn, projectID, clusterName)
-	if err != nil {
-		return types.ListNull(tfSnapshotBackupPolicyType), fmt.Errorf(errorSnapshotBackupPolicyRead, clusterName, err)
-	}
-
+func newTFSnapshotBackupPolicyModel(ctx context.Context, currState *tfClusterRSModel, conn *matlas.Client, projectID, clusterName string) (types.List, error) {
+	res := []tfSnapshotBackupPolicyModel{}
 	s, _ := types.ListValueFrom(ctx, tfSnapshotBackupPolicyType, res)
-	return s, nil
-}
-
-func newTFSnapshotBackupPolicyModel(ctx context.Context, conn *matlas.Client, projectID, clusterName string) ([]*tfSnapshotBackupPolicyModel, error) {
-	res := []*tfSnapshotBackupPolicyModel{}
 
 	backupPolicy, response, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
 
@@ -1665,13 +1658,13 @@ func newTFSnapshotBackupPolicyModel(ctx context.Context, conn *matlas.Client, pr
 			strings.Contains(err.Error(), "BACKUP_CONFIG_NOT_FOUND") ||
 			strings.Contains(err.Error(), "Not Found") ||
 			strings.Contains(err.Error(), "404") {
-			return res, nil
+			return s, nil
 		}
 
-		return nil, fmt.Errorf(errorSnapshotBackupPolicyRead, clusterName, err)
+		return s, fmt.Errorf(errorSnapshotBackupPolicyRead, clusterName, err)
 	}
 
-	res = append(res, &tfSnapshotBackupPolicyModel{
+	res = append(res, tfSnapshotBackupPolicyModel{
 		ClusterID:             conversion.StringNullIfEmpty(backupPolicy.ClusterID),
 		ClusterName:           conversion.StringNullIfEmpty(backupPolicy.ClusterName),
 		NextSnapshot:          conversion.StringNullIfEmpty(backupPolicy.NextSnapshot),
@@ -1681,7 +1674,8 @@ func newTFSnapshotBackupPolicyModel(ctx context.Context, conn *matlas.Client, pr
 		UpdateSnapshots:       types.BoolPointerValue(backupPolicy.UpdateSnapshots),
 		Policies:              newTFSnapshotPolicyModel(ctx, backupPolicy.Policies),
 	})
-	return res, nil
+	s, _ = types.ListValueFrom(ctx, tfSnapshotBackupPolicyType, res)
+	return s, nil
 }
 
 func newTFSnapshotPolicyModel(ctx context.Context, policies []matlas.Policy) types.List {
@@ -1713,7 +1707,7 @@ func newTFSnapshotPolicyItemModel(ctx context.Context, policyItems []matlas.Poli
 	return s
 }
 
-func newTFConnectionStringsModel(ctx context.Context, connString *matlas.ConnectionStrings) []tfConnectionStringModel {
+func newTFConnectionStringsModel(ctx context.Context, connString *matlas.ConnectionStrings) types.List {
 	res := []tfConnectionStringModel{}
 
 	if connString != nil {
@@ -1725,11 +1719,6 @@ func newTFConnectionStringsModel(ctx context.Context, connString *matlas.Connect
 			PrivateEndpoint: newTFPrivateEndpointModel(ctx, connString.PrivateEndpoint),
 		})
 	}
-	return res
-}
-
-func newTFConnectionStringsModelList(ctx context.Context, connString *matlas.ConnectionStrings) types.List {
-	res := newTFConnectionStringsModel
 	s, _ := types.ListValueFrom(ctx, tfConnectionStringType, res)
 	return s
 }
@@ -1825,7 +1814,7 @@ func newAtlasProcessArgs(tfModel *tfAdvancedConfigurationModel) *matlas.ProcessA
 	return res
 }
 
-func newAtlasTags(list []*tfTagModel) []*matlas.Tag {
+func newAtlasTags(list []tfTagModel) []*matlas.Tag {
 	res := make([]*matlas.Tag, len(list))
 	for i, v := range list {
 		res[i] = &matlas.Tag{
@@ -1961,6 +1950,7 @@ func updatedAtlasRegionsConfig(regions []tfRegionConfigModel, originalRegion, re
 	regionsConfig := make(map[string]matlas.RegionsConfig)
 
 	for _, region := range regions {
+
 		r, err := valRegion(region.RegionName.ValueString())
 		if err != nil {
 			return regionsConfig, err
@@ -2084,53 +2074,57 @@ func validateClusterConfig(ctx context.Context, plan *tfClusterRSModel, response
 }
 
 type tfClusterRSModel struct {
-	DiskSizeGb                                types.Float64               `tfsdk:"disk_size_gb"`
-	AdvancedConfiguration                     types.List                  `tfsdk:"advanced_configuration"`
-	ConnectionStrings                         types.List                  `tfsdk:"connection_strings"`
-	SnapshotBackupPolicy                      types.List                  `tfsdk:"snapshot_backup_policy"`
-	ProviderName                              types.String                `tfsdk:"provider_name"`
-	ClusterType                               types.String                `tfsdk:"cluster_type"`
-	ClusterID                                 types.String                `tfsdk:"cluster_id"`
-	MongoURIWithOptions                       types.String                `tfsdk:"mongo_uri_with_options"`
-	ContainerID                               types.String                `tfsdk:"container_id"`
-	VersionReleaseSystem                      types.String                `tfsdk:"version_release_system"`
-	EncryptionAtRestProvider                  types.String                `tfsdk:"encryption_at_rest_provider"`
-	ID                                        types.String                `tfsdk:"id"`
-	MongoDBMajorVersion                       types.String                `tfsdk:"mongo_db_major_version"`
-	MongoDBMajorVersionFormatted              types.String                `tfsdk:"mongo_db_major_version_formatted"`
-	MongoDBVersion                            types.String                `tfsdk:"mongo_db_version"`
-	MongoURI                                  types.String                `tfsdk:"mongo_uri"`
-	MongoURIUpdated                           types.String                `tfsdk:"mongo_uri_updated"`
-	ProviderAutoScalingComputeMaxInstanceSize types.String                `tfsdk:"provider_auto_scaling_compute_max_instance_size"`
-	Name                                      types.String                `tfsdk:"name"`
-	ProjectID                                 types.String                `tfsdk:"project_id"`
-	ProviderVolumeType                        types.String                `tfsdk:"provider_volume_type"`
-	ProviderRegionName                        types.String                `tfsdk:"provider_region_name"`
-	Timeouts                                  timeouts.Value              `tfsdk:"timeouts"`
-	ProviderInstanceSizeName                  types.String                `tfsdk:"provider_instance_size_name"`
-	SrvAddress                                types.String                `tfsdk:"srv_address"`
-	ProviderAutoScalingComputeMinInstanceSize types.String                `tfsdk:"provider_auto_scaling_compute_min_instance_size"`
-	StateName                                 types.String                `tfsdk:"state_name"`
-	ProviderDiskTypeName                      types.String                `tfsdk:"provider_disk_type_name"`
-	BackingProviderName                       types.String                `tfsdk:"backing_provider_name"`
-	Labels                                    []tfLabelModel              `tfsdk:"labels"`
-	BiConnectorConfig                         []*tfBiConnectorConfigModel `tfsdk:"bi_connector_config"`
-	ReplicationSpecs                          []*tfReplicationSpecModel   `tfsdk:"replication_specs"`
-	Tags                                      []*tfTagModel               `tfsdk:"tags"`
-	ReplicationFactor                         types.Int64                 `tfsdk:"replication_factor"`
-	ProviderDiskIops                          types.Int64                 `tfsdk:"provider_disk_iops"`
-	NumShards                                 types.Int64                 `tfsdk:"num_shards"`
-	TerminationProtectionEnabled              types.Bool                  `tfsdk:"termination_protection_enabled"`
-	PitEnabled                                types.Bool                  `tfsdk:"pit_enabled"`
-	AutoScalingDiskGBEnabled                  types.Bool                  `tfsdk:"auto_scaling_disk_gb_enabled"`
-	CloudBackup                               types.Bool                  `tfsdk:"cloud_backup"`
-	Paused                                    types.Bool                  `tfsdk:"paused"`
-	RetainBackupsEnabled                      types.Bool                  `tfsdk:"retain_backups_enabled"`
-	BackupEnabled                             types.Bool                  `tfsdk:"backup_enabled"`
-	ProviderEncryptEbsVolume                  types.Bool                  `tfsdk:"provider_encrypt_ebs_volume"`
-	AutoScalingComputeScaleDownEnabled        types.Bool                  `tfsdk:"auto_scaling_compute_scale_down_enabled"`
-	AutoScalingComputeEnabled                 types.Bool                  `tfsdk:"auto_scaling_compute_enabled"`
-	ProviderEncryptEbsVolumeFlag              types.Bool                  `tfsdk:"provider_encrypt_ebs_volume_flag"`
+	DiskSizeGb                                types.Float64  `tfsdk:"disk_size_gb"`
+	ProjectID                                 types.String   `tfsdk:"project_id"`
+	SrvAddress                                types.String   `tfsdk:"srv_address"`
+	BackingProviderName                       types.String   `tfsdk:"backing_provider_name"`
+	Timeouts                                  timeouts.Value `tfsdk:"timeouts"`
+	ProviderAutoScalingComputeMinInstanceSize types.String   `tfsdk:"provider_auto_scaling_compute_min_instance_size"`
+	ClusterID                                 types.String   `tfsdk:"cluster_id"`
+	ClusterType                               types.String   `tfsdk:"cluster_type"`
+	ContainerID                               types.String   `tfsdk:"container_id"`
+	VersionReleaseSystem                      types.String   `tfsdk:"version_release_system"`
+	EncryptionAtRestProvider                  types.String   `tfsdk:"encryption_at_rest_provider"`
+	ID                                        types.String   `tfsdk:"id"`
+	MongoDBMajorVersion                       types.String   `tfsdk:"mongo_db_major_version"`
+	MongoDBMajorVersionFormatted              types.String   `tfsdk:"mongo_db_major_version_formatted"`
+	MongoDBVersion                            types.String   `tfsdk:"mongo_db_version"`
+	MongoURI                                  types.String   `tfsdk:"mongo_uri"`
+	MongoURIUpdated                           types.String   `tfsdk:"mongo_uri_updated"`
+	ProviderAutoScalingComputeMaxInstanceSize types.String   `tfsdk:"provider_auto_scaling_compute_max_instance_size"`
+	Name                                      types.String   `tfsdk:"name"`
+	StateName                                 types.String   `tfsdk:"state_name"`
+	ProviderVolumeType                        types.String   `tfsdk:"provider_volume_type"`
+	ProviderRegionName                        types.String   `tfsdk:"provider_region_name"`
+	ProviderName                              types.String   `tfsdk:"provider_name"`
+	ProviderInstanceSizeName                  types.String   `tfsdk:"provider_instance_size_name"`
+	ProviderDiskTypeName                      types.String   `tfsdk:"provider_disk_type_name"`
+	MongoURIWithOptions                       types.String   `tfsdk:"mongo_uri_with_options"`
+	ReplicationFactor                         types.Int64    `tfsdk:"replication_factor"`
+	NumShards                                 types.Int64    `tfsdk:"num_shards"`
+	ProviderDiskIops                          types.Int64    `tfsdk:"provider_disk_iops"`
+	PitEnabled                                types.Bool     `tfsdk:"pit_enabled"`
+	AutoScalingComputeScaleDownEnabled        types.Bool     `tfsdk:"auto_scaling_compute_scale_down_enabled"`
+	BackupEnabled                             types.Bool     `tfsdk:"backup_enabled"`
+	RetainBackupsEnabled                      types.Bool     `tfsdk:"retain_backups_enabled"`
+	TerminationProtectionEnabled              types.Bool     `tfsdk:"termination_protection_enabled"`
+	Paused                                    types.Bool     `tfsdk:"paused"`
+	AutoScalingComputeEnabled                 types.Bool     `tfsdk:"auto_scaling_compute_enabled"`
+	ProviderEncryptEbsVolume                  types.Bool     `tfsdk:"provider_encrypt_ebs_volume"`
+	ProviderEncryptEbsVolumeFlag              types.Bool     `tfsdk:"provider_encrypt_ebs_volume_flag"`
+	CloudBackup                               types.Bool     `tfsdk:"cloud_backup"`
+	AutoScalingDiskGBEnabled                  types.Bool     `tfsdk:"auto_scaling_disk_gb_enabled"`
+
+	Labels                []tfLabelModel             `tfsdk:"labels"`
+	Tags                  []tfTagModel               `tfsdk:"tags"`
+	ReplicationSpecs      []tfReplicationSpecModel   `tfsdk:"replication_specs"`
+	BiConnectorConfig     []tfBiConnectorConfigModel `tfsdk:"bi_connector_config"`
+	SnapshotBackupPolicy  types.List                 `tfsdk:"snapshot_backup_policy"`
+	ConnectionStrings     types.List                 `tfsdk:"connection_strings"`
+	AdvancedConfiguration types.List                 `tfsdk:"advanced_configuration"`
+
+	// AdvancedConfiguration       []tfAdvancedConfigurationModel `tfsdk:"advanced_configuration"`
+	// AdvancedConfigurationOutput types.List                     `tfsdk:"advanced_configuration_output"`
 }
 
 type tfSnapshotBackupPolicyModel struct {
@@ -2218,8 +2212,8 @@ var tfAdvancedConfigurationType = types.ObjectType{AttrTypes: map[string]attr.Ty
 type tfReplicationSpecModel struct {
 	ID            types.String          `tfsdk:"id"`
 	ZoneName      types.String          `tfsdk:"zone_name"`
-	RegionsConfig []tfRegionConfigModel `tfsdk:"regions_config"`
 	NumShards     types.Int64           `tfsdk:"num_shards"`
+	RegionsConfig []tfRegionConfigModel `tfsdk:"regions_config"`
 }
 
 type tfRegionConfigModel struct {
