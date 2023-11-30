@@ -32,7 +32,7 @@ type streamInstanceRS struct {
 	config.RSCommon
 }
 
-type TFStreamInstanceRSModel struct {
+type TFStreamInstanceModel struct {
 	ID                types.String `tfsdk:"id"`
 	InstanceName      types.String `tfsdk:"instance_name"`
 	ProjectID         types.String `tfsdk:"project_id"`
@@ -88,7 +88,7 @@ func (r *streamInstanceRS) Schema(ctx context.Context, req resource.SchemaReques
 }
 
 func (r *streamInstanceRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var streamInstancePlan TFStreamInstanceRSModel
+	var streamInstancePlan TFStreamInstanceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &streamInstancePlan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -116,7 +116,7 @@ func (r *streamInstanceRS) Create(ctx context.Context, req resource.CreateReques
 }
 
 func (r *streamInstanceRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var streamInstanceState TFStreamInstanceRSModel
+	var streamInstanceState TFStreamInstanceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &streamInstanceState)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -140,7 +140,7 @@ func (r *streamInstanceRS) Read(ctx context.Context, req resource.ReadRequest, r
 }
 
 func (r *streamInstanceRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var streamInstancePlan TFStreamInstanceRSModel
+	var streamInstancePlan TFStreamInstanceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &streamInstancePlan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -169,7 +169,7 @@ func (r *streamInstanceRS) Update(ctx context.Context, req resource.UpdateReques
 }
 
 func (r *streamInstanceRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var streamInstanceState *TFStreamInstanceRSModel
+	var streamInstanceState *TFStreamInstanceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &streamInstanceState)...)
 	if resp.Diagnostics.HasError() {
 		return

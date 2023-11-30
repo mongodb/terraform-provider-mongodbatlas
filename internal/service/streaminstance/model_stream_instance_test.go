@@ -12,7 +12,7 @@ import (
 
 type sdkToTFModelTestCase struct {
 	SDKResp         *admin.StreamsTenant
-	expectedTFModel *streaminstance.TFStreamInstanceRSModel
+	expectedTFModel *streaminstance.TFStreamInstanceModel
 	name            string
 }
 
@@ -40,7 +40,7 @@ func TestStreamInstanceSDKToTFModel(t *testing.T) {
 				Hostnames: hostnames,
 				Name:      admin.PtrString(instanceName),
 			},
-			expectedTFModel: &streaminstance.TFStreamInstanceRSModel{
+			expectedTFModel: &streaminstance.TFStreamInstanceModel{
 				ID:                types.StringValue(dummyStreamInstanceID),
 				DataProcessRegion: tfRegionObject(t, cloudProvider, region),
 				ProjectID:         types.StringValue(dummyProjectID),
@@ -55,7 +55,7 @@ func TestStreamInstanceSDKToTFModel(t *testing.T) {
 				GroupId: admin.PtrString(dummyProjectID),
 				Name:    admin.PtrString(instanceName),
 			},
-			expectedTFModel: &streaminstance.TFStreamInstanceRSModel{
+			expectedTFModel: &streaminstance.TFStreamInstanceModel{
 				ID:                types.StringValue(dummyStreamInstanceID),
 				DataProcessRegion: types.ObjectNull(streaminstance.ProcessRegionObjectType.AttrTypes),
 				ProjectID:         types.StringValue(dummyProjectID),
@@ -79,7 +79,7 @@ func TestStreamInstanceSDKToTFModel(t *testing.T) {
 }
 
 type tfToSDKCreateModelTestCase struct {
-	tfModel        *streaminstance.TFStreamInstanceRSModel
+	tfModel        *streaminstance.TFStreamInstanceModel
 	expectedSDKReq *admin.StreamsTenant
 	name           string
 }
@@ -88,7 +88,7 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 	testCases := []tfToSDKCreateModelTestCase{
 		{
 			name: "Complete TF state",
-			tfModel: &streaminstance.TFStreamInstanceRSModel{
+			tfModel: &streaminstance.TFStreamInstanceModel{
 				DataProcessRegion: tfRegionObject(t, cloudProvider, region),
 				ProjectID:         types.StringValue(dummyProjectID),
 				InstanceName:      types.StringValue(instanceName),
@@ -118,7 +118,7 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 }
 
 type tfToSDKUpdateModelTestCase struct {
-	tfModel        *streaminstance.TFStreamInstanceRSModel
+	tfModel        *streaminstance.TFStreamInstanceModel
 	expectedSDKReq *admin.StreamsDataProcessRegion
 	name           string
 }
@@ -127,7 +127,7 @@ func TestStreamInstanceTFToSDKUpdateModel(t *testing.T) {
 	testCases := []tfToSDKUpdateModelTestCase{
 		{
 			name: "Complete TF state",
-			tfModel: &streaminstance.TFStreamInstanceRSModel{
+			tfModel: &streaminstance.TFStreamInstanceModel{
 				ID:                types.StringValue(dummyStreamInstanceID),
 				DataProcessRegion: tfRegionObject(t, cloudProvider, region),
 				ProjectID:         types.StringValue(dummyProjectID),
