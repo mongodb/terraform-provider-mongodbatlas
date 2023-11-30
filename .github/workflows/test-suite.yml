@@ -31,10 +31,6 @@ jobs:
         terraform_version: ['${{ vars.TF_VERSION_LATEST }}', '1.0.8']
     name: migration-tests-${{ matrix.terraform_version }}
     secrets: inherit
-    permissions:
-      contents: write
-      pull-requests: read
-      repository-projects: read
     uses: ./.github/workflows/migration-tests.yml
     with:
       terraform_version: ${{ matrix.terraform_version }}

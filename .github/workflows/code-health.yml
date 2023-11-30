@@ -91,17 +91,9 @@ jobs:
   call-acceptance-tests-workflow:
     needs: [build, lint, shellcheck, unit-test, website-lint]
     secrets: inherit
-    permissions:
-      contents: write
-      pull-requests: read
-      repository-projects: read
     uses: ./.github/workflows/acceptance-tests.yml
   call-migration-tests-workflow:
     needs: [build, lint, shellcheck, unit-test, website-lint]
     secrets: inherit
-    permissions:
-      contents: write
-      pull-requests: read
-      repository-projects: read
     uses: ./.github/workflows/migration-tests.yml
 
