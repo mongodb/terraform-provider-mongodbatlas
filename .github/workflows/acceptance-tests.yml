@@ -15,8 +15,9 @@ env:
   terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
   # CI: true  # GH does this automatically
   TF_ACC: 1
-  TF_LOG: ERROR
   SKIP_TEST_EXTERNAL_CREDENTIALS: true
+  TF_LOG: ${{ vars.LOG_LEVEL }}
+  ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
 jobs:  
   change-detection:
     runs-on: ubuntu-latest
