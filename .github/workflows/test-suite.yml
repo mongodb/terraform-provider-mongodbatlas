@@ -2,16 +2,50 @@ name: 'Test Suite'
 
 on:
   workflow_dispatch:
-
-jobs:  
-  example:
   schedule:
     - cron: "0 2 * * *" # workflow runs every day at 02:00 AM
+  
+jobs:
+  get-latest-tf-version:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version-file: 'go.mod'
+    outputs:
+      version: ${{ vars.TF_VERSION_LATEST }}   
+
+  acc-tests:
+    needs: [get-latest-tf-version]
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix:
+        terraform_version:
+          -  needs.get-latest-tf-version.outputs.version
+          - '1.0.8'
+    name: acc-tests-${{ matrix.terraform_version }}
+    secrets: inherit
+    permissions:
+      contents: write
+      pull-requests: read
+      repository-projects: read
+    uses: ./.github/workflows/acceptance-tests.yml
+    with:
+      terraform_version: ${{ matrix.terraform_version }}
+
+  migration-tests:
+    needs: [get-latest-tf-version, acc-tests]
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix:
+        terraform_version:
+          -  needs.get-latest-tf-version.outputs.version
+          - '1.0.8'
+    name: migration-tests-${{ matrix.terraform_version }}
+    secrets: inherit
+    permissions:
+      contents: write
+      pull-requests: read
+      repository-projects: read
+    uses: ./.github/workflows/migration-tests.yml
+    with:
+      terraform_version: ${{ matrix.terraform_version }}
+      

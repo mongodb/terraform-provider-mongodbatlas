@@ -5,8 +5,14 @@ on:
     inputs:
       terraform_version:
         description: 'Terraform version to use, empty for latest'     
+        type: string
         required: false
-  workflow_call: # workflow runs after code-health
+  workflow_call: # workflow runs after Test Suite or code-health
+    inputs:
+      terraform_version:
+        description: 'Terraform version to use, empty for latest'     
+        type: string
+        required: false
   pull_request: # you can run a specic job in your PR using GitHub labels
     types: [ labeled ]
 
@@ -17,6 +23,7 @@ env:
   SKIP_TEST_EXTERNAL_CREDENTIALS: true
   TF_LOG: ${{ vars.LOG_LEVEL }}
   ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
+
 jobs:  
   change-detection:
     runs-on: ubuntu-latest
