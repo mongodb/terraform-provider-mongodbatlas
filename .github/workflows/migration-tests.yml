@@ -5,7 +5,8 @@ on:
   workflow_call: # workflow runs after code-health
   pull_request:
     types: [ labeled ]
-
+  schedule:
+    - cron: "0 4 * * *" # workflow runs every day at 04:00 AM  
 jobs: 
   change-detection:
     runs-on: ubuntu-latest
