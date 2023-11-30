@@ -29,7 +29,7 @@ resource "mongodbatlas_stream_instance" "test" {
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
-* `instance_name` - (Required) Human-readable label that identifies the stream instance..
+* `instance_name` - (Required) Human-readable label that identifies the stream instance.
 * `data_process_region` - (Required) Defines the cloud service provider and region where MongoDB Cloud performs stream processing. See [data process region](#data-process-region).
 
 ### Data Process Region
