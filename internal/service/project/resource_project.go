@@ -2,7 +2,6 @@ package project
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,7 +10,6 @@ import (
 	"time"
 
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -100,10 +98,6 @@ var tfLimitObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }}
 
 // Resources that need to be cleaned up before a project can be deleted
-type AtlastProjectDependents struct {
-	AdvancedClusters *matlas.AdvancedClustersResponse
-}
-
 type AtlasProjectDependants struct {
 	AdvancedClusters *admin.PaginatedAdvancedClusterDescription
 }
@@ -839,11 +833,10 @@ Else retry
 */
 func resourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID *string, connV2 *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		var target *matlas.ErrorResponse
 		clusters, _, err := connV2.ClustersApi.ListClusters(ctx, *projectID).Execute()
 		dependents := AtlasProjectDependants{AdvancedClusters: clusters}
 
-		if errors.As(err, &target) {
+		if _, ok := admin.AsError(err); ok {
 			return nil, "", err
 		}
 
