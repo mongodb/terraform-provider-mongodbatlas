@@ -1,0 +1,15 @@
+name: 'Test Suite'
+
+on:
+  workflow_dispatch:
+
+jobs:  
+  example:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
