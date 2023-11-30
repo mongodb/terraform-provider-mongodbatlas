@@ -219,8 +219,6 @@ jobs:
         run: make testacc
 
   generic: # Acceptance tests that do not use any time-consuming resource (example: cluster)
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.generic == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-generic' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
