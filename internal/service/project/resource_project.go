@@ -536,25 +536,6 @@ func filterUserDefinedLimits(allAtlasLimits []admin.DataFederationLimit, tflimit
 	return filteredLimits
 }
 
-func getProjectPropsFromAPI(ctx context.Context, conn *matlas.Client, connV2 *admin.APIClient, projectID string) (*matlas.TeamsAssigned, []admin.DataFederationLimit, *matlas.ProjectSettings, error) {
-	teams, _, err := conn.Projects.GetProjectTeamsAssigned(ctx, projectID)
-	if err != nil {
-		return nil, nil, nil, fmt.Errorf("error getting project's teams assigned (%s): %v", projectID, err.Error())
-	}
-
-	limits, _, err := connV2.ProjectsApi.ListProjectLimits(ctx, projectID).Execute()
-	if err != nil {
-		return nil, nil, nil, fmt.Errorf("error getting project's limits (%s): %s", projectID, err.Error())
-	}
-
-	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, projectID)
-	if err != nil {
-		return nil, nil, nil, fmt.Errorf("error getting project's settings assigned (%s): %v", projectID, err.Error())
-	}
-
-	return teams, limits, projectSettings, nil
-}
-
 func getProjectPropsFromAPIV2(ctx context.Context, connV2 *admin.APIClient, projectID string) (*admin.PaginatedTeamRole, []admin.DataFederationLimit, *admin.GroupSettings, error) {
 	teams, _, err := connV2.TeamsApi.ListProjectTeams(ctx, projectID).Execute()
 	if err != nil {

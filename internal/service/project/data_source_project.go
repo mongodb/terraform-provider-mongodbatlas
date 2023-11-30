@@ -176,7 +176,7 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 
 	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPIV2(ctx, connV2, *project.Id)
 	if err != nil {
-		resp.Diagnostics.AddError("error when getting project properties", fmt.Sprintf(ErrorProjectRead, project.Id, err.Error()))
+		resp.Diagnostics.AddError("error when getting project properties", fmt.Sprintf(ErrorProjectRead, *project.Id, err.Error()))
 		return
 	}
 
@@ -195,7 +195,7 @@ func newTFProjectDataSourceModel(ctx context.Context, project *admin.Group,
 		ProjectID:    types.StringValue(*project.Id),
 		Name:         types.StringValue(project.Name),
 		OrgID:        types.StringValue(project.OrgId),
-		ClusterCount: types.Int64Value(int64(project.ClusterCount)),
+		ClusterCount: types.Int64Value(project.ClusterCount),
 		Created:      types.StringValue(conversion.TimeToString(project.Created)),
 		IsCollectDatabaseSpecificsStatisticsEnabled: types.BoolValue(*projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled),
 		IsDataExplorerEnabled:                       types.BoolValue(*projectSettings.IsDataExplorerEnabled),
