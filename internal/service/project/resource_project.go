@@ -267,9 +267,9 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	if len(projectPlan.Teams.Elements()) > 0 {
 		_ = projectPlan.Teams.ElementsAs(ctx, &teams, false)
 
-		_, _, err := connV2.TeamsApi.AddAllTeamsToProject(ctx, *project.Id, toAtlasV2ProjectTeams(ctx, teams)).Execute()
+		_, _, err := connV2.TeamsApi.AddAllTeamsToProject(ctx, *project.Id, toAtlasProjectTeams(ctx, teams)).Execute()
 		if err != nil {
-			errd := deleteProjectV2(ctx, r.Client.AtlasV2, project.Id)
+			errd := deleteProject(ctx, r.Client.AtlasV2, project.Id)
 			if errd != nil {
 				resp.Diagnostics.AddError("error during project deletion when adding teams", fmt.Sprintf(errorProjectDelete, *project.Id, err.Error()))
 				return
@@ -290,7 +290,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 			}
 			_, _, err := connV2.ProjectsApi.SetProjectLimit(ctx, limit.Name.ValueString(), *project.Id, dataFederationLimit).Execute()
 			if err != nil {
-				errd := deleteProjectV2(ctx, r.Client.AtlasV2, project.Id)
+				errd := deleteProject(ctx, r.Client.AtlasV2, project.Id)
 				if errd != nil {
 					resp.Diagnostics.AddError("error during project deletion when adding limits", fmt.Sprintf(errorProjectDelete, *project.Id, err.Error()))
 					return
@@ -304,7 +304,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	// add settings
 	projectSettings, _, err := connV2.ProjectsApi.GetProjectSettings(ctx, *project.Id).Execute()
 	if err != nil {
-		errd := deleteProjectV2(ctx, r.Client.AtlasV2, project.Id)
+		errd := deleteProject(ctx, r.Client.AtlasV2, project.Id)
 		if errd != nil {
 			resp.Diagnostics.AddError("error during project deletion when getting project settings", fmt.Sprintf(errorProjectDelete, *project.Id, err.Error()))
 			return
@@ -333,7 +333,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	if _, _, err = connV2.ProjectsApi.UpdateProjectSettings(ctx, *project.Id, projectSettings).Execute(); err != nil {
-		errd := deleteProjectV2(ctx, r.Client.AtlasV2, project.Id)
+		errd := deleteProject(ctx, r.Client.AtlasV2, project.Id)
 		if errd != nil {
 			resp.Diagnostics.AddError("error during project deletion when updating project settings", fmt.Sprintf(errorProjectDelete, *project.Id, err.Error()))
 			return
@@ -354,14 +354,14 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	// get project props
-	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPIV2(ctx, connV2, *projectID)
+	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, connV2, *projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, *projectID, err.Error()))
 		return
 	}
 
 	atlasLimits = filterUserDefinedLimits(atlasLimits, limits)
-	projectPlanNew := newTFProjectResourceModelV2(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
+	projectPlanNew := newTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
 	updatePlanFromConfig(projectPlanNew, &projectPlan)
 
 	// set state to fully populated data
@@ -400,14 +400,14 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	// get project props
-	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPIV2(ctx, connV2, projectID)
+	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, connV2, projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
 	atlasLimits = filterUserDefinedLimits(atlasLimits, limits)
-	projectStateNew := newTFProjectResourceModelV2(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
+	projectStateNew := newTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
 	updatePlanFromConfig(projectStateNew, &projectState)
 
 	// save read data into Terraform state
@@ -469,7 +469,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	}
 
 	// get project props
-	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPIV2(ctx, connV2, projectID)
+	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, connV2, projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -477,7 +477,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	var planLimits []tfLimitModel
 	_ = projectPlan.Limits.ElementsAs(ctx, &planLimits, false)
 	atlasLimits = filterUserDefinedLimits(atlasLimits, planLimits)
-	projectPlanNew := newTFProjectResourceModelV2(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
+	projectPlanNew := newTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
 	updatePlanFromConfig(projectPlanNew, &projectPlan)
 
 	// save updated data into Terraform state
@@ -494,7 +494,7 @@ func (r *projectRS) Delete(ctx context.Context, req resource.DeleteRequest, resp
 	}
 
 	projectID := project.ID.ValueString()
-	err := deleteProjectV2(ctx, r.Client.AtlasV2, &projectID)
+	err := deleteProject(ctx, r.Client.AtlasV2, &projectID)
 
 	if err != nil {
 		resp.Diagnostics.AddError("error when destroying resource", fmt.Sprintf(errorProjectDelete, projectID, err.Error()))
@@ -530,7 +530,7 @@ func filterUserDefinedLimits(allAtlasLimits []admin.DataFederationLimit, tflimit
 	return filteredLimits
 }
 
-func getProjectPropsFromAPIV2(ctx context.Context, connV2 *admin.APIClient, projectID string) (*admin.PaginatedTeamRole, []admin.DataFederationLimit, *admin.GroupSettings, error) {
+func getProjectPropsFromAPI(ctx context.Context, connV2 *admin.APIClient, projectID string) (*admin.PaginatedTeamRole, []admin.DataFederationLimit, *admin.GroupSettings, error) {
 	teams, _, err := connV2.TeamsApi.ListProjectTeams(ctx, projectID).Execute()
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("error getting project's teams assigned (%s): %v", projectID, err.Error())
@@ -549,7 +549,7 @@ func getProjectPropsFromAPIV2(ctx context.Context, connV2 *admin.APIClient, proj
 	return teams, limits, projectSettings, nil
 }
 
-func newTFProjectResourceModelV2(ctx context.Context, projectRes *admin.Group,
+func newTFProjectResourceModel(ctx context.Context, projectRes *admin.Group,
 	teams *admin.PaginatedTeamRole, projectSettings *admin.GroupSettings, limits []admin.DataFederationLimit) *tfProjectRSModel {
 	projectPlan := tfProjectRSModel{
 		ID:                        types.StringValue(*projectRes.Id),
@@ -558,7 +558,7 @@ func newTFProjectResourceModelV2(ctx context.Context, projectRes *admin.Group,
 		ClusterCount:              types.Int64Value(projectRes.ClusterCount),
 		Created:                   types.StringValue(conversion.TimeToString(projectRes.Created)),
 		WithDefaultAlertsSettings: types.BoolPointerValue(projectRes.WithDefaultAlertsSettings),
-		Teams:                     newTFTeamsResourceModelV2(ctx, teams),
+		Teams:                     newTFTeamsResourceModel(ctx, teams),
 		Limits:                    newTFLimitsResourceModel(ctx, limits),
 	}
 
@@ -591,7 +591,7 @@ func newTFLimitsResourceModel(ctx context.Context, dataFederationLimits []admin.
 	return s
 }
 
-func newTFTeamsResourceModelV2(ctx context.Context, atlasTeams *admin.PaginatedTeamRole) types.Set {
+func newTFTeamsResourceModel(ctx context.Context, atlasTeams *admin.PaginatedTeamRole) types.Set {
 	teams := make([]tfTeamModel, len(atlasTeams.Results))
 
 	for i, atlasTeam := range atlasTeams.Results {
@@ -607,7 +607,7 @@ func newTFTeamsResourceModelV2(ctx context.Context, atlasTeams *admin.PaginatedT
 	return s
 }
 
-func toAtlasV2ProjectTeams(ctx context.Context, teams []tfTeamModel) *[]admin.TeamRole {
+func toAtlasProjectTeams(ctx context.Context, teams []tfTeamModel) *[]admin.TeamRole {
 	res := make([]admin.TeamRole, len(teams))
 
 	for i, team := range teams {
@@ -754,7 +754,7 @@ func updateProjectTeams(ctx context.Context, connV2 *admin.APIClient, projectSta
 	}
 
 	// adding new teams into the project
-	if _, _, err := connV2.TeamsApi.AddAllTeamsToProject(ctx, projectID, toAtlasV2ProjectTeams(ctx, newTeams)).Execute(); err != nil {
+	if _, _, err := connV2.TeamsApi.AddAllTeamsToProject(ctx, projectID, toAtlasProjectTeams(ctx, newTeams)).Execute(); err != nil {
 		return fmt.Errorf("error adding teams to the project: %v", err.Error())
 	}
 
@@ -801,7 +801,7 @@ func newGroupName(tfProject *tfProjectRSModel) *admin.GroupName {
 	}
 }
 
-func deleteProjectV2(ctx context.Context, connV2 *admin.APIClient, projectID *string) error {
+func deleteProject(ctx context.Context, connV2 *admin.APIClient, projectID *string) error {
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{projectDependentsStateDeleting, projectDependentsStateRetry},
 		Target:     []string{projectDependentsStateIdle},

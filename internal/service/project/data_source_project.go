@@ -174,7 +174,7 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		}
 	}
 
-	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPIV2(ctx, connV2, *project.Id)
+	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, connV2, *project.Id)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties", fmt.Sprintf(ErrorProjectRead, *project.Id, err.Error()))
 		return
