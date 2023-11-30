@@ -2,7 +2,6 @@ package alertconfiguration
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -25,7 +24,7 @@ type tfAlertConfigurationsDSModel struct {
 	ProjectID   types.String                  `tfsdk:"project_id"`
 	OutputType  []string                      `tfsdk:"output_type"`
 	ListOptions []tfListOptionsModel          `tfsdk:"list_options"`
-	Results     []tfAlertConfigurationDSModel `tfsdk:"results"`
+	Results     []TFAlertConfigurationDSModel `tfsdk:"results"`
 	TotalCount  types.Int64                   `tfsdk:"total_count"`
 }
 
@@ -35,7 +34,7 @@ type tfListOptionsModel struct {
 	IncludeCount types.Bool  `tfsdk:"include_count"`
 }
 
-func NewAlertConfigurationsDS() datasource.DataSource {
+func PluralDataSource() datasource.DataSource {
 	return &AlertConfigurationsDS{
 		DSCommon: config.DSCommon{
 			DataSourceName: alertConfigurationsDataSourceName,
@@ -144,34 +143,12 @@ func (d *AlertConfigurationsDS) Read(ctx context.Context, req datasource.ReadReq
 	alertConfigurationsConfig.ID = types.StringValue(conversion.EncodeStateID(map[string]string{
 		"project_id": projectID,
 	}))
-	alertConfigurationsConfig.Results = newTFAlertConfigurationDSModelList(alerts.Results, projectID, alertConfigurationsConfig.OutputType)
+	alertConfigurationsConfig.Results = NewTFAlertConfigurationDSModelList(alerts.Results, projectID, alertConfigurationsConfig.OutputType)
 	if *params.IncludeCount {
 		alertConfigurationsConfig.TotalCount = types.Int64Value(int64(*alerts.TotalCount))
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &alertConfigurationsConfig)...)
-}
-
-func newTFAlertConfigurationDSModelList(alerts []admin.GroupAlertsConfig, projectID string, definedOutputs []string) []tfAlertConfigurationDSModel {
-	outputConfigurations := make([]tfAlertConfigurationOutputModel, len(definedOutputs))
-	for i, output := range definedOutputs {
-		outputConfigurations[i] = tfAlertConfigurationOutputModel{
-			Type: types.StringValue(output),
-		}
-	}
-
-	results := make([]tfAlertConfigurationDSModel, len(alerts))
-
-	for i := 0; i < len(alerts); i++ {
-		alert := alerts[i]
-		label := fmt.Sprintf("%s_%d", *alert.EventTypeName, i)
-		resultAlertConfigModel := newTFAlertConfigurationDSModel(&alerts[i], projectID)
-		computedOutputs := computeAlertConfigurationOutput(&alert, outputConfigurations, label)
-		resultAlertConfigModel.Output = computedOutputs
-		results[i] = resultAlertConfigModel
-	}
-
-	return results
 }
 
 const (

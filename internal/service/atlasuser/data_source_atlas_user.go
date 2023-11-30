@@ -50,7 +50,7 @@ type tfAtlasUserRoleModel struct {
 	RoleName types.String `tfsdk:"role_name"`
 }
 
-func NewAtlasUserDS() datasource.DataSource {
+func DataSource() datasource.DataSource {
 	return &atlasUserDS{
 		DSCommon: config.DSCommon{
 			DataSourceName: AtlasUserDataSourceName,

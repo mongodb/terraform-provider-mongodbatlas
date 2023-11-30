@@ -20,7 +20,7 @@ type DatabaseUsersDS struct {
 	config.DSCommon
 }
 
-func NewDatabaseUsersDS() datasource.DataSource {
+func PluralDataSource() datasource.DataSource {
 	return &DatabaseUsersDS{
 		DSCommon: config.DSCommon{
 			DataSourceName: databaseUsersDSName,

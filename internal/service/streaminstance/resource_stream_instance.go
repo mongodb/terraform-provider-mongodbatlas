@@ -18,10 +18,12 @@ import (
 var _ resource.ResourceWithConfigure = &streamInstanceRS{}
 var _ resource.ResourceWithImportState = &streamInstanceRS{}
 
-func NewStreamInstanceRS() resource.Resource {
+const streamInstanceName = "stream_instance"
+
+func Resource() resource.Resource {
 	return &streamInstanceRS{
 		RSCommon: config.RSCommon{
-			ResourceName: "stream_instance",
+			ResourceName: streamInstanceName,
 		},
 	}
 }

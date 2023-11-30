@@ -38,7 +38,7 @@ const (
 var _ resource.ResourceWithConfigure = &encryptionAtRestRS{}
 var _ resource.ResourceWithImportState = &encryptionAtRestRS{}
 
-func NewEncryptionAtRestRS() resource.Resource {
+func Resource() resource.Resource {
 	return &encryptionAtRestRS{
 		RSCommon: config.RSCommon{
 			ResourceName: encryptionAtRestResourceName,

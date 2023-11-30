@@ -4,10 +4,10 @@ resource "mongodbatlas_project" "example" {
 }
 
 resource "mongodbatlas_stream_instance" "example" {
-  project_id = mongodbatlas_project.example
-	instance_name = "InstanceName"
-	data_process_region = {
-		region = "VIRGINIA_USA"
-		cloud_provider = "AWS"
+  project_id    = mongodbatlas_project.example
+  instance_name = "InstanceName"
+  data_process_region = {
+    region         = "VIRGINIA_USA"
+    cloud_provider = "AWS"
   }
 }
