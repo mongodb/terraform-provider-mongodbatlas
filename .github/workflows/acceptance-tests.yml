@@ -5,12 +5,17 @@ on:
     inputs:
       terraform_version:
         description: 'Terraform version to use, empty for latest'     
+        type: string
         required: false
-  workflow_call: # workflow runs after code-health
+  workflow_call: # workflow runs after Test Suite or code-health
+    inputs:
+      terraform_version:
+        description: 'Terraform version to use, empty for latest'     
+        type: string
+        required: false
   pull_request: # you can run a specic job in your PR using GitHub labels
     types: [ labeled ]
-  schedule:
-    - cron: "0 4 * * *" # workflow runs every day at 04:00 AM
+
 env:
   terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
   # CI: true  # GH does this automatically
@@ -18,6 +23,7 @@ env:
   SKIP_TEST_EXTERNAL_CREDENTIALS: true
   TF_LOG: ${{ vars.LOG_LEVEL }}
   ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
+
 jobs:  
   change-detection:
     runs-on: ubuntu-latest
