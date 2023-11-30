@@ -3,10 +3,6 @@ name: 'Migration Tests'
 on:
   workflow_dispatch: {}
   workflow_call: # workflow runs after code-health
-    inputs:
-      parent-event-name:
-        required: true
-        type: string
   pull_request:
     types: [ labeled ]
 
@@ -21,10 +17,10 @@ jobs:
       config: ${{ steps.filter.outputs.config }}
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster }}
       backup_online_archive: ${{ steps.filter.outputs.backup_online_archive }}
-      shouldTriggerResourceTest: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || inputs.parent-event-name == 'release' }}
+      shouldTriggerResourceTest: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
     steps:
     - uses: actions/checkout@v4
-      if: ${{ github.event_name == 'push' ||  github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || inputs.parent-event-name == 'release' }}
+      if: ${{ github.event_name == 'push' ||  github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
     - uses: dorny/paths-filter@v2
       id: filter
       with:
