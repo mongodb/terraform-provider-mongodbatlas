@@ -89,6 +89,7 @@ jobs:
       - name: Run ShellCheck
         uses: bewuethr/shellcheck-action@v2
   call-acceptance-tests-workflow:
+    needs: [build, lint, shellcheck, unit-test, website-lint]
     secrets: inherit
     permissions:
       contents: write
