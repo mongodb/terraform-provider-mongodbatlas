@@ -19,7 +19,7 @@ import (
 var _ datasource.DataSource = &projectDS{}
 var _ datasource.DataSourceWithConfigure = &projectDS{}
 
-func NewProjectDS() datasource.DataSource {
+func DataSource() datasource.DataSource {
 	return &projectDS{
 		DSCommon: config.DSCommon{
 			DataSourceName: projectResourceName,

@@ -25,7 +25,7 @@ type projectIPAccessListDS struct {
 	config.DSCommon
 }
 
-func NewProjectIPAccessListDS() datasource.DataSource {
+func DataSource() datasource.DataSource {
 	return &projectIPAccessListDS{
 		DSCommon: config.DSCommon{
 			DataSourceName: projectIPAccessList,

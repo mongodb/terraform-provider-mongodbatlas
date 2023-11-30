@@ -26,7 +26,7 @@ const (
 var _ datasource.DataSource = &atlasUsersDS{}
 var _ datasource.DataSourceWithConfigure = &atlasUsersDS{}
 
-func NewAtlasUsersDS() datasource.DataSource {
+func PluralDataSource() datasource.DataSource {
 	return &atlasUsersDS{
 		DSCommon: config.DSCommon{
 			DataSourceName: AtlasUsersDataSourceName,

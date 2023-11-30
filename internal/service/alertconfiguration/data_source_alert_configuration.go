@@ -41,7 +41,7 @@ type TfAlertConfigurationOutputModel struct {
 	Value types.String `tfsdk:"value"`
 }
 
-func NewAlertConfigurationDS() datasource.DataSource {
+func DataSource() datasource.DataSource {
 	return &alertConfigurationDS{
 		DSCommon: config.DSCommon{
 			DataSourceName: alertConfigurationResourceName,

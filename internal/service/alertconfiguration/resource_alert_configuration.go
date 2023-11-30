@@ -39,7 +39,7 @@ const (
 var _ resource.ResourceWithConfigure = &alertConfigurationRS{}
 var _ resource.ResourceWithImportState = &alertConfigurationRS{}
 
-func NewAlertConfigurationRS() resource.Resource {
+func Resource() resource.Resource {
 	return &alertConfigurationRS{
 		RSCommon: config.RSCommon{
 			ResourceName: alertConfigurationResourceName,

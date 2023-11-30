@@ -16,7 +16,7 @@ type databaseUserDS struct {
 	config.DSCommon
 }
 
-func NewDatabaseUserDS() datasource.DataSource {
+func DataSource() datasource.DataSource {
 	return &databaseUserDS{
 		DSCommon: config.DSCommon{
 			DataSourceName: databaseUserResourceName,

@@ -34,7 +34,7 @@ type databaseUserRS struct {
 	config.RSCommon
 }
 
-func NewDatabaseUserRS() resource.Resource {
+func Resource() resource.Resource {
 	return &databaseUserRS{
 		RSCommon: config.RSCommon{
 			ResourceName: databaseUserResourceName,
