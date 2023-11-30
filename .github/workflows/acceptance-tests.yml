@@ -13,6 +13,7 @@ on:
     types: [ labeled ]
 env:
   CI: true    
+  TF_LOG: ERROR
 jobs:  
   change-detection:
     runs-on: ubuntu-latest
@@ -129,7 +130,6 @@ jobs:
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           TEST_REGEX: "^TestAccOutageSimulationCluster"
         run: make testacc
@@ -152,7 +152,6 @@ jobs:
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           TEST_REGEX: "^TestAccClusterAdvancedCluster"
         run: make testacc
@@ -175,7 +174,6 @@ jobs:
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           TEST_REGEX: "^TestAccClusterRSCluster"
         run: make testacc
@@ -197,7 +195,6 @@ jobs:
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           TEST_REGEX: "^TestAccSearchDeployment"
         run: make testacc
@@ -222,7 +219,6 @@ jobs:
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           TEST_REGEX: "^TestAccGeneric"
         run: |
@@ -247,7 +243,6 @@ jobs:
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           TEST_REGEX: "^TestAccBackupRSOnlineArchive"
         run: make testacc
@@ -271,7 +266,6 @@ jobs:
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           TEST_REGEX: "^TestAccBackupRSCloudBackupSnapshot"
         run: make testacc
@@ -295,7 +289,6 @@ jobs:
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           TEST_REGEX: "^TestAccBackupRSCloudBackupSchedule"
         run: make testacc
@@ -319,7 +312,6 @@ jobs:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
           MONGODB_ATLAS_TEAMS_IDS: ${{ vars.MONGODB_ATLAS_TEAMS_IDS }}
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           TEST_REGEX: "^TestAccProject"
         run: make testacc
@@ -341,7 +333,6 @@ jobs:
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           TEST_REGEX: "^TestAccServerless"
         run: make testacc
@@ -367,7 +358,6 @@ jobs:
           MONGODB_ATLAS_ENABLE_BETA: ${{ vars.MONGODB_ATLAS_ENABLE_BETA }}
           MONGODB_ATLAS_ENDPOINT_ID: ${{ vars.MONGODB_ATLAS_AWS_ENDPOINT_ID_NETWORK }} 
           AWS_REGION: ${{ vars.AWS_REGION }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           TEST_REGEX: "^TestAccNetwork"
         run: make testacc
@@ -390,7 +380,6 @@ jobs:
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           TEST_REGEX: "^TestAccFederatedDatabaseInstance"
         run: make testacc
@@ -418,7 +407,6 @@ jobs:
           AZURE_ATLAS_APP_ID: ${{vars.AZURE_ATLAS_APP_ID}}
           AZURE_SERVICE_PRINCIPAL_ID: ${{vars.AZURE_SERVICE_PRINCIPAL_ID}}
           AZURE_TENANT_ID: ${{vars.AZURE_TENANT_ID}}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           TEST_REGEX: "^TestAccConfig"
         run: make testacc
@@ -454,7 +442,6 @@ jobs:
           AWS_SESSION_TOKEN: ${{ steps.sts-assume-role.outputs.AWS_SESSION_TOKEN }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           TEST_REGEX: "^TestAccSTSAssumeRole"
         run: make testacc
@@ -478,7 +465,6 @@ jobs:
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_PROJECT_ID: ${{ vars.MONGODB_ATLAS_ACCTEST_SEARCH_INDEX_PROJECT_ID_CLOUD_DEV }}
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           TEST_REGEX: "^TestAccSearchIndex"
         run: make testacc
