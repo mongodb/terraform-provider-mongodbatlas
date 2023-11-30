@@ -440,13 +440,13 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	}
 	projectID := projectState.ID.ValueString()
 
-	err := updateProjectV2(ctx, connV2, &projectState, &projectPlan)
+	err := updateProject(ctx, connV2, &projectState, &projectPlan)
 	if err != nil {
 		resp.Diagnostics.AddError("error in project update", fmt.Sprintf(errorProjectUpdate, projectID, err.Error()))
 		return
 	}
 
-	err = updateProjectTeamsV2(ctx, connV2, &projectState, &projectPlan)
+	err = updateProjectTeams(ctx, connV2, &projectState, &projectPlan)
 	if err != nil {
 		resp.Diagnostics.AddError("error in project teams update", fmt.Sprintf(errorProjectUpdate, projectID, err.Error()))
 		return
@@ -458,7 +458,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 		return
 	}
 
-	err = updateProjectSettingsV2(ctx, connV2, &projectState, &projectPlan)
+	err = updateProjectSettings(ctx, connV2, &projectState, &projectPlan)
 	if err != nil {
 		resp.Diagnostics.AddError("error in project settings update", fmt.Sprintf(errorProjectUpdate, projectID, err.Error()))
 		return
@@ -500,7 +500,7 @@ func (r *projectRS) Delete(ctx context.Context, req resource.DeleteRequest, resp
 	}
 
 	projectID := project.ID.ValueString()
-	err := deleteProject(ctx, r.Client.Atlas, projectID)
+	err := deleteProjectV2(ctx, r.Client.AtlasV2, &projectID)
 
 	if err != nil {
 		resp.Diagnostics.AddError("error when destroying resource", fmt.Sprintf(errorProjectDelete, projectID, err.Error()))
@@ -644,7 +644,7 @@ func toAtlasV2ProjectTeams(ctx context.Context, teams []tfTeamModel) *[]admin.Te
 	return &res
 }
 
-func updateProjectSettingsV2(ctx context.Context, connV2 *admin.APIClient, projectState, projectPlan *tfProjectRSModel) error {
+func updateProjectSettings(ctx context.Context, connV2 *admin.APIClient, projectState, projectPlan *tfProjectRSModel) error {
 	hasChanged := false
 	projectID := projectState.ID.ValueString()
 	projectSettings, _, err := connV2.ProjectsApi.GetProjectSettings(ctx, projectID).Execute()
@@ -738,7 +738,7 @@ func setProjectLimits(ctx context.Context, connV2 *admin.APIClient, projectID st
 	return nil
 }
 
-func updateProjectTeamsV2(ctx context.Context, connV2 *admin.APIClient, projectState, projectPlan *tfProjectRSModel) error {
+func updateProjectTeams(ctx context.Context, connV2 *admin.APIClient, projectState, projectPlan *tfProjectRSModel) error {
 	var planTeams []tfTeamModel
 	var stateTeams []tfTeamModel
 	_ = projectPlan.Teams.ElementsAs(ctx, &planTeams, false)
@@ -806,14 +806,13 @@ func hasLimitsChanged(planLimits, stateLimits []tfLimitModel) bool {
 	return !reflect.DeepEqual(planLimits, stateLimits)
 }
 
-func updateProjectV2(ctx context.Context, connV2 *admin.APIClient, projectState, projectPlan *tfProjectRSModel) error {
+func updateProject(ctx context.Context, connV2 *admin.APIClient, projectState, projectPlan *tfProjectRSModel) error {
 	if projectPlan.Name.Equal(projectState.Name) {
 		return nil
 	}
 
 	projectID := projectState.ID.ValueString()
 
-	// if _, _, err := conn.Projects.Update(ctx, projectID, newProjectUpdateRequest(projectPlan)); err != nil {
 	if _, _, err := connV2.ProjectsApi.UpdateProject(ctx, projectID, newGroupName(projectPlan)).Execute(); err != nil {
 		return fmt.Errorf("error updating the project(%s): %s", projectID, err)
 	}
@@ -827,32 +826,11 @@ func newGroupName(tfProject *tfProjectRSModel) *admin.GroupName {
 	}
 }
 
-func deleteProject(ctx context.Context, conn *matlas.Client, projectID string) error {
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{projectDependentsStateDeleting, projectDependentsStateRetry},
-		Target:     []string{projectDependentsStateIdle},
-		Refresh:    resourceProjectDependentsDeletingRefreshFunc(ctx, projectID, conn),
-		Timeout:    30 * time.Minute,
-		MinTimeout: 30 * time.Second,
-		Delay:      0,
-	}
-
-	_, err := stateConf.WaitForStateContext(ctx)
-
-	if err != nil {
-		tflog.Info(ctx, fmt.Sprintf("[ERROR] could not determine MongoDB project %s dependents status: %s", projectID, err.Error()))
-	}
-
-	_, err = conn.Projects.Delete(ctx, projectID)
-
-	return err
-}
-
 func deleteProjectV2(ctx context.Context, connV2 *admin.APIClient, projectID *string) error {
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{projectDependentsStateDeleting, projectDependentsStateRetry},
 		Target:     []string{projectDependentsStateIdle},
-		Refresh:    resourceProjectDependentsDeletingRefreshFuncV2(ctx, projectID, connV2),
+		Refresh:    resourceProjectDependentsDeletingRefreshFunc(ctx, projectID, connV2),
 		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Delay:      0,
@@ -878,37 +856,7 @@ Else consider the aggregate dependents idle.
 If we get a defined error response, return that right away
 Else retry
 */
-func resourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) retry.StateRefreshFunc {
-	return func() (any, string, error) {
-		var target *matlas.ErrorResponse
-		clusters, _, err := client.AdvancedClusters.List(ctx, projectID, nil)
-		dependents := AtlastProjectDependents{AdvancedClusters: clusters}
-
-		if errors.As(err, &target) {
-			return nil, "", err
-		}
-
-		if err != nil {
-			return nil, projectDependentsStateRetry, nil
-		}
-
-		if dependents.AdvancedClusters.TotalCount == 0 {
-			return dependents, projectDependentsStateIdle, nil
-		}
-
-		for _, v := range dependents.AdvancedClusters.Results {
-			if v.StateName != projectDependentsStateDeleting {
-				return dependents, projectDependentsStateIdle, nil
-			}
-		}
-
-		log.Printf("[DEBUG] status for MongoDB project %s dependents: %s", projectID, projectDependentsStateDeleting)
-
-		return dependents, projectDependentsStateDeleting, nil
-	}
-}
-
-func resourceProjectDependentsDeletingRefreshFuncV2(ctx context.Context, projectID *string, connV2 *admin.APIClient) retry.StateRefreshFunc {
+func resourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID *string, connV2 *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		var target *matlas.ErrorResponse
 		clusters, _, err := connV2.ClustersApi.ListClusters(ctx, *projectID).Execute()
