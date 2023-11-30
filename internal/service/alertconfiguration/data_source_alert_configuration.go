@@ -20,22 +20,22 @@ import (
 var _ datasource.DataSource = &alertConfigurationDS{}
 var _ datasource.DataSourceWithConfigure = &alertConfigurationDS{}
 
-type tfAlertConfigurationDSModel struct {
+type TFAlertConfigurationDSModel struct {
 	ID                    types.String                      `tfsdk:"id"`
 	ProjectID             types.String                      `tfsdk:"project_id"`
 	AlertConfigurationID  types.String                      `tfsdk:"alert_configuration_id"`
 	EventType             types.String                      `tfsdk:"event_type"`
 	Created               types.String                      `tfsdk:"created"`
 	Updated               types.String                      `tfsdk:"updated"`
-	Matcher               []tfMatcherModel                  `tfsdk:"matcher"`
-	MetricThresholdConfig []tfMetricThresholdConfigModel    `tfsdk:"metric_threshold_config"`
-	ThresholdConfig       []tfThresholdConfigModel          `tfsdk:"threshold_config"`
-	Notification          []tfNotificationModel             `tfsdk:"notification"`
-	Output                []tfAlertConfigurationOutputModel `tfsdk:"output"`
+	Matcher               []TfMatcherModel                  `tfsdk:"matcher"`
+	MetricThresholdConfig []TfMetricThresholdConfigModel    `tfsdk:"metric_threshold_config"`
+	ThresholdConfig       []TfThresholdConfigModel          `tfsdk:"threshold_config"`
+	Notification          []TfNotificationModel             `tfsdk:"notification"`
+	Output                []TfAlertConfigurationOutputModel `tfsdk:"output"`
 	Enabled               types.Bool                        `tfsdk:"enabled"`
 }
 
-type tfAlertConfigurationOutputModel struct {
+type TfAlertConfigurationOutputModel struct {
 	Type  types.String `tfsdk:"type"`
 	Label types.String `tfsdk:"label"`
 	Value types.String `tfsdk:"value"`
@@ -249,7 +249,7 @@ func (d *alertConfigurationDS) Schema(ctx context.Context, req datasource.Schema
 }
 
 func (d *alertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var alertConfigurationConfig tfAlertConfigurationDSModel
+	var alertConfigurationConfig TFAlertConfigurationDSModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &alertConfigurationConfig)...)
 	if resp.Diagnostics.HasError() {
@@ -269,7 +269,7 @@ func (d *alertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	resultAlertConfigModel := newTFAlertConfigurationDSModel(alert, projectID)
+	resultAlertConfigModel := NewTfAlertConfigurationDSModel(alert, projectID)
 	resultAlertConfigModel.Output = computeAlertConfigurationOutput(alert, outputs, *alert.EventTypeName)
 
 	// setting initial value for backwards compatibility, but setting the alert_configuration resource id here is not consistent with the resource
@@ -278,10 +278,10 @@ func (d *alertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequ
 	resp.Diagnostics.Append(resp.State.Set(ctx, &resultAlertConfigModel)...)
 }
 
-func computeAlertConfigurationOutput(alert *admin.GroupAlertsConfig, definedOutputs []tfAlertConfigurationOutputModel, defaultLabel string) []tfAlertConfigurationOutputModel {
-	resultOutputs := make([]tfAlertConfigurationOutputModel, len(definedOutputs))
+func computeAlertConfigurationOutput(alert *admin.GroupAlertsConfig, definedOutputs []TfAlertConfigurationOutputModel, defaultLabel string) []TfAlertConfigurationOutputModel {
+	resultOutputs := make([]TfAlertConfigurationOutputModel, len(definedOutputs))
 	for i, defined := range definedOutputs {
-		resultOutput := tfAlertConfigurationOutputModel{}
+		resultOutput := TfAlertConfigurationOutputModel{}
 		resultOutput.Type = defined.Type
 		if defined.Label.IsNull() {
 			resultOutput.Label = types.StringValue(defaultLabel)
@@ -294,25 +294,6 @@ func computeAlertConfigurationOutput(alert *admin.GroupAlertsConfig, definedOutp
 		resultOutputs[i] = resultOutput
 	}
 	return resultOutputs
-}
-
-func newTFAlertConfigurationDSModel(apiRespConfig *admin.GroupAlertsConfig, projectID string) tfAlertConfigurationDSModel {
-	return tfAlertConfigurationDSModel{
-		ID: types.StringValue(conversion.EncodeStateID(map[string]string{
-			EncodedIDKeyAlertID:   *apiRespConfig.Id,
-			EncodedIDKeyProjectID: projectID,
-		})),
-		ProjectID:             types.StringValue(projectID),
-		AlertConfigurationID:  types.StringValue(*apiRespConfig.Id),
-		EventType:             types.StringValue(*apiRespConfig.EventTypeName),
-		Created:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Created)),
-		Updated:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Updated)),
-		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
-		MetricThresholdConfig: newTFMetricThresholdConfigModel(apiRespConfig.MetricThreshold, []tfMetricThresholdConfigModel{}),
-		ThresholdConfig:       newTFThresholdConfigModel(apiRespConfig.Threshold, []tfThresholdConfigModel{}),
-		Notification:          newTFNotificationModelList(apiRespConfig.Notifications, []tfNotificationModel{}),
-		Matcher:               newTFMatcherModelList(apiRespConfig.Matchers, []tfMatcherModel{}),
-	}
 }
 
 func outputAlertConfiguration(alert *admin.GroupAlertsConfig, outputType, resourceLabel string) string {
