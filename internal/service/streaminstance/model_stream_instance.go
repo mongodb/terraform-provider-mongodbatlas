@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
-func NewStreamInstanceCreateReq(ctx context.Context, plan *TFStreamInstanceRSModel) (*admin.StreamsTenant, diag.Diagnostics) {
+func NewStreamInstanceCreateReq(ctx context.Context, plan *TFStreamInstanceModel) (*admin.StreamsTenant, diag.Diagnostics) {
 	dataProcessRegion := &TFInstanceProcessRegionSpecModel{}
 	if diags := plan.DataProcessRegion.As(ctx, dataProcessRegion, basetypes.ObjectAsOptions{}); diags.HasError() {
 		return nil, diags
@@ -24,7 +24,7 @@ func NewStreamInstanceCreateReq(ctx context.Context, plan *TFStreamInstanceRSMod
 	}, nil
 }
 
-func NewStreamInstanceUpdateReq(ctx context.Context, plan *TFStreamInstanceRSModel) (*admin.StreamsDataProcessRegion, diag.Diagnostics) {
+func NewStreamInstanceUpdateReq(ctx context.Context, plan *TFStreamInstanceModel) (*admin.StreamsDataProcessRegion, diag.Diagnostics) {
 	dataProcessRegion := &TFInstanceProcessRegionSpecModel{}
 	if diags := plan.DataProcessRegion.As(ctx, dataProcessRegion, basetypes.ObjectAsOptions{}); diags.HasError() {
 		return nil, diags
@@ -35,7 +35,7 @@ func NewStreamInstanceUpdateReq(ctx context.Context, plan *TFStreamInstanceRSMod
 	}, nil
 }
 
-func NewTFStreamInstance(ctx context.Context, apiResp *admin.StreamsTenant) (*TFStreamInstanceRSModel, diag.Diagnostics) {
+func NewTFStreamInstance(ctx context.Context, apiResp *admin.StreamsTenant) (*TFStreamInstanceModel, diag.Diagnostics) {
 	hostnames, diags := types.ListValueFrom(ctx, types.StringType, apiResp.Hostnames)
 
 	var dataProcessRegion = types.ObjectNull(ProcessRegionObjectType.AttrTypes)
@@ -51,7 +51,7 @@ func NewTFStreamInstance(ctx context.Context, apiResp *admin.StreamsTenant) (*TF
 		return nil, diags
 	}
 
-	return &TFStreamInstanceRSModel{
+	return &TFStreamInstanceModel{
 		ID:                types.StringPointerValue(apiResp.Id),
 		InstanceName:      types.StringPointerValue(apiResp.Name),
 		ProjectID:         types.StringPointerValue(apiResp.GroupId),
