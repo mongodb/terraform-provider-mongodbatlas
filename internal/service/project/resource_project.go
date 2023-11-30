@@ -381,7 +381,6 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var projectState tfProjectRSModel
 	var limits []tfLimitModel
-	conn := r.Client.Atlas
 	connV2 := r.Client.AtlasV2
 
 	// get current state
@@ -396,7 +395,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	// get project
-	projectRes, atlasResp, err := conn.Projects.GetOneProject(ctx, projectID)
+	projectRes, atlasResp, err := connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
 	if err != nil {
 		if resp != nil && atlasResp.StatusCode == http.StatusNotFound {
 			resp.State.RemoveResource(ctx)
@@ -407,14 +406,14 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	// get project props
-	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, projectID)
+	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPIV2(ctx, connV2, projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
 	atlasLimits = filterUserDefinedLimits(atlasLimits, limits)
-	projectStateNew := newTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
+	projectStateNew := newTFProjectResourceModelV2(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
 	updatePlanFromConfig(projectStateNew, &projectState)
 
 	// save read data into Terraform state
@@ -556,6 +555,24 @@ func getProjectPropsFromAPI(ctx context.Context, conn *matlas.Client, connV2 *ad
 
 	return teams, limits, projectSettings, nil
 }
+func getProjectPropsFromAPIV2(ctx context.Context, connV2 *admin.APIClient, projectID string) (*admin.PaginatedTeamRole, []admin.DataFederationLimit, *admin.GroupSettings, error) {
+	teams, _, err := connV2.TeamsApi.ListProjectTeams(ctx, projectID).Execute()
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("error getting project's teams assigned (%s): %v", projectID, err.Error())
+	}
+
+	limits, _, err := connV2.ProjectsApi.ListProjectLimits(ctx, projectID).Execute()
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("error getting project's limits (%s): %s", projectID, err.Error())
+	}
+
+	projectSettings, _, err := connV2.ProjectsApi.GetProjectSettings(ctx, projectID).Execute()
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("error getting project's settings assigned (%s): %v", projectID, err.Error())
+	}
+
+	return teams, limits, projectSettings, nil
+}
 
 func newTFProjectResourceModel(ctx context.Context, projectRes *matlas.Project,
 	teams *matlas.TeamsAssigned, projectSettings *matlas.ProjectSettings, limits []admin.DataFederationLimit) *tfProjectRSModel {
@@ -567,6 +584,31 @@ func newTFProjectResourceModel(ctx context.Context, projectRes *matlas.Project,
 		Created:                   types.StringValue(projectRes.Created),
 		WithDefaultAlertsSettings: types.BoolPointerValue(projectRes.WithDefaultAlertsSettings),
 		Teams:                     newTFTeamsResourceModel(ctx, teams),
+		Limits:                    newTFLimitsResourceModel(ctx, limits),
+	}
+
+	if projectSettings != nil {
+		projectPlan.IsCollectDatabaseSpecificsStatisticsEnabled = types.BoolValue(*projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled)
+		projectPlan.IsDataExplorerEnabled = types.BoolValue(*projectSettings.IsDataExplorerEnabled)
+		projectPlan.IsExtendedStorageSizesEnabled = types.BoolValue(*projectSettings.IsExtendedStorageSizesEnabled)
+		projectPlan.IsPerformanceAdvisorEnabled = types.BoolValue(*projectSettings.IsPerformanceAdvisorEnabled)
+		projectPlan.IsRealtimePerformancePanelEnabled = types.BoolValue(*projectSettings.IsRealtimePerformancePanelEnabled)
+		projectPlan.IsSchemaAdvisorEnabled = types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled)
+	}
+
+	return &projectPlan
+}
+
+func newTFProjectResourceModelV2(ctx context.Context, projectRes *admin.Group,
+	teams *admin.PaginatedTeamRole, projectSettings *admin.GroupSettings, limits []admin.DataFederationLimit) *tfProjectRSModel {
+	projectPlan := tfProjectRSModel{
+		ID:                        types.StringValue(*projectRes.Id),
+		Name:                      types.StringValue(projectRes.Name),
+		OrgID:                     types.StringValue(projectRes.OrgId),
+		ClusterCount:              types.Int64Value(int64(projectRes.ClusterCount)),
+		Created:                   types.StringValue(projectRes.Created.String()),
+		WithDefaultAlertsSettings: types.BoolPointerValue(projectRes.WithDefaultAlertsSettings),
+		Teams:                     newTFTeamsResourceModelV2(ctx, teams),
 		Limits:                    newTFLimitsResourceModel(ctx, limits),
 	}
 
@@ -607,6 +649,22 @@ func newTFTeamsResourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssign
 
 		teams[i] = tfTeamModel{
 			TeamID:    types.StringValue(atlasTeam.TeamID),
+			RoleNames: roleNames,
+		}
+	}
+
+	s, _ := types.SetValueFrom(ctx, tfTeamObjectType, teams)
+	return s
+}
+
+func newTFTeamsResourceModelV2(ctx context.Context, atlasTeams *admin.PaginatedTeamRole) types.Set {
+	teams := make([]tfTeamModel, len(atlasTeams.Results))
+
+	for i, atlasTeam := range atlasTeams.Results {
+		roleNames, _ := types.SetValueFrom(ctx, types.StringType, atlasTeam.RoleNames)
+
+		teams[i] = tfTeamModel{
+			TeamID:    types.StringValue(*atlasTeam.TeamId),
 			RoleNames: roleNames,
 		}
 	}
