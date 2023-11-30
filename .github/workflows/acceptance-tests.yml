@@ -9,8 +9,7 @@ on:
   workflow_call: # workflow runs after code-health
   pull_request: # you can run a specic job in your PR using GitHub labels
     types: [ labeled ]
-  schedule:
-    - cron: "0 4 * * *" # workflow runs every day at 04:00 AM
+
 env:
   terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
   # CI: true  # GH does this automatically

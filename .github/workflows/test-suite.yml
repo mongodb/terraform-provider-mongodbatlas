@@ -5,6 +5,8 @@ on:
 
 jobs:  
   example:
+  schedule:
+    - cron: "0 2 * * *" # workflow runs every day at 02:00 AM
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
