@@ -1,15 +1,23 @@
 name: 'Migration Tests'
 
 on:
-  workflow_dispatch: {}
-  workflow_call: # workflow runs after code-health
+  workflow_dispatch:
     inputs:
-      parent-event-name:
-        required: true
-        type: string
+      terraform_version:
+        description: 'Terraform version to use, empty for latest'     
+        required: false
+  workflow_call: # workflow runs after code-health
   pull_request:
     types: [ labeled ]
-
+  schedule:
+    - cron: "0 4 * * *" # workflow runs every day at 04:00 AM  
+env:
+    terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
+    # CI: true  # GH does this automatically
+    TF_ACC: 1
+    SKIP_TEST_EXTERNAL_CREDENTIALS: true
+    TF_LOG: ${{ vars.LOG_LEVEL }}
+    ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
 jobs: 
   change-detection:
     runs-on: ubuntu-latest
@@ -21,10 +29,10 @@ jobs:
       config: ${{ steps.filter.outputs.config }}
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster }}
       backup_online_archive: ${{ steps.filter.outputs.backup_online_archive }}
-      shouldTriggerResourceTest: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || inputs.parent-event-name == 'release' }}
+      shouldTriggerResourceTest: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
     steps:
     - uses: actions/checkout@v4
-      if: ${{ github.event_name == 'push' ||  github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || inputs.parent-event-name == 'release' }}
+      if: ${{ github.event_name == 'push' ||  github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
     - uses: dorny/paths-filter@v2
       id: filter
       with:
@@ -60,6 +68,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.terraform_version }}
+          terraform_wrapper: false  
       - name: Migration Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
@@ -68,12 +80,6 @@ jobs:
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
           MONGODB_ATLAS_TEAMS_IDS: ${{ vars.MONGODB_ATLAS_TEAMS_IDS }}
-          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
-          TF_ACC: 1
-          PARALLEL_GO_TEST: 20
-          CI: true
           TEST_REGEX: "^TestAccMigrationProject"
         run: make testacc
   
@@ -95,6 +101,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.terraform_version }}
+          terraform_wrapper: false  
       - name: Migration Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV_NETWORK }}
@@ -102,16 +112,10 @@ jobs:
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV_NETWORK }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
-          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           MONGODB_ATLAS_USERNAME_CLOUD_DEV: ${{ vars.MONGODB_ATLAS_USERNAME_CLOUD_DEV }}
           AZURE_ATLAS_APP_ID: ${{vars.AZURE_ATLAS_APP_ID}}
           AZURE_SERVICE_PRINCIPAL_ID: ${{vars.AZURE_SERVICE_PRINCIPAL_ID}}
           AZURE_TENANT_ID: ${{vars.AZURE_TENANT_ID}}
-          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
-          TF_ACC: 1
-          PARALLEL_GO_TEST: 20
-          CI: true
           TEST_REGEX: "^TestAccMigrationConfig"
         run: make testacc
 
@@ -133,6 +137,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.terraform_version }}
+          terraform_wrapper: false  
       - name: Migration Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
@@ -140,11 +148,6 @@ jobs:
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
-          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
-          TF_ACC: 1
-          PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccMigrationBackup"
         run: make testacc
 
@@ -166,16 +169,15 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.terraform_version }}
+          terraform_wrapper: false    
       - name: Migration Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
-          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
-          TF_ACC: 1
-          PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccMigrationAdvancedCluster"
         run: make testacc
