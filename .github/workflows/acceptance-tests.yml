@@ -211,6 +211,14 @@ jobs:
 
   generic: # Acceptance tests that do not use any time-consuming resource (example: cluster)
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        terraform-version:
+          - '0.1.0'
+          - '1.0.8'
+          - '1.5.6'
+    name: Generic Acceptance Tests - ${{ matrix.terraform-version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -220,7 +228,7 @@ jobs:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ${{ vars.TF_VERSION_LATEST }}
+          terraform_version: ${{ matrix.terraform-version }}
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
