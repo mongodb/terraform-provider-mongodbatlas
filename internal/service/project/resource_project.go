@@ -833,7 +833,8 @@ Else retry
 */
 func resourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID *string, connV2 *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		clusters, _, err := connV2.ClustersApi.ListClusters(ctx, *projectID).Execute()
+		nonNullProjectID := conversion.StringPtrNullIfEmpty(projectID)
+		clusters, _, err := connV2.ClustersApi.ListClusters(ctx, nonNullProjectID.String()).Execute()
 		dependents := AtlasProjectDependants{AdvancedClusters: clusters}
 
 		if _, ok := admin.AsError(err); ok {
@@ -854,7 +855,7 @@ func resourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID
 			}
 		}
 
-		log.Printf("[DEBUG] status for MongoDB project %s dependents: %s", *projectID, projectDependentsStateDeleting)
+		log.Printf("[DEBUG] status for MongoDB project %s dependents: %s", nonNullProjectID, projectDependentsStateDeleting)
 
 		return dependents, projectDependentsStateDeleting, nil
 	}
