@@ -552,7 +552,7 @@ func getProjectPropsFromAPI(ctx context.Context, connV2 *admin.APIClient, projec
 func newTFProjectResourceModel(ctx context.Context, projectRes *admin.Group,
 	teams *admin.PaginatedTeamRole, projectSettings *admin.GroupSettings, limits []admin.DataFederationLimit) *tfProjectRSModel {
 	projectPlan := tfProjectRSModel{
-		ID:                        types.StringValue(*projectRes.Id),
+		ID:                        types.StringValue(projectRes.GetId()),
 		Name:                      types.StringValue(projectRes.Name),
 		OrgID:                     types.StringValue(projectRes.OrgId),
 		ClusterCount:              types.Int64Value(projectRes.ClusterCount),
