@@ -26,7 +26,7 @@ on:
 
 env:
     terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
-    MONGODB_ATLAS_LAST_VERSION: ${{ inputs.terraform_version }}
+    MONGODB_ATLAS_LAST_VERSION: ${{ inputs.provider_version }}
     # CI: true  # GH does this automatically
     TF_ACC: 1
     SKIP_TEST_EXTERNAL_CREDENTIALS: true
