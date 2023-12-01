@@ -9,7 +9,7 @@ jobs:
 
   mig-tests:
     strategy:
-      max-parallel: 10
+      max-parallel: 1
       fail-fast: false
       matrix:
         terraform_version: ['', '1.1.6', '1.0.8'] # '' for latest version
@@ -22,8 +22,10 @@ jobs:
       provider_version: ${{ matrix.provider_version }}
 
   acc-tests:
+    needs: mig-tests
+    if: ${{ !cancelled() }} # run acc tests even if mig tests fail
     strategy:
-      max-parallel: 10
+      max-parallel: 1
       fail-fast: false
       matrix:
         terraform_version: ['', '1.1.6', '1.0.8'] # '' for latest version
