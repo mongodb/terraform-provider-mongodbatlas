@@ -26,7 +26,6 @@ on:
 
 env:
     terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
-    MONGODB_ATLAS_LAST_VERSION: ${{ inputs.provider_version }}
     # CI: true  # GH does this automatically
     TF_ACC: 1
     SKIP_TEST_EXTERNAL_CREDENTIALS: true
@@ -34,18 +33,20 @@ env:
     ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
 
 jobs: 
-  set-provider-version:
+  last-release:
     runs-on: ubuntu-latest
+    outputs:
+      provider_version: ${{ steps.get_last_release.outputs.provider_version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Get Last Release
-        if: ${{ env.MONGODB_ATLAS_LAST_VERSION == ''}} # get last release if param is empty
+        id: get_last_release
         shell: bash
         run: |
          LAST_RELEASE=$(curl -sSfL -X GET https://api.github.com/repos/mongodb/terraform-provider-mongodbatlas/releases/latest | jq -r '.tag_name | ltrimstr("v")')
          echo "Last release: $LAST_RELEASE"
-         echo "MONGODB_ATLAS_LAST_VERSION=$LAST_RELEASE" >> $GITHUB_ENV
+         echo "provider_version=$LAST_RELEASE" >> $GITHUB_OUTPUT
 
   change-detection:
     runs-on: ubuntu-latest
@@ -79,7 +80,7 @@ jobs:
             - 'internal/service/advancedcluster/*.go'
 
   project: 
-    needs: [ change-detection, set-provider-version ]
+    needs: [ change-detection, last-release ]
     if: ${{ needs.change-detection.outputs.project == 'true' || github.event.label.name == 'run-testacc-project'||  needs.change-detection.outputs.shouldTriggerResourceTest == 'true'}}
     runs-on: ubuntu-latest
     steps:
@@ -95,6 +96,7 @@ jobs:
           terraform_wrapper: false  
       - name: Migration Tests
         env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ inputs.provider_version || needs.last-release.outputs.provider_version }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
@@ -105,7 +107,7 @@ jobs:
         run: make testacc
   
   config:
-    needs: [ change-detection, set-provider-version ]
+    needs: [ change-detection, last-release ]
     if: ${{ needs.change-detection.outputs.config == 'true' || github.event.label.name == 'run-testacc-config'||  needs.change-detection.outputs.shouldTriggerResourceTest == 'true'}}
     runs-on: ubuntu-latest
     steps:
@@ -121,6 +123,7 @@ jobs:
           terraform_wrapper: false  
       - name: Migration Tests
         env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ inputs.provider_version || needs.last-release.outputs.provider_version }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV_NETWORK }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV_NETWORK }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV_NETWORK }}
@@ -134,7 +137,7 @@ jobs:
         run: make testacc
 
   backup_online_archive:
-    needs: [ change-detection, set-provider-version ]
+    needs: [ change-detection, last-release ]
     if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || github.event.label.name == 'run-testacc-backup-online-archive'||  needs.change-detection.outputs.shouldTriggerResourceTest == 'true'}}
     runs-on: ubuntu-latest
     steps:
@@ -150,6 +153,7 @@ jobs:
           terraform_wrapper: false  
       - name: Migration Tests
         env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ inputs.provider_version || needs.last-release.outputs.provider_version }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
@@ -159,7 +163,7 @@ jobs:
         run: make testacc
 
   advanced_cluster:
-    needs: [ change-detection, set-provider-version ]
+    needs: [ change-detection, last-release ]
     if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || github.event.label.name == 'run-testacc-advanced-cluster'||  needs.change-detection.outputs.shouldTriggerResourceTest == 'true'}}
     runs-on: ubuntu-latest
     steps:
@@ -175,6 +179,7 @@ jobs:
           terraform_wrapper: false    
       - name: Migration Tests
         env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ inputs.provider_version || needs.last-release.outputs.provider_version }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
