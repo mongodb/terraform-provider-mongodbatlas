@@ -1,9 +1,8 @@
 name: 'Cleanup test env'
 
 on:
-  workflow_dispatch: {} # workflow can be run manually
-  schedule:
-    - cron: "0 3 * * *" # workflow runs every day at 03:00 AM
+  workflow_dispatch: # workflow can be run manually
+  workflow_call: # workflow runs from Test Suite
 
 jobs:  
   cleanup-test-env-general:
