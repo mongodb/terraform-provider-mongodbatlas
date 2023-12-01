@@ -23,21 +23,21 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group,
 		IsPerformanceAdvisorEnabled:                 types.BoolValue(*projectSettings.IsPerformanceAdvisorEnabled),
 		IsRealtimePerformancePanelEnabled:           types.BoolValue(*projectSettings.IsRealtimePerformancePanelEnabled),
 		IsSchemaAdvisorEnabled:                      types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled),
-		Teams:                                       newTFTeamsDataSourceModel(ctx, teams),
-		Limits:                                      newTFLimitsDataSourceModel(ctx, limits),
+		Teams:                                       NewTFTeamsDataSourceModel(ctx, teams),
+		Limits:                                      NewTFLimitsDataSourceModel(ctx, limits),
 	}
 }
 
-func newTFTeamsDataSourceModel(ctx context.Context, atlasTeams *admin.PaginatedTeamRole) []*tfTeamDSModel {
+func NewTFTeamsDataSourceModel(ctx context.Context, atlasTeams *admin.PaginatedTeamRole) []*TfTeamDSModel {
 	if atlasTeams.GetTotalCount() == 0 {
 		return nil
 	}
-	teams := make([]*tfTeamDSModel, len(atlasTeams.Results))
+	teams := make([]*TfTeamDSModel, len(atlasTeams.Results))
 
 	for i, atlasTeam := range atlasTeams.Results {
 		roleNames, _ := types.ListValueFrom(ctx, types.StringType, atlasTeam.RoleNames)
 
-		teams[i] = &tfTeamDSModel{
+		teams[i] = &TfTeamDSModel{
 			TeamID:    types.StringValue(atlasTeam.GetTeamId()),
 			RoleNames: roleNames,
 		}
@@ -45,7 +45,7 @@ func newTFTeamsDataSourceModel(ctx context.Context, atlasTeams *admin.PaginatedT
 	return teams
 }
 
-func newTFLimitsDataSourceModel(ctx context.Context, dataFederationLimits []admin.DataFederationLimit) []*TfLimitModel {
+func NewTFLimitsDataSourceModel(ctx context.Context, dataFederationLimits []admin.DataFederationLimit) []*TfLimitModel {
 	limits := make([]*TfLimitModel, len(dataFederationLimits))
 
 	for i, dataFederationLimit := range dataFederationLimits {

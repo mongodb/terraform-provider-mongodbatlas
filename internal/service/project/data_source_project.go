@@ -38,7 +38,7 @@ type TfProjectDSModel struct {
 	Created                                     types.String     `tfsdk:"created"`
 	ID                                          types.String     `tfsdk:"id"`
 	Limits                                      []*TfLimitModel  `tfsdk:"limits"`
-	Teams                                       []*tfTeamDSModel `tfsdk:"teams"`
+	Teams                                       []*TfTeamDSModel `tfsdk:"teams"`
 	ClusterCount                                types.Int64      `tfsdk:"cluster_count"`
 	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool       `tfsdk:"is_collect_database_specifics_statistics_enabled"`
 	IsRealtimePerformancePanelEnabled           types.Bool       `tfsdk:"is_realtime_performance_panel_enabled"`
@@ -48,7 +48,7 @@ type TfProjectDSModel struct {
 	IsDataExplorerEnabled                       types.Bool       `tfsdk:"is_data_explorer_enabled"`
 }
 
-type tfTeamDSModel struct {
+type TfTeamDSModel struct {
 	TeamID    types.String `tfsdk:"team_id"`
 	RoleNames types.List   `tfsdk:"role_names"`
 }
