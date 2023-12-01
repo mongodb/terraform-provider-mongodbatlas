@@ -6,31 +6,31 @@ on:
     - cron: "0 2 * * *" # workflow runs every day at 02:00 AM
   
 jobs:
-  acc-tests:
-    strategy:
-      max-parallel: 1
-      fail-fast: false
-      matrix:
-        terraform_version: ['${{ vars.TF_VERSION_LATEST }}', '1.0.8']
-    name: acc-tests-${{ matrix.terraform_version }}
-    secrets: inherit
-    permissions:
-      contents: write
-      pull-requests: read
-      repository-projects: read
-    uses: ./.github/workflows/acceptance-tests.yml
-    with:
-      terraform_version: ${{ matrix.terraform_version }}
 
-  migration-tests:
-    needs: acc-tests
+  mig-tests:
     strategy:
       max-parallel: 1
       fail-fast: false
       matrix:
-        terraform_version: ['${{ vars.TF_VERSION_LATEST }}', '1.0.8']
-    name: migration-tests-${{ matrix.terraform_version }}
+        terraform_version: ['', '1.1.6', '1.0.8'] # '' for latest version
+        provider_version: ['', '1.11.1'] # '' for latest version
+    name: mig-tests-${{ matrix.terraform_version || 'latest' }}-${{ matrix.provider_version || 'latest' }}
     secrets: inherit
     uses: ./.github/workflows/migration-tests.yml
+    with:
+      terraform_version: ${{ matrix.terraform_version }}
+      provider_version: ${{ matrix.provider_version }}
+
+  acc-tests:
+    needs: mig-tests
+    if: ${{ !cancelled() }} # run acc tests even if mig tests fail
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix:
+        terraform_version: ['', '1.1.6', '1.0.8'] # '' for latest version
+    name: acc-tests-${{ matrix.terraform_version || 'latest' }}
+    secrets: inherit
+    uses: ./.github/workflows/acceptance-tests.yml
     with:
       terraform_version: ${{ matrix.terraform_version }}
