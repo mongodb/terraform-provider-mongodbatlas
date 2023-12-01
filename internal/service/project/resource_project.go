@@ -361,7 +361,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	atlasLimits = filterUserDefinedLimits(atlasLimits, limits)
-	projectPlanNew := newTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
+	projectPlanNew := NewTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
 	updatePlanFromConfig(projectPlanNew, &projectPlan)
 
 	// set state to fully populated data
@@ -407,7 +407,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	atlasLimits = filterUserDefinedLimits(atlasLimits, limits)
-	projectStateNew := newTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
+	projectStateNew := NewTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
 	updatePlanFromConfig(projectStateNew, &projectState)
 
 	// save read data into Terraform state
@@ -477,7 +477,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	var planLimits []tfLimitModel
 	_ = projectPlan.Limits.ElementsAs(ctx, &planLimits, false)
 	atlasLimits = filterUserDefinedLimits(atlasLimits, planLimits)
-	projectPlanNew := newTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
+	projectPlanNew := NewTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
 	updatePlanFromConfig(projectPlanNew, &projectPlan)
 
 	// save updated data into Terraform state
@@ -547,64 +547,6 @@ func getProjectPropsFromAPI(ctx context.Context, connV2 *admin.APIClient, projec
 	}
 
 	return teams, limits, projectSettings, nil
-}
-
-func newTFProjectResourceModel(ctx context.Context, projectRes *admin.Group,
-	teams *admin.PaginatedTeamRole, projectSettings *admin.GroupSettings, limits []admin.DataFederationLimit) *tfProjectRSModel {
-	projectPlan := tfProjectRSModel{
-		ID:                        types.StringValue(projectRes.GetId()),
-		Name:                      types.StringValue(projectRes.Name),
-		OrgID:                     types.StringValue(projectRes.OrgId),
-		ClusterCount:              types.Int64Value(projectRes.ClusterCount),
-		Created:                   types.StringValue(conversion.TimeToString(projectRes.Created)),
-		WithDefaultAlertsSettings: types.BoolPointerValue(projectRes.WithDefaultAlertsSettings),
-		Teams:                     newTFTeamsResourceModel(ctx, teams),
-		Limits:                    newTFLimitsResourceModel(ctx, limits),
-	}
-
-	if projectSettings != nil {
-		projectPlan.IsCollectDatabaseSpecificsStatisticsEnabled = types.BoolValue(*projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled)
-		projectPlan.IsDataExplorerEnabled = types.BoolValue(*projectSettings.IsDataExplorerEnabled)
-		projectPlan.IsExtendedStorageSizesEnabled = types.BoolValue(*projectSettings.IsExtendedStorageSizesEnabled)
-		projectPlan.IsPerformanceAdvisorEnabled = types.BoolValue(*projectSettings.IsPerformanceAdvisorEnabled)
-		projectPlan.IsRealtimePerformancePanelEnabled = types.BoolValue(*projectSettings.IsRealtimePerformancePanelEnabled)
-		projectPlan.IsSchemaAdvisorEnabled = types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled)
-	}
-
-	return &projectPlan
-}
-
-func newTFLimitsResourceModel(ctx context.Context, dataFederationLimits []admin.DataFederationLimit) types.Set {
-	limits := make([]tfLimitModel, len(dataFederationLimits))
-
-	for i, dataFederationLimit := range dataFederationLimits {
-		limits[i] = tfLimitModel{
-			Name:         types.StringValue(dataFederationLimit.Name),
-			Value:        types.Int64Value(dataFederationLimit.Value),
-			CurrentUsage: types.Int64PointerValue(dataFederationLimit.CurrentUsage),
-			DefaultLimit: types.Int64PointerValue(dataFederationLimit.DefaultLimit),
-			MaximumLimit: types.Int64PointerValue(dataFederationLimit.MaximumLimit),
-		}
-	}
-
-	s, _ := types.SetValueFrom(ctx, tfLimitObjectType, limits)
-	return s
-}
-
-func newTFTeamsResourceModel(ctx context.Context, atlasTeams *admin.PaginatedTeamRole) types.Set {
-	teams := make([]tfTeamModel, len(atlasTeams.Results))
-
-	for i, atlasTeam := range atlasTeams.Results {
-		roleNames, _ := types.SetValueFrom(ctx, types.StringType, atlasTeam.RoleNames)
-
-		teams[i] = tfTeamModel{
-			TeamID:    types.StringValue(atlasTeam.GetTeamId()),
-			RoleNames: roleNames,
-		}
-	}
-
-	s, _ := types.SetValueFrom(ctx, tfTeamObjectType, teams)
-	return s
 }
 
 func toAtlasProjectTeams(ctx context.Context, teams []tfTeamModel) *[]admin.TeamRole {
