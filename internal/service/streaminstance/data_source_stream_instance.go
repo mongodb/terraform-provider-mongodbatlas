@@ -26,31 +26,37 @@ type streamInstanceDS struct {
 
 func (d *streamInstanceDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-			},
-			"instance_name": schema.StringAttribute{
-				Required: true,
-			},
-			"project_id": schema.StringAttribute{
-				Required: true,
-			},
-			"data_process_region": schema.SingleNestedAttribute{
-				Computed: true,
-				Attributes: map[string]schema.Attribute{
-					"cloud_provider": schema.StringAttribute{
-						Computed: true,
-					},
-					"region": schema.StringAttribute{
-						Computed: true,
-					},
+		Attributes: DSAttributes(true),
+	}
+}
+
+func DSAttributes(definingArguments bool) map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Computed: true,
+		},
+		"instance_name": schema.StringAttribute{
+			Required: definingArguments,
+			Computed: !definingArguments,
+		},
+		"project_id": schema.StringAttribute{
+			Required: definingArguments,
+			Computed: !definingArguments,
+		},
+		"data_process_region": schema.SingleNestedAttribute{
+			Computed: true,
+			Attributes: map[string]schema.Attribute{
+				"cloud_provider": schema.StringAttribute{
+					Computed: true,
+				},
+				"region": schema.StringAttribute{
+					Computed: true,
 				},
 			},
-			"hostnames": schema.ListAttribute{
-				ElementType: types.StringType,
-				Computed:    true,
-			},
+		},
+		"hostnames": schema.ListAttribute{
+			ElementType: types.StringType,
+			Computed:    true,
 		},
 	}
 }
