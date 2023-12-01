@@ -193,9 +193,6 @@ func (r *streamInstanceRS) ImportState(ctx context.Context, req resource.ImportS
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("instance_name"), instanceName)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func splitStreamInstanceImportID(id string) (projectID, instanceName string, err error) {
