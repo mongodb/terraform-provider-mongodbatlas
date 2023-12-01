@@ -7,7 +7,12 @@ on:
   
 jobs:
 
+  clean-before:
+    uses: ./.github/workflows/cleanup-test-env.yml
+
   mig-tests:
+    needs: clean-before
+    if: ${{ !cancelled() }}
     strategy:
       max-parallel: 1
       fail-fast: false
@@ -23,7 +28,7 @@ jobs:
 
   acc-tests:
     needs: mig-tests
-    if: ${{ !cancelled() }} # run acc tests even if mig tests fail
+    if: ${{ !cancelled() }}
     strategy:
       max-parallel: 1
       fail-fast: false
@@ -34,3 +39,9 @@ jobs:
     uses: ./.github/workflows/acceptance-tests.yml
     with:
       terraform_version: ${{ matrix.terraform_version }}
+
+  clean-after:
+    needs: acc-tests
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/cleanup-test-env.yml
+  
