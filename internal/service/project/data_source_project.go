@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -13,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -144,7 +144,6 @@ func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, re
 
 func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var projectState tfProjectDSModel
-	conn := d.Client.Atlas
 	connV2 := d.Client.AtlasV2
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &projectState)...)
@@ -156,28 +155,28 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 
 	var (
 		err     error
-		project *matlas.Project
+		project *admin.Group
 	)
 
 	if !projectState.ProjectID.IsNull() {
 		projectID := projectState.ProjectID.ValueString()
-		project, _, err = conn.Projects.GetOneProject(ctx, projectID)
+		project, _, err = connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("error when getting project from Atlas", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 			return
 		}
 	} else {
 		name := projectState.Name.ValueString()
-		project, _, err = conn.Projects.GetOneProjectByName(ctx, name)
+		project, _, err = connV2.ProjectsApi.GetProjectByName(ctx, name).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("error when getting project from Atlas", fmt.Sprintf(ErrorProjectRead, name, err.Error()))
 			return
 		}
 	}
 
-	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, project.ID)
+	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, connV2, project.GetId())
 	if err != nil {
-		resp.Diagnostics.AddError("error when getting project properties", fmt.Sprintf(ErrorProjectRead, project.ID, err.Error()))
+		resp.Diagnostics.AddError("error when getting project properties", fmt.Sprintf(ErrorProjectRead, project.GetId(), err.Error()))
 		return
 	}
 
@@ -189,15 +188,15 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 	}
 }
 
-func newTFProjectDataSourceModel(ctx context.Context, project *matlas.Project,
-	teams *matlas.TeamsAssigned, projectSettings *matlas.ProjectSettings, limits []admin.DataFederationLimit) tfProjectDSModel {
+func newTFProjectDataSourceModel(ctx context.Context, project *admin.Group,
+	teams *admin.PaginatedTeamRole, projectSettings *admin.GroupSettings, limits []admin.DataFederationLimit) tfProjectDSModel {
 	return tfProjectDSModel{
-		ID:           types.StringValue(project.ID),
-		ProjectID:    types.StringValue(project.ID),
+		ID:           types.StringValue(project.GetId()),
+		ProjectID:    types.StringValue(project.GetId()),
 		Name:         types.StringValue(project.Name),
-		OrgID:        types.StringValue(project.OrgID),
-		ClusterCount: types.Int64Value(int64(project.ClusterCount)),
-		Created:      types.StringValue(project.Created),
+		OrgID:        types.StringValue(project.OrgId),
+		ClusterCount: types.Int64Value(project.ClusterCount),
+		Created:      types.StringValue(conversion.TimeToString(project.Created)),
 		IsCollectDatabaseSpecificsStatisticsEnabled: types.BoolValue(*projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled),
 		IsDataExplorerEnabled:                       types.BoolValue(*projectSettings.IsDataExplorerEnabled),
 		IsExtendedStorageSizesEnabled:               types.BoolValue(*projectSettings.IsExtendedStorageSizesEnabled),
@@ -209,8 +208,8 @@ func newTFProjectDataSourceModel(ctx context.Context, project *matlas.Project,
 	}
 }
 
-func newTFTeamsDataSourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned) []*tfTeamDSModel {
-	if atlasTeams.TotalCount == 0 {
+func newTFTeamsDataSourceModel(ctx context.Context, atlasTeams *admin.PaginatedTeamRole) []*tfTeamDSModel {
+	if atlasTeams.GetTotalCount() == 0 {
 		return nil
 	}
 	teams := make([]*tfTeamDSModel, len(atlasTeams.Results))
@@ -219,7 +218,7 @@ func newTFTeamsDataSourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssi
 		roleNames, _ := types.ListValueFrom(ctx, types.StringType, atlasTeam.RoleNames)
 
 		teams[i] = &tfTeamDSModel{
-			TeamID:    types.StringValue(atlasTeam.TeamID),
+			TeamID:    types.StringValue(atlasTeam.GetTeamId()),
 			RoleNames: roleNames,
 		}
 	}

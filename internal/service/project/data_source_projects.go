@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const projectsDataSourceName = "projects"
@@ -143,22 +143,21 @@ func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, r
 
 func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var stateModel tfProjectsDSModel
-	conn := d.Client.Atlas
 	connV2 := d.Client.AtlasV2
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &stateModel)...)
-	options := &matlas.ListOptions{
-		PageNum:      int(stateModel.PageNum.ValueInt64()),
-		ItemsPerPage: int(stateModel.ItemsPerPage.ValueInt64()),
-	}
 
-	projectsRes, _, err := conn.Projects.GetAllProjects(ctx, options)
+	projectParams := &admin.ListProjectsApiParams{
+		PageNum:      conversion.IntPtr(int(stateModel.PageNum.ValueInt64())),
+		ItemsPerPage: conversion.IntPtr(int(stateModel.ItemsPerPage.ValueInt64())),
+	}
+	projectsRes, _, err := connV2.ProjectsApi.ListProjectsWithParams(ctx, projectParams).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error in monogbatlas_projects data source", fmt.Sprintf("error getting projects information: %s", err.Error()))
 		return
 	}
 
-	err = populateProjectsDataSourceModel(ctx, conn, connV2, &stateModel, projectsRes)
+	err = populateProjectsDataSourceModel(ctx, connV2, &stateModel, projectsRes)
 	if err != nil {
 		resp.Diagnostics.AddError("error in monogbatlas_projects data source", err.Error())
 		return
@@ -170,17 +169,18 @@ func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 	}
 }
 
-func populateProjectsDataSourceModel(ctx context.Context, conn *matlas.Client, connV2 *admin.APIClient, stateModel *tfProjectsDSModel, projectsRes *matlas.Projects) error {
+func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClient, stateModel *tfProjectsDSModel, projectsRes *admin.PaginatedAtlasGroup) error {
 	results := make([]*tfProjectDSModel, 0, len(projectsRes.Results))
-	for _, project := range projectsRes.Results {
-		atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, project.ID)
+	for i := range projectsRes.Results {
+		project := projectsRes.Results[i]
+		atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, connV2, project.GetId())
 		if err == nil { // if the project is still valid, e.g. could have just been deleted
-			projectModel := newTFProjectDataSourceModel(ctx, project, atlasTeams, atlasProjectSettings, atlasLimits)
+			projectModel := newTFProjectDataSourceModel(ctx, &project, atlasTeams, atlasProjectSettings, atlasLimits)
 			results = append(results, &projectModel)
 		}
 	}
 	stateModel.Results = results
-	stateModel.TotalCount = types.Int64Value(int64(projectsRes.TotalCount))
+	stateModel.TotalCount = types.Int64Value(int64(projectsRes.GetTotalCount()))
 	stateModel.ID = types.StringValue(id.UniqueId())
 	return nil
 }
