@@ -58,9 +58,9 @@ var (
 		},
 	}
 	projectSDK = admin.Group{
-		Id:           admin.PtrString(projectId),
+		Id:           admin.PtrString(projectID),
 		Name:         projectName,
-		OrgId:        projectOrgId,
+		OrgId:        projectOrgID,
 		ClusterCount: int64(clusterCount),
 	}
 	projectSettingsSDK = admin.GroupSettings{
@@ -148,10 +148,10 @@ func TestProjectDataSourceSDKToTFModel(t *testing.T) {
 			dataFederationLimits: limitsSDK,
 			expectedTFModel: project.TfProjectDSModel{
 
-				ID:           types.StringValue(projectId),
-				ProjectID:    types.StringValue(projectId),
+				ID:           types.StringValue(projectID),
+				ProjectID:    types.StringValue(projectID),
 				Name:         types.StringValue(projectName),
-				OrgID:        types.StringValue(projectOrgId),
+				OrgID:        types.StringValue(projectOrgID),
 				ClusterCount: types.Int64Value(clusterCount),
 				IsCollectDatabaseSpecificsStatisticsEnabled: types.BoolValue(true),
 				IsDataExplorerEnabled:                       types.BoolValue(true),
