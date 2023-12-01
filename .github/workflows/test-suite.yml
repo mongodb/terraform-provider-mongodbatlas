@@ -8,6 +8,7 @@ on:
 jobs:
 
   clean-before:
+    secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
 
   mig-tests:
@@ -43,5 +44,6 @@ jobs:
   clean-after:
     needs: acc-tests
     if: ${{ !cancelled() }}
+    secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
   
