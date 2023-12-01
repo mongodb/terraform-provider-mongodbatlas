@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
@@ -146,7 +147,11 @@ func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &stateModel)...)
 
-	projectsRes, _, err := connV2.ProjectsApi.ListProjects(ctx).Execute()
+	projectParams := &admin.ListProjectsApiParams{
+		PageNum:      conversion.IntPtr(int(stateModel.PageNum.ValueInt64())),
+		ItemsPerPage: conversion.IntPtr(int(stateModel.ItemsPerPage.ValueInt64())),
+	}
+	projectsRes, _, err := connV2.ProjectsApi.ListProjectsWithParams(ctx, projectParams).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error in monogbatlas_projects data source", fmt.Sprintf("error getting projects information: %s", err.Error()))
 		return
