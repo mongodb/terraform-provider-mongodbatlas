@@ -17,9 +17,9 @@ const (
 	limitCurrentUsage   = int64(64)
 	limitDefaultLimit   = int64(32)
 	limitMaximumLimit   = int64(16)
-	projectId           = "projectId"
+	projectID           = "projectId"
 	projectName         = "projectName"
-	projectOrgId        = "orgId"
+	projectOrgID        = "orgId"
 	projectClusterCount = int64(1)
 	clusterCount        = 1
 )
