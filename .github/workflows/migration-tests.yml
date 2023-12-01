@@ -85,13 +85,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Get Last Release
-        id: get_last_release
-        run: |
-         LAST_RELEASE=$(curl -sSfL -X GET https://api.github.com/repos/mongodb/terraform-provider-mongodbatlas/releases/latest | jq -r '.tag_name | ltrimstr("v")')
-         echo "Last release: $LAST_RELEASE"
-         echo "MONGODB_ATLAS_LAST_VERSION=$LAST_RELEASE" >> $GITHUB_ENV
-        shell: bash
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -118,13 +111,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Get Last Release
-        id: get_last_release
-        run: |
-         LAST_RELEASE=$(curl -sSfL -X GET https://api.github.com/repos/mongodb/terraform-provider-mongodbatlas/releases/latest | jq -r '.tag_name | ltrimstr("v")')
-         echo "Last release: $LAST_RELEASE"
-         echo "MONGODB_ATLAS_LAST_VERSION=$LAST_RELEASE" >> $GITHUB_ENV
-        shell: bash
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -154,13 +140,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Get Last Release
-        id: get_last_release
-        run: |
-         LAST_RELEASE=$(curl -sSfL -X GET https://api.github.com/repos/mongodb/terraform-provider-mongodbatlas/releases/latest | jq -r '.tag_name | ltrimstr("v")')
-         echo "Last release: $LAST_RELEASE"
-         echo "MONGODB_ATLAS_LAST_VERSION=$LAST_RELEASE" >> $GITHUB_ENV
-        shell: bash
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -186,13 +165,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Get Last Release
-        id: get_last_release
-        run: |
-          LAST_RELEASE=$(curl -sSfL -X GET https://api.github.com/repos/mongodb/terraform-provider-mongodbatlas/releases/latest | jq -r '.tag_name | ltrimstr("v")')
-          echo "Last release: $LAST_RELEASE"
-          echo "MONGODB_ATLAS_LAST_VERSION=$LAST_RELEASE" >> $GITHUB_ENV
-        shell: bash
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
