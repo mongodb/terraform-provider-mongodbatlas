@@ -6,9 +6,9 @@ description: |-
 Describes a Stream Instance.
 ---
 
-# Data Source: mongodbatlas_stream_intance
+# Data Source: mongodbatlas_stream_instance
 
-`mongodbatlas_stream_intance` describes a stream instance.
+`mongodbatlas_stream_instance` describes a stream instance.
 
 ## Example Usage
 
@@ -35,4 +35,4 @@ data "mongodbatlas_stream_instance" "example" {
 * `cloud_provider` - Label that identifies the cloud service provider where MongoDB Cloud performs stream processing. The [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/createStreamInstance) describes the valid values.
 * `region` - Name of the cloud provider region hosting Atlas Stream Processing. The [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/createStreamInstance) describes the valid values.
 
-For more information see: [MongoDB Atlas API - Stream Instance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/createStreamInstance) Documentation.
+To learn more, see: [MongoDB Atlas API - Stream Instance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/createStreamInstance) Documentation.
