@@ -7,14 +7,14 @@ on:
   
 jobs:
 
-  migration-tests:
+  mig-tests:
     strategy:
       max-parallel: 1
       fail-fast: false
       matrix:
         terraform_version: ['', '1.0.8'] # '' for latest version
         provider_version: ['', '1.11.1'] # '' for latest version
-    name: migration-tests-${{ matrix.terraform_version }}-${{ matrix.provider_version }}
+    name: mig-tests-${{ matrix.terraform_version }}-${{ matrix.provider_version }}
     secrets: inherit
     uses: ./.github/workflows/migration-tests.yml
     with:
@@ -22,8 +22,8 @@ jobs:
       provider_version: ${{ matrix.provider_version }}
 
   acc-tests:
-    needs: migration-tests
-    if: ${{ !cancelled() }} # run acc tests even if migration tests fail
+    needs: mig-tests
+    if: ${{ !cancelled() }} # run acc tests even if mig tests fail
     strategy:
       max-parallel: 1
       fail-fast: false
