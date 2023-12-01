@@ -173,7 +173,7 @@ func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClien
 	results := make([]*tfProjectDSModel, 0, len(projectsRes.Results))
 	for i := range projectsRes.Results {
 		project := projectsRes.Results[i]
-		atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, connV2, projectsRes.Results[i].GetId())
+		atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, connV2, project.GetId())
 		if err == nil { // if the project is still valid, e.g. could have just been deleted
 			projectModel := newTFProjectDataSourceModel(ctx, &project, atlasTeams, atlasProjectSettings, atlasLimits)
 			results = append(results, &projectModel)
