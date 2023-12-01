@@ -33,10 +33,10 @@ env:
     ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
 
 jobs: 
-  last-release:
+  get-provider-version:
     runs-on: ubuntu-latest
     outputs:
-      provider_version: ${{ steps.get_last_release.outputs.provider_version }}
+      provider_version: ${{ inputs.provider_version || steps.get_last_release.outputs.last_provider_version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,7 +46,7 @@ jobs:
         run: |
          LAST_RELEASE=$(curl -sSfL -X GET https://api.github.com/repos/mongodb/terraform-provider-mongodbatlas/releases/latest | jq -r '.tag_name | ltrimstr("v")')
          echo "Last release: $LAST_RELEASE"
-         echo "provider_version=$LAST_RELEASE" >> $GITHUB_OUTPUT
+         echo "last_provider_version=$LAST_RELEASE" >> $GITHUB_OUTPUT
 
   change-detection:
     runs-on: ubuntu-latest
@@ -80,7 +80,7 @@ jobs:
             - 'internal/service/advancedcluster/*.go'
 
   project: 
-    needs: [ change-detection, last-release ]
+    needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.project == 'true' || github.event.label.name == 'run-testacc-project'||  needs.change-detection.outputs.shouldTriggerResourceTest == 'true'}}
     runs-on: ubuntu-latest
     steps:
@@ -102,12 +102,12 @@ jobs:
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
           MONGODB_ATLAS_TEAMS_IDS: ${{ vars.MONGODB_ATLAS_TEAMS_IDS }}
-          MONGODB_ATLAS_LAST_VERSION: ${{ inputs.provider_version || needs.last-release.outputs.provider_version }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           TEST_REGEX: "^TestAccMigrationProject"
         run: make testacc
   
   config:
-    needs: [ change-detection, last-release ]
+    needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.config == 'true' || github.event.label.name == 'run-testacc-config'||  needs.change-detection.outputs.shouldTriggerResourceTest == 'true'}}
     runs-on: ubuntu-latest
     steps:
@@ -132,12 +132,12 @@ jobs:
           AZURE_ATLAS_APP_ID: ${{vars.AZURE_ATLAS_APP_ID}}
           AZURE_SERVICE_PRINCIPAL_ID: ${{vars.AZURE_SERVICE_PRINCIPAL_ID}}
           AZURE_TENANT_ID: ${{vars.AZURE_TENANT_ID}}
-          MONGODB_ATLAS_LAST_VERSION: ${{ inputs.provider_version || needs.last-release.outputs.provider_version }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           TEST_REGEX: "^TestAccMigrationConfig"
         run: make testacc
 
   backup_online_archive:
-    needs: [ change-detection, last-release ]
+    needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || github.event.label.name == 'run-testacc-backup-online-archive'||  needs.change-detection.outputs.shouldTriggerResourceTest == 'true'}}
     runs-on: ubuntu-latest
     steps:
@@ -158,12 +158,12 @@ jobs:
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
-          MONGODB_ATLAS_LAST_VERSION: ${{ inputs.provider_version || needs.last-release.outputs.provider_version }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           TEST_REGEX: "^TestAccMigrationBackup"
         run: make testacc
 
   advanced_cluster:
-    needs: [ change-detection, last-release ]
+    needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || github.event.label.name == 'run-testacc-advanced-cluster'||  needs.change-detection.outputs.shouldTriggerResourceTest == 'true'}}
     runs-on: ubuntu-latest
     steps:
@@ -183,6 +183,6 @@ jobs:
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
-          MONGODB_ATLAS_LAST_VERSION: ${{ inputs.provider_version || needs.last-release.outputs.provider_version }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           TEST_REGEX: "^TestAccMigrationAdvancedCluster"
         run: make testacc
