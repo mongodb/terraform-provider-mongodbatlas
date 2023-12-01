@@ -598,7 +598,7 @@ func newTFTeamsResourceModel(ctx context.Context, atlasTeams *admin.PaginatedTea
 		roleNames, _ := types.SetValueFrom(ctx, types.StringType, atlasTeam.RoleNames)
 
 		teams[i] = tfTeamModel{
-			TeamID:    types.StringValue(*atlasTeam.TeamId),
+			TeamID:    types.StringValue(atlasTeam.GetTeamId()),
 			RoleNames: roleNames,
 		}
 	}
