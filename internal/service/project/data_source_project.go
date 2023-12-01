@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -31,14 +30,14 @@ type projectDS struct {
 	config.DSCommon
 }
 
-type tfProjectDSModel struct {
+type TfProjectDSModel struct {
 	RegionUsageRestrictions                     types.String     `tfsdk:"region_usage_restrictions"`
 	ProjectID                                   types.String     `tfsdk:"project_id"`
 	Name                                        types.String     `tfsdk:"name"`
 	OrgID                                       types.String     `tfsdk:"org_id"`
 	Created                                     types.String     `tfsdk:"created"`
 	ID                                          types.String     `tfsdk:"id"`
-	Limits                                      []*tfLimitModel  `tfsdk:"limits"`
+	Limits                                      []*TfLimitModel  `tfsdk:"limits"`
 	Teams                                       []*tfTeamDSModel `tfsdk:"teams"`
 	ClusterCount                                types.Int64      `tfsdk:"cluster_count"`
 	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool       `tfsdk:"is_collect_database_specifics_statistics_enabled"`
@@ -143,7 +142,7 @@ func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, re
 }
 
 func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var projectState tfProjectDSModel
+	var projectState TfProjectDSModel
 	connV2 := d.Client.AtlasV2
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &projectState)...)
@@ -180,63 +179,10 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		return
 	}
 
-	projectState = newTFProjectDataSourceModel(ctx, project, atlasTeams, atlasProjectSettings, atlasLimits)
+	projectState = NewTFProjectDataSourceModel(ctx, project, atlasTeams, atlasProjectSettings, atlasLimits)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &projectState)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-}
-
-func newTFProjectDataSourceModel(ctx context.Context, project *admin.Group,
-	teams *admin.PaginatedTeamRole, projectSettings *admin.GroupSettings, limits []admin.DataFederationLimit) tfProjectDSModel {
-	return tfProjectDSModel{
-		ID:           types.StringValue(project.GetId()),
-		ProjectID:    types.StringValue(project.GetId()),
-		Name:         types.StringValue(project.Name),
-		OrgID:        types.StringValue(project.OrgId),
-		ClusterCount: types.Int64Value(project.ClusterCount),
-		Created:      types.StringValue(conversion.TimeToString(project.Created)),
-		IsCollectDatabaseSpecificsStatisticsEnabled: types.BoolValue(*projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled),
-		IsDataExplorerEnabled:                       types.BoolValue(*projectSettings.IsDataExplorerEnabled),
-		IsExtendedStorageSizesEnabled:               types.BoolValue(*projectSettings.IsExtendedStorageSizesEnabled),
-		IsPerformanceAdvisorEnabled:                 types.BoolValue(*projectSettings.IsPerformanceAdvisorEnabled),
-		IsRealtimePerformancePanelEnabled:           types.BoolValue(*projectSettings.IsRealtimePerformancePanelEnabled),
-		IsSchemaAdvisorEnabled:                      types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled),
-		Teams:                                       newTFTeamsDataSourceModel(ctx, teams),
-		Limits:                                      newTFLimitsDataSourceModel(ctx, limits),
-	}
-}
-
-func newTFTeamsDataSourceModel(ctx context.Context, atlasTeams *admin.PaginatedTeamRole) []*tfTeamDSModel {
-	if atlasTeams.GetTotalCount() == 0 {
-		return nil
-	}
-	teams := make([]*tfTeamDSModel, len(atlasTeams.Results))
-
-	for i, atlasTeam := range atlasTeams.Results {
-		roleNames, _ := types.ListValueFrom(ctx, types.StringType, atlasTeam.RoleNames)
-
-		teams[i] = &tfTeamDSModel{
-			TeamID:    types.StringValue(atlasTeam.GetTeamId()),
-			RoleNames: roleNames,
-		}
-	}
-	return teams
-}
-
-func newTFLimitsDataSourceModel(ctx context.Context, dataFederationLimits []admin.DataFederationLimit) []*tfLimitModel {
-	limits := make([]*tfLimitModel, len(dataFederationLimits))
-
-	for i, dataFederationLimit := range dataFederationLimits {
-		limits[i] = &tfLimitModel{
-			Name:         types.StringValue(dataFederationLimit.Name),
-			Value:        types.Int64Value(dataFederationLimit.Value),
-			CurrentUsage: types.Int64PointerValue(dataFederationLimit.CurrentUsage),
-			DefaultLimit: types.Int64PointerValue(dataFederationLimit.DefaultLimit),
-			MaximumLimit: types.Int64PointerValue(dataFederationLimit.MaximumLimit),
-		}
-	}
-
-	return limits
 }
