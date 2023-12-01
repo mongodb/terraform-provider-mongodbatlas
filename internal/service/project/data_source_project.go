@@ -176,7 +176,7 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 
 	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, connV2, *project.Id)
 	if err != nil {
-		resp.Diagnostics.AddError("error when getting project properties", fmt.Sprintf(ErrorProjectRead, *project.Id, err.Error()))
+		resp.Diagnostics.AddError("error when getting project properties", fmt.Sprintf(ErrorProjectRead, project.GetId(), err.Error()))
 		return
 	}
 
@@ -191,8 +191,8 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 func newTFProjectDataSourceModel(ctx context.Context, project *admin.Group,
 	teams *admin.PaginatedTeamRole, projectSettings *admin.GroupSettings, limits []admin.DataFederationLimit) tfProjectDSModel {
 	return tfProjectDSModel{
-		ID:           types.StringValue(*project.Id),
-		ProjectID:    types.StringValue(*project.Id),
+		ID:           types.StringValue(project.GetId()),
+		ProjectID:    types.StringValue(project.GetId()),
 		Name:         types.StringValue(project.Name),
 		OrgID:        types.StringValue(project.OrgId),
 		ClusterCount: types.Int64Value(project.ClusterCount),
@@ -209,7 +209,7 @@ func newTFProjectDataSourceModel(ctx context.Context, project *admin.Group,
 }
 
 func newTFTeamsDataSourceModel(ctx context.Context, atlasTeams *admin.PaginatedTeamRole) []*tfTeamDSModel {
-	if *atlasTeams.TotalCount == 0 {
+	if atlasTeams.GetTotalCount() == 0 {
 		return nil
 	}
 	teams := make([]*tfTeamDSModel, len(atlasTeams.Results))
@@ -218,7 +218,7 @@ func newTFTeamsDataSourceModel(ctx context.Context, atlasTeams *admin.PaginatedT
 		roleNames, _ := types.ListValueFrom(ctx, types.StringType, atlasTeam.RoleNames)
 
 		teams[i] = &tfTeamDSModel{
-			TeamID:    types.StringValue(*atlasTeam.TeamId),
+			TeamID:    types.StringValue(atlasTeam.GetTeamId()),
 			RoleNames: roleNames,
 		}
 	}
