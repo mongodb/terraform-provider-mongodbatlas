@@ -267,11 +267,11 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	if len(projectPlan.Teams.Elements()) > 0 {
 		_ = projectPlan.Teams.ElementsAs(ctx, &teams, false)
 
-		_, _, err := connV2.TeamsApi.AddAllTeamsToProject(ctx, *project.Id, toAtlasProjectTeams(ctx, teams)).Execute()
+		_, _, err := connV2.TeamsApi.AddAllTeamsToProject(ctx, project.GetId(), toAtlasProjectTeams(ctx, teams)).Execute()
 		if err != nil {
 			errd := deleteProject(ctx, r.Client.AtlasV2, project.Id)
 			if errd != nil {
-				resp.Diagnostics.AddError("error during project deletion when adding teams", fmt.Sprintf(errorProjectDelete, *project.Id, err.Error()))
+				resp.Diagnostics.AddError("error during project deletion when adding teams", fmt.Sprintf(errorProjectDelete, project.GetId(), err.Error()))
 				return
 			}
 			resp.Diagnostics.AddError("error adding teams into the project", err.Error())
@@ -288,11 +288,11 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 				Name:  limit.Name.ValueString(),
 				Value: limit.Value.ValueInt64(),
 			}
-			_, _, err := connV2.ProjectsApi.SetProjectLimit(ctx, limit.Name.ValueString(), *project.Id, dataFederationLimit).Execute()
+			_, _, err := connV2.ProjectsApi.SetProjectLimit(ctx, limit.Name.ValueString(), project.GetId(), dataFederationLimit).Execute()
 			if err != nil {
 				errd := deleteProject(ctx, r.Client.AtlasV2, project.Id)
 				if errd != nil {
-					resp.Diagnostics.AddError("error during project deletion when adding limits", fmt.Sprintf(errorProjectDelete, *project.Id, err.Error()))
+					resp.Diagnostics.AddError("error during project deletion when adding limits", fmt.Sprintf(errorProjectDelete, project.GetId(), err.Error()))
 					return
 				}
 				resp.Diagnostics.AddError("error adding limits into the project", err.Error())
@@ -306,10 +306,10 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	if err != nil {
 		errd := deleteProject(ctx, r.Client.AtlasV2, project.Id)
 		if errd != nil {
-			resp.Diagnostics.AddError("error during project deletion when getting project settings", fmt.Sprintf(errorProjectDelete, *project.Id, err.Error()))
+			resp.Diagnostics.AddError("error during project deletion when getting project settings", fmt.Sprintf(errorProjectDelete, project.GetId(), err.Error()))
 			return
 		}
-		resp.Diagnostics.AddError(fmt.Sprintf("error getting project's settings assigned (%s):", *project.Id), err.Error())
+		resp.Diagnostics.AddError(fmt.Sprintf("error getting project's settings assigned (%s):", project.GetId()), err.Error())
 		return
 	}
 
@@ -332,31 +332,31 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		projectSettings.IsSchemaAdvisorEnabled = projectPlan.IsSchemaAdvisorEnabled.ValueBoolPointer()
 	}
 
-	if _, _, err = connV2.ProjectsApi.UpdateProjectSettings(ctx, *project.Id, projectSettings).Execute(); err != nil {
+	if _, _, err = connV2.ProjectsApi.UpdateProjectSettings(ctx, project.GetId(), projectSettings).Execute(); err != nil {
 		errd := deleteProject(ctx, r.Client.AtlasV2, project.Id)
 		if errd != nil {
-			resp.Diagnostics.AddError("error during project deletion when updating project settings", fmt.Sprintf(errorProjectDelete, *project.Id, err.Error()))
+			resp.Diagnostics.AddError("error during project deletion when updating project settings", fmt.Sprintf(errorProjectDelete, project.GetId(), err.Error()))
 			return
 		}
-		resp.Diagnostics.AddError(fmt.Sprintf("error updating project's settings assigned (%s):", *project.Id), err.Error())
+		resp.Diagnostics.AddError(fmt.Sprintf("error updating project's settings assigned (%s):", project.GetId()), err.Error())
 		return
 	}
 
-	projectID := project.Id
-	projectRes, atlasResp, err := connV2.ProjectsApi.GetProject(ctx, *projectID).Execute()
+	projectID := project.GetId()
+	projectRes, atlasResp, err := connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
 	if err != nil {
 		if resp != nil && atlasResp.StatusCode == http.StatusNotFound {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("error when getting project after create", fmt.Sprintf(ErrorProjectRead, *projectID, err.Error()))
+		resp.Diagnostics.AddError("error when getting project after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
 	// get project props
-	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, connV2, *projectID)
+	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, connV2, projectID)
 	if err != nil {
-		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, *projectID, err.Error()))
+		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 

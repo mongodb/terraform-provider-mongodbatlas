@@ -172,14 +172,14 @@ func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClient, stateModel *tfProjectsDSModel, projectsRes *admin.PaginatedAtlasGroup) error {
 	results := make([]*tfProjectDSModel, 0, len(projectsRes.Results))
 	for i, project := range projectsRes.Results {
-		atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, connV2, *project.Id)
+		atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, connV2, project.GetId())
 		if err == nil { // if the project is still valid, e.g. could have just been deleted
 			projectModel := newTFProjectDataSourceModel(ctx, &projectsRes.Results[i], atlasTeams, atlasProjectSettings, atlasLimits)
 			results = append(results, &projectModel)
 		}
 	}
 	stateModel.Results = results
-	stateModel.TotalCount = types.Int64Value(int64(*projectsRes.TotalCount))
+	stateModel.TotalCount = types.Int64Value(int64(projectsRes.GetTotalCount()))
 	stateModel.ID = types.StringValue(id.UniqueId())
 	return nil
 }
