@@ -12,8 +12,7 @@ type tfConnectionStringDSModel struct {
 	AwsPrivateLinkSrv types.Map    `tfsdk:"aws_private_link_srv"`
 	Private           types.String `tfsdk:"private"`
 	PrivateSrv        types.String `tfsdk:"private_srv"`
-	// PrivateEndpoint []tfPrivateEndpointModel `tfsdk:"private_endpoint"`
-	PrivateEndpoint types.List `tfsdk:"private_endpoint"`
+	PrivateEndpoint   types.List   `tfsdk:"private_endpoint"`
 }
 
 type tfLabelModel struct {
@@ -102,8 +101,7 @@ type tfPrivateEndpointModel struct {
 	SrvConnectionString               types.String `tfsdk:"srv_connection_string"`
 	SrvShardOptimizedConnectionString types.String `tfsdk:"srv_shard_optimized_connection_string"`
 	EndpointType                      types.String `tfsdk:"type"`
-	// Endpoints                         []tfEndpointModel `tfsdk:"endpoints"`
-	Endpoints types.List `tfsdk:"endpoints"`
+	Endpoints                         types.List   `tfsdk:"endpoints"`
 }
 
 var tfPrivateEndpointType = types.ObjectType{AttrTypes: map[string]attr.Type{

@@ -176,7 +176,7 @@ func newTFClustersDSModelResults(ctx context.Context, conn *matlas.Client, clust
 			ProjectID:                    types.StringValue(cluster.GroupID),
 			ID:                           types.StringValue(cluster.ID),
 		}
-		results = append(results, result)
+		results[i] = result
 	}
 	return results, nil
 }

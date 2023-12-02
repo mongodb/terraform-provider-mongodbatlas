@@ -157,6 +157,7 @@ func TestAccClusterRSDSCluster_basic_Partial_AdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.transaction_lifetime_limit_seconds", "300"),
+
 					resource.TestCheckResourceAttr(dataSourceName, "name", name),
 					resource.TestCheckResourceAttr(dataSourceName, "disk_size_gb", "10"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "mongo_uri"),
@@ -166,10 +167,27 @@ func TestAccClusterRSDSCluster_basic_Partial_AdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
 					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.no_table_scan", "false"),
 					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "bi_connector_config.#"),
+					resource.TestCheckResourceAttr(dataSourceName, "cluster_type", "REPLICASET"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "connection_strings.0.standard_srv"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "connection_strings.0.standard"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "connection_strings.0.standard"),
+
 					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
 					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.name"),
 					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.version_release_system", "LTS"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.mongo_uri"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.sample_size_bi_connector", "110"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.no_table_scan", "false"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.oplog_size_mb", "1000"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.bi_connector_config.#"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.cluster_type", "REPLICASET"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.connection_strings.0.standard_srv"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.connection_strings.0.standard"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.connection_strings.0.standard"),
 				),
 			},
 			{
@@ -448,13 +466,15 @@ func TestAccClusterRSCluster_AzureUpdateToNVME(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_basicGCP(t *testing.T) {
+func TestAccClusterRSDSCluster_basicGCP(t *testing.T) {
 	var (
-		cluster      matlas.Cluster
-		resourceName = "mongodbatlas_cluster.basic_gcp"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		cluster                matlas.Cluster
+		resourceName           = "mongodbatlas_cluster.basic_gcp"
+		dataSourceName         = "data.mongodbatlas_cluster.test"
+		dataSourceClustersName = "data.mongodbatlas_clusters.test"
+		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName            = acctest.RandomWithPrefix("test-acc")
+		name                   = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -473,6 +493,38 @@ func TestAccClusterRSCluster_basicGCP(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
+
+					resource.TestCheckResourceAttr(dataSourceName, "name", name),
+					resource.TestCheckResourceAttr(dataSourceName, "disk_size_gb", "40"),
+					resource.TestCheckResourceAttr(dataSourceName, "replication_factor", "3"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "mongo_uri"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttr(dataSourceName, "version_release_system", "LTS"),
+					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
+					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.javascript_enabled", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.no_table_scan", "false"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "bi_connector_config.#"),
+					resource.TestCheckResourceAttr(dataSourceName, "cluster_type", "REPLICASET"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "connection_strings.0.standard_srv"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "connection_strings.0.standard"),
+
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.name"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.version_release_system", "LTS"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.name", name),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.disk_size_gb", "40"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.replication_factor", "3"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.mongo_uri"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.version_release_system", "LTS"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.javascript_enabled", "true"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.no_table_scan", "false"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.bi_connector_config.#"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.cluster_type", "REPLICASET"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.connection_strings.0.standard_srv"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.connection_strings.0.standard"),
 				),
 			},
 			{
@@ -1799,6 +1851,15 @@ func testAccMongoDBAtlasClusterConfigGCP(orgID, projectName, name, backupEnabled
 			// Provider Settings "block"
 			provider_name               = "GCP"
 			provider_instance_size_name = "M30"
+		}
+
+		data "mongodbatlas_cluster" "test" {
+			project_id = mongodbatlas_cluster.basic_gcp.project_id
+			name 	     = mongodbatlas_cluster.basic_gcp.name
+		}
+
+		data "mongodbatlas_clusters" "test" {
+			project_id = mongodbatlas_cluster.basic_gcp.project_id
 		}
 	`, orgID, projectName, name, backupEnabled)
 }
