@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mwielbut/pointy"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
-	"github.com/mwielbut/pointy"
 )
 
 var (
@@ -101,30 +102,28 @@ func NewSdkV2Provider() *schema.Provider {
 
 func getDataSourcesMap() map[string]*schema.Resource {
 	dataSourcesMap := map[string]*schema.Resource{
-		"mongodbatlas_advanced_cluster":                  advancedcluster.DataSourceAdvancedCluster(),
-		"mongodbatlas_advanced_clusters":                 advancedcluster.DataSourceAdvancedClusters(),
-		"mongodbatlas_custom_db_role":                    mongodbatlas.DataSourceCustomDBRole(),
-		"mongodbatlas_custom_db_roles":                   mongodbatlas.DataSourceCustomDBRoles(),
-		"mongodbatlas_api_key":                           mongodbatlas.DataSourceAPIKey(),
-		"mongodbatlas_api_keys":                          mongodbatlas.DataSourceAPIKeys(),
-		"mongodbatlas_access_list_api_key":               mongodbatlas.DataSourceAccessListAPIKey(),
-		"mongodbatlas_access_list_api_keys":              mongodbatlas.DataSourceAccessListAPIKeys(),
-		"mongodbatlas_project_api_key":                   projectapikey.DataSourceProjectAPIKey(),
-		"mongodbatlas_project_api_keys":                  projectapikey.DataSourceProjectAPIKeys(),
-		"mongodbatlas_roles_org_id":                      mongodbatlas.DataSourceOrgID(),
-		"mongodbatlas_cluster":                           cluster.DataSourceCluster(),
-		"mongodbatlas_clusters":                          cluster.DataSourceClusters(),
-		"mongodbatlas_network_container":                 mongodbatlas.DataSourceNetworkContainer(),
-		"mongodbatlas_network_containers":                mongodbatlas.DataSourceNetworkContainers(),
-		"mongodbatlas_network_peering":                   mongodbatlas.DataSourceNetworkPeering(),
-		"mongodbatlas_network_peerings":                  mongodbatlas.DataSourceNetworkPeerings(),
-		"mongodbatlas_maintenance_window":                mongodbatlas.DataSourceMaintenanceWindow(),
-		"mongodbatlas_auditing":                          mongodbatlas.DataSourceAuditing(),
-		"mongodbatlas_team":                              mongodbatlas.DataSourceTeam(),
-		"mongodbatlas_teams":                             mongodbatlas.DataSourceTeam(),
-		"mongodbatlas_global_cluster_config":             mongodbatlas.DataSourceGlobalCluster(),
-		"mongodbatlas_x509_authentication_database_user": mongodbatlas.DataSourceX509AuthDBUser(),
-		"mongodbatlas_private_endpoint_regional_mode":    mongodbatlas.DataSourcePrivateEndpointRegionalMode(),
+		"mongodbatlas_advanced_cluster":                                             advancedcluster.DataSourceAdvancedCluster(),
+		"mongodbatlas_advanced_clusters":                                            advancedcluster.DataSourceAdvancedClusters(),
+		"mongodbatlas_custom_db_role":                                               mongodbatlas.DataSourceCustomDBRole(),
+		"mongodbatlas_custom_db_roles":                                              mongodbatlas.DataSourceCustomDBRoles(),
+		"mongodbatlas_api_key":                                                      mongodbatlas.DataSourceAPIKey(),
+		"mongodbatlas_api_keys":                                                     mongodbatlas.DataSourceAPIKeys(),
+		"mongodbatlas_access_list_api_key":                                          mongodbatlas.DataSourceAccessListAPIKey(),
+		"mongodbatlas_access_list_api_keys":                                         mongodbatlas.DataSourceAccessListAPIKeys(),
+		"mongodbatlas_project_api_key":                                              projectapikey.DataSourceProjectAPIKey(),
+		"mongodbatlas_project_api_keys":                                             projectapikey.DataSourceProjectAPIKeys(),
+		"mongodbatlas_roles_org_id":                                                 mongodbatlas.DataSourceOrgID(),
+		"mongodbatlas_network_container":                                            mongodbatlas.DataSourceNetworkContainer(),
+		"mongodbatlas_network_containers":                                           mongodbatlas.DataSourceNetworkContainers(),
+		"mongodbatlas_network_peering":                                              mongodbatlas.DataSourceNetworkPeering(),
+		"mongodbatlas_network_peerings":                                             mongodbatlas.DataSourceNetworkPeerings(),
+		"mongodbatlas_maintenance_window":                                           mongodbatlas.DataSourceMaintenanceWindow(),
+		"mongodbatlas_auditing":                                                     mongodbatlas.DataSourceAuditing(),
+		"mongodbatlas_team":                                                         mongodbatlas.DataSourceTeam(),
+		"mongodbatlas_teams":                                                        mongodbatlas.DataSourceTeam(),
+		"mongodbatlas_global_cluster_config":                                        mongodbatlas.DataSourceGlobalCluster(),
+		"mongodbatlas_x509_authentication_database_user":                            mongodbatlas.DataSourceX509AuthDBUser(),
+		"mongodbatlas_private_endpoint_regional_mode":                               mongodbatlas.DataSourcePrivateEndpointRegionalMode(),
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive":  mongodbatlas.DataSourcePrivatelinkEndpointServiceDataFederationOnlineArchive(),
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archives": mongodbatlas.DataSourcePrivatelinkEndpointServiceDataFederationOnlineArchives(),
 		"mongodbatlas_privatelink_endpoint":                                         mongodbatlas.DataSourcePrivateLinkEndpoint(),
