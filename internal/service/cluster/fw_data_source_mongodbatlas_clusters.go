@@ -3,6 +3,7 @@ package cluster
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -37,8 +38,7 @@ type clustersDS struct {
 func (d *clustersDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			// https://github.com/hashicorp/terraform-plugin-testing/issues/84#issuecomment-1480006432
-			"id": schema.StringAttribute{ // required by hashicorps terraform plugin testing framework
+			"id": schema.StringAttribute{ // required by hashicorps terraform plugin testing framework: https://github.com/hashicorp/terraform-plugin-testing/issues/84#issuecomment-1480006432
 				DeprecationMessage: "Please use each cluster's id attribute instead",
 				Computed:           true,
 			},
@@ -110,60 +110,71 @@ func newTFClustersDSModelResults(ctx context.Context, conn *matlas.Client, clust
 
 	for i := range clusters {
 		cluster := clusters[i]
+
+		snapshotBackupPolicy, err := newTFSnapshotBackupPolicyModelFromAtlas(ctx, conn, cluster.GroupID, cluster.Name)
+		if err != nil {
+			return nil, err
+		}
+
 		advancedConfiguration, err := newTFAdvancedConfigurationModelDSFromAtlas(ctx, conn, cluster.GroupID, cluster.Name)
 		if err != nil {
 			return nil, err
 		}
 
-		snapshotBackupPolicy, err := newTFSnapshotBackupPolicyDSModel(ctx, conn, cluster.GroupID, cluster.Name)
-		if err != nil {
-			return nil, err
-		}
-
 		var containerID string
-		if clusters[i].ProviderSettings != nil && clusters[i].ProviderSettings.ProviderName != "TENANT" {
-			containers, _, err := conn.Containers.List(ctx, clusters[i].GroupID,
-				&matlas.ContainersListOptions{ProviderName: clusters[i].ProviderSettings.ProviderName})
+		if cluster.ProviderSettings != nil && cluster.ProviderSettings.ProviderName != "TENANT" {
+			containers, _, err := conn.Containers.List(ctx, cluster.GroupID,
+				&matlas.ContainersListOptions{ProviderName: cluster.ProviderSettings.ProviderName})
 			if err != nil {
-				return nil, fmt.Errorf(errorClusterRead, clusters[i].Name, err)
+				log.Printf(errorClusterRead, cluster.Name, err)
 			}
 
-			containerID = getContainerID(containers, &clusters[i])
+			containerID = getContainerID(containers, &cluster)
 		}
 		result := &tfClusterDSModel{
-			AutoScalingComputeEnabled:                 types.BoolPointerValue(cluster.AutoScaling.Compute.Enabled),
-			AutoScalingComputeScaleDownEnabled:        types.BoolPointerValue(cluster.AutoScaling.Compute.ScaleDownEnabled),
+			AdvancedConfiguration:              advancedConfiguration,
+			AutoScalingComputeEnabled:          types.BoolPointerValue(cluster.AutoScaling.Compute.Enabled),
+			AutoScalingComputeScaleDownEnabled: types.BoolPointerValue(cluster.AutoScaling.Compute.ScaleDownEnabled),
+			AutoScalingDiskGbEnabled:           types.BoolPointerValue(cluster.AutoScaling.DiskGBEnabled),
+			BackupEnabled:                      types.BoolPointerValue(cluster.BackupEnabled),
+			ProviderBackupEnabled:              types.BoolPointerValue(cluster.ProviderBackupEnabled),
+			ClusterType:                        types.StringValue(cluster.ClusterType),
+			ConnectionStrings:                  newTFConnectionStringsModelDS(ctx, cluster.ConnectionStrings),
+			DiskSizeGb:                         types.Float64PointerValue(cluster.DiskSizeGB),
+			EncryptionAtRestProvider:           types.StringValue(cluster.EncryptionAtRestProvider),
+			MongoDBMajorVersion:                types.StringValue(cluster.MongoDBMajorVersion),
+			Name:                               types.StringValue(cluster.Name),
+			NumShards:                          types.Int64PointerValue(cluster.NumShards),
+			MongoDBVersion:                     types.StringValue(cluster.MongoDBVersion),
+			MongoURI:                           types.StringValue(cluster.MongoURI),
+			MongoURIUpdated:                    types.StringValue(cluster.MongoURIUpdated),
+			MongoURIWithOptions:                types.StringValue(cluster.MongoURIWithOptions),
+			PitEnabled:                         types.BoolPointerValue(cluster.PitEnabled),
+			Paused:                             types.BoolPointerValue(cluster.Paused),
+			SrvAddress:                         types.StringValue(cluster.SrvAddress),
+			StateName:                          types.StringValue(cluster.StateName),
+			ReplicationFactor:                  types.Int64PointerValue(cluster.ReplicationFactor),
+
 			ProviderAutoScalingComputeMinInstanceSize: types.StringValue(cluster.ProviderSettings.AutoScaling.Compute.MinInstanceSize),
 			ProviderAutoScalingComputeMaxInstanceSize: types.StringValue(cluster.ProviderSettings.AutoScaling.Compute.MaxInstanceSize),
-			AutoScalingDiskGbEnabled:                  types.BoolPointerValue(cluster.AutoScaling.DiskGBEnabled),
-			BackupEnabled:                             types.BoolPointerValue(cluster.BackupEnabled),
-			PitEnabled:                                types.BoolPointerValue(cluster.PitEnabled),
-			ProviderBackupEnabled:                     types.BoolPointerValue(cluster.ProviderBackupEnabled),
-			ClusterType:                               types.StringValue(cluster.ClusterType),
-			ConnectionStrings:                         newTFConnectionStringsModelDS(ctx, cluster.ConnectionStrings),
-			DiskSizeGb:                                types.Float64PointerValue(cluster.DiskSizeGB),
-			EncryptionAtRestProvider:                  types.StringValue(cluster.EncryptionAtRestProvider),
-			MongoDBMajorVersion:                       types.StringValue(cluster.MongoDBMajorVersion),
-			MongoDBVersion:                            types.StringValue(cluster.MongoDBVersion),
-			MongoURI:                                  types.StringValue(cluster.MongoURI),
-			MongoURIUpdated:                           types.StringValue(cluster.MongoURIUpdated),
-			MongoURIWithOptions:                       types.StringValue(cluster.MongoURIWithOptions),
-			Paused:                                    types.BoolPointerValue(cluster.Paused),
-			SrvAddress:                                types.StringValue(cluster.SrvAddress),
-			StateName:                                 types.StringValue(cluster.StateName),
-			BiConnectorConfig:                         newTFBiConnectorConfigModel(cluster.BiConnector),
-			ReplicationFactor:                         types.Int64PointerValue(cluster.ReplicationFactor),
-			ReplicationSpecs:                          newTFReplicationSpecsModel(cluster.ReplicationSpecs),
-			Labels:                                    removeDefaultLabel(newTFLabelsModel(cluster.Labels)),
-			Tags:                                      newTFTagsModel(cluster.Tags),
-			TerminationProtectionEnabled:              types.BoolPointerValue(cluster.TerminationProtectionEnabled),
-			VersionReleaseSystem:                      types.StringValue(cluster.VersionReleaseSystem),
-			SnapshotBackupPolicy:                      snapshotBackupPolicy,
-			AdvancedConfiguration:                     advancedConfiguration,
-			ContainerID:                               types.StringValue(containerID),
-			ProjectID:                                 types.StringValue(cluster.GroupID),
-			Name:                                      types.StringValue(cluster.Name),
-			ID:                                        types.StringValue(cluster.ID),
+			BackingProviderName:                       types.StringValue(cluster.ProviderSettings.BackingProviderName),
+			ProviderDiskIops:                          types.Int64PointerValue(cluster.ProviderSettings.DiskIOPS),
+			ProviderDiskTypeName:                      types.StringValue(cluster.ProviderSettings.DiskTypeName),
+			ProviderEncryptEbsVolume:                  types.BoolPointerValue(cluster.ProviderSettings.EncryptEBSVolume),
+			ProviderInstanceSizeName:                  types.StringValue(cluster.ProviderSettings.InstanceSizeName),
+			ProviderName:                              types.StringValue(cluster.ProviderSettings.ProviderName),
+			ProviderRegionName:                        types.StringValue(cluster.ProviderSettings.RegionName),
+
+			BiConnectorConfig:            newTFBiConnectorConfigModel(cluster.BiConnector),
+			ReplicationSpecs:             newTFReplicationSpecsModel(cluster.ReplicationSpecs),
+			Labels:                       newTFLabelsModel(cluster.Labels),
+			Tags:                         newTFTagsModel(cluster.Tags),
+			SnapshotBackupPolicy:         snapshotBackupPolicy,
+			TerminationProtectionEnabled: types.BoolPointerValue(cluster.TerminationProtectionEnabled),
+			VersionReleaseSystem:         types.StringValue(cluster.VersionReleaseSystem),
+			ContainerID:                  types.StringValue(containerID),
+			ProjectID:                    types.StringValue(cluster.GroupID),
+			ID:                           types.StringValue(cluster.ID),
 		}
 		results = append(results, result)
 	}

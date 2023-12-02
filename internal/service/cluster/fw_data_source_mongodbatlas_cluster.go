@@ -8,13 +8,14 @@ import (
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -24,7 +25,6 @@ const (
 
 var _ datasource.DataSource = &clusterDS{}
 var _ datasource.DataSourceWithConfigure = &clusterDS{}
-var defaultLabel = matlas.Label{Key: "Infrastructure Tool", Value: "MongoDB Atlas Terraform Provider"}
 
 func DataSource() datasource.DataSource {
 	return &clusterDS{
@@ -55,7 +55,7 @@ func clusterDSAttributes() map[string]schema.Attribute {
 		"name": schema.StringAttribute{
 			Required: true,
 		},
-		"advanced_configuration": clusterDSAdvancedConfigurationSchemaAttribute(),
+		"advanced_configuration": clusterDSAdvancedConfigurationSchemaAttr(),
 		"auto_scaling_disk_gb_enabled": schema.BoolAttribute{
 			Computed: true,
 		},
@@ -68,11 +68,11 @@ func clusterDSAttributes() map[string]schema.Attribute {
 		"backup_enabled": schema.BoolAttribute{
 			Computed: true,
 		},
-		"bi_connector_config": clusterDSBiConnectorConfigSchemaAttribute(),
+		"bi_connector_config": clusterDSBiConnectorConfigSchemaAttr(),
 		"cluster_type": schema.StringAttribute{
 			Computed: true,
 		},
-		"connection_strings": clusterDSConnectionStringSchemaAttribute(),
+		"connection_strings": clusterDSConnectionStringSchemaAttr(),
 		"disk_size_gb": schema.Float64Attribute{
 			Computed: true,
 		},
@@ -127,7 +127,7 @@ func clusterDSAttributes() map[string]schema.Attribute {
 		"replication_factor": schema.Int64Attribute{
 			Computed: true,
 		},
-		"replication_specs": clusterDSReplicationSpecsSchemaAttribute(),
+		"replication_specs": clusterDSReplicationSpecsSchemaAttr(),
 		"mongo_db_version": schema.StringAttribute{
 			Computed: true,
 		},
@@ -149,9 +149,9 @@ func clusterDSAttributes() map[string]schema.Attribute {
 		"state_name": schema.StringAttribute{
 			Computed: true,
 		},
-		"labels":                 clusterDSLabelsSchemaAttribute(),
-		"tags":                   clusterDSTagsSchemaAttribute(),
-		"snapshot_backup_policy": clusterDSSnapshotBackupPolicySchemaAttribute(),
+		"labels":                 clusterDSLabelsSchemaAttr(),
+		"tags":                   clusterDSTagsSchemaAttr(),
+		"snapshot_backup_policy": clusterDSSnapshotBackupPolicySchemaAttr(),
 		"termination_protection_enabled": schema.BoolAttribute{
 			Computed: true,
 		},
@@ -164,7 +164,7 @@ func clusterDSAttributes() map[string]schema.Attribute {
 	}
 }
 
-func clusterDSAdvancedConfigurationSchemaAttribute() schema.ListNestedAttribute {
+func clusterDSAdvancedConfigurationSchemaAttr() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Computed: true,
 		NestedObject: schema.NestedAttributeObject{
@@ -187,16 +187,16 @@ func clusterDSAdvancedConfigurationSchemaAttribute() schema.ListNestedAttribute 
 				"no_table_scan": schema.BoolAttribute{
 					Computed: true,
 				},
-				"oplog_min_retention_hours": schema.Int64Attribute{
+				"oplog_size_mb": schema.Int64Attribute{
 					Computed: true,
 				},
-				"oplog_size_mb": schema.Int64Attribute{
+				"sample_size_bi_connector": schema.Int64Attribute{
 					Computed: true,
 				},
 				"sample_refresh_interval_bi_connector": schema.Int64Attribute{
 					Computed: true,
 				},
-				"sample_size_bi_connector": schema.Int64Attribute{
+				"oplog_min_retention_hours": schema.Int64Attribute{
 					Computed: true,
 				},
 				"transaction_lifetime_limit_seconds": schema.Int64Attribute{
@@ -207,7 +207,7 @@ func clusterDSAdvancedConfigurationSchemaAttribute() schema.ListNestedAttribute 
 	}
 }
 
-func clusterDSSnapshotBackupPolicySchemaAttribute() schema.ListNestedAttribute {
+func clusterDSSnapshotBackupPolicySchemaAttr() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Computed: true,
 		NestedObject: schema.NestedAttributeObject{
@@ -270,7 +270,7 @@ func clusterDSSnapshotBackupPolicySchemaAttribute() schema.ListNestedAttribute {
 	}
 }
 
-func clusterDSTagsSchemaAttribute() schema.SetNestedAttribute {
+func clusterDSTagsSchemaAttr() schema.SetNestedAttribute {
 	return schema.SetNestedAttribute{
 		Computed: true,
 		NestedObject: schema.NestedAttributeObject{
@@ -286,7 +286,7 @@ func clusterDSTagsSchemaAttribute() schema.SetNestedAttribute {
 	}
 }
 
-func clusterDSLabelsSchemaAttribute() schema.SetNestedAttribute {
+func clusterDSLabelsSchemaAttr() schema.SetNestedAttribute {
 	return schema.SetNestedAttribute{
 		Computed:           true,
 		DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByDateWithReplacement, "September 2024", "tags"),
@@ -303,7 +303,7 @@ func clusterDSLabelsSchemaAttribute() schema.SetNestedAttribute {
 	}
 }
 
-func clusterDSReplicationSpecsSchemaAttribute() schema.ListNestedAttribute {
+func clusterDSReplicationSpecsSchemaAttr() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Computed: true,
 		NestedObject: schema.NestedAttributeObject{
@@ -344,7 +344,7 @@ func clusterDSReplicationSpecsSchemaAttribute() schema.ListNestedAttribute {
 	}
 }
 
-func clusterDSBiConnectorConfigSchemaAttribute() schema.ListNestedAttribute {
+func clusterDSBiConnectorConfigSchemaAttr() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Computed: true,
 		NestedObject: schema.NestedAttributeObject{
@@ -360,7 +360,7 @@ func clusterDSBiConnectorConfigSchemaAttribute() schema.ListNestedAttribute {
 	}
 }
 
-func clusterDSConnectionStringSchemaAttribute() schema.ListNestedAttribute {
+func clusterDSConnectionStringSchemaAttr() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Computed: true,
 		NestedObject: schema.NestedAttributeObject{
@@ -372,10 +372,12 @@ func clusterDSConnectionStringSchemaAttribute() schema.ListNestedAttribute {
 					Computed: true,
 				},
 				"aws_private_link": schema.MapAttribute{
-					Computed: true,
+					ElementType: types.StringType,
+					Computed:    true,
 				},
 				"aws_private_link_srv": schema.MapAttribute{
-					Computed: true,
+					ElementType: types.StringType,
+					Computed:    true,
 				},
 				"private": schema.StringAttribute{
 					Computed: true,
@@ -485,7 +487,7 @@ func newTFClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *matl
 		BiConnectorConfig:                         newTFBiConnectorConfigModel(apiResp.BiConnector),
 		ReplicationFactor:                         types.Int64PointerValue(apiResp.ReplicationFactor),
 		ReplicationSpecs:                          newTFReplicationSpecsModel(apiResp.ReplicationSpecs),
-		Labels:                                    removeDefaultLabel(newTFLabelsModel(apiResp.Labels)),
+		Labels:                                    newTFLabelsModel(apiResp.Labels),
 		Tags:                                      newTFTagsModel(apiResp.Tags),
 		TerminationProtectionEnabled:              types.BoolPointerValue(apiResp.TerminationProtectionEnabled),
 		VersionReleaseSystem:                      types.StringValue(apiResp.VersionReleaseSystem),
@@ -502,15 +504,14 @@ func newTFClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *matl
 	if apiResp.ProviderSettings != nil {
 		setTFProviderSettingsDS(&clusterModel, apiResp.ProviderSettings)
 
-		if v := apiResp.ProviderSettings.ProviderName; v != "TENANT" {
+		if pName := apiResp.ProviderSettings.ProviderName; pName != "TENANT" {
 			containers, _, err := conn.Containers.List(ctx, projectID,
-				&matlas.ContainersListOptions{ProviderName: v})
+				&matlas.ContainersListOptions{ProviderName: pName})
 			if err != nil {
 				return nil, fmt.Errorf(errorClusterRead, clusterName, err)
 			}
 
 			clusterModel.ContainerID = types.StringValue(getContainerID(containers, apiResp))
-			// clusterModel.AutoScalingDiskGBEnabled = types.BoolPointerValue(apiResp.AutoScaling.DiskGBEnabled)
 		}
 	}
 
@@ -519,25 +520,12 @@ func newTFClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *matl
 		return nil, err
 	}
 
-	clusterModel.SnapshotBackupPolicy, err = newTFSnapshotBackupPolicyDSModel(ctx, conn, projectID, clusterName)
+	clusterModel.SnapshotBackupPolicy, err = newTFSnapshotBackupPolicyModelFromAtlas(ctx, conn, projectID, clusterName)
 	if err != nil {
 		return nil, err
 	}
 
 	return &clusterModel, nil
-}
-
-func removeDefaultLabel(labels []tfLabelModel) []tfLabelModel {
-	var result []tfLabelModel
-
-	for _, item := range labels {
-		if item.Key.ValueString() == defaultLabel.Key && item.Value.ValueString() == defaultLabel.Value {
-			continue
-		}
-		result = append(result, item)
-	}
-
-	return result
 }
 
 func newTFTagsModel(tags *[]*matlas.Tag) []*tfTagModel {
@@ -558,9 +546,9 @@ func newTFReplicationSpecsModel(replicationSpecs []matlas.ReplicationSpec) []*tf
 
 	for i, rSpec := range replicationSpecs {
 		res[i] = &tfReplicationSpecModel{
-			ID:            conversion.StringNullIfEmpty(rSpec.ID),
+			ID:            types.StringValue(rSpec.ID),
 			NumShards:     types.Int64PointerValue(rSpec.NumShards),
-			ZoneName:      conversion.StringNullIfEmpty(rSpec.ZoneName),
+			ZoneName:      types.StringValue(rSpec.ZoneName),
 			RegionsConfig: newTFRegionsConfigModel(rSpec.RegionsConfig),
 		}
 	}
@@ -572,7 +560,7 @@ func newTFRegionsConfigModel(regionsConfig map[string]matlas.RegionsConfig) []tf
 
 	for regionName, regionConfig := range regionsConfig {
 		region := tfRegionConfigModel{
-			RegionName:     conversion.StringNullIfEmpty(regionName),
+			RegionName:     types.StringValue(regionName),
 			Priority:       types.Int64PointerValue(regionConfig.Priority),
 			AnalyticsNodes: types.Int64PointerValue(regionConfig.AnalyticsNodes),
 			ElectableNodes: types.Int64PointerValue(regionConfig.ElectableNodes),
@@ -583,16 +571,7 @@ func newTFRegionsConfigModel(regionsConfig map[string]matlas.RegionsConfig) []tf
 	return res
 }
 
-func newTFSnapshotBackupPolicyDSModel(ctx context.Context, conn *matlas.Client, projectID, clusterName string) ([]*tfSnapshotBackupPolicyModel, error) {
-	res, err := newTFSnapshotBackupPolicyModel(ctx, conn, projectID, clusterName)
-	if err != nil {
-		return nil, fmt.Errorf(ErrorSnapshotBackupPolicyRead, clusterName, err)
-	}
-
-	return res, nil
-}
-
-func newTFSnapshotBackupPolicyModel(ctx context.Context, conn *matlas.Client, projectID, clusterName string) ([]*tfSnapshotBackupPolicyModel, error) {
+func newTFSnapshotBackupPolicyModelFromAtlas(ctx context.Context, conn *matlas.Client, projectID, clusterName string) ([]*tfSnapshotBackupPolicyModel, error) {
 	res := []*tfSnapshotBackupPolicyModel{}
 
 	backupPolicy, response, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
@@ -609,9 +588,9 @@ func newTFSnapshotBackupPolicyModel(ctx context.Context, conn *matlas.Client, pr
 	}
 
 	res = append(res, &tfSnapshotBackupPolicyModel{
-		ClusterID:             conversion.StringNullIfEmpty(backupPolicy.ClusterID),
-		ClusterName:           conversion.StringNullIfEmpty(backupPolicy.ClusterName),
-		NextSnapshot:          conversion.StringNullIfEmpty(backupPolicy.NextSnapshot),
+		ClusterID:             types.StringValue(backupPolicy.ClusterID),
+		ClusterName:           types.StringValue(backupPolicy.ClusterName),
+		NextSnapshot:          types.StringValue(backupPolicy.NextSnapshot),
 		ReferenceHourOfDay:    types.Int64PointerValue(backupPolicy.ReferenceHourOfDay),
 		ReferenceMinuteOfHour: types.Int64PointerValue(backupPolicy.ReferenceMinuteOfHour),
 		RestoreWindowDays:     types.Int64PointerValue(backupPolicy.RestoreWindowDays),
@@ -626,7 +605,7 @@ func newTFSnapshotPolicyModel(ctx context.Context, policies []matlas.Policy) typ
 
 	for i, pe := range policies {
 		res[i] = tfSnapshotPolicyModel{
-			ID:         conversion.StringNullIfEmpty(pe.ID),
+			ID:         types.StringValue(pe.ID),
 			PolicyItem: newTFSnapshotPolicyItemModel(ctx, pe.PolicyItems),
 		}
 	}
@@ -639,10 +618,10 @@ func newTFSnapshotPolicyItemModel(ctx context.Context, policyItems []matlas.Poli
 
 	for i, pe := range policyItems {
 		res[i] = tfSnapshotPolicyItemModel{
-			ID:                conversion.StringNullIfEmpty(pe.ID),
+			ID:                types.StringValue(pe.ID),
 			FrequencyInterval: types.Int64Value(cast.ToInt64(pe.FrequencyInterval)),
-			FrequencyType:     conversion.StringNullIfEmpty(pe.FrequencyType),
-			RetentionUnit:     conversion.StringNullIfEmpty(pe.RetentionUnit),
+			FrequencyType:     types.StringValue(pe.FrequencyType),
+			RetentionUnit:     types.StringValue(pe.RetentionUnit),
 			RetentionValue:    types.Int64Value(cast.ToInt64(pe.RetentionValue)),
 		}
 	}
@@ -660,19 +639,45 @@ func newTFAdvancedConfigurationModelDSFromAtlas(ctx context.Context, conn *matla
 	return advConfigModel, err
 }
 
+func newTfAdvancedConfigurationModel(ctx context.Context, p *matlas.ProcessArgs) []*tfAdvancedConfigurationModel {
+	res := []*tfAdvancedConfigurationModel{
+		{
+			DefaultReadConcern:               types.StringValue(p.DefaultReadConcern),
+			DefaultWriteConcern:              types.StringValue(p.DefaultWriteConcern),
+			FailIndexKeyTooLong:              types.BoolPointerValue(p.FailIndexKeyTooLong),
+			JavascriptEnabled:                types.BoolPointerValue(p.JavascriptEnabled),
+			MinimumEnabledTLSProtocol:        types.StringValue(p.MinimumEnabledTLSProtocol),
+			NoTableScan:                      types.BoolPointerValue(p.NoTableScan),
+			OplogSizeMB:                      types.Int64PointerValue(p.OplogSizeMB),
+			OplogMinRetentionHours:           types.Int64Value(cast.ToInt64(p.OplogMinRetentionHours)),
+			SampleSizeBiConnector:            types.Int64PointerValue(p.SampleSizeBIConnector),
+			SampleRefreshIntervalBiConnector: types.Int64PointerValue(p.SampleRefreshIntervalBIConnector),
+			TransactionLifetimeLimitSeconds:  types.Int64PointerValue(p.TransactionLifetimeLimitSeconds),
+		},
+	}
+	return res
+}
+
 func newTFConnectionStringsModelDS(ctx context.Context, connString *matlas.ConnectionStrings) []*tfConnectionStringDSModel {
 	res := []*tfConnectionStringDSModel{}
 
 	if connString != nil {
 		res = append(res, &tfConnectionStringDSModel{
-			Standard:        conversion.StringNullIfEmpty(connString.Standard),
-			StandardSrv:     conversion.StringNullIfEmpty(connString.StandardSrv),
-			Private:         conversion.StringNullIfEmpty(connString.Private),
-			PrivateSrv:      conversion.StringNullIfEmpty(connString.PrivateSrv),
-			PrivateEndpoint: newTFPrivateEndpointModel(ctx, connString.PrivateEndpoint),
+			Standard:          types.StringValue(connString.Standard),
+			StandardSrv:       types.StringValue(connString.StandardSrv),
+			Private:           types.StringValue(connString.Private),
+			PrivateSrv:        types.StringValue(connString.PrivateSrv),
+			PrivateEndpoint:   newTFPrivateEndpointModel(ctx, connString.PrivateEndpoint),
+			AwsPrivateLink:    newTFAwsPrivateLinkMap(connString.AwsPrivateLink),
+			AwsPrivateLinkSrv: newTFAwsPrivateLinkMap(connString.AwsPrivateLinkSrv),
 		})
 	}
 	return res
+}
+
+func newTFAwsPrivateLinkMap(mp map[string]string) basetypes.MapValue {
+	mapValue, _ := types.MapValue(types.StringType, map[string]attr.Value{})
+	return mapValue
 }
 
 func newTFPrivateEndpointModel(ctx context.Context, privateEndpoints []matlas.PrivateEndpoint) types.List {
@@ -680,10 +685,10 @@ func newTFPrivateEndpointModel(ctx context.Context, privateEndpoints []matlas.Pr
 
 	for i, pe := range privateEndpoints {
 		res[i] = tfPrivateEndpointModel{
-			ConnectionString:                  conversion.StringNullIfEmpty(pe.ConnectionString),
-			SrvConnectionString:               conversion.StringNullIfEmpty(pe.SRVConnectionString),
-			SrvShardOptimizedConnectionString: conversion.StringNullIfEmpty(pe.SRVShardOptimizedConnectionString),
-			EndpointType:                      conversion.StringNullIfEmpty(pe.Type),
+			ConnectionString:                  types.StringValue(pe.ConnectionString),
+			SrvConnectionString:               types.StringValue(pe.SRVConnectionString),
+			SrvShardOptimizedConnectionString: types.StringValue(pe.SRVShardOptimizedConnectionString),
+			EndpointType:                      types.StringValue(pe.Type),
 			Endpoints:                         newTFEndpointModel(ctx, pe.Endpoints),
 		}
 	}
@@ -696,9 +701,9 @@ func newTFEndpointModel(ctx context.Context, endpoints []matlas.Endpoint) types.
 
 	for i, e := range endpoints {
 		res[i] = tfEndpointModel{
-			Region:       conversion.StringNullIfEmpty(e.Region),
-			ProviderName: conversion.StringNullIfEmpty(e.ProviderName),
-			EndpointID:   conversion.StringNullIfEmpty(e.EndpointID),
+			Region:       types.StringValue(e.Region),
+			ProviderName: types.StringValue(e.ProviderName),
+			EndpointID:   types.StringValue(e.EndpointID),
 		}
 	}
 	s, _ := types.ListValueFrom(ctx, tfEndpointType, res)
@@ -706,10 +711,6 @@ func newTFEndpointModel(ctx context.Context, endpoints []matlas.Endpoint) types.
 }
 
 func newTFLabelsModel(labels []matlas.Label) []tfLabelModel {
-	if len(labels) == 0 {
-		return nil
-	}
-
 	out := make([]tfLabelModel, len(labels))
 	for i, v := range labels {
 		out[i] = tfLabelModel{
@@ -731,7 +732,6 @@ func setTFProviderSettingsDS(clusterModel *tfClusterDSModel, settings *matlas.Pr
 	}
 	if settings.EncryptEBSVolume != nil {
 		clusterModel.ProviderEncryptEbsVolumeFlag = types.BoolPointerValue(settings.EncryptEBSVolume)
-		clusterModel.ProviderEncryptEbsVolume = types.BoolPointerValue(settings.EncryptEBSVolume)
 	}
 	clusterModel.ProviderDiskTypeName = types.StringValue(settings.DiskTypeName)
 	clusterModel.ProviderInstanceSizeName = types.StringValue(settings.InstanceSizeName)
@@ -748,31 +748,9 @@ func newTFBiConnectorConfigModel(biConnector *matlas.BiConnector) []*tfBiConnect
 	return []*tfBiConnectorConfigModel{
 		{
 			Enabled:        types.BoolPointerValue(biConnector.Enabled),
-			ReadPreference: conversion.StringNullIfEmpty(biConnector.ReadPreference),
+			ReadPreference: types.StringValue(biConnector.ReadPreference),
 		},
 	}
-}
-
-func newTfAdvancedConfigurationModel(ctx context.Context, p *matlas.ProcessArgs) []*tfAdvancedConfigurationModel {
-	res := []*tfAdvancedConfigurationModel{
-		{
-			DefaultReadConcern:               conversion.StringNullIfEmpty(p.DefaultReadConcern),
-			DefaultWriteConcern:              conversion.StringNullIfEmpty(p.DefaultWriteConcern),
-			FailIndexKeyTooLong:              types.BoolPointerValue(p.FailIndexKeyTooLong),
-			JavascriptEnabled:                types.BoolPointerValue(p.JavascriptEnabled),
-			MinimumEnabledTLSProtocol:        conversion.StringNullIfEmpty(p.MinimumEnabledTLSProtocol),
-			NoTableScan:                      types.BoolPointerValue(p.NoTableScan),
-			OplogSizeMB:                      types.Int64PointerValue(p.OplogSizeMB),
-			OplogMinRetentionHours:           types.Int64Value(cast.ToInt64(p.OplogMinRetentionHours)),
-			SampleSizeBiConnector:            types.Int64PointerValue(p.SampleSizeBIConnector),
-			SampleRefreshIntervalBiConnector: types.Int64PointerValue(p.SampleRefreshIntervalBIConnector),
-			TransactionLifetimeLimitSeconds:  types.Int64PointerValue(p.TransactionLifetimeLimitSeconds),
-		},
-	}
-	if p.OplogMinRetentionHours != nil {
-		res[0].OplogMinRetentionHours = types.Int64PointerValue(p.OplogSizeMB)
-	}
-	return res
 }
 
 type tfClusterDSModel struct {

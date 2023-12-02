@@ -8,8 +8,8 @@ import (
 type tfConnectionStringDSModel struct {
 	Standard          types.String `tfsdk:"standard"`
 	StandardSrv       types.String `tfsdk:"standard_srv"`
-	AwsPrivateLink    types.String `tfsdk:"aws_private_link"`
-	AwsPrivateLinkSrv types.String `tfsdk:"aws_private_link_srv"`
+	AwsPrivateLink    types.Map    `tfsdk:"aws_private_link"`
+	AwsPrivateLinkSrv types.Map    `tfsdk:"aws_private_link_srv"`
 	Private           types.String `tfsdk:"private"`
 	PrivateSrv        types.String `tfsdk:"private_srv"`
 	// PrivateEndpoint []tfPrivateEndpointModel `tfsdk:"private_endpoint"`
@@ -39,21 +39,6 @@ type tfAdvancedConfigurationModel struct {
 	JavascriptEnabled                types.Bool   `tfsdk:"javascript_enabled"`
 	NoTableScan                      types.Bool   `tfsdk:"no_table_scan"`
 }
-
-var tfAdvancedConfigurationType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"default_read_concern":                 types.StringType,
-	"default_write_concern":                types.StringType,
-	"minimum_enabled_tls_protocol":         types.StringType,
-	"oplog_size_mb":                        types.Int64Type,
-	"oplog_min_retention_hours":            types.Int64Type,
-	"sample_size_bi_connector":             types.Int64Type,
-	"sample_refresh_interval_bi_connector": types.Int64Type,
-	"transaction_lifetime_limit_seconds":   types.Int64Type,
-
-	"fail_index_key_too_long": types.BoolType,
-	"javascript_enabled":      types.BoolType,
-	"no_table_scan":           types.BoolType,
-}}
 
 type tfTagModel struct {
 	Key   types.String `tfsdk:"key"`
