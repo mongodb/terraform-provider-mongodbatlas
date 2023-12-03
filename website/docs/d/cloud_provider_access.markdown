@@ -6,16 +6,18 @@ description: |-
     Allows you to get the list of cloud provider access roles
 ---
 
+**WARNING:** The data source `mongodbatlas_cloud_provider_access` is deprecated and will be removed in version v1.14.0, use the data source `mongodbatlas_cloud_provider_access_setup` instead.
+
 # Data Source: mongodbatlas_cloud_provider_access
 
-`mongodbatlas_cloud_provider_access` allows you to get the list of cloud provider access roles, currently only AWS is supported.
+`mongodbatlas_cloud_provider_access` allows you to get the list of cloud provider access roles, currently only AWS and Azure is supported.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
 ## Example Usage
 ```terraform
 resource "mongodbatlas_cloud_provider_access" "test_role" {
-   project_id = "<PROJECT-ID>"
+   project_id = "64259ee860c43338194b0f8e"
    provider_name = "AWS"
 }
 

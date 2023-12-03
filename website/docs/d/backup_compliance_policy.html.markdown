@@ -25,7 +25,7 @@ resource "mongodbatlas_cluster" "my_cluster" {
   provider_name               = "AWS"
   provider_region_name        = "EU_CENTRAL_1"
   provider_instance_size_name = "M10"
-  provider_backup_enabled     = true // enable cloud backup snapshots
+  cloud_backup                = true // enable cloud backup snapshots
 }
 
 resource "mongodbatlas_cloud_backup_schedule" "test" {
@@ -73,6 +73,8 @@ data "mongodbatlas_backup_compliance_policy" "backup_policy" {
 resource "mongodbatlas_backup_compliance_policy" "backup_policy" {
   project_id                 = "<PROJECT-ID>"
   authorized_email           = "user@email.com"
+  authorized_user_first_name = "First"
+  authorized_user_last_name  = "Last"
   copy_protection_enabled    = false
   pit_enabled                = false
   encryption_at_rest_enabled = false
@@ -121,6 +123,8 @@ resource "mongodbatlas_backup_compliance_policy" "backup_policy" {
 In addition to all arguments above, the following attributes are exported:
 
 * `authorized_email` - Email address of the user who is authorized to update the Backup Compliance Policy settings.
+* `authorized_user_first_name` - First name of the user who authorized to update the Backup Compliance Policy settings.
+* `authorized_user_last_name` - Last name of the user who authorized to update the Backup Compliance Policy settings.
 * `copy_protection_enabled` - Flag that indicates whether to enable additional backup copies for the cluster. If unspecified, this value defaults to false.
 * `pit_enabled` - Flag that indicates whether the cluster uses Continuous Cloud Backups with a Backup Compliance Policy. If unspecified, this value defaults to false.
 * `encryption_at_rest_enabled` - Flag that indicates whether Encryption at Rest using Customer Key Management is required for all clusters with a Backup Compliance Policy. If unspecified, this value defaults to false.

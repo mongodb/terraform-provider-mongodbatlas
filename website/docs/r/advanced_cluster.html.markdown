@@ -26,6 +26,8 @@ More information on considerations for using advanced clusters please see [Consi
 
 -> **NOTE:** To enable Cluster Extended Storage Sizes use the `is_extended_storage_sizes_enabled` parameter in the [mongodbatlas_project resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project).
 
+-> **NOTE:** The Low-CPU instance clusters are prefixed with `R`, i.e. `R40`. For complete list of Low-CPU instance clusters see Cluster Configuration Options under each Cloud Provider (https://www.mongodb.com/docs/atlas/reference/cloud-providers/).
+
 
 ## Example Usage
 
@@ -48,7 +50,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
         node_count    = 1
       }
       provider_name = "AWS"
-      priority      = 1
+      priority      = 7
       region_name   = "US_EAST_1"
     }
   }
@@ -71,7 +73,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
       provider_name         = "TENANT"
       backing_provider_name = "AWS"
       region_name           = "US_EAST_1"
-      priority              = 1
+      priority              = 7
     }
   }
 }
@@ -92,14 +94,13 @@ resource "mongodbatlas_advanced_cluster" "test" {
       }
       provider_name         = "AWS"
       region_name           = "US_EAST_1"
-      priority              = 1
+      priority              = 7
     }
   }
 }
 ```
 
-### Example Multicloud.
-
+### Example Multi-Cloud Cluster.
 ```terraform
 resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = "PROJECT ID"
@@ -117,7 +118,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
         node_count    = 1
       }
       provider_name = "AWS"
-      priority      = 1
+      priority      = 7
       region_name   = "US_EAST_1"
     }
     region_configs {
@@ -132,6 +133,179 @@ resource "mongodbatlas_advanced_cluster" "test" {
   }
 }
 ```
+### Example of a Multi-Cloud Cluster.
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "cluster" {
+  project_id   = mongodbatlas_project.project.id
+  name         = var.cluster_name
+  cluster_type = "SHARDED"
+  backup_enabled = true
+
+  replication_specs {
+    num_shards = 3 
+
+    region_configs { # shard n1
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "US_EAST_1"
+    }
+
+    region_configs { # shard n2
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 2
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "AZURE"
+      priority      = 6
+      region_name   = "US_EAST_2"
+    }
+
+    region_configs { # shard n3
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 2
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "GCP"
+      priority      = 5
+      region_name   = "US_EAST_4"
+    }
+  }
+
+  advanced_configuration {
+    javascript_enabled                   = true
+    oplog_size_mb                        = 30
+    sample_refresh_interval_bi_connector = 300
+  }
+}
+```
+
+### Example of a Global Cluster.
+```terraform
+resource "mongodbatlas_advanced_cluster" "cluster" {
+  project_id     = mongodbatlas_project.project.id
+  name           = var.cluster_name
+  cluster_type   = "GEOSHARDED"
+  backup_enabled = true
+
+  replication_specs { # zone n1
+    zone_name  = "zone n1"
+    num_shards = 3 # 3-shard Multi-Cloud Cluster
+
+    region_configs { # shard n1 
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "US_EAST_1"
+    }
+
+    region_configs { # shard n2
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 2
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "AZURE"
+      priority      = 6
+      region_name   = "US_EAST_2"
+    }
+
+    region_configs { # shard n3
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 2
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "GCP"
+      priority      = 5
+      region_name   = "US_EAST_4"
+    }
+  }
+
+  replication_specs { # zone n2
+    zone_name  = "zone n2"
+    num_shards = 2 # 2-shard Multi-Cloud Cluster
+
+    region_configs { # shard n1 
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "EU_WEST_1"
+    }
+
+    region_configs { # shard n2
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 2
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "AZURE"
+      priority      = 6
+      region_name   = "EUROPE_NORTH"
+    }
+
+    region_configs { # shard n3
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 2
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "GCP"
+      priority      = 5
+      region_name   = "US_EAST_4"
+    }
+  }
+
+  advanced_configuration {
+    javascript_enabled                   = true
+    oplog_size_mb                        = 999
+    sample_refresh_interval_bi_connector = 300
+  }
+}
+```
+
 
 ### Example - Return a Connection String
 Standard
@@ -201,7 +375,7 @@ Refer to the following for full privatelink endpoint connection string examples:
 
 This parameter defaults to false.
 
-* `retain_backups_enabled` - (Optional) Set to true to retain backup snapshots for the deleted cluster. This parameter defaults to false.
+* `retain_backups_enabled` - (Optional) Set to true to retain backup snapshots for the deleted cluster. M10 and above only.
 
 **NOTE** Prior version of provider had parameter as `bi_connector` state will migrate it to new value you only need to update parameter in your terraform file
 
@@ -214,7 +388,8 @@ This parameter defaults to false.
 
 * `disk_size_gb` - (Optional) Capacity, in gigabytes, of the host's root volume. Increase this number to add capacity, up to a maximum possible value of 4096 (i.e., 4 TB). This value must be a positive number. You can't set this value with clusters with local [NVMe SSDs](https://docs.atlas.mongodb.com/cluster-tier/#std-label-nvme-storage). The minimum disk size for dedicated clusters is 10 GB for AWS and GCP. If you specify diskSizeGB with a lower disk size, Atlas defaults to the minimum disk size value. If your cluster includes Azure nodes, this value must correspond to an existing Azure disk type (8, 16, 32, 64, 128, 256, 512, 1024, 2048, or 4095)Atlas calculates storage charges differently depending on whether you choose the default value or a custom value. The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require additional storage space beyond this limitation, consider [upgrading your cluster](https://docs.atlas.mongodb.com/scale-cluster/#std-label-scale-cluster-instance) to a higher tier. If your cluster spans cloud service providers, this value defaults to the minimum default of the providers involved.
 * `encryption_at_rest_provider` - (Optional) Possible values are AWS, GCP, AZURE or NONE.  Only needed if you desire to manage the keys, see [Encryption at Rest using Customer Key Management](https://docs.atlas.mongodb.com/security-kms-encryption/) for complete documentation.  You must configure encryption at rest for the Atlas project before enabling it on any cluster in the project. For Documentation, see [AWS](https://docs.atlas.mongodb.com/security-aws-kms/), [GCP](https://docs.atlas.mongodb.com/security-kms-encryption/) and [Azure](https://docs.atlas.mongodb.com/security-azure-kms/#std-label-security-azure-kms). Requirements are if `replication_specs.#.region_configs.#.<type>Specs.instance_size` is M10 or greater and `backup_enabled` is false or omitted.   
-* `labels` - (Optional) Configuration for the collection of key-value pairs that tag and categorize the cluster. See [below](#labels).
+* `tags` - (Optional) Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#tags).
+* `labels` - (Optional) Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#labels). **DEPRECATED** Use `tags` instead.
 * `mongo_db_major_version` - (Optional) Version of the cluster to deploy. Atlas supports the following MongoDB versions for M10+ clusters: `4.0`, `4.2`, `4.4`, or `5.0`. If omitted, Atlas deploys a cluster that runs MongoDB 4.4. If `replication_specs#.region_configs#.<type>Specs.instance_size`: `M0`, `M2` or `M5`, Atlas deploys MongoDB 4.4. Atlas always deploys the cluster with the latest stable release of the specified version.  If you set a value to this parameter and set `version_release_system` `CONTINUOUS`, the resource returns an error. Either clear this parameter or set `version_release_system`: `LTS`.
 * `pit_enabled` - (Optional) - Flag that indicates if the cluster uses Continuous Cloud Backup.
 * `replication_specs` - Configuration for cluster regions and the hardware provisioned in them. See [below](#replication_specs)
@@ -223,13 +398,13 @@ This parameter defaults to false.
 * `version_release_system` - (Optional) - Release cadence that Atlas uses for this cluster. This parameter defaults to `LTS`. If you set this field to `CONTINUOUS`, you must omit the `mongo_db_major_version` field. Atlas accepts:
   - `CONTINUOUS`:  Atlas creates your cluster using the most recent MongoDB release. Atlas automatically updates your cluster to the latest major and rapid MongoDB releases as they become available.
   - `LTS`: Atlas creates your cluster using the latest patch release of the MongoDB version that you specify in the mongoDBMajorVersion field. Atlas automatically updates your cluster to subsequent patch releases of this MongoDB version. Atlas doesn't update your cluster to newer rapid or major MongoDB releases as they become available.
-* `paused` (Optional) - Flag that indicates whether the cluster is paused or not. You can pause M10 or larger clusters.  You cannot initiate pausing for a shared/tenant tier cluster.  See [Considerations for Paused Clusters](https://docs.atlas.mongodb.com/pause-terminate-cluster/#considerations-for-paused-clusters)  
+* `paused` (Optional) - Flag that indicates whether the cluster is paused or not. You can pause M10 or larger clusters.  You cannot initiate pausing for a shared/tenant tier cluster. If you try to update a `paused` cluster you will get a `CANNOT_UPDATE_PAUSED_CLUSTER` error. See [Considerations for Paused Clusters](https://docs.atlas.mongodb.com/pause-terminate-cluster/#considerations-for-paused-clusters).
   **NOTE** Pause lasts for up to 30 days. If you don't resume the cluster within 30 days, Atlas resumes the cluster.  When the cluster resumption happens Terraform will flag the changed state.  If you wish to keep the cluster paused, reapply your Terraform configuration.   If you prefer to allow the automated change of state to unpaused use:
   `lifecycle {
   ignore_changes = [paused]
   }`
 * `timeouts`- (Optional) The duration of time to wait for Cluster to be created, updated, or deleted. The timeout value is defined by a signed sequence of decimal numbers with an time unit suffix such as: `1h45m`, `300s`, `10m`, .... The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout for Advanced Cluster create & delete is `3h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
-
+* `accept_data_risks_and_force_replica_set_reconfig`- (Optional) If reconfiguration is necessary to regain a primary due to a regional outage, submit this field alongside your topology reconfiguration to request a new regional outage resistant topology. Forced reconfigurations during an outage of the majority of electable nodes carry a risk of data loss if replicated writes (even majority committed writes) have not been replicated to the new primary node. MongoDB Atlas docs contain more information. To proceed with an operation which carries that risk, set `accept_data_risks_and_force_replica_set_reconfig` to the current date. Learn more about Reconfiguring a Replica Set during a regional outage [here](https://dochub.mongodb.org/core/regional-outage-reconfigure-replica-set).
 
 ### bi_connector_config
 
@@ -287,9 +462,32 @@ Include **desired options** within advanced_configuration:
 * **Note**  A minimum oplog retention is required when seeking to change a cluster's class to Local NVMe SSD. To learn more and for latest guidance see [`oplogMinRetentionHours`](https://www.mongodb.com/docs/manual/core/replica-set-oplog/#std-label-replica-set-minimum-oplog-size) 
 * `sample_size_bi_connector` - (Optional) Number of documents per database to sample when gathering schema information. Defaults to 100. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
 * `sample_refresh_interval_bi_connector` - (Optional) Interval in seconds at which the mongosqld process re-samples data to create its relational schema. The default value is 300. The specified value must be a positive integer. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
+* `transaction_lifetime_limit_seconds` - (Optional) Lifetime, in seconds, of multi-document transactions. Defaults to 60 seconds.
 
+
+### Tags
+
+ ```terraform
+ tags {
+        key   = "Key 1"
+        value = "Value 1"
+  }
+ tags {
+        key   = "Key 2"
+        value = "Value 2"
+  }
+```
+
+Key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.
+
+* `key` - (Required) Constant that defines the set of the tag.
+* `value` - (Required) Variable that belongs to the set of the tag.
+
+To learn more, see [Resource Tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas).
 
 ### labels
+
+**WARNING:** This property is deprecated and will be removed by September 2024, use the `tags` attribute instead.
 
  ```terraform
  labels {
@@ -302,10 +500,12 @@ Include **desired options** within advanced_configuration:
   }
 ```
 
-Key-value pairs that tag and categorize the cluster. Each key and value has a maximum length of 255 characters.  You cannot set the key `Infrastructure Tool`, it is used for internal purposes to track aggregate usage.
+Key-value pairs that categorize the cluster. Each key and value has a maximum length of 255 characters.  You cannot set the key `Infrastructure Tool`, it is used for internal purposes to track aggregate usage.
 
 * `key` - The key that you want to write.
 * `value` - The value that you want to write.
+
+-> **NOTE:** MongoDB Atlas doesn't display your labels.
 
 
 ### replication_specs
@@ -323,7 +523,7 @@ replication_specs {
       node_count    = 1
     }
     provider_name = "AWS"
-    priority      = 1
+    priority      = 7
     region_name   = "US_EAST_1"
   }
   region_configs {
@@ -363,7 +563,25 @@ replication_specs {
 * `read_only_specs` - (Optional) Hardware specifications for read-only nodes in the region. Read-only nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region. See [below](#specs)
 * `region_name` - (Optional) Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.  Requires the **Atlas region name**, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
 
-### specs
+### electable_specs
+
+* `instance_size` - (Required) Hardware specification for the instance sizes in this region. Each instance size has a default storage and memory capacity. The instance size you select applies to all the data-bearing hosts in your instance size.
+* `disk_iops` - (Optional) Target throughput (IOPS) desired for AWS storage attached to your cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster.
+* `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Valid values are:
+    * `STANDARD` volume types can't exceed the default IOPS rate for the selected volume size.
+    * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
+* `node_count` - (Optional) Number of nodes of the given type for MongoDB Atlas to deploy to the region.
+
+### analytics_specs
+
+* `disk_iops` - (Optional) Target throughput (IOPS) desired for AWS storage attached to your cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster.
+* `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Valid values are:
+    * `STANDARD` volume types can't exceed the default IOPS rate for the selected volume size.
+    * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
+* `instance_size` - (Optional) Hardware specification for the instance sizes in this region. Each instance size has a default storage and memory capacity. The instance size you select applies to all the data-bearing hosts in your instance size.
+* `node_count` - (Optional) Number of nodes of the given type for MongoDB Atlas to deploy to the region.
+
+### read_only_specs
 
 * `disk_iops` - (Optional) Target throughput (IOPS) desired for AWS storage attached to your cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster.
 * `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Valid values are:
@@ -434,8 +652,6 @@ In addition to all arguments above, the following attributes are exported:
 
     - `connection_strings.standard` -   Public mongodb:// connection string for this cluster.
     - `connection_strings.standard_srv` - Public mongodb+srv:// connection string for this cluster. The mongodb+srv protocol tells the driver to look up the seed list of hosts in DNS. Atlas synchronizes this list with the nodes in a cluster. If the connection string uses this URI format, you don’t need to append the seed list or change the URI if the nodes change. Use this URI format if your driver supports it. If it doesn’t  , use connectionStrings.standard.
-    - `connection_strings.aws_private_link` -  [Private-endpoint-aware](https://docs.atlas.mongodb.com/security-private-endpoint/#private-endpoint-connection-strings) mongodb://connection strings for each interface VPC endpoint you configured to connect to this cluster. Returned only if you created a AWS PrivateLink connection to this cluster. **DEPRECATED** Use `connection_strings.private_endpoint[n].connection_string` instead.
-    - `connection_strings.aws_private_link_srv` - [Private-endpoint-aware](https://docs.atlas.mongodb.com/security-private-endpoint/#private-endpoint-connection-strings) mongodb+srv://connection strings for each interface VPC endpoint you configured to connect to this cluster. Returned only if you created a AWS PrivateLink connection to this cluster. Use this URI format if your driver supports it. If it doesn’t, use connectionStrings.awsPrivateLink. **DEPRECATED** Use `connection_strings.private_endpoint[n].srv_connection_string` instead.
     - `connection_strings.private` -   [Network-peering-endpoint-aware](https://docs.atlas.mongodb.com/security-vpc-peering/#vpc-peering) mongodb://connection strings for each interface VPC endpoint you configured to connect to this cluster. Returned only if you created a network peering connection to this cluster.
     - `connection_strings.private_srv` -  [Network-peering-endpoint-aware](https://docs.atlas.mongodb.com/security-vpc-peering/#vpc-peering) mongodb+srv://connection strings for each interface VPC endpoint you configured to connect to this cluster. Returned only if you created a network peering connection to this cluster.
     - `connection_strings.private_endpoint` - Private endpoint connection strings. Each object describes the connection strings you can use to connect to this cluster through a private endpoint. Atlas returns this parameter only if you deployed a private endpoint to all regions to which you deployed this cluster's nodes.

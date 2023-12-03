@@ -17,15 +17,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        terraform_version: ["1.4.6"]
+        terraform_version: ["1.5.2"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - run: echo "GO_VERSION=$(cat .go-version)" >> "${GITHUB_ENV}"
       - uses: actions/setup-go@v4
         with:
-          go-version: "1.20"
+          go-version-file: 'go.mod'
       - name: go build
         run: go build -o terraform-plugin-dir/terraform-provider-mongodbatlas-dev_v99.99.99_x5 .
       - name: override plugin
@@ -34,12 +34,12 @@ jobs:
           mkdir -p ~/.terraform.d/plugins/registry.terraform.io/hashicorp/mongodbatlas-dev/99.99.99/"$(go env GOOS)"_"$(go env GOARCH)"/
           cp terraform-plugin-dir/terraform-provider-mongodbatlas-dev_v99.99.99_x5 ~/.terraform.d/plugins/registry.terraform.io/hashicorp/mongodbatlas-dev/99.99.99/"$(go env GOOS)"_"$(go env GOARCH)"/
       - name: replace names of provider for local development
-        run: grep --include=\*.tf -rnl './examples' -e 'source  = "mongodb/mongodbatlas"' | grep -vE "test-upgrade" | xargs sed -i s@mongodb/mongodbatlas@hashicorp/mongodbatlas-dev@g
+        run: grep --include=\*versions.tf -rnl './examples' -e 'source  = "mongodb/mongodbatlas"' | grep -vE "test-upgrade" | xargs sed -i s@mongodb/mongodbatlas@hashicorp/mongodbatlas-dev@g
       - name: remove version of provider for local development
-        run: grep --include=\*.tf -rnl './examples' -e 'version =' | grep -vE "test-upgrade" | xargs sed -i '/^\s*version =/d'
+        run: grep --include=\*versions.tf -rnl './examples' -e 'version =' | grep -vE "test-upgrade" | xargs sed -i '/^\s*version =/d'
       - name: Fix format after sostitutions
-        run: grep --include=\*.tf -rnl './examples' -e 'source[[:space:]]\+=' | grep -vE "test-upgrade" | xargs sed -i 's@\(\([[:space:]]*\)source\)[[:space:]]\+=[[:space:]]*@\2source = @g'
-      - uses: hashicorp/setup-terraform@v2
+        run: grep --include=\*versions.tf -rnl './examples' -e 'source[[:space:]]\+=' | grep -vE "test-upgrade" | xargs sed -i 's@\(\([[:space:]]*\)source\)[[:space:]]\+=[[:space:]]*@\2source = @g'
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ matrix.terraform_version }}
           # Needed to use the output of `terraform validate -json`
@@ -51,13 +51,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        terraform_version: ["1.4.6"]
+        terraform_version: ["1.5.2"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: actions/setup-go@v4
         with:
-          go-version: "1.20"
+          go-version-file: 'go.mod'
       - name: tflint
         run: make tools && make tflint

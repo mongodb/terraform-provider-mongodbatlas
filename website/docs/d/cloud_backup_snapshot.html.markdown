@@ -16,7 +16,7 @@ description: |-
 
 ```terraform
 resource "mongodbatlas_cloud_backup_snapshot" "test" {
-  group_id          = "5d0f1f73cf09a29120e173cf"
+  project_id          = "5d0f1f73cf09a29120e173cf"
   cluster_name      = "MyClusterTest"
   description       = "SomeDescription"
   retention_in_days = 1
@@ -24,7 +24,7 @@ resource "mongodbatlas_cloud_backup_snapshot" "test" {
 
 data "mongodbatlas_cloud_backup_snapshot" "test" {
   snapshot_id  = "5d1285acd5ec13b6c2d1726a"
-  group_id     = mongodbatlas_cloud_backup_snapshot.test.group_id
+  project_id     = mongodbatlas_cloud_backup_snapshot.test.project_id
   cluster_name = mongodbatlas_cloud_backup_snapshot.test.cluster_name
 }
 ```
@@ -33,7 +33,7 @@ data "mongodbatlas_cloud_backup_snapshot" "test" {
 
 * `snapshot_id` - (Required) The unique identifier of the snapshot you want to retrieve.
 * `cluster_name` - (Required) The name of the Atlas cluster that contains the snapshot you want to retrieve.
-* `group_id` - (Required) The unique identifier of the project for the Atlas cluster.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
 
 ## Attributes Reference
 

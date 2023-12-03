@@ -10,6 +10,9 @@ linters-settings:
       - octalLiteral
   govet:
     check-shadowing: true
+    enable:
+      - fieldalignment
+
   revive:
     # see https://github.com/mgechev/revive#available-rules for details.
     ignore-generated-header: true
@@ -45,12 +48,6 @@ linters-settings:
       - name: redefines-builtin-id
   maligned:
     suggest-new: true
-  depguard:
-    list-type: blacklist
-    packages:
-      # logging is allowed only by logutils.Log, logrus
-      # is allowed to use only in logutils package
-      - github.com/sirupsen/logrus
   misspell:
     locale: US
     ignore-words:
@@ -69,16 +66,13 @@ linters-settings:
     settings:
       mnd:
         # don't include the "operation" and "assign"
-        checks: [case,return]
+        checks: [case, return]
   funlen:
     lines: 360
     statements: 120
 linters:
   disable-all: true
   enable:
-    - bodyclose
-    - deadcode
-    - depguard
     - dogsled
     - errcheck
     - funlen
@@ -99,14 +93,16 @@ linters:
     - rowserrcheck
     - exportloopref
     - staticcheck
-    - structcheck
     - stylecheck
     - typecheck
     - unconvert
     - unused
-    - varcheck
     - whitespace
   # don't enable:
+  #   - deadcode
+  #   - varcheck
+  #   - structcheck
+  #   - depguard # Go linter that checks if package imports are in a list of acceptable packages [fast: true, auto-fix: false]
   #   - gocyclo # we already have funlen lint
   #   - dupl  # we have a lot of duplicate test cases
   #   - gochecknoinits # we need the init function for the provider
@@ -135,8 +131,11 @@ issues:
 
     # Exclude some staticcheck messages
     - linters:
-      - staticcheck
+        - staticcheck
       text: "SA1019:" # d.GetOkExists is deprecated: usage is discouraged due to undefined behaviors and may be removed in a future version of the SDK
+    - linters:
+        - gocritic
+      text: "^hugeParam: req is heavy"
 
 run:
   tests: true

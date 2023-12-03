@@ -16,40 +16,41 @@ description: |-
 
 ## Example Usage
 
-### Using org_id attribute to query
+### Using project_id and api_key_id attribute to query
 ```terraform
+
 resource "mongodbatlas_project_api_key" "test" {
-  description   = "key-name"
-  project_id    = "<PROJECT_ID>"
-  role_names = ["GROUP_READ_ONLY"]
+  description   = "Description of your API key"
+  project_assignment {
+    project_id = "64259ee860c43338194b0f8e"
+    role_names = ["GROUP_READ_ONLY"]
   }
 }
 
 data "mongodbatlas_project_api_key" "test" {
-  project_id = "${mongodbatlas_api_key.test.project_id}"
-  api_key_id = "${mongodbatlas_api_key.test.api_key_id}"
+  project_id = "64259ee860c43338194b0f8e"
+  api_key_id = mongodbatlas_api_key.test.api_key_id
 }
 ```
 
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project.
+* `api_key_id` - (Required) Unique identifier for this Project API key.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `project_id` - Unique identifier for the project whose API keys you want to retrieve. Use the /groups endpoint to retrieve all projects to which the authenticated user has access.
 * `description` - Description of this Project API key.
 * `public_key` - Public key for this Organization API key.
 * `private_key` - Private key for this Organization API key.
-* `role_names` - Name of the role. This resource returns all the roles the user has in Atlas.
-The following are valid roles:
-  * `GROUP_OWNER`
-  * `GROUP_READ_ONLY`
-  * `GROUP_DATA_ACCESS_ADMIN`
-  * `GROUP_DATA_ACCESS_READ_WRITE`
-  * `GROUP_DATA_ACCESS_READ_ONLY`
-  * `GROUP_CLUSTER_MANAGER`  
+
+### project_assignment
+List of Project roles that the Programmatic API key needs to have.
+
+* `project_id` -  Project ID to assign to Access Key
+* `role_names` -  List of Project roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Project. You must specify an array even if you are only associating a single role with the Programmatic API key. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) describes the valid roles that can be assigned.
     
+
 See [MongoDB Atlas API - API Key](https://www.mongodb.com/docs/atlas/reference/api/projectApiKeys/get-all-apiKeys-in-one-project/) - Documentation for more information.

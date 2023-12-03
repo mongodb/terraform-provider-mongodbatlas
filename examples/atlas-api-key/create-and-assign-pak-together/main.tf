@@ -2,8 +2,10 @@
 # Create Programmatic API Key + Assign Programmatic API Key to Project
 resource "mongodbatlas_project_api_key" "test" {
   description = "test create and assign"
-  project_id  = var.project_id
-  role_names  = ["GROUP_OWNER"]
+  project_assignment {
+    project_id = var.project_id
+    role_names = ["GROUP_OWNER"]
+  }
 }
 
 # Add IP Access List Entry to Programmatic API Key 

@@ -28,12 +28,10 @@ provider "mongodbatlas" {
 ```
 ## Configure Atlas Programmatic Access
 
-In order to set up authentication with the MongoDB Atlas provider, you must generate a programmatic API key for MongoDB Atlas with the appropriate [role](https://docs.atlas.mongodb.com/reference/user-roles/) and IP access list entries.
-The [MongoDB Atlas documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html) contains the most up-to-date instructions for creating and managing your key(s), setting the appropriate role, and IP access.  
+In order to set up authentication with the MongoDB Atlas provider, you must generate a programmatic API key for MongoDB Atlas with the appropriate [role](https://docs.atlas.mongodb.com/reference/user-roles/).
+The [MongoDB Atlas documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html) contains the most up-to-date instructions for creating and managing your key(s), setting the appropriate role, and optionally configuring IP access.
 
 **Role**: If unsure of which role level to grant your key, we suggest creating an organization API Key with an Organization Owner role. This ensures that you have sufficient access for all actions.
-
-**API Key Access List**: Some Atlas API resources such as Cloud Backup Restores, Cloud Backup Snapshots, and Cloud Backup Schedules **require** an Atlas API Key Access List to utilize these feature.  Hence, if using Terraform, or any other programmatic control, to manage these resources you must have the IP address or CIDR block that the connection is coming from added to the Atlas API Key Access List of the Atlas API key you are using.   See [Resources that require API Key List](https://www.mongodb.com/docs/atlas/configure-api-access/#use-api-resources-that-require-an-access-list)
 
 ## Configure MongoDB Atlas for Government
 
@@ -181,6 +179,29 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
 
 For more information on configuring and managing programmatic API Keys see the [MongoDB Atlas Documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html).
 
+## HashiCorp Terraform Version Requirement
+| MongoDB Atlas Provider version  | Required Terraform version |
+| ------------- | ------------- |
+| `1.12.0` and above  | `1.0+`  |
+| below `1.12.0`  | `0.13+` |
+
+* While we support minimum of HashiCorp Terraform version 1.0+ (as we have migrated to [Plugin Protocol Version 6](https://developer.hashicorp.com/terraform/plugin/terraform-plugin-protocol#protocol-version-6)), for your safety we strongly recommend only consuming versions of Terraform that are currently receiving Security/Maintenance Updates. For latest Terraform versions see: https://endoflife.date/terraform 
+
+## Supported OS and Architectures
+As per [HashiCorp's recommendations](https://developer.hashicorp.com/terraform/registry/providers/os-arch), we fully support the following operating system / architecture combinations:
+- Darwin / AMD64
+- Darwin / ARMv8
+- Linux / AMD64
+- Linux / ARMv8 (sometimes referred to as AArch64 or ARM64)
+- Linux / ARMv6
+- Windows / AMD64
+
+We ship binaries but do not prioritize fixes for the following operating system / architecture combinations:
+- Linux / 386
+- Windows / 386
+- FreeBSD / 386
+- FreeBSD / AMD64
+
 ## Helpful Links/Information
 
 [Upgrade Guide for Terraform MongoDB Atlas 0.4.0](https://www.mongodb.com/blog/post/upgrade-guide-for-terraform-mongodb-atlas-040)
@@ -191,7 +212,7 @@ For more information on configuring and managing programmatic API Keys see the [
 
 [Request Features](https://feedback.mongodb.com/forums/924145-atlas?category_id=370723)
 
-[Support](https://docs.atlas.mongodb.com/support/) covered by MongoDB Atlas support plans, Developer and above.
+[Support covered by MongoDB Atlas support plans, Developer and above](https://docs.atlas.mongodb.com/support/) 
 
 ## Examples from MongoDB and the Community
 

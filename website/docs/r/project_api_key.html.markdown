@@ -16,26 +16,27 @@ description: |-
 
 ```terraform
 resource "mongodbatlas_project_api_key" "test" {
-  description   = "key-name"
-  project_id    = "<PROJECT_ID>"
-  role_names    = ["GROUP_OWNER"]
+  description   = "Description of your API key"
+  project_assignment {
+    project_id = "64259ee860c43338194b0f8e"
+    role_names = ["GROUP_OWNER"]
+  }
 }
 ```
 
 ## Example Usage - Create and Assign PAK to Multiple Projects
 
 ```terraform
-resource "mongodbatlas_api_key" "test" {
-  description   = "key-name"
-  org_id        = "<ORG_ID>"
+resource "mongodbatlas_project_api_key" "test" {
+  description   = "Description of your API key"
   
- project_assignment {
-    project_id = <project_id>
+  project_assignment {
+    project_id = "64259ee860c43338194b0f8e"
     role_names = ["GROUP_READ_ONLY", "GROUP_OWNER"]
   }
   
   project_assignment {
-    project_id = <additional_project_id>
+    project_id = "74259ee860c43338194b0f8e"
     role_names = ["GROUP_READ_ONLY"]
   }
   
@@ -44,37 +45,17 @@ resource "mongodbatlas_api_key" "test" {
 
 ## Argument Reference
 
-* `project_id` -Unique 24-hexadecimal digit string that identifies your project.
-* `description` - Description of this Organization API key.
-* `role_names` - (Deprecated use project_assignment) List of Project roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Project.  You must specify an array even if you are only associating a single role with the Programmatic API key.
- The following are valid roles:
-  * `GROUP_OWNER`
-  * `GROUP_READ_ONLY`
-  * `GROUP_DATA_ACCESS_ADMIN`
-  * `GROUP_DATA_ACCESS_READ_WRITE`
-  * `GROUP_DATA_ACCESS_READ_ONLY`
-  * `GROUP_CLUSTER_MANAGER`  
+* `description` - (Required) Description of this Project API key.
+* `project_id` - Unique 24-hexadecimal digit string that identifies your project. **WARNING:** this parameter is deprecated as it no longer needs to be defined. It will be removed in version 1.16.0.
 
 ~> **NOTE:** Project created by API Keys must belong to an existing organization.
 
-# project_assignment
-Project Assignment attribute is optional (Use project_assignment going forward as role_names parameter above is deprecated)
+### project_assignment
+List of Project roles that the Programmatic API key needs to have. At least one `project_assignment` block must be defined.
 
 * `project_id` - (Required) Project ID to assign to Access Key
-* `role_names` - Name of the role. This resource returns all the roles the user has in Atlas.
-The following are valid roles:
-  * `GROUP_OWNER`
-  * `GROUP_READ_ONLY`
-  * `GROUP_DATA_ACCESS_ADMIN`
-  * `GROUP_DATA_ACCESS_READ_WRITE`
-  * `GROUP_DATA_ACCESS_READ_ONLY`
-  * `GROUP_CLUSTER_MANAGER`  
-  * 
-### Programmatic API Keys
-api_keys allows one to assign an existing organization programmatic API key to a Project. The api_keys attribute is optional.
+* `role_names` - (Required) List of Project roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Project. You must specify an array even if you are only associating a single role with the Programmatic API key. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) describes the valid roles that can be assigned.
 
-* `api_key_id` - (Required) The unique identifier of the Programmatic API key you want to associate with the Project.  The Programmatic API key and Project must share the same parent organization.  Note: this is not the `publicKey` of the Programmatic API key but the `id` of the key. See [Programmatic API Keys](https://docs.atlas.mongodb.com/reference/api/apiKeys/) for more.
-  
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
@@ -83,9 +64,9 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-API Keys must be imported using org ID, API Key ID e.g.
+API Keys must be imported using project ID, API Key ID e.g.
 
 ```
 $ terraform import mongodbatlas_project_api_key.test 5d09d6a59ccf6445652a444a-6576974933969669
 ```
-See [MongoDB Atlas API - API Key](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Programmatic-API-Keys/operation/createAndAssignOneOrganizationApiKeyToOneProject) - Documentation for more information.
+See [MongoDB Atlas API - API Key](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Programmatic-API-Keys/operation/createProjectApiKey) - Documentation for more information.

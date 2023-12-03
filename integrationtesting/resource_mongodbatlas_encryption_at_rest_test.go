@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 )
 
 func TestTerraformResourceMongoDBAtlasEncryptionAtRestWithRole_basicAWS(t *testing.T) {
@@ -20,7 +20,7 @@ func TestTerraformResourceMongoDBAtlasEncryptionAtRestWithRole_basicAWS(t *testi
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/atlas-encryptionAtRest-roles",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"access_key":          awsSecrets.AccessKey,
 			"secret_key":          awsSecrets.SecretKey,
 			"customer_master_key": awsSecrets.CustomerMasterKey,
@@ -48,7 +48,7 @@ func TestTerraformResourceMongoDBAtlasEncryptionAtRestWithRole_basicAWS(t *testi
 	terraformOptionsUpdated := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/atlas-encryptionAtRest-roles",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"access_key":          awsSecrets.AccessKey,
 			"secret_key":          awsSecrets.SecretKey,
 			"customer_master_key": awsSecrets.CustomerMasterKey,
@@ -66,7 +66,7 @@ func TestTerraformResourceMongoDBAtlasEncryptionAtRestWithRole_basicAWS(t *testi
 	terraformOptionsSecond := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/atlas-encryptionAtRest-roles/second_step",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"customer_master_key": awsSecrets.CustomerMasterKey,
 			"atlas_region":        awsSecrets.AwsRegion,
 			"project_id":          mongoSecrets.ProjectID,
@@ -104,7 +104,7 @@ func TestResourceEncryptionAtRestAws(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/test-upgrade/encryption-at-rest/aws/v101",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name":        projectName,
 			"org_id":              orgID,
 			"public_key":          publicKey,
@@ -153,7 +153,7 @@ func TestResourceEncryptionAtRestAzure(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/test-upgrade/encryption-at-rest/azure/v101",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name":        projectName,
 			"org_id":              orgID,
 			"public_key":          publicKey,
@@ -202,7 +202,7 @@ func TestResourceEncryptionAtRestGCP(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/test-upgrade/encryption-at-rest/gcp/v101",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name":                projectName,
 			"org_id":                      orgID,
 			"public_key":                  publicKey,

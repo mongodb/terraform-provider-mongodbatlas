@@ -3,7 +3,7 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: search index"
 sidebar_current: "docs-mongodbatlas-resource-search-index"
 description: |-
-Provides a Search Index resource.
+    Provides a Search Index resource.
 ---
 
 # Resource: mongodbatlas_search_index
@@ -12,7 +12,7 @@ Provides a Search Index resource.
 
 ## Example Usage
 
-### Basic 
+### Basic search index
 ```terraform
 resource "mongodbatlas_search_index" "test-basic-search-index" {
   name   = "test-basic-search-index"
@@ -28,11 +28,30 @@ resource "mongodbatlas_search_index" "test-basic-search-index" {
 }
 ```
 
-### Advanced (with custom analyzers)
+### Basic vector index
+```terraform
+resource "mongodbatlas_search_index" "test-basic-search-vector" {
+  project_id = "<PROJECT_ID>"
+  cluster_name = "<CLUSTER_NAME>"
+  collection_name = "collection_test"
+  database = "database_test"
+  type = "vectorSearch"
+  fields = <<-EOF
+[{
+      "type": "vector",
+      "path": "plot_embedding",
+      "numDimensions": 1536,
+      "similarity": "euclidean"
+}]
+EOF
+}
+```
+
+### Advanced search index (with custom analyzers)
 ```terraform
 resource "mongodbatlas_search_index" "test-advanced-search-index" {
-  project_id = "%[1]s"
-  cluster_name = "%[2]s"
+  project_id = "<PROJECT_ID>"
+  cluster_name = "<CLUSTER_NAME>"
   analyzer = "lucene.standard"
   collection_name = "collection_test"
   database = "database_test"
@@ -74,20 +93,20 @@ EOF
   analyzers = <<-EOF
   [{
   "name": "index_analyzer_test_name",
-  "charFilters": {
+  "charFilters": [{
 	"type": "mapping",
 	"mappings": {"\\" : "/"}
-    	},
+    	}],
   "tokenizer": {
   "type": "nGram",
   "minGram": 2,
   "maxGram": 5
 		},
-  "tokenFilters": {
+  "tokenFilters": [{
 	"type": "length",
 	"min": 20,
 	"max": 33
-    	}
+    	}]
   }]
 EOF
   synonyms {
@@ -100,6 +119,7 @@ EOF
 
 ## Argument Reference
 
+* `type` - (Optional) Type of index: `search` or `vectorSearch`. Default type is `search`.
 * `name` - (Required) The name of the search index you want to create.
 * `project_id` - (Required) The ID of the organization or project you want to create the search index within.
 * `cluster_name` - (Required) The name of the cluster where you want to create the search index within.
@@ -114,20 +134,20 @@ EOF
 analyzers = <<-EOF
   [{
   "name": "index_analyzer_test_name",
-  "charFilters": {
+  "charFilters": [{
 	"type": "mapping",
 	"mappings": {"\\" : "/"}
-    	},
+    	}],
   "tokenizer": {
   "type": "nGram",
   "minGram": 2,
   "maxGram": 5
 	},
-  "tokenFilters": {
+  "tokenFilters": [{
 	"type": "length",
 	"min": 20,
 	"max": 33
-    	}
+    	}]
   }]
 EOF
 ```
@@ -136,9 +156,9 @@ EOF
 
 * `database` - (Required) Name of the database the collection is in.
 
-* `mappings_dynamic` - Indicates whether the index uses dynamic or static mapping. For dynamic mapping, set the value to `true`. For static mapping, specify the fields to index using `mappings_fields`
+* `mappings_dynamic` - Indicates whether the search index uses dynamic or static mapping. For dynamic mapping, set the value to `true`. For static mapping, specify the fields to index using `mappings_fields`
 
-* `mappings_fields` - attribute is required when `mappings_dynamic` is false. This field needs to be a JSON string in order to be decoded correctly.
+* `mappings_fields` - attribute is required in search indexes when `mappings_dynamic` is false. This field needs to be a JSON string in order to be decoded correctly.
   ```terraform
     mappings_fields = <<-EOF
     {
@@ -176,7 +196,9 @@ EOF
 * `search_analyzer` - [Analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use when searching the index. Defaults to [lucene.standard](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/standard/#std-label-ref-standard-analyzer)
 * `synonyms` - Synonyms mapping definition to use in this index.
 
-### Analyzers
+* `fields` - Array of [Fields](https://www.mongodb.com/docs/atlas/atlas-search/field-types/knn-vector/#std-label-fts-data-types-knn-vector) to configure this `vectorSearch` index. It is mandatory for vector searches and it must contain at least one `vector` type field. This field needs to be a JSON string in order to be decoded correctly.
+
+### Analyzers (search  index)
 An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/) prepares a set of documents to be indexed by performing a series of operations to transform, filter, and group sequences of characters. You can define a custom analyzer to suit your specific indexing needs.
 
 * `name` - (Required) 	
@@ -186,10 +208,10 @@ An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search
     * `mongodb`
 * `charFilters` - Array containing zero or more character filters. Always require a `type` field, and some take additional options as well
   ```terraform
-  "charFilters":{
+  "charFilters":[{
    "type": "<FILTER_TYPE>",
    "ADDITIONAL_OPTION": VALUE
-  }
+  }]
   ```
   Atlas search supports four `types` of character filters:
     * [htmlStrip](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-htmlStrip-ref) - Strips out HTML constructs
@@ -198,10 +220,10 @@ An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search
         ```terraform
           analyzers = <<-EOF [{
             "name": "analyzer_test",
-            "charFilters":{
+            "charFilters":[{
               "type": "htmlStrip",
               "ignoredTags": ["a"]
-              }   
+              }]   
             }] 
        ```
     * [icuNormalize](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-icuNormalize-ref) - Normalizes text with the [ICU](http://site.icu-project.org/) Normalizer. Based on Lucene's [ICUNormalizer2CharFilter](https://lucene.apache.org/core/8_3_0/analyzers-icu/org/apache/lucene/analysis/icu/ICUNormalizer2CharFilter.html)
@@ -222,7 +244,7 @@ An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search
     * [persian](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-persian-ref) - Replaces instances of [zero-width non-joiners](https://en.wikipedia.org/wiki/Zero-width_non-joiner) with ordinary space. Based on Lucene's [PersianCharFilter](https://lucene.apache.org/core/8_0_0/analyzers-common/org/apache/lucene/analysis/fa/PersianCharFilter.html)
 
 
-* `tokenizer` - (Required) Tokenizer to use. Determines how Atlas Search splits up text into discrete chunks of indexing. Always require a type field, and some take additional options as well.
+* `tokenizer` - (Required) Tokenizer to use in search indexes. Determines how Atlas Search splits up text into discrete chunks of indexing. Always require a type field, and some take additional options as well.
     ```terraform
     "tokenizer":{
     "type": "<tokenizer-type>",
@@ -258,10 +280,10 @@ An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search
 
 * `token_filters` - Array containing zero or more token filters. Always require a type field, and some take additional options as well:
   ```terraform
-  "tokenFilters":{
+  "tokenFilters":[{
     "type": "<FILTER_TYPE>",
     "ADDITIONAL-OPTIONS": VALUE
-  }
+  }]
   ```
   Atlas Search supports the following token filters:
     * [daitchMokotoffSoundex](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-daitchmokotoffsoundex-tf-ref) - Creates tokens for words that sound the same based on [Daitch-Mokotoff Soundex](https://en.wikipedia.org/wiki/Daitch%E2%80%93Mokotoff_Soundex) phonetic algorithm. This filter can generate multiple encodings for each input, where each encoded token is a 6 digit number:
@@ -360,7 +382,7 @@ An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search
 
 
 
-### Synonyms
+### Synonyms (search  index)
 Synonyms mapping definition to use in the index.
 * `name` - (Required) Name of the [synonym mapping definition](https://docs.atlas.mongodb.com/reference/atlas-search/synonyms/#std-label-synonyms-ref). Name must be unique in this index definition and it can't be an empty string.
 * `source_collection` - (Required) Name of the source MongoDB collection for the synonyms. Documents in this collection must be in the format described in the [Synonyms Source Collection Documents](https://docs.atlas.mongodb.com/reference/atlas-search/synonyms/#std-label-synonyms-coll-spec).
@@ -379,7 +401,5 @@ Synonyms mapping definition to use in the index.
    source_collection = "collection_test"
   }
 ```
-
-
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/atlas-search/) - [and MongoDB Atlas API - Search](https://docs.atlas.mongodb.com/reference/api/atlas-search/) Documentation for more information.

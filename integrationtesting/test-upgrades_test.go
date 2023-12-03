@@ -11,7 +11,7 @@ import (
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 )
 
 var (
@@ -35,7 +35,7 @@ func TestUpgradeNetworkContainerRegionsGCP(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/test-upgrade/v090/network-container/v082",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_id":       projectID,
 			"org_id":           orgID,
 			"atlas_cidr_block": atlasCIDRBlock,
@@ -56,7 +56,7 @@ func TestUpgradeNetworkContainerRegionsGCP(t *testing.T) {
 	terraformOptionsSecond := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/test-upgrade/v090/network-container/v090",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_id":       projectID,
 			"org_id":           orgID,
 			"atlas_cidr_block": atlasCIDRBlock,
@@ -91,7 +91,7 @@ func TestUpgradeDatabaseUserLDAPAuthType(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/test-upgrade/v090/database-user/v082",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name": projectName,
 			"org_id":       orgID,
 			"username":     username,
@@ -116,7 +116,7 @@ func TestUpgradeDatabaseUserLDAPAuthType(t *testing.T) {
 	terraformOptionsSecond := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: tempTestFolder,
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name": projectName,
 			"org_id":       orgID,
 			"username":     username,
@@ -157,7 +157,7 @@ func TestUpgradeClusterDeprecationEBSVolume(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/test-upgrade/v090/cluster/v082",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name":          projectName,
 			"org_id":                orgID,
 			"cluster_name":          clusterName,
@@ -181,7 +181,7 @@ func TestUpgradeClusterDeprecationEBSVolume(t *testing.T) {
 	terraformOptionsSecond := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: tempTestFolder,
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name":          projectName,
 			"org_id":                orgID,
 			"cluster_name":          clusterName,
@@ -219,7 +219,7 @@ func TestUpgradePrivateEndpoint(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/test-upgrade/v090/private-endpoint/v080",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name":   projectName,
 			"org_id":         orgID,
 			"public_key":     publicKey,
@@ -250,7 +250,7 @@ func TestUpgradePrivateEndpoint(t *testing.T) {
 	terraformOptionsSecond := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: tempTestFolder,
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name":   projectName,
 			"org_id":         orgID,
 			"public_key":     publicKey,
@@ -290,7 +290,7 @@ func TestUpgradeProjectIPWhitelistDeprecation(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/test-upgrade/v100/ip-whitelist-accestList/v091",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name": projectName,
 			"org_id":       orgID,
 			"ip_address":   ipAddress,
@@ -314,7 +314,7 @@ func TestUpgradeProjectIPWhitelistDeprecation(t *testing.T) {
 	terraformOptionsSecond := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: tempTestFolder,
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name": projectName,
 			"org_id":       orgID,
 			"ip_address":   ipAddress,
@@ -359,7 +359,7 @@ func TestUpgradeDesignIDState(t *testing.T) {
 	terraformOptionsProject := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/test-upgrade/v100/design-id-reference/project",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name": projectName,
 			"org_id":       orgID,
 			"public_key":   publicKey,
@@ -381,7 +381,7 @@ func TestUpgradeDesignIDState(t *testing.T) {
 	terraformOptionsAlertConfiguration := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/test-upgrade/v100/design-id-reference/alert-configuration",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name": projectName,
 		},
 	})
@@ -399,7 +399,7 @@ func TestUpgradeDesignIDState(t *testing.T) {
 	terraformOptionsNetwork := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/test-upgrade/v100/design-id-reference/network",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name":           projectName,
 			"region_name":            awsRegion,
 			"route_table_cidr_block": vpcCIDRBlock,
@@ -421,7 +421,7 @@ func TestUpgradeDesignIDState(t *testing.T) {
 	terraformOptionsPrivateLink := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/test-upgrade/v100/design-id-reference/privatelink",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name":   projectName,
 			"aws_access_key": awsAccess,
 			"aws_secret_key": awsSecret,
@@ -444,7 +444,7 @@ func TestUpgradeDesignIDState(t *testing.T) {
 	terraformOptionsSnapshotRestore := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/test-upgrade/v100/design-id-reference/snapshot-restore",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name":      projectName,
 			"cluster_name":      clusterName,
 			"description":       description,
@@ -480,7 +480,7 @@ func TestUpgradePrivateLinkEndpointDeprecation(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/test-upgrade/v100/privatelink-endpoint/v091",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name":   projectName,
 			"org_id":         orgID,
 			"public_key":     publicKey,
@@ -510,7 +510,7 @@ func TestUpgradePrivateLinkEndpointDeprecation(t *testing.T) {
 	terraformOptionsSecond := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: tempTestFolder,
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name":   projectName,
 			"org_id":         orgID,
 			"public_key":     publicKey,
@@ -548,7 +548,7 @@ func TestUpgradeCloudBackupPolicies(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/test-upgrade/v100/cloud-backup-policies/v091",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name": projectName,
 			"org_id":       orgID,
 			"public_key":   publicKey,
@@ -571,7 +571,7 @@ func TestUpgradeCloudBackupPolicies(t *testing.T) {
 	terraformOptionsSecond := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: tempTestFolder,
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name": projectName,
 			"org_id":       orgID,
 			"public_key":   publicKey,
@@ -610,7 +610,7 @@ func TestUpgradeEncryptionAtRestAws(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/test-upgrade/encryption-at-rest/aws/v091",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name":        projectName,
 			"org_id":              orgID,
 			"public_key":          publicKey,
@@ -636,7 +636,7 @@ func TestUpgradeEncryptionAtRestAws(t *testing.T) {
 	terraformOptionsSecond := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: tempTestFolder,
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name":        projectName,
 			"org_id":              orgID,
 			"public_key":          publicKey,
@@ -681,7 +681,7 @@ func TestUpgradeEncryptionAtRestAzure(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/test-upgrade/encryption-at-rest/azure/v091",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name":        projectName,
 			"org_id":              orgID,
 			"public_key":          publicKey,
@@ -709,7 +709,7 @@ func TestUpgradeEncryptionAtRestAzure(t *testing.T) {
 	terraformOptionsSecond := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: tempTestFolder,
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name":        projectName,
 			"org_id":              orgID,
 			"public_key":          publicKey,
@@ -751,7 +751,7 @@ func TestUpgradeEncryptionAtRestGCP(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/test-upgrade/encryption-at-rest/gcp/v091",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name":                projectName,
 			"org_id":                      orgID,
 			"public_key":                  publicKey,
@@ -774,7 +774,7 @@ func TestUpgradeEncryptionAtRestGCP(t *testing.T) {
 	terraformOptionsSecond := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: tempTestFolder,
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name":                projectName,
 			"org_id":                      orgID,
 			"public_key":                  publicKey,
@@ -806,7 +806,7 @@ func TestUpgradeCloudBackupSnapshot(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/test-upgrade/v110/cloud-backup-snapshot/v102",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name": projectName,
 			"org_id":       orgID,
 			"cluster_name": clusterName,
@@ -829,7 +829,7 @@ func TestUpgradeCloudBackupSnapshot(t *testing.T) {
 	terraformOptionsSecond := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: tempTestFolder,
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_name": projectName,
 			"org_id":       orgID,
 			"cluster_name": clusterName,

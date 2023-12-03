@@ -5,12 +5,17 @@ updates:
     schedule:
       interval: weekly
       day: tuesday
+    commit-message:
+      prefix: "chore"
     reviewers:
-      - "themantissa"
+      - "mongodb/apix-integrations"
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: weekly
       day: tuesday
+    commit-message:
+      prefix: "chore"
     reviewers:
-      - "themantissa"
+      - "mongodb/apix-integrations"
+
