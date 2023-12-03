@@ -393,7 +393,7 @@ func newTFClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *matl
 		Paused:                                    types.BoolPointerValue(apiResp.Paused),
 		SrvAddress:                                conversion.StringNullIfEmpty(apiResp.SrvAddress),
 		StateName:                                 conversion.StringNullIfEmpty(apiResp.StateName),
-		BiConnectorConfig:                         advancedcluster.NewTFBiConnectorConfigModel(apiResp.BiConnector),
+		BiConnectorConfig:                         advancedcluster.NewTfBiConnectorConfigModel(apiResp.BiConnector),
 		ReplicationFactor:                         types.Int64PointerValue(apiResp.ReplicationFactor),
 		ReplicationSpecs:                          newTFReplicationSpecsModel(apiResp.ReplicationSpecs),
 		Labels:                                    advancedcluster.NewTFLabelsModel(apiResp.Labels),

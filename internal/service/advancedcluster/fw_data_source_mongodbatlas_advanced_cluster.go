@@ -43,11 +43,11 @@ func (d *advancedClusterDS) Schema(ctx context.Context, request datasource.Schem
 			"project_id": schema.StringAttribute{
 				Required: true,
 			},
-			"advanced_configuration": ClusterDSAdvancedConfigurationSchemaAttr(),
+			"advanced_configuration": ClusterDSAdvancedConfigurationListAttr(),
 			"backup_enabled": schema.BoolAttribute{
 				Computed: true,
 			},
-			"bi_connector_config": ClusterDSBiConnectorConfigSchemaAttr(),
+			"bi_connector_config": ClusterDSBiConnectorConfigListAttr(),
 			"cluster_type": schema.StringAttribute{
 				Computed: true,
 			},
@@ -61,8 +61,8 @@ func (d *advancedClusterDS) Schema(ctx context.Context, request datasource.Schem
 			"encryption_at_rest_provider": schema.StringAttribute{
 				Computed: true,
 			},
-			"labels": ClusterDSLabelsSchemaAttr(),
-			"tags":   ClusterDSTagsSchemaAttr(),
+			"labels": ClusterDSLabelsSetAttr(),
+			"tags":   ClusterDSTagsSetAttr(),
 			"mongo_db_major_version": schema.StringAttribute{
 				Computed: true,
 			},
@@ -136,9 +136,9 @@ func newTfAdvClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *m
 	clusterModel := tfAdvancedClusterDSModel{
 		ID:                           types.StringValue(apiResp.ID),
 		BackupEnabled:                types.BoolPointerValue(apiResp.BackupEnabled),
-		BiConnectorConfig:            NewTFBiConnectorConfigModel(apiResp.BiConnector),
+		BiConnectorConfig:            NewTfBiConnectorConfigModel(apiResp.BiConnector),
 		ClusterType:                  types.StringValue(apiResp.ClusterType),
-		ConnectionStrings:            newTFConnectionStringsModel(ctx, apiResp.ConnectionStrings),
+		ConnectionStrings:            newTfConnectionStringsModel(ctx, apiResp.ConnectionStrings),
 		CreateDate:                   types.StringValue(apiResp.CreateDate),
 		DiskSizeGb:                   types.Float64PointerValue(apiResp.DiskSizeGB),
 		EncryptionAtRestProvider:     types.StringValue(apiResp.EncryptionAtRestProvider),

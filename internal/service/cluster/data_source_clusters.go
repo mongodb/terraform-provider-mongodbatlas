@@ -167,7 +167,7 @@ func newTFClustersDSModelResults(ctx context.Context, conn *matlas.Client, clust
 			ProviderName:                              conversion.StringNullIfEmpty(cluster.ProviderSettings.ProviderName),
 			ProviderRegionName:                        conversion.StringNullIfEmpty(cluster.ProviderSettings.RegionName),
 
-			BiConnectorConfig:            advancedcluster.NewTFBiConnectorConfigModel(cluster.BiConnector),
+			BiConnectorConfig:            advancedcluster.NewTfBiConnectorConfigModel(cluster.BiConnector),
 			ReplicationSpecs:             newTFReplicationSpecsModel(cluster.ReplicationSpecs),
 			Labels:                       advancedcluster.NewTFLabelsModel(cluster.Labels),
 			Tags:                         advancedcluster.NewTFTagsModel(cluster.Tags),
