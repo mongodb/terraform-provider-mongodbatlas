@@ -69,7 +69,7 @@ var TfEndpointType = types.ObjectType{AttrTypes: map[string]attr.Type{
 },
 }
 
-func NewTFBiConnectorConfigModel(biConnector *matlas.BiConnector) []*TfBiConnectorConfigModel {
+func NewTfBiConnectorConfigModel(biConnector *matlas.BiConnector) []*TfBiConnectorConfigModel {
 	if biConnector == nil {
 		return []*TfBiConnectorConfigModel{}
 	}
@@ -82,7 +82,7 @@ func NewTFBiConnectorConfigModel(biConnector *matlas.BiConnector) []*TfBiConnect
 	}
 }
 
-func NewTFTagsModel(tags *[]*matlas.Tag) []*TfTagModel {
+func NewTfTagsModel(tags *[]*matlas.Tag) []*TfTagModel {
 	res := make([]*TfTagModel, len(*tags))
 
 	for i, v := range *tags {
@@ -95,7 +95,7 @@ func NewTFTagsModel(tags *[]*matlas.Tag) []*TfTagModel {
 	return res
 }
 
-func NewTFLabelsModel(labels []matlas.Label) []TfLabelModel {
+func NewTfLabelsModel(labels []matlas.Label) []TfLabelModel {
 	out := make([]TfLabelModel, len(labels))
 	for i, v := range labels {
 		out[i] = TfLabelModel{
@@ -126,7 +126,7 @@ func NewTfAdvancedConfigurationModel(p *matlas.ProcessArgs) []*TfAdvancedConfigu
 	return res
 }
 
-func NewTFPrivateEndpointModel(ctx context.Context, privateEndpoints []matlas.PrivateEndpoint) types.List {
+func NewTfPrivateEndpointModel(ctx context.Context, privateEndpoints []matlas.PrivateEndpoint) types.List {
 	res := make([]TfPrivateEndpointModel, len(privateEndpoints))
 
 	for i, pe := range privateEndpoints {

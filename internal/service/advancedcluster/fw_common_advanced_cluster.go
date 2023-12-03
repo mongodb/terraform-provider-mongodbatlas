@@ -118,7 +118,7 @@ func RemoveDefaultLabel(labels []TfLabelModel) []TfLabelModel {
 	return result
 }
 
-func NewTFAdvancedConfigurationModelDSFromAtlas(ctx context.Context, conn *matlas.Client, projectID, clusterName string) ([]*TfAdvancedConfigurationModel, error) {
+func NewTfAdvancedConfigurationModelDSFromAtlas(ctx context.Context, conn *matlas.Client, projectID, clusterName string) ([]*TfAdvancedConfigurationModel, error) {
 	processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, projectID, clusterName)
 	if err != nil {
 		return nil, err
