@@ -15,35 +15,6 @@ type tfConnectionStringDSModel struct {
 	PrivateEndpoint   types.List   `tfsdk:"private_endpoint"`
 }
 
-type tfLabelModel struct {
-	Key   types.String `tfsdk:"key"`
-	Value types.String `tfsdk:"value"`
-}
-
-type tfBiConnectorConfigModel struct {
-	ReadPreference types.String `tfsdk:"read_preference"`
-	Enabled        types.Bool   `tfsdk:"enabled"`
-}
-
-type tfAdvancedConfigurationModel struct {
-	DefaultReadConcern               types.String `tfsdk:"default_read_concern"`
-	DefaultWriteConcern              types.String `tfsdk:"default_write_concern"`
-	MinimumEnabledTLSProtocol        types.String `tfsdk:"minimum_enabled_tls_protocol"`
-	OplogSizeMB                      types.Int64  `tfsdk:"oplog_size_mb"`
-	OplogMinRetentionHours           types.Int64  `tfsdk:"oplog_min_retention_hours"`
-	SampleSizeBiConnector            types.Int64  `tfsdk:"sample_size_bi_connector"`
-	SampleRefreshIntervalBiConnector types.Int64  `tfsdk:"sample_refresh_interval_bi_connector"`
-	TransactionLifetimeLimitSeconds  types.Int64  `tfsdk:"transaction_lifetime_limit_seconds"`
-	FailIndexKeyTooLong              types.Bool   `tfsdk:"fail_index_key_too_long"`
-	JavascriptEnabled                types.Bool   `tfsdk:"javascript_enabled"`
-	NoTableScan                      types.Bool   `tfsdk:"no_table_scan"`
-}
-
-type tfTagModel struct {
-	Key   types.String `tfsdk:"key"`
-	Value types.String `tfsdk:"value"`
-}
-
 type tfReplicationSpecModel struct {
 	ID            types.String          `tfsdk:"id"`
 	ZoneName      types.String          `tfsdk:"zone_name"`
@@ -95,32 +66,3 @@ var tfSnapshotPolicyItemType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"frequency_interval": types.Int64Type,
 	"retention_value":    types.Int64Type,
 }}
-
-type tfPrivateEndpointModel struct {
-	ConnectionString                  types.String `tfsdk:"connection_string"`
-	SrvConnectionString               types.String `tfsdk:"srv_connection_string"`
-	SrvShardOptimizedConnectionString types.String `tfsdk:"srv_shard_optimized_connection_string"`
-	EndpointType                      types.String `tfsdk:"type"`
-	Endpoints                         types.List   `tfsdk:"endpoints"`
-}
-
-var tfPrivateEndpointType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"connection_string":                     types.StringType,
-	"endpoints":                             types.ListType{ElemType: tfEndpointType},
-	"srv_connection_string":                 types.StringType,
-	"srv_shard_optimized_connection_string": types.StringType,
-	"type":                                  types.StringType,
-}}
-
-type tfEndpointModel struct {
-	EndpointID   types.String `tfsdk:"endpoint_id"`
-	ProviderName types.String `tfsdk:"provider_name"`
-	Region       types.String `tfsdk:"region"`
-}
-
-var tfEndpointType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"endpoint_id":   types.StringType,
-	"provider_name": types.StringType,
-	"region":        types.StringType,
-},
-}

@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
 const (
@@ -87,13 +89,13 @@ func (d *clustersDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 		return
 	}
 
-	newClustersState.ID = types.StringValue(id.UniqueId())
+	newClustersState.ID = conversion.StringNullIfEmpty(id.UniqueId())
 }
 
 func newTFClustersDSModel(ctx context.Context, conn *matlas.Client, clusters []matlas.Cluster, projectID string) (tfClustersDSModel, error) {
 	tfClustersModel := tfClustersDSModel{
-		ID:        types.StringValue(id.UniqueId()),
-		ProjectID: types.StringValue(projectID),
+		ID:        conversion.StringNullIfEmpty(id.UniqueId()),
+		ProjectID: conversion.StringNullIfEmpty(projectID),
 	}
 
 	res, err := newTFClustersDSModelResults(ctx, conn, clusters)
@@ -116,7 +118,7 @@ func newTFClustersDSModelResults(ctx context.Context, conn *matlas.Client, clust
 			return nil, err
 		}
 
-		advancedConfiguration, err := newTFAdvancedConfigurationModelDSFromAtlas(ctx, conn, cluster.GroupID, cluster.Name)
+		advancedConfiguration, err := advancedcluster.NewTFAdvancedConfigurationModelDSFromAtlas(ctx, conn, cluster.GroupID, cluster.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -138,43 +140,43 @@ func newTFClustersDSModelResults(ctx context.Context, conn *matlas.Client, clust
 			AutoScalingDiskGbEnabled:           types.BoolPointerValue(cluster.AutoScaling.DiskGBEnabled),
 			BackupEnabled:                      types.BoolPointerValue(cluster.BackupEnabled),
 			ProviderBackupEnabled:              types.BoolPointerValue(cluster.ProviderBackupEnabled),
-			ClusterType:                        types.StringValue(cluster.ClusterType),
+			ClusterType:                        conversion.StringNullIfEmpty(cluster.ClusterType),
 			ConnectionStrings:                  newTFConnectionStringsModelDS(ctx, cluster.ConnectionStrings),
 			DiskSizeGb:                         types.Float64PointerValue(cluster.DiskSizeGB),
-			EncryptionAtRestProvider:           types.StringValue(cluster.EncryptionAtRestProvider),
-			MongoDBMajorVersion:                types.StringValue(cluster.MongoDBMajorVersion),
-			Name:                               types.StringValue(cluster.Name),
+			EncryptionAtRestProvider:           conversion.StringNullIfEmpty(cluster.EncryptionAtRestProvider),
+			MongoDBMajorVersion:                conversion.StringNullIfEmpty(cluster.MongoDBMajorVersion),
+			Name:                               conversion.StringNullIfEmpty(cluster.Name),
 			NumShards:                          types.Int64PointerValue(cluster.NumShards),
-			MongoDBVersion:                     types.StringValue(cluster.MongoDBVersion),
-			MongoURI:                           types.StringValue(cluster.MongoURI),
-			MongoURIUpdated:                    types.StringValue(cluster.MongoURIUpdated),
-			MongoURIWithOptions:                types.StringValue(cluster.MongoURIWithOptions),
+			MongoDBVersion:                     conversion.StringNullIfEmpty(cluster.MongoDBVersion),
+			MongoURI:                           conversion.StringNullIfEmpty(cluster.MongoURI),
+			MongoURIUpdated:                    conversion.StringNullIfEmpty(cluster.MongoURIUpdated),
+			MongoURIWithOptions:                conversion.StringNullIfEmpty(cluster.MongoURIWithOptions),
 			PitEnabled:                         types.BoolPointerValue(cluster.PitEnabled),
 			Paused:                             types.BoolPointerValue(cluster.Paused),
-			SrvAddress:                         types.StringValue(cluster.SrvAddress),
-			StateName:                          types.StringValue(cluster.StateName),
+			SrvAddress:                         conversion.StringNullIfEmpty(cluster.SrvAddress),
+			StateName:                          conversion.StringNullIfEmpty(cluster.StateName),
 			ReplicationFactor:                  types.Int64PointerValue(cluster.ReplicationFactor),
 
-			ProviderAutoScalingComputeMinInstanceSize: types.StringValue(cluster.ProviderSettings.AutoScaling.Compute.MinInstanceSize),
-			ProviderAutoScalingComputeMaxInstanceSize: types.StringValue(cluster.ProviderSettings.AutoScaling.Compute.MaxInstanceSize),
-			BackingProviderName:                       types.StringValue(cluster.ProviderSettings.BackingProviderName),
+			ProviderAutoScalingComputeMinInstanceSize: conversion.StringNullIfEmpty(cluster.ProviderSettings.AutoScaling.Compute.MinInstanceSize),
+			ProviderAutoScalingComputeMaxInstanceSize: conversion.StringNullIfEmpty(cluster.ProviderSettings.AutoScaling.Compute.MaxInstanceSize),
+			BackingProviderName:                       conversion.StringNullIfEmpty(cluster.ProviderSettings.BackingProviderName),
 			ProviderDiskIops:                          types.Int64PointerValue(cluster.ProviderSettings.DiskIOPS),
-			ProviderDiskTypeName:                      types.StringValue(cluster.ProviderSettings.DiskTypeName),
+			ProviderDiskTypeName:                      conversion.StringNullIfEmpty(cluster.ProviderSettings.DiskTypeName),
 			ProviderEncryptEbsVolume:                  types.BoolPointerValue(cluster.ProviderSettings.EncryptEBSVolume),
-			ProviderInstanceSizeName:                  types.StringValue(cluster.ProviderSettings.InstanceSizeName),
-			ProviderName:                              types.StringValue(cluster.ProviderSettings.ProviderName),
-			ProviderRegionName:                        types.StringValue(cluster.ProviderSettings.RegionName),
+			ProviderInstanceSizeName:                  conversion.StringNullIfEmpty(cluster.ProviderSettings.InstanceSizeName),
+			ProviderName:                              conversion.StringNullIfEmpty(cluster.ProviderSettings.ProviderName),
+			ProviderRegionName:                        conversion.StringNullIfEmpty(cluster.ProviderSettings.RegionName),
 
-			BiConnectorConfig:            newTFBiConnectorConfigModel(cluster.BiConnector),
+			BiConnectorConfig:            advancedcluster.NewTFBiConnectorConfigModel(cluster.BiConnector),
 			ReplicationSpecs:             newTFReplicationSpecsModel(cluster.ReplicationSpecs),
-			Labels:                       newTFLabelsModel(cluster.Labels),
-			Tags:                         newTFTagsModel(cluster.Tags),
+			Labels:                       advancedcluster.NewTFLabelsModel(cluster.Labels),
+			Tags:                         advancedcluster.NewTFTagsModel(cluster.Tags),
 			SnapshotBackupPolicy:         snapshotBackupPolicy,
 			TerminationProtectionEnabled: types.BoolPointerValue(cluster.TerminationProtectionEnabled),
-			VersionReleaseSystem:         types.StringValue(cluster.VersionReleaseSystem),
-			ContainerID:                  types.StringValue(containerID),
-			ProjectID:                    types.StringValue(cluster.GroupID),
-			ID:                           types.StringValue(cluster.ID),
+			VersionReleaseSystem:         conversion.StringNullIfEmpty(cluster.VersionReleaseSystem),
+			ContainerID:                  conversion.StringNullIfEmpty(containerID),
+			ProjectID:                    conversion.StringNullIfEmpty(cluster.GroupID),
+			ID:                           conversion.StringNullIfEmpty(cluster.ID),
 		}
 		results[i] = result
 	}

@@ -3,6 +3,9 @@ package conversion
 import (
 	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/spf13/cast"
 )
 
 func SafeString(s *string) string {
@@ -55,4 +58,11 @@ func IsStringPresent(strPtr *string) bool {
 // MongoDBRegionToAWSRegion converts region in US_EAST_1-like format to us-east-1-like
 func MongoDBRegionToAWSRegion(region string) string {
 	return strings.ReplaceAll(strings.ToLower(region), "_", "-")
+}
+
+func FloatToTfInt64(v *float64) types.Int64 {
+	if v != nil {
+		return types.Int64Value(cast.ToInt64(v))
+	}
+	return types.Int64Null()
 }
