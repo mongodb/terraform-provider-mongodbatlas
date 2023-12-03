@@ -21,11 +21,11 @@
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           JIRA_ASSIGNEE: ${{ secrets.ASSIGNEE_JIRA_TICKET }}
         run: |
-            json_response=$(curl --request POST \
-              --url 'https://jira.mongodb.org/rest/api/2/issue' \
-              --header 'Authorization: Bearer '"${JIRA_API_TOKEN}" \
-              --header 'Accept: application/json' \
-              --header 'Content-Type: application/json' \
+          json_response=$(curl --request POST \
+            --url 'https://jira.mongodb.org/rest/api/2/issue' \
+            --header 'Authorization: Bearer '"${JIRA_API_TOKEN}" \
+            --header 'Accept: application/json' \
+            --header 'Content-Type: application/json' \
             --data '{
               "fields": {
                   "project": {
