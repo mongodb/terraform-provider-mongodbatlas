@@ -148,7 +148,7 @@ func newTfConnectionStringsModel(ctx context.Context, connString *matlas.Connect
 			StandardSrv:     types.StringValue(connString.StandardSrv),
 			Private:         types.StringValue(connString.Private),
 			PrivateSrv:      types.StringValue(connString.PrivateSrv),
-			PrivateEndpoint: NewTFPrivateEndpointModel(ctx, connString.PrivateEndpoint),
+			PrivateEndpoint: NewTfPrivateEndpointModel(ctx, connString.PrivateEndpoint),
 		})
 	}
 	return res
@@ -167,7 +167,7 @@ func NewTfBiConnectorConfigModel(biConnector *matlas.BiConnector) []*TfBiConnect
 	}
 }
 
-func NewTFTagsModel(tags *[]*matlas.Tag) []*TfTagModel {
+func NewTfTagsModel(tags *[]*matlas.Tag) []*TfTagModel {
 	res := make([]*TfTagModel, len(*tags))
 
 	for i, v := range *tags {
@@ -180,7 +180,7 @@ func NewTFTagsModel(tags *[]*matlas.Tag) []*TfTagModel {
 	return res
 }
 
-func NewTFLabelsModel(labels []matlas.Label) []TfLabelModel {
+func NewTfLabelsModel(labels []matlas.Label) []TfLabelModel {
 	out := make([]TfLabelModel, len(labels))
 	for i, v := range labels {
 		out[i] = TfLabelModel{
@@ -211,7 +211,7 @@ func NewTfAdvancedConfigurationModel(p *matlas.ProcessArgs) []*TfAdvancedConfigu
 	return res
 }
 
-func NewTFPrivateEndpointModel(ctx context.Context, privateEndpoints []matlas.PrivateEndpoint) types.List {
+func NewTfPrivateEndpointModel(ctx context.Context, privateEndpoints []matlas.PrivateEndpoint) types.List {
 	res := make([]TfPrivateEndpointModel, len(privateEndpoints))
 
 	for i, pe := range privateEndpoints {

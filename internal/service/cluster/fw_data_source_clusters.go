@@ -78,7 +78,7 @@ func (d *clustersDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 		return
 	}
 
-	newClustersState, err := newTFClustersDSModel(ctx, conn, clusters, projectID)
+	newClustersState, err := newTfClustersDSModel(ctx, conn, clusters, projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error while getting clusters results from Atlas", fmt.Sprintf("error reading cluster list for project(%s): %s", projectID, err))
 		return
@@ -92,13 +92,13 @@ func (d *clustersDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 	newClustersState.ID = conversion.StringNullIfEmpty(id.UniqueId())
 }
 
-func newTFClustersDSModel(ctx context.Context, conn *matlas.Client, clusters []matlas.Cluster, projectID string) (tfClustersDSModel, error) {
+func newTfClustersDSModel(ctx context.Context, conn *matlas.Client, clusters []matlas.Cluster, projectID string) (tfClustersDSModel, error) {
 	tfClustersModel := tfClustersDSModel{
 		ID:        conversion.StringNullIfEmpty(id.UniqueId()),
 		ProjectID: conversion.StringNullIfEmpty(projectID),
 	}
 
-	res, err := newTFClustersDSModelResults(ctx, conn, clusters)
+	res, err := newTfClustersDSModelResults(ctx, conn, clusters)
 	if err != nil {
 		return tfClustersModel, fmt.Errorf("error while getting clusters results from Atlas")
 	}
@@ -107,18 +107,18 @@ func newTFClustersDSModel(ctx context.Context, conn *matlas.Client, clusters []m
 	return tfClustersModel, nil
 }
 
-func newTFClustersDSModelResults(ctx context.Context, conn *matlas.Client, clusters []matlas.Cluster) ([]*tfClusterDSModel, error) {
+func newTfClustersDSModelResults(ctx context.Context, conn *matlas.Client, clusters []matlas.Cluster) ([]*tfClusterDSModel, error) {
 	results := make([]*tfClusterDSModel, len(clusters))
 
 	for i := range clusters {
 		cluster := clusters[i]
 
-		snapshotBackupPolicy, err := newTFSnapshotBackupPolicyModelFromAtlas(ctx, conn, cluster.GroupID, cluster.Name)
+		snapshotBackupPolicy, err := newTfSnapshotBackupPolicyModelFromAtlas(ctx, conn, cluster.GroupID, cluster.Name)
 		if err != nil {
 			return nil, err
 		}
 
-		advancedConfiguration, err := advancedcluster.NewTFAdvancedConfigurationModelDSFromAtlas(ctx, conn, cluster.GroupID, cluster.Name)
+		advancedConfiguration, err := advancedcluster.NewTfAdvancedConfigurationModelDSFromAtlas(ctx, conn, cluster.GroupID, cluster.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -141,7 +141,7 @@ func newTFClustersDSModelResults(ctx context.Context, conn *matlas.Client, clust
 			BackupEnabled:                      types.BoolPointerValue(cluster.BackupEnabled),
 			ProviderBackupEnabled:              types.BoolPointerValue(cluster.ProviderBackupEnabled),
 			ClusterType:                        conversion.StringNullIfEmpty(cluster.ClusterType),
-			ConnectionStrings:                  newTFConnectionStringsModelDS(ctx, cluster.ConnectionStrings),
+			ConnectionStrings:                  newTfConnectionStringsModelDS(ctx, cluster.ConnectionStrings),
 			DiskSizeGb:                         types.Float64PointerValue(cluster.DiskSizeGB),
 			EncryptionAtRestProvider:           conversion.StringNullIfEmpty(cluster.EncryptionAtRestProvider),
 			MongoDBMajorVersion:                conversion.StringNullIfEmpty(cluster.MongoDBMajorVersion),
@@ -168,9 +168,9 @@ func newTFClustersDSModelResults(ctx context.Context, conn *matlas.Client, clust
 			ProviderRegionName:                        conversion.StringNullIfEmpty(cluster.ProviderSettings.RegionName),
 
 			BiConnectorConfig:            advancedcluster.NewTfBiConnectorConfigModel(cluster.BiConnector),
-			ReplicationSpecs:             newTFReplicationSpecsModel(cluster.ReplicationSpecs),
-			Labels:                       advancedcluster.NewTFLabelsModel(cluster.Labels),
-			Tags:                         advancedcluster.NewTFTagsModel(cluster.Tags),
+			ReplicationSpecs:             newTfReplicationSpecsModel(cluster.ReplicationSpecs),
+			Labels:                       advancedcluster.NewTfLabelsModel(cluster.Labels),
+			Tags:                         advancedcluster.NewTfTagsModel(cluster.Tags),
 			SnapshotBackupPolicy:         snapshotBackupPolicy,
 			TerminationProtectionEnabled: types.BoolPointerValue(cluster.TerminationProtectionEnabled),
 			VersionReleaseSystem:         conversion.StringNullIfEmpty(cluster.VersionReleaseSystem),

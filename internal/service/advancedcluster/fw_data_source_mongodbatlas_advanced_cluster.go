@@ -142,8 +142,8 @@ func newTfAdvClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *m
 		CreateDate:                   types.StringValue(apiResp.CreateDate),
 		DiskSizeGb:                   types.Float64PointerValue(apiResp.DiskSizeGB),
 		EncryptionAtRestProvider:     types.StringValue(apiResp.EncryptionAtRestProvider),
-		Labels:                       RemoveDefaultLabel(NewTFLabelsModel(apiResp.Labels)),
-		Tags:                         NewTFTagsModel(&apiResp.Tags),
+		Labels:                       RemoveDefaultLabel(NewTfLabelsModel(apiResp.Labels)),
+		Tags:                         NewTfTagsModel(&apiResp.Tags),
 		MongoDBMajorVersion:          types.StringValue(apiResp.MongoDBMajorVersion),
 		MongoDBVersion:               types.StringValue(apiResp.MongoDBVersion),
 		Name:                         types.StringValue(apiResp.Name),
@@ -156,7 +156,7 @@ func newTfAdvClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *m
 		VersionReleaseSystem:         types.StringValue(apiResp.VersionReleaseSystem),
 	}
 
-	clusterModel.AdvancedConfiguration, err = NewTFAdvancedConfigurationModelDSFromAtlas(ctx, conn, projectID, apiResp.Name)
+	clusterModel.AdvancedConfiguration, err = NewTfAdvancedConfigurationModelDSFromAtlas(ctx, conn, projectID, apiResp.Name)
 	if err != nil {
 		return nil, err
 	}

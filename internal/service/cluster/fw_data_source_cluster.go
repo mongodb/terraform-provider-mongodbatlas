@@ -355,7 +355,7 @@ func (d *clusterDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		return
 	}
 
-	newClusterState, err := newTFClusterDSModel(ctx, conn, cluster)
+	newClusterState, err := newTfClusterDSModel(ctx, conn, cluster)
 	if err != nil {
 		resp.Diagnostics.AddError("error in getting cluster details from Atlas", fmt.Sprintf(errorClusterRead, clusterName, err.Error()))
 		return
@@ -367,7 +367,7 @@ func (d *clusterDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 	}
 }
 
-func newTFClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *matlas.Cluster) (*tfClusterDSModel, error) {
+func newTfClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *matlas.Cluster) (*tfClusterDSModel, error) {
 	var err error
 	projectID := apiResp.GroupID
 	clusterName := apiResp.Name
@@ -382,7 +382,7 @@ func newTFClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *matl
 		PitEnabled:                                types.BoolPointerValue(apiResp.PitEnabled),
 		ProviderBackupEnabled:                     types.BoolPointerValue(apiResp.ProviderBackupEnabled),
 		ClusterType:                               conversion.StringNullIfEmpty(apiResp.ClusterType),
-		ConnectionStrings:                         newTFConnectionStringsModelDS(ctx, apiResp.ConnectionStrings),
+		ConnectionStrings:                         newTfConnectionStringsModelDS(ctx, apiResp.ConnectionStrings),
 		DiskSizeGb:                                types.Float64PointerValue(apiResp.DiskSizeGB),
 		EncryptionAtRestProvider:                  conversion.StringNullIfEmpty(apiResp.EncryptionAtRestProvider),
 		MongoDBMajorVersion:                       conversion.StringNullIfEmpty(apiResp.MongoDBMajorVersion),
@@ -395,9 +395,9 @@ func newTFClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *matl
 		StateName:                                 conversion.StringNullIfEmpty(apiResp.StateName),
 		BiConnectorConfig:                         advancedcluster.NewTfBiConnectorConfigModel(apiResp.BiConnector),
 		ReplicationFactor:                         types.Int64PointerValue(apiResp.ReplicationFactor),
-		ReplicationSpecs:                          newTFReplicationSpecsModel(apiResp.ReplicationSpecs),
-		Labels:                                    advancedcluster.NewTFLabelsModel(apiResp.Labels),
-		Tags:                                      advancedcluster.NewTFTagsModel(apiResp.Tags),
+		ReplicationSpecs:                          newTfReplicationSpecsModel(apiResp.ReplicationSpecs),
+		Labels:                                    advancedcluster.NewTfLabelsModel(apiResp.Labels),
+		Tags:                                      advancedcluster.NewTfTagsModel(apiResp.Tags),
 		TerminationProtectionEnabled:              types.BoolPointerValue(apiResp.TerminationProtectionEnabled),
 		VersionReleaseSystem:                      conversion.StringNullIfEmpty(apiResp.VersionReleaseSystem),
 		ProjectID:                                 conversion.StringNullIfEmpty(projectID),
@@ -424,12 +424,12 @@ func newTFClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *matl
 		}
 	}
 
-	clusterModel.AdvancedConfiguration, err = advancedcluster.NewTFAdvancedConfigurationModelDSFromAtlas(ctx, conn, projectID, apiResp.Name)
+	clusterModel.AdvancedConfiguration, err = advancedcluster.NewTfAdvancedConfigurationModelDSFromAtlas(ctx, conn, projectID, apiResp.Name)
 	if err != nil {
 		return nil, err
 	}
 
-	clusterModel.SnapshotBackupPolicy, err = newTFSnapshotBackupPolicyModelFromAtlas(ctx, conn, projectID, clusterName)
+	clusterModel.SnapshotBackupPolicy, err = newTfSnapshotBackupPolicyModelFromAtlas(ctx, conn, projectID, clusterName)
 	if err != nil {
 		return nil, err
 	}
@@ -437,7 +437,7 @@ func newTFClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *matl
 	return &clusterModel, nil
 }
 
-func newTFReplicationSpecsModel(replicationSpecs []matlas.ReplicationSpec) []*tfReplicationSpecModel {
+func newTfReplicationSpecsModel(replicationSpecs []matlas.ReplicationSpec) []*tfReplicationSpecModel {
 	res := make([]*tfReplicationSpecModel, len(replicationSpecs))
 
 	for i, rSpec := range replicationSpecs {
@@ -445,13 +445,13 @@ func newTFReplicationSpecsModel(replicationSpecs []matlas.ReplicationSpec) []*tf
 			ID:            conversion.StringNullIfEmpty(rSpec.ID),
 			NumShards:     types.Int64PointerValue(rSpec.NumShards),
 			ZoneName:      conversion.StringNullIfEmpty(rSpec.ZoneName),
-			RegionsConfig: newTFRegionsConfigModel(rSpec.RegionsConfig),
+			RegionsConfig: newTfRegionsConfigModel(rSpec.RegionsConfig),
 		}
 	}
 	return res
 }
 
-func newTFRegionsConfigModel(regionsConfig map[string]matlas.RegionsConfig) []tfRegionConfigModel {
+func newTfRegionsConfigModel(regionsConfig map[string]matlas.RegionsConfig) []tfRegionConfigModel {
 	res := []tfRegionConfigModel{}
 
 	for regionName, regionConfig := range regionsConfig {
@@ -467,7 +467,7 @@ func newTFRegionsConfigModel(regionsConfig map[string]matlas.RegionsConfig) []tf
 	return res
 }
 
-func newTFSnapshotBackupPolicyModelFromAtlas(ctx context.Context, conn *matlas.Client, projectID, clusterName string) ([]*tfSnapshotBackupPolicyModel, error) {
+func newTfSnapshotBackupPolicyModelFromAtlas(ctx context.Context, conn *matlas.Client, projectID, clusterName string) ([]*tfSnapshotBackupPolicyModel, error) {
 	res := []*tfSnapshotBackupPolicyModel{}
 
 	backupPolicy, response, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
@@ -491,25 +491,25 @@ func newTFSnapshotBackupPolicyModelFromAtlas(ctx context.Context, conn *matlas.C
 		ReferenceMinuteOfHour: types.Int64PointerValue(backupPolicy.ReferenceMinuteOfHour),
 		RestoreWindowDays:     types.Int64PointerValue(backupPolicy.RestoreWindowDays),
 		UpdateSnapshots:       types.BoolPointerValue(backupPolicy.UpdateSnapshots),
-		Policies:              newTFSnapshotPolicyModel(ctx, backupPolicy.Policies),
+		Policies:              newTfSnapshotPolicyModel(ctx, backupPolicy.Policies),
 	})
 	return res, nil
 }
 
-func newTFSnapshotPolicyModel(ctx context.Context, policies []matlas.Policy) types.List {
+func newTfSnapshotPolicyModel(ctx context.Context, policies []matlas.Policy) types.List {
 	res := make([]tfSnapshotPolicyModel, len(policies))
 
 	for i, pe := range policies {
 		res[i] = tfSnapshotPolicyModel{
 			ID:         conversion.StringNullIfEmpty(pe.ID),
-			PolicyItem: newTFSnapshotPolicyItemModel(ctx, pe.PolicyItems),
+			PolicyItem: newTfSnapshotPolicyItemModel(ctx, pe.PolicyItems),
 		}
 	}
 	s, _ := types.ListValueFrom(ctx, tfSnapshotPolicyType, res)
 	return s
 }
 
-func newTFSnapshotPolicyItemModel(ctx context.Context, policyItems []matlas.PolicyItem) types.List {
+func newTfSnapshotPolicyItemModel(ctx context.Context, policyItems []matlas.PolicyItem) types.List {
 	res := make([]tfSnapshotPolicyItemModel, len(policyItems))
 
 	for i, pe := range policyItems {
@@ -525,7 +525,7 @@ func newTFSnapshotPolicyItemModel(ctx context.Context, policyItems []matlas.Poli
 	return s
 }
 
-func newTFConnectionStringsModelDS(ctx context.Context, connString *matlas.ConnectionStrings) []*tfConnectionStringDSModel {
+func newTfConnectionStringsModelDS(ctx context.Context, connString *matlas.ConnectionStrings) []*tfConnectionStringDSModel {
 	res := []*tfConnectionStringDSModel{}
 
 	if connString != nil {
@@ -534,15 +534,15 @@ func newTFConnectionStringsModelDS(ctx context.Context, connString *matlas.Conne
 			StandardSrv:       conversion.StringNullIfEmpty(connString.StandardSrv),
 			Private:           conversion.StringNullIfEmpty(connString.Private),
 			PrivateSrv:        conversion.StringNullIfEmpty(connString.PrivateSrv),
-			PrivateEndpoint:   advancedcluster.NewTFPrivateEndpointModel(ctx, connString.PrivateEndpoint),
-			AwsPrivateLink:    newTFAwsPrivateLinkMap(connString.AwsPrivateLink),
-			AwsPrivateLinkSrv: newTFAwsPrivateLinkMap(connString.AwsPrivateLinkSrv),
+			PrivateEndpoint:   advancedcluster.NewTfPrivateEndpointModel(ctx, connString.PrivateEndpoint),
+			AwsPrivateLink:    newTfAwsPrivateLinkMap(connString.AwsPrivateLink),
+			AwsPrivateLinkSrv: newTfAwsPrivateLinkMap(connString.AwsPrivateLinkSrv),
 		})
 	}
 	return res
 }
 
-func newTFAwsPrivateLinkMap(mp map[string]string) basetypes.MapValue {
+func newTfAwsPrivateLinkMap(mp map[string]string) basetypes.MapValue {
 	mapValue, _ := types.MapValue(types.StringType, map[string]attr.Value{})
 	return mapValue
 }
