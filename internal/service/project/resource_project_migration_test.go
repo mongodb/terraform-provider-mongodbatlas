@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -65,19 +64,19 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 	}
 
 	var (
-		project         matlas.Project
+		project         admin.Group
 		resourceName    = "mongodbatlas_project.test"
 		projectName     = acctest.RandomWithPrefix("test-acc-teams")
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		clusterCount    = "0"
 		configWithTeams = acc.ConfigProject(projectName, orgID,
-			[]*matlas.ProjectTeam{
+			[]*admin.TeamRole{
 				{
-					TeamID:    teamsIds[0],
+					TeamId:    &teamsIds[0],
 					RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 				},
 				{
-					TeamID:    teamsIds[1],
+					TeamId:    &teamsIds[1],
 					RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 				},
 			})
@@ -120,7 +119,7 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 
 func TestAccMigrationProjectRS_WithFalseDefaultSettings(t *testing.T) {
 	var (
-		project               matlas.Project
+		project               admin.Group
 		resourceName          = "mongodbatlas_project.test"
 		projectName           = acctest.RandomWithPrefix("tf-acc-project")
 		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")

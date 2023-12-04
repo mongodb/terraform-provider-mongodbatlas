@@ -360,7 +360,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		return
 	}
 
-	atlasLimits = filterUserDefinedLimits(atlasLimits, limits)
+	atlasLimits = FilterUserDefinedLimits(atlasLimits, limits)
 	projectPlanNew := NewTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
 	updatePlanFromConfig(projectPlanNew, &projectPlan)
 
@@ -406,7 +406,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 		return
 	}
 
-	atlasLimits = filterUserDefinedLimits(atlasLimits, limits)
+	atlasLimits = FilterUserDefinedLimits(atlasLimits, limits)
 	projectStateNew := NewTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
 	updatePlanFromConfig(projectStateNew, &projectState)
 
@@ -476,7 +476,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	}
 	var planLimits []TfLimitModel
 	_ = projectPlan.Limits.ElementsAs(ctx, &planLimits, false)
-	atlasLimits = filterUserDefinedLimits(atlasLimits, planLimits)
+	atlasLimits = FilterUserDefinedLimits(atlasLimits, planLimits)
 	projectPlanNew := NewTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
 	updatePlanFromConfig(projectPlanNew, &projectPlan)
 
@@ -513,7 +513,7 @@ func updatePlanFromConfig(projectPlanNewPtr, projectPlan *TfProjectRSModel) {
 	projectPlanNewPtr.ProjectOwnerID = projectPlan.ProjectOwnerID
 }
 
-func filterUserDefinedLimits(allAtlasLimits []admin.DataFederationLimit, tflimits []TfLimitModel) []admin.DataFederationLimit {
+func FilterUserDefinedLimits(allAtlasLimits []admin.DataFederationLimit, tflimits []TfLimitModel) []admin.DataFederationLimit {
 	filteredLimits := []admin.DataFederationLimit{}
 	allLimitsMap := make(map[string]admin.DataFederationLimit)
 
