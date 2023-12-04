@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mwielbut/pointy"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
-	"github.com/mwielbut/pointy"
 )
 
 var (
@@ -101,7 +102,6 @@ func NewSdkV2Provider() *schema.Provider {
 
 func getDataSourcesMap() map[string]*schema.Resource {
 	dataSourcesMap := map[string]*schema.Resource{
-		"mongodbatlas_advanced_cluster":                  advancedcluster.DataSourceAdvancedCluster(),
 		"mongodbatlas_advanced_clusters":                 advancedcluster.DataSourceAdvancedClusters(),
 		"mongodbatlas_custom_db_role":                    mongodbatlas.DataSourceCustomDBRole(),
 		"mongodbatlas_custom_db_roles":                   mongodbatlas.DataSourceCustomDBRoles(),
