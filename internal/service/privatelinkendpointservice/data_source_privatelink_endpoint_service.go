@@ -1,4 +1,4 @@
-package mongodbatlas
+package privatelinkendpointservice
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-func DataSourcePrivateEndpointServiceLink() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasPrivateEndpointServiceLinkRead,
 		Schema: map[string]*schema.Schema{

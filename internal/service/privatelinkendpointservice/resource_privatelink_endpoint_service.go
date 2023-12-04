@@ -1,4 +1,4 @@
-package mongodbatlas
+package privatelinkendpointservice
 
 import (
 	"context"
@@ -27,7 +27,7 @@ const (
 	ErrorEndpointSetting     = "error setting `%s` for MongoDB Private Service Endpoint Connection(%s): %s"
 )
 
-func ResourcePrivateEndpointServiceLink() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext:      resourceMongoDBAtlasPrivateEndpointServiceLinkCreate,
 		ReadWithoutTimeout: resourceMongoDBAtlasPrivateEndpointServiceLinkRead,

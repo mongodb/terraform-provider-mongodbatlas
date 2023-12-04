@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointservice"
 )
 
 func DataSource() *schema.Resource {
@@ -72,39 +72,39 @@ func dataSourceMongoDBAtlasPrivateEndpointServiceServerlessLinkRead(ctx context.
 
 	serviceEndpoint, _, err := conn.ServerlessPrivateEndpoints.Get(ctx, projectID, instanceName, endpointID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(mongodbatlas.ErrorServiceEndpointRead, endpointID, err))
+		return diag.FromErr(fmt.Errorf(privatelinkendpointservice.ErrorServiceEndpointRead, endpointID, err))
 	}
 
 	if err := d.Set("error_message", serviceEndpoint.ErrorMessage); err != nil {
-		return diag.FromErr(fmt.Errorf(mongodbatlas.ErrorEndpointSetting, "error_message", endpointID, err))
+		return diag.FromErr(fmt.Errorf(privatelinkendpointservice.ErrorEndpointSetting, "error_message", endpointID, err))
 	}
 
 	if err := d.Set("status", serviceEndpoint.Status); err != nil {
-		return diag.FromErr(fmt.Errorf(mongodbatlas.ErrorEndpointSetting, "status", endpointID, err))
+		return diag.FromErr(fmt.Errorf(privatelinkendpointservice.ErrorEndpointSetting, "status", endpointID, err))
 	}
 
 	if err := d.Set("comment", serviceEndpoint.Comment); err != nil {
-		return diag.FromErr(fmt.Errorf(mongodbatlas.ErrorEndpointSetting, "comment", endpointID, err))
+		return diag.FromErr(fmt.Errorf(privatelinkendpointservice.ErrorEndpointSetting, "comment", endpointID, err))
 	}
 
 	if err := d.Set("error_message", serviceEndpoint.ErrorMessage); err != nil {
-		return diag.FromErr(fmt.Errorf(mongodbatlas.ErrorEndpointSetting, "error_message", endpointID, err))
+		return diag.FromErr(fmt.Errorf(privatelinkendpointservice.ErrorEndpointSetting, "error_message", endpointID, err))
 	}
 
 	if err := d.Set("endpoint_service_name", serviceEndpoint.EndpointServiceName); err != nil {
-		return diag.FromErr(fmt.Errorf(mongodbatlas.ErrorEndpointSetting, "endpoint_service_name", endpointID, err))
+		return diag.FromErr(fmt.Errorf(privatelinkendpointservice.ErrorEndpointSetting, "endpoint_service_name", endpointID, err))
 	}
 
 	if err := d.Set("cloud_provider_endpoint_id", serviceEndpoint.CloudProviderEndpointID); err != nil {
-		return diag.FromErr(fmt.Errorf(mongodbatlas.ErrorEndpointSetting, "cloud_provider_endpoint_id", endpointID, err))
+		return diag.FromErr(fmt.Errorf(privatelinkendpointservice.ErrorEndpointSetting, "cloud_provider_endpoint_id", endpointID, err))
 	}
 
 	if err := d.Set("private_link_service_resource_id", serviceEndpoint.PrivateLinkServiceResourceID); err != nil {
-		return diag.FromErr(fmt.Errorf(mongodbatlas.ErrorEndpointSetting, "private_link_service_resource_id", endpointID, err))
+		return diag.FromErr(fmt.Errorf(privatelinkendpointservice.ErrorEndpointSetting, "private_link_service_resource_id", endpointID, err))
 	}
 
 	if err := d.Set("private_endpoint_ip_address", serviceEndpoint.PrivateEndpointIPAddress); err != nil {
-		return diag.FromErr(fmt.Errorf(mongodbatlas.ErrorEndpointSetting, "private_endpoint_ip_address", endpointID, err))
+		return diag.FromErr(fmt.Errorf(privatelinkendpointservice.ErrorEndpointSetting, "private_endpoint_ip_address", endpointID, err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
