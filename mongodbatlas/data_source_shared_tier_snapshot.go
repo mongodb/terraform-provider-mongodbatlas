@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -73,19 +74,19 @@ func dataSourceMongoDBAtlasSharedTierSnapshotRead(ctx context.Context, d *schema
 		return diag.FromErr(fmt.Errorf("error setting `mongo_db_version` for shard-tier snapshot '%s': %w", snapshotID, err))
 	}
 
-	if err = d.Set("start_time", snapshot.GetStartTime().String()); err != nil {
+	if err = d.Set("start_time", conversion.TimeToString(snapshot.GetStartTime())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `start_time` for shard-tier snapshot '%s': %w", snapshotID, err))
 	}
 
-	if err = d.Set("expiration", snapshot.GetExpiration().String()); err != nil {
+	if err = d.Set("expiration", conversion.TimeToString(snapshot.GetExpiration())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `expiration` for shard-tier snapshot '%s': %w", snapshotID, err))
 	}
 
-	if err = d.Set("finish_time", snapshot.GetFinishTime().String()); err != nil {
+	if err = d.Set("finish_time", conversion.TimeToString(snapshot.GetFinishTime())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `finish_time` for shard-tier snapshot '%s': %w", snapshotID, err))
 	}
 
-	if err = d.Set("scheduled_time", snapshot.GetScheduledTime().String()); err != nil {
+	if err = d.Set("scheduled_time", conversion.TimeToString(snapshot.GetScheduledTime())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `scheduled_time` for shard-tier snapshot '%s': %w", snapshotID, err))
 	}
 

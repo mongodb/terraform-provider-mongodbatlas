@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -124,10 +125,10 @@ func flattenShardTierRestoreJobs(sharedTierJobs []atlasSDK.TenantRestore) []map[
 			"snapshot_url":                sharedTierJob.SnapshotUrl,
 			"snapshot_id":                 sharedTierJob.SnapshotId,
 			"delivery_type":               sharedTierJob.DeliveryType,
-			"snapshot_finished_date":      sharedTierJob.GetSnapshotFinishedDate().String(),
-			"restore_scheduled_date":      sharedTierJob.GetRestoreScheduledDate().String(),
-			"restore_finished_date":       sharedTierJob.GetRestoreFinishedDate().String(),
-			"expiration_date":             sharedTierJob.GetExpirationDate().String(),
+			"snapshot_finished_date":      conversion.TimeToString(sharedTierJob.GetSnapshotFinishedDate()),
+			"restore_scheduled_date":      conversion.TimeToString(sharedTierJob.GetRestoreScheduledDate()),
+			"restore_finished_date":       conversion.TimeToString(sharedTierJob.GetRestoreFinishedDate()),
+			"expiration_date":             conversion.TimeToString(sharedTierJob.GetExpirationDate()),
 		}
 	}
 

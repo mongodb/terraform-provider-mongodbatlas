@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -102,10 +103,10 @@ func flattenSharedTierSnapshots(sharedTierSnapshots []atlasSDK.BackupTenantSnaps
 			"snapshot_id":      sharedTierSnapshot.Id,
 			"mongo_db_version": sharedTierSnapshot.MongoDBVersion,
 			"status":           sharedTierSnapshot.Status,
-			"start_time":       sharedTierSnapshot.GetStartTime().String(),
-			"finish_time":      sharedTierSnapshot.GetFinishTime().String(),
-			"scheduled_time":   sharedTierSnapshot.GetScheduledTime().String(),
-			"expiration":       sharedTierSnapshot.GetExpiration().String(),
+			"start_time":       conversion.TimeToString(sharedTierSnapshot.GetStartTime()),
+			"finish_time":      conversion.TimeToString(sharedTierSnapshot.GetFinishTime()),
+			"scheduled_time":   conversion.TimeToString(sharedTierSnapshot.GetScheduledTime()),
+			"expiration":       conversion.TimeToString(sharedTierSnapshot.GetExpiration()),
 		}
 	}
 
