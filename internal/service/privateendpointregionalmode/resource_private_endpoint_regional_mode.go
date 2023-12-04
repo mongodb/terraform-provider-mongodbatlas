@@ -1,4 +1,4 @@
-package mongodbatlas
+package privateendpointregionalmode
 
 import (
 	"context"
@@ -24,7 +24,7 @@ const (
 
 var regionalModeTimeoutCtxKey permCtxKey = "regionalModeTimeout"
 
-func ResourcePrivateEndpointRegionalMode() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasPrivateEndpointRegionalModeCreate,
 		ReadContext:   resourceMongoDBAtlasPrivateEndpointRegionalModeRead,
