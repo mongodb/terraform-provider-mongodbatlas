@@ -1,4 +1,4 @@
-package mongodbatlas
+package federateddatabaseinstance
 
 import (
 	"context"
@@ -24,7 +24,7 @@ const (
 	errorFederatedDatabaseInstanceSetting = "error setting `%s` for MongoDB Atlas Federated Database Instace (%s): %s"
 )
 
-func ResourceFederatedDatabaseInstance() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBFederatedDatabaseInstanceCreate,
 		ReadContext:   resourceMongoDBAFederatedDatabaseInstanceRead,

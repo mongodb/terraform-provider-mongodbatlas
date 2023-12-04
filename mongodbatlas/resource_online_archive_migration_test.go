@@ -27,7 +27,7 @@ func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy,
+		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{

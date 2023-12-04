@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package federateddatabaseinstance_test
 
 import (
 	"context"
@@ -27,7 +27,7 @@ func TestAccDataSourceFederatedDatabaseInstance_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasic(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy,
+		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
@@ -68,7 +68,7 @@ func TestAccDataSourceFederatedDatabaseInstance_S3Bucket(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasic(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy,
+		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{

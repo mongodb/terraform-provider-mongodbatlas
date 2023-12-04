@@ -1,7 +1,6 @@
-package mongodbatlas_test
+package federateddatabaseinstance_test
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -10,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -24,7 +22,7 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasic(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy,
+		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -76,7 +74,7 @@ func TestAccFederatedDatabaseInstance_S3bucket(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasic(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy,
+		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
@@ -113,7 +111,7 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasic(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy,
+		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -264,24 +262,6 @@ func testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFunc(resource
 
 		return fmt.Sprintf("%s--%s", ids["project_id"], ids["name"]), nil
 	}
-}
-
-func testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy(s *terraform.State) error {
-	connV2 := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).AtlasV2
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_federated_database_instance" {
-			continue
-		}
-
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := connV2.DataFederationApi.GetFederatedDatabase(context.Background(), ids["project_id"], ids["name"]).Execute()
-		if err == nil {
-			return fmt.Errorf("federated database instance (%s) still exists", ids["project_id"])
-		}
-	}
-
-	return nil
 }
 
 func testAccMongoDBAtlasFederatedDatabaseInstanceConfigS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion string) string {

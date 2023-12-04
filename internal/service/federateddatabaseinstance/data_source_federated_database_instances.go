@@ -1,4 +1,4 @@
-package mongodbatlas
+package federateddatabaseinstance
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceFederatedDatabaseInstances() *schema.Resource {
+func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasFederatedDatabaseInstancesRead,
 		Schema: map[string]*schema.Schema{

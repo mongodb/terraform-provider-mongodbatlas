@@ -22,6 +22,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotrestorejob"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudprovideraccess"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federateddatabaseinstance"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 	"github.com/mwielbut/pointy"
@@ -176,8 +177,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_settings_org_configs":                               mongodbatlas.DataSourceFederatedSettingsOrganizationConfigs(),
 		"mongodbatlas_federated_settings_org_role_mapping":                          mongodbatlas.DataSourceFederatedSettingsOrganizationRoleMapping(),
 		"mongodbatlas_federated_settings_org_role_mappings":                         mongodbatlas.DataSourceFederatedSettingsOrganizationRoleMappings(),
-		"mongodbatlas_federated_database_instance":                                  mongodbatlas.DataSourceFederatedDatabaseInstance(),
-		"mongodbatlas_federated_database_instances":                                 mongodbatlas.DataSourceFederatedDatabaseInstances(),
+		"mongodbatlas_federated_database_instance":                                  federateddatabaseinstance.DataSource(),
+		"mongodbatlas_federated_database_instances":                                 federateddatabaseinstance.PluralDataSource(),
 		"mongodbatlas_federated_query_limit":                                        mongodbatlas.DataSourceFederatedDatabaseQueryLimit(),
 		"mongodbatlas_federated_query_limits":                                       mongodbatlas.DataSourceFederatedDatabaseQueryLimits(),
 		"mongodbatlas_serverless_instance":                                          mongodbatlas.DataSourceServerlessInstance(),
@@ -236,7 +237,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_settings_org_config":                               mongodbatlas.ResourceFederatedSettingsOrganizationConfig(),
 		"mongodbatlas_federated_settings_org_role_mapping":                         mongodbatlas.ResourceFederatedSettingsOrganizationRoleMapping(),
 		"mongodbatlas_federated_settings_identity_provider":                        mongodbatlas.ResourceFederatedSettingsIdentityProvider(),
-		"mongodbatlas_federated_database_instance":                                 mongodbatlas.ResourceFederatedDatabaseInstance(),
+		"mongodbatlas_federated_database_instance":                                 federateddatabaseinstance.Resource(),
 		"mongodbatlas_federated_query_limit":                                       mongodbatlas.ResourceFederatedDatabaseQueryLimit(),
 		"mongodbatlas_serverless_instance":                                         mongodbatlas.ResourceServerlessInstance(),
 		"mongodbatlas_cluster_outage_simulation":                                   mongodbatlas.ResourceClusterOutageSimulation(),
