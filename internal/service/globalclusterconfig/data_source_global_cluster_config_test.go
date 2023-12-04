@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package globalclusterconfig_test
 
 import (
 	"fmt"

@@ -31,6 +31,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsidentityprovider"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsorgconfig"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsorgrolemapping"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/globalclusterconfig"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/maintenancewindow"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkcontainer"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkpeering"
@@ -142,7 +143,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_auditing":                          auditing.DataSource(),
 		"mongodbatlas_team":                              teams.DataSource(),
 		"mongodbatlas_teams":                             teams.DataSource(),
-		"mongodbatlas_global_cluster_config":             mongodbatlas.DataSourceGlobalCluster(),
+		"mongodbatlas_global_cluster_config":             globalclusterconfig.DataSource(),
 		"mongodbatlas_x509_authentication_database_user": mongodbatlas.DataSourceX509AuthDBUser(),
 		"mongodbatlas_private_endpoint_regional_mode":    mongodbatlas.DataSourcePrivateEndpointRegionalMode(),
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive":  mongodbatlas.DataSourcePrivatelinkEndpointServiceDataFederationOnlineArchive(),
@@ -218,7 +219,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_auditing":                          auditing.Resource(),
 		"mongodbatlas_team":                              teams.Resource(),
 		"mongodbatlas_teams":                             teams.Resource(),
-		"mongodbatlas_global_cluster_config":             mongodbatlas.ResourceGlobalCluster(),
+		"mongodbatlas_global_cluster_config":             globalclusterconfig.Resource(),
 		"mongodbatlas_x509_authentication_database_user": mongodbatlas.ResourceX509AuthDBUser(),
 		"mongodbatlas_private_endpoint_regional_mode":    mongodbatlas.ResourcePrivateEndpointRegionalMode(),
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive": mongodbatlas.ResourcePrivatelinkEndpointServiceDataFederationOnlineArchive(),

@@ -1,4 +1,4 @@
-package mongodbatlas
+package globalclusterconfig
 
 import (
 	"context"
@@ -24,7 +24,7 @@ const (
 	errorGlobalClusterUpdate = "error updating MongoDB Global Cluster Configuration (%s): %s"
 )
 
-func ResourceGlobalCluster() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasGlobalClusterCreate,
 		ReadContext:   resourceMongoDBAtlasGlobalClusterRead,
