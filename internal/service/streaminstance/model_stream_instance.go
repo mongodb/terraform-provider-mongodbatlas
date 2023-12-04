@@ -6,6 +6,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
@@ -57,5 +59,24 @@ func NewTFStreamInstance(ctx context.Context, apiResp *admin.StreamsTenant) (*TF
 		ProjectID:         types.StringPointerValue(apiResp.GroupId),
 		DataProcessRegion: dataProcessRegion,
 		Hostnames:         hostnames,
+	}, nil
+}
+
+func NewTFStreamInstances(ctx context.Context, streamInstancesConfig *TFStreamInstancesModel, paginatedResult *admin.PaginatedApiStreamsTenant) (*TFStreamInstancesModel, diag.Diagnostics) {
+	results := make([]TFStreamInstanceModel, len(paginatedResult.Results))
+	for i := range paginatedResult.Results {
+		instance, diags := NewTFStreamInstance(ctx, &paginatedResult.Results[i])
+		if diags.HasError() {
+			return nil, diags
+		}
+		results[i] = *instance
+	}
+	return &TFStreamInstancesModel{
+		ID:           types.StringValue(id.UniqueId()),
+		ProjectID:    streamInstancesConfig.ProjectID,
+		PageNum:      streamInstancesConfig.PageNum,
+		ItemsPerPage: streamInstancesConfig.ItemsPerPage,
+		TotalCount:   types.Int64PointerValue(conversion.IntPtrToInt64Ptr(paginatedResult.TotalCount)),
+		Results:      results,
 	}, nil
 }
