@@ -104,47 +104,47 @@ func dataSourceMongoDBAtlasDataLakeRunRead(ctx context.Context, d *schema.Resour
 	}
 
 	if err := d.Set("id", dataLakeRun.ID); err != nil {
-		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "hostnames", name, err))
+		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "hostnames", name, err))
 	}
 
 	if err := d.Set("project_id", dataLakeRun.GroupID); err != nil {
-		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "state", name, err))
+		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "state", name, err))
 	}
 
 	if err := d.Set("created_date", dataLakeRun.CreatedDate); err != nil {
-		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "storage_databases", name, err))
+		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "storage_databases", name, err))
 	}
 
 	if err := d.Set("last_updated_date", dataLakeRun.LastUpdatedDate); err != nil {
-		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "storage_databases", name, err))
+		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "storage_databases", name, err))
 	}
 
 	if err := d.Set("state", dataLakeRun.State); err != nil {
-		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "storage_databases", name, err))
+		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "storage_databases", name, err))
 	}
 
 	if err := d.Set("phase", dataLakeRun.Phase); err != nil {
-		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "storage_databases", name, err))
+		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "storage_databases", name, err))
 	}
 
 	if err := d.Set("pipeline_id", dataLakeRun.PipelineID); err != nil {
-		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "storage_stores", name, err))
+		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "storage_stores", name, err))
 	}
 
 	if err := d.Set("dataset_name", dataLakeRun.DatasetName); err != nil {
-		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "storage_stores", name, err))
+		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "storage_stores", name, err))
 	}
 
 	if err := d.Set("snapshot_id", dataLakeRun.SnapshotID); err != nil {
-		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "storage_stores", name, err))
+		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "storage_stores", name, err))
 	}
 
 	if err := d.Set("backup_frequency_type", dataLakeRun.BackupFrequencyType); err != nil {
-		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "storage_stores", name, err))
+		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "storage_stores", name, err))
 	}
 
 	if err := d.Set("stats", flattenDataLakePipelineRunStats(dataLakeRun.Stats)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "storage_stores", name, err))
+		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "storage_stores", name, err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{

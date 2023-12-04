@@ -1,4 +1,4 @@
-package mongodbatlas
+package privatelinkendpointservicedatafederationonlinearchive
 
 import (
 	"context"
@@ -8,12 +8,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const errorPrivateEndpointServiceDataFederationOnlineArchiveList = "error reading Private Endpoings for projectId %s: %s"
 
-func DataSourcePrivatelinkEndpointServiceDataFederationOnlineArchives() *schema.Resource {
+func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchivesRead,
 		Schema: map[string]*schema.Schema{
@@ -59,7 +60,7 @@ func dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive
 	}
 
 	if err := d.Set("results", flattenPrivateLinkEndpointDataLakeResponse(privateEndpoints.Results)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "results", projectID, err))
+		return diag.FromErr(fmt.Errorf(mongodbatlas.ErrorDataLakeSetting, "results", projectID, err))
 	}
 
 	d.SetId(id.UniqueId())

@@ -1,4 +1,4 @@
-package mongodbatlas
+package privatelinkendpointservicedatafederationonlinearchive
 
 import (
 	"context"
@@ -24,7 +24,7 @@ const (
 	endpointType                                                 = "DATA_LAKE"
 )
 
-func ResourcePrivatelinkEndpointServiceDataFederationOnlineArchive() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveCreate,
 		ReadContext:   resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveRead,

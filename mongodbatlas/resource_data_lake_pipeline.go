@@ -22,7 +22,7 @@ const (
 	errorDataLakePipelineDelete      = "error deleting MongoDB Atlas DataLake Pipeline (%s): %s"
 	errorDataLakePipelineUpdate      = "error updating MongoDB Atlas DataLake Pipeline: %s"
 	errorDataLakePipelineSetting     = "error setting `%s` for MongoDB Atlas DataLake Pipeline (%s): %s"
-	errorDataLakeSetting             = "error setting `%s` for MongoDB Atlas DataLake (%s): %s"
+	ErrorDataLakeSetting             = "error setting `%s` for MongoDB Atlas DataLake (%s): %s"
 )
 
 func ResourceDataLakePipeline() *schema.Resource {
@@ -298,7 +298,7 @@ func resourceMongoDBAtlasDataLakePipelineRead(ctx context.Context, d *schema.Res
 	}
 
 	if err := d.Set("id", dataLakePipeline.ID); err != nil {
-		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "id", name, err))
+		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "id", name, err))
 	}
 
 	if err := d.Set("state", dataLakePipeline.State); err != nil {

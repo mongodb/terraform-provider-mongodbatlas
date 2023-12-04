@@ -1,4 +1,4 @@
-package mongodbatlas
+package privatelinkendpointservicedatafederationonlinearchive
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourcePrivatelinkEndpointServiceDataFederationOnlineArchive() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveRead,
 		Schema: map[string]*schema.Schema{

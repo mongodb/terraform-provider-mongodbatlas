@@ -101,7 +101,7 @@ func dataSourceMongoDBAtlasDataLakeRunsRead(ctx context.Context, d *schema.Resou
 	}
 
 	if err := d.Set("results", flattenDataLakePipelineRunResult(dataLakeRuns.Results)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "results", projectID, err))
+		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "results", projectID, err))
 	}
 
 	d.SetId(id.UniqueId())

@@ -251,7 +251,7 @@ func setDataLakeResourceData(
 	snapshots *matlas.DataLakePipelineSnapshotsResponse,
 	ingestionSchedules []*matlas.DataLakePipelineIngestionSchedule) diag.Diagnostics {
 	if err := d.Set("id", pipeline.ID); err != nil {
-		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "id", pipeline.Name, err))
+		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "id", pipeline.Name, err))
 	}
 
 	if err := d.Set("state", pipeline.State); err != nil {
