@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package federatedsettingsidentityprovider_test
 
 import (
 	"context"

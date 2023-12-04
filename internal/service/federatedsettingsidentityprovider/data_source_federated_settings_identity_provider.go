@@ -1,4 +1,4 @@
-package mongodbatlas
+package federatedsettingsidentityprovider
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceFederatedSettingsIdentityProvider() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead,
 		Schema: map[string]*schema.Schema{

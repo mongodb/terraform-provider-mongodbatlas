@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsidentityprovider"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -171,7 +172,7 @@ func flattenFederatedSettingsOrganizationConfigs(federatedSettingsConnectedOrgan
 					"identity_provider_id":       federatedSettingsConnectedOrganizations.Results[i].IdentityProviderID,
 					"org_id":                     federatedSettingsConnectedOrganizations.Results[i].OrgID,
 					"post_auth_role_grants":      federatedSettingsConnectedOrganizations.Results[i].PostAuthRoleGrants,
-					"role_mappings":              flattenRoleMappings(federatedSettingsConnectedOrganizations.Results[i].RoleMappings),
+					"role_mappings":              federatedsettingsidentityprovider.FlattenRoleMappings(federatedSettingsConnectedOrganizations.Results[i].RoleMappings),
 					"user_conflicts":             nil,
 				}
 			} else {
@@ -181,8 +182,8 @@ func flattenFederatedSettingsOrganizationConfigs(federatedSettingsConnectedOrgan
 					"identity_provider_id":       federatedSettingsConnectedOrganizations.Results[i].IdentityProviderID,
 					"org_id":                     federatedSettingsConnectedOrganizations.Results[i].OrgID,
 					"post_auth_role_grants":      federatedSettingsConnectedOrganizations.Results[i].PostAuthRoleGrants,
-					"role_mappings":              flattenRoleMappings(federatedSettingsConnectedOrganizations.Results[i].RoleMappings),
-					"user_conflicts":             flattenUserConflicts(*federatedSettingsConnectedOrganizations.Results[i].UserConflicts),
+					"role_mappings":              federatedsettingsidentityprovider.FlattenRoleMappings(federatedSettingsConnectedOrganizations.Results[i].RoleMappings),
+					"user_conflicts":             federatedsettingsidentityprovider.FlattenUserConflicts(*federatedSettingsConnectedOrganizations.Results[i].UserConflicts),
 				}
 			}
 		}

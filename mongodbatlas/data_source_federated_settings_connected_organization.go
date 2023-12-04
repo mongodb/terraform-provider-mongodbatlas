@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsidentityprovider"
 )
 
 func DataSourceFederatedSettingsOrganizationConfig() *schema.Resource {
@@ -152,7 +153,7 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.C
 		return diag.FromErr(fmt.Errorf("error setting `post_auth_role_grants` for federatedSettings IdentityProviders: %s", err))
 	}
 
-	if err := d.Set("role_mappings", flattenRoleMappings(federatedSettingsConnectedOrganization.RoleMappings)); err != nil {
+	if err := d.Set("role_mappings", federatedsettingsidentityprovider.FlattenRoleMappings(federatedSettingsConnectedOrganization.RoleMappings)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `role_mappings` for federatedSettings IdentityProviders: %s", err))
 	}
 	if federatedSettingsConnectedOrganization.UserConflicts == nil {
@@ -160,7 +161,7 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.C
 			return diag.FromErr(fmt.Errorf("error setting `user_conflicts` for federatedSettings IdentityProviders: %s", err))
 		}
 	} else {
-		if err := d.Set("user_conflicts", flattenUserConflicts(*federatedSettingsConnectedOrganization.UserConflicts)); err != nil {
+		if err := d.Set("user_conflicts", federatedsettingsidentityprovider.FlattenUserConflicts(*federatedSettingsConnectedOrganization.UserConflicts)); err != nil {
 			return diag.FromErr(fmt.Errorf("error setting `user_conflicts` for federatedSettings IdentityProviders: %s", err))
 		}
 	}

@@ -1,4 +1,4 @@
-package mongodbatlas
+package federatedsettingsidentityprovider
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourceFederatedSettingsIdentityProviders() *schema.Resource {
+func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead,
 		Schema: map[string]*schema.Schema{
@@ -287,7 +287,7 @@ func flattenAssociatedOrgs(associatedOrgs []*matlas.AssociatedOrgs) []map[string
 				"identity_provider_id":       associatedOrgs[i].IdentityProviderID,
 				"org_id":                     associatedOrgs[i].OrgID,
 				"post_auth_role_grants":      associatedOrgs[i].PostAuthRoleGrants,
-				"role_mappings":              flattenRoleMappings(associatedOrgs[i].RoleMappings),
+				"role_mappings":              FlattenRoleMappings(associatedOrgs[i].RoleMappings),
 				"user_conflicts":             nil,
 			}
 		} else {
@@ -297,8 +297,8 @@ func flattenAssociatedOrgs(associatedOrgs []*matlas.AssociatedOrgs) []map[string
 				"identity_provider_id":       associatedOrgs[i].IdentityProviderID,
 				"org_id":                     associatedOrgs[i].OrgID,
 				"post_auth_role_grants":      associatedOrgs[i].PostAuthRoleGrants,
-				"role_mappings":              flattenRoleMappings(associatedOrgs[i].RoleMappings),
-				"user_conflicts":             flattenUserConflicts(*associatedOrgs[i].UserConflicts),
+				"role_mappings":              FlattenRoleMappings(associatedOrgs[i].RoleMappings),
+				"user_conflicts":             FlattenUserConflicts(*associatedOrgs[i].UserConflicts),
 			}
 		}
 	}
@@ -306,7 +306,7 @@ func flattenAssociatedOrgs(associatedOrgs []*matlas.AssociatedOrgs) []map[string
 	return associatedOrgsMap
 }
 
-func flattenUserConflicts(userConflicts matlas.UserConflicts) []map[string]any {
+func FlattenUserConflicts(userConflicts matlas.UserConflicts) []map[string]any {
 	var userConflictsMap []map[string]any
 
 	if len(userConflicts) == 0 {
@@ -388,7 +388,7 @@ func (ra roleMappingsByGroupName) Less(i, j int) bool {
 	return ra[i].ExternalGroupName < ra[j].ExternalGroupName
 }
 
-func flattenRoleMappings(roleMappings []*matlas.RoleMappings) []map[string]any {
+func FlattenRoleMappings(roleMappings []*matlas.RoleMappings) []map[string]any {
 	sort.Sort(roleMappingsByGroupName(roleMappings))
 
 	var roleMappingsMap []map[string]any
@@ -400,7 +400,7 @@ func flattenRoleMappings(roleMappings []*matlas.RoleMappings) []map[string]any {
 			roleMappingsMap[i] = map[string]any{
 				"external_group_name": roleMappings[i].ExternalGroupName,
 				"id":                  roleMappings[i].ID,
-				"role_assignments":    flattenRoleAssignments(roleMappings[i].RoleAssignments),
+				"role_assignments":    FlattenRoleAssignments(roleMappings[i].RoleAssignments),
 			}
 		}
 	}
@@ -408,7 +408,7 @@ func flattenRoleMappings(roleMappings []*matlas.RoleMappings) []map[string]any {
 	return roleMappingsMap
 }
 
-func flattenRoleAssignments(roleAssignments []*matlas.RoleAssignments) []map[string]any {
+func FlattenRoleAssignments(roleAssignments []*matlas.RoleAssignments) []map[string]any {
 	sort.Sort(mRoleAssignment(roleAssignments))
 
 	var roleAssignmentsMap []map[string]any

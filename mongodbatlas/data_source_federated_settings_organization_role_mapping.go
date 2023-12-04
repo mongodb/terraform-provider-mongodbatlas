@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsidentityprovider"
 )
 
 func DataSourceFederatedSettingsOrganizationRoleMapping() *schema.Resource {
@@ -89,7 +90,7 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx cont
 		return diag.FromErr(fmt.Errorf("error setting `result` for federatedSettings Role Mapping: %s", err))
 	}
 
-	if err := d.Set("role_assignments", flattenRoleAssignments(federatedSettingsOrganizationRoleMapping.RoleAssignments)); err != nil {
+	if err := d.Set("role_assignments", federatedsettingsidentityprovider.FlattenRoleAssignments(federatedSettingsOrganizationRoleMapping.RoleAssignments)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `result` for federatedSettings Role Mapping: %s", err))
 	}
 

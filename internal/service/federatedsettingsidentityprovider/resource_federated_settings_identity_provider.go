@@ -1,4 +1,4 @@
-package mongodbatlas
+package federatedsettingsidentityprovider
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-func ResourceFederatedSettingsIdentityProvider() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasFederatedSettingsIdentityProviderRead,
 		ReadContext:   resourceMongoDBAtlasFederatedSettingsIdentityProviderRead,
