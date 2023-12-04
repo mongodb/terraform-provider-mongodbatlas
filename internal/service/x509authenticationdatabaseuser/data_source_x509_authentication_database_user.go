@@ -1,4 +1,4 @@
-package mongodbatlas
+package x509authenticationdatabaseuser
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceX509AuthDBUser() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasX509AuthDBUserRead,
 		Schema: map[string]*schema.Schema{

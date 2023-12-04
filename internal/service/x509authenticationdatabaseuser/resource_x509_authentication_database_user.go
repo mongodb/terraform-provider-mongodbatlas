@@ -1,4 +1,4 @@
-package mongodbatlas
+package x509authenticationdatabaseuser
 
 import (
 	"context"
@@ -23,7 +23,7 @@ const (
 	errorCustomerX509AuthDBUsersDelete = "error deleting Customer X509 Authentication in the project(%s): %s"
 )
 
-func ResourceX509AuthDBUser() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasX509AuthDBUserCreate,
 		ReadContext:   resourceMongoDBAtlasX509AuthDBUserRead,

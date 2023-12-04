@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package x509authenticationdatabaseuser_test
 
 import (
 	"context"
