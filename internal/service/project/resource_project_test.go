@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -43,10 +44,20 @@ func TestFilterUserDefinedLimits(t *testing.T) {
 				},
 			},
 			tfLimits: []project.TfLimitModel{
-				{},
+				{
+					Name: types.StringValue("1"),
+				},
+				{
+					Name: types.StringValue("2"),
+				},
 			},
 			expectedResult: []admin.DataFederationLimit{
-				{},
+				{
+					Name: "1",
+				},
+				{
+					Name: "2",
+				},
 			},
 		},
 	}
