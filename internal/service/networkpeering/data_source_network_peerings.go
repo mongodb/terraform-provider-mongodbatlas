@@ -1,4 +1,4 @@
-package mongodbatlas
+package networkpeering
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourceNetworkPeerings() *schema.Resource {
+func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasNetworkPeeringsRead,
 		Schema: map[string]*schema.Schema{

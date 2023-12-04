@@ -1,4 +1,4 @@
-package mongodbatlas
+package networkpeering
 
 import (
 	"context"
@@ -27,7 +27,7 @@ const (
 	errorPeersUpdate = "error updating MongoDB Network Peering Connection (%s): %s"
 )
 
-func ResourceNetworkPeering() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasNetworkPeeringCreate,
 		ReadContext:   resourceMongoDBAtlasNetworkPeeringRead,

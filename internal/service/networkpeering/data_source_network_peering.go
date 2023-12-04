@@ -1,4 +1,4 @@
-package mongodbatlas
+package networkpeering
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceNetworkPeering() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasNetworkPeeringRead,
 		Schema: map[string]*schema.Schema{

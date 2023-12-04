@@ -31,6 +31,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsorgconfig"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsorgrolemapping"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkcontainer"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkpeering"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 	"github.com/mwielbut/pointy"
@@ -132,8 +133,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_clusters":                          cluster.PluralDataSource(),
 		"mongodbatlas_network_container":                 networkcontainer.DataSource(),
 		"mongodbatlas_network_containers":                networkcontainer.PluralDataSource(),
-		"mongodbatlas_network_peering":                   mongodbatlas.DataSourceNetworkPeering(),
-		"mongodbatlas_network_peerings":                  mongodbatlas.DataSourceNetworkPeerings(),
+		"mongodbatlas_network_peering":                   networkpeering.DataSource(),
+		"mongodbatlas_network_peerings":                  networkpeering.PluralDataSource(),
 		"mongodbatlas_maintenance_window":                mongodbatlas.DataSourceMaintenanceWindow(),
 		"mongodbatlas_auditing":                          mongodbatlas.DataSourceAuditing(),
 		"mongodbatlas_team":                              mongodbatlas.DataSourceTeam(),
@@ -209,7 +210,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_custom_db_role":                    customdbrole.Resource(),
 		"mongodbatlas_cluster":                           cluster.Resource(),
 		"mongodbatlas_network_container":                 networkcontainer.Resource(),
-		"mongodbatlas_network_peering":                   mongodbatlas.ResourceNetworkPeering(),
+		"mongodbatlas_network_peering":                   networkpeering.Resource(),
 		"mongodbatlas_maintenance_window":                mongodbatlas.ResourceMaintenanceWindow(),
 		"mongodbatlas_auditing":                          mongodbatlas.ResourceAuditing(),
 		"mongodbatlas_team":                              mongodbatlas.ResourceTeam(),
