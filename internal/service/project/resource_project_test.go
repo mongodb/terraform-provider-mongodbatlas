@@ -1,6 +1,10 @@
 package project_test
 
 import (
+	"context"
+	"errors"
+	"log"
+	"net/http"
 	"os"
 	"reflect"
 	"regexp"
@@ -14,14 +18,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
-
-func TestDeleteProject(t *testing.T) {
-
-}
-
-func TestGetProjectPropsFromAPI(t *testing.T) {
-
-}
 
 func TestFilterUserDefinedLimits(t *testing.T) {
 	testCases := []struct {
@@ -60,6 +56,16 @@ func TestFilterUserDefinedLimits(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "FilterUserDefinedLimits",
+			allAtlasLimits: []admin.DataFederationLimit{
+				{
+					Name: "1",
+				},
+			},
+			tfLimits:       []project.TfLimitModel{},
+			expectedResult: []admin.DataFederationLimit{},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -72,12 +78,75 @@ func TestFilterUserDefinedLimits(t *testing.T) {
 	}
 }
 
-func TestUpdatePlanFromConfig(t *testing.T) {
-
-}
-
 func TestUpdateProject(t *testing.T) {
+	testCases := []struct {
+		name          string
+		mockResponses []ProjectResponse
+		projectState  project.TfProjectRSModel
+		projectPlan   project.TfProjectRSModel
+		expectedError bool
+	}{
+		{
+			name: "Successful update",
+			projectState: project.TfProjectRSModel{
+				Name: types.StringValue("sameName"),
+			},
+			projectPlan: project.TfProjectRSModel{
+				Name: types.StringValue("diffName"),
+			},
+			mockResponses: []ProjectResponse{
+				{
+					Err: nil,
+				},
+			},
+			expectedError: false,
+		},
+		{
+			name: "Same project names; Failed update",
+			projectState: project.TfProjectRSModel{
+				Name: types.StringValue("sameName"),
+			},
+			projectPlan: project.TfProjectRSModel{
+				Name: types.StringValue("sameName"),
+			},
+			mockResponses: []ProjectResponse{
+				{
+					Err: nil,
+				},
+			},
+			expectedError: false,
+		},
+		{
+			name: "Failed API call; Failed update",
+			projectState: project.TfProjectRSModel{
+				Name: types.StringValue("sameName"),
+			},
+			projectPlan: project.TfProjectRSModel{
+				Name: types.StringValue("diffName"),
+			},
+			mockResponses: []ProjectResponse{
+				{
+					ProjectResp:  nil,
+					HTTPResponse: &http.Response{StatusCode: 503},
+					Err:          errors.New("Service Unavailable"),
+				},
+			},
+			expectedError: true,
+		},
+	}
 
+	for i, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockService := MockProjectService{
+				MockResponses: tc.mockResponses,
+			}
+			err := project.UpdateProject(context.Background(), &mockService, &testCases[i].projectState, &testCases[i].projectPlan)
+
+			if (err != nil) != tc.expectedError {
+				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
+			}
+		})
+	}
 }
 
 func TestAccProjectRSProject_basic(t *testing.T) {
@@ -496,4 +565,24 @@ func TestAccProjectRSProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 			},
 		},
 	})
+}
+
+type MockProjectService struct {
+	MockResponses []ProjectResponse
+	index         int
+}
+
+func (a *MockProjectService) UpdateProject(ctx context.Context, groupID string, groupName *admin.GroupName) (*admin.Group, *http.Response, error) {
+	if a.index >= len(a.MockResponses) {
+		log.Fatal(errors.New("no more mocked responses available"))
+	}
+	resp := a.MockResponses[a.index]
+	a.index++
+	return resp.ProjectResp, resp.HTTPResponse, resp.Err
+}
+
+type ProjectResponse struct {
+	ProjectResp  *admin.Group
+	HTTPResponse *http.Response
+	Err          error
 }

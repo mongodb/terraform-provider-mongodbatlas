@@ -434,7 +434,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	}
 	projectID := projectState.ID.ValueString()
 
-	err := updateProject(ctx, connV2, &projectState, &projectPlan)
+	err := UpdateProject(ctx, ServiceFromClient(connV2), &projectState, &projectPlan)
 	if err != nil {
 		resp.Diagnostics.AddError("error in project update", fmt.Sprintf(errorProjectUpdate, projectID, err.Error()))
 		return
@@ -711,14 +711,14 @@ func hasLimitsChanged(planLimits, stateLimits []TfLimitModel) bool {
 	return !reflect.DeepEqual(planLimits, stateLimits)
 }
 
-func updateProject(ctx context.Context, connV2 *admin.APIClient, projectState, projectPlan *TfProjectRSModel) error {
+func UpdateProject(ctx context.Context, client GroupProjectService, projectState, projectPlan *TfProjectRSModel) error {
 	if projectPlan.Name.Equal(projectState.Name) {
 		return nil
 	}
 
 	projectID := projectState.ID.ValueString()
 
-	if _, _, err := connV2.ProjectsApi.UpdateProject(ctx, projectID, NewGroupName(projectPlan)).Execute(); err != nil {
+	if _, _, err := client.UpdateProject(ctx, projectID, NewGroupName(projectPlan)); err != nil {
 		return fmt.Errorf("error updating the project(%s): %s", projectID, err)
 	}
 

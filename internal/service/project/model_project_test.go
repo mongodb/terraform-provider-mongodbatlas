@@ -33,7 +33,7 @@ var (
 			RoleNames: roles,
 		},
 	}
-	teamsTF = []*project.TfTeamDSModel{
+	teamsDSTF = []*project.TfTeamDSModel{
 		{
 			TeamID:    types.StringValue("teamId"),
 			RoleNames: roleList,
@@ -91,7 +91,7 @@ func TestTeamsDataSourceSDKToTFModel(t *testing.T) {
 				Results:    teamRolesSDK,
 				TotalCount: conversion.IntPtr(1),
 			},
-			expectedTFModel: teamsTF,
+			expectedTFModel: teamsDSTF,
 		},
 	}
 
@@ -159,7 +159,7 @@ func TestProjectDataSourceSDKToTFModel(t *testing.T) {
 				IsPerformanceAdvisorEnabled:                 types.BoolValue(true),
 				IsRealtimePerformancePanelEnabled:           types.BoolValue(true),
 				IsSchemaAdvisorEnabled:                      types.BoolValue(true),
-				Teams:                                       teamsTF,
+				Teams:                                       teamsDSTF,
 				Limits:                                      limitsTF,
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
 			},
@@ -170,6 +170,104 @@ func TestProjectDataSourceSDKToTFModel(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := project.NewTFProjectDataSourceModel(context.Background(), tc.project, tc.teams, tc.projectSettings, tc.dataFederationLimits)
 			if !reflect.DeepEqual(resultModel, tc.expectedTFModel) {
+				t.Errorf("created terraform model did not match expected output")
+			}
+		})
+	}
+}
+
+func TestTeamRoleListTFtoSDK(t *testing.T) {
+	var rolesSet, _ = types.SetValueFrom(context.Background(), types.StringType, roles)
+	teamsTF := []project.TfTeamModel{
+		{
+			TeamID:    types.StringValue("teamId"),
+			RoleNames: rolesSet,
+		},
+	}
+	testCases := []struct {
+		name           string
+		expectedResult *[]admin.TeamRole
+		teamRolesTF    []project.TfTeamModel
+	}{
+		{
+			name:           "Team roles",
+			teamRolesTF:    teamsTF,
+			expectedResult: &teamRolesSDK,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel := project.NewTeamRoleList(context.Background(), tc.teamRolesTF)
+			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
+				t.Errorf("created terraform model did not match expected output")
+			}
+		})
+	}
+}
+
+func TestTeamModelMapTF(t *testing.T) {
+	teams := []project.TfTeamModel{
+		{
+			TeamID: types.StringValue("id1"),
+		},
+		{
+			TeamID: types.StringValue("id2"),
+		},
+	}
+	testCases := []struct {
+		name           string
+		expectedResult map[types.String]project.TfTeamModel
+		teamRolesTF    []project.TfTeamModel
+	}{
+		{
+			name:        "Team roles",
+			teamRolesTF: teams,
+			expectedResult: map[types.String]project.TfTeamModel{
+				types.StringValue("id1"): teams[0],
+				types.StringValue("id2"): teams[1],
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel := project.NewTfTeamModelMap(tc.teamRolesTF)
+			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
+				t.Errorf("created terraform model did not match expected output")
+			}
+		})
+	}
+}
+
+func TestLimitModelMapTF(t *testing.T) {
+	limits := []project.TfLimitModel{
+		{
+			Name: types.StringValue("limit1"),
+		},
+		{
+			Name: types.StringValue("limit2"),
+		},
+	}
+	testCases := []struct {
+		name           string
+		expectedResult map[types.String]project.TfLimitModel
+		limitsTF       []project.TfLimitModel
+	}{
+		{
+			name:     "Limits",
+			limitsTF: limits,
+			expectedResult: map[types.String]project.TfLimitModel{
+				types.StringValue("limit1"): limits[0],
+				types.StringValue("limit2"): limits[1],
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel := project.NewTfLimitModelMap(tc.limitsTF)
+			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
 				t.Errorf("created terraform model did not match expected output")
 			}
 		})
