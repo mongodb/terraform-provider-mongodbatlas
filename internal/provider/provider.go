@@ -416,6 +416,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		cluster.DataSource,
 		cluster.PluralDataSource,
 		advancedcluster.DataSource,
+		advancedcluster.PluralDataSource,
 	}
 }
 
