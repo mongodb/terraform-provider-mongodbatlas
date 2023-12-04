@@ -6,6 +6,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -16,10 +17,20 @@ type TfLabelModel struct {
 	Value types.String `tfsdk:"value"`
 }
 
+var TfLabelType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"key":   types.StringType,
+	"value": types.StringType,
+}}
+
 type TfTagModel struct {
 	Key   types.String `tfsdk:"key"`
 	Value types.String `tfsdk:"value"`
 }
+
+var TfTagType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"key":   types.StringType,
+	"value": types.StringType,
+}}
 
 type TfBiConnectorConfigModel struct {
 	ReadPreference types.String `tfsdk:"read_preference"`
@@ -45,6 +56,20 @@ type TfAdvancedConfigurationModel struct {
 	NoTableScan                      types.Bool   `tfsdk:"no_table_scan"`
 }
 
+var tfAdvancedConfigurationType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"default_read_concern":                 types.StringType,
+	"default_write_concern":                types.StringType,
+	"minimum_enabled_tls_protocol":         types.StringType,
+	"oplog_size_mb":                        types.Int64Type,
+	"oplog_min_retention_hours":            types.Int64Type,
+	"sample_size_bi_connector":             types.Int64Type,
+	"sample_refresh_interval_bi_connector": types.Int64Type,
+	"transaction_lifetime_limit_seconds":   types.Int64Type,
+	"fail_index_key_too_long":              types.BoolType,
+	"javascript_enabled":                   types.BoolType,
+	"no_table_scan":                        types.BoolType,
+}}
+
 type tfConnectionStringModel struct {
 	Standard        types.String `tfsdk:"standard"`
 	StandardSrv     types.String `tfsdk:"standard_srv"`
@@ -52,6 +77,14 @@ type tfConnectionStringModel struct {
 	PrivateSrv      types.String `tfsdk:"private_srv"`
 	PrivateEndpoint types.List   `tfsdk:"private_endpoint"`
 }
+
+var tfConnectionStringType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"standard":         types.StringType,
+	"standard_srv":     types.StringType,
+	"private":          types.StringType,
+	"private_srv":      types.StringType,
+	"private_endpoint": types.ListType{ElemType: TfPrivateEndpointType},
+}}
 
 type TfPrivateEndpointModel struct {
 	ConnectionString                  types.String `tfsdk:"connection_string"`
@@ -90,22 +123,25 @@ type tfReplicationSpecModel struct {
 	NumShards      types.Int64  `tfsdk:"num_shards"`
 }
 
-type tfRegionsConfigModel struct {
-	// AnalyticsSpecs       types.List   `tfsdk:"analytics_specs"`
-	// AutoScaling          types.List   `tfsdk:"auto_scaling"`
-	// AnalyticsAutoScaling types.List   `tfsdk:"analytics_auto_scaling"`
-	// ReadOnlySpecs        types.List   `tfsdk:"read_only_specs"`
-	// ElectableSpecs       types.List   `tfsdk:"electable_specs"`
-	AnalyticsSpecs       []*tfRegionsConfigSpecsModel            `tfsdk:"analytics_specs"`
-	ReadOnlySpecs        []*tfRegionsConfigSpecsModel            `tfsdk:"read_only_specs"`
-	ElectableSpecs       []*tfRegionsConfigSpecsModel            `tfsdk:"electable_specs"`
-	AutoScaling          []*tfRegionsConfigAutoScalingSpecsModel `tfsdk:"auto_scaling"`
-	AnalyticsAutoScaling []*tfRegionsConfigAutoScalingSpecsModel `tfsdk:"analytics_auto_scaling"`
+var tfReplicationSpecType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"id":             types.StringType,
+	"zone_name":      types.StringType,
+	"num_shards":     types.Int64Type,
+	"container_id":   types.MapType{ElemType: types.StringType},
+	"region_configs": types.SetType{ElemType: tfRegionsConfigType},
+},
+}
 
-	BackingProviderName types.String `tfsdk:"backing_provider_name"`
-	ProviderName        types.String `tfsdk:"provider_name"`
-	RegionName          types.String `tfsdk:"region_name"`
-	Priority            types.Int64  `tfsdk:"priority"`
+type tfRegionsConfigModel struct {
+	AnalyticsSpecs       types.List   `tfsdk:"analytics_specs"`
+	AutoScaling          types.List   `tfsdk:"auto_scaling"`
+	AnalyticsAutoScaling types.List   `tfsdk:"analytics_auto_scaling"`
+	ReadOnlySpecs        types.List   `tfsdk:"read_only_specs"`
+	ElectableSpecs       types.List   `tfsdk:"electable_specs"`
+	BackingProviderName  types.String `tfsdk:"backing_provider_name"`
+	ProviderName         types.String `tfsdk:"provider_name"`
+	RegionName           types.String `tfsdk:"region_name"`
+	Priority             types.Int64  `tfsdk:"priority"`
 }
 
 var tfRegionsConfigType = types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -165,24 +201,28 @@ func newTfConnectionStringsModel(ctx context.Context, connString *matlas.Connect
 	return res
 }
 
-func newTfRegionConfig(ctx context.Context, conn *matlas.Client, apiObject *matlas.AdvancedRegionConfig, projectID string) tfRegionsConfigModel {
+func newTfRegionConfig(ctx context.Context, conn *matlas.Client, apiObject *matlas.AdvancedRegionConfig, projectID string) (tfRegionsConfigModel, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
 	if apiObject == nil {
-		return tfRegionsConfigModel{}
+		return tfRegionsConfigModel{}, diags
 	}
 
 	tfRegionsConfig := tfRegionsConfigModel{
-		AnalyticsSpecs:       newTfRegionsConfigSpecsModel(apiObject.AnalyticsSpecs),
-		ElectableSpecs:       newTfRegionsConfigSpecsModel(apiObject.ElectableSpecs),
-		ReadOnlySpecs:        newTfRegionsConfigSpecsModel(apiObject.ReadOnlySpecs),
-		AnalyticsAutoScaling: newTfRegionsConfigAutoScalingSpecsModel(apiObject.AnalyticsAutoScaling),
-		AutoScaling:          newTfRegionsConfigAutoScalingSpecsModel(apiObject.AutoScaling),
-		BackingProviderName:  conversion.StringNullIfEmpty(apiObject.BackingProviderName),
-		ProviderName:         conversion.StringNullIfEmpty(apiObject.ProviderName),
-		RegionName:           conversion.StringNullIfEmpty(apiObject.RegionName),
-		Priority:             types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiObject.Priority)),
+		BackingProviderName: conversion.StringNullIfEmpty(apiObject.BackingProviderName),
+		ProviderName:        conversion.StringNullIfEmpty(apiObject.ProviderName),
+		RegionName:          conversion.StringNullIfEmpty(apiObject.RegionName),
+		Priority:            types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiObject.Priority)),
 	}
 
-	return tfRegionsConfig
+	tfRegionsConfig.AnalyticsSpecs, diags = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.AnalyticsSpecs))
+	tfRegionsConfig.ElectableSpecs, diags = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.ElectableSpecs))
+	tfRegionsConfig.ReadOnlySpecs, diags = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.ReadOnlySpecs))
+
+	tfRegionsConfig.AnalyticsAutoScaling, diags = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, newTfRegionsConfigAutoScalingSpecsModel(apiObject.AnalyticsAutoScaling))
+	tfRegionsConfig.AutoScaling, diags = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, newTfRegionsConfigAutoScalingSpecsModel(apiObject.AutoScaling))
+
+	return tfRegionsConfig, diags
 }
 
 func newTfRegionsConfigSpecsModel(apiSpecs *matlas.Specs) []*tfRegionsConfigSpecsModel {

@@ -134,18 +134,16 @@ func (d *advancedClusterDS) Read(ctx context.Context, req datasource.ReadRequest
 func newTfAdvClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *matlas.AdvancedCluster) (*tfAdvancedClusterDSModel, diag.Diagnostics) {
 	var err error
 	projectID := apiResp.GroupID
+	var diags diag.Diagnostics
+	var d diag.Diagnostics
 
 	clusterModel := tfAdvancedClusterDSModel{
-		ID:            types.StringValue(apiResp.ID),
-		BackupEnabled: types.BoolPointerValue(apiResp.BackupEnabled),
-		// BiConnectorConfig:            NewTfBiConnectorConfigModel(apiResp.BiConnector),
+		ID:                           types.StringValue(apiResp.ID),
+		BackupEnabled:                types.BoolPointerValue(apiResp.BackupEnabled),
 		ClusterType:                  types.StringValue(apiResp.ClusterType),
-		ConnectionStrings:            newTfConnectionStringsModel(ctx, apiResp.ConnectionStrings),
 		CreateDate:                   types.StringValue(apiResp.CreateDate),
 		DiskSizeGb:                   types.Float64PointerValue(apiResp.DiskSizeGB),
 		EncryptionAtRestProvider:     types.StringValue(apiResp.EncryptionAtRestProvider),
-		Labels:                       RemoveDefaultLabel(NewTfLabelsModel(apiResp.Labels)),
-		Tags:                         NewTfTagsModel(&apiResp.Tags),
 		MongoDBMajorVersion:          types.StringValue(apiResp.MongoDBMajorVersion),
 		MongoDBVersion:               types.StringValue(apiResp.MongoDBVersion),
 		Name:                         types.StringValue(apiResp.Name),
@@ -157,18 +155,32 @@ func newTfAdvClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *m
 		VersionReleaseSystem:         types.StringValue(apiResp.VersionReleaseSystem),
 		ProjectID:                    types.StringValue(projectID),
 	}
-	clusterModel.BiConnectorConfig, _ = types.ListValueFrom(ctx, TfBiConnectorConfigType, NewTfBiConnectorConfigModel(apiResp.BiConnector))
-	replicationSpecs, diags := newTfReplicationSpecsDSModel(ctx, conn, apiResp.ReplicationSpecs, projectID)
+	clusterModel.BiConnectorConfig, d = types.ListValueFrom(ctx, TfBiConnectorConfigType, NewTfBiConnectorConfigModel(apiResp.BiConnector))
+	diags.Append(d...)
+
+	clusterModel.ConnectionStrings, d = types.ListValueFrom(ctx, tfConnectionStringType, newTfConnectionStringsModel(ctx, apiResp.ConnectionStrings))
+	diags.Append(d...)
+
+	clusterModel.Labels, d = types.SetValueFrom(ctx, TfLabelType, RemoveDefaultLabel(NewTfLabelsModel(apiResp.Labels)))
+	diags.Append(d...)
+
+	clusterModel.Tags, d = types.SetValueFrom(ctx, TfTagType, NewTfTagsModel(&apiResp.Tags))
+	diags.Append(d...)
+
+	replicationSpecs, d := newTfReplicationSpecsDSModel(ctx, conn, apiResp.ReplicationSpecs, projectID)
+	diags.Append(d...)
+
 	if diags.HasError() {
 		return nil, diags
 	}
-	clusterModel.ReplicationSpecs = replicationSpecs
+	clusterModel.ReplicationSpecs, diags = types.SetValueFrom(ctx, tfReplicationSpecType, replicationSpecs)
 
-	clusterModel.AdvancedConfiguration, err = NewTfAdvancedConfigurationModelDSFromAtlas(ctx, conn, projectID, apiResp.Name)
+	advancedConfiguration, err := NewTfAdvancedConfigurationModelDSFromAtlas(ctx, conn, projectID, apiResp.Name)
 	if err != nil {
 		diags.AddError("error when getting advanced_configuration from Atlas", err.Error())
 		return nil, diags
 	}
+	clusterModel.AdvancedConfiguration, diags = types.ListValueFrom(ctx, tfAdvancedConfigurationType, advancedConfiguration)
 
 	return &clusterModel, nil
 }
@@ -209,7 +221,7 @@ func getTfRegionConfigsAndContainerIDs(ctx context.Context, conn *matlas.Client,
 	tfRegionConfigs := make([]tfRegionsConfigModel, len(apiObjects))
 
 	for i, apiObject := range apiObjects {
-		tfRegionConfig := newTfRegionConfig(ctx, conn, apiObject, projectID)
+		tfRegionConfig, diags := newTfRegionConfig(ctx, conn, apiObject, projectID)
 
 		tfRegionConfigs[i] = tfRegionConfig
 
@@ -386,32 +398,26 @@ func advancedClusterRegionConfigSpecsAttr() schema.ListNestedAttribute {
 }
 
 type tfAdvancedClusterDSModel struct {
-	DiskSizeGb               types.Float64 `tfsdk:"disk_size_gb"`
-	VersionReleaseSystem     types.String  `tfsdk:"version_release_system"`
-	ProjectID                types.String  `tfsdk:"project_id"`
-	ID                       types.String  `tfsdk:"id"`
-	StateName                types.String  `tfsdk:"state_name"`
-	RootCertType             types.String  `tfsdk:"root_cert_type"`
-	EncryptionAtRestProvider types.String  `tfsdk:"encryption_at_rest_provider"`
-	MongoDBMajorVersion      types.String  `tfsdk:"mongo_db_major_version"`
-	MongoDBVersion           types.String  `tfsdk:"mongo_db_version"`
-	Name                     types.String  `tfsdk:"name"`
-	CreateDate               types.String  `tfsdk:"create_date"`
-	ClusterType              types.String  `tfsdk:"cluster_type"`
-	// Tags                         []*TfTagModel                   `tfsdk:"tags"`
-	// Labels                       []TfLabelModel                  `tfsdk:"labels"`
-	// BiConnectorConfig            []*TfBiConnectorConfigModel     `tfsdk:"bi_connector_config"`
-	// AdvancedConfiguration        []*TfAdvancedConfigurationModel `tfsdk:"advanced_configuration"`
-	// ConnectionStrings            []*tfConnectionStringModel      `tfsdk:"connection_strings"`
-	// ReplicationSpecs             []*tfReplicationSpecModel       `tfsdk:"replication_specs"`
-	Tags                         types.Set  `tfsdk:"tags"`
-	Labels                       types.Set  `tfsdk:"labels"`
-	BiConnectorConfig            types.List `tfsdk:"bi_connector_config"`
-	AdvancedConfiguration        types.List `tfsdk:"advanced_configuration"`
-	ConnectionStrings            types.List `tfsdk:"connection_strings"`
-	ReplicationSpecs             types.List `tfsdk:"replication_specs"`
-	BackupEnabled                types.Bool `tfsdk:"backup_enabled"`
-	Paused                       types.Bool `tfsdk:"paused"`
-	TerminationProtectionEnabled types.Bool `tfsdk:"termination_protection_enabled"`
-	PitEnabled                   types.Bool `tfsdk:"pit_enabled"`
+	DiskSizeGb                   types.Float64 `tfsdk:"disk_size_gb"`
+	VersionReleaseSystem         types.String  `tfsdk:"version_release_system"`
+	ProjectID                    types.String  `tfsdk:"project_id"`
+	ID                           types.String  `tfsdk:"id"`
+	StateName                    types.String  `tfsdk:"state_name"`
+	RootCertType                 types.String  `tfsdk:"root_cert_type"`
+	EncryptionAtRestProvider     types.String  `tfsdk:"encryption_at_rest_provider"`
+	MongoDBMajorVersion          types.String  `tfsdk:"mongo_db_major_version"`
+	MongoDBVersion               types.String  `tfsdk:"mongo_db_version"`
+	Name                         types.String  `tfsdk:"name"`
+	CreateDate                   types.String  `tfsdk:"create_date"`
+	ClusterType                  types.String  `tfsdk:"cluster_type"`
+	Tags                         types.Set     `tfsdk:"tags"`
+	Labels                       types.Set     `tfsdk:"labels"`
+	BiConnectorConfig            types.List    `tfsdk:"bi_connector_config"`
+	AdvancedConfiguration        types.List    `tfsdk:"advanced_configuration"`
+	ConnectionStrings            types.List    `tfsdk:"connection_strings"`
+	ReplicationSpecs             types.Set     `tfsdk:"replication_specs"`
+	BackupEnabled                types.Bool    `tfsdk:"backup_enabled"`
+	Paused                       types.Bool    `tfsdk:"paused"`
+	TerminationProtectionEnabled types.Bool    `tfsdk:"termination_protection_enabled"`
+	PitEnabled                   types.Bool    `tfsdk:"pit_enabled"`
 }
