@@ -1,4 +1,4 @@
-package mongodbatlas
+package cloudbackupschedule
 
 import (
 	"context"

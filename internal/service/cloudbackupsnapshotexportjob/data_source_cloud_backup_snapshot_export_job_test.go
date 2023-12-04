@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package cloudbackupsnapshotexportjob_test
 
 import (
 	"fmt"

@@ -1,4 +1,4 @@
-package mongodbatlas
+package cloudbackupsnapshotexportjob
 
 import (
 	"context"
