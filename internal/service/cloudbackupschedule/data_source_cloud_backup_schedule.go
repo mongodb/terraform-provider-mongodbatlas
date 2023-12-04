@@ -12,7 +12,7 @@ import (
 
 // Note: the schema is the same as dataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicy
 // see documentation at https://docs.atlas.mongodb.com/reference/api/cloud-backup/schedule/get-all-schedules/
-func DataSourceCloudBackupSchedule() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasCloudBackupScheduleRead,
 		Schema: map[string]*schema.Schema{

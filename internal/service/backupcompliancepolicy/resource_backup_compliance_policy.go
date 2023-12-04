@@ -25,7 +25,7 @@ const (
 	errorSnapshotBackupPolicySetting = "error setting `%s` for Cloud Provider Snapshot Backup Policy(%s): %s"
 )
 
-func ResourceBackupCompliancePolicy() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasBackupCompliancePolicyCreate,
 		UpdateContext: resourceMongoDBAtlasBackupCompliancePolicyUpdate,

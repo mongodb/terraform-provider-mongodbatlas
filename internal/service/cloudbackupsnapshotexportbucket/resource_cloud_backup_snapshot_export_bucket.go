@@ -17,7 +17,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func ResourceCloudBackupSnapshotExportBucket() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasCloudBackupSnapshotExportBucketCreate,
 		ReadContext:   resourceMongoDBAtlasCloudBackupSnapshotExportBucketRead,

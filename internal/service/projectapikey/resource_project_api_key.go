@@ -20,7 +20,7 @@ const (
 	ErrorProjectSetting = "error setting `%s` for project (%s): %s"
 )
 
-func ResourceProjectAPIKey() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasProjectAPIKeyCreate,
 		ReadContext:   resourceMongoDBAtlasProjectAPIKeyRead,

@@ -10,7 +10,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DatasourceMongoDBAtlasCloudBackupSnapshotExportBuckets() *schema.Resource {
+func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasCloudBackupSnapshotsExportBucketsRead,
 		Schema: map[string]*schema.Schema{
