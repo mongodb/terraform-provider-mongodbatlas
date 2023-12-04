@@ -413,6 +413,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		atlasuser.PluralDataSource,
 		searchdeployment.DataSource,
 		advancedcluster.DataSource,
+		advancedcluster.PluralDataSource,
 	}
 }
 
