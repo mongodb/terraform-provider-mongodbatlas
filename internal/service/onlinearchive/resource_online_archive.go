@@ -1,4 +1,4 @@
-package mongodbatlas
+package onlinearchive
 
 import (
 	"context"
@@ -25,7 +25,7 @@ const (
 	scheduleTypeDefault       = "DEFAULT"
 )
 
-func ResourceOnlineArchive() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		Schema:        getMongoDBAtlasOnlineArchiveSchema(),
 		CreateContext: resourceMongoDBAtlasOnlineArchiveCreate,

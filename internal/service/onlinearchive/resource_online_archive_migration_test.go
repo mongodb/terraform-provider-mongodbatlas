@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package onlinearchive_test
 
 import (
 	"fmt"

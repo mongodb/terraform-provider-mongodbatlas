@@ -35,6 +35,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/maintenancewindow"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkcontainer"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkpeering"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/onlinearchive"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privateendpointregionalmode"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointserverless"
@@ -165,8 +166,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_cloud_provider_access":                                        cloudprovideraccess.DataSource(),
 		"mongodbatlas_cloud_provider_access_setup":                                  cloudprovideraccess.DataSourceSetup(),
 		"mongodbatlas_custom_dns_configuration_cluster_aws":                         mongodbatlas.DataSourceCustomDNSConfigurationAWS(),
-		"mongodbatlas_online_archive":                                               mongodbatlas.DataSourceOnlineArchive(),
-		"mongodbatlas_online_archives":                                              mongodbatlas.DataSourceOnlineArchives(),
+		"mongodbatlas_online_archive":                                               onlinearchive.DataSource(),
+		"mongodbatlas_online_archives":                                              onlinearchive.PluralDataSource(),
 		"mongodbatlas_ldap_configuration":                                           mongodbatlas.DataSourceLDAPConfiguration(),
 		"mongodbatlas_ldap_verify":                                                  mongodbatlas.DataSourceLDAPVerify(),
 		"mongodbatlas_search_index":                                                 mongodbatlas.DataSourceSearchIndex(),
@@ -236,7 +237,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_privatelink_endpoint_service":                                privatelinkendpointservice.Resource(),
 		"mongodbatlas_privatelink_endpoint_service_serverless":                     privatelinkendpointserviceserverless.Resource(),
 		"mongodbatlas_third_party_integration":                                     thirdpartyintegration.Resource(),
-		"mongodbatlas_online_archive":                                              mongodbatlas.ResourceOnlineArchive(),
+		"mongodbatlas_online_archive":                                              onlinearchive.Resource(),
 		"mongodbatlas_custom_dns_configuration_cluster_aws":                        mongodbatlas.ResourceCustomDNSConfiguration(),
 		"mongodbatlas_ldap_configuration":                                          mongodbatlas.ResourceLDAPConfiguration(),
 		"mongodbatlas_ldap_verify":                                                 mongodbatlas.ResourceLDAPVerify(),
