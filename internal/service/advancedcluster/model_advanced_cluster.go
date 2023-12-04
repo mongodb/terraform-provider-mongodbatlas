@@ -26,6 +26,11 @@ type TfBiConnectorConfigModel struct {
 	Enabled        types.Bool   `tfsdk:"enabled"`
 }
 
+var TfBiConnectorConfigType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"read_preference": types.StringType,
+	"enabled":         types.BoolType,
+}}
+
 type TfAdvancedConfigurationModel struct {
 	DefaultReadConcern               types.String `tfsdk:"default_read_concern"`
 	DefaultWriteConcern              types.String `tfsdk:"default_write_concern"`
@@ -86,15 +91,21 @@ type tfReplicationSpecModel struct {
 }
 
 type tfRegionsConfigModel struct {
-	AnalyticsSpecs       types.List   `tfsdk:"analytics_specs"`
-	AutoScaling          types.List   `tfsdk:"auto_scaling"`
-	AnalyticsAutoScaling types.List   `tfsdk:"analytics_auto_scaling"`
-	ReadOnlySpecs        types.List   `tfsdk:"read_only_specs"`
-	ElectableSpecs       types.List   `tfsdk:"electable_specs"`
-	BackingProviderName  types.String `tfsdk:"backing_provider_name"`
-	ProviderName         types.String `tfsdk:"provider_name"`
-	RegionName           types.String `tfsdk:"region_name"`
-	Priority             types.Int64  `tfsdk:"priority"`
+	// AnalyticsSpecs       types.List   `tfsdk:"analytics_specs"`
+	// AutoScaling          types.List   `tfsdk:"auto_scaling"`
+	// AnalyticsAutoScaling types.List   `tfsdk:"analytics_auto_scaling"`
+	// ReadOnlySpecs        types.List   `tfsdk:"read_only_specs"`
+	// ElectableSpecs       types.List   `tfsdk:"electable_specs"`
+	AnalyticsSpecs       []*tfRegionsConfigSpecsModel            `tfsdk:"analytics_specs"`
+	ReadOnlySpecs        []*tfRegionsConfigSpecsModel            `tfsdk:"read_only_specs"`
+	ElectableSpecs       []*tfRegionsConfigSpecsModel            `tfsdk:"electable_specs"`
+	AutoScaling          []*tfRegionsConfigAutoScalingSpecsModel `tfsdk:"auto_scaling"`
+	AnalyticsAutoScaling []*tfRegionsConfigAutoScalingSpecsModel `tfsdk:"analytics_auto_scaling"`
+
+	BackingProviderName types.String `tfsdk:"backing_provider_name"`
+	ProviderName        types.String `tfsdk:"provider_name"`
+	RegionName          types.String `tfsdk:"region_name"`
+	Priority            types.Int64  `tfsdk:"priority"`
 }
 
 var tfRegionsConfigType = types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -110,31 +121,31 @@ var tfRegionsConfigType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }}
 
 type tfRegionsConfigSpecsModel struct {
-	DiskIOPS      types.String `tfsdk:"disk_iops"`
+	DiskIOPS      types.Int64  `tfsdk:"disk_iops"`
 	InstanceSize  types.String `tfsdk:"instance_size"`
-	NodeCount     types.String `tfsdk:"node_count"`
-	EBSVolumeType types.Int64  `tfsdk:"ebs_volume_type"`
+	NodeCount     types.Int64  `tfsdk:"node_count"`
+	EBSVolumeType types.String `tfsdk:"ebs_volume_type"`
 }
 
 var tfRegionsConfigSpecType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"disk_iops":       types.StringType,
-	"ebs_volume_type": types.Int64Type,
+	"disk_iops":       types.Int64Type,
+	"ebs_volume_type": types.StringType,
 	"instance_size":   types.StringType,
-	"node_count":      types.StringType,
+	"node_count":      types.Int64Type,
 }}
 
 type tfRegionsConfigAutoScalingSpecsModel struct {
-	DiskGBEnabled           types.String `tfsdk:"disk_gb_enabled"`
-	ComputeScaleDownEnabled types.String `tfsdk:"compute_scale_down_enabled"`
+	DiskGBEnabled           types.Bool   `tfsdk:"disk_gb_enabled"`
+	ComputeScaleDownEnabled types.Bool   `tfsdk:"compute_scale_down_enabled"`
 	ComputeMinInstanceSize  types.String `tfsdk:"compute_min_instance_size"`
 	ComputeMaxInstanceSize  types.String `tfsdk:"compute_max_instance_size"`
-	ComputeEnabled          types.Int64  `tfsdk:"compute_enabled"`
+	ComputeEnabled          types.Bool   `tfsdk:"compute_enabled"`
 }
 
 var tfRegionsConfigAutoScalingSpecType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"disk_gb_enabled":            types.StringType,
-	"compute_enabled":            types.Int64Type,
-	"compute_scale_down_enabled": types.StringType,
+	"disk_gb_enabled":            types.BoolType,
+	"compute_enabled":            types.BoolType,
+	"compute_scale_down_enabled": types.BoolType,
 	"compute_min_instance_size":  types.StringType,
 	"compute_max_instance_size":  types.StringType,
 }}
@@ -151,6 +162,57 @@ func newTfConnectionStringsModel(ctx context.Context, connString *matlas.Connect
 			PrivateEndpoint: NewTfPrivateEndpointModel(ctx, connString.PrivateEndpoint),
 		})
 	}
+	return res
+}
+
+func newTfRegionConfig(ctx context.Context, conn *matlas.Client, apiObject *matlas.AdvancedRegionConfig, projectID string) tfRegionsConfigModel {
+	if apiObject == nil {
+		return tfRegionsConfigModel{}
+	}
+
+	tfRegionsConfig := tfRegionsConfigModel{
+		AnalyticsSpecs:       newTfRegionsConfigSpecsModel(apiObject.AnalyticsSpecs),
+		ElectableSpecs:       newTfRegionsConfigSpecsModel(apiObject.ElectableSpecs),
+		ReadOnlySpecs:        newTfRegionsConfigSpecsModel(apiObject.ReadOnlySpecs),
+		AnalyticsAutoScaling: newTfRegionsConfigAutoScalingSpecsModel(apiObject.AnalyticsAutoScaling),
+		AutoScaling:          newTfRegionsConfigAutoScalingSpecsModel(apiObject.AutoScaling),
+		BackingProviderName:  conversion.StringNullIfEmpty(apiObject.BackingProviderName),
+		ProviderName:         conversion.StringNullIfEmpty(apiObject.ProviderName),
+		RegionName:           conversion.StringNullIfEmpty(apiObject.RegionName),
+		Priority:             types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiObject.Priority)),
+	}
+
+	return tfRegionsConfig
+}
+
+func newTfRegionsConfigSpecsModel(apiSpecs *matlas.Specs) []*tfRegionsConfigSpecsModel {
+	res := make([]*tfRegionsConfigSpecsModel, 0)
+
+	if apiSpecs != nil {
+		res = append(res, &tfRegionsConfigSpecsModel{
+			DiskIOPS:      types.Int64PointerValue(apiSpecs.DiskIOPS),
+			InstanceSize:  conversion.StringNullIfEmpty(apiSpecs.InstanceSize),
+			NodeCount:     types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiSpecs.NodeCount)),
+			EBSVolumeType: conversion.StringNullIfEmpty(apiSpecs.EbsVolumeType),
+		})
+	}
+
+	return res
+}
+
+func newTfRegionsConfigAutoScalingSpecsModel(apiSpecs *matlas.AdvancedAutoScaling) []*tfRegionsConfigAutoScalingSpecsModel {
+	res := make([]*tfRegionsConfigAutoScalingSpecsModel, 0)
+
+	if apiSpecs != nil && apiSpecs.Compute != nil {
+		res = append(res, &tfRegionsConfigAutoScalingSpecsModel{
+			DiskGBEnabled:           types.BoolPointerValue(apiSpecs.DiskGB.Enabled),
+			ComputeEnabled:          types.BoolPointerValue(apiSpecs.Compute.Enabled),
+			ComputeScaleDownEnabled: types.BoolPointerValue(apiSpecs.Compute.ScaleDownEnabled),
+			ComputeMinInstanceSize:  conversion.StringNullIfEmpty(apiSpecs.Compute.MinInstanceSize),
+			ComputeMaxInstanceSize:  conversion.StringNullIfEmpty(apiSpecs.Compute.MaxInstanceSize),
+		})
+	}
+
 	return res
 }
 

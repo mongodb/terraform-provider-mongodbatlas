@@ -106,7 +106,7 @@ func ClusterDSTagsSetAttr() schema.SetNestedAttribute {
 }
 
 func RemoveDefaultLabel(labels []TfLabelModel) []TfLabelModel {
-	var result []TfLabelModel
+	result := make([]TfLabelModel, 0)
 
 	for _, item := range labels {
 		if item.Key.ValueString() == defaultLabel.Key && item.Value.ValueString() == defaultLabel.Value {
