@@ -1,4 +1,4 @@
-package mongodbatlas
+package customdbrole
 
 import (
 	"context"
@@ -22,7 +22,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func ResourceCustomDBRole() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasCustomDBRoleCreate,
 		ReadContext:   resourceMongoDBAtlasCustomDBRoleRead,

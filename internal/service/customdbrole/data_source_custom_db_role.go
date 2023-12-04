@@ -1,4 +1,4 @@
-package mongodbatlas
+package customdbrole
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceCustomDBRole() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasCustomDBRoleRead,
 		Schema: map[string]*schema.Schema{

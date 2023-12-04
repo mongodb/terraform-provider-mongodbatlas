@@ -25,7 +25,7 @@ func TestAccNetworkDSNetworkPeering_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPeeringEnvAWS(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasNetworkPeeringDestroy,
+		CheckDestroy:             acc.CheckDestroyNetworkPeering,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasNetworkPeeringConfig(projectID, vpcID, awsAccountID, vpcCIDRBlock, awsRegion),

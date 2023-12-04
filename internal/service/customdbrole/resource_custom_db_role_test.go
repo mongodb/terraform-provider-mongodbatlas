@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package customdbrole_test
 
 import (
 	"context"

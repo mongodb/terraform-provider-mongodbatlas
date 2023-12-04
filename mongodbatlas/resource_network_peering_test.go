@@ -33,7 +33,7 @@ func TestAccNetworkRSNetworkPeering_basicAWS(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPeeringEnvAWS(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasNetworkPeeringDestroy,
+		CheckDestroy:             acc.CheckDestroyNetworkPeering,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasNetworkPeeringConfigAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion),
@@ -73,7 +73,7 @@ func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPeeringEnvAzure(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasNetworkPeeringDestroy,
+		CheckDestroy:             acc.CheckDestroyNetworkPeering,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasNetworkPeeringConfigAzure(projectID, providerName, directoryID, subscriptionID, resourceGroupName, vNetName),
@@ -111,7 +111,7 @@ func TestAccNetworkRSNetworkPeering_basicGCP(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPeeringEnvGCP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasNetworkPeeringDestroy,
+		CheckDestroy:             acc.CheckDestroyNetworkPeering,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasNetworkPeeringConfigGCP(projectID, providerName, gcpProjectID, networkName),
@@ -162,7 +162,7 @@ func TestAccNetworkRSNetworkPeering_AWSDifferentRegionName(t *testing.T) {
 			}()
 		},
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasNetworkPeeringDestroy,
+		CheckDestroy:             acc.CheckDestroyNetworkPeering,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasNetworkPeeringConfigAWSWithDifferentRegionName(projectID, providerName, containerRegion, peerRegion, vpcCIDRBlock, vpcID, awsAccountID),
@@ -238,25 +238,6 @@ func testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName string, peer *mat
 
 		return fmt.Errorf("peer(%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["peer_id"])
 	}
-}
-
-func testAccCheckMongoDBAtlasNetworkPeeringDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_network_peering" {
-			continue
-		}
-
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := conn.Peers.Get(context.Background(), ids["project_id"], ids["peer_id"])
-
-		if err == nil {
-			return fmt.Errorf("peer (%s) still exists", ids["peer_id"])
-		}
-	}
-
-	return nil
 }
 
 func testAccMongoDBAtlasNetworkPeeringConfigAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion string) string {

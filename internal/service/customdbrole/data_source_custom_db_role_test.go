@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package customdbrole_test
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ func TestAccConfigDSCustomDBRole_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasNetworkPeeringDestroy,
+		CheckDestroy:             acc.CheckDestroyNetworkPeering,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasCustomDBRoleConfig(orgID, projectName, roleName, "INSERT", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),

@@ -24,6 +24,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotrestorejob"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudprovideraccess"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdbrole"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federateddatabaseinstance"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedquerylimit"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsidentityprovider"
@@ -117,8 +118,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 	dataSourcesMap := map[string]*schema.Resource{
 		"mongodbatlas_advanced_cluster":                  advancedcluster.DataSource(),
 		"mongodbatlas_advanced_clusters":                 advancedcluster.PluralDataSource(),
-		"mongodbatlas_custom_db_role":                    mongodbatlas.DataSourceCustomDBRole(),
-		"mongodbatlas_custom_db_roles":                   mongodbatlas.DataSourceCustomDBRoles(),
+		"mongodbatlas_custom_db_role":                    customdbrole.DataSource(),
+		"mongodbatlas_custom_db_roles":                   customdbrole.PluralDataSource(),
 		"mongodbatlas_api_key":                           apikey.DataSource(),
 		"mongodbatlas_api_keys":                          apikey.PluralDataSource(),
 		"mongodbatlas_access_list_api_key":               accesslistapikey.DataSource(),
@@ -204,7 +205,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_api_key":                           apikey.Resource(),
 		"mongodbatlas_access_list_api_key":               accesslistapikey.Resource(),
 		"mongodbatlas_project_api_key":                   projectapikey.Resource(),
-		"mongodbatlas_custom_db_role":                    mongodbatlas.ResourceCustomDBRole(),
+		"mongodbatlas_custom_db_role":                    customdbrole.Resource(),
 		"mongodbatlas_cluster":                           cluster.Resource(),
 		"mongodbatlas_network_container":                 mongodbatlas.ResourceNetworkContainer(),
 		"mongodbatlas_network_peering":                   mongodbatlas.ResourceNetworkPeering(),

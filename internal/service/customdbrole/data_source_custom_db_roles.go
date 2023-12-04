@@ -1,4 +1,4 @@
-package mongodbatlas
+package customdbrole
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourceCustomDBRoles() *schema.Resource {
+func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasCustomDBRolesRead,
 		Schema: map[string]*schema.Schema{
