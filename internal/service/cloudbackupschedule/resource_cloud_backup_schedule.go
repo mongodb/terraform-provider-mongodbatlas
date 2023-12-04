@@ -17,10 +17,10 @@ import (
 )
 
 const (
-	SnapshotScheduleHourly             = "hourly"
-	SnapshotScheduleDaily              = "daily"
-	SnapshotScheduleWeekly             = "weekly"
-	SnapshotScheduleMonthly            = "monthly"
+	Hourly                             = "hourly"
+	Daily                              = "daily"
+	Weekly                             = "weekly"
+	Monthly                            = "monthly"
 	errorSnapshotBackupScheduleCreate  = "error creating a Cloud Backup Schedule: %s"
 	errorSnapshotBackupScheduleUpdate  = "error updating a Cloud Backup Schedule: %s"
 	errorSnapshotBackupScheduleRead    = "error getting a Cloud Backup Schedule for the cluster(%s): %s"
@@ -362,19 +362,19 @@ func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "use_org_and_group_names_in_export_prefix", clusterName, err)
 	}
 
-	if err := d.Set("policy_item_hourly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, SnapshotScheduleHourly)); err != nil {
+	if err := d.Set("policy_item_hourly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, Hourly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_hourly", clusterName, err)
 	}
 
-	if err := d.Set("policy_item_daily", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, SnapshotScheduleDaily)); err != nil {
+	if err := d.Set("policy_item_daily", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, Daily)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_daily", clusterName, err)
 	}
 
-	if err := d.Set("policy_item_weekly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, SnapshotScheduleWeekly)); err != nil {
+	if err := d.Set("policy_item_weekly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, Weekly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_weekly", clusterName, err)
 	}
 
-	if err := d.Set("policy_item_monthly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, SnapshotScheduleMonthly)); err != nil {
+	if err := d.Set("policy_item_monthly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, Monthly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_monthly", clusterName, err)
 	}
 
@@ -479,7 +479,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		item := v.([]any)
 		itemObj := item[0].(map[string]any)
 		policyItem.ID = policyItemID(itemObj)
-		policyItem.FrequencyType = SnapshotScheduleHourly
+		policyItem.FrequencyType = Hourly
 		policyItem.RetentionUnit = itemObj["retention_unit"].(string)
 		policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
 		policyItem.RetentionValue = itemObj["retention_value"].(int)
@@ -489,7 +489,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		item := v.([]any)
 		itemObj := item[0].(map[string]any)
 		policyItem.ID = policyItemID(itemObj)
-		policyItem.FrequencyType = SnapshotScheduleDaily
+		policyItem.FrequencyType = Daily
 		policyItem.RetentionUnit = itemObj["retention_unit"].(string)
 		policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
 		policyItem.RetentionValue = itemObj["retention_value"].(int)
@@ -500,7 +500,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		for _, s := range items {
 			itemObj := s.(map[string]any)
 			policyItem.ID = policyItemID(itemObj)
-			policyItem.FrequencyType = SnapshotScheduleWeekly
+			policyItem.FrequencyType = Weekly
 			policyItem.RetentionUnit = itemObj["retention_unit"].(string)
 			policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
 			policyItem.RetentionValue = itemObj["retention_value"].(int)
@@ -512,7 +512,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		for _, s := range items {
 			itemObj := s.(map[string]any)
 			policyItem.ID = policyItemID(itemObj)
-			policyItem.FrequencyType = SnapshotScheduleMonthly
+			policyItem.FrequencyType = Monthly
 			policyItem.RetentionUnit = itemObj["retention_unit"].(string)
 			policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
 			policyItem.RetentionValue = itemObj["retention_value"].(int)

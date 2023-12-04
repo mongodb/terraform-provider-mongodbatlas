@@ -266,19 +266,19 @@ func dataSourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicySetting, "policies", projectID, err))
 	}
 
-	if err := d.Set("policy_item_hourly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.SnapshotScheduleHourly)); err != nil {
+	if err := d.Set("policy_item_hourly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.Hourly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_hourly", projectID, err)
 	}
 
-	if err := d.Set("policy_item_daily", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.SnapshotScheduleDaily)); err != nil {
+	if err := d.Set("policy_item_daily", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.Daily)); err != nil {
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_daily", projectID, err)
 	}
 
-	if err := d.Set("policy_item_weekly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.SnapshotScheduleWeekly)); err != nil {
+	if err := d.Set("policy_item_weekly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.Weekly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_weekly", projectID, err)
 	}
 
-	if err := d.Set("policy_item_monthly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.SnapshotScheduleMonthly)); err != nil {
+	if err := d.Set("policy_item_monthly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.Monthly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_monthly", projectID, err)
 	}
 

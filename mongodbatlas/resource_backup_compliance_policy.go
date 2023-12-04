@@ -258,7 +258,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
 		item := v.([]any)
 		itemObj := item[0].(map[string]any)
-		backupPolicyItem.FrequencyType = cloudbackupschedule.SnapshotScheduleHourly
+		backupPolicyItem.FrequencyType = cloudbackupschedule.Hourly
 		backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
 		backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
 		backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
@@ -267,7 +267,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 	if v, ok := d.GetOk("policy_item_daily"); ok {
 		item := v.([]any)
 		itemObj := item[0].(map[string]any)
-		backupPolicyItem.FrequencyType = cloudbackupschedule.SnapshotScheduleDaily
+		backupPolicyItem.FrequencyType = cloudbackupschedule.Daily
 		backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
 		backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
 		backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
@@ -277,7 +277,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 		items := v.([]any)
 		for _, s := range items {
 			itemObj := s.(map[string]any)
-			backupPolicyItem.FrequencyType = cloudbackupschedule.SnapshotScheduleWeekly
+			backupPolicyItem.FrequencyType = cloudbackupschedule.Weekly
 			backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
 			backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
 			backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
@@ -288,7 +288,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 		items := v.([]any)
 		for _, s := range items {
 			itemObj := s.(map[string]any)
-			backupPolicyItem.FrequencyType = cloudbackupschedule.SnapshotScheduleMonthly
+			backupPolicyItem.FrequencyType = cloudbackupschedule.Monthly
 			backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
 			backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
 			backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
@@ -375,19 +375,19 @@ func resourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *sche
 		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "scheduled_policy_items", projectID, err))
 	}
 
-	if err := d.Set("policy_item_hourly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.SnapshotScheduleHourly)); err != nil {
+	if err := d.Set("policy_item_hourly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.Hourly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_hourly", projectID, err)
 	}
 
-	if err := d.Set("policy_item_daily", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.SnapshotScheduleDaily)); err != nil {
+	if err := d.Set("policy_item_daily", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.Daily)); err != nil {
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_daily", projectID, err)
 	}
 
-	if err := d.Set("policy_item_weekly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.SnapshotScheduleWeekly)); err != nil {
+	if err := d.Set("policy_item_weekly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.Weekly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_weekly", projectID, err)
 	}
 
-	if err := d.Set("policy_item_monthly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.SnapshotScheduleMonthly)); err != nil {
+	if err := d.Set("policy_item_monthly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.Monthly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_monthly", projectID, err)
 	}
 
@@ -439,7 +439,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *sc
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
 		item := v.([]any)
 		itemObj := item[0].(map[string]any)
-		backupPolicyItem.FrequencyType = cloudbackupschedule.SnapshotScheduleHourly
+		backupPolicyItem.FrequencyType = cloudbackupschedule.Hourly
 		backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
 		backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
 		backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
@@ -448,7 +448,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *sc
 	if v, ok := d.GetOk("policy_item_daily"); ok {
 		item := v.([]any)
 		itemObj := item[0].(map[string]any)
-		backupPolicyItem.FrequencyType = cloudbackupschedule.SnapshotScheduleDaily
+		backupPolicyItem.FrequencyType = cloudbackupschedule.Daily
 		backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
 		backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
 		backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
@@ -458,7 +458,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *sc
 		items := v.([]any)
 		for _, s := range items {
 			itemObj := s.(map[string]any)
-			backupPolicyItem.FrequencyType = cloudbackupschedule.SnapshotScheduleWeekly
+			backupPolicyItem.FrequencyType = cloudbackupschedule.Weekly
 			backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
 			backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
 			backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
@@ -469,7 +469,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *sc
 		items := v.([]any)
 		for _, s := range items {
 			itemObj := s.(map[string]any)
-			backupPolicyItem.FrequencyType = cloudbackupschedule.SnapshotScheduleMonthly
+			backupPolicyItem.FrequencyType = cloudbackupschedule.Monthly
 			backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
 			backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
 			backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
