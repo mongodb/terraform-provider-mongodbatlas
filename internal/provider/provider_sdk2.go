@@ -14,6 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/backupcompliancepolicy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupschedule"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshot"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotexportbucket"
@@ -157,7 +158,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_org_invitation":                                               mongodbatlas.DataSourceOrgInvitation(),
 		"mongodbatlas_organization":                                                 mongodbatlas.DataSourceOrganization(),
 		"mongodbatlas_organizations":                                                mongodbatlas.DataSourceOrganizations(),
-		"mongodbatlas_backup_compliance_policy":                                     mongodbatlas.DataSourceBackupCompliancePolicy(),
+		"mongodbatlas_backup_compliance_policy":                                     backupcompliancepolicy.DataSourceBackupCompliancePolicy(),
 		"mongodbatlas_cloud_backup_schedule":                                        cloudbackupschedule.DataSourceCloudBackupSchedule(),
 		"mongodbatlas_cloud_backup_snapshot":                                        cloudbackupsnapshot.DataSourceCloudBackupSnapshot(),
 		"mongodbatlas_cloud_backup_snapshots":                                       cloudbackupsnapshot.DataSourceCloudBackupSnapshots(),
@@ -225,7 +226,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_project_invitation":                                          mongodbatlas.ResourceProjectInvitation(),
 		"mongodbatlas_org_invitation":                                              mongodbatlas.ResourceOrgInvitation(),
 		"mongodbatlas_organization":                                                mongodbatlas.ResourceOrganization(),
-		"mongodbatlas_backup_compliance_policy":                                    mongodbatlas.ResourceBackupCompliancePolicy(),
+		"mongodbatlas_backup_compliance_policy":                                    backupcompliancepolicy.ResourceBackupCompliancePolicy(),
 		"mongodbatlas_cloud_backup_schedule":                                       cloudbackupschedule.ResourceCloudBackupSchedule(),
 		"mongodbatlas_cloud_backup_snapshot":                                       cloudbackupsnapshot.ResourceCloudBackupSnapshot(),
 		"mongodbatlas_cloud_backup_snapshot_export_bucket":                         cloudbackupsnapshotexportbucket.ResourceCloudBackupSnapshotExportBucket(),
