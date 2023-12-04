@@ -1,4 +1,4 @@
-package mongodbatlas
+package accesslistapikey
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceAccessListAPIKey() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasAccessListAPIKeyRead,
 		Schema: map[string]*schema.Schema{

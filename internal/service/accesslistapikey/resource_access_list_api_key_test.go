@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package accesslistapikey_test
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package mongodbatlas
+package accesslistapikey
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func ResourceAccessListAPIKey() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasAccessListAPIKeyCreate,
 		ReadContext:   resourceMongoDBAtlasAccessListAPIKeyRead,
