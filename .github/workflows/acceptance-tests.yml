@@ -89,7 +89,7 @@ jobs:
             - 'mongodbatlas/**_privatelink**.go' 
             - 'mongodbatlas/**_private_endpoint**.go'
           federation:
-            - 'mongodbatlas/**_federated_database_instance**.go'
+            - 'internal/service/federateddatabaseinstance/*.go'
           config:
             - 'internal/service/alertconfiguration/*.go'
             - 'internal/service/atlasuser/*.go'
