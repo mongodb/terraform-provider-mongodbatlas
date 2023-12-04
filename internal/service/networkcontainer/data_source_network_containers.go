@@ -1,4 +1,4 @@
-package mongodbatlas
+package networkcontainer
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourceNetworkContainers() *schema.Resource {
+func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasNetworkContainersRead,
 		Schema: map[string]*schema.Schema{

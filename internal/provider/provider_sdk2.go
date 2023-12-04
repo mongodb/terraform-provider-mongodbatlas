@@ -30,6 +30,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsidentityprovider"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsorgconfig"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsorgrolemapping"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkcontainer"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 	"github.com/mwielbut/pointy"
@@ -129,8 +130,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_roles_org_id":                      mongodbatlas.DataSourceOrgID(),
 		"mongodbatlas_cluster":                           cluster.DataSource(),
 		"mongodbatlas_clusters":                          cluster.PluralDataSource(),
-		"mongodbatlas_network_container":                 mongodbatlas.DataSourceNetworkContainer(),
-		"mongodbatlas_network_containers":                mongodbatlas.DataSourceNetworkContainers(),
+		"mongodbatlas_network_container":                 networkcontainer.DataSource(),
+		"mongodbatlas_network_containers":                networkcontainer.PluralDataSource(),
 		"mongodbatlas_network_peering":                   mongodbatlas.DataSourceNetworkPeering(),
 		"mongodbatlas_network_peerings":                  mongodbatlas.DataSourceNetworkPeerings(),
 		"mongodbatlas_maintenance_window":                mongodbatlas.DataSourceMaintenanceWindow(),
@@ -207,7 +208,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_project_api_key":                   projectapikey.Resource(),
 		"mongodbatlas_custom_db_role":                    customdbrole.Resource(),
 		"mongodbatlas_cluster":                           cluster.Resource(),
-		"mongodbatlas_network_container":                 mongodbatlas.ResourceNetworkContainer(),
+		"mongodbatlas_network_container":                 networkcontainer.Resource(),
 		"mongodbatlas_network_peering":                   mongodbatlas.ResourceNetworkPeering(),
 		"mongodbatlas_maintenance_window":                mongodbatlas.ResourceMaintenanceWindow(),
 		"mongodbatlas_auditing":                          mongodbatlas.ResourceAuditing(),

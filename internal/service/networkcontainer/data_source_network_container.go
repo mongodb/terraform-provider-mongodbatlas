@@ -1,4 +1,4 @@
-package mongodbatlas
+package networkcontainer
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceNetworkContainer() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasNetworkContainerRead,
 		Schema: map[string]*schema.Schema{
@@ -86,7 +86,7 @@ func dataSourceMongoDBAtlasNetworkContainerRead(ctx context.Context, d *schema.R
 			return nil
 		}
 
-		return diag.FromErr(fmt.Errorf(errorContainerRead, containerID, err))
+		return diag.FromErr(fmt.Errorf(ErrorContainerRead, containerID, err))
 	}
 
 	if err := d.Set("atlas_cidr_block", container.AtlasCIDRBlock); err != nil {

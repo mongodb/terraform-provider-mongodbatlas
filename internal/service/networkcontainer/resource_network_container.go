@@ -1,4 +1,4 @@
-package mongodbatlas
+package networkcontainer
 
 import (
 	"context"
@@ -22,12 +22,12 @@ import (
 
 const (
 	errorContainterCreate = "error creating MongoDB Network Peering Container: %s"
-	errorContainerRead    = "error reading MongoDB Network Peering Container (%s): %s"
+	ErrorContainerRead    = "error reading MongoDB Network Peering Container (%s): %s"
 	errorContainerDelete  = "error deleting MongoDB Network Peering Container (%s): %s"
 	errorContainerUpdate  = "error updating MongoDB Network Peering Container (%s): %s"
 )
 
-func ResourceNetworkContainer() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasNetworkContainerCreate,
 		ReadContext:   resourceMongoDBAtlasNetworkContainerRead,
@@ -164,7 +164,7 @@ func resourceMongoDBAtlasNetworkContainerRead(ctx context.Context, d *schema.Res
 			return nil
 		}
 
-		return diag.FromErr(fmt.Errorf(errorContainerRead, containerID, err))
+		return diag.FromErr(fmt.Errorf(ErrorContainerRead, containerID, err))
 	}
 
 	if err = d.Set("region_name", container.RegionName); err != nil {

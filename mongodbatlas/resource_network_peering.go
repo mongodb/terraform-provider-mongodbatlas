@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkcontainer"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -559,7 +560,7 @@ func resourceNetworkPeeringRefreshFunc(ctx context.Context, peerID, projectID, c
 			container, _, err := client.Containers.Get(ctx, projectID, containerID)
 
 			if err != nil {
-				return nil, "", fmt.Errorf(errorContainerRead, containerID, err)
+				return nil, "", fmt.Errorf(networkcontainer.ErrorContainerRead, containerID, err)
 			}
 
 			if *container.Provisioned {
