@@ -19,6 +19,96 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
+func TestGetProjectPropsFromAPI(t *testing.T) {
+	testCases := []struct {
+		name          string
+		projectID     string
+		mockResponses []ProjectResponse
+		expectedError bool
+	}{
+		{
+			name: "Successful",
+			mockResponses: []ProjectResponse{
+				{
+					ProjectTeamRespo: &admin.PaginatedTeamRole{},
+					Err:              nil,
+				},
+				{
+					LimitResponse: []admin.DataFederationLimit{},
+					Err:           nil,
+				},
+				{
+					GroupSettingsResponse: &admin.GroupSettings{},
+					Err:                   nil,
+				},
+			},
+			expectedError: false,
+			projectID:     "projectId",
+		},
+		{
+			name: "Fail to get project's teams assigned ",
+			mockResponses: []ProjectResponse{
+				{
+					ProjectTeamRespo: nil,
+					HTTPResponse:     &http.Response{StatusCode: 503},
+					Err:              errors.New("Service Unavailable"),
+				},
+			},
+			expectedError: true,
+			projectID:     "projectId",
+		},
+		{
+			name: "Fail to get project's limits",
+			mockResponses: []ProjectResponse{
+				{
+					ProjectTeamRespo: &admin.PaginatedTeamRole{},
+					Err:              nil,
+				},
+				{
+					LimitResponse: nil,
+					HTTPResponse:  &http.Response{StatusCode: 503},
+					Err:           errors.New("Service Unavailable"),
+				},
+			},
+			expectedError: true,
+			projectID:     "projectId",
+		},
+		{
+			name: "Fail to get project's settings",
+			mockResponses: []ProjectResponse{
+				{
+					ProjectTeamRespo: &admin.PaginatedTeamRole{},
+					Err:              nil,
+				},
+				{
+					LimitResponse: []admin.DataFederationLimit{},
+					Err:           nil,
+				},
+				{
+					GroupSettingsResponse: nil,
+					HTTPResponse:          &http.Response{StatusCode: 503},
+					Err:                   errors.New("Service Unavailable"),
+				},
+			},
+			expectedError: true,
+			projectID:     "projectId",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockService := MockProjectService{
+				MockResponses: tc.mockResponses,
+			}
+			_, _, _, err := project.GetProjectPropsFromAPI(context.Background(), &mockService, tc.projectID)
+
+			if (err != nil) != tc.expectedError {
+				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
+			}
+		})
+	}
+}
+
 func TestFilterUserDefinedLimits(t *testing.T) {
 	testCases := []struct {
 		name           string
@@ -581,8 +671,38 @@ func (a *MockProjectService) UpdateProject(ctx context.Context, groupID string, 
 	return resp.ProjectResp, resp.HTTPResponse, resp.Err
 }
 
+func (a *MockProjectService) ListProjectLimits(ctx context.Context, groupID string) ([]admin.DataFederationLimit, *http.Response, error) {
+	if a.index >= len(a.MockResponses) {
+		log.Fatal(errors.New("no more mocked responses available"))
+	}
+	resp := a.MockResponses[a.index]
+	a.index++
+	return resp.LimitResponse, resp.HTTPResponse, resp.Err
+}
+
+func (a *MockProjectService) GetProjectSettings(ctx context.Context, groupID string) (*admin.GroupSettings, *http.Response, error) {
+	if a.index >= len(a.MockResponses) {
+		log.Fatal(errors.New("no more mocked responses available"))
+	}
+	resp := a.MockResponses[a.index]
+	a.index++
+	return resp.GroupSettingsResponse, resp.HTTPResponse, resp.Err
+}
+
+func (a *MockProjectService) ListProjectTeams(ctx context.Context, groupID string) (*admin.PaginatedTeamRole, *http.Response, error) {
+	if a.index >= len(a.MockResponses) {
+		log.Fatal(errors.New("no more mocked responses available"))
+	}
+	resp := a.MockResponses[a.index]
+	a.index++
+	return resp.ProjectTeamRespo, resp.HTTPResponse, resp.Err
+}
+
 type ProjectResponse struct {
-	ProjectResp  *admin.Group
-	HTTPResponse *http.Response
-	Err          error
+	ProjectResp           *admin.Group
+	ProjectTeamRespo      *admin.PaginatedTeamRole
+	GroupSettingsResponse *admin.GroupSettings
+	HTTPResponse          *http.Response
+	Err                   error
+	LimitResponse         []admin.DataFederationLimit
 }

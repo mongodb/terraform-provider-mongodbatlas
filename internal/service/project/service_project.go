@@ -9,6 +9,9 @@ import (
 
 type GroupProjectService interface {
 	UpdateProject(ctx context.Context, groupID string, groupName *admin.GroupName) (*admin.Group, *http.Response, error)
+	ListProjectTeams(ctx context.Context, groupID string) (*admin.PaginatedTeamRole, *http.Response, error)
+	ListProjectLimits(ctx context.Context, groupID string) ([]admin.DataFederationLimit, *http.Response, error)
+	GetProjectSettings(ctx context.Context, groupID string) (*admin.GroupSettings, *http.Response, error)
 }
 
 type GroupProjectServiceFromClient struct {
@@ -17,6 +20,18 @@ type GroupProjectServiceFromClient struct {
 
 func (a *GroupProjectServiceFromClient) UpdateProject(ctx context.Context, groupID string, groupName *admin.GroupName) (*admin.Group, *http.Response, error) {
 	return a.client.ProjectsApi.UpdateProject(ctx, groupID, groupName).Execute()
+}
+
+func (a *GroupProjectServiceFromClient) ListProjectLimits(ctx context.Context, groupID string) ([]admin.DataFederationLimit, *http.Response, error) {
+	return a.client.ProjectsApi.ListProjectLimits(ctx, groupID).Execute()
+}
+
+func (a *GroupProjectServiceFromClient) GetProjectSettings(ctx context.Context, groupID string) (*admin.GroupSettings, *http.Response, error) {
+	return a.client.ProjectsApi.GetProjectSettings(ctx, groupID).Execute()
+}
+
+func (a *GroupProjectServiceFromClient) ListProjectTeams(ctx context.Context, groupID string) (*admin.PaginatedTeamRole, *http.Response, error) {
+	return a.client.TeamsApi.ListProjectTeams(ctx, groupID).Execute()
 }
 
 func ServiceFromClient(client *admin.APIClient) GroupProjectService {
