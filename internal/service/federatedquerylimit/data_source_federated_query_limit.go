@@ -1,4 +1,4 @@
-package mongodbatlas
+package federatedquerylimit
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceFederatedDatabaseQueryLimit() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasFederatedDatabaseQueryLimitRead,
 		Schema:      schemaMongoDBAtlasFederatedDatabaseQueryLimitDataSource(),

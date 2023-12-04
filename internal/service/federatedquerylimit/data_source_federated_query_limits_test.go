@@ -1,27 +1,22 @@
-package mongodbatlas_test
+package federatedquerylimit_test
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccFederatedDatabaseQueryLimit_basic(t *testing.T) {
+func TestAccDataSourceFederatedDatabaseQueryLimits_basic(t *testing.T) {
 	acc.SkipTestExtCred(t)
 	var (
-		resourceName = "mongodbatlas_federated_query_limit.test"
+		resourceName = "data.mongodbatlas_federated_query_limits.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc-project")
 		tenantName   = acctest.RandomWithPrefix("test-acc-tenant")
-		limitName    = "bytesProcessed.monthly"
 		policyName   = acctest.RandomWithPrefix("test-acc")
 		roleName     = acctest.RandomWithPrefix("test-acc")
 		testS3Bucket = os.Getenv("AWS_S3_BUCKET")
@@ -40,26 +35,19 @@ func TestAccFederatedDatabaseQueryLimit_basic(t *testing.T) {
 					},
 				},
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccMongoDBAtlasFederatedDatabaseQueryLimitConfig(policyName, roleName, projectName, orgID, tenantName, testS3Bucket, region),
+				Config:                   testAccMongoDBAtlasFederatedDatabaseQueryLimitsDataSourceConfig(policyName, roleName, projectName, orgID, tenantName, testS3Bucket, region),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "tenant_name"),
-					resource.TestCheckResourceAttr(resourceName, "limit_name", limitName),
+					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
 				),
-			},
-			{
-				ResourceName:             resourceName,
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				ImportStateIdFunc:        testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitImportStateIDFunc(resourceName),
-				ImportState:              true,
-				ImportStateVerify:        true,
 			},
 		},
 	})
 }
 
-func testAccMongoDBAtlasFederatedDatabaseQueryLimitConfig(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion string) string {
-	stepConfig := testAccMongoDBAtlasFederatedDatabaseQueryLimitConfigFirstStep(name, testS3Bucket)
+func testAccMongoDBAtlasFederatedDatabaseQueryLimitsDataSourceConfig(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion string) string {
+	stepConfig := testAccMongoDBAtlasFederatedDatabaseQueryLimitsConfigDataSourceFirstStep(name, testS3Bucket)
 	return fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[1]q
@@ -127,11 +115,12 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 	`, policyName, roleName, projectName, orgID, stepConfig)
 }
 
-func testAccMongoDBAtlasFederatedDatabaseQueryLimitConfigFirstStep(name, testS3Bucket string) string {
+func testAccMongoDBAtlasFederatedDatabaseQueryLimitsConfigDataSourceFirstStep(name, testS3Bucket string) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_federated_database_instance" "db_instance" {
    project_id         = mongodbatlas_project.test_project.id
    name = %[1]q
+
    cloud_provider_config {
 		aws {
 			role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
@@ -192,36 +181,11 @@ resource "mongodbatlas_federated_query_limit" "test" {
 	overrun_policy = "BLOCK"
 	value = 5147483648
   }
+
+  data "mongodbatlas_federated_query_limits" "test" {
+	project_id = mongodbatlas_project.test_project.id
+	tenant_name = mongodbatlas_federated_database_instance.db_instance.name
+  }
+
 	`, name, testS3Bucket)
-}
-
-func testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return "", fmt.Errorf("not found: %s", resourceName)
-		}
-
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		return fmt.Sprintf("%s--%s--%s", ids["project_id"], ids["tenant_name"], ids["limit_name"]), nil
-	}
-}
-
-func testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_federated_query_limit" {
-			continue
-		}
-
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := conn.DataFederation.GetQueryLimit(context.Background(), ids["project_id"], ids["tenant_name"], ids["limit_name"])
-		if err == nil {
-			return fmt.Errorf("federated database query limit (%s) for project (%s) and tenant (%s)still exists", ids["project_id"], ids["tenant_name"], ids["limit_name"])
-		}
-	}
-
-	return nil
 }

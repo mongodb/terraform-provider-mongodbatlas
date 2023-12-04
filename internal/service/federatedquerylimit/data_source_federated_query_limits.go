@@ -1,4 +1,4 @@
-package mongodbatlas
+package federatedquerylimit
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourceFederatedDatabaseQueryLimits() *schema.Resource {
+func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasFederatedDatabaseQueryLimitsRead,
 		Schema: map[string]*schema.Schema{

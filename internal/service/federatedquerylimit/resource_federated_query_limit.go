@@ -1,4 +1,4 @@
-package mongodbatlas
+package federatedquerylimit
 
 import (
 	"context"
@@ -22,7 +22,7 @@ const (
 	errorFederatedDatabaseQueryLimit       = "error setting `%s` for Atlas Federated Database Query Limit (%s): %s"
 )
 
-func ResourceFederatedDatabaseQueryLimit() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBFederatedDatabaseQueryLimitCreate,
 		ReadContext:   resourceMongoDBFederatedDatabaseQueryLimitRead,
