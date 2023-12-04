@@ -66,8 +66,8 @@ jobs:
             - 'internal/service/searchdeployment/*.go'
           generic:
             - 'internal/service/backupcompliancepolicy/*.go'
+            - 'internal/service/auditing/*.go'
             - 'mongodbatlas/resource_x509_authentication_database_user*.go'
-            - 'mongodbatlas/resource_auditing*.go'
           backup_online_archive:
             - 'mongodbatlas/**online_archive**.go'
           backup_snapshots:
@@ -79,13 +79,14 @@ jobs:
           project:
             - 'internal/service/project/*.go'
             - 'internal/service/projectipaccesslist/*.go'
+            - 'internal/service/accesslistapikey/*.go'
             - 'mongodbatlas/data_source_project_invitation*.go'
-            - 'mongodbatlas/resource_access_list_api_key*.go'
             - 'mongodbatlas/resource_project_invitation*.go'
           serverless:
             - 'mongodbatlas/**_serverless**.go' 
           network:
-            - 'mongodbatlas/**_network**.go'  
+            - 'internal/service/networkcontainer/*.go'
+            - 'internal/service/networkpeering/*.go'
             - 'mongodbatlas/**_privatelink**.go' 
             - 'mongodbatlas/**_private_endpoint**.go'
           federation:
@@ -95,24 +96,19 @@ jobs:
             - 'internal/service/atlasuser/*.go'
             - 'internal/service/databaseuser/*.go'
             - 'internal/service/projectapikey/*.go'
-            - 'mongodbatlas/data_source_accesslist_api_key*.go'
-            - 'mongodbatlas/data_source_api_key*.go'
+            - 'internal/service/apikey/*.go'
+            - 'internal/service/teams/*.go'
             - 'internal/service/cloudprovideraccess/*.go'
-            - 'mongodbatlas/data_source_custom_db_role*.go'
+            - 'internal/service/customdbrole/*.go'
+            - 'internal/service/maintenancewindow/*.go'
             - 'mongodbatlas/data_source_custom_dns_configuration_cluster_aws*.go'
-            - 'mongodbatlas/data_source_maintenance_window*.go'
             - 'mongodbatlas/data_source_org_id*.go'
             - 'mongodbatlas/data_source_org_invitation*.go'
             - 'mongodbatlas/data_source_organization*.go'
-            - 'mongodbatlas/data_source_team*.go'
             - 'mongodbatlas/data_source_third_party_integration*.go'
-            - 'mongodbatlas/resource_api_key*.go'
-            - 'mongodbatlas/resource_custom_db_role*.go'
             - 'mongodbatlas/resource_custom_dns_configuration_cluster_aws*.go'
-            - 'mongodbatlas/resource_maintenance_window*.go'
             - 'mongodbatlas/resource_org_invitation*.go'
             - 'mongodbatlas/resource_organization*.go'
-            - 'mongodbatlas/resource_team*.go'
             - 'mongodbatlas/resource_third_party_integration*.go'
           event_trigger:
             - 'mongodbatlas/resource_event_trigger*.go'
