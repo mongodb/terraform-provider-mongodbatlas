@@ -381,9 +381,3 @@ func flattenCloudMembers(apiObjects []*matlas.Member) []any {
 
 	return tfList
 }
-
-// Support functions moved from deprecated cloud_provider resources
-
-const (
-	errorSnapshotBackupPolicySetting = "error setting `%s` for Cloud Provider Snapshot Backup Policy(%s): %s"
-)
