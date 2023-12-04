@@ -3,7 +3,7 @@ name: 'Test Suite'
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 2 * * *" # workflow runs every day at 02:00 AM
+    - cron: "0 0 * * *" # workflow runs every day at midnight UTC
   
 jobs:
 
