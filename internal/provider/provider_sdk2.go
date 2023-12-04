@@ -14,6 +14,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupschedule"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshot"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotexportbucket"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotexportjob"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotrestorejob"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
@@ -131,7 +136,6 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_privatelink_endpoint_service":                                 mongodbatlas.DataSourcePrivateEndpointServiceLink(),
 		"mongodbatlas_privatelink_endpoint_service_serverless":                      mongodbatlas.DataSourcePrivateLinkEndpointServerless(),
 		"mongodbatlas_privatelink_endpoints_service_serverless":                     mongodbatlas.DataSourcePrivateLinkEndpointsServiceServerless(),
-		"mongodbatlas_cloud_backup_schedule":                                        mongodbatlas.DataSourceCloudBackupSchedule(),
 		"mongodbatlas_third_party_integration":                                      mongodbatlas.DataSourceThirdPartyIntegration(),
 		"mongodbatlas_third_party_integrations":                                     mongodbatlas.DataSourceThirdPartyIntegrations(),
 		"mongodbatlas_cloud_provider_access":                                        mongodbatlas.DataSourceCloudProviderAccessList(),
@@ -153,15 +157,16 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_org_invitation":                                               mongodbatlas.DataSourceOrgInvitation(),
 		"mongodbatlas_organization":                                                 mongodbatlas.DataSourceOrganization(),
 		"mongodbatlas_organizations":                                                mongodbatlas.DataSourceOrganizations(),
-		"mongodbatlas_cloud_backup_snapshot":                                        mongodbatlas.DataSourceCloudBackupSnapshot(),
-		"mongodbatlas_cloud_backup_snapshots":                                       mongodbatlas.DataSourceCloudBackupSnapshots(),
 		"mongodbatlas_backup_compliance_policy":                                     mongodbatlas.DataSourceBackupCompliancePolicy(),
-		"mongodbatlas_cloud_backup_snapshot_restore_job":                            mongodbatlas.DataSourceCloudBackupSnapshotRestoreJob(),
-		"mongodbatlas_cloud_backup_snapshot_restore_jobs":                           mongodbatlas.DataSourceCloudBackupSnapshotRestoreJobs(),
-		"mongodbatlas_cloud_backup_snapshot_export_bucket":                          mongodbatlas.DatasourceMongoDBAtlasCloudBackupSnapshotExportBucket(),
-		"mongodbatlas_cloud_backup_snapshot_export_buckets":                         mongodbatlas.DatasourceMongoDBAtlasCloudBackupSnapshotExportBuckets(),
-		"mongodbatlas_cloud_backup_snapshot_export_job":                             mongodbatlas.DatasourceMongoDBAtlasCloudBackupSnapshotExportJob(),
-		"mongodbatlas_cloud_backup_snapshot_export_jobs":                            mongodbatlas.DatasourceMongoDBAtlasCloudBackupSnapshotExportJobs(),
+		"mongodbatlas_cloud_backup_schedule":                                        cloudbackupschedule.DataSourceCloudBackupSchedule(),
+		"mongodbatlas_cloud_backup_snapshot":                                        cloudbackupsnapshot.DataSourceCloudBackupSnapshot(),
+		"mongodbatlas_cloud_backup_snapshots":                                       cloudbackupsnapshot.DataSourceCloudBackupSnapshots(),
+		"mongodbatlas_cloud_backup_snapshot_export_bucket":                          cloudbackupsnapshotexportbucket.DatasourceMongoDBAtlasCloudBackupSnapshotExportBucket(),
+		"mongodbatlas_cloud_backup_snapshot_export_buckets":                         cloudbackupsnapshotexportbucket.DatasourceMongoDBAtlasCloudBackupSnapshotExportBuckets(),
+		"mongodbatlas_cloud_backup_snapshot_export_job":                             cloudbackupsnapshotexportjob.DatasourceMongoDBAtlasCloudBackupSnapshotExportJob(),
+		"mongodbatlas_cloud_backup_snapshot_export_jobs":                            cloudbackupsnapshotexportjob.DatasourceMongoDBAtlasCloudBackupSnapshotExportJobs(),
+		"mongodbatlas_cloud_backup_snapshot_restore_job":                            cloudbackupsnapshotrestorejob.DataSourceCloudBackupSnapshotRestoreJob(),
+		"mongodbatlas_cloud_backup_snapshot_restore_jobs":                           cloudbackupsnapshotrestorejob.DataSourceCloudBackupSnapshotRestoreJobs(),
 		"mongodbatlas_federated_settings":                                           mongodbatlas.DataSourceFederatedSettings(),
 		"mongodbatlas_federated_settings_identity_provider":                         mongodbatlas.DataSourceFederatedSettingsIdentityProvider(),
 		"mongodbatlas_federated_settings_identity_providers":                        mongodbatlas.DataSourceFederatedSettingsIdentityProviders(),
@@ -217,15 +222,15 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_search_index":                                                mongodbatlas.ResourceSearchIndex(),
 		"mongodbatlas_data_lake_pipeline":                                          mongodbatlas.ResourceDataLakePipeline(),
 		"mongodbatlas_event_trigger":                                               mongodbatlas.ResourceEventTriggers(),
-		"mongodbatlas_cloud_backup_schedule":                                       mongodbatlas.ResourceCloudBackupSchedule(),
 		"mongodbatlas_project_invitation":                                          mongodbatlas.ResourceProjectInvitation(),
 		"mongodbatlas_org_invitation":                                              mongodbatlas.ResourceOrgInvitation(),
 		"mongodbatlas_organization":                                                mongodbatlas.ResourceOrganization(),
-		"mongodbatlas_cloud_backup_snapshot":                                       mongodbatlas.ResourceCloudBackupSnapshot(),
 		"mongodbatlas_backup_compliance_policy":                                    mongodbatlas.ResourceBackupCompliancePolicy(),
-		"mongodbatlas_cloud_backup_snapshot_restore_job":                           mongodbatlas.ResourceCloudBackupSnapshotRestoreJob(),
-		"mongodbatlas_cloud_backup_snapshot_export_bucket":                         mongodbatlas.ResourceCloudBackupSnapshotExportBucket(),
-		"mongodbatlas_cloud_backup_snapshot_export_job":                            mongodbatlas.ResourceCloudBackupSnapshotExportJob(),
+		"mongodbatlas_cloud_backup_schedule":                                       cloudbackupschedule.ResourceCloudBackupSchedule(),
+		"mongodbatlas_cloud_backup_snapshot":                                       cloudbackupsnapshot.ResourceCloudBackupSnapshot(),
+		"mongodbatlas_cloud_backup_snapshot_export_bucket":                         cloudbackupsnapshotexportbucket.ResourceCloudBackupSnapshotExportBucket(),
+		"mongodbatlas_cloud_backup_snapshot_export_job":                            cloudbackupsnapshotexportjob.ResourceCloudBackupSnapshotExportJob(),
+		"mongodbatlas_cloud_backup_snapshot_restore_job":                           cloudbackupsnapshotrestorejob.ResourceCloudBackupSnapshotRestoreJob(),
 		"mongodbatlas_federated_settings_org_config":                               mongodbatlas.ResourceFederatedSettingsOrganizationConfig(),
 		"mongodbatlas_federated_settings_org_role_mapping":                         mongodbatlas.ResourceFederatedSettingsOrganizationRoleMapping(),
 		"mongodbatlas_federated_settings_identity_provider":                        mongodbatlas.ResourceFederatedSettingsIdentityProvider(),
