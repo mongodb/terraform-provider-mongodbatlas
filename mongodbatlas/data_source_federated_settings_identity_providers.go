@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -349,8 +350,8 @@ func flattenFederatedSettingsCertificates(certificates []*matlas.Certificates) [
 
 		for i := range certificates {
 			certificatesMap[i] = map[string]any{
-				"not_after":  certificates[i].NotAfter.String(),
-				"not_before": certificates[i].NotBefore.String(),
+				"not_after":  conversion.TimeToString(certificates[i].NotAfter),
+				"not_before": conversion.TimeToString(certificates[i].NotBefore),
 			}
 		}
 	}

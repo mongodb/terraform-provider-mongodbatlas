@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -102,15 +103,15 @@ func dataSourceMongoDBAtlasCloudSharedTierRestoreJobsRead(ctx context.Context, d
 		return diag.FromErr(fmt.Errorf("error setting `snapshot_id` for shared tier restore job '%s': %w", jobID, err))
 	}
 
-	if err = d.Set("snapshot_finished_date", job.GetSnapshotFinishedDate().String()); err != nil {
+	if err = d.Set("snapshot_finished_date", conversion.TimeToString(job.GetSnapshotFinishedDate())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `snapshot_finished_date` for shared tier restore job '%s': %w", jobID, err))
 	}
 
-	if err = d.Set("restore_scheduled_date", job.GetRestoreScheduledDate().String()); err != nil {
+	if err = d.Set("restore_scheduled_date", conversion.TimeToString(job.GetRestoreScheduledDate())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `restore_scheduled_date` for shared tier restore job '%s': %w", jobID, err))
 	}
 
-	if err = d.Set("restore_finished_date", job.GetRestoreFinishedDate().String()); err != nil {
+	if err = d.Set("restore_finished_date", conversion.TimeToString(job.GetRestoreFinishedDate())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `restore_finished_date` for shared tier restore job '%s': %w", jobID, err))
 	}
 
@@ -118,7 +119,7 @@ func dataSourceMongoDBAtlasCloudSharedTierRestoreJobsRead(ctx context.Context, d
 		return diag.FromErr(fmt.Errorf("error setting `delivery_type` for shared tier restore job '%s': %w", jobID, err))
 	}
 
-	if err = d.Set("expiration_date", job.GetExpirationDate().String()); err != nil {
+	if err = d.Set("expiration_date", conversion.TimeToString(job.GetExpirationDate())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `expiration_date` for shared tier restore job '%s': %w", jobID, err))
 	}
 
