@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package thirdpartyintegration_test
 
 import (
 	"context"

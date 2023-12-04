@@ -43,6 +43,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointserviceserverless"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teams"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/thirdpartyintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/x509authenticationdatabaseuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 	"github.com/mwielbut/pointy"
@@ -159,8 +160,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_privatelink_endpoint_service":                                 privatelinkendpointservice.DataSource(),
 		"mongodbatlas_privatelink_endpoint_service_serverless":                      privatelinkendpointserviceserverless.DataSource(),
 		"mongodbatlas_privatelink_endpoints_service_serverless":                     privatelinkendpointserviceserverless.PluralDataSource(),
-		"mongodbatlas_third_party_integration":                                      mongodbatlas.DataSourceThirdPartyIntegration(),
-		"mongodbatlas_third_party_integrations":                                     mongodbatlas.DataSourceThirdPartyIntegrations(),
+		"mongodbatlas_third_party_integration":                                      thirdpartyintegration.DataSource(),
+		"mongodbatlas_third_party_integrations":                                     thirdpartyintegration.PluralDataSource(),
 		"mongodbatlas_cloud_provider_access":                                        cloudprovideraccess.DataSource(),
 		"mongodbatlas_cloud_provider_access_setup":                                  cloudprovideraccess.DataSourceSetup(),
 		"mongodbatlas_custom_dns_configuration_cluster_aws":                         mongodbatlas.DataSourceCustomDNSConfigurationAWS(),
@@ -234,7 +235,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_privatelink_endpoint_serverless":                             privatelinkendpointserverless.Resource(),
 		"mongodbatlas_privatelink_endpoint_service":                                privatelinkendpointservice.Resource(),
 		"mongodbatlas_privatelink_endpoint_service_serverless":                     privatelinkendpointserviceserverless.Resource(),
-		"mongodbatlas_third_party_integration":                                     mongodbatlas.ResourceThirdPartyIntegration(),
+		"mongodbatlas_third_party_integration":                                     thirdpartyintegration.Resource(),
 		"mongodbatlas_online_archive":                                              mongodbatlas.ResourceOnlineArchive(),
 		"mongodbatlas_custom_dns_configuration_cluster_aws":                        mongodbatlas.ResourceCustomDNSConfiguration(),
 		"mongodbatlas_ldap_configuration":                                          mongodbatlas.ResourceLDAPConfiguration(),

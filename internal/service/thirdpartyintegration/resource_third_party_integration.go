@@ -1,4 +1,4 @@
-package mongodbatlas
+package thirdpartyintegration
 
 import (
 	"context"
@@ -33,7 +33,7 @@ var requiredPerType = map[string][]string{
 	"PROMETHEUS":      {"user_name", "password", "service_discovery", "scheme", "enabled"},
 }
 
-func ResourceThirdPartyIntegration() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasThirdPartyIntegrationCreate,
 		ReadContext:   resourceMongoDBAtlasThirdPartyIntegrationRead,

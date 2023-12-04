@@ -1,4 +1,4 @@
-package mongodbatlas
+package thirdpartyintegration
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourceThirdPartyIntegrations() *schema.Resource {
+func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasThirdPartyIntegrationsRead,
 		Schema: map[string]*schema.Schema{

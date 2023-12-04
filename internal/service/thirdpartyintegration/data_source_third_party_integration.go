@@ -1,4 +1,4 @@
-package mongodbatlas
+package thirdpartyintegration
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceThirdPartyIntegration() *schema.Resource {
+func DataSource() *schema.Resource {
 	integration := thirdPartyIntegrationSchema()
 	integration.Schema["project_id"] = &schema.Schema{
 		Type:     schema.TypeString,
