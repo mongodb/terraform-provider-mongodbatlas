@@ -219,6 +219,27 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 	})
 }
 
+func TestAccBackupRSOnlineArchiveInvalidProcessRegion(t *testing.T) {
+	var (
+		orgID         = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName   = acctest.RandomWithPrefix("test-acc")
+		name          = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		cloudProvider = "AWS"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccBackupRSOnlineArchiveConfigWithProcessRegion(orgID, projectName, name, cloudProvider, "UNKNOWN"),
+				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
+			},
+		},
+	})
+}
+
 func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acc.TestMongoDBClient.(*config.MongoDBClient).Atlas
