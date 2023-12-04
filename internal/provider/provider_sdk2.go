@@ -36,6 +36,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkcontainer"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkpeering"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privateendpointregionalmode"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointservice"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointservicedatafederationonlinearchive"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointserviceserverless"
@@ -153,7 +154,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_private_endpoint_regional_mode":    privateendpointregionalmode.DataSource(),
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive":  privatelinkendpointservicedatafederationonlinearchive.DataSource(),
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archives": privatelinkendpointservicedatafederationonlinearchive.PluralDataSource(),
-		"mongodbatlas_privatelink_endpoint":                                         mongodbatlas.DataSourcePrivateLinkEndpoint(),
+		"mongodbatlas_privatelink_endpoint":                                         privatelinkendpoint.DataSource(),
 		"mongodbatlas_privatelink_endpoint_service":                                 privatelinkendpointservice.DataSource(),
 		"mongodbatlas_privatelink_endpoint_service_serverless":                      privatelinkendpointserviceserverless.DataSource(),
 		"mongodbatlas_privatelink_endpoints_service_serverless":                     privatelinkendpointserviceserverless.PluralDataSource(),
@@ -228,7 +229,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_x509_authentication_database_user": x509authenticationdatabaseuser.Resource(),
 		"mongodbatlas_private_endpoint_regional_mode":    privateendpointregionalmode.Resource(),
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive": privatelinkendpointservicedatafederationonlinearchive.Resource(),
-		"mongodbatlas_privatelink_endpoint":                                        mongodbatlas.ResourcePrivateLinkEndpoint(),
+		"mongodbatlas_privatelink_endpoint":                                        privatelinkendpoint.Resource(),
 		"mongodbatlas_privatelink_endpoint_serverless":                             privatelinkendpointserviceserverless.Resource(),
 		"mongodbatlas_privatelink_endpoint_service":                                privatelinkendpointservice.Resource(),
 		"mongodbatlas_privatelink_endpoint_service_serverless":                     mongodbatlas.ResourcePrivateLinkEndpointServiceServerless(),

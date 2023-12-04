@@ -1,4 +1,4 @@
-package mongodbatlas
+package privatelinkendpoint
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourcePrivateLinkEndpoint() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasPrivateLinkEndpointRead,
 		Schema: map[string]*schema.Schema{

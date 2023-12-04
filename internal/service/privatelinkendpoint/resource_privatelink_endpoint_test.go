@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package privatelinkendpoint_test
 
 import (
 	"context"

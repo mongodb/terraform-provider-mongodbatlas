@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 )
 
@@ -149,7 +150,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessRead(ctx context.Context, 
 	}
 
 	if err := d.Set("status", privateLinkResponse.Status); err != nil {
-		return diag.FromErr(fmt.Errorf(mongodbatlas.ErrorPrivateLinkEndpointsSetting, "status", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(privatelinkendpoint.ErrorPrivateLinkEndpointsSetting, "status", d.Id(), err))
 	}
 
 	return nil
