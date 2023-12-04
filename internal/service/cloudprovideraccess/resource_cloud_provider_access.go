@@ -1,4 +1,4 @@
-package mongodbatlas
+package cloudprovideraccess
 
 import (
 	"context"
@@ -23,7 +23,7 @@ const (
 	ErrorCloudProviderGetRead        = "error reading cloud provider access %s"
 )
 
-func ResourceCloudProviderAccess() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasCloudProviderAccessCreate,
 		ReadContext:   resourceMongoDBAtlasCloudProviderAccessRead,

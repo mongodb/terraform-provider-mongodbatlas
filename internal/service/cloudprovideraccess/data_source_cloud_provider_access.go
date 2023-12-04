@@ -1,4 +1,4 @@
-package mongodbatlas
+package cloudprovideraccess
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourceCloudProviderAccessList() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext:        dataSourceMongoDBAtlasCloudProviderAccessRead,
 		DeprecationMessage: fmt.Sprintf(constant.DeprecationResourceByDateWithReplacement, "v1.14.0", "mongodbatlas_cloud_provider_access_setup"),

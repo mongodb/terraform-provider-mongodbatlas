@@ -20,6 +20,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotexportbucket"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotexportjob"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotrestorejob"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudprovideraccess"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
@@ -139,8 +140,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_privatelink_endpoints_service_serverless":                     mongodbatlas.DataSourcePrivateLinkEndpointsServiceServerless(),
 		"mongodbatlas_third_party_integration":                                      mongodbatlas.DataSourceThirdPartyIntegration(),
 		"mongodbatlas_third_party_integrations":                                     mongodbatlas.DataSourceThirdPartyIntegrations(),
-		"mongodbatlas_cloud_provider_access":                                        mongodbatlas.DataSourceCloudProviderAccessList(),
-		"mongodbatlas_cloud_provider_access_setup":                                  mongodbatlas.DataSourceCloudProviderAccessSetup(),
+		"mongodbatlas_cloud_provider_access":                                        cloudprovideraccess.DataSource(),
+		"mongodbatlas_cloud_provider_access_setup":                                  cloudprovideraccess.DataSourceSetup(),
 		"mongodbatlas_custom_dns_configuration_cluster_aws":                         mongodbatlas.DataSourceCustomDNSConfigurationAWS(),
 		"mongodbatlas_online_archive":                                               mongodbatlas.DataSourceOnlineArchive(),
 		"mongodbatlas_online_archives":                                              mongodbatlas.DataSourceOnlineArchives(),
@@ -213,13 +214,13 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_privatelink_endpoint_service":                                mongodbatlas.ResourcePrivateEndpointServiceLink(),
 		"mongodbatlas_privatelink_endpoint_service_serverless":                     mongodbatlas.ResourcePrivateLinkEndpointServiceServerless(),
 		"mongodbatlas_third_party_integration":                                     mongodbatlas.ResourceThirdPartyIntegration(),
-		"mongodbatlas_cloud_provider_access":                                       mongodbatlas.ResourceCloudProviderAccess(),
 		"mongodbatlas_online_archive":                                              mongodbatlas.ResourceOnlineArchive(),
 		"mongodbatlas_custom_dns_configuration_cluster_aws":                        mongodbatlas.ResourceCustomDNSConfiguration(),
 		"mongodbatlas_ldap_configuration":                                          mongodbatlas.ResourceLDAPConfiguration(),
 		"mongodbatlas_ldap_verify":                                                 mongodbatlas.ResourceLDAPVerify(),
-		"mongodbatlas_cloud_provider_access_setup":                                 mongodbatlas.ResourceCloudProviderAccessSetup(),
-		"mongodbatlas_cloud_provider_access_authorization":                         mongodbatlas.ResourceCloudProviderAccessAuthorization(),
+		"mongodbatlas_cloud_provider_access":                                       cloudprovideraccess.Resource(),
+		"mongodbatlas_cloud_provider_access_setup":                                 cloudprovideraccess.ResourceSetup(),
+		"mongodbatlas_cloud_provider_access_authorization":                         cloudprovideraccess.ResourceAuthorization(),
 		"mongodbatlas_search_index":                                                mongodbatlas.ResourceSearchIndex(),
 		"mongodbatlas_data_lake_pipeline":                                          mongodbatlas.ResourceDataLakePipeline(),
 		"mongodbatlas_event_trigger":                                               mongodbatlas.ResourceEventTriggers(),

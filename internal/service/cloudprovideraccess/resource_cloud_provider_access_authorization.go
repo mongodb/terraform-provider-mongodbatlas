@@ -1,4 +1,4 @@
-package mongodbatlas
+package cloudprovideraccess
 
 import (
 	"context"
@@ -19,7 +19,7 @@ import (
 	A cloud provider access authorization
 */
 
-func ResourceCloudProviderAccessAuthorization() *schema.Resource {
+func ResourceAuthorization() *schema.Resource {
 	return &schema.Resource{
 		ReadContext:   resourceMongoDBAtlasCloudProviderAccessAuthorizationRead,
 		CreateContext: resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate,

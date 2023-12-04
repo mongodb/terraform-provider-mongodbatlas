@@ -1,4 +1,4 @@
-package mongodbatlas
+package cloudprovideraccess
 
 import (
 	"context"
@@ -20,7 +20,7 @@ import (
 	-> The delete deletes and deauthorize the role
 */
 
-func ResourceCloudProviderAccessSetup() *schema.Resource {
+func ResourceSetup() *schema.Resource {
 	return &schema.Resource{
 		ReadContext:   resourceMongoDBAtlasCloudProviderAccessSetupRead,
 		CreateContext: resourceMongoDBAtlasCloudProviderAccessSetupCreate,

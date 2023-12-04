@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package cloudprovideraccess_test
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudprovideraccess"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -104,7 +104,7 @@ func testAccCheckMongoDBAtlasProviderAccessDestroy(s *terraform.State) error {
 		roles, _, err := conn.CloudProviderAccess.ListRoles(context.Background(), ids["project_id"])
 
 		if err != nil {
-			return fmt.Errorf(mongodbatlas.ErrorCloudProviderGetRead, err)
+			return fmt.Errorf(cloudprovideraccess.ErrorCloudProviderGetRead, err)
 		}
 
 		var targetRole matlas.CloudProviderAccessRole
@@ -147,7 +147,7 @@ func testAccCheckMongoDBAtlasProviderAccessExists(resourceName string, targetRol
 		roles, _, err := conn.CloudProviderAccess.ListRoles(context.Background(), ids["project_id"])
 
 		if err != nil {
-			return fmt.Errorf(mongodbatlas.ErrorCloudProviderGetRead, err)
+			return fmt.Errorf(cloudprovideraccess.ErrorCloudProviderGetRead, err)
 		}
 
 		if providerName == "AWS" {

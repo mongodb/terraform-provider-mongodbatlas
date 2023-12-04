@@ -1,4 +1,4 @@
-package mongodbatlas
+package cloudprovideraccess
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceCloudProviderAccessSetup() *schema.Resource {
+func DataSourceSetup() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasCloudProviderAccessSetupRead,
 		Schema: map[string]*schema.Schema{
