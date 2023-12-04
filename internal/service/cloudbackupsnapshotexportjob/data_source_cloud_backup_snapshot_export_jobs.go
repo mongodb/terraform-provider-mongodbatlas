@@ -1,4 +1,4 @@
-package mongodbatlas
+package cloudbackupsnapshotexportjob
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DatasourceMongoDBAtlasCloudBackupSnapshotExportJobs() *schema.Resource {
+func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasCloudBackupSnapshotsExportJobsRead,
 		Schema: map[string]*schema.Schema{

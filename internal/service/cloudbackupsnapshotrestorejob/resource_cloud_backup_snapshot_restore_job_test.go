@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package cloudbackupsnapshotrestorejob_test
 
 import (
 	"context"

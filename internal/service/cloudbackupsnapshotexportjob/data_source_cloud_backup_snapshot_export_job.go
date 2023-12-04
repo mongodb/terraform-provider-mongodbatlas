@@ -1,4 +1,4 @@
-package mongodbatlas
+package cloudbackupsnapshotexportjob
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DatasourceMongoDBAtlasCloudBackupSnapshotExportJob() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasCloudBackupSnapshotsExportJobRead,
 		Schema: map[string]*schema.Schema{

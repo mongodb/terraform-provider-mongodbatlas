@@ -1,4 +1,4 @@
-package mongodbatlas
+package cloudbackupsnapshotrestorejob
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func ResourceCloudBackupSnapshotRestoreJob() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasCloudBackupSnapshotRestoreJobCreate,
 		ReadContext:   resourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead,

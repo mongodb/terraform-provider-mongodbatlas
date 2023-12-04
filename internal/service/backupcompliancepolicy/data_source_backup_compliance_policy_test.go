@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package backupcompliancepolicy_test
 
 import (
 	"fmt"

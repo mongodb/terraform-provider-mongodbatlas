@@ -1,4 +1,4 @@
-package mongodbatlas
+package cloudbackupsnapshot
 
 import (
 	"context"
@@ -19,7 +19,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func ResourceCloudBackupSnapshot() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasCloudBackupSnapshotCreate,
 		ReadContext:   resourceMongoDBAtlasCloudBackupSnapshotRead,
@@ -381,9 +381,3 @@ func flattenCloudMembers(apiObjects []*matlas.Member) []any {
 
 	return tfList
 }
-
-// Support functions moved from deprecated cloud_provider resources
-
-const (
-	errorSnapshotBackupPolicySetting = "error setting `%s` for Cloud Provider Snapshot Backup Policy(%s): %s"
-)

@@ -1,4 +1,4 @@
-package mongodbatlas
+package cloudbackupsnapshotrestorejob
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourceCloudBackupSnapshotRestoreJob() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead,
 		Schema: map[string]*schema.Schema{

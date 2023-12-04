@@ -3,7 +3,7 @@ name: 'Test Suite'
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 2 * * *" # workflow runs every day at 02:00 AM
+    - cron: "0 0 * * *" # workflow runs every day at midnight UTC
   
 jobs:
 
@@ -18,7 +18,7 @@ jobs:
       max-parallel: 1
       fail-fast: false
       matrix:
-        terraform_version: ['', '1.1.6', '1.0.8'] # '' for latest version
+        terraform_version: ['', '1.0.8'] # '' for latest version
         provider_version: ['', '1.11.1'] # '' for latest version
     name: mig-tests-${{ matrix.terraform_version || 'latest' }}-${{ matrix.provider_version || 'latest' }}
     secrets: inherit
@@ -34,7 +34,7 @@ jobs:
       max-parallel: 1
       fail-fast: false
       matrix:
-        terraform_version: ['', '1.1.6', '1.0.8'] # '' for latest version
+        terraform_version: ['', '1.0.8'] # '' for latest version
     name: acc-tests-${{ matrix.terraform_version || 'latest' }}
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml

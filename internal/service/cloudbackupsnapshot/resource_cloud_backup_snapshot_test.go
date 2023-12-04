@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package cloudbackupsnapshot_test
 
 import (
 	"context"
@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshot"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -192,7 +192,7 @@ data "mongodbatlas_cloud_backup_snapshots" "pagination" {
 }
 
 func TestResourceMongoDBAtlasCloudBackupSnapshot_snapshotID(t *testing.T) {
-	got, err := mongodbatlas.SplitSnapshotImportID("5cf5a45a9ccf6400e60981b6-projectname-environment-mongo-global-cluster-5cf5a45a9ccf6400e60981b7")
+	got, err := cloudbackupsnapshot.SplitSnapshotImportID("5cf5a45a9ccf6400e60981b6-projectname-environment-mongo-global-cluster-5cf5a45a9ccf6400e60981b7")
 	if err != nil {
 		t.Errorf("splitSnapshotImportID returned error(%s), expected error=nil", err)
 	}
@@ -207,7 +207,7 @@ func TestResourceMongoDBAtlasCloudBackupSnapshot_snapshotID(t *testing.T) {
 		t.Errorf("Bad splitSnapshotImportID return \n got = %#v\nwant = %#v \ndiff = %#v", expected, *got, diff)
 	}
 
-	if _, err := mongodbatlas.SplitSnapshotImportID("5cf5a45a9ccf6400e60981b6projectname-environment-mongo-global-cluster5cf5a45a9ccf6400e60981b7"); err == nil {
+	if _, err := cloudbackupsnapshot.SplitSnapshotImportID("5cf5a45a9ccf6400e60981b6projectname-environment-mongo-global-cluster5cf5a45a9ccf6400e60981b7"); err == nil {
 		t.Error("splitSnapshotImportID expected to have error")
 	}
 }
