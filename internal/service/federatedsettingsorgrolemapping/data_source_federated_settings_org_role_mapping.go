@@ -1,4 +1,4 @@
-package mongodbatlas
+package federatedsettingsorgrolemapping
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsidentityprovider"
 )
 
-func DataSourceFederatedSettingsOrganizationRoleMapping() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead,
 		Schema: map[string]*schema.Schema{

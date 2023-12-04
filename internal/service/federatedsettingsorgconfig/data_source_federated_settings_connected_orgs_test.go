@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package federatedsettingsorgconfig_test
 
 import (
 	"context"
@@ -12,12 +12,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccFedDSFederatedSettingsOrganizationConfig_basic(t *testing.T) {
+func TestAccFedDSFederatedSettingsOrganizationConfigs_basic(t *testing.T) {
 	acc.SkipTestExtCred(t)
 	var (
-		resourceName        = "data.mongodbatlas_federated_settings_org_config.test"
+		resourceName        = "data.mongodbatlas_federated_settings_org_configs.test"
 		federatedSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
-		orgID               = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -25,31 +24,31 @@ func TestAccFedDSFederatedSettingsOrganizationConfig_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDataSourceFederatedSettingsOrganizationConfigConfig(federatedSettingsID, orgID),
+				Config: testAccMongoDBAtlasDataSourceFederatedSettingsOrganizationConfigsConfig(federatedSettingsID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigExists(resourceName),
+					testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigsExists(resourceName),
+
 					resource.TestCheckResourceAttrSet(resourceName, "federation_settings_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "role_mappings.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "identity_provider_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttr(resourceName, "identity_provider_id", "0oad4fas87jL5Xnk1297"),
+					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "results.0.identity_provider_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "results.0.org_id"),
 				),
 			},
 		},
 	})
 }
 
-func testAccMongoDBAtlasDataSourceFederatedSettingsOrganizationConfigConfig(federatedSettingsID, orgID string) string {
+func testAccMongoDBAtlasDataSourceFederatedSettingsOrganizationConfigsConfig(federatedSettingsID string) string {
 	return fmt.Sprintf(`
-		data "mongodbatlas_federated_settings_org_config" "test" {
+		data "mongodbatlas_federated_settings_org_configs" "test" {
 			federation_settings_id = "%[1]s"
-			org_id = "%[2]s"
-
+			page_num = 1
+			items_per_page = 100
 		}
-`, federatedSettingsID, orgID)
+`, federatedSettingsID)
 }
 
-func testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigExists(resourceName string) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigsExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
 

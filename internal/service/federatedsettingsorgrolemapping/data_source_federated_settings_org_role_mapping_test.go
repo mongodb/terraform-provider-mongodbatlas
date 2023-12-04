@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package federatedsettingsorgrolemapping_test
 
 import (
 	"fmt"

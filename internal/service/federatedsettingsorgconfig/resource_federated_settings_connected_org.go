@@ -1,4 +1,4 @@
-package mongodbatlas
+package federatedsettingsorgconfig
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-func ResourceFederatedSettingsOrganizationConfig() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead,
 		ReadContext:   resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead,

@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package federatedsettingsorgconfig_test
 
 import (
 	"context"

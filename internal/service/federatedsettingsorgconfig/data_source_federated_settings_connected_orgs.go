@@ -1,4 +1,4 @@
-package mongodbatlas
+package federatedsettingsorgconfig
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourceFederatedSettingsOrganizationConfigs() *schema.Resource {
+func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigsRead,
 		Schema: map[string]*schema.Schema{
