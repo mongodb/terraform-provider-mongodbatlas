@@ -65,16 +65,17 @@ jobs:
           search_deployment:
             - 'internal/service/searchdeployment/*.go'
           generic:
-            - 'mongodbatlas/data_source_backup_compliance_policy*.go'
-            - 'mongodbatlas/resource_backup_compliance_policy*.go'
+            - 'internal/service/backupcompliancepolicy/*.go'
             - 'mongodbatlas/resource_x509_authentication_database_user*.go'
             - 'mongodbatlas/resource_auditing*.go'
           backup_online_archive:
             - 'mongodbatlas/**online_archive**.go'
           backup_snapshots:
-            - 'mongodbatlas/**backup_snapshot**.go'
+            - 'internal/service/cloudbackupsnapshot/*.go'
+            - 'internal/service/cloudbackupsnapshotexportbucket/*.go'
+            - 'internal/service/cloudbackupsnapshotexportjob/*.go'
           backup_schedule:
-            - 'mongodbatlas/**backup_schedule**.go'
+            - 'internal/service/cloudbackupschedule/*.go'
           project:
             - 'internal/service/project/*.go'
             - 'internal/service/projectipaccesslist/*.go'
