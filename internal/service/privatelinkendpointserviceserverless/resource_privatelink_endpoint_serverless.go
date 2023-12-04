@@ -1,4 +1,4 @@
-package mongodbatlas
+package privatelinkendpointserviceserverless
 
 import (
 	"context"
@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 )
 
 const (
@@ -23,7 +24,7 @@ const (
 	errorServerlessEndpointDelete = "error deleting MongoDB Serverless PrivateLink Endpoint Connection(%s): %s"
 )
 
-func ResourcePrivateLinkEndpointServerless() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasPrivateLinkEndpointServerlessCreate,
 		ReadContext:   resourceMongoDBAtlasPrivateLinkEndpointServerlessRead,
@@ -84,7 +85,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessCreate(ctx context.Context
 
 	endPoint, _, err := conn.ServerlessPrivateEndpoints.Create(ctx, projectID, instanceName, privateLinkRequest)
 	if err != nil {
-		return diag.Errorf(errorServerlessServiceEndpointAdd, privateLinkRequest.CloudProviderEndpointID, err)
+		return diag.Errorf(mongodbatlas.ErrorServerlessServiceEndpointAdd, privateLinkRequest.CloudProviderEndpointID, err)
 	}
 
 	stateConf := &retry.StateChangeConf{
@@ -148,7 +149,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessRead(ctx context.Context, 
 	}
 
 	if err := d.Set("status", privateLinkResponse.Status); err != nil {
-		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "status", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(mongodbatlas.ErrorPrivateLinkEndpointsSetting, "status", d.Id(), err))
 	}
 
 	return nil

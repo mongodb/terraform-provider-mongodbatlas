@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	errorServerlessServiceEndpointAdd    = "error adding MongoDB Serverless PrivateLink Endpoint Connection(%s): %s"
+	ErrorServerlessServiceEndpointAdd    = "error adding MongoDB Serverless PrivateLink Endpoint Connection(%s): %s"
 	errorServerlessServiceEndpointDelete = "error deleting MongoDB Serverless PrivateLink Endpoint Connection(%s): %s"
 )
 
@@ -108,7 +108,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate(ctx context.
 
 	endPoint, _, err := conn.ServerlessPrivateEndpoints.Update(ctx, projectID, instanceName, endpointID, privateLink)
 	if err != nil {
-		return diag.Errorf(errorServerlessServiceEndpointAdd, endpointID, err)
+		return diag.Errorf(ErrorServerlessServiceEndpointAdd, endpointID, err)
 	}
 
 	stateConf := &retry.StateChangeConf{
@@ -122,7 +122,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate(ctx context.
 	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorServerlessServiceEndpointAdd, endpointID, err))
+		return diag.FromErr(fmt.Errorf(ErrorServerlessServiceEndpointAdd, endpointID, err))
 	}
 
 	clusterConf := &retry.StateChangeConf{

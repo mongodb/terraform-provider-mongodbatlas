@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package privatelinkendpointserviceserverless_test
 
 import (
 	"context"
@@ -97,7 +97,7 @@ func testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(orgID, projectName, 
 	}
 
 	%s
-	`, testAccMongoDBAtlasServerlessInstanceConfig(orgID, projectName, instanceName, ignoreConnectionStrings))
+	`, acc.ConfigServerlessInstanceBasic(orgID, projectName, instanceName, ignoreConnectionStrings))
 }
 
 func testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessExists(resourceName string) resource.TestCheckFunc {

@@ -1,4 +1,4 @@
-package mongodbatlas
+package privatelinkendpointserviceserverless
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourcePrivateLinkEndpointsServiceServerless() *schema.Resource {
+func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasPrivateLinkEndpointsServiceServerlessRead,
 		Schema: map[string]*schema.Schema{

@@ -111,34 +111,34 @@ func dataSourceMongoDBAtlasPrivateEndpointServiceLinkRead(ctx context.Context, d
 
 	serviceEndpoint, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(ctx, projectID, providerName, privateLinkID, endpointServiceID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(ErrorServiceEndpointRead, endpointServiceID, err))
 	}
 
 	if err := d.Set("delete_requested", cast.ToBool(serviceEndpoint.DeleteRequested)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "delete_requested", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "delete_requested", endpointServiceID, err))
 	}
 
 	if err := d.Set("error_message", serviceEndpoint.ErrorMessage); err != nil {
-		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "error_message", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "error_message", endpointServiceID, err))
 	}
 
 	if err := d.Set("aws_connection_status", serviceEndpoint.AWSConnectionStatus); err != nil {
-		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "aws_connection_status", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "aws_connection_status", endpointServiceID, err))
 	}
 
 	if strings.EqualFold(providerName, "azure") {
 		if err := d.Set("azure_status", serviceEndpoint.Status); err != nil {
-			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "azure_status", endpointServiceID, err))
+			return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "azure_status", endpointServiceID, err))
 		}
 	}
 
 	if err := d.Set("endpoints", flattenGCPEndpoints(serviceEndpoint.Endpoints)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "endpoints", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "endpoints", endpointServiceID, err))
 	}
 
 	if strings.EqualFold(providerName, "gcp") {
 		if err := d.Set("gcp_status", serviceEndpoint.Status); err != nil {
-			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_status", endpointServiceID, err))
+			return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "gcp_status", endpointServiceID, err))
 		}
 	}
 
