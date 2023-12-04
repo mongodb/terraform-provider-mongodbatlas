@@ -15,6 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/accesslistapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/apikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/backupcompliancepolicy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupschedule"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshot"
@@ -118,8 +119,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_advanced_clusters":                 advancedcluster.PluralDataSource(),
 		"mongodbatlas_custom_db_role":                    mongodbatlas.DataSourceCustomDBRole(),
 		"mongodbatlas_custom_db_roles":                   mongodbatlas.DataSourceCustomDBRoles(),
-		"mongodbatlas_api_key":                           mongodbatlas.DataSourceAPIKey(),
-		"mongodbatlas_api_keys":                          mongodbatlas.DataSourceAPIKeys(),
+		"mongodbatlas_api_key":                           apikey.DataSource(),
+		"mongodbatlas_api_keys":                          apikey.PluralDataSource(),
 		"mongodbatlas_access_list_api_key":               accesslistapikey.DataSource(),
 		"mongodbatlas_access_list_api_keys":              accesslistapikey.PluralDataSource(),
 		"mongodbatlas_project_api_key":                   projectapikey.DataSource(),
@@ -200,7 +201,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 func getResourcesMap() map[string]*schema.Resource {
 	resourcesMap := map[string]*schema.Resource{
 		"mongodbatlas_advanced_cluster":                  advancedcluster.Resource(),
-		"mongodbatlas_api_key":                           mongodbatlas.ResourceAPIKey(),
+		"mongodbatlas_api_key":                           apikey.Resource(),
 		"mongodbatlas_access_list_api_key":               accesslistapikey.Resource(),
 		"mongodbatlas_project_api_key":                   projectapikey.Resource(),
 		"mongodbatlas_custom_db_role":                    mongodbatlas.ResourceCustomDBRole(),

@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package apikey_test
 
 import (
 	"context"

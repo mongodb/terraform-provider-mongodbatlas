@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package apikey_test
 
 import (
 	"fmt"
@@ -10,9 +10,9 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccConfigDSAPIKey_basic(t *testing.T) {
+func TestAccConfigDSAPIKeys_basic(t *testing.T) {
 	resourceName := "mongodbatlas_api_key.test"
-	dataSourceName := "data.mongodbatlas_api_key.test"
+	dataSourceName := "data.mongodbatlas_api_keys.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	description := fmt.Sprintf("test-acc-api_key-%s", acctest.RandString(5))
 	roleName := "ORG_MEMBER"
@@ -23,34 +23,35 @@ func TestAccConfigDSAPIKey_basic(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDSMongoDBAtlasAPIKeyConfig(orgID, description, roleName),
+				Config: testAccDSMongoDBAtlasAPIKeysConfig(orgID, description, roleName),
 				Check: resource.ComposeTestCheckFunc(
 					// Test for Resource
 					testAccCheckMongoDBAtlasAPIKeyExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
+
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
+
 					// Test for Data source
 					resource.TestCheckResourceAttrSet(dataSourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "results.#"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDSMongoDBAtlasAPIKeyConfig(orgID, apiKeyID, roleNames string) string {
+func testAccDSMongoDBAtlasAPIKeysConfig(orgID, description, roleNames string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_api_key" "test" {
 		  org_id = "%s"
 		  description  = "%s"
-		  role_names  = ["%s"]	
+		  role_names  = ["%s"]
 		}
 
-		data "mongodbatlas_api_key" "test" {
-		  org_id      = "${mongodbatlas_api_key.test.org_id}"
-		  api_key_id  = "${mongodbatlas_api_key.test.api_key_id}"
+		data "mongodbatlas_api_keys" "test" {
+		  org_id = "${mongodbatlas_api_key.test.org_id}"
 		}
-	`, orgID, apiKeyID, roleNames)
+	`, orgID, description, roleNames)
 }

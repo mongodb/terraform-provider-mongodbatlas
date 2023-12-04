@@ -1,4 +1,4 @@
-package mongodbatlas
+package apikey
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourceAPIKeys() *schema.Resource {
+func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasAPIKeysRead,
 		Schema: map[string]*schema.Schema{
