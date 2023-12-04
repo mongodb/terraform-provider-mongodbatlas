@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package teams_test
 
 import (
 	"context"

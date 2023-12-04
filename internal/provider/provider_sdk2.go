@@ -35,6 +35,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkcontainer"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkpeering"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teams"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 	"github.com/mwielbut/pointy"
 )
@@ -139,8 +140,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_network_peerings":                  networkpeering.PluralDataSource(),
 		"mongodbatlas_maintenance_window":                maintenancewindow.DataSource(),
 		"mongodbatlas_auditing":                          auditing.DataSource(),
-		"mongodbatlas_team":                              mongodbatlas.DataSourceTeam(),
-		"mongodbatlas_teams":                             mongodbatlas.DataSourceTeam(),
+		"mongodbatlas_team":                              teams.DataSource(),
+		"mongodbatlas_teams":                             teams.DataSource(),
 		"mongodbatlas_global_cluster_config":             mongodbatlas.DataSourceGlobalCluster(),
 		"mongodbatlas_x509_authentication_database_user": mongodbatlas.DataSourceX509AuthDBUser(),
 		"mongodbatlas_private_endpoint_regional_mode":    mongodbatlas.DataSourcePrivateEndpointRegionalMode(),
@@ -215,8 +216,8 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_network_peering":                   networkpeering.Resource(),
 		"mongodbatlas_maintenance_window":                maintenancewindow.Resource(),
 		"mongodbatlas_auditing":                          auditing.Resource(),
-		"mongodbatlas_team":                              mongodbatlas.ResourceTeam(),
-		"mongodbatlas_teams":                             mongodbatlas.ResourceTeam(),
+		"mongodbatlas_team":                              teams.Resource(),
+		"mongodbatlas_teams":                             teams.Resource(),
 		"mongodbatlas_global_cluster_config":             mongodbatlas.ResourceGlobalCluster(),
 		"mongodbatlas_x509_authentication_database_user": mongodbatlas.ResourceX509AuthDBUser(),
 		"mongodbatlas_private_endpoint_regional_mode":    mongodbatlas.ResourcePrivateEndpointRegionalMode(),

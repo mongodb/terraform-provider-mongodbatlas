@@ -1,4 +1,4 @@
-package mongodbatlas
+package teams
 
 import (
 	"context"
@@ -27,7 +27,7 @@ const (
 	errorTeamSetting  = "error setting `%s` for Team (%s): %s"
 )
 
-func ResourceTeam() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasTeamCreate,
 		ReadContext:   resourceMongoDBAtlasTeamRead,
@@ -69,7 +69,7 @@ func resourceMongoDBAtlasTeamCreate(ctx context.Context, d *schema.ResourceData,
 	teamsResp, _, err := conn.Teams.Create(ctx, orgID,
 		&matlas.Team{
 			Name:      d.Get("name").(string),
-			Usernames: expandStringListFromSetSchema(d.Get("usernames").(*schema.Set)),
+			Usernames: ExpandStringListFromSetSchema(d.Get("usernames").(*schema.Set)),
 		})
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamCreate, err))
@@ -281,7 +281,7 @@ func resourceMongoDBAtlasTeamImportState(ctx context.Context, d *schema.Resource
 	return []*schema.ResourceData{d}, nil
 }
 
-func expandStringListFromSetSchema(list *schema.Set) []string {
+func ExpandStringListFromSetSchema(list *schema.Set) []string {
 	res := make([]string, list.Len())
 	for i, v := range list.List() {
 		res[i] = v.(string)
