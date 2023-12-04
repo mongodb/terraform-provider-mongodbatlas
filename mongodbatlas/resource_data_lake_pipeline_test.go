@@ -26,7 +26,7 @@ func TestAccClusterRSDataLakePipeline_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataLakePipelineConfig(projectID, clusterName, name),

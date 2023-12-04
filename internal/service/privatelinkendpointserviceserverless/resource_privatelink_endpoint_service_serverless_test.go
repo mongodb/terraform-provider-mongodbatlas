@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package privatelinkendpointserviceserverless_test
 
 import (
 	"context"
@@ -57,7 +57,7 @@ func TestAccServerlessPrivateLinkEndpointService_importBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceServerlessConfig(orgID, projectName, instanceName, commentOrigin),

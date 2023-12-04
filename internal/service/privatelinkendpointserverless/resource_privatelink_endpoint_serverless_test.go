@@ -1,4 +1,4 @@
-package privatelinkendpointserviceserverless_test
+package privatelinkendpointserverless_test
 
 import (
 	"context"

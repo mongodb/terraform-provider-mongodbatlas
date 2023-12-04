@@ -31,7 +31,7 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckSearchIndex(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccSearchIndexConfigBasic(projectID, indexName, databaseName, clusterNameStr, clusterTerraformStr, false),
@@ -71,7 +71,7 @@ func TestAccSearchIndexRS_withSearchType(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckSearchIndex(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccSearchIndexConfigBasic(projectID, indexName, databaseName, clusterNameStr, clusterTerraformStr, true),
@@ -111,7 +111,7 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckSearchIndex(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccSearchIndexConfigMapping(projectID, indexName, databaseName, clusterNameStr, clusterTerraformStr),
@@ -156,7 +156,7 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckSearchIndex(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccSearchIndexConfigSynonyms(projectID, indexName, databaseName, clusterNameStr, clusterTerraformStr),
@@ -205,7 +205,7 @@ func TestAccSearchIndexRS_importBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckSearchIndex(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccSearchIndexConfigBasic(projectID, indexName, databaseName, clusterNameStr, clusterTerraformStr, false),
@@ -245,7 +245,7 @@ func TestAccSearchIndexRS_withVector(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckSearchIndex(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccSearchIndexConfigVector(projectID, indexName, databaseName, clusterNameStr, clusterTerraformStr),
@@ -453,28 +453,6 @@ func testAccSearchIndexConfigVector(projectID, indexName, databaseName, clusterN
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
 	`, clusterNameStr, projectID, indexName, databaseName, collectionName)
-}
-
-func testAccCheckMongoDBAtlasSearchIndexDestroy(state *terraform.State) error {
-	if os.Getenv("MONGODB_ATLAS_CLUSTER_NAME") != "" {
-		return nil
-	}
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
-	for _, rs := range state.RootModule().Resources {
-		if rs.Type != "mongodbatlas_search_index" {
-			continue
-		}
-
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		searchIndex, _, err := conn.Search.GetIndex(context.Background(), ids["project_id"], ids["cluster_name"], ids["index_id"])
-		if err == nil && searchIndex != nil {
-			return fmt.Errorf("index id (%s) still exists", ids["index_id"])
-		}
-	}
-
-	return nil
 }
 
 func testAccCheckMongoDBAtlasSearchIndexImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {

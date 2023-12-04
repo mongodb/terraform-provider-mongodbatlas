@@ -1,4 +1,4 @@
-package mongodbatlas
+package privatelinkendpointserviceserverless
 
 import (
 	"context"
@@ -20,9 +20,10 @@ import (
 const (
 	ErrorServerlessServiceEndpointAdd    = "error adding MongoDB Serverless PrivateLink Endpoint Connection(%s): %s"
 	errorServerlessServiceEndpointDelete = "error deleting MongoDB Serverless PrivateLink Endpoint Connection(%s): %s"
+	errorServerlessInstanceListStatus    = "error awaiting serverless instance list status IDLE: %s"
 )
 
-func ResourcePrivateLinkEndpointServiceServerless() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateWithoutTimeout: resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate,
 		ReadWithoutTimeout:   resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessRead,
@@ -294,5 +295,35 @@ func resourceServiceEndpointServerlessRefreshFunc(ctx context.Context, client *m
 		}
 
 		return i, i.Status, nil
+	}
+}
+
+func resourceServerlessInstanceListRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) retry.StateRefreshFunc {
+	return func() (any, string, error) {
+		c, resp, err := client.ServerlessInstances.List(ctx, projectID, nil)
+
+		if err != nil && strings.Contains(err.Error(), "reset by peer") {
+			return nil, "REPEATING", nil
+		}
+
+		if err != nil && c == nil && resp == nil {
+			return nil, "", err
+		} else if err != nil {
+			if resp.StatusCode == 404 {
+				return "", "DELETED", nil
+			}
+			if resp.StatusCode == 503 {
+				return "", "PENDING", nil
+			}
+			return nil, "", err
+		}
+
+		for i := range c.Results {
+			if c.Results[i].StateName != "IDLE" {
+				return c.Results[i], "PENDING", nil
+			}
+		}
+
+		return c, "IDLE", nil
 	}
 }

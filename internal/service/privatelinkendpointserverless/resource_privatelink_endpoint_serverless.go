@@ -1,4 +1,4 @@
-package privatelinkendpointserviceserverless
+package privatelinkendpointserverless
 
 import (
 	"context"
@@ -17,7 +17,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpoint"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointserviceserverless"
 )
 
 const (
@@ -86,7 +86,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessCreate(ctx context.Context
 
 	endPoint, _, err := conn.ServerlessPrivateEndpoints.Create(ctx, projectID, instanceName, privateLinkRequest)
 	if err != nil {
-		return diag.Errorf(mongodbatlas.ErrorServerlessServiceEndpointAdd, privateLinkRequest.CloudProviderEndpointID, err)
+		return diag.Errorf(privatelinkendpointserviceserverless.ErrorServerlessServiceEndpointAdd, privateLinkRequest.CloudProviderEndpointID, err)
 	}
 
 	stateConf := &retry.StateChangeConf{

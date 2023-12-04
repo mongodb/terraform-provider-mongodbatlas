@@ -37,6 +37,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkpeering"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privateendpointregionalmode"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpoint"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointserverless"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointservice"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointservicedatafederationonlinearchive"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointserviceserverless"
@@ -230,9 +231,9 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_private_endpoint_regional_mode":    privateendpointregionalmode.Resource(),
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive": privatelinkendpointservicedatafederationonlinearchive.Resource(),
 		"mongodbatlas_privatelink_endpoint":                                        privatelinkendpoint.Resource(),
-		"mongodbatlas_privatelink_endpoint_serverless":                             privatelinkendpointserviceserverless.Resource(),
+		"mongodbatlas_privatelink_endpoint_serverless":                             privatelinkendpointserverless.Resource(),
 		"mongodbatlas_privatelink_endpoint_service":                                privatelinkendpointservice.Resource(),
-		"mongodbatlas_privatelink_endpoint_service_serverless":                     mongodbatlas.ResourcePrivateLinkEndpointServiceServerless(),
+		"mongodbatlas_privatelink_endpoint_service_serverless":                     privatelinkendpointserviceserverless.Resource(),
 		"mongodbatlas_third_party_integration":                                     mongodbatlas.ResourceThirdPartyIntegration(),
 		"mongodbatlas_online_archive":                                              mongodbatlas.ResourceOnlineArchive(),
 		"mongodbatlas_custom_dns_configuration_cluster_aws":                        mongodbatlas.ResourceCustomDNSConfiguration(),
