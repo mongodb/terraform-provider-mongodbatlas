@@ -30,6 +30,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsidentityprovider"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsorgconfig"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsorgrolemapping"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/maintenancewindow"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkcontainer"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkpeering"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey"
@@ -135,7 +136,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_network_containers":                networkcontainer.PluralDataSource(),
 		"mongodbatlas_network_peering":                   networkpeering.DataSource(),
 		"mongodbatlas_network_peerings":                  networkpeering.PluralDataSource(),
-		"mongodbatlas_maintenance_window":                mongodbatlas.DataSourceMaintenanceWindow(),
+		"mongodbatlas_maintenance_window":                maintenancewindow.DataSource(),
 		"mongodbatlas_auditing":                          mongodbatlas.DataSourceAuditing(),
 		"mongodbatlas_team":                              mongodbatlas.DataSourceTeam(),
 		"mongodbatlas_teams":                             mongodbatlas.DataSourceTeam(),
@@ -211,7 +212,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_cluster":                           cluster.Resource(),
 		"mongodbatlas_network_container":                 networkcontainer.Resource(),
 		"mongodbatlas_network_peering":                   networkpeering.Resource(),
-		"mongodbatlas_maintenance_window":                mongodbatlas.ResourceMaintenanceWindow(),
+		"mongodbatlas_maintenance_window":                maintenancewindow.Resource(),
 		"mongodbatlas_auditing":                          mongodbatlas.ResourceAuditing(),
 		"mongodbatlas_team":                              mongodbatlas.ResourceTeam(),
 		"mongodbatlas_teams":                             mongodbatlas.ResourceTeam(),

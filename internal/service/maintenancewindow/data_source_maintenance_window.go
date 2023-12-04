@@ -1,4 +1,4 @@
-package mongodbatlas
+package maintenancewindow
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-func DataSourceMaintenanceWindow() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasMaintenanceWindowRead,
 		Schema: map[string]*schema.Schema{

@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package maintenancewindow_test
 
 import (
 	"context"
