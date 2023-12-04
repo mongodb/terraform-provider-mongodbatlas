@@ -1,4 +1,4 @@
-package mongodbatlas
+package auditing
 
 import (
 	"context"
@@ -18,7 +18,7 @@ const (
 	errorAuditingRead   = "error reading MongoDB Auditing (%s): %s"
 )
 
-func ResourceAuditing() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasAuditingCreate,
 		ReadContext:   resourceMongoDBAtlasAuditingRead,

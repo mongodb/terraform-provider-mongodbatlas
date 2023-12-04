@@ -16,6 +16,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/accesslistapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/apikey"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/auditing"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/backupcompliancepolicy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupschedule"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshot"
@@ -137,7 +138,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_network_peering":                   networkpeering.DataSource(),
 		"mongodbatlas_network_peerings":                  networkpeering.PluralDataSource(),
 		"mongodbatlas_maintenance_window":                maintenancewindow.DataSource(),
-		"mongodbatlas_auditing":                          mongodbatlas.DataSourceAuditing(),
+		"mongodbatlas_auditing":                          auditing.DataSource(),
 		"mongodbatlas_team":                              mongodbatlas.DataSourceTeam(),
 		"mongodbatlas_teams":                             mongodbatlas.DataSourceTeam(),
 		"mongodbatlas_global_cluster_config":             mongodbatlas.DataSourceGlobalCluster(),
@@ -213,7 +214,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_network_container":                 networkcontainer.Resource(),
 		"mongodbatlas_network_peering":                   networkpeering.Resource(),
 		"mongodbatlas_maintenance_window":                maintenancewindow.Resource(),
-		"mongodbatlas_auditing":                          mongodbatlas.ResourceAuditing(),
+		"mongodbatlas_auditing":                          auditing.Resource(),
 		"mongodbatlas_team":                              mongodbatlas.ResourceTeam(),
 		"mongodbatlas_teams":                             mongodbatlas.ResourceTeam(),
 		"mongodbatlas_global_cluster_config":             mongodbatlas.ResourceGlobalCluster(),

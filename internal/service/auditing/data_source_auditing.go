@@ -1,4 +1,4 @@
-package mongodbatlas
+package auditing
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceAuditing() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasAuditingRead,
 		Schema: map[string]*schema.Schema{

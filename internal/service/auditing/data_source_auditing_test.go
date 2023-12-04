@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package auditing_test
 
 import (
 	"fmt"
