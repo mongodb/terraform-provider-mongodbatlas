@@ -20,7 +20,13 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotexportbucket"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotexportjob"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotrestorejob"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudprovideraccess"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federateddatabaseinstance"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedquerylimit"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsidentityprovider"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsorgconfig"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsorgrolemapping"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 	"github.com/mwielbut/pointy"
@@ -139,8 +145,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_privatelink_endpoints_service_serverless":                     mongodbatlas.DataSourcePrivateLinkEndpointsServiceServerless(),
 		"mongodbatlas_third_party_integration":                                      mongodbatlas.DataSourceThirdPartyIntegration(),
 		"mongodbatlas_third_party_integrations":                                     mongodbatlas.DataSourceThirdPartyIntegrations(),
-		"mongodbatlas_cloud_provider_access":                                        mongodbatlas.DataSourceCloudProviderAccessList(),
-		"mongodbatlas_cloud_provider_access_setup":                                  mongodbatlas.DataSourceCloudProviderAccessSetup(),
+		"mongodbatlas_cloud_provider_access":                                        cloudprovideraccess.DataSource(),
+		"mongodbatlas_cloud_provider_access_setup":                                  cloudprovideraccess.DataSourceSetup(),
 		"mongodbatlas_custom_dns_configuration_cluster_aws":                         mongodbatlas.DataSourceCustomDNSConfigurationAWS(),
 		"mongodbatlas_online_archive":                                               mongodbatlas.DataSourceOnlineArchive(),
 		"mongodbatlas_online_archives":                                              mongodbatlas.DataSourceOnlineArchives(),
@@ -168,17 +174,17 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_cloud_backup_snapshot_export_jobs":                            cloudbackupsnapshotexportjob.PluralDataSource(),
 		"mongodbatlas_cloud_backup_snapshot_restore_job":                            cloudbackupsnapshotrestorejob.DataSource(),
 		"mongodbatlas_cloud_backup_snapshot_restore_jobs":                           cloudbackupsnapshotrestorejob.PluralDataSource(),
-		"mongodbatlas_federated_settings":                                           mongodbatlas.DataSourceFederatedSettings(),
-		"mongodbatlas_federated_settings_identity_provider":                         mongodbatlas.DataSourceFederatedSettingsIdentityProvider(),
-		"mongodbatlas_federated_settings_identity_providers":                        mongodbatlas.DataSourceFederatedSettingsIdentityProviders(),
-		"mongodbatlas_federated_settings_org_config":                                mongodbatlas.DataSourceFederatedSettingsOrganizationConfig(),
-		"mongodbatlas_federated_settings_org_configs":                               mongodbatlas.DataSourceFederatedSettingsOrganizationConfigs(),
-		"mongodbatlas_federated_settings_org_role_mapping":                          mongodbatlas.DataSourceFederatedSettingsOrganizationRoleMapping(),
-		"mongodbatlas_federated_settings_org_role_mappings":                         mongodbatlas.DataSourceFederatedSettingsOrganizationRoleMappings(),
-		"mongodbatlas_federated_database_instance":                                  mongodbatlas.DataSourceFederatedDatabaseInstance(),
-		"mongodbatlas_federated_database_instances":                                 mongodbatlas.DataSourceFederatedDatabaseInstances(),
-		"mongodbatlas_federated_query_limit":                                        mongodbatlas.DataSourceFederatedDatabaseQueryLimit(),
-		"mongodbatlas_federated_query_limits":                                       mongodbatlas.DataSourceFederatedDatabaseQueryLimits(),
+		"mongodbatlas_federated_settings_identity_provider":                         federatedsettingsidentityprovider.DataSource(),
+		"mongodbatlas_federated_settings_identity_providers":                        federatedsettingsidentityprovider.PluralDataSource(),
+		"mongodbatlas_federated_settings":                                           federatedsettingsorgconfig.DataSourceSettings(),
+		"mongodbatlas_federated_settings_org_config":                                federatedsettingsorgconfig.DataSource(),
+		"mongodbatlas_federated_settings_org_configs":                               federatedsettingsorgconfig.PluralDataSource(),
+		"mongodbatlas_federated_settings_org_role_mapping":                          federatedsettingsorgrolemapping.DataSource(),
+		"mongodbatlas_federated_settings_org_role_mappings":                         federatedsettingsorgrolemapping.PluralDataSource(),
+		"mongodbatlas_federated_database_instance":                                  federateddatabaseinstance.DataSource(),
+		"mongodbatlas_federated_database_instances":                                 federateddatabaseinstance.PluralDataSource(),
+		"mongodbatlas_federated_query_limit":                                        federatedquerylimit.DataSource(),
+		"mongodbatlas_federated_query_limits":                                       federatedquerylimit.PluralDataSource(),
 		"mongodbatlas_serverless_instance":                                          mongodbatlas.DataSourceServerlessInstance(),
 		"mongodbatlas_serverless_instances":                                         mongodbatlas.DataSourceServerlessInstances(),
 		"mongodbatlas_cluster_outage_simulation":                                    mongodbatlas.DataSourceClusterOutageSimulation(),
@@ -213,13 +219,13 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_privatelink_endpoint_service":                                mongodbatlas.ResourcePrivateEndpointServiceLink(),
 		"mongodbatlas_privatelink_endpoint_service_serverless":                     mongodbatlas.ResourcePrivateLinkEndpointServiceServerless(),
 		"mongodbatlas_third_party_integration":                                     mongodbatlas.ResourceThirdPartyIntegration(),
-		"mongodbatlas_cloud_provider_access":                                       mongodbatlas.ResourceCloudProviderAccess(),
 		"mongodbatlas_online_archive":                                              mongodbatlas.ResourceOnlineArchive(),
 		"mongodbatlas_custom_dns_configuration_cluster_aws":                        mongodbatlas.ResourceCustomDNSConfiguration(),
 		"mongodbatlas_ldap_configuration":                                          mongodbatlas.ResourceLDAPConfiguration(),
 		"mongodbatlas_ldap_verify":                                                 mongodbatlas.ResourceLDAPVerify(),
-		"mongodbatlas_cloud_provider_access_setup":                                 mongodbatlas.ResourceCloudProviderAccessSetup(),
-		"mongodbatlas_cloud_provider_access_authorization":                         mongodbatlas.ResourceCloudProviderAccessAuthorization(),
+		"mongodbatlas_cloud_provider_access":                                       cloudprovideraccess.Resource(),
+		"mongodbatlas_cloud_provider_access_setup":                                 cloudprovideraccess.ResourceSetup(),
+		"mongodbatlas_cloud_provider_access_authorization":                         cloudprovideraccess.ResourceAuthorization(),
 		"mongodbatlas_search_index":                                                mongodbatlas.ResourceSearchIndex(),
 		"mongodbatlas_data_lake_pipeline":                                          mongodbatlas.ResourceDataLakePipeline(),
 		"mongodbatlas_event_trigger":                                               mongodbatlas.ResourceEventTriggers(),
@@ -232,11 +238,11 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_cloud_backup_snapshot_export_bucket":                         cloudbackupsnapshotexportbucket.Resource(),
 		"mongodbatlas_cloud_backup_snapshot_export_job":                            cloudbackupsnapshotexportjob.Resource(),
 		"mongodbatlas_cloud_backup_snapshot_restore_job":                           cloudbackupsnapshotrestorejob.Resource(),
-		"mongodbatlas_federated_settings_org_config":                               mongodbatlas.ResourceFederatedSettingsOrganizationConfig(),
-		"mongodbatlas_federated_settings_org_role_mapping":                         mongodbatlas.ResourceFederatedSettingsOrganizationRoleMapping(),
-		"mongodbatlas_federated_settings_identity_provider":                        mongodbatlas.ResourceFederatedSettingsIdentityProvider(),
-		"mongodbatlas_federated_database_instance":                                 mongodbatlas.ResourceFederatedDatabaseInstance(),
-		"mongodbatlas_federated_query_limit":                                       mongodbatlas.ResourceFederatedDatabaseQueryLimit(),
+		"mongodbatlas_federated_settings_org_config":                               federatedsettingsorgconfig.Resource(),
+		"mongodbatlas_federated_settings_org_role_mapping":                         federatedsettingsorgrolemapping.Resource(),
+		"mongodbatlas_federated_settings_identity_provider":                        federatedsettingsidentityprovider.Resource(),
+		"mongodbatlas_federated_database_instance":                                 federateddatabaseinstance.Resource(),
+		"mongodbatlas_federated_query_limit":                                       federatedquerylimit.Resource(),
 		"mongodbatlas_serverless_instance":                                         mongodbatlas.ResourceServerlessInstance(),
 		"mongodbatlas_cluster_outage_simulation":                                   mongodbatlas.ResourceClusterOutageSimulation(),
 	}
