@@ -54,6 +54,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectinvitation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchindex"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serverlessinstance"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/sharedtier"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teams"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/thirdpartyintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/x509authenticationdatabaseuser"
@@ -217,10 +218,10 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_serverless_instance":                                          serverlessinstance.DataSource(),
 		"mongodbatlas_serverless_instances":                                         serverlessinstance.PluralDataSource(),
 		"mongodbatlas_cluster_outage_simulation":                                    clusteroutagesimulation.DataSource(),
-		"mongodbatlas_shared_tier_restore_job":                                      mongodbatlas.DataSourceCloudSharedTierRestoreJob(),
-		"mongodbatlas_shared_tier_restore_jobs":                                     mongodbatlas.DataSourceCloudSharedTierRestoreJobs(),
-		"mongodbatlas_shared_tier_snapshot":                                         mongodbatlas.DataSourceSharedTierSnapshot(),
-		"mongodbatlas_shared_tier_snapshots":                                        mongodbatlas.DataSourceSharedTierSnapshots(),
+		"mongodbatlas_shared_tier_restore_job":                                      sharedtier.DataSourceRestoreJob(),
+		"mongodbatlas_shared_tier_restore_jobs":                                     sharedtier.PluralDataSourceRestoreJob(),
+		"mongodbatlas_shared_tier_snapshot":                                         sharedtier.DataSourceSnapshot(),
+		"mongodbatlas_shared_tier_snapshots":                                        sharedtier.PluralDataSourceSnapshot(),
 	}
 	return dataSourcesMap
 }

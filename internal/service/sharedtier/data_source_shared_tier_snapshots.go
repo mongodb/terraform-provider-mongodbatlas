@@ -1,4 +1,4 @@
-package mongodbatlas
+package sharedtier
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 )
 
 // This datasource does not have a resource: we tested it manually
-func DataSourceSharedTierSnapshots() *schema.Resource {
+func PluralDataSourceSnapshot() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasSharedTierSnapshotsRead,
 		Schema: map[string]*schema.Schema{

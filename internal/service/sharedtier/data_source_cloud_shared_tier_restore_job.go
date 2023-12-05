@@ -1,4 +1,4 @@
-package mongodbatlas
+package sharedtier
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 // This datasource does not have a resource: we tested it manually
-func DataSourceCloudSharedTierRestoreJob() *schema.Resource {
+func DataSourceRestoreJob() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasCloudSharedTierRestoreJobsRead,
 		Schema: map[string]*schema.Schema{
