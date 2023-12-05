@@ -32,11 +32,13 @@ var (
 		GroupSettingsResponse: &admin.GroupSettings{},
 		Err:                   nil,
 	}
+	name             = types.StringValue("sameName")
+	diffName         = types.StringValue("diffName")
 	projectStateName = project.TfProjectRSModel{
-		Name: types.StringValue("sameName"),
+		Name: name,
 	}
 	projectStateNameDiff = project.TfProjectRSModel{
-		Name: types.StringValue("diffName"),
+		Name: diffName,
 	}
 )
 
@@ -251,11 +253,11 @@ func TestUpdateProjectLimits(t *testing.T) {
 		{
 			name: "Limits has not changed",
 			projectState: project.TfProjectRSModel{
-				Name:   types.StringValue("sameName"),
+				Name:   name,
 				Limits: singleLimitSet,
 			},
 			projectPlan: project.TfProjectRSModel{
-				Name:   types.StringValue("diffName"),
+				Name:   name,
 				Limits: singleLimitSet,
 			},
 			mockResponses: []ProjectResponse{},
@@ -264,11 +266,11 @@ func TestUpdateProjectLimits(t *testing.T) {
 		{
 			name: "Adding limits",
 			projectState: project.TfProjectRSModel{
-				Name:   types.StringValue("sameName"),
+				Name:   name,
 				Limits: singleLimitSet,
 			},
 			projectPlan: project.TfProjectRSModel{
-				Name:   types.StringValue("diffName"),
+				Name:   name,
 				Limits: twoLimitSet,
 			},
 			mockResponses: []ProjectResponse{
@@ -281,11 +283,11 @@ func TestUpdateProjectLimits(t *testing.T) {
 		{
 			name: "Removing limits",
 			projectState: project.TfProjectRSModel{
-				Name:   types.StringValue("sameName"),
+				Name:   name,
 				Limits: twoLimitSet,
 			},
 			projectPlan: project.TfProjectRSModel{
-				Name:   types.StringValue("diffName"),
+				Name:   name,
 				Limits: singleLimitSet,
 			},
 			mockResponses: []ProjectResponse{
@@ -298,11 +300,11 @@ func TestUpdateProjectLimits(t *testing.T) {
 		{
 			name: "Updating limits",
 			projectState: project.TfProjectRSModel{
-				Name:   types.StringValue("sameName"),
+				Name:   name,
 				Limits: singleLimitSet,
 			},
 			projectPlan: project.TfProjectRSModel{
-				Name:   types.StringValue("diffName"),
+				Name:   name,
 				Limits: updatedLimitSet,
 			},
 			mockResponses: []ProjectResponse{
@@ -356,11 +358,11 @@ func TestUpdateProjectTeams(t *testing.T) {
 		{
 			name: "Teams has not changed",
 			projectState: project.TfProjectRSModel{
-				Name:  types.StringValue("sameName"),
+				Name:  name,
 				Teams: singleTeamSet,
 			},
 			projectPlan: project.TfProjectRSModel{
-				Name:  types.StringValue("sameName"),
+				Name:  name,
 				Teams: singleTeamSet,
 			},
 			mockResponses: []ProjectResponse{},
@@ -369,11 +371,11 @@ func TestUpdateProjectTeams(t *testing.T) {
 		{
 			name: "Add teams",
 			projectState: project.TfProjectRSModel{
-				Name:  types.StringValue("sameName"),
+				Name:  name,
 				Teams: singleTeamSet,
 			},
 			projectPlan: project.TfProjectRSModel{
-				Name:  types.StringValue("sameName"),
+				Name:  name,
 				Teams: twoTeamSet,
 			},
 			mockResponses: []ProjectResponse{
@@ -389,11 +391,11 @@ func TestUpdateProjectTeams(t *testing.T) {
 		{
 			name: "Remove teams",
 			projectState: project.TfProjectRSModel{
-				Name:  types.StringValue("sameName"),
+				Name:  name,
 				Teams: twoTeamSet,
 			},
 			projectPlan: project.TfProjectRSModel{
-				Name:  types.StringValue("sameName"),
+				Name:  name,
 				Teams: singleTeamSet,
 			},
 			mockResponses: []ProjectResponse{
@@ -406,11 +408,11 @@ func TestUpdateProjectTeams(t *testing.T) {
 		{
 			name: "Update teams",
 			projectState: project.TfProjectRSModel{
-				Name:  types.StringValue("sameName"),
+				Name:  name,
 				Teams: singleTeamSet,
 			},
 			projectPlan: project.TfProjectRSModel{
-				Name:  types.StringValue("sameName"),
+				Name:  name,
 				Teams: updatedTeamSet,
 			},
 			mockResponses: []ProjectResponse{
