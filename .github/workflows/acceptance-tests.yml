@@ -55,9 +55,9 @@ jobs:
       with:
         filters: |
           assume_role:
-            - 'mongodbatlas/**provider**.go'
+            - 'internal/provider/*.go'
           cluster_outage_simulation:
-            - 'mongodbatlas/**cluster_outage_simulation**.go'
+            - 'internal/service/clusteroutagesimulation/*.go'
           advanced_cluster:
             - 'internal/service/advancedcluster/*.go'
           cluster:
@@ -67,9 +67,9 @@ jobs:
           generic:
             - 'internal/service/backupcompliancepolicy/*.go'
             - 'internal/service/auditing/*.go'
-            - 'mongodbatlas/resource_x509_authentication_database_user*.go'
+            - 'internal/service/x509authenticationdatabaseuser/*.go'
           backup_online_archive:
-            - 'mongodbatlas/**online_archive**.go'
+            - 'internal/service/onlinearchive/*.go'
           backup_snapshots:
             - 'internal/service/cloudbackupsnapshot/*.go'
             - 'internal/service/cloudbackupsnapshotexportbucket/*.go'
@@ -80,15 +80,18 @@ jobs:
             - 'internal/service/project/*.go'
             - 'internal/service/projectipaccesslist/*.go'
             - 'internal/service/accesslistapikey/*.go'
-            - 'mongodbatlas/data_source_project_invitation*.go'
-            - 'mongodbatlas/resource_project_invitation*.go'
+            - 'internal/service/projectinvitation/*.go'
           serverless:
-            - 'mongodbatlas/**_serverless**.go' 
+            - 'internal/service/serverlessinstance/*.go'
+            - 'internal/service/privatelinkendpointserverless/*.go'
+            - 'internal/service/privatelinkendpointserviceserverless/*.go'
           network:
             - 'internal/service/networkcontainer/*.go'
             - 'internal/service/networkpeering/*.go'
-            - 'mongodbatlas/**_privatelink**.go' 
-            - 'mongodbatlas/**_private_endpoint**.go'
+            - 'internal/service/privateendpointregionalmode/*.go'
+            - 'internal/service/privatelinkendpoint/*.go'
+            - 'internal/service/privatelinkendpointservice/*.go'
+            - 'internal/service/privatelinkendpointservicedatafederationonlinearchive/*.go'
           federation:
             - 'internal/service/federateddatabaseinstance/*.go'
           config:
@@ -101,20 +104,15 @@ jobs:
             - 'internal/service/cloudprovideraccess/*.go'
             - 'internal/service/customdbrole/*.go'
             - 'internal/service/maintenancewindow/*.go'
-            - 'mongodbatlas/data_source_custom_dns_configuration_cluster_aws*.go'
-            - 'mongodbatlas/data_source_org_id*.go'
-            - 'mongodbatlas/data_source_org_invitation*.go'
-            - 'mongodbatlas/data_source_organization*.go'
-            - 'mongodbatlas/data_source_third_party_integration*.go'
-            - 'mongodbatlas/resource_custom_dns_configuration_cluster_aws*.go'
-            - 'mongodbatlas/resource_org_invitation*.go'
-            - 'mongodbatlas/resource_organization*.go'
-            - 'mongodbatlas/resource_third_party_integration*.go'
+            - 'internal/service/customdnsconfigurationclusteraws/*.go'
+            - 'internal/service/rolesorgid/*.go'
+            - 'internal/service/orginvitation/*.go'
+            - 'internal/service/organization/*.go'
+            - 'internal/service/thirdpartyintegration/*.go'
           event_trigger:
-            - 'mongodbatlas/resource_event_trigger*.go'
-            - 'mongodbatlas/data_source_event_trigger*.go'
+            - 'internal/service/eventtrigger/*.go'
           search_index:
-            - 'mongodbatlas/resource_search_index*.go'
+            - 'internal/service/searchindex/*.go'
   
   cluster_outage_simulation:
     needs: [ change-detection ]
