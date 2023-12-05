@@ -46,6 +46,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointservicedatafederationonlinearchive"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointserviceserverless"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchindex"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teams"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/thirdpartyintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/x509authenticationdatabaseuser"
@@ -173,8 +174,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_online_archives":                                              onlinearchive.PluralDataSource(),
 		"mongodbatlas_ldap_configuration":                                           ldapconfiguration.DataSource(),
 		"mongodbatlas_ldap_verify":                                                  ldapverify.DataSource(),
-		"mongodbatlas_search_index":                                                 mongodbatlas.DataSourceSearchIndex(),
-		"mongodbatlas_search_indexes":                                               mongodbatlas.DataSourceSearchIndexes(),
+		"mongodbatlas_search_index":                                                 searchindex.DataSource(),
+		"mongodbatlas_search_indexes":                                               searchindex.PluralDataSource(),
 		"mongodbatlas_data_lake_pipeline_run":                                       mongodbatlas.DataSourceDataLakePipelineRun(),
 		"mongodbatlas_data_lake_pipeline_runs":                                      mongodbatlas.DataSourceDataLakePipelineRuns(),
 		"mongodbatlas_data_lake_pipeline":                                           mongodbatlas.DataSourceDataLakePipeline(),
@@ -247,7 +248,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_cloud_provider_access":                                       cloudprovideraccess.Resource(),
 		"mongodbatlas_cloud_provider_access_setup":                                 cloudprovideraccess.ResourceSetup(),
 		"mongodbatlas_cloud_provider_access_authorization":                         cloudprovideraccess.ResourceAuthorization(),
-		"mongodbatlas_search_index":                                                mongodbatlas.ResourceSearchIndex(),
+		"mongodbatlas_search_index":                                                searchindex.Resource(),
 		"mongodbatlas_data_lake_pipeline":                                          mongodbatlas.ResourceDataLakePipeline(),
 		"mongodbatlas_event_trigger":                                               mongodbatlas.ResourceEventTriggers(),
 		"mongodbatlas_project_invitation":                                          mongodbatlas.ResourceProjectInvitation(),

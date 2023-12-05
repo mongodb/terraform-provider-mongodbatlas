@@ -1,4 +1,4 @@
-package mongodbatlas
+package searchindex
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceSearchIndex() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasSearchIndexRead,
 		Schema:      returnSearchIndexDSSchema(),

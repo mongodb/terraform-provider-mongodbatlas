@@ -1,4 +1,4 @@
-package mongodbatlas
+package searchindex
 
 import (
 	"context"
@@ -22,7 +22,7 @@ const (
 	vectorSearch = "vectorSearch"
 )
 
-func ResourceSearchIndex() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateWithoutTimeout: resourceMongoDBAtlasSearchIndexCreate,
 		ReadContext:          resourceMongoDBAtlasSearchIndexRead,

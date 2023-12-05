@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package searchindex_test
 
 import (
 	"context"

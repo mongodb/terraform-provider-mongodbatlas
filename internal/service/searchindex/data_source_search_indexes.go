@@ -1,4 +1,4 @@
-package mongodbatlas
+package searchindex
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
-func DataSourceSearchIndexes() *schema.Resource {
+func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasSearchIndexesRead,
 		Schema: map[string]*schema.Schema{
