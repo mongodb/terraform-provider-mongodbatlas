@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/datalakepipeline"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -60,7 +60,7 @@ func dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive
 	}
 
 	if err := d.Set("results", flattenPrivateLinkEndpointDataLakeResponse(privateEndpoints.Results)); err != nil {
-		return diag.FromErr(fmt.Errorf(mongodbatlas.ErrorDataLakeSetting, "results", projectID, err))
+		return diag.FromErr(fmt.Errorf(datalakepipeline.ErrorDataLakeSetting, "results", projectID, err))
 	}
 
 	d.SetId(id.UniqueId())

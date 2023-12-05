@@ -27,6 +27,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdbrole"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdnsconfigurationclusteraws"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/datalakepipeline"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federateddatabaseinstance"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedquerylimit"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsidentityprovider"
@@ -176,10 +177,10 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_ldap_verify":                                                  ldapverify.DataSource(),
 		"mongodbatlas_search_index":                                                 searchindex.DataSource(),
 		"mongodbatlas_search_indexes":                                               searchindex.PluralDataSource(),
-		"mongodbatlas_data_lake_pipeline_run":                                       mongodbatlas.DataSourceDataLakePipelineRun(),
-		"mongodbatlas_data_lake_pipeline_runs":                                      mongodbatlas.DataSourceDataLakePipelineRuns(),
-		"mongodbatlas_data_lake_pipeline":                                           mongodbatlas.DataSourceDataLakePipeline(),
-		"mongodbatlas_data_lake_pipelines":                                          mongodbatlas.DataSourceDataLakePipelines(),
+		"mongodbatlas_data_lake_pipeline_run":                                       datalakepipeline.DataSourceRun(),
+		"mongodbatlas_data_lake_pipeline_runs":                                      datalakepipeline.PluralDataSourceRun(),
+		"mongodbatlas_data_lake_pipeline":                                           datalakepipeline.DataSource(),
+		"mongodbatlas_data_lake_pipelines":                                          datalakepipeline.PluralDataSource(),
 		"mongodbatlas_event_trigger":                                                mongodbatlas.DataSourceEventTrigger(),
 		"mongodbatlas_event_triggers":                                               mongodbatlas.DataSourceEventTriggers(),
 		"mongodbatlas_project_invitation":                                           mongodbatlas.DataSourceProjectInvitation(),
@@ -249,7 +250,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_cloud_provider_access_setup":                                 cloudprovideraccess.ResourceSetup(),
 		"mongodbatlas_cloud_provider_access_authorization":                         cloudprovideraccess.ResourceAuthorization(),
 		"mongodbatlas_search_index":                                                searchindex.Resource(),
-		"mongodbatlas_data_lake_pipeline":                                          mongodbatlas.ResourceDataLakePipeline(),
+		"mongodbatlas_data_lake_pipeline":                                          datalakepipeline.Resource(),
 		"mongodbatlas_event_trigger":                                               mongodbatlas.ResourceEventTriggers(),
 		"mongodbatlas_project_invitation":                                          mongodbatlas.ResourceProjectInvitation(),
 		"mongodbatlas_org_invitation":                                              mongodbatlas.ResourceOrgInvitation(),

@@ -1,4 +1,4 @@
-package mongodbatlas
+package datalakepipeline
 
 import (
 	"context"
@@ -25,7 +25,7 @@ const (
 	ErrorDataLakeSetting             = "error setting `%s` for MongoDB Atlas DataLake (%s): %s"
 )
 
-func ResourceDataLakePipeline() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasDataLakePipelineCreate,
 		ReadContext:   resourceMongoDBAtlasDataLakePipelineRead,
