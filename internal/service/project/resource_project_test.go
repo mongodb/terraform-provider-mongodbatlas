@@ -258,11 +258,7 @@ func TestUpdateProjectLimits(t *testing.T) {
 				Name:   types.StringValue("diffName"),
 				Limits: singleLimitSet,
 			},
-			mockResponses: []ProjectResponse{
-				{
-					Err: nil,
-				},
-			},
+			mockResponses: []ProjectResponse{},
 			expectedError: false,
 		},
 		{
@@ -324,6 +320,117 @@ func TestUpdateProjectLimits(t *testing.T) {
 				MockResponses: tc.mockResponses,
 			}
 			err := project.UpdateProjectLimits(context.Background(), &mockService, &testCases[i].projectState, &testCases[i].projectPlan)
+
+			if (err != nil) != tc.expectedError {
+				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
+			}
+		})
+	}
+}
+
+func TestUpdateProjectTeams(t *testing.T) {
+	teamRoles, _ := types.SetValueFrom(context.Background(), types.StringType, []string{"BASIC_PERMISSION"})
+	teamOne := project.TfTeamModel{
+		TeamID:    types.StringValue("team1"),
+		RoleNames: teamRoles,
+	}
+	teamTwo := project.TfTeamModel{
+		TeamID: types.StringValue("team2"),
+	}
+	teamRolesUpdated, _ := types.SetValueFrom(context.Background(), types.StringType, []string{"ADMIN_PERMISSION"})
+	updatedTeam := project.TfTeamModel{
+		TeamID:    types.StringValue("team1"),
+		RoleNames: teamRolesUpdated,
+	}
+	singleTeamSet, _ := types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TfTeamModel{teamOne})
+	twoTeamSet, _ := types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TfTeamModel{teamOne, teamTwo})
+	updatedTeamSet, _ := types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TfTeamModel{updatedTeam})
+
+	testCases := []struct {
+		name          string
+		mockResponses []ProjectResponse
+		projectState  project.TfProjectRSModel
+		projectPlan   project.TfProjectRSModel
+		expectedError bool
+	}{
+		{
+			name: "Teams has not changed",
+			projectState: project.TfProjectRSModel{
+				Name:  types.StringValue("sameName"),
+				Teams: singleTeamSet,
+			},
+			projectPlan: project.TfProjectRSModel{
+				Name:  types.StringValue("sameName"),
+				Teams: singleTeamSet,
+			},
+			mockResponses: []ProjectResponse{},
+			expectedError: false,
+		},
+		{
+			name: "Add teams",
+			projectState: project.TfProjectRSModel{
+				Name:  types.StringValue("sameName"),
+				Teams: singleTeamSet,
+			},
+			projectPlan: project.TfProjectRSModel{
+				Name:  types.StringValue("sameName"),
+				Teams: twoTeamSet,
+			},
+			mockResponses: []ProjectResponse{
+				{
+					Err: nil,
+				},
+				{
+					Err: nil,
+				},
+			},
+			expectedError: false,
+		},
+		{
+			name: "Remove teams",
+			projectState: project.TfProjectRSModel{
+				Name:  types.StringValue("sameName"),
+				Teams: twoTeamSet,
+			},
+			projectPlan: project.TfProjectRSModel{
+				Name:  types.StringValue("sameName"),
+				Teams: singleTeamSet,
+			},
+			mockResponses: []ProjectResponse{
+				{
+					Err: nil,
+				},
+			},
+			expectedError: false,
+		},
+		{
+			name: "Update teams",
+			projectState: project.TfProjectRSModel{
+				Name:  types.StringValue("sameName"),
+				Teams: singleTeamSet,
+			},
+			projectPlan: project.TfProjectRSModel{
+				Name:  types.StringValue("sameName"),
+				Teams: updatedTeamSet,
+			},
+			mockResponses: []ProjectResponse{
+				{
+					Err: nil,
+				},
+				{
+					Err: nil,
+				},
+			},
+			expectedError: false,
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockService := MockProjectService{
+				MockResponses: tc.mockResponses,
+			}
+			err := project.UpdateProjectTeams(context.Background(), &mockService, &testCases[i].projectState, &testCases[i].projectPlan)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -813,6 +920,33 @@ func (a *MockProjectService) SetProjectLimit(ctx context.Context, limitName, gro
 	resp := a.MockResponses[a.index]
 	a.index++
 	return &resp.LimitResponse, resp.HTTPResponse, resp.Err
+}
+
+func (a *MockProjectService) RemoveProjectTeam(ctx context.Context, groupID, teamID string) (*http.Response, error) {
+	if a.index >= len(a.MockResponses) {
+		log.Fatal(errors.New("no more mocked responses available"))
+	}
+	resp := a.MockResponses[a.index]
+	a.index++
+	return resp.HTTPResponse, resp.Err
+}
+
+func (a *MockProjectService) UpdateTeamRoles(ctx context.Context, groupID, teamID string, teamRole *admin.TeamRole) (*admin.PaginatedTeamRole, *http.Response, error) {
+	if a.index >= len(a.MockResponses) {
+		log.Fatal(errors.New("no more mocked responses available"))
+	}
+	resp := a.MockResponses[a.index]
+	a.index++
+	return resp.ProjectTeamRespo, resp.HTTPResponse, resp.Err
+}
+
+func (a *MockProjectService) AddAllTeamsToProject(ctx context.Context, groupID string, teamRole *[]admin.TeamRole) (*admin.PaginatedTeamRole, *http.Response, error) {
+	if a.index >= len(a.MockResponses) {
+		log.Fatal(errors.New("no more mocked responses available"))
+	}
+	resp := a.MockResponses[a.index]
+	a.index++
+	return resp.ProjectTeamRespo, resp.HTTPResponse, resp.Err
 }
 
 type ProjectResponse struct {

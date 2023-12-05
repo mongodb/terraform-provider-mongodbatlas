@@ -14,6 +14,9 @@ type GroupProjectService interface {
 	DeleteProjectLimit(ctx context.Context, limitName, projectID string) (map[string]interface{}, *http.Response, error)
 	SetProjectLimit(ctx context.Context, limitName, groupID string, dataFederationLimit *admin.DataFederationLimit) (*admin.DataFederationLimit, *http.Response, error)
 	ListProjectLimits(ctx context.Context, groupID string) ([]admin.DataFederationLimit, *http.Response, error)
+	RemoveProjectTeam(ctx context.Context, groupID, teamID string) (*http.Response, error)
+	UpdateTeamRoles(ctx context.Context, groupID, teamID string, teamRole *admin.TeamRole) (*admin.PaginatedTeamRole, *http.Response, error)
+	AddAllTeamsToProject(ctx context.Context, groupID string, teamRole *[]admin.TeamRole) (*admin.PaginatedTeamRole, *http.Response, error)
 }
 
 type GroupProjectServiceFromClient struct {
@@ -43,6 +46,18 @@ func (a *GroupProjectServiceFromClient) SetProjectLimit(ctx context.Context, lim
 
 func (a *GroupProjectServiceFromClient) ListProjectTeams(ctx context.Context, groupID string) (*admin.PaginatedTeamRole, *http.Response, error) {
 	return a.client.TeamsApi.ListProjectTeams(ctx, groupID).Execute()
+}
+
+func (a *GroupProjectServiceFromClient) RemoveProjectTeam(ctx context.Context, groupID, teamID string) (*http.Response, error) {
+	return a.client.TeamsApi.RemoveProjectTeam(ctx, groupID, teamID).Execute()
+}
+
+func (a *GroupProjectServiceFromClient) UpdateTeamRoles(ctx context.Context, groupID, teamID string, teamRole *admin.TeamRole) (*admin.PaginatedTeamRole, *http.Response, error) {
+	return a.client.TeamsApi.UpdateTeamRoles(ctx, groupID, teamID, teamRole).Execute()
+}
+
+func (a *GroupProjectServiceFromClient) AddAllTeamsToProject(ctx context.Context, groupID string, teamRole *[]admin.TeamRole) (*admin.PaginatedTeamRole, *http.Response, error) {
+	return a.client.TeamsApi.AddAllTeamsToProject(ctx, groupID, teamRole).Execute()
 }
 
 func ServiceFromClient(client *admin.APIClient) GroupProjectService {

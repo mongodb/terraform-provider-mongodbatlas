@@ -85,7 +85,7 @@ type TfLimitModel struct {
 	MaximumLimit types.Int64  `tfsdk:"maximum_limit"`
 }
 
-var tfTeamObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var TfTeamObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"team_id":    types.StringType,
 	"role_names": types.SetType{ElemType: types.StringType},
 }}
@@ -440,7 +440,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 		return
 	}
 
-	err = updateProjectTeams(ctx, connV2, &projectState, &projectPlan)
+	err = UpdateProjectTeams(ctx, ServiceFromClient(connV2), &projectState, &projectPlan)
 	if err != nil {
 		resp.Diagnostics.AddError("error in project teams update", fmt.Sprintf(errorProjectUpdate, projectID, err.Error()))
 		return
@@ -643,7 +643,7 @@ func setProjectLimits(ctx context.Context, client GroupProjectService, projectID
 	return nil
 }
 
-func updateProjectTeams(ctx context.Context, connV2 *admin.APIClient, projectState, projectPlan *TfProjectRSModel) error {
+func UpdateProjectTeams(ctx context.Context, client GroupProjectService, projectState, projectPlan *TfProjectRSModel) error {
 	var planTeams []TfTeamModel
 	var stateTeams []TfTeamModel
 	_ = projectPlan.Teams.ElementsAs(ctx, &planTeams, false)
@@ -659,7 +659,7 @@ func updateProjectTeams(ctx context.Context, connV2 *admin.APIClient, projectSta
 	// removing teams from the project
 	for _, team := range removedTeams {
 		teamID := team.TeamID.ValueString()
-		_, err := connV2.TeamsApi.RemoveProjectTeam(ctx, projectID, team.TeamID.ValueString()).Execute()
+		_, err := client.RemoveProjectTeam(ctx, projectID, team.TeamID.ValueString())
 		if err != nil {
 			apiError, ok := admin.AsError(err)
 			if ok && *apiError.ErrorCode != "USER_UNAUTHORIZED" {
@@ -673,18 +673,18 @@ func updateProjectTeams(ctx context.Context, connV2 *admin.APIClient, projectSta
 	for _, team := range changedTeams {
 		teamID := team.TeamID.ValueString()
 
-		_, _, err := connV2.TeamsApi.UpdateTeamRoles(ctx, projectID, teamID,
+		_, _, err := client.UpdateTeamRoles(ctx, projectID, teamID,
 			&admin.TeamRole{
 				RoleNames: conversion.TypesSetToString(ctx, team.RoleNames),
 			},
-		).Execute()
+		)
 		if err != nil {
 			return fmt.Errorf("error updating role names for the team(%s): %s", teamID, err.Error())
 		}
 	}
 
 	// adding new teams into the project
-	if _, _, err := connV2.TeamsApi.AddAllTeamsToProject(ctx, projectID, NewTeamRoleList(ctx, newTeams)).Execute(); err != nil {
+	if _, _, err := client.AddAllTeamsToProject(ctx, projectID, NewTeamRoleList(ctx, newTeams)); err != nil {
 		return fmt.Errorf("error adding teams to the project: %v", err.Error())
 	}
 

@@ -115,7 +115,7 @@ func newTFTeamsResourceModel(ctx context.Context, atlasTeams *admin.PaginatedTea
 		}
 	}
 
-	s, _ := types.SetValueFrom(ctx, tfTeamObjectType, teams)
+	s, _ := types.SetValueFrom(ctx, TfTeamObjectType, teams)
 	return s
 }
 
