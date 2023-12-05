@@ -13,7 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccStreamInstance_basic(t *testing.T) {
+func TestAccStreamInstanceRS_basic(t *testing.T) {
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc-stream")
@@ -25,9 +25,11 @@ func TestAccStreamInstance_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroyStreamInstance,
 		Steps: []resource.TestStep{
-			newStreamInstanceTestStep(resourceName, orgID, projectName, instanceName, "VIRGINIA_USA", "AWS"),
 			{
-				Config:            streamInstanceConfig(orgID, projectName, instanceName, "VIRGINIA_USA", "AWS"), // as of now there are no values that can be updated because only one region is supported
+				Config: streamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider), // as of now there are no values that can be updated because only one region is supported
+				Check:  streamInstanceAttributeChecks(resourceName, orgID, projectName, instanceName, region, cloudProvider),
+			},
+			{
 				ResourceName:      resourceName,
 				ImportStateIdFunc: checkStreamInstanceImportStateIDFunc(resourceName),
 				ImportState:       true,
@@ -37,7 +39,7 @@ func TestAccStreamInstance_basic(t *testing.T) {
 	})
 }
 
-func newStreamInstanceTestStep(resourceName, orgID, projectName, instanceName, region, cloudProvider string) resource.TestStep {
+func streamInstanceAttributeChecks(resourceName, orgID, projectName, instanceName, region, cloudProvider string) resource.TestCheckFunc {
 	resourceChecks := []resource.TestCheckFunc{
 		checkSearchInstanceExists(),
 		resource.TestCheckResourceAttrSet(resourceName, "id"),
@@ -47,10 +49,7 @@ func newStreamInstanceTestStep(resourceName, orgID, projectName, instanceName, r
 		resource.TestCheckResourceAttr(resourceName, "data_process_region.cloud_provider", cloudProvider),
 		resource.TestCheckResourceAttr(resourceName, "hostnames.#", "1"),
 	}
-	return resource.TestStep{
-		Config: streamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider),
-		Check:  resource.ComposeTestCheckFunc(resourceChecks...),
-	}
+	return resource.ComposeTestCheckFunc(resourceChecks...)
 }
 
 func streamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider string) string {
