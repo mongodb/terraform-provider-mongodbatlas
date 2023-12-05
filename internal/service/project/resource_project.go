@@ -89,7 +89,7 @@ var tfTeamObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"team_id":    types.StringType,
 	"role_names": types.SetType{ElemType: types.StringType},
 }}
-var tfLimitObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var TfLimitObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"name":          types.StringType,
 	"value":         types.Int64Type,
 	"current_usage": types.Int64Type,
@@ -446,7 +446,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 		return
 	}
 
-	err = updateProjectLimits(ctx, connV2, &projectState, &projectPlan)
+	err = UpdateProjectLimits(ctx, ServiceFromClient(connV2), &projectState, &projectPlan)
 	if err != nil {
 		resp.Diagnostics.AddError("error in project limits update", fmt.Sprintf(errorProjectUpdate, projectID, err.Error()))
 		return
@@ -591,7 +591,7 @@ func updateProjectSettings(ctx context.Context, connV2 *admin.APIClient, project
 	return nil
 }
 
-func updateProjectLimits(ctx context.Context, connV2 *admin.APIClient, projectState, projectPlan *TfProjectRSModel) error {
+func UpdateProjectLimits(ctx context.Context, client GroupProjectService, projectState, projectPlan *TfProjectRSModel) error {
 	var planLimits []TfLimitModel
 	var stateLimits []TfLimitModel
 	_ = projectPlan.Limits.ElementsAs(ctx, &planLimits, false)
@@ -607,21 +607,21 @@ func updateProjectLimits(ctx context.Context, connV2 *admin.APIClient, projectSt
 	// removing limits from the project
 	for _, limit := range removedLimits {
 		limitName := limit.Name.ValueString()
-		if _, _, err := connV2.ProjectsApi.DeleteProjectLimit(ctx, limitName, projectID).Execute(); err != nil {
+		if _, _, err := client.DeleteProjectLimit(ctx, limitName, projectID); err != nil {
 			return fmt.Errorf("error removing limit %s from the project(%s) during update: %s", limitName, projectID, err)
 		}
 	}
 
 	// updating values for changed limits
 	if len(changedLimits) > 0 {
-		if err := setProjectLimits(ctx, connV2, projectID, changedLimits); err != nil {
+		if err := setProjectLimits(ctx, client, projectID, changedLimits); err != nil {
 			return fmt.Errorf("error adding modified limits into the project during update: %v", err.Error())
 		}
 	}
 
 	// adding new limits into the project
 	if len(newLimits) > 0 {
-		if err := setProjectLimits(ctx, connV2, projectID, newLimits); err != nil {
+		if err := setProjectLimits(ctx, client, projectID, newLimits); err != nil {
 			return fmt.Errorf("error adding limits into the project during update: %v", err.Error())
 		}
 	}
@@ -629,13 +629,13 @@ func updateProjectLimits(ctx context.Context, connV2 *admin.APIClient, projectSt
 	return nil
 }
 
-func setProjectLimits(ctx context.Context, connV2 *admin.APIClient, projectID string, tfLimits []TfLimitModel) error {
+func setProjectLimits(ctx context.Context, client GroupProjectService, projectID string, tfLimits []TfLimitModel) error {
 	for _, limit := range tfLimits {
 		dataFederationLimit := &admin.DataFederationLimit{
 			Name:  limit.Name.ValueString(),
 			Value: limit.Value.ValueInt64(),
 		}
-		_, _, err := connV2.ProjectsApi.SetProjectLimit(ctx, limit.Name.ValueString(), projectID, dataFederationLimit).Execute()
+		_, _, err := client.SetProjectLimit(ctx, limit.Name.ValueString(), projectID, dataFederationLimit)
 		if err != nil {
 			return fmt.Errorf("error adding limits into the project: %v", err.Error())
 		}

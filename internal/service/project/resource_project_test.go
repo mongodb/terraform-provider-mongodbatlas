@@ -19,6 +19,27 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
+var (
+	successfulPaginatedTeamRole = ProjectResponse{
+		ProjectTeamRespo: &admin.PaginatedTeamRole{},
+		Err:              nil,
+	}
+	successfulDataFederationLimit = ProjectResponse{
+		LimitsResponse: []admin.DataFederationLimit{},
+		Err:            nil,
+	}
+	successfulGroupSettingsResponse = ProjectResponse{
+		GroupSettingsResponse: &admin.GroupSettings{},
+		Err:                   nil,
+	}
+	projectStateName = project.TfProjectRSModel{
+		Name: types.StringValue("sameName"),
+	}
+	projectStateNameDiff = project.TfProjectRSModel{
+		Name: types.StringValue("diffName"),
+	}
+)
+
 func TestGetProjectPropsFromAPI(t *testing.T) {
 	testCases := []struct {
 		name          string
@@ -29,18 +50,9 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 		{
 			name: "Successful",
 			mockResponses: []ProjectResponse{
-				{
-					ProjectTeamRespo: &admin.PaginatedTeamRole{},
-					Err:              nil,
-				},
-				{
-					LimitResponse: []admin.DataFederationLimit{},
-					Err:           nil,
-				},
-				{
-					GroupSettingsResponse: &admin.GroupSettings{},
-					Err:                   nil,
-				},
+				successfulPaginatedTeamRole,
+				successfulDataFederationLimit,
+				successfulGroupSettingsResponse,
 			},
 			expectedError: false,
 			projectID:     "projectId",
@@ -60,14 +72,11 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 		{
 			name: "Fail to get project's limits",
 			mockResponses: []ProjectResponse{
+				successfulPaginatedTeamRole,
 				{
-					ProjectTeamRespo: &admin.PaginatedTeamRole{},
-					Err:              nil,
-				},
-				{
-					LimitResponse: nil,
-					HTTPResponse:  &http.Response{StatusCode: 503},
-					Err:           errors.New("Service Unavailable"),
+					LimitsResponse: nil,
+					HTTPResponse:   &http.Response{StatusCode: 503},
+					Err:            errors.New("Service Unavailable"),
 				},
 			},
 			expectedError: true,
@@ -76,14 +85,8 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 		{
 			name: "Fail to get project's settings",
 			mockResponses: []ProjectResponse{
-				{
-					ProjectTeamRespo: &admin.PaginatedTeamRole{},
-					Err:              nil,
-				},
-				{
-					LimitResponse: []admin.DataFederationLimit{},
-					Err:           nil,
-				},
+				successfulPaginatedTeamRole,
+				successfulDataFederationLimit,
 				{
 					GroupSettingsResponse: nil,
 					HTTPResponse:          &http.Response{StatusCode: 503},
@@ -119,15 +122,9 @@ func TestFilterUserDefinedLimits(t *testing.T) {
 		{
 			name: "FilterUserDefinedLimits",
 			allAtlasLimits: []admin.DataFederationLimit{
-				{
-					Name: "1",
-				},
-				{
-					Name: "2",
-				},
-				{
-					Name: "3",
-				},
+				createDataFederationLimit("1"),
+				createDataFederationLimit("2"),
+				createDataFederationLimit("3"),
 			},
 			tfLimits: []project.TfLimitModel{
 				{
@@ -138,20 +135,14 @@ func TestFilterUserDefinedLimits(t *testing.T) {
 				},
 			},
 			expectedResult: []admin.DataFederationLimit{
-				{
-					Name: "1",
-				},
-				{
-					Name: "2",
-				},
+				createDataFederationLimit("1"),
+				createDataFederationLimit("2"),
 			},
 		},
 		{
 			name: "FilterUserDefinedLimits",
 			allAtlasLimits: []admin.DataFederationLimit{
-				{
-					Name: "1",
-				},
+				createDataFederationLimit("1"),
 			},
 			tfLimits:       []project.TfLimitModel{},
 			expectedResult: []admin.DataFederationLimit{},
@@ -177,13 +168,9 @@ func TestUpdateProject(t *testing.T) {
 		expectedError bool
 	}{
 		{
-			name: "Successful update",
-			projectState: project.TfProjectRSModel{
-				Name: types.StringValue("sameName"),
-			},
-			projectPlan: project.TfProjectRSModel{
-				Name: types.StringValue("diffName"),
-			},
+			name:         "Successful update",
+			projectState: projectStateName,
+			projectPlan:  projectStateNameDiff,
 			mockResponses: []ProjectResponse{
 				{
 					Err: nil,
@@ -192,13 +179,9 @@ func TestUpdateProject(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name: "Same project names; Failed update",
-			projectState: project.TfProjectRSModel{
-				Name: types.StringValue("sameName"),
-			},
-			projectPlan: project.TfProjectRSModel{
-				Name: types.StringValue("sameName"),
-			},
+			name:         "Same project names; Failed update",
+			projectState: projectStateName,
+			projectPlan:  projectStateName,
 			mockResponses: []ProjectResponse{
 				{
 					Err: nil,
@@ -207,13 +190,9 @@ func TestUpdateProject(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name: "Failed API call; Failed update",
-			projectState: project.TfProjectRSModel{
-				Name: types.StringValue("sameName"),
-			},
-			projectPlan: project.TfProjectRSModel{
-				Name: types.StringValue("diffName"),
-			},
+			name:         "Failed API call; Failed update",
+			projectState: projectStateName,
+			projectPlan:  projectStateNameDiff,
 			mockResponses: []ProjectResponse{
 				{
 					ProjectResp:  nil,
@@ -231,6 +210,120 @@ func TestUpdateProject(t *testing.T) {
 				MockResponses: tc.mockResponses,
 			}
 			err := project.UpdateProject(context.Background(), &mockService, &testCases[i].projectState, &testCases[i].projectPlan)
+
+			if (err != nil) != tc.expectedError {
+				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
+			}
+		})
+	}
+}
+
+func TestUpdateProjectLimits(t *testing.T) {
+	twoLimits := []project.TfLimitModel{
+		{
+			Name: types.StringValue("limit1"),
+		},
+		{
+			Name: types.StringValue("limit2"),
+		},
+	}
+	oneLimit := []project.TfLimitModel{
+		{
+			Name: types.StringValue("limit1"),
+		},
+	}
+	updatedLimit := []project.TfLimitModel{
+		{
+			Name:  types.StringValue("limit1"),
+			Value: types.Int64Value(6),
+		},
+	}
+	singleLimitSet, _ := types.SetValueFrom(context.Background(), project.TfLimitObjectType, oneLimit)
+	updatedLimitSet, _ := types.SetValueFrom(context.Background(), project.TfLimitObjectType, updatedLimit)
+	twoLimitSet, _ := types.SetValueFrom(context.Background(), project.TfLimitObjectType, twoLimits)
+	testCases := []struct {
+		name          string
+		mockResponses []ProjectResponse
+		projectState  project.TfProjectRSModel
+		projectPlan   project.TfProjectRSModel
+		expectedError bool
+	}{
+		{
+			name: "Limits has not changed",
+			projectState: project.TfProjectRSModel{
+				Name:   types.StringValue("sameName"),
+				Limits: singleLimitSet,
+			},
+			projectPlan: project.TfProjectRSModel{
+				Name:   types.StringValue("diffName"),
+				Limits: singleLimitSet,
+			},
+			mockResponses: []ProjectResponse{
+				{
+					Err: nil,
+				},
+			},
+			expectedError: false,
+		},
+		{
+			name: "Adding limits",
+			projectState: project.TfProjectRSModel{
+				Name:   types.StringValue("sameName"),
+				Limits: singleLimitSet,
+			},
+			projectPlan: project.TfProjectRSModel{
+				Name:   types.StringValue("diffName"),
+				Limits: twoLimitSet,
+			},
+			mockResponses: []ProjectResponse{
+				{
+					Err: nil,
+				},
+			},
+			expectedError: false,
+		},
+		{
+			name: "Removing limits",
+			projectState: project.TfProjectRSModel{
+				Name:   types.StringValue("sameName"),
+				Limits: twoLimitSet,
+			},
+			projectPlan: project.TfProjectRSModel{
+				Name:   types.StringValue("diffName"),
+				Limits: singleLimitSet,
+			},
+			mockResponses: []ProjectResponse{
+				{
+					Err: nil,
+				},
+			},
+			expectedError: false,
+		},
+		{
+			name: "Updating limits",
+			projectState: project.TfProjectRSModel{
+				Name:   types.StringValue("sameName"),
+				Limits: singleLimitSet,
+			},
+			projectPlan: project.TfProjectRSModel{
+				Name:   types.StringValue("diffName"),
+				Limits: updatedLimitSet,
+			},
+			mockResponses: []ProjectResponse{
+				{
+					Err: nil,
+				},
+			},
+			expectedError: false,
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockService := MockProjectService{
+				MockResponses: tc.mockResponses,
+			}
+			err := project.UpdateProjectLimits(context.Background(), &mockService, &testCases[i].projectState, &testCases[i].projectPlan)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -657,6 +750,12 @@ func TestAccProjectRSProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 	})
 }
 
+func createDataFederationLimit(limitName string) admin.DataFederationLimit {
+	return admin.DataFederationLimit{
+		Name: limitName,
+	}
+}
+
 type MockProjectService struct {
 	MockResponses []ProjectResponse
 	index         int
@@ -677,7 +776,7 @@ func (a *MockProjectService) ListProjectLimits(ctx context.Context, groupID stri
 	}
 	resp := a.MockResponses[a.index]
 	a.index++
-	return resp.LimitResponse, resp.HTTPResponse, resp.Err
+	return resp.LimitsResponse, resp.HTTPResponse, resp.Err
 }
 
 func (a *MockProjectService) GetProjectSettings(ctx context.Context, groupID string) (*admin.GroupSettings, *http.Response, error) {
@@ -698,11 +797,31 @@ func (a *MockProjectService) ListProjectTeams(ctx context.Context, groupID strin
 	return resp.ProjectTeamRespo, resp.HTTPResponse, resp.Err
 }
 
+func (a *MockProjectService) DeleteProjectLimit(ctx context.Context, limitName, projectID string) (map[string]interface{}, *http.Response, error) {
+	if a.index >= len(a.MockResponses) {
+		log.Fatal(errors.New("no more mocked responses available"))
+	}
+	resp := a.MockResponses[a.index]
+	a.index++
+	return resp.DeleteProjectLimitResponse, resp.HTTPResponse, resp.Err
+}
+
+func (a *MockProjectService) SetProjectLimit(ctx context.Context, limitName, groupID string, dataFederationLimit *admin.DataFederationLimit) (*admin.DataFederationLimit, *http.Response, error) {
+	if a.index >= len(a.MockResponses) {
+		log.Fatal(errors.New("no more mocked responses available"))
+	}
+	resp := a.MockResponses[a.index]
+	a.index++
+	return &resp.LimitResponse, resp.HTTPResponse, resp.Err
+}
+
 type ProjectResponse struct {
-	ProjectResp           *admin.Group
-	ProjectTeamRespo      *admin.PaginatedTeamRole
-	GroupSettingsResponse *admin.GroupSettings
-	HTTPResponse          *http.Response
-	Err                   error
-	LimitResponse         []admin.DataFederationLimit
+	ProjectResp                *admin.Group
+	ProjectTeamRespo           *admin.PaginatedTeamRole
+	GroupSettingsResponse      *admin.GroupSettings
+	HTTPResponse               *http.Response
+	Err                        error
+	LimitResponse              admin.DataFederationLimit
+	DeleteProjectLimitResponse map[string]interface{}
+	LimitsResponse             []admin.DataFederationLimit
 }

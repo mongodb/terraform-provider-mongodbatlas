@@ -99,7 +99,7 @@ func newTFLimitsResourceModel(ctx context.Context, dataFederationLimits []admin.
 		}
 	}
 
-	s, _ := types.SetValueFrom(ctx, tfLimitObjectType, limits)
+	s, _ := types.SetValueFrom(ctx, TfLimitObjectType, limits)
 	return s
 }
 
