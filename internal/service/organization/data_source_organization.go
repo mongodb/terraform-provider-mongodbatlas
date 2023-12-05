@@ -1,4 +1,4 @@
-package mongodbatlas
+package organization
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceOrganization() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasOrganizationRead,
 		Schema: map[string]*schema.Schema{

@@ -1,4 +1,4 @@
-package mongodbatlas
+package organization
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourceOrganizations() *schema.Resource {
+func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasOrganizationsRead,
 		Schema: map[string]*schema.Schema{

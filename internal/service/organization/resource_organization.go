@@ -1,4 +1,4 @@
-package mongodbatlas
+package organization
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func ResourceOrganization() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasOrganizationCreate,
 		ReadContext:   resourceMongoDBAtlasOrganizationRead,
