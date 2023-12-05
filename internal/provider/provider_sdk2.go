@@ -25,6 +25,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotrestorejob"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudprovideraccess"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clusteroutagesimulation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdbrole"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdnsconfigurationclusteraws"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/datalakepipeline"
@@ -215,7 +216,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_query_limits":                                       federatedquerylimit.PluralDataSource(),
 		"mongodbatlas_serverless_instance":                                          serverlessinstance.DataSource(),
 		"mongodbatlas_serverless_instances":                                         serverlessinstance.PluralDataSource(),
-		"mongodbatlas_cluster_outage_simulation":                                    mongodbatlas.DataSourceClusterOutageSimulation(),
+		"mongodbatlas_cluster_outage_simulation":                                    clusteroutagesimulation.DataSource(),
 		"mongodbatlas_shared_tier_restore_job":                                      mongodbatlas.DataSourceCloudSharedTierRestoreJob(),
 		"mongodbatlas_shared_tier_restore_jobs":                                     mongodbatlas.DataSourceCloudSharedTierRestoreJobs(),
 		"mongodbatlas_shared_tier_snapshot":                                         mongodbatlas.DataSourceSharedTierSnapshot(),
@@ -272,7 +273,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_database_instance":                                 federateddatabaseinstance.Resource(),
 		"mongodbatlas_federated_query_limit":                                       federatedquerylimit.Resource(),
 		"mongodbatlas_serverless_instance":                                         serverlessinstance.Resource(),
-		"mongodbatlas_cluster_outage_simulation":                                   mongodbatlas.ResourceClusterOutageSimulation(),
+		"mongodbatlas_cluster_outage_simulation":                                   clusteroutagesimulation.Resource(),
 	}
 	return resourcesMap
 }

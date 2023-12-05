@@ -1,4 +1,4 @@
-package mongodbatlas
+package clusteroutagesimulation
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceClusterOutageSimulation() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasClusterOutageSimulationRead,
 		Schema: map[string]*schema.Schema{

@@ -1,4 +1,4 @@
-package mongodbatlas
+package clusteroutagesimulation
 
 import (
 	"context"
@@ -24,7 +24,7 @@ const (
 	defaultOutageFilterType             = "REGION"
 )
 
-func ResourceClusterOutageSimulation() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBClusterOutageSimulationCreate,
 		ReadContext:   resourceMongoDBAClusterOutageSimulationRead,
