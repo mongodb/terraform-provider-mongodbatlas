@@ -52,13 +52,13 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointserviceserverless"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectinvitation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/rolesorgid"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchindex"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serverlessinstance"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/sharedtier"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teams"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/thirdpartyintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/x509authenticationdatabaseuser"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 	"github.com/mwielbut/pointy"
 )
 
@@ -153,7 +153,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_access_list_api_keys":              accesslistapikey.PluralDataSource(),
 		"mongodbatlas_project_api_key":                   projectapikey.DataSource(),
 		"mongodbatlas_project_api_keys":                  projectapikey.PluralDataSource(),
-		"mongodbatlas_roles_org_id":                      mongodbatlas.DataSourceOrgID(),
+		"mongodbatlas_roles_org_id":                      rolesorgid.DataSource(),
 		"mongodbatlas_cluster":                           cluster.DataSource(),
 		"mongodbatlas_clusters":                          cluster.PluralDataSource(),
 		"mongodbatlas_network_container":                 networkcontainer.DataSource(),

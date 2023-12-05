@@ -1,4 +1,4 @@
-package mongodbatlas
+package rolesorgid
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourceOrgID() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasOrgIDRead,
 		Schema: map[string]*schema.Schema{
