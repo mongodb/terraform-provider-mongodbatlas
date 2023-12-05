@@ -52,6 +52,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectinvitation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchindex"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serverlessinstance"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teams"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/thirdpartyintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/x509authenticationdatabaseuser"
@@ -212,8 +213,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_database_instances":                                 federateddatabaseinstance.PluralDataSource(),
 		"mongodbatlas_federated_query_limit":                                        federatedquerylimit.DataSource(),
 		"mongodbatlas_federated_query_limits":                                       federatedquerylimit.PluralDataSource(),
-		"mongodbatlas_serverless_instance":                                          mongodbatlas.DataSourceServerlessInstance(),
-		"mongodbatlas_serverless_instances":                                         mongodbatlas.DataSourceServerlessInstances(),
+		"mongodbatlas_serverless_instance":                                          serverlessinstance.DataSource(),
+		"mongodbatlas_serverless_instances":                                         serverlessinstance.PluralDataSource(),
 		"mongodbatlas_cluster_outage_simulation":                                    mongodbatlas.DataSourceClusterOutageSimulation(),
 		"mongodbatlas_shared_tier_restore_job":                                      mongodbatlas.DataSourceCloudSharedTierRestoreJob(),
 		"mongodbatlas_shared_tier_restore_jobs":                                     mongodbatlas.DataSourceCloudSharedTierRestoreJobs(),
@@ -270,7 +271,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_settings_identity_provider":                        federatedsettingsidentityprovider.Resource(),
 		"mongodbatlas_federated_database_instance":                                 federateddatabaseinstance.Resource(),
 		"mongodbatlas_federated_query_limit":                                       federatedquerylimit.Resource(),
-		"mongodbatlas_serverless_instance":                                         mongodbatlas.ResourceServerlessInstance(),
+		"mongodbatlas_serverless_instance":                                         serverlessinstance.Resource(),
 		"mongodbatlas_cluster_outage_simulation":                                   mongodbatlas.ResourceClusterOutageSimulation(),
 	}
 	return resourcesMap

@@ -1,4 +1,4 @@
-package mongodbatlas
+package serverlessinstance
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
-func DataSourceServerlessInstance() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasServerlessInstanceRead,
 		Schema:      returnServerlessInstanceDSSchema(),

@@ -1,4 +1,4 @@
-package mongodbatlas
+package serverlessinstance
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourceServerlessInstances() *schema.Resource {
+func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasServerlessInstancesRead,
 		Schema: map[string]*schema.Schema{

@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package serverlessinstance_test
 
 import (
 	"context"
