@@ -48,6 +48,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointservicedatafederationonlinearchive"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointserviceserverless"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectinvitation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchindex"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teams"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/thirdpartyintegration"
@@ -184,7 +185,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_data_lake_pipelines":                                          datalakepipeline.PluralDataSource(),
 		"mongodbatlas_event_trigger":                                                eventtrigger.DataSource(),
 		"mongodbatlas_event_triggers":                                               eventtrigger.PluralDataSource(),
-		"mongodbatlas_project_invitation":                                           mongodbatlas.DataSourceProjectInvitation(),
+		"mongodbatlas_project_invitation":                                           projectinvitation.DataSource(),
 		"mongodbatlas_org_invitation":                                               mongodbatlas.DataSourceOrgInvitation(),
 		"mongodbatlas_organization":                                                 mongodbatlas.DataSourceOrganization(),
 		"mongodbatlas_organizations":                                                mongodbatlas.DataSourceOrganizations(),
@@ -253,7 +254,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_search_index":                                                searchindex.Resource(),
 		"mongodbatlas_data_lake_pipeline":                                          datalakepipeline.Resource(),
 		"mongodbatlas_event_trigger":                                               eventtrigger.Resource(),
-		"mongodbatlas_project_invitation":                                          mongodbatlas.ResourceProjectInvitation(),
+		"mongodbatlas_project_invitation":                                          projectinvitation.Resource(),
 		"mongodbatlas_org_invitation":                                              mongodbatlas.ResourceOrgInvitation(),
 		"mongodbatlas_organization":                                                mongodbatlas.ResourceOrganization(),
 		"mongodbatlas_backup_compliance_policy":                                    backupcompliancepolicy.Resource(),

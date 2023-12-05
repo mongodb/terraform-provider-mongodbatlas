@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package projectinvitation_test
 
 import (
 	"fmt"

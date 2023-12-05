@@ -1,4 +1,4 @@
-package mongodbatlas
+package projectinvitation
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func ResourceProjectInvitation() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasProjectInvitationCreate,
 		ReadContext:   resourceMongoDBAtlasProjectInvitationRead,
