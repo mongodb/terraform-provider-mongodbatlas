@@ -7,6 +7,6 @@ variable "private_key" {
   type        = string
 }
 variable "org_id" {
-  description = "Atlas Organization ID"
+  description = "Unique 24-hexadecimal digit string that identifies your Atlas Organization"
   type        = string
 } 
