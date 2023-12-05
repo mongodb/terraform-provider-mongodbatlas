@@ -100,7 +100,7 @@ func testAccMongoDBAtlasDataLakePipelineConfig(projectID, clusterName, pipelineN
 				}
 				provider_name = "AWS"
 				priority      = 7
-				region_name   = "US_EAST_1"
+				region_name   = "US_WEST_2"
 			  }
 			}
 			backup_enabled               = true

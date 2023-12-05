@@ -82,7 +82,7 @@ func testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigSingleRegion(proj
    		provider_name               = "AWS"
    		name                        = "%s"
    		backing_provider_name       = "AWS"
-   		provider_region_name        = "US_EAST_1"
+   		provider_region_name        = "US_WEST_2"
    		provider_instance_size_name = "M10"
 	  }
 
@@ -91,7 +91,7 @@ func testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigSingleRegion(proj
 		cluster_name = mongodbatlas_cluster.atlas_cluster.name
 		 outage_filters {
 		  cloud_provider = "AWS"
-		  region_name    = "US_EAST_1"
+		  region_name    = "US_WEST_2"
 		}
 	}
 	`, projectName, orgID, clusterName)
@@ -115,7 +115,7 @@ func testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigMultiRegion(proje
 		replication_specs {
 		  num_shards = 1
 		  regions_config {
-			region_name     = "US_EAST_1"
+			region_name     = "US_WEST_2"
 			electable_nodes = 3
 			priority        = 7
 			read_only_nodes = 0
@@ -140,7 +140,7 @@ func testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigMultiRegion(proje
 		cluster_name = mongodbatlas_cluster.atlas_cluster.name
 		 outage_filters {
 		  cloud_provider = "AWS"
-		  region_name    = "US_EAST_1"
+		  region_name    = "US_WEST_2"
 		}
 		outage_filters {
 			   cloud_provider = "AWS"

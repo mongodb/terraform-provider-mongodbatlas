@@ -546,7 +546,7 @@ func TestAccClusterRSCluster_MultiRegion(t *testing.T) {
 	)
 
 	createRegionsConfig := `regions_config {
-					region_name     = "US_EAST_1"
+					region_name     = "US_WEST_2"
 					electable_nodes = 3
 					priority        = 7
 					read_only_nodes = 0
@@ -565,7 +565,7 @@ func TestAccClusterRSCluster_MultiRegion(t *testing.T) {
 					read_only_nodes = 0
 				}
 				regions_config {
-					region_name     = "US_EAST_1"
+					region_name     = "US_WEST_2"
 					electable_nodes = 3
 					priority        = 7
 					read_only_nodes = 0
@@ -1258,7 +1258,7 @@ func TestAccClusterRSCluster_RegionsConfig(t *testing.T) {
 		num_shards = 1
 		zone_name = "us3"
 		regions_config{
-			region_name     = "US_EAST_1"
+			region_name     = "US_WEST_2"
 			electable_nodes = 3
 			priority        = 7
 			read_only_nodes = 0
@@ -1551,7 +1551,7 @@ func testAccMongoDBAtlasClusterConfigAWSNVMEInstance(orgID, projectName, name, i
 
 			cloud_backup                 = true
 			// Provider Settings "block"
-			provider_region_name     = "US_EAST_1"
+			provider_region_name     = "US_WEST_2"
 			provider_name               = "AWS"
 			provider_instance_size_name = %[4]q
 			provider_volume_type        = "PROVISIONED"
@@ -1875,7 +1875,7 @@ func testAccMongoDBAtlasClusterConfigTenant(orgID, projectName, name, instanceSi
 
 		provider_name         = "TENANT"
 		backing_provider_name = "AWS"
-		provider_region_name  = "US_EAST_1"
+		provider_region_name  = "US_WEST_2"
 	  	//M2 must be 2, M5 must be 5
 	  	disk_size_gb            = %[4]q
 
