@@ -75,7 +75,7 @@ jobs:
             - 'internal/service/databaseuser/*.go'
             - 'internal/service/projectapikey/*.go'
           backup_online_archive:
-            - 'mongodbatlas/**online_archive**.go'
+            - 'internal/service/onlinearchive/*.go'
           advanced_cluster:
             - 'internal/service/advancedcluster/*.go'
 
