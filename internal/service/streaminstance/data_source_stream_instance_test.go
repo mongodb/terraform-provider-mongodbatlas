@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccStreamInstanceDS_basic(t *testing.T) {
+func TestAccStreamDSStreamInstance_basic(t *testing.T) {
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName    = acctest.RandomWithPrefix("test-acc-stream")

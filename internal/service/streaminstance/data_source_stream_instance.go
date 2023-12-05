@@ -26,31 +26,39 @@ type streamInstanceDS struct {
 
 func (d *streamInstanceDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-			},
-			"instance_name": schema.StringAttribute{
-				Required: true,
-			},
-			"project_id": schema.StringAttribute{
-				Required: true,
-			},
-			"data_process_region": schema.SingleNestedAttribute{
-				Computed: true,
-				Attributes: map[string]schema.Attribute{
-					"cloud_provider": schema.StringAttribute{
-						Computed: true,
-					},
-					"region": schema.StringAttribute{
-						Computed: true,
-					},
+		Attributes: DSAttributes(true),
+	}
+}
+
+// DSAttributes returns the attribute definitions for a single stream instance.
+// `withArguments` marks certain attributes as required (for singular data source) or as computed (for plural data source)
+func DSAttributes(withArguments bool) map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Computed: true,
+		},
+		"instance_name": schema.StringAttribute{
+			Required: withArguments,
+			Computed: !withArguments,
+		},
+		"project_id": schema.StringAttribute{
+			Required: withArguments,
+			Computed: !withArguments,
+		},
+		"data_process_region": schema.SingleNestedAttribute{
+			Computed: true,
+			Attributes: map[string]schema.Attribute{
+				"cloud_provider": schema.StringAttribute{
+					Computed: true,
+				},
+				"region": schema.StringAttribute{
+					Computed: true,
 				},
 			},
-			"hostnames": schema.ListAttribute{
-				ElementType: types.StringType,
-				Computed:    true,
-			},
+		},
+		"hostnames": schema.ListAttribute{
+			ElementType: types.StringType,
+			Computed:    true,
 		},
 	}
 }

@@ -414,6 +414,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		atlasuser.PluralDataSource,
 		searchdeployment.DataSource,
 		streaminstance.DataSource,
+		streaminstance.PluralDataSource,
 	}
 }
 

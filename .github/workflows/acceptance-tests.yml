@@ -35,7 +35,7 @@ jobs:
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster }}
       cluster: ${{ steps.filter.outputs.cluster }}
       search_deployment: ${{ steps.filter.outputs.search_deployment }}
-      stream_instance: ${{ steps.filter.outputs.stream_instance }}
+      stream: ${{ steps.filter.outputs.stream }}
       generic: ${{ steps.filter.outputs.generic }}
       backup_online_archive: ${{ steps.filter.outputs.backup_online_archive }}
       backup_snapshots: ${{ steps.filter.outputs.backup_snapshots }}
@@ -65,7 +65,7 @@ jobs:
             - 'internal/service/cluster/*.go'
           search_deployment:
             - 'internal/service/searchdeployment/*.go'
-          stream_instance:
+          stream:
             - 'internal/service/streaminstance/*.go'
           generic:
             - 'internal/service/backupcompliancepolicy/*.go'
@@ -213,9 +213,9 @@ jobs:
           TEST_REGEX: "^TestAccSearchDeployment"
         run: make testacc
 
-  stream_instance:
+  stream:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.stream_instance == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-stream-instance' }}
+    if: ${{ needs.change-detection.outputs.stream == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-stream' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -234,7 +234,7 @@ jobs:
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
-          TEST_REGEX: "^TestAccStreamInstance"
+          TEST_REGEX: "^TestAccStream"
         run: make testacc
 
   generic: # Acceptance tests that do not use any time-consuming resource (example: cluster)
