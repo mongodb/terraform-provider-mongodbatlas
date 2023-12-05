@@ -1,4 +1,4 @@
-package mongodbatlas
+package eventtrigger
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/realm/realm"
 )
 
-func DataSourceEventTriggers() *schema.Resource {
+func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceMongoDBAtlasEventTriggersRead,
 		Schema: map[string]*schema.Schema{

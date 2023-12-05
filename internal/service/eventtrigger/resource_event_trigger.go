@@ -1,4 +1,4 @@
-package mongodbatlas
+package eventtrigger
 
 import (
 	"context"
@@ -28,7 +28,7 @@ const (
 	errorEventTriggersSetting = "error setting `%s` for EventTriggers(%s)%s: %s"
 )
 
-func ResourceEventTriggers() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasEventTriggersCreate,
 		ReadContext:   resourceMongoDBAtlasEventTriggersRead,

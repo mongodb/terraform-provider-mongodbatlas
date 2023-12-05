@@ -1,4 +1,4 @@
-package mongodbatlas
+package eventtrigger
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceEventTrigger() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasEventTriggerRead,
 		Schema: map[string]*schema.Schema{
