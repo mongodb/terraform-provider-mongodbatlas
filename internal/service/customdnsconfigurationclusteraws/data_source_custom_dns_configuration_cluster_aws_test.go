@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package customdnsconfigurationclusteraws_test
 
 import (
 	"fmt"

@@ -1,4 +1,4 @@
-package mongodbatlas
+package customdnsconfigurationclusteraws
 
 import (
 	"context"
@@ -20,7 +20,7 @@ const (
 	errorCustomDNSConfigurationSetting = "error setting `%s` for custom dns configuration cluster aws (%s): %s"
 )
 
-func ResourceCustomDNSConfiguration() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasCustomDNSConfigurationCreate,
 		ReadContext:   resourceMongoDBAtlasCustomDNSConfigurationRead,

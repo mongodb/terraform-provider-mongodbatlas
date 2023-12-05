@@ -26,6 +26,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudprovideraccess"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdbrole"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdnsconfigurationclusteraws"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federateddatabaseinstance"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedquerylimit"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsidentityprovider"
@@ -165,7 +166,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_third_party_integrations":                                     thirdpartyintegration.PluralDataSource(),
 		"mongodbatlas_cloud_provider_access":                                        cloudprovideraccess.DataSource(),
 		"mongodbatlas_cloud_provider_access_setup":                                  cloudprovideraccess.DataSourceSetup(),
-		"mongodbatlas_custom_dns_configuration_cluster_aws":                         mongodbatlas.DataSourceCustomDNSConfigurationAWS(),
+		"mongodbatlas_custom_dns_configuration_cluster_aws":                         customdnsconfigurationclusteraws.DataSource(),
 		"mongodbatlas_online_archive":                                               onlinearchive.DataSource(),
 		"mongodbatlas_online_archives":                                              onlinearchive.PluralDataSource(),
 		"mongodbatlas_ldap_configuration":                                           mongodbatlas.DataSourceLDAPConfiguration(),
@@ -238,7 +239,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_privatelink_endpoint_service_serverless":                     privatelinkendpointserviceserverless.Resource(),
 		"mongodbatlas_third_party_integration":                                     thirdpartyintegration.Resource(),
 		"mongodbatlas_online_archive":                                              onlinearchive.Resource(),
-		"mongodbatlas_custom_dns_configuration_cluster_aws":                        mongodbatlas.ResourceCustomDNSConfiguration(),
+		"mongodbatlas_custom_dns_configuration_cluster_aws":                        customdnsconfigurationclusteraws.Resource(),
 		"mongodbatlas_ldap_configuration":                                          mongodbatlas.ResourceLDAPConfiguration(),
 		"mongodbatlas_ldap_verify":                                                 mongodbatlas.ResourceLDAPVerify(),
 		"mongodbatlas_cloud_provider_access":                                       cloudprovideraccess.Resource(),

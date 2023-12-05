@@ -1,4 +1,4 @@
-package mongodbatlas
+package customdnsconfigurationclusteraws
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceCustomDNSConfigurationAWS() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasCustomDNSConfigurationAWSRead,
 		Schema: map[string]*schema.Schema{
