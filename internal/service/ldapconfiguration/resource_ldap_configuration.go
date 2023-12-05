@@ -1,4 +1,4 @@
-package mongodbatlas
+package ldapconfiguration
 
 import (
 	"context"
@@ -20,7 +20,7 @@ const (
 	errorLDAPConfigurationSetting = "error setting `%s` for LDAPConfiguration(%s): %s"
 )
 
-func ResourceLDAPConfiguration() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasLDAPConfigurationCreate,
 		ReadContext:   resourceMongoDBAtlasLDAPConfigurationRead,

@@ -33,6 +33,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsorgconfig"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsorgrolemapping"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/globalclusterconfig"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/ldapconfiguration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/ldapverify"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/maintenancewindow"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkcontainer"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkpeering"
@@ -169,8 +171,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_custom_dns_configuration_cluster_aws":                         customdnsconfigurationclusteraws.DataSource(),
 		"mongodbatlas_online_archive":                                               onlinearchive.DataSource(),
 		"mongodbatlas_online_archives":                                              onlinearchive.PluralDataSource(),
-		"mongodbatlas_ldap_configuration":                                           mongodbatlas.DataSourceLDAPConfiguration(),
-		"mongodbatlas_ldap_verify":                                                  mongodbatlas.DataSourceLDAPVerify(),
+		"mongodbatlas_ldap_configuration":                                           ldapconfiguration.DataSource(),
+		"mongodbatlas_ldap_verify":                                                  ldapverify.DataSource(),
 		"mongodbatlas_search_index":                                                 mongodbatlas.DataSourceSearchIndex(),
 		"mongodbatlas_search_indexes":                                               mongodbatlas.DataSourceSearchIndexes(),
 		"mongodbatlas_data_lake_pipeline_run":                                       mongodbatlas.DataSourceDataLakePipelineRun(),
@@ -240,8 +242,8 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_third_party_integration":                                     thirdpartyintegration.Resource(),
 		"mongodbatlas_online_archive":                                              onlinearchive.Resource(),
 		"mongodbatlas_custom_dns_configuration_cluster_aws":                        customdnsconfigurationclusteraws.Resource(),
-		"mongodbatlas_ldap_configuration":                                          mongodbatlas.ResourceLDAPConfiguration(),
-		"mongodbatlas_ldap_verify":                                                 mongodbatlas.ResourceLDAPVerify(),
+		"mongodbatlas_ldap_configuration":                                          ldapconfiguration.Resource(),
+		"mongodbatlas_ldap_verify":                                                 ldapverify.Resource(),
 		"mongodbatlas_cloud_provider_access":                                       cloudprovideraccess.Resource(),
 		"mongodbatlas_cloud_provider_access_setup":                                 cloudprovideraccess.ResourceSetup(),
 		"mongodbatlas_cloud_provider_access_authorization":                         cloudprovideraccess.ResourceAuthorization(),

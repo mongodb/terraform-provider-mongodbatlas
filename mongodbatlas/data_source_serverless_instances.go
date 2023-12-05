@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/ldapverify"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -97,7 +98,7 @@ func flattenServerlessInstances(serverlessInstances []*matlas.Cluster) []map[str
 			"connection_strings_standard_srv": serverlessInstances[i].ConnectionStrings.StandardSrv,
 			"create_date":                     serverlessInstances[i].CreateDate,
 			"id":                              serverlessInstances[i].ID,
-			"links":                           flattenLinks(serverlessInstances[i].Links),
+			"links":                           ldapverify.FlattenLinks(serverlessInstances[i].Links),
 			"mongo_db_version":                serverlessInstances[i].MongoDBVersion,
 			"name":                            serverlessInstances[i].Name,
 			"provider_settings_backing_provider_name": serverlessInstances[i].ProviderSettings.BackingProviderName,

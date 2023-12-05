@@ -1,4 +1,4 @@
-package mongodbatlas
+package ldapverify
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceLDAPVerify() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasLDAPVerifyRead,
 		Schema: map[string]*schema.Schema{
@@ -93,7 +93,7 @@ func dataSourceMongoDBAtlasLDAPVerifyRead(ctx context.Context, d *schema.Resourc
 	if err := d.Set("bind_username", ldapResp.Request.BindUsername); err != nil {
 		return diag.FromErr(fmt.Errorf(errorLDAPVerifySetting, "bind_username", d.Id(), err))
 	}
-	if err := d.Set("links", flattenLinks(ldapResp.Links)); err != nil {
+	if err := d.Set("links", FlattenLinks(ldapResp.Links)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorLDAPVerifySetting, "links", d.Id(), err))
 	}
 	if err := d.Set("validations", flattenValidations(ldapResp.Validations)); err != nil {

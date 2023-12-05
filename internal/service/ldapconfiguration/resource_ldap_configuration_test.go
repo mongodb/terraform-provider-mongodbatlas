@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package ldapconfiguration_test
 
 import (
 	"context"
@@ -32,7 +32,7 @@ func TestAccAdvRSLDAPConfiguration_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckLDAP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasLDAPConfigurationDestroy,
+		CheckDestroy:             acc.CheckDestroyLDAPConfiguration,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasLDAPConfigurationConfig(projectName, orgID, hostname, username, password, authEnabled, cast.ToInt(port)),
@@ -69,7 +69,7 @@ func TestAccAdvRSLDAPConfigurationWithVerify_CACertificateComplete(t *testing.T)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckLDAP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasLDAPConfigurationDestroy,
+		CheckDestroy:             acc.CheckDestroyLDAPConfiguration,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasLDAPConfigurationWithVerifyConfig(projectName, orgID, clusterName, hostname, username, password, caCertificate, cast.ToInt(port), true),
@@ -117,7 +117,7 @@ func TestAccAdvRSLDAPConfiguration_importBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckLDAP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasLDAPConfigurationDestroy,
+		CheckDestroy:             acc.CheckDestroyLDAPConfiguration,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasLDAPConfigurationConfig(projectName, orgID, hostname, username, password, authEnabled, port),
@@ -164,23 +164,6 @@ func testAccCheckMongoDBAtlasLDAPConfigurationExists(resourceName string, ldapCo
 
 		return nil
 	}
-}
-
-func testAccCheckMongoDBAtlasLDAPConfigurationDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_ldap_configuration" {
-			continue
-		}
-
-		_, _, err := conn.LDAPConfigurations.Get(context.Background(), rs.Primary.ID)
-		if err == nil {
-			return fmt.Errorf("ldapConfiguration (%s) still exists", rs.Primary.ID)
-		}
-	}
-
-	return nil
 }
 
 func testAccCheckMongoDBAtlasLDAPConfigurationImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {

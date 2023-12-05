@@ -1,4 +1,4 @@
-package mongodbatlas
+package ldapconfiguration
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func DataSourceLDAPConfiguration() *schema.Resource {
+func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasLDAPConfigurationRead,
 		Schema: map[string]*schema.Schema{

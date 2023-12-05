@@ -1,4 +1,4 @@
-package mongodbatlas
+package ldapverify
 
 import (
 	"context"
@@ -23,7 +23,7 @@ const (
 	errorLDAPVerifySetting = "error setting `%s` for LDAPVerify(%s): %s"
 )
 
-func ResourceLDAPVerify() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasLDAPVerifyCreate,
 		ReadContext:   resourceMongoDBAtlasLDAPVerifyRead,
@@ -192,7 +192,7 @@ func resourceMongoDBAtlasLDAPVerifyRead(ctx context.Context, d *schema.ResourceD
 	if err := d.Set("bind_username", ldapResp.Request.BindUsername); err != nil {
 		return diag.FromErr(fmt.Errorf(errorLDAPVerifySetting, "bind_username", d.Id(), err))
 	}
-	if err := d.Set("links", flattenLinks(ldapResp.Links)); err != nil {
+	if err := d.Set("links", FlattenLinks(ldapResp.Links)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorLDAPVerifySetting, "links", d.Id(), err))
 	}
 	if err := d.Set("validations", flattenValidations(ldapResp.Validations)); err != nil {
@@ -214,7 +214,7 @@ func resourceMongoDBAtlasLDAPVerifyDelete(ctx context.Context, d *schema.Resourc
 	return nil
 }
 
-func flattenLinks(linksArray []*matlas.Link) []map[string]any {
+func FlattenLinks(linksArray []*matlas.Link) []map[string]any {
 	links := make([]map[string]any, 0)
 	for _, v := range linksArray {
 		links = append(links, map[string]any{
