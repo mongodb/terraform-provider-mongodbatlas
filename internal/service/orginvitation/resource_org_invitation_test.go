@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package orginvitation_test
 
 import (
 	"context"
@@ -29,7 +29,7 @@ func TestAccConfigRSOrgInvitation_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasOrgInvitationDestroy,
+		CheckDestroy:             acc.CheckDestroyOrgInvitation,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasOrgInvitationConfig(orgID, name, initialRole),
@@ -69,7 +69,7 @@ func TestAccConfigRSOrgInvitation_importBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasOrgInvitationDestroy,
+		CheckDestroy:             acc.CheckDestroyOrgInvitation,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasOrgInvitationConfig(orgID, name, initialRole),
@@ -148,29 +148,6 @@ func testAccCheckMongoDBAtlasOrgInvitationRoleAttribute(invitation *matlas.Invit
 
 		return fmt.Errorf("bad role: %s", invitation.Roles)
 	}
-}
-
-func testAccCheckMongoDBAtlasOrgInvitationDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_invitations" {
-			continue
-		}
-
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		orgID := ids["org_id"]
-		invitationID := ids["invitation_id"]
-
-		// Try to find the invitation
-		_, _, err := conn.Organizations.Invitation(context.Background(), orgID, invitationID)
-		if err == nil {
-			return fmt.Errorf("invitation (%s) still exists", invitationID)
-		}
-	}
-
-	return nil
 }
 
 func testAccCheckMongoDBAtlasOrgInvitationStateIDFunc(resourceName string) resource.ImportStateIdFunc {

@@ -1,4 +1,4 @@
-package mongodbatlas_test
+package orginvitation_test
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ func TestAccConfigDSOrgInvitation_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasOrgInvitationDestroy,
+		CheckDestroy:             acc.CheckDestroyOrgInvitation,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceMongoDBAtlasOrgInvitationConfig(orgID, name, initialRole),
