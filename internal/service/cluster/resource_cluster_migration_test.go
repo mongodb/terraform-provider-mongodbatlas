@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 )
 

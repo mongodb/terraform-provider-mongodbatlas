@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hash/crc32"
 	"log"
 	"net/http"
 	"reflect"
@@ -18,12 +19,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mwielbut/pointy"
+	"github.com/spf13/cast"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"github.com/mwielbut/pointy"
-	"github.com/spf13/cast"
 )
 
 const (
@@ -114,7 +116,7 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"connection_strings": advancedcluster.ClusterConnectionStringsSchema(),
+			"connection_strings": clusterConnectionStringsSchema(),
 			"disk_size_gb": {
 				Type:     schema.TypeFloat,
 				Optional: true,
@@ -273,7 +275,7 @@ func Resource() *schema.Resource {
 					buf.WriteString(fmt.Sprintf("%d", m["num_shards"].(int)))
 					buf.WriteString(m["zone_name"].(string))
 					buf.WriteString(fmt.Sprintf("%+v", m["regions_config"].(*schema.Set)))
-					return advancedcluster.HashCodeString(buf.String())
+					return hashCodeString(buf.String())
 				},
 			},
 			"mongo_db_version": {
@@ -305,11 +307,11 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"advanced_configuration": advancedcluster.ClusterAdvancedConfigurationSchema(),
+			"advanced_configuration": clusterAdvancedConfigurationSchema(),
 			"labels": {
 				Type:       schema.TypeSet,
 				Optional:   true,
-				Set:        advancedcluster.HashFunctionForKeyValuePair,
+				Set:        hashFunctionForKeyValuePair,
 				Deprecated: fmt.Sprintf(constant.DeprecationParamByDateWithReplacement, "September 2024", "tags"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -324,7 +326,7 @@ func Resource() *schema.Resource {
 					},
 				},
 			},
-			"tags":                   &advancedcluster.RSTagsSchema,
+			"tags":                   &rsTagsSchema,
 			"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
 			"termination_protection_enabled": {
 				Type:     schema.TypeBool,
@@ -478,21 +480,21 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if _, ok := d.GetOk("bi_connector_config"); ok {
-		biConnector, err := advancedcluster.ExpandBiConnectorConfig(d)
+		biConnector, err := expandBiConnectorConfig(d)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterCreate, err))
 		}
 		clusterRequest.BiConnector = biConnector
 	}
 
-	if advancedcluster.ContainsLabelOrKey(advancedcluster.ExpandLabelSliceFromSetSchema(d), advancedcluster.DefaultLabel) {
+	if advancedcluster.ContainsLabelOrKey(expandLabelSliceFromSetSchema(d), advancedcluster.DefaultLabel) {
 		return diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
 	}
 
-	clusterRequest.Labels = append(advancedcluster.ExpandLabelSliceFromSetSchema(d), advancedcluster.DefaultLabel)
+	clusterRequest.Labels = append(expandLabelSliceFromSetSchema(d), advancedcluster.DefaultLabel)
 
 	if _, ok := d.GetOk("tags"); ok {
-		tagsSlice := advancedcluster.ExpandTagSliceFromSetSchema(d)
+		tagsSlice := expandTagSliceFromSetSchema(d)
 		clusterRequest.Tags = &tagsSlice
 	}
 
@@ -531,7 +533,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
 		Target:     []string{"IDLE"},
-		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
+		Refresh:    resourceClusterRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
 		Timeout:    timeout,
 		MinTimeout: 1 * time.Minute,
 		Delay:      3 * time.Minute,
@@ -549,7 +551,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	*/
 	ac, ok := d.GetOk("advanced_configuration")
 	if aclist, ok1 := ac.([]any); ok1 && len(aclist) > 0 {
-		advancedConfReq := advancedcluster.ExpandProcessArgs(d, aclist[0].(map[string]any))
+		advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any))
 
 		if ok {
 			_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, cluster.Name, advancedConfReq)
@@ -635,7 +637,7 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "cluster_type", clusterName, err))
 	}
 
-	if err := d.Set("connection_strings", advancedcluster.FlattenConnectionStrings(cluster.ConnectionStrings)); err != nil {
+	if err := d.Set("connection_strings", flattenConnectionStrings(cluster.ConnectionStrings)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "connection_strings", clusterName, err))
 	}
 
@@ -694,7 +696,7 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "termination_protection_enabled", clusterName, err))
 	}
 
-	if err := d.Set("bi_connector_config", advancedcluster.FlattenBiConnectorConfig(cluster.BiConnector)); err != nil {
+	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(cluster.BiConnector)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "bi_connector_config", clusterName, err))
 	}
 
@@ -710,11 +712,11 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "replication_factor", clusterName, err))
 	}
 
-	if err := d.Set("labels", advancedcluster.FlattenLabels(advancedcluster.RemoveLabel(cluster.Labels, advancedcluster.DefaultLabel))); err != nil {
+	if err := d.Set("labels", flattenLabels(advancedcluster.RemoveLabel(cluster.Labels, advancedcluster.DefaultLabel))); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "labels", clusterName, err))
 	}
 
-	if err := d.Set("tags", advancedcluster.FlattenTags(cluster.Tags)); err != nil {
+	if err := d.Set("tags", flattenTags(cluster.Tags)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "tags", clusterName, err))
 	}
 
@@ -750,7 +752,7 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, clusterName, err))
 	}
 
-	if err := d.Set("advanced_configuration", advancedcluster.FlattenProcessArgs(processArgs)); err != nil {
+	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "advanced_configuration", clusterName, err))
 	}
 
@@ -783,7 +785,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if d.HasChange("bi_connector_config") {
-		cluster.BiConnector, _ = advancedcluster.ExpandBiConnectorConfig(d)
+		cluster.BiConnector, _ = expandBiConnectorConfig(d)
 	}
 
 	// If at least one of the provider settings argument has changed, expand all provider settings
@@ -875,15 +877,15 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if d.HasChange("labels") {
-		if advancedcluster.ContainsLabelOrKey(advancedcluster.ExpandLabelSliceFromSetSchema(d), advancedcluster.DefaultLabel) {
+		if advancedcluster.ContainsLabelOrKey(expandLabelSliceFromSetSchema(d), advancedcluster.DefaultLabel) {
 			return diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
 		}
 
-		cluster.Labels = append(advancedcluster.ExpandLabelSliceFromSetSchema(d), advancedcluster.DefaultLabel)
+		cluster.Labels = append(expandLabelSliceFromSetSchema(d), advancedcluster.DefaultLabel)
 	}
 
 	if d.HasChange("tags") {
-		tagsSlice := advancedcluster.ExpandTagSliceFromSetSchema(d)
+		tagsSlice := expandTagSliceFromSetSchema(d)
 		cluster.Tags = &tagsSlice
 	}
 
@@ -906,7 +908,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	if d.HasChange("advanced_configuration") {
 		ac := d.Get("advanced_configuration")
 		if aclist, ok1 := ac.([]any); ok1 && len(aclist) > 0 {
-			advancedConfReq := advancedcluster.ExpandProcessArgs(d, aclist[0].(map[string]any))
+			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any))
 			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
 				argResp, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
 				if err != nil {
@@ -917,7 +919,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if isUpgradeRequired(d) {
-		updatedCluster, _, err := advancedcluster.UpgradeCluster(ctx, conn, cluster, projectID, clusterName, timeout)
+		updatedCluster, _, err := upgradeCluster(ctx, conn, cluster, projectID, clusterName, timeout)
 
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
@@ -1001,7 +1003,7 @@ func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceDa
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
 		Target:     []string{"DELETED"},
-		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, clusterName, projectID, conn),
+		Refresh:    resourceClusterRefreshFunc(ctx, clusterName, projectID, conn),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute, // Wait 30 secs before starting
@@ -1374,7 +1376,7 @@ func updateCluster(ctx context.Context, conn *matlas.Client, request *matlas.Clu
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
-		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, name, projectID, conn),
+		Refresh:    resourceClusterRefreshFunc(ctx, name, projectID, conn),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
@@ -1471,56 +1473,278 @@ func computedCloudProviderSnapshotBackupPolicySchema() *schema.Schema {
 	}
 }
 
-func flattenCloudProviderSnapshotBackupPolicy(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, projectID, clusterName string) ([]map[string]any, error) {
-	backupPolicy, res, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
+func clusterAdvancedConfigurationSchemaComputed() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"default_read_concern": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"default_write_concern": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"fail_index_key_too_long": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+				"javascript_enabled": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+				"minimum_enabled_tls_protocol": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"no_table_scan": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+				"oplog_size_mb": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"sample_size_bi_connector": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"sample_refresh_interval_bi_connector": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"oplog_min_retention_hours": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"transaction_lifetime_limit_seconds": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func clusterConnectionStringsSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:       schema.TypeList,
+		Computed:   true,
+		ConfigMode: schema.SchemaConfigModeAttr,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"standard": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"standard_srv": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"private": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"private_srv": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"private_endpoint": {
+					Type:       schema.TypeList,
+					Computed:   true,
+					ConfigMode: schema.SchemaConfigModeAttr,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"connection_string": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"endpoints": {
+								Type:       schema.TypeList,
+								Computed:   true,
+								ConfigMode: schema.SchemaConfigModeAttr,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"endpoint_id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"provider_name": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"region": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+									},
+								},
+							},
+							"srv_connection_string": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"srv_shard_optimized_connection_string": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"type": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func clusterAdvancedConfigurationSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:       schema.TypeList,
+		Optional:   true,
+		Computed:   true,
+		ConfigMode: schema.SchemaConfigModeAttr,
+		MaxItems:   1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"default_read_concern": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+				"default_write_concern": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+				"fail_index_key_too_long": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+				"javascript_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+				"minimum_enabled_tls_protocol": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+				"no_table_scan": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+				"oplog_size_mb": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+				"oplog_min_retention_hours": {
+					Type:     schema.TypeInt,
+					Optional: true,
+				},
+				"sample_size_bi_connector": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+				"sample_refresh_interval_bi_connector": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+				"transaction_lifetime_limit_seconds": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func hashFunctionForKeyValuePair(v any) int {
+	var buf bytes.Buffer
+	m := v.(map[string]any)
+	buf.WriteString(m["key"].(string))
+	buf.WriteString(m["value"].(string))
+	return hashCodeString(buf.String())
+}
+
+// hashCodeString hashes a string to a unique hashcode.
+//
+// crc32 returns a uint32, but for our use we need
+// and non negative integer. Here we cast to an integer
+// and invert it if the result is negative.
+func hashCodeString(s string) int {
+	v := int(crc32.ChecksumIEEE([]byte(s)))
+	if v >= 0 {
+		return v
+	}
+	if -v >= 0 {
+		return -v
+	}
+	// v == MinInt
+	return 0
+}
+
+func upgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cluster, projectID, name string, timeout time.Duration) (*matlas.Cluster, *matlas.Response, error) {
+	request.Name = name
+
+	cluster, resp, err := conn.Clusters.Upgrade(ctx, projectID, request)
 	if err != nil {
-		if res.StatusCode == http.StatusNotFound ||
-			strings.Contains(err.Error(), "BACKUP_CONFIG_NOT_FOUND") ||
-			strings.Contains(err.Error(), "Not Found") ||
-			strings.Contains(err.Error(), "404") {
-			return []map[string]any{}, nil
+		return nil, nil, err
+	}
+
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
+		Target:     []string{"IDLE"},
+		Refresh:    resourceClusterRefreshFunc(ctx, name, projectID, conn),
+		Timeout:    timeout,
+		MinTimeout: 30 * time.Second,
+		Delay:      1 * time.Minute,
+	}
+
+	// Wait, catching any errors
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return cluster, resp, nil
+}
+
+func resourceClusterRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
+	return func() (any, string, error) {
+		c, resp, err := client.Clusters.Get(ctx, projectID, name)
+
+		if err != nil && strings.Contains(err.Error(), "reset by peer") {
+			return nil, "REPEATING", nil
 		}
 
-		return []map[string]any{}, fmt.Errorf(ErrorSnapshotBackupPolicyRead, clusterName, err)
+		if err != nil && c == nil && resp == nil {
+			return nil, "", err
+		} else if err != nil {
+			if resp.StatusCode == 404 {
+				return "", "DELETED", nil
+			}
+			if resp.StatusCode == 503 {
+				return "", "PENDING", nil
+			}
+			return nil, "", err
+		}
+
+		if c.StateName != "" {
+			log.Printf("[DEBUG] status for MongoDB cluster: %s: %s", name, c.StateName)
+		}
+
+		return c, c.StateName, nil
 	}
-
-	return []map[string]any{
-		{
-			"cluster_id":               backupPolicy.ClusterID,
-			"cluster_name":             backupPolicy.ClusterName,
-			"next_snapshot":            backupPolicy.NextSnapshot,
-			"reference_hour_of_day":    backupPolicy.ReferenceHourOfDay,
-			"reference_minute_of_hour": backupPolicy.ReferenceMinuteOfHour,
-			"restore_window_days":      backupPolicy.RestoreWindowDays,
-			"update_snapshots":         cast.ToBool(backupPolicy.UpdateSnapshots),
-			"policies":                 flattenPolicies(backupPolicy.Policies),
-		},
-	}, nil
-}
-
-func flattenPolicies(policies []matlas.Policy) []map[string]any {
-	actionList := make([]map[string]any, 0)
-	for _, v := range policies {
-		actionList = append(actionList, map[string]any{
-			"id":          v.ID,
-			"policy_item": flattenPolicyItems(v.PolicyItems),
-		})
-	}
-
-	return actionList
-}
-
-func flattenPolicyItems(items []matlas.PolicyItem) []map[string]any {
-	policyItems := make([]map[string]any, 0)
-	for _, v := range items {
-		policyItems = append(policyItems, map[string]any{
-			"id":                 v.ID,
-			"frequency_interval": v.FrequencyInterval,
-			"frequency_type":     v.FrequencyType,
-			"retention_unit":     v.RetentionUnit,
-			"retention_value":    v.RetentionValue,
-		})
-	}
-
-	return policyItems
 }
