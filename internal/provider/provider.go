@@ -26,7 +26,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
@@ -413,8 +412,6 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		atlasuser.DataSource,
 		atlasuser.PluralDataSource,
 		searchdeployment.DataSource,
-		advancedcluster.DataSource,
-		advancedcluster.PluralDataSource,
 		streaminstance.DataSource,
 		streaminstance.PluralDataSource,
 	}

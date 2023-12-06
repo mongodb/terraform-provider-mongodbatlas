@@ -144,6 +144,8 @@ func NewSdkV2Provider() *schema.Provider {
 
 func getDataSourcesMap() map[string]*schema.Resource {
 	dataSourcesMap := map[string]*schema.Resource{
+		"mongodbatlas_advanced_cluster":                  advancedcluster.DataSource(),
+		"mongodbatlas_advanced_clusters":                 advancedcluster.PluralDataSource(),
 		"mongodbatlas_custom_db_role":                    customdbrole.DataSource(),
 		"mongodbatlas_custom_db_roles":                   customdbrole.PluralDataSource(),
 		"mongodbatlas_api_key":                           apikey.DataSource(),
