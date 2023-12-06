@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mwielbut/pointy"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/accesslistapikey"
@@ -59,7 +61,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teams"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/thirdpartyintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/x509authenticationdatabaseuser"
-	"github.com/mwielbut/pointy"
 )
 
 var (
@@ -143,8 +144,6 @@ func NewSdkV2Provider() *schema.Provider {
 
 func getDataSourcesMap() map[string]*schema.Resource {
 	dataSourcesMap := map[string]*schema.Resource{
-		"mongodbatlas_advanced_cluster":                  advancedcluster.DataSource(),
-		"mongodbatlas_advanced_clusters":                 advancedcluster.PluralDataSource(),
 		"mongodbatlas_custom_db_role":                    customdbrole.DataSource(),
 		"mongodbatlas_custom_db_roles":                   customdbrole.PluralDataSource(),
 		"mongodbatlas_api_key":                           apikey.DataSource(),
