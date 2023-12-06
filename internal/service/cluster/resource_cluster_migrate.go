@@ -299,7 +299,7 @@ func ResourceClusterResourceV0() *schema.Resource {
 			"labels": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				Set:      advancedcluster.HashFunctionForKeyValuePair,
+				Set:      hashFunctionForKeyValuePair,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
