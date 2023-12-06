@@ -15,10 +15,52 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/accesslistapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/apikey"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/auditing"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/backupcompliancepolicy"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupschedule"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshot"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotexportbucket"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotexportjob"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotrestorejob"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudprovideraccess"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clusteroutagesimulation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdbrole"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdnsconfigurationclusteraws"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/datalakepipeline"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/eventtrigger"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federateddatabaseinstance"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedquerylimit"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsidentityprovider"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsorgconfig"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsorgrolemapping"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/globalclusterconfig"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/ldapconfiguration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/ldapverify"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/maintenancewindow"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkcontainer"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkpeering"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/onlinearchive"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/organization"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/orginvitation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privateendpointregionalmode"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpoint"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointserverless"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointservice"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointservicedatafederationonlinearchive"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointserviceserverless"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectinvitation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/rolesorgid"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchindex"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serverlessinstance"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/sharedtier"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teams"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/thirdpartyintegration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/x509authenticationdatabaseuser"
 )
 
 var (
@@ -102,137 +144,136 @@ func NewSdkV2Provider() *schema.Provider {
 
 func getDataSourcesMap() map[string]*schema.Resource {
 	dataSourcesMap := map[string]*schema.Resource{
-		"mongodbatlas_advanced_clusters":                 advancedcluster.DataSourceAdvancedClusters(),
-		"mongodbatlas_custom_db_role":                    mongodbatlas.DataSourceCustomDBRole(),
-		"mongodbatlas_custom_db_roles":                   mongodbatlas.DataSourceCustomDBRoles(),
-		"mongodbatlas_api_key":                           mongodbatlas.DataSourceAPIKey(),
-		"mongodbatlas_api_keys":                          mongodbatlas.DataSourceAPIKeys(),
-		"mongodbatlas_access_list_api_key":               mongodbatlas.DataSourceAccessListAPIKey(),
-		"mongodbatlas_access_list_api_keys":              mongodbatlas.DataSourceAccessListAPIKeys(),
-		"mongodbatlas_project_api_key":                   projectapikey.DataSourceProjectAPIKey(),
-		"mongodbatlas_project_api_keys":                  projectapikey.DataSourceProjectAPIKeys(),
-		"mongodbatlas_roles_org_id":                      mongodbatlas.DataSourceOrgID(),
-		"mongodbatlas_cluster":                           cluster.DataSourceCluster(),
-		"mongodbatlas_clusters":                          cluster.DataSourceClusters(),
-		"mongodbatlas_network_container":                 mongodbatlas.DataSourceNetworkContainer(),
-		"mongodbatlas_network_containers":                mongodbatlas.DataSourceNetworkContainers(),
-		"mongodbatlas_network_peering":                   mongodbatlas.DataSourceNetworkPeering(),
-		"mongodbatlas_network_peerings":                  mongodbatlas.DataSourceNetworkPeerings(),
-		"mongodbatlas_maintenance_window":                mongodbatlas.DataSourceMaintenanceWindow(),
-		"mongodbatlas_auditing":                          mongodbatlas.DataSourceAuditing(),
-		"mongodbatlas_team":                              mongodbatlas.DataSourceTeam(),
-		"mongodbatlas_teams":                             mongodbatlas.DataSourceTeam(),
-		"mongodbatlas_global_cluster_config":             mongodbatlas.DataSourceGlobalCluster(),
-		"mongodbatlas_x509_authentication_database_user": mongodbatlas.DataSourceX509AuthDBUser(),
-		"mongodbatlas_private_endpoint_regional_mode":    mongodbatlas.DataSourcePrivateEndpointRegionalMode(),
-		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive":  mongodbatlas.DataSourcePrivatelinkEndpointServiceDataFederationOnlineArchive(),
-		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archives": mongodbatlas.DataSourcePrivatelinkEndpointServiceDataFederationOnlineArchives(),
-		"mongodbatlas_privatelink_endpoint":                                         mongodbatlas.DataSourcePrivateLinkEndpoint(),
-		"mongodbatlas_privatelink_endpoint_service":                                 mongodbatlas.DataSourcePrivateEndpointServiceLink(),
-		"mongodbatlas_privatelink_endpoint_service_serverless":                      mongodbatlas.DataSourcePrivateLinkEndpointServerless(),
-		"mongodbatlas_privatelink_endpoints_service_serverless":                     mongodbatlas.DataSourcePrivateLinkEndpointsServiceServerless(),
-		"mongodbatlas_cloud_backup_schedule":                                        mongodbatlas.DataSourceCloudBackupSchedule(),
-		"mongodbatlas_third_party_integration":                                      mongodbatlas.DataSourceThirdPartyIntegration(),
-		"mongodbatlas_third_party_integrations":                                     mongodbatlas.DataSourceThirdPartyIntegrations(),
-		"mongodbatlas_cloud_provider_access":                                        mongodbatlas.DataSourceCloudProviderAccessList(),
-		"mongodbatlas_cloud_provider_access_setup":                                  mongodbatlas.DataSourceCloudProviderAccessSetup(),
-		"mongodbatlas_custom_dns_configuration_cluster_aws":                         mongodbatlas.DataSourceCustomDNSConfigurationAWS(),
-		"mongodbatlas_online_archive":                                               mongodbatlas.DataSourceOnlineArchive(),
-		"mongodbatlas_online_archives":                                              mongodbatlas.DataSourceOnlineArchives(),
-		"mongodbatlas_ldap_configuration":                                           mongodbatlas.DataSourceLDAPConfiguration(),
-		"mongodbatlas_ldap_verify":                                                  mongodbatlas.DataSourceLDAPVerify(),
-		"mongodbatlas_search_index":                                                 mongodbatlas.DataSourceSearchIndex(),
-		"mongodbatlas_search_indexes":                                               mongodbatlas.DataSourceSearchIndexes(),
-		"mongodbatlas_data_lake_pipeline_run":                                       mongodbatlas.DataSourceDataLakePipelineRun(),
-		"mongodbatlas_data_lake_pipeline_runs":                                      mongodbatlas.DataSourceDataLakePipelineRuns(),
-		"mongodbatlas_data_lake_pipeline":                                           mongodbatlas.DataSourceDataLakePipeline(),
-		"mongodbatlas_data_lake_pipelines":                                          mongodbatlas.DataSourceDataLakePipelines(),
-		"mongodbatlas_event_trigger":                                                mongodbatlas.DataSourceEventTrigger(),
-		"mongodbatlas_event_triggers":                                               mongodbatlas.DataSourceEventTriggers(),
-		"mongodbatlas_project_invitation":                                           mongodbatlas.DataSourceProjectInvitation(),
-		"mongodbatlas_org_invitation":                                               mongodbatlas.DataSourceOrgInvitation(),
-		"mongodbatlas_organization":                                                 mongodbatlas.DataSourceOrganization(),
-		"mongodbatlas_organizations":                                                mongodbatlas.DataSourceOrganizations(),
-		"mongodbatlas_cloud_backup_snapshot":                                        mongodbatlas.DataSourceCloudBackupSnapshot(),
-		"mongodbatlas_cloud_backup_snapshots":                                       mongodbatlas.DataSourceCloudBackupSnapshots(),
-		"mongodbatlas_backup_compliance_policy":                                     mongodbatlas.DataSourceBackupCompliancePolicy(),
-		"mongodbatlas_cloud_backup_snapshot_restore_job":                            mongodbatlas.DataSourceCloudBackupSnapshotRestoreJob(),
-		"mongodbatlas_cloud_backup_snapshot_restore_jobs":                           mongodbatlas.DataSourceCloudBackupSnapshotRestoreJobs(),
-		"mongodbatlas_cloud_backup_snapshot_export_bucket":                          mongodbatlas.DatasourceMongoDBAtlasCloudBackupSnapshotExportBucket(),
-		"mongodbatlas_cloud_backup_snapshot_export_buckets":                         mongodbatlas.DatasourceMongoDBAtlasCloudBackupSnapshotExportBuckets(),
-		"mongodbatlas_cloud_backup_snapshot_export_job":                             mongodbatlas.DatasourceMongoDBAtlasCloudBackupSnapshotExportJob(),
-		"mongodbatlas_cloud_backup_snapshot_export_jobs":                            mongodbatlas.DatasourceMongoDBAtlasCloudBackupSnapshotExportJobs(),
-		"mongodbatlas_federated_settings":                                           mongodbatlas.DataSourceFederatedSettings(),
-		"mongodbatlas_federated_settings_identity_provider":                         mongodbatlas.DataSourceFederatedSettingsIdentityProvider(),
-		"mongodbatlas_federated_settings_identity_providers":                        mongodbatlas.DataSourceFederatedSettingsIdentityProviders(),
-		"mongodbatlas_federated_settings_org_config":                                mongodbatlas.DataSourceFederatedSettingsOrganizationConfig(),
-		"mongodbatlas_federated_settings_org_configs":                               mongodbatlas.DataSourceFederatedSettingsOrganizationConfigs(),
-		"mongodbatlas_federated_settings_org_role_mapping":                          mongodbatlas.DataSourceFederatedSettingsOrganizationRoleMapping(),
-		"mongodbatlas_federated_settings_org_role_mappings":                         mongodbatlas.DataSourceFederatedSettingsOrganizationRoleMappings(),
-		"mongodbatlas_federated_database_instance":                                  mongodbatlas.DataSourceFederatedDatabaseInstance(),
-		"mongodbatlas_federated_database_instances":                                 mongodbatlas.DataSourceFederatedDatabaseInstances(),
-		"mongodbatlas_federated_query_limit":                                        mongodbatlas.DataSourceFederatedDatabaseQueryLimit(),
-		"mongodbatlas_federated_query_limits":                                       mongodbatlas.DataSourceFederatedDatabaseQueryLimits(),
-		"mongodbatlas_serverless_instance":                                          mongodbatlas.DataSourceServerlessInstance(),
-		"mongodbatlas_serverless_instances":                                         mongodbatlas.DataSourceServerlessInstances(),
-		"mongodbatlas_cluster_outage_simulation":                                    mongodbatlas.DataSourceClusterOutageSimulation(),
-		"mongodbatlas_shared_tier_restore_job":                                      mongodbatlas.DataSourceCloudSharedTierRestoreJob(),
-		"mongodbatlas_shared_tier_restore_jobs":                                     mongodbatlas.DataSourceCloudSharedTierRestoreJobs(),
-		"mongodbatlas_shared_tier_snapshot":                                         mongodbatlas.DataSourceSharedTierSnapshot(),
-		"mongodbatlas_shared_tier_snapshots":                                        mongodbatlas.DataSourceSharedTierSnapshots(),
+		"mongodbatlas_custom_db_role":                    customdbrole.DataSource(),
+		"mongodbatlas_custom_db_roles":                   customdbrole.PluralDataSource(),
+		"mongodbatlas_api_key":                           apikey.DataSource(),
+		"mongodbatlas_api_keys":                          apikey.PluralDataSource(),
+		"mongodbatlas_access_list_api_key":               accesslistapikey.DataSource(),
+		"mongodbatlas_access_list_api_keys":              accesslistapikey.PluralDataSource(),
+		"mongodbatlas_project_api_key":                   projectapikey.DataSource(),
+		"mongodbatlas_project_api_keys":                  projectapikey.PluralDataSource(),
+		"mongodbatlas_roles_org_id":                      rolesorgid.DataSource(),
+		"mongodbatlas_cluster":                           cluster.DataSource(),
+		"mongodbatlas_clusters":                          cluster.PluralDataSource(),
+		"mongodbatlas_network_container":                 networkcontainer.DataSource(),
+		"mongodbatlas_network_containers":                networkcontainer.PluralDataSource(),
+		"mongodbatlas_network_peering":                   networkpeering.DataSource(),
+		"mongodbatlas_network_peerings":                  networkpeering.PluralDataSource(),
+		"mongodbatlas_maintenance_window":                maintenancewindow.DataSource(),
+		"mongodbatlas_auditing":                          auditing.DataSource(),
+		"mongodbatlas_team":                              teams.DataSource(),
+		"mongodbatlas_teams":                             teams.DataSource(),
+		"mongodbatlas_global_cluster_config":             globalclusterconfig.DataSource(),
+		"mongodbatlas_x509_authentication_database_user": x509authenticationdatabaseuser.DataSource(),
+		"mongodbatlas_private_endpoint_regional_mode":    privateendpointregionalmode.DataSource(),
+		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive":  privatelinkendpointservicedatafederationonlinearchive.DataSource(),
+		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archives": privatelinkendpointservicedatafederationonlinearchive.PluralDataSource(),
+		"mongodbatlas_privatelink_endpoint":                                         privatelinkendpoint.DataSource(),
+		"mongodbatlas_privatelink_endpoint_service":                                 privatelinkendpointservice.DataSource(),
+		"mongodbatlas_privatelink_endpoint_service_serverless":                      privatelinkendpointserviceserverless.DataSource(),
+		"mongodbatlas_privatelink_endpoints_service_serverless":                     privatelinkendpointserviceserverless.PluralDataSource(),
+		"mongodbatlas_third_party_integration":                                      thirdpartyintegration.DataSource(),
+		"mongodbatlas_third_party_integrations":                                     thirdpartyintegration.PluralDataSource(),
+		"mongodbatlas_cloud_provider_access":                                        cloudprovideraccess.DataSource(),
+		"mongodbatlas_cloud_provider_access_setup":                                  cloudprovideraccess.DataSourceSetup(),
+		"mongodbatlas_custom_dns_configuration_cluster_aws":                         customdnsconfigurationclusteraws.DataSource(),
+		"mongodbatlas_online_archive":                                               onlinearchive.DataSource(),
+		"mongodbatlas_online_archives":                                              onlinearchive.PluralDataSource(),
+		"mongodbatlas_ldap_configuration":                                           ldapconfiguration.DataSource(),
+		"mongodbatlas_ldap_verify":                                                  ldapverify.DataSource(),
+		"mongodbatlas_search_index":                                                 searchindex.DataSource(),
+		"mongodbatlas_search_indexes":                                               searchindex.PluralDataSource(),
+		"mongodbatlas_data_lake_pipeline_run":                                       datalakepipeline.DataSourceRun(),
+		"mongodbatlas_data_lake_pipeline_runs":                                      datalakepipeline.PluralDataSourceRun(),
+		"mongodbatlas_data_lake_pipeline":                                           datalakepipeline.DataSource(),
+		"mongodbatlas_data_lake_pipelines":                                          datalakepipeline.PluralDataSource(),
+		"mongodbatlas_event_trigger":                                                eventtrigger.DataSource(),
+		"mongodbatlas_event_triggers":                                               eventtrigger.PluralDataSource(),
+		"mongodbatlas_project_invitation":                                           projectinvitation.DataSource(),
+		"mongodbatlas_org_invitation":                                               orginvitation.DataSource(),
+		"mongodbatlas_organization":                                                 organization.DataSource(),
+		"mongodbatlas_organizations":                                                organization.PluralDataSource(),
+		"mongodbatlas_backup_compliance_policy":                                     backupcompliancepolicy.DataSource(),
+		"mongodbatlas_cloud_backup_schedule":                                        cloudbackupschedule.DataSource(),
+		"mongodbatlas_cloud_backup_snapshot":                                        cloudbackupsnapshot.DataSource(),
+		"mongodbatlas_cloud_backup_snapshots":                                       cloudbackupsnapshot.PluralDataSource(),
+		"mongodbatlas_cloud_backup_snapshot_export_bucket":                          cloudbackupsnapshotexportbucket.DataSource(),
+		"mongodbatlas_cloud_backup_snapshot_export_buckets":                         cloudbackupsnapshotexportbucket.PluralDataSource(),
+		"mongodbatlas_cloud_backup_snapshot_export_job":                             cloudbackupsnapshotexportjob.DataSource(),
+		"mongodbatlas_cloud_backup_snapshot_export_jobs":                            cloudbackupsnapshotexportjob.PluralDataSource(),
+		"mongodbatlas_cloud_backup_snapshot_restore_job":                            cloudbackupsnapshotrestorejob.DataSource(),
+		"mongodbatlas_cloud_backup_snapshot_restore_jobs":                           cloudbackupsnapshotrestorejob.PluralDataSource(),
+		"mongodbatlas_federated_settings_identity_provider":                         federatedsettingsidentityprovider.DataSource(),
+		"mongodbatlas_federated_settings_identity_providers":                        federatedsettingsidentityprovider.PluralDataSource(),
+		"mongodbatlas_federated_settings":                                           federatedsettingsorgconfig.DataSourceSettings(),
+		"mongodbatlas_federated_settings_org_config":                                federatedsettingsorgconfig.DataSource(),
+		"mongodbatlas_federated_settings_org_configs":                               federatedsettingsorgconfig.PluralDataSource(),
+		"mongodbatlas_federated_settings_org_role_mapping":                          federatedsettingsorgrolemapping.DataSource(),
+		"mongodbatlas_federated_settings_org_role_mappings":                         federatedsettingsorgrolemapping.PluralDataSource(),
+		"mongodbatlas_federated_database_instance":                                  federateddatabaseinstance.DataSource(),
+		"mongodbatlas_federated_database_instances":                                 federateddatabaseinstance.PluralDataSource(),
+		"mongodbatlas_federated_query_limit":                                        federatedquerylimit.DataSource(),
+		"mongodbatlas_federated_query_limits":                                       federatedquerylimit.PluralDataSource(),
+		"mongodbatlas_serverless_instance":                                          serverlessinstance.DataSource(),
+		"mongodbatlas_serverless_instances":                                         serverlessinstance.PluralDataSource(),
+		"mongodbatlas_cluster_outage_simulation":                                    clusteroutagesimulation.DataSource(),
+		"mongodbatlas_shared_tier_restore_job":                                      sharedtier.DataSourceRestoreJob(),
+		"mongodbatlas_shared_tier_restore_jobs":                                     sharedtier.PluralDataSourceRestoreJob(),
+		"mongodbatlas_shared_tier_snapshot":                                         sharedtier.DataSourceSnapshot(),
+		"mongodbatlas_shared_tier_snapshots":                                        sharedtier.PluralDataSourceSnapshot(),
 	}
 	return dataSourcesMap
 }
 
 func getResourcesMap() map[string]*schema.Resource {
 	resourcesMap := map[string]*schema.Resource{
-		"mongodbatlas_advanced_cluster":                  advancedcluster.ResourceAdvancedCluster(),
-		"mongodbatlas_api_key":                           mongodbatlas.ResourceAPIKey(),
-		"mongodbatlas_access_list_api_key":               mongodbatlas.ResourceAccessListAPIKey(),
-		"mongodbatlas_project_api_key":                   projectapikey.ResourceProjectAPIKey(),
-		"mongodbatlas_custom_db_role":                    mongodbatlas.ResourceCustomDBRole(),
-		"mongodbatlas_cluster":                           cluster.ResourceCluster(),
-		"mongodbatlas_network_container":                 mongodbatlas.ResourceNetworkContainer(),
-		"mongodbatlas_network_peering":                   mongodbatlas.ResourceNetworkPeering(),
-		"mongodbatlas_maintenance_window":                mongodbatlas.ResourceMaintenanceWindow(),
-		"mongodbatlas_auditing":                          mongodbatlas.ResourceAuditing(),
-		"mongodbatlas_team":                              mongodbatlas.ResourceTeam(),
-		"mongodbatlas_teams":                             mongodbatlas.ResourceTeam(),
-		"mongodbatlas_global_cluster_config":             mongodbatlas.ResourceGlobalCluster(),
-		"mongodbatlas_x509_authentication_database_user": mongodbatlas.ResourceX509AuthDBUser(),
-		"mongodbatlas_private_endpoint_regional_mode":    mongodbatlas.ResourcePrivateEndpointRegionalMode(),
-		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive": mongodbatlas.ResourcePrivatelinkEndpointServiceDataFederationOnlineArchive(),
-		"mongodbatlas_privatelink_endpoint":                                        mongodbatlas.ResourcePrivateLinkEndpoint(),
-		"mongodbatlas_privatelink_endpoint_serverless":                             mongodbatlas.ResourcePrivateLinkEndpointServerless(),
-		"mongodbatlas_privatelink_endpoint_service":                                mongodbatlas.ResourcePrivateEndpointServiceLink(),
-		"mongodbatlas_privatelink_endpoint_service_serverless":                     mongodbatlas.ResourcePrivateLinkEndpointServiceServerless(),
-		"mongodbatlas_third_party_integration":                                     mongodbatlas.ResourceThirdPartyIntegration(),
-		"mongodbatlas_cloud_provider_access":                                       mongodbatlas.ResourceCloudProviderAccess(),
-		"mongodbatlas_online_archive":                                              mongodbatlas.ResourceOnlineArchive(),
-		"mongodbatlas_custom_dns_configuration_cluster_aws":                        mongodbatlas.ResourceCustomDNSConfiguration(),
-		"mongodbatlas_ldap_configuration":                                          mongodbatlas.ResourceLDAPConfiguration(),
-		"mongodbatlas_ldap_verify":                                                 mongodbatlas.ResourceLDAPVerify(),
-		"mongodbatlas_cloud_provider_access_setup":                                 mongodbatlas.ResourceCloudProviderAccessSetup(),
-		"mongodbatlas_cloud_provider_access_authorization":                         mongodbatlas.ResourceCloudProviderAccessAuthorization(),
-		"mongodbatlas_search_index":                                                mongodbatlas.ResourceSearchIndex(),
-		"mongodbatlas_data_lake_pipeline":                                          mongodbatlas.ResourceDataLakePipeline(),
-		"mongodbatlas_event_trigger":                                               mongodbatlas.ResourceEventTriggers(),
-		"mongodbatlas_cloud_backup_schedule":                                       mongodbatlas.ResourceCloudBackupSchedule(),
-		"mongodbatlas_project_invitation":                                          mongodbatlas.ResourceProjectInvitation(),
-		"mongodbatlas_org_invitation":                                              mongodbatlas.ResourceOrgInvitation(),
-		"mongodbatlas_organization":                                                mongodbatlas.ResourceOrganization(),
-		"mongodbatlas_cloud_backup_snapshot":                                       mongodbatlas.ResourceCloudBackupSnapshot(),
-		"mongodbatlas_backup_compliance_policy":                                    mongodbatlas.ResourceBackupCompliancePolicy(),
-		"mongodbatlas_cloud_backup_snapshot_restore_job":                           mongodbatlas.ResourceCloudBackupSnapshotRestoreJob(),
-		"mongodbatlas_cloud_backup_snapshot_export_bucket":                         mongodbatlas.ResourceCloudBackupSnapshotExportBucket(),
-		"mongodbatlas_cloud_backup_snapshot_export_job":                            mongodbatlas.ResourceCloudBackupSnapshotExportJob(),
-		"mongodbatlas_federated_settings_org_config":                               mongodbatlas.ResourceFederatedSettingsOrganizationConfig(),
-		"mongodbatlas_federated_settings_org_role_mapping":                         mongodbatlas.ResourceFederatedSettingsOrganizationRoleMapping(),
-		"mongodbatlas_federated_settings_identity_provider":                        mongodbatlas.ResourceFederatedSettingsIdentityProvider(),
-		"mongodbatlas_federated_database_instance":                                 mongodbatlas.ResourceFederatedDatabaseInstance(),
-		"mongodbatlas_federated_query_limit":                                       mongodbatlas.ResourceFederatedDatabaseQueryLimit(),
-		"mongodbatlas_serverless_instance":                                         mongodbatlas.ResourceServerlessInstance(),
-		"mongodbatlas_cluster_outage_simulation":                                   mongodbatlas.ResourceClusterOutageSimulation(),
+		"mongodbatlas_advanced_cluster":                  advancedcluster.Resource(),
+		"mongodbatlas_api_key":                           apikey.Resource(),
+		"mongodbatlas_access_list_api_key":               accesslistapikey.Resource(),
+		"mongodbatlas_project_api_key":                   projectapikey.Resource(),
+		"mongodbatlas_custom_db_role":                    customdbrole.Resource(),
+		"mongodbatlas_cluster":                           cluster.Resource(),
+		"mongodbatlas_network_container":                 networkcontainer.Resource(),
+		"mongodbatlas_network_peering":                   networkpeering.Resource(),
+		"mongodbatlas_maintenance_window":                maintenancewindow.Resource(),
+		"mongodbatlas_auditing":                          auditing.Resource(),
+		"mongodbatlas_team":                              teams.Resource(),
+		"mongodbatlas_teams":                             teams.Resource(),
+		"mongodbatlas_global_cluster_config":             globalclusterconfig.Resource(),
+		"mongodbatlas_x509_authentication_database_user": x509authenticationdatabaseuser.Resource(),
+		"mongodbatlas_private_endpoint_regional_mode":    privateendpointregionalmode.Resource(),
+		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive": privatelinkendpointservicedatafederationonlinearchive.Resource(),
+		"mongodbatlas_privatelink_endpoint":                                        privatelinkendpoint.Resource(),
+		"mongodbatlas_privatelink_endpoint_serverless":                             privatelinkendpointserverless.Resource(),
+		"mongodbatlas_privatelink_endpoint_service":                                privatelinkendpointservice.Resource(),
+		"mongodbatlas_privatelink_endpoint_service_serverless":                     privatelinkendpointserviceserverless.Resource(),
+		"mongodbatlas_third_party_integration":                                     thirdpartyintegration.Resource(),
+		"mongodbatlas_online_archive":                                              onlinearchive.Resource(),
+		"mongodbatlas_custom_dns_configuration_cluster_aws":                        customdnsconfigurationclusteraws.Resource(),
+		"mongodbatlas_ldap_configuration":                                          ldapconfiguration.Resource(),
+		"mongodbatlas_ldap_verify":                                                 ldapverify.Resource(),
+		"mongodbatlas_cloud_provider_access":                                       cloudprovideraccess.Resource(),
+		"mongodbatlas_cloud_provider_access_setup":                                 cloudprovideraccess.ResourceSetup(),
+		"mongodbatlas_cloud_provider_access_authorization":                         cloudprovideraccess.ResourceAuthorization(),
+		"mongodbatlas_search_index":                                                searchindex.Resource(),
+		"mongodbatlas_data_lake_pipeline":                                          datalakepipeline.Resource(),
+		"mongodbatlas_event_trigger":                                               eventtrigger.Resource(),
+		"mongodbatlas_project_invitation":                                          projectinvitation.Resource(),
+		"mongodbatlas_org_invitation":                                              orginvitation.Resource(),
+		"mongodbatlas_organization":                                                organization.Resource(),
+		"mongodbatlas_backup_compliance_policy":                                    backupcompliancepolicy.Resource(),
+		"mongodbatlas_cloud_backup_schedule":                                       cloudbackupschedule.Resource(),
+		"mongodbatlas_cloud_backup_snapshot":                                       cloudbackupsnapshot.Resource(),
+		"mongodbatlas_cloud_backup_snapshot_export_bucket":                         cloudbackupsnapshotexportbucket.Resource(),
+		"mongodbatlas_cloud_backup_snapshot_export_job":                            cloudbackupsnapshotexportjob.Resource(),
+		"mongodbatlas_cloud_backup_snapshot_restore_job":                           cloudbackupsnapshotrestorejob.Resource(),
+		"mongodbatlas_federated_settings_org_config":                               federatedsettingsorgconfig.Resource(),
+		"mongodbatlas_federated_settings_org_role_mapping":                         federatedsettingsorgrolemapping.Resource(),
+		"mongodbatlas_federated_settings_identity_provider":                        federatedsettingsidentityprovider.Resource(),
+		"mongodbatlas_federated_database_instance":                                 federateddatabaseinstance.Resource(),
+		"mongodbatlas_federated_query_limit":                                       federatedquerylimit.Resource(),
+		"mongodbatlas_serverless_instance":                                         serverlessinstance.Resource(),
+		"mongodbatlas_cluster_outage_simulation":                                   clusteroutagesimulation.Resource(),
 	}
 	return resourcesMap
 }

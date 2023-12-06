@@ -17,7 +17,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
-func DataSourceClusters() *schema.Resource {
+func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasClustersRead,
 		Schema: map[string]*schema.Schema{

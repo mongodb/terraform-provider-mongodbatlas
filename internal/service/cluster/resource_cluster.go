@@ -35,7 +35,7 @@ const (
 	ErrorSnapshotBackupPolicyRead = "error getting a Cloud Provider Snapshot Backup Policy for the cluster(%s): %s"
 )
 
-func ResourceCluster() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateWithoutTimeout: resourceMongoDBAtlasClusterCreate,
 		ReadWithoutTimeout:   resourceMongoDBAtlasClusterRead,

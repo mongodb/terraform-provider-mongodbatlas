@@ -34,6 +34,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
@@ -414,6 +415,8 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		searchdeployment.DataSource,
 		advancedcluster.DataSource,
 		advancedcluster.PluralDataSource,
+		streaminstance.DataSource,
+		streaminstance.PluralDataSource,
 	}
 }
 
@@ -425,6 +428,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		alertconfiguration.Resource,
 		projectipaccesslist.Resource,
 		searchdeployment.Resource,
+		streaminstance.Resource,
 	}
 }
 

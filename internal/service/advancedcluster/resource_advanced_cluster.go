@@ -39,7 +39,7 @@ const (
 
 var upgradeRequestCtxKey acCtxKey = "upgradeRequest"
 
-func ResourceAdvancedCluster() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateWithoutTimeout: resourceMongoDBAtlasAdvancedClusterCreate,
 		ReadWithoutTimeout:   resourceMongoDBAtlasAdvancedClusterRead,
@@ -51,7 +51,7 @@ func ResourceAdvancedCluster() *schema.Resource {
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
 			{
-				Type:    ResourceAdvancedClusterResourceV0().CoreConfigSchema().ImpliedType(),
+				Type:    ResourceV0().CoreConfigSchema().ImpliedType(),
 				Upgrade: resourceMongoDBAtlasAdvancedClusterStateUpgradeV0,
 				Version: 0,
 			},

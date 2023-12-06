@@ -35,7 +35,7 @@ func TestAccClusterRSClusterMigrateState_empty_advancedConfig(t *testing.T) {
 	v1State := cluster.MigrateAdvancedConfiguration(v0State)
 
 	v1Config := terraform.NewResourceConfigRaw(v1State)
-	diags = cluster.ResourceCluster().Validate(v1Config)
+	diags = cluster.Resource().Validate(v1Config)
 	if len(diags) > 0 {
 		fmt.Println(diags)
 		t.Error("migrated cluster advanced config is invalid")
@@ -78,7 +78,7 @@ func TestAccClusterRSClusterMigrateState_with_advancedConfig(t *testing.T) {
 	v1State := cluster.MigrateAdvancedConfiguration(v0State)
 
 	v1Config := terraform.NewResourceConfigRaw(v1State)
-	diags = cluster.ResourceCluster().Validate(v1Config)
+	diags = cluster.Resource().Validate(v1Config)
 	if len(diags) > 0 {
 		fmt.Println(diags)
 		t.Error("migrated cluster advanced config is invalid")
@@ -121,7 +121,7 @@ func TestAccClusterRSClusterMigrateState_with_defaultAdvancedConfig_v0_5_1(t *te
 	v1State := cluster.MigrateAdvancedConfiguration(v0State)
 
 	v1Config := terraform.NewResourceConfigRaw(v1State)
-	diags = cluster.ResourceCluster().Validate(v1Config)
+	diags = cluster.Resource().Validate(v1Config)
 	if len(diags) > 0 {
 		fmt.Println(diags)
 		t.Error("migrated cluster advanced config is invalid")

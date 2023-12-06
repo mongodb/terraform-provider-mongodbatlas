@@ -1,0 +1,88 @@
+package privatelinkendpointservicedatafederationonlinearchive
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/datalakepipeline"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+)
+
+const errorPrivateEndpointServiceDataFederationOnlineArchiveList = "error reading Private Endpoings for projectId %s: %s"
+
+func PluralDataSource() *schema.Resource {
+	return &schema.Resource{
+		ReadContext: dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchivesRead,
+		Schema: map[string]*schema.Schema{
+			"project_id": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"results": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"endpoint_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"provider_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"comment": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchivesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	conn := meta.(*config.MongoDBClient).Atlas
+	projectID := d.Get("project_id").(string)
+
+	privateEndpoints, _, err := conn.DataLakes.ListPrivateLinkEndpoint(context.Background(), projectID)
+	if err != nil {
+		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveList, projectID, err)
+	}
+
+	if err := d.Set("results", flattenPrivateLinkEndpointDataLakeResponse(privateEndpoints.Results)); err != nil {
+		return diag.FromErr(fmt.Errorf(datalakepipeline.ErrorDataLakeSetting, "results", projectID, err))
+	}
+
+	d.SetId(id.UniqueId())
+
+	return nil
+}
+
+func flattenPrivateLinkEndpointDataLakeResponse(atlasPrivateLinkEndpointDataLakes []*matlas.PrivateLinkEndpointDataLake) []map[string]any {
+	if len(atlasPrivateLinkEndpointDataLakes) == 0 {
+		return []map[string]any{}
+	}
+
+	results := make([]map[string]any, len(atlasPrivateLinkEndpointDataLakes))
+
+	for i, atlasPrivateLinkEndpointDataLake := range atlasPrivateLinkEndpointDataLakes {
+		results[i] = map[string]any{
+			"endpoint_id":   atlasPrivateLinkEndpointDataLake.EndpointID,
+			"provider_name": atlasPrivateLinkEndpointDataLake.Provider,
+			"comment":       atlasPrivateLinkEndpointDataLake.Comment,
+			"type":          atlasPrivateLinkEndpointDataLake.Type,
+		}
+	}
+
+	return results
+}

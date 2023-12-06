@@ -35,6 +35,7 @@ jobs:
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster }}
       cluster: ${{ steps.filter.outputs.cluster }}
       search_deployment: ${{ steps.filter.outputs.search_deployment }}
+      stream: ${{ steps.filter.outputs.stream }}
       generic: ${{ steps.filter.outputs.generic }}
       backup_online_archive: ${{ steps.filter.outputs.backup_online_archive }}
       backup_snapshots: ${{ steps.filter.outputs.backup_snapshots }}
@@ -55,72 +56,66 @@ jobs:
       with:
         filters: |
           assume_role:
-            - 'mongodbatlas/**provider**.go'
+            - 'internal/provider/*.go'
           cluster_outage_simulation:
-            - 'mongodbatlas/**cluster_outage_simulation**.go'
+            - 'internal/service/clusteroutagesimulation/*.go'
           advanced_cluster:
             - 'internal/service/advancedcluster/*.go'
           cluster:
             - 'internal/service/cluster/*.go'
           search_deployment:
             - 'internal/service/searchdeployment/*.go'
+          stream:
+            - 'internal/service/streaminstance/*.go'
           generic:
-            - 'mongodbatlas/data_source_backup_compliance_policy*.go'
-            - 'mongodbatlas/resource_backup_compliance_policy*.go'
-            - 'mongodbatlas/resource_x509_authentication_database_user*.go'
-            - 'mongodbatlas/resource_auditing*.go'
+            - 'internal/service/backupcompliancepolicy/*.go'
+            - 'internal/service/auditing/*.go'
+            - 'internal/service/x509authenticationdatabaseuser/*.go'
           backup_online_archive:
-            - 'mongodbatlas/**online_archive**.go'
+            - 'internal/service/onlinearchive/*.go'
           backup_snapshots:
-            - 'mongodbatlas/**backup_snapshot**.go'
+            - 'internal/service/cloudbackupsnapshot/*.go'
+            - 'internal/service/cloudbackupsnapshotexportbucket/*.go'
+            - 'internal/service/cloudbackupsnapshotexportjob/*.go'
           backup_schedule:
-            - 'mongodbatlas/**backup_schedule**.go'
+            - 'internal/service/cloudbackupschedule/*.go'
           project:
             - 'internal/service/project/*.go'
             - 'internal/service/projectipaccesslist/*.go'
-            - 'mongodbatlas/data_source_project_invitation*.go'
-            - 'mongodbatlas/resource_access_list_api_key*.go'
-            - 'mongodbatlas/resource_project_invitation*.go'
+            - 'internal/service/accesslistapikey/*.go'
+            - 'internal/service/projectinvitation/*.go'
           serverless:
-            - 'mongodbatlas/**_serverless**.go' 
+            - 'internal/service/serverlessinstance/*.go'
+            - 'internal/service/privatelinkendpointserverless/*.go'
+            - 'internal/service/privatelinkendpointserviceserverless/*.go'
           network:
-            - 'mongodbatlas/**_network**.go'  
-            - 'mongodbatlas/**_privatelink**.go' 
-            - 'mongodbatlas/**_private_endpoint**.go'
+            - 'internal/service/networkcontainer/*.go'
+            - 'internal/service/networkpeering/*.go'
+            - 'internal/service/privateendpointregionalmode/*.go'
+            - 'internal/service/privatelinkendpoint/*.go'
+            - 'internal/service/privatelinkendpointservice/*.go'
+            - 'internal/service/privatelinkendpointservicedatafederationonlinearchive/*.go'
           federation:
-            - 'mongodbatlas/**_federated_database_instance**.go'
+            - 'internal/service/federateddatabaseinstance/*.go'
           config:
             - 'internal/service/alertconfiguration/*.go'
             - 'internal/service/atlasuser/*.go'
             - 'internal/service/databaseuser/*.go'
             - 'internal/service/projectapikey/*.go'
-            - 'mongodbatlas/data_source_accesslist_api_key*.go'
-            - 'mongodbatlas/data_source_api_key*.go'
-            - 'mongodbatlas/data_source_cloud_provider_access_setup*.go'
-            - 'mongodbatlas/data_source_cloud_provider_access*.go'
-            - 'mongodbatlas/data_source_custom_db_role*.go'
-            - 'mongodbatlas/data_source_custom_dns_configuration_cluster_aws*.go'
-            - 'mongodbatlas/data_source_maintenance_window*.go'
-            - 'mongodbatlas/data_source_org_id*.go'
-            - 'mongodbatlas/data_source_org_invitation*.go'
-            - 'mongodbatlas/data_source_organization*.go'
-            - 'mongodbatlas/data_source_team*.go'
-            - 'mongodbatlas/data_source_third_party_integration*.go'
-            - 'mongodbatlas/resource_api_key*.go'
-            - 'mongodbatlas/resource_cloud_provider_access_setup*.go'
-            - 'mongodbatlas/resource_cloud_provider_access*.go'
-            - 'mongodbatlas/resource_custom_db_role*.go'
-            - 'mongodbatlas/resource_custom_dns_configuration_cluster_aws*.go'
-            - 'mongodbatlas/resource_maintenance_window*.go'
-            - 'mongodbatlas/resource_org_invitation*.go'
-            - 'mongodbatlas/resource_organization*.go'
-            - 'mongodbatlas/resource_team*.go'
-            - 'mongodbatlas/resource_third_party_integration*.go'
+            - 'internal/service/apikey/*.go'
+            - 'internal/service/teams/*.go'
+            - 'internal/service/cloudprovideraccess/*.go'
+            - 'internal/service/customdbrole/*.go'
+            - 'internal/service/maintenancewindow/*.go'
+            - 'internal/service/customdnsconfigurationclusteraws/*.go'
+            - 'internal/service/rolesorgid/*.go'
+            - 'internal/service/orginvitation/*.go'
+            - 'internal/service/organization/*.go'
+            - 'internal/service/thirdpartyintegration/*.go'
           event_trigger:
-            - 'mongodbatlas/resource_event_trigger*.go'
-            - 'mongodbatlas/data_source_event_trigger*.go'
+            - 'internal/service/eventtrigger/*.go'
           search_index:
-            - 'mongodbatlas/resource_search_index*.go'
+            - 'internal/service/searchindex/*.go'
   
   cluster_outage_simulation:
     needs: [ change-detection ]
@@ -216,6 +211,30 @@ jobs:
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           TEST_REGEX: "^TestAccSearchDeployment"
+        run: make testacc
+
+  stream:
+    needs: [ change-detection ]
+    if: ${{ needs.change-detection.outputs.stream == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-stream' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.terraform_version }}
+          terraform_wrapper: false  
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
+          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+          TEST_REGEX: "^TestAccStream"
         run: make testacc
 
   generic: # Acceptance tests that do not use any time-consuming resource (example: cluster)
