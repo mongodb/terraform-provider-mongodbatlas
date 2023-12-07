@@ -55,12 +55,13 @@ jobs:
     permissions:
       pull-requests: read
       repository-projects: read
+    env:
+      mustTrigger: ${{ github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '')  }}
     outputs:
-      project: ${{ steps.filter.outputs.project }}
-      config: ${{ steps.filter.outputs.config }}
-      advanced_cluster: ${{ steps.filter.outputs.advanced_cluster }}
-      backup_online_archive: ${{ steps.filter.outputs.backup_online_archive }}
-      shouldTriggerResourceTest: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+      project: ${{ steps.filter.outputs.project == 'true' || env.mustTrigger == 'true' }}
+      config: ${{ steps.filter.outputs.config == 'true' || env.mustTrigger == 'true' }}
+      advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
+      backup_online_archive: ${{ steps.filter.outputs.backup_online_archive == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@v4
     - uses: dorny/paths-filter@v2
@@ -82,7 +83,7 @@ jobs:
 
   project: 
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.project == 'true' || inputs.test_group == 'project' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
+    if: ${{ needs.change-detection.outputs.project == 'true' || inputs.test_group == 'project' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -109,7 +110,7 @@ jobs:
   
   config:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.config == 'true' || inputs.test_group == 'config' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
+    if: ${{ needs.change-detection.outputs.config == 'true' || inputs.test_group == 'config' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -139,7 +140,7 @@ jobs:
 
   backup_online_archive:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || inputs.test_group == 'backup_online_archive' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
+    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || inputs.test_group == 'backup_online_archive' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -165,7 +166,7 @@ jobs:
 
   advanced_cluster:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
+    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || inputs.test_group == 'backup_online_archive' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
