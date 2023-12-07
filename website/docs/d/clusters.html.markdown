@@ -13,6 +13,7 @@ description: |-
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
 ~> **IMPORTANT:**
+<br> &#8226; Multi Region Cluster: `mongodbatlas_cluster` does not expose the `container_id` for each region used by the cluster. We recommend using the [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) if you need access to `container_id`.
 <br> &#8226; Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).
 <br> &#8226; If your Atlas project contains a custom role that uses actions introduced in a specific MongoDB version, you cannot create a cluster with a MongoDB version less than that version unless you delete the custom role.
 
