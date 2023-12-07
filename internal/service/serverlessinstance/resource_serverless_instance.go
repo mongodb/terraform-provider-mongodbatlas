@@ -128,9 +128,10 @@ func returnServerlessInstanceSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"links": {
-			Type:     schema.TypeSet,
-			Optional: true,
-			Computed: true,
+			Type:       schema.TypeSet,
+			ConfigMode: schema.SchemaConfigModeAttr,
+			Optional:   true,
+			Computed:   true,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"href": {
