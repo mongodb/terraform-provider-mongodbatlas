@@ -104,6 +104,8 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 				d.SetId("")
 				return nil
 			}
+
+			return diag.FromErr(err)
 		}
 
 		// assign created api key to remaining project assignments
