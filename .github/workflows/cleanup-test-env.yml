@@ -8,46 +8,40 @@ jobs:
   cleanup-test-env-general:
     runs-on: ubuntu-latest
     steps:
-      - name: setup Atlas CLI
-        uses: andreaangiolillo/atlas-cli-github-action@v1.1.1
-        with:
-          public-key: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
-          private-key: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
-          org-id: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
       - name: Checkout
         uses: actions/checkout@v4
         with:
           sparse-checkout: |
             scripts
+      - uses: mongodb/atlas-github-action@main
+      - shell: bash
+        run: atlas --version
       - name: Cleanup cloud-dev
         shell: bash
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
-          MONGODB_ATLAS_BASE_URL: ${{vars.MONGODB_ATLAS_BASE_URL}}
+          MONGODB_ATLAS_OPS_MANAGER_URL: ${{vars.MONGODB_ATLAS_BASE_URL}}
           PROJECT_TO_NOT_DELETE: ${{vars.MONGODB_ATLAS_ACCTEST_TRIGGER_PROJECT_ID_CLOUD_DEV}}
         run: ./scripts/cleanup-test-env.sh      
   cleanup-test-env-network:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Atlas CLI
-        uses: andreaangiolillo/atlas-cli-github-action@v1.1.1
-        with:
-          public-key: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV_NETWORK }}
-          private-key: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV_NETWORK }}
-          org-id: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV_NETWORK }}
       - name: Checkout
         uses: actions/checkout@v4
         with:
           sparse-checkout: |
             scripts
+      - uses: mongodb/atlas-github-action@main
+      - shell: bash
+        run: atlas --version      
       - name: Cleanup test env network
         shell: bash
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV_NETWORK }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV_NETWORK }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV_NETWORK }}
-          MONGODB_ATLAS_BASE_URL: ${{vars.MONGODB_ATLAS_BASE_URL}}
+          MONGODB_ATLAS_OPS_MANAGER_URL: ${{vars.MONGODB_ATLAS_BASE_URL}}
           PROJECT_TO_NOT_DELETE: ${{vars.MONGODB_ATLAS_PROJECT_ID_CLOUD_DEV_NETWORK}}
         run: ./scripts/cleanup-test-env.sh
