@@ -162,9 +162,9 @@ func newTFDatabaseDSUserModel(ctx context.Context, dbUser *admin.CloudDatabaseUs
 		OIDCAuthType:     types.StringValue(dbUser.GetOidcAuthType()),
 		LDAPAuthType:     types.StringValue(dbUser.GetLdapAuthType()),
 		AWSIAMType:       types.StringValue(dbUser.GetAwsIAMType()),
-		Roles:            newTFRolesModel(dbUser.Roles),
-		Labels:           newTFLabelsModel(dbUser.Labels),
-		Scopes:           newTFScopesModel(dbUser.Scopes),
+		Roles:            newTFRolesModel(dbUser.GetRoles()),
+		Labels:           newTFLabelsModel(dbUser.GetLabels()),
+		Scopes:           newTFScopesModel(dbUser.GetScopes()),
 	}
 
 	return databaseUserModel, nil

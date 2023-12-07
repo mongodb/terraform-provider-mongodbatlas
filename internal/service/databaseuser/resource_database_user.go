@@ -400,17 +400,17 @@ func newMongoDBDatabaseUser(ctx context.Context, dbUserModel *tfDatabaseUserMode
 }
 
 func newTFDatabaseUserModel(ctx context.Context, model *tfDatabaseUserModel, dbUser *admin.CloudDatabaseUser) (*tfDatabaseUserModel, diag.Diagnostics) {
-	rolesSet, diagnostic := types.SetValueFrom(ctx, RoleObjectType, newTFRolesModel(dbUser.Roles))
+	rolesSet, diagnostic := types.SetValueFrom(ctx, RoleObjectType, newTFRolesModel(dbUser.GetRoles()))
 	if diagnostic.HasError() {
 		return nil, diagnostic
 	}
 
-	labelsSet, diagnostic := types.SetValueFrom(ctx, LabelObjectType, newTFLabelsModel(dbUser.Labels))
+	labelsSet, diagnostic := types.SetValueFrom(ctx, LabelObjectType, newTFLabelsModel(dbUser.GetLabels()))
 	if diagnostic.HasError() {
 		return nil, diagnostic
 	}
 
-	scopesSet, diagnostic := types.SetValueFrom(ctx, ScopeObjectType, newTFScopesModel(dbUser.Scopes))
+	scopesSet, diagnostic := types.SetValueFrom(ctx, ScopeObjectType, newTFScopesModel(dbUser.GetScopes()))
 	if diagnostic.HasError() {
 		return nil, diagnostic
 	}
