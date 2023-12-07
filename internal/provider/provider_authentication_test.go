@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
 func TestAccSTSAssumeRole_basic(t *testing.T) {
@@ -24,7 +24,7 @@ func TestAccSTSAssumeRole_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigProject(projectName, orgID,
-					[]*matlas.ProjectTeam{},
+					[]*admin.TeamRole{},
 				),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
