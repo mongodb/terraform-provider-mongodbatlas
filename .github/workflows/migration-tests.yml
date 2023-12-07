@@ -11,6 +11,10 @@ on:
         description: 'MongoDB Atlas Provider version to use, empty for latest'     
         type: string
         required: false
+      test_group:
+        description: 'Test group to run, e.g. advanced_cluster, empty for all'
+        type: string
+        required: false
   workflow_call: # workflow runs after Test Suite or code-health
     inputs:
       terraform_version:
@@ -61,7 +65,6 @@ jobs:
       shouldTriggerResourceTest: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
     steps:
     - uses: actions/checkout@v4
-      if: ${{ github.event_name == 'push' ||  github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
     - uses: dorny/paths-filter@v2
       id: filter
       with:
@@ -81,7 +84,7 @@ jobs:
 
   project: 
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.project == 'true' || github.event.label.name == 'run-testacc-project'||  needs.change-detection.outputs.shouldTriggerResourceTest == 'true'}}
+    if: ${{ needs.change-detection.outputs.project == 'true' || inputs.test_group == 'project' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -108,7 +111,7 @@ jobs:
   
   config:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.config == 'true' || github.event.label.name == 'run-testacc-config'||  needs.change-detection.outputs.shouldTriggerResourceTest == 'true'}}
+    if: ${{ needs.change-detection.outputs.config == 'true' || inputs.test_group == 'config' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -138,7 +141,7 @@ jobs:
 
   backup_online_archive:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || github.event.label.name == 'run-testacc-backup-online-archive'||  needs.change-detection.outputs.shouldTriggerResourceTest == 'true'}}
+    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || inputs.test_group == 'backup_online_archive' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -164,7 +167,7 @@ jobs:
 
   advanced_cluster:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || github.event.label.name == 'run-testacc-advanced-cluster'||  needs.change-detection.outputs.shouldTriggerResourceTest == 'true'}}
+    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
