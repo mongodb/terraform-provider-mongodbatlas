@@ -3,7 +3,6 @@ package project_test
 import (
 	"context"
 	"errors"
-	"log"
 	"net/http"
 	"os"
 	"reflect"
@@ -14,8 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+
+	// "github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/stretchr/testify/mock"
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
@@ -102,10 +104,17 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			mockService := MockProjectService{
-				MockResponses: tc.mockResponses,
+			testObject := new(MockProjectService)
+			if len(tc.mockResponses) > 0 {
+				testObject.On("ListProjectTeams", mock.Anything, mock.Anything).Return(tc.mockResponses[0])
 			}
-			_, _, _, err := project.GetProjectPropsFromAPI(context.Background(), &mockService, tc.projectID)
+			if len(tc.mockResponses) > 1 {
+				testObject.On("ListProjectLimits", mock.Anything, mock.Anything).Return(tc.mockResponses[1])
+			}
+			if len(tc.mockResponses) > 2 {
+				testObject.On("GetProjectSettings", mock.Anything, mock.Anything).Return(tc.mockResponses[2])
+			}
+			_, _, _, err := project.GetProjectPropsFromAPI(context.Background(), testObject, tc.projectID)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -208,10 +217,10 @@ func TestUpdateProject(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			mockService := MockProjectService{
-				MockResponses: tc.mockResponses,
-			}
-			err := project.UpdateProject(context.Background(), &mockService, &testCases[i].projectState, &testCases[i].projectPlan)
+			testObject := new(MockProjectService)
+			testObject.On("UpdateProject", mock.Anything, mock.Anything).Return(tc.mockResponses[0])
+
+			err := project.UpdateProject(context.Background(), testObject, &testCases[i].projectState, &testCases[i].projectPlan)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -260,7 +269,7 @@ func TestUpdateProjectLimits(t *testing.T) {
 				Name:   name,
 				Limits: singleLimitSet,
 			},
-			mockResponses: []ProjectResponse{},
+			mockResponses: []ProjectResponse{{}},
 			expectedError: false,
 		},
 		{
@@ -318,10 +327,12 @@ func TestUpdateProjectLimits(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			mockService := MockProjectService{
-				MockResponses: tc.mockResponses,
-			}
-			err := project.UpdateProjectLimits(context.Background(), &mockService, &testCases[i].projectState, &testCases[i].projectPlan)
+			testObject := new(MockProjectService)
+
+			testObject.On("DeleteProjectLimit", mock.Anything, mock.Anything, mock.Anything).Return(tc.mockResponses[0])
+			testObject.On("SetProjectLimit", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.mockResponses[0])
+
+			err := project.UpdateProjectLimits(context.Background(), testObject, &testCases[i].projectState, &testCases[i].projectPlan)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -365,7 +376,6 @@ func TestUpdateProjectTeams(t *testing.T) {
 				Name:  name,
 				Teams: singleTeamSet,
 			},
-			mockResponses: []ProjectResponse{},
 			expectedError: false,
 		},
 		{
@@ -377,14 +387,6 @@ func TestUpdateProjectTeams(t *testing.T) {
 			projectPlan: project.TfProjectRSModel{
 				Name:  name,
 				Teams: twoTeamSet,
-			},
-			mockResponses: []ProjectResponse{
-				{
-					Err: nil,
-				},
-				{
-					Err: nil,
-				},
 			},
 			expectedError: false,
 		},
@@ -398,11 +400,6 @@ func TestUpdateProjectTeams(t *testing.T) {
 				Name:  name,
 				Teams: singleTeamSet,
 			},
-			mockResponses: []ProjectResponse{
-				{
-					Err: nil,
-				},
-			},
 			expectedError: false,
 		},
 		{
@@ -415,24 +412,19 @@ func TestUpdateProjectTeams(t *testing.T) {
 				Name:  name,
 				Teams: updatedTeamSet,
 			},
-			mockResponses: []ProjectResponse{
-				{
-					Err: nil,
-				},
-				{
-					Err: nil,
-				},
-			},
 			expectedError: false,
 		},
 	}
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			mockService := MockProjectService{
-				MockResponses: tc.mockResponses,
-			}
-			err := project.UpdateProjectTeams(context.Background(), &mockService, &testCases[i].projectState, &testCases[i].projectPlan)
+			testObject := new(MockProjectService)
+
+			testObject.On("AddAllTeamsToProject", mock.Anything, mock.Anything, mock.Anything).Return(ProjectResponse{Err: nil})
+			testObject.On("RemoveProjectTeam", mock.Anything, mock.Anything, mock.Anything).Return(ProjectResponse{Err: nil})
+			testObject.On("UpdateTeamRoles", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ProjectResponse{Err: nil})
+
+			err := project.UpdateProjectTeams(context.Background(), testObject, &testCases[i].projectState, &testCases[i].projectPlan)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -866,89 +858,62 @@ func createDataFederationLimit(limitName string) admin.DataFederationLimit {
 }
 
 type MockProjectService struct {
+	mock.Mock
 	MockResponses []ProjectResponse
-	index         int
 }
 
 func (a *MockProjectService) UpdateProject(ctx context.Context, groupID string, groupName *admin.GroupName) (*admin.Group, *http.Response, error) {
-	if a.index >= len(a.MockResponses) {
-		log.Fatal(errors.New("no more mocked responses available"))
-	}
-	resp := a.MockResponses[a.index]
-	a.index++
-	return resp.ProjectResp, resp.HTTPResponse, resp.Err
+	args := a.Called(ctx, groupID)
+	var response = args.Get(0).(ProjectResponse)
+	return response.ProjectResp, response.HTTPResponse, response.Err
 }
 
 func (a *MockProjectService) ListProjectLimits(ctx context.Context, groupID string) ([]admin.DataFederationLimit, *http.Response, error) {
-	if a.index >= len(a.MockResponses) {
-		log.Fatal(errors.New("no more mocked responses available"))
-	}
-	resp := a.MockResponses[a.index]
-	a.index++
-	return resp.LimitsResponse, resp.HTTPResponse, resp.Err
+	args := a.Called(ctx, groupID)
+	var response = args.Get(0).(ProjectResponse)
+	return response.LimitsResponse, response.HTTPResponse, response.Err
 }
 
 func (a *MockProjectService) GetProjectSettings(ctx context.Context, groupID string) (*admin.GroupSettings, *http.Response, error) {
-	if a.index >= len(a.MockResponses) {
-		log.Fatal(errors.New("no more mocked responses available"))
-	}
-	resp := a.MockResponses[a.index]
-	a.index++
-	return resp.GroupSettingsResponse, resp.HTTPResponse, resp.Err
+	args := a.Called(ctx, groupID)
+	var response = args.Get(0).(ProjectResponse)
+	return response.GroupSettingsResponse, response.HTTPResponse, response.Err
 }
 
 func (a *MockProjectService) ListProjectTeams(ctx context.Context, groupID string) (*admin.PaginatedTeamRole, *http.Response, error) {
-	if a.index >= len(a.MockResponses) {
-		log.Fatal(errors.New("no more mocked responses available"))
-	}
-	resp := a.MockResponses[a.index]
-	a.index++
-	return resp.ProjectTeamResp, resp.HTTPResponse, resp.Err
+	args := a.Called(ctx, groupID)
+	var response = args.Get(0).(ProjectResponse)
+	return response.ProjectTeamResp, response.HTTPResponse, response.Err
 }
 
 func (a *MockProjectService) DeleteProjectLimit(ctx context.Context, limitName, projectID string) (map[string]interface{}, *http.Response, error) {
-	if a.index >= len(a.MockResponses) {
-		log.Fatal(errors.New("no more mocked responses available"))
-	}
-	resp := a.MockResponses[a.index]
-	a.index++
-	return resp.DeleteProjectLimitResponse, resp.HTTPResponse, resp.Err
+	args := a.Called(ctx, limitName, projectID)
+	var response = args.Get(0).(ProjectResponse)
+	return response.DeleteProjectLimitResponse, response.HTTPResponse, response.Err
 }
 
 func (a *MockProjectService) SetProjectLimit(ctx context.Context, limitName, groupID string, dataFederationLimit *admin.DataFederationLimit) (*admin.DataFederationLimit, *http.Response, error) {
-	if a.index >= len(a.MockResponses) {
-		log.Fatal(errors.New("no more mocked responses available"))
-	}
-	resp := a.MockResponses[a.index]
-	a.index++
-	return &resp.LimitResponse, resp.HTTPResponse, resp.Err
+	args := a.Called(ctx, limitName, groupID, dataFederationLimit)
+	var response = args.Get(0).(ProjectResponse)
+	return &response.LimitResponse, response.HTTPResponse, response.Err
 }
 
 func (a *MockProjectService) RemoveProjectTeam(ctx context.Context, groupID, teamID string) (*http.Response, error) {
-	if a.index >= len(a.MockResponses) {
-		log.Fatal(errors.New("no more mocked responses available"))
-	}
-	resp := a.MockResponses[a.index]
-	a.index++
-	return resp.HTTPResponse, resp.Err
+	args := a.Called(ctx, groupID, teamID)
+	var response = args.Get(0).(ProjectResponse)
+	return response.HTTPResponse, response.Err
 }
 
 func (a *MockProjectService) UpdateTeamRoles(ctx context.Context, groupID, teamID string, teamRole *admin.TeamRole) (*admin.PaginatedTeamRole, *http.Response, error) {
-	if a.index >= len(a.MockResponses) {
-		log.Fatal(errors.New("no more mocked responses available"))
-	}
-	resp := a.MockResponses[a.index]
-	a.index++
-	return resp.ProjectTeamResp, resp.HTTPResponse, resp.Err
+	args := a.Called(ctx, groupID, teamID, teamRole)
+	var response = args.Get(0).(ProjectResponse)
+	return response.ProjectTeamResp, response.HTTPResponse, response.Err
 }
 
 func (a *MockProjectService) AddAllTeamsToProject(ctx context.Context, groupID string, teamRole *[]admin.TeamRole) (*admin.PaginatedTeamRole, *http.Response, error) {
-	if a.index >= len(a.MockResponses) {
-		log.Fatal(errors.New("no more mocked responses available"))
-	}
-	resp := a.MockResponses[a.index]
-	a.index++
-	return resp.ProjectTeamResp, resp.HTTPResponse, resp.Err
+	args := a.Called(ctx, groupID, teamRole)
+	var response = args.Get(0).(ProjectResponse)
+	return response.ProjectTeamResp, response.HTTPResponse, response.Err
 }
 
 type ProjectResponse struct {
