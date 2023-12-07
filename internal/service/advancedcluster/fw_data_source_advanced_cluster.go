@@ -43,66 +43,6 @@ func (d *advancedClusterDS) Schema(ctx context.Context, request datasource.Schem
 	}
 }
 
-func advancedClusterDSAttributes() map[string]schema.Attribute {
-	return map[string]schema.Attribute{
-		"id": schema.StringAttribute{
-			Computed: true,
-		},
-		"project_id": schema.StringAttribute{
-			Required: true,
-		},
-		"advanced_configuration": ClusterDSAdvancedConfigurationListAttr(),
-		"backup_enabled": schema.BoolAttribute{
-			Computed: true,
-		},
-		"bi_connector_config": ClusterDSBiConnectorConfigListAttr(),
-		"cluster_type": schema.StringAttribute{
-			Computed: true,
-		},
-		"connection_strings": advClusterDSConnectionStringSchemaAttr(),
-		"create_date": schema.StringAttribute{
-			Computed: true,
-		},
-		"disk_size_gb": schema.Float64Attribute{
-			Computed: true,
-		},
-		"encryption_at_rest_provider": schema.StringAttribute{
-			Computed: true,
-		},
-		"labels": ClusterDSLabelsSetAttr(),
-		"tags":   ClusterDSTagsSetAttr(),
-		"mongo_db_major_version": schema.StringAttribute{
-			Computed: true,
-		},
-		"mongo_db_version": schema.StringAttribute{
-			Computed: true,
-		},
-		"name": schema.StringAttribute{
-			Required: true,
-		},
-		"paused": schema.BoolAttribute{
-			Computed: true,
-		},
-		"pit_enabled": schema.BoolAttribute{
-			Optional: true,
-			Computed: true,
-		},
-		"replication_specs": advClusterDSReplicationSpecsSchemaAttr(),
-		"root_cert_type": schema.StringAttribute{
-			Computed: true,
-		},
-		"state_name": schema.StringAttribute{
-			Computed: true,
-		},
-		"termination_protection_enabled": schema.BoolAttribute{
-			Computed: true,
-		},
-		"version_release_system": schema.StringAttribute{
-			Computed: true,
-		},
-	}
-}
-
 func (d *advancedClusterDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	conn := d.Client.Atlas
 	var clusterConfig tfAdvancedClusterDSModel
@@ -248,6 +188,66 @@ func getTfRegionConfigsAndContainerIDs(ctx context.Context, conn *matlas.Client,
 	tfContainersIDsMap, diags = types.MapValue(types.StringType, containerIDsMap)
 
 	return tfRegionConfigs, tfContainersIDsMap, diags
+}
+
+func advancedClusterDSAttributes() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Computed: true,
+		},
+		"project_id": schema.StringAttribute{
+			Required: true,
+		},
+		"advanced_configuration": ClusterDSAdvancedConfigurationListAttr(),
+		"backup_enabled": schema.BoolAttribute{
+			Computed: true,
+		},
+		"bi_connector_config": ClusterDSBiConnectorConfigListAttr(),
+		"cluster_type": schema.StringAttribute{
+			Computed: true,
+		},
+		"connection_strings": advClusterDSConnectionStringSchemaAttr(),
+		"create_date": schema.StringAttribute{
+			Computed: true,
+		},
+		"disk_size_gb": schema.Float64Attribute{
+			Computed: true,
+		},
+		"encryption_at_rest_provider": schema.StringAttribute{
+			Computed: true,
+		},
+		"labels": ClusterDSLabelsSetAttr(),
+		"tags":   ClusterDSTagsSetAttr(),
+		"mongo_db_major_version": schema.StringAttribute{
+			Computed: true,
+		},
+		"mongo_db_version": schema.StringAttribute{
+			Computed: true,
+		},
+		"name": schema.StringAttribute{
+			Required: true,
+		},
+		"paused": schema.BoolAttribute{
+			Computed: true,
+		},
+		"pit_enabled": schema.BoolAttribute{
+			Optional: true,
+			Computed: true,
+		},
+		"replication_specs": advClusterDSReplicationSpecsSchemaAttr(),
+		"root_cert_type": schema.StringAttribute{
+			Computed: true,
+		},
+		"state_name": schema.StringAttribute{
+			Computed: true,
+		},
+		"termination_protection_enabled": schema.BoolAttribute{
+			Computed: true,
+		},
+		"version_release_system": schema.StringAttribute{
+			Computed: true,
+		},
+	}
 }
 
 func advClusterDSConnectionStringSchemaAttr() schema.ListNestedAttribute {

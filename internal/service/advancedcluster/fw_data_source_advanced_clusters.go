@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"go.mongodb.org/atlas/mongodbatlas"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -123,7 +122,7 @@ func newTfAdvancedClustersDSModelResults(ctx context.Context, conn *mongodbatlas
 	return results, diags
 }
 
-func newTfAdvClustersDSModel(ctx context.Context, conn *matlas.Client, apiResp *matlas.AdvancedCluster) (*tfAdvancedClusterDSModel, diag.Diagnostics) {
+func newTfAdvClustersDSModel(ctx context.Context, conn *mongodbatlas.Client, apiResp *mongodbatlas.AdvancedCluster) (*tfAdvancedClusterDSModel, diag.Diagnostics) {
 	var err error
 	projectID := apiResp.GroupID
 	var diags diag.Diagnostics

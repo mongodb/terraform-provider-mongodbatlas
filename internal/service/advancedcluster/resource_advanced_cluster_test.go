@@ -8,14 +8,16 @@ import (
 	"regexp"
 	"testing"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mwielbut/pointy"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mwielbut/pointy"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
@@ -38,37 +40,13 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasAdvancedClusterConfigTenant(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "termination_protection_enabled"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", rName),
-					resource.TestCheckResourceAttr(dataSourceName, "termination_protection_enabled", "false"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.name"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.termination_protection_enabled"),
+					testAccClusterAdvancedClusterTestCheckFuncsBasicTenant(&cluster, resourceName, dataSourceName, dataSourceClustersName, rName)...,
 				),
 			},
 			{
 				Config: testAccMongoDBAtlasAdvancedClusterConfigTenant(orgID, projectName, rNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", rNameUpdated),
-					resource.TestCheckResourceAttr(dataSourceName, "termination_protection_enabled", "false"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.name"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.termination_protection_enabled"),
+					testAccClusterAdvancedClusterTestCheckFuncsBasicTenant(&cluster, resourceName, dataSourceName, dataSourceClustersName, rNameUpdated)...,
 				),
 			},
 			{
@@ -153,33 +131,13 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.name"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", rName),
+					testAccClusterAdvancedClusterTestCheckFuncsMulticloud(&cluster, resourceName, dataSourceName, dataSourceClustersName, rName)...,
 				),
 			},
 			{
 				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, rNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
-					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.name"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", rNameUpdated),
+					testAccClusterAdvancedClusterTestCheckFuncsMulticloud(&cluster, resourceName, dataSourceName, dataSourceClustersName, rNameUpdated)...,
 				),
 			},
 			{
@@ -440,13 +398,15 @@ func TestAccClusterAdvancedCluster_advancedConf(t *testing.T) {
 
 func TestAccClusterAdvancedCluster_DefaultWrite(t *testing.T) {
 	var (
-		cluster      matlas.AdvancedCluster
-		resourceName = "mongodbatlas_advanced_cluster.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		rName        = acctest.RandomWithPrefix("test-acc")
-		rNameUpdated = acctest.RandomWithPrefix("test-acc")
-		processArgs  = &matlas.ProcessArgs{
+		cluster                matlas.AdvancedCluster
+		resourceName           = "mongodbatlas_advanced_cluster.test"
+		dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
+		dataSourceClustersName = "data.mongodbatlas_advanced_clusters.test"
+		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName            = acctest.RandomWithPrefix("test-acc")
+		rName                  = acctest.RandomWithPrefix("test-acc")
+		rNameUpdated           = acctest.RandomWithPrefix("test-acc")
+		processArgs            = &matlas.ProcessArgs{
 			DefaultReadConcern:               "available",
 			DefaultWriteConcern:              "1",
 			JavascriptEnabled:                pointy.Bool(true),
@@ -488,6 +448,26 @@ func TestAccClusterAdvancedCluster_DefaultWrite(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
+
+					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.default_read_concern", "available"),
+					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.default_write_concern", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.javascript_enabled", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
+					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.no_table_scan", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
+					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
+					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
+
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.default_read_concern", "available"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.default_write_concern", "1"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.fail_index_key_too_long", "false"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.javascript_enabled", "true"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.no_table_scan", "false"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.oplog_size_mb", "1000"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.sample_size_bi_connector", "110"),
 				),
 			},
 			{
@@ -504,6 +484,7 @@ func TestAccClusterAdvancedCluster_DefaultWrite(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.transaction_lifetime_limit_seconds", "300"),
 				),
 			},
 		},
@@ -677,6 +658,217 @@ func TestAccClusterAdvancedCluster_WithTags(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccClusterAdvancedClusterTestCheckFuncsMulticloud(cluster *matlas.AdvancedCluster, resourceName, dataSourceName, dataSourceClustersName, rName string) []resource.TestCheckFunc {
+	return []resource.TestCheckFunc{
+		testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, cluster),
+		testAccCheckMongoDBAtlasAdvancedClusterAttributes(cluster, rName),
+		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+		resource.TestCheckResourceAttr(resourceName, "name", rName),
+		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
+		resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+		resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.priority", "7"),
+		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.provider_name", "AWS"),
+		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.region_name", "US_EAST_1"),
+		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.instance_size", "M10"),
+		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.node_count", "1"),
+		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", "M10"),
+		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.node_count", "3"),
+		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.priority", "6"),
+		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.provider_name", "GCP"),
+		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.region_name", "NORTH_AMERICA_NORTHEAST_1"),
+		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.instance_size", "M10"),
+		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.node_count", "2"),
+		resource.TestCheckTypeSetElemNestedAttrs(
+			resourceName,
+			"replication_specs.*",
+			map[string]string{
+				"zone_name":  "ZoneName managed by Terraform",
+				"num_shards": "1",
+			},
+		),
+
+		resource.TestCheckResourceAttr(dataSourceName, "name", rName),
+		resource.TestCheckResourceAttr(dataSourceName, "termination_protection_enabled", "false"),
+		resource.TestCheckResourceAttr(dataSourceName, "cluster_type", "REPLICASET"),
+		resource.TestCheckResourceAttr(dataSourceName, "encryption_at_rest_provider", "NONE"),
+		resource.TestCheckResourceAttr(dataSourceName, "state_name", "IDLE"),
+		resource.TestCheckResourceAttr(dataSourceName, "version_release_system", "LTS"),
+		resource.TestCheckResourceAttr(dataSourceName, "pit_enabled", "false"),
+		resource.TestCheckResourceAttr(dataSourceName, "paused", "false"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "disk_size_gb"),
+		resource.TestCheckResourceAttr(dataSourceName, "bi_connector_config.0.enabled", "false"),
+		resource.TestCheckResourceAttr(dataSourceName, "bi_connector_config.0.read_preference", "secondary"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "connection_strings.#"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "connection_strings.0.standard_srv"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "connection_strings.0.standard"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "labels.#"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "replication_specs.#"),
+		resource.TestCheckTypeSetElemNestedAttrs(
+			dataSourceName,
+			"replication_specs.*",
+			map[string]string{
+				"zone_name":  "ZoneName managed by Terraform",
+				"num_shards": "1",
+			},
+		),
+		resource.TestCheckResourceAttrSet(dataSourceName, "replication_specs.0.region_configs.#"),
+		resource.TestCheckTypeSetElemNestedAttrs(
+			dataSourceName,
+			"replication_specs.0.region_configs.*",
+			map[string]string{
+				"priority":                        "6",
+				"provider_name":                   "GCP",
+				"region_name":                     "NORTH_AMERICA_NORTHEAST_1",
+				"electable_specs.0.instance_size": "M10",
+				"electable_specs.0.node_count":    "2",
+			},
+		),
+		resource.TestCheckTypeSetElemNestedAttrs(
+			dataSourceName,
+			"replication_specs.0.region_configs.*",
+			map[string]string{
+				"priority":                        "7",
+				"provider_name":                   "AWS",
+				"region_name":                     "US_EAST_1",
+				"analytics_specs.0.instance_size": "M10",
+				"analytics_specs.0.node_count":    "1",
+				"electable_specs.0.instance_size": "M10",
+				"electable_specs.0.node_count":    "3",
+			},
+		),
+
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.#"),
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.name"),
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.termination_protection_enabled"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.cluster_type", "REPLICASET"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.encryption_at_rest_provider", "NONE"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.state_name", "IDLE"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.version_release_system", "LTS"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.pit_enabled", "false"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.paused", "false"),
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.disk_size_gb"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.bi_connector_config.0.enabled", "false"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.bi_connector_config.0.read_preference", "secondary"),
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.connection_strings.#"),
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.connection_strings.0.standard_srv"),
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.connection_strings.0.standard"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.labels.#", "1"),
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
+		resource.TestCheckTypeSetElemNestedAttrs(
+			dataSourceClustersName,
+			"results.0.replication_specs.*",
+			map[string]string{
+				"zone_name":  "ZoneName managed by Terraform",
+				"num_shards": "1",
+			},
+		),
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.0.region_configs.#"),
+		resource.TestCheckTypeSetElemNestedAttrs(
+			dataSourceClustersName,
+			"results.0.replication_specs.0.region_configs.*",
+			map[string]string{
+				"priority":      "6",
+				"provider_name": "GCP",
+				"region_name":   "NORTH_AMERICA_NORTHEAST_1",
+			},
+		),
+		resource.TestCheckTypeSetElemNestedAttrs(
+			dataSourceClustersName,
+			"results.0.replication_specs.0.region_configs.*",
+			map[string]string{
+				"priority":      "7",
+				"provider_name": "AWS",
+				"region_name":   "US_EAST_1",
+			},
+		),
+	}
+}
+
+func testAccClusterAdvancedClusterTestCheckFuncsBasicTenant(cluster *matlas.AdvancedCluster, resourceName, dataSourceName, dataSourceClustersName, rName string) []resource.TestCheckFunc {
+	return []resource.TestCheckFunc{
+		testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, cluster),
+		testAccCheckMongoDBAtlasAdvancedClusterAttributes(cluster, rName),
+		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+		resource.TestCheckResourceAttr(resourceName, "name", rName),
+		resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+		resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+		resource.TestCheckResourceAttr(resourceName, "termination_protection_enabled", "false"),
+		resource.TestCheckResourceAttr(resourceName, "cluster_type", "REPLICASET"),
+		resource.TestCheckResourceAttr(resourceName, "backup_enabled", "true"),
+		resource.TestCheckResourceAttr(resourceName, "encryption_at_rest_provider", "NONE"),
+		resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
+		resource.TestCheckResourceAttr(resourceName, "version_release_system", "LTS"),
+		resource.TestCheckResourceAttr(resourceName, "pit_enabled", "false"),
+		resource.TestCheckResourceAttr(resourceName, "paused", "false"),
+		resource.TestCheckResourceAttrSet(resourceName, "disk_size_gb"),
+		resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.enabled", "false"),
+		resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.read_preference", "secondary"),
+		resource.TestCheckResourceAttrSet(resourceName, "connection_strings.#"),
+		resource.TestCheckResourceAttrSet(resourceName, "connection_strings.0.standard_srv"),
+		resource.TestCheckResourceAttrSet(resourceName, "connection_strings.0.standard"),
+		resource.TestCheckResourceAttrSet(resourceName, "labels.#"),
+		resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+		resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+		resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.0.priority"),
+		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.provider_name", "TENANT"),
+		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.region_name", "US_EAST_1"),
+		resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.0.electable_specs.#"),
+		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", "M5"),
+
+		resource.TestCheckResourceAttr(dataSourceName, "name", rName),
+		resource.TestCheckResourceAttr(dataSourceName, "termination_protection_enabled", "false"),
+		resource.TestCheckResourceAttr(dataSourceName, "cluster_type", "REPLICASET"),
+		resource.TestCheckResourceAttr(dataSourceName, "backup_enabled", "true"),
+		resource.TestCheckResourceAttr(dataSourceName, "encryption_at_rest_provider", "NONE"),
+		resource.TestCheckResourceAttr(dataSourceName, "state_name", "IDLE"),
+		resource.TestCheckResourceAttr(dataSourceName, "version_release_system", "LTS"),
+		resource.TestCheckResourceAttr(dataSourceName, "pit_enabled", "false"),
+		resource.TestCheckResourceAttr(dataSourceName, "paused", "false"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "disk_size_gb"),
+		resource.TestCheckResourceAttr(dataSourceName, "bi_connector_config.0.enabled", "false"),
+		resource.TestCheckResourceAttr(dataSourceName, "bi_connector_config.0.read_preference", "secondary"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "connection_strings.#"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "connection_strings.0.standard_srv"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "connection_strings.0.standard"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "labels.#"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "replication_specs.#"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "replication_specs.0.region_configs.#"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "replication_specs.0.region_configs.0.priority"),
+		resource.TestCheckResourceAttr(dataSourceName, "replication_specs.0.region_configs.0.provider_name", "TENANT"),
+		resource.TestCheckResourceAttr(dataSourceName, "replication_specs.0.region_configs.0.region_name", "US_EAST_1"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.#"),
+		resource.TestCheckResourceAttr(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", "M5"),
+
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.#"),
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.name"),
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.termination_protection_enabled"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.cluster_type", "REPLICASET"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.backup_enabled", "true"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.encryption_at_rest_provider", "NONE"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.state_name", "IDLE"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.version_release_system", "LTS"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.pit_enabled", "false"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.paused", "false"),
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.disk_size_gb"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.bi_connector_config.0.enabled", "false"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.bi_connector_config.0.read_preference", "secondary"),
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.connection_strings.#"),
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.connection_strings.0.standard_srv"),
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.connection_strings.0.standard"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.labels.#", "1"),
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.0.region_configs.#"),
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.0.region_configs.0.priority"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.replication_specs.0.region_configs.0.provider_name", "TENANT"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.replication_specs.0.region_configs.0.region_name", "US_EAST_1"),
+		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.0.region_configs.0.electable_specs.#"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.replication_specs.0.region_configs.0.electable_specs.0.instance_size", "M5"),
+	}
 }
 
 func testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName string, cluster *matlas.AdvancedCluster) resource.TestCheckFunc {
@@ -1067,6 +1259,15 @@ resource "mongodbatlas_advanced_cluster" "test" {
     default_read_concern                 = %[10]q
     default_write_concern                = %[11]q
   }
+}
+
+data "mongodbatlas_advanced_cluster" "test" {
+	project_id = mongodbatlas_advanced_cluster.test.project_id
+	name 	     = mongodbatlas_advanced_cluster.test.name
+}
+
+data "mongodbatlas_advanced_clusters" "test" {
+	project_id = mongodbatlas_advanced_cluster.test.project_id
 }
 
 	`, orgID, projectName, name, *p.JavascriptEnabled, p.MinimumEnabledTLSProtocol, *p.NoTableScan,
