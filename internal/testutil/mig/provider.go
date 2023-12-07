@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func ExternalProviders(tb testing.TB) map[string]resource.ExternalProvider {
+func ExternalProviders() map[string]resource.ExternalProvider {
 	return map[string]resource.ExternalProvider{
 		"mongodbatlas": {
 			VersionConstraint: versionConstraint(),
@@ -17,7 +17,7 @@ func ExternalProviders(tb testing.TB) map[string]resource.ExternalProvider {
 	}
 }
 
-func ExternalProvidersWithAWS(tb testing.TB, awsVersion string) map[string]resource.ExternalProvider {
+func ExternalProvidersWithAWS(awsVersion string) map[string]resource.ExternalProvider {
 	return map[string]resource.ExternalProvider{
 		"mongodbatlas": {
 			VersionConstraint: versionConstraint(),
