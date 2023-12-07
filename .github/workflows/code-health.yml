@@ -41,15 +41,24 @@ jobs:
           go install github.com/axw/gocov/gocov@latest
           go install github.com/AlekSi/gocov-xml@latest
           gocov convert coverage.out | gocov-xml > coverage.xml
-      - name: Code Coverage Summary Report
-        uses: irongut/CodeCoverageSummary@v1.3.0
+      - name: Generate Coverage Report
+        uses: clearlyip/code-coverage-report-action@v4
+        id: code_coverage_report_action
+        # Don't run for dependabot unless you fix PR comment permissions
+        if: ${{ github.actor != 'dependabot[bot]'}}
         with:
-          filename: coverage.xml
-          format: markdown
-          hide_complexity: true
-          hide_branch_rate: false
-          output: both
-          badge: true
+          filename: 'coverage.xml'
+          fail_on_negative_difference: true
+          artifact_download_workflow_names: 'ci,cron'
+      # - name: Code Coverage Summary Report
+      #   uses: irongut/CodeCoverageSummary@v1.3.0
+      #   with:
+      #     filename: coverage.xml
+      #     format: markdown
+      #     hide_complexity: true
+      #     hide_branch_rate: false
+      #     output: both
+      #     badge: true
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
         if: github.event_name == 'pull_request'
