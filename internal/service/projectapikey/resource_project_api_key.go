@@ -304,9 +304,10 @@ func resourceMongoDBAtlasProjectAPIKeyDelete(ctx context.Context, d *schema.Reso
 		}
 	}
 
-	_, err = conn.APIKeys.Delete(ctx, orgID, apiKeyID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error unable to delete Key (%s): %s", apiKeyID, err))
+	if orgID != "" {
+		if _, err = conn.APIKeys.Delete(ctx, orgID, apiKeyID); err != nil {
+			return diag.FromErr(fmt.Errorf("error unable to delete Key (%s): %s", apiKeyID, err))
+		}
 	}
 
 	d.SetId("")
