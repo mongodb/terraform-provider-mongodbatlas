@@ -13,7 +13,7 @@ jobs:
         with:
           sparse-checkout: |
             scripts
-      - uses: mongodb/atlas-github-action@v0.2.0
+      - uses: mongodb/atlas-github-action@v0
       - name: Cleanup cloud-dev
         shell: bash
         env:
@@ -31,7 +31,7 @@ jobs:
         with:
           sparse-checkout: |
             scripts
-      - uses: mongodb/atlas-github-action@v0.2.0
+      - uses: mongodb/atlas-github-action@v0
       - name: Cleanup test env network
         shell: bash
         env:
