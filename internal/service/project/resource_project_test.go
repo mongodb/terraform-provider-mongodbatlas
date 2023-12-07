@@ -64,8 +64,8 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			mockResponses: []ProjectResponse{
 				{
 					ProjectTeamResp: nil,
-					HTTPResponse:     &http.Response{StatusCode: 503},
-					Err:              errors.New("Service Unavailable"),
+					HTTPResponse:    &http.Response{StatusCode: 503},
+					Err:             errors.New("Service Unavailable"),
 				},
 			},
 			expectedError: true,
@@ -953,7 +953,7 @@ func (a *MockProjectService) AddAllTeamsToProject(ctx context.Context, groupID s
 
 type ProjectResponse struct {
 	ProjectResp                *admin.Group
-	ProjectTeamResp           *admin.PaginatedTeamRole
+	ProjectTeamResp            *admin.PaginatedTeamRole
 	GroupSettingsResponse      *admin.GroupSettings
 	HTTPResponse               *http.Response
 	Err                        error
