@@ -190,7 +190,7 @@ func TestUpdateProject(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name:         "Same project names; Failed update",
+			name:         "Same project names; No update",
 			projectState: projectStateName,
 			projectPlan:  projectStateName,
 			mockResponses: []ProjectResponse{
