@@ -26,13 +26,8 @@ func TestAccMigrationAdvancedClusterRS_singleAWSProvider(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProvider(orgID, projectName, rName),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            testAccMongoDBAtlasAdvancedClusterConfigSingleProvider(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
@@ -71,13 +66,8 @@ func TestAccMigrationAdvancedClusterRS_multiCloud(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),

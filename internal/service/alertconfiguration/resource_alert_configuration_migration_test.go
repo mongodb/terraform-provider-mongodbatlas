@@ -28,13 +28,8 @@ func TestAccMigrationConfigRSAlertConfiguration_NotificationsWithMetricThreshold
 		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: config,
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -69,13 +64,8 @@ func TestAccMigrationConfigRSAlertConfiguration_WithThreshold(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: config,
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -112,13 +102,8 @@ func TestAccMigrationConfigRSAlertConfiguration_EmptyOptionalBlocks(t *testing.T
 		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: config,
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -166,13 +151,8 @@ func TestAccMigrationConfigRSAlertConfiguration_MultipleMatchers(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: config,
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -207,13 +187,8 @@ func TestAccMigrationConfigRSAlertConfiguration_EmptyOptionalAttributes(t *testi
 		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: config,
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),

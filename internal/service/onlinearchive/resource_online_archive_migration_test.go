@@ -30,25 +30,15 @@ func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing
 		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, name),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, name),
 				Check: resource.ComposeTestCheckFunc(
 					populateWithSampleData(resourceName, &cluster),
 				),
 			},
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 1, 0),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 1, 0),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "partition_fields.0.field_name", "last_review"),
 				),

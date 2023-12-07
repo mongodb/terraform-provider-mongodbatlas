@@ -25,13 +25,8 @@ func TestAccMigrationConfigRSDatabaseUser_Basic(t *testing.T) {
 		PreCheck: func() { acc.PreCheckBasicMigration(t) },
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: acc.ConfigDatabaseUserBasic(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            acc.ConfigDatabaseUserBasic(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -68,13 +63,8 @@ func TestAccMigrationConfigRSDatabaseUser_WithX509TypeCustomer(t *testing.T) {
 		PreCheck: func() { acc.PreCheckBasicMigration(t) },
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: acc.ConfigDatabaseUserWithX509Type(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            acc.ConfigDatabaseUserWithX509Type(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -108,13 +98,8 @@ func TestAccMigrationConfigRSDatabaseUser_WithAWSIAMType(t *testing.T) {
 		PreCheck: func() { acc.PreCheckBasicMigration(t) },
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: acc.ConfigDatabaseUserWithAWSIAMType(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            acc.ConfigDatabaseUserWithAWSIAMType(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -151,12 +136,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithLabels(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
+				ExternalProviders: mig.ExternalProviders(),
 				Config: acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username,
 					[]matlas.Label{
 						{
@@ -215,13 +195,8 @@ func TestAccMigrationConfigRSDatabaseUser_WithEmptyLabels(t *testing.T) {
 		PreCheck: func() { acc.PreCheckBasicMigration(t) },
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username, []matlas.Label{}),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username, []matlas.Label{}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -257,12 +232,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithRoles(t *testing.T) {
 		PreCheck: func() { acc.PreCheckBasicMigration(t) },
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
+				ExternalProviders: mig.ExternalProviders(),
 				Config: acc.ConfigDatabaseUserWithRoles(username, password, projectName, orgID,
 					[]*matlas.Role{
 						{
@@ -326,12 +296,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 		PreCheck: func() { acc.PreCheckBasicMigration(t) },
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
+				ExternalProviders: mig.ExternalProviders(),
 				Config: acc.ConfigDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
 					[]*matlas.Scope{
 						{
@@ -383,12 +348,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopesAndEmpty(t *testing.T) {
 		PreCheck: func() { acc.PreCheckBasicMigration(t) },
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
+				ExternalProviders: mig.ExternalProviders(),
 				Config: acc.ConfigDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
 					[]*matlas.Scope{},
 				),
@@ -428,13 +388,8 @@ func TestAccMigrationConfigRSDatabaseUser_WithLDAPAuthType(t *testing.T) {
 		PreCheck: func() { acc.PreCheckBasicMigration(t) },
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: acc.ConfigDatabaseUserWithLDAPAuthType(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            acc.ConfigDatabaseUserWithLDAPAuthType(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),

@@ -26,12 +26,7 @@ func TestAccMigrationProjectRS_NoProps(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
+				ExternalProviders: mig.ExternalProviders(),
 				Config: fmt.Sprintf(`resource "mongodbatlas_project" "test" {
 					name   = "%s"
 					org_id = "%s"
@@ -87,13 +82,8 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: configWithTeams,
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            configWithTeams,
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectExists(resourceName, &project),
 					acc.CheckProjectAttributes(&project, projectName),
@@ -131,13 +121,8 @@ func TestAccMigrationProjectRS_WithFalseDefaultSettings(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: configWithTeams,
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            configWithTeams,
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectExists(resourceName, &project),
 					acc.CheckProjectAttributes(&project, projectName),
@@ -181,13 +166,8 @@ func TestAccMigrationProjectRS_WithLimits(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: config,
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -223,13 +203,8 @@ func TestAccMigrationProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T)
 		CheckDestroy: acc.CheckDestroyProjectIPAccessList,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: acc.ConfigProjectIPAccessListWithIPAddress(orgID, projectName, ipAddress, comment),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            acc.ConfigProjectIPAccessListWithIPAddress(orgID, projectName, ipAddress, comment),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
@@ -264,13 +239,8 @@ func TestAccMigrationProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T)
 		CheckDestroy: acc.CheckDestroyProjectIPAccessList,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: acc.ConfigProjectIPAccessListWithCIDRBlock(orgID, projectName, cidrBlock, comment),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            acc.ConfigProjectIPAccessListWithCIDRBlock(orgID, projectName, cidrBlock, comment),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "cidr_block"),
@@ -324,13 +294,8 @@ func TestAccMigrationProjectRSProjectIPAccessList_Multiple_SettingMultiple(t *te
 		CheckDestroy: acc.CheckDestroyProjectIPAccessList,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: mig.VersionConstraint(),
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: acc.ConfigProjectIPAccessListWithMultiple(projectName, orgID, accessList, false),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            acc.ConfigProjectIPAccessListWithMultiple(projectName, orgID, accessList, false),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
