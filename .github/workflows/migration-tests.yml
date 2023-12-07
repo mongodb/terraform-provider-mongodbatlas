@@ -52,11 +52,8 @@ jobs:
 
   change-detection:
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-      repository-projects: read
     env:
-      mustTrigger: ${{ github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '')  }}
+      mustTrigger: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_group == '')  }}
     outputs:
       project: ${{ steps.filter.outputs.project == 'true' || env.mustTrigger == 'true' }}
       config: ${{ steps.filter.outputs.config == 'true' || env.mustTrigger == 'true' }}

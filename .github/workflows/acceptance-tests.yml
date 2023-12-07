@@ -29,27 +29,26 @@ env:
 jobs:  
   change-detection:
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-      repository-projects: read
+    env:
+      mustTrigger: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_group == '')  }}
     outputs:
-      cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation }}
-      advanced_cluster: ${{ steps.filter.outputs.advanced_cluster }}
-      cluster: ${{ steps.filter.outputs.cluster }}
-      search_deployment: ${{ steps.filter.outputs.search_deployment }}
-      stream: ${{ steps.filter.outputs.stream }}
-      generic: ${{ steps.filter.outputs.generic }}
-      backup_online_archive: ${{ steps.filter.outputs.backup_online_archive }}
-      backup_snapshots: ${{ steps.filter.outputs.backup_snapshots }}
-      federation: ${{ steps.filter.outputs.federation }}
-      backup_schedule: ${{ steps.filter.outputs.backup_schedule }}
-      project: ${{ steps.filter.outputs.project }}
-      serverless: ${{ steps.filter.outputs.serverless }}
-      network: ${{ steps.filter.outputs.network }}
-      config: ${{ steps.filter.outputs.config }}
-      assume_role: ${{ steps.filter.outputs.assume_role }}
-      event_trigger: ${{ steps.filter.outputs.event_trigger }}
-      search_index: ${{ steps.filter.outputs.search_index }}
+      cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation == 'true' || env.mustTrigger == 'true' }}
+      advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
+      cluster: ${{ steps.filter.outputs.cluster == 'true' || env.mustTrigger == 'true' }}
+      search_deployment: ${{ steps.filter.outputs.search_deployment == 'true' || env.mustTrigger == 'true' }}
+      stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
+      generic: ${{ steps.filter.outputs.generic == 'true' || env.mustTrigger == 'true' }}
+      backup_online_archive: ${{ steps.filter.outputs.backup_online_archive == 'true' || env.mustTrigger == 'true' }}
+      backup_snapshots: ${{ steps.filter.outputs.backup_snapshots == 'true' || env.mustTrigger == 'true' }}
+      federation: ${{ steps.filter.outputs.federation == 'true' || env.mustTrigger == 'true' }}
+      backup_schedule: ${{ steps.filter.outputs.backup_schedule == 'true' || env.mustTrigger == 'true' }}
+      project: ${{ steps.filter.outputs.project == 'true' || env.mustTrigger == 'true' }}
+      serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
+      network: ${{ steps.filter.outputs.network == 'true' || env.mustTrigger == 'true' }}
+      config: ${{ steps.filter.outputs.config == 'true' || env.mustTrigger == 'true' }}
+      assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
+      event_trigger: ${{ steps.filter.outputs.event_trigger == 'true' || env.mustTrigger == 'true' }}
+      search_index: ${{ steps.filter.outputs.search_index == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@v4
     - uses: dorny/paths-filter@v2
@@ -120,7 +119,7 @@ jobs:
   
   cluster_outage_simulation:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || inputs.test_group == 'cluster_outage_simulation' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
+    if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || inputs.test_group == 'cluster_outage_simulation' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -144,7 +143,7 @@ jobs:
 
   advanced_cluster:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
+    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -168,7 +167,7 @@ jobs:
 
   cluster:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.cluster == 'true' || inputs.test_group == 'cluster' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
+    if: ${{ needs.change-detection.outputs.cluster == 'true' || inputs.test_group == 'cluster' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -192,7 +191,7 @@ jobs:
 
   search_deployment:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.search_deployment == 'true' || inputs.test_group == 'search_deployment' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
+    if: ${{ needs.change-detection.outputs.search_deployment == 'true' || inputs.test_group == 'search_deployment' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -216,7 +215,7 @@ jobs:
 
   stream:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.stream == 'true' || inputs.test_group == 'stream' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
+    if: ${{ needs.change-detection.outputs.stream == 'true' || inputs.test_group == 'stream' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -240,7 +239,7 @@ jobs:
 
   generic: # Acceptance tests that do not use any time-consuming resource (example: cluster)
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.generic == 'true' || inputs.test_group == 'generic' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
+    if: ${{ needs.change-detection.outputs.generic == 'true' || inputs.test_group == 'generic' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -267,7 +266,7 @@ jobs:
 
   backup_online_archive:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || inputs.test_group == 'backup_online_archive' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
+    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || inputs.test_group == 'backup_online_archive' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -292,7 +291,7 @@ jobs:
 
   backup_snapshots:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_snapshots == 'true' || inputs.test_group == 'backup_snapshots' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
+    if: ${{ needs.change-detection.outputs.backup_snapshots == 'true' || inputs.test_group == 'backup_snapshots' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -317,7 +316,7 @@ jobs:
         
   backup_schedule:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_schedule == 'true' || inputs.test_group == 'backup_schedule' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
+    if: ${{ needs.change-detection.outputs.backup_schedule == 'true' || inputs.test_group == 'backup_schedule' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -341,7 +340,7 @@ jobs:
         run: make testacc
   project: 
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.project == 'true' || inputs.test_group == 'project' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
+    if: ${{ needs.change-detection.outputs.project == 'true' || inputs.test_group == 'project' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -366,7 +365,7 @@ jobs:
         run: make testacc
   serverless:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.serverless == 'true' || inputs.test_group == 'serverless' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
+    if: ${{ needs.change-detection.outputs.serverless == 'true' || inputs.test_group == 'serverless' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -389,7 +388,7 @@ jobs:
         run: make testacc
   network:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.network == 'true' || inputs.test_group == 'network' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
+    if: ${{ needs.change-detection.outputs.network == 'true' || inputs.test_group == 'network' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -417,7 +416,7 @@ jobs:
 
   federation:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.federation == 'true' || inputs.test_group == 'federation' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
+    if: ${{ needs.change-detection.outputs.federation == 'true' || inputs.test_group == 'federation' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -441,7 +440,7 @@ jobs:
       
   config:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.config == 'true' || inputs.test_group == 'config' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
+    if: ${{ needs.change-detection.outputs.config == 'true' || inputs.test_group == 'config' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -470,7 +469,7 @@ jobs:
 
   assume_role:
     needs: [ change-detection]
-    if: ${{ needs.change-detection.outputs.assume_role == 'true' || inputs.test_group == 'assume_role' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
+    if: ${{ needs.change-detection.outputs.assume_role == 'true' || inputs.test_group == 'assume_role' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -508,7 +507,7 @@ jobs:
 
   search_index:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.search_index == 'true' || inputs.test_group == 'search_index' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
+    if: ${{ needs.change-detection.outputs.search_index == 'true' || inputs.test_group == 'search_index' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
