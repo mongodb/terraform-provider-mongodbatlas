@@ -21,7 +21,7 @@ import (
 
 var (
 	successfulPaginatedTeamRole = ProjectResponse{
-		ProjectTeamRespo: &admin.PaginatedTeamRole{},
+		ProjectTeamResp: &admin.PaginatedTeamRole{},
 		Err:              nil,
 	}
 	successfulDataFederationLimit = ProjectResponse{
@@ -63,7 +63,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			name: "Fail to get project's teams assigned ",
 			mockResponses: []ProjectResponse{
 				{
-					ProjectTeamRespo: nil,
+					ProjectTeamResp: nil,
 					HTTPResponse:     &http.Response{StatusCode: 503},
 					Err:              errors.New("Service Unavailable"),
 				},
@@ -903,7 +903,7 @@ func (a *MockProjectService) ListProjectTeams(ctx context.Context, groupID strin
 	}
 	resp := a.MockResponses[a.index]
 	a.index++
-	return resp.ProjectTeamRespo, resp.HTTPResponse, resp.Err
+	return resp.ProjectTeamResp, resp.HTTPResponse, resp.Err
 }
 
 func (a *MockProjectService) DeleteProjectLimit(ctx context.Context, limitName, projectID string) (map[string]interface{}, *http.Response, error) {
@@ -939,7 +939,7 @@ func (a *MockProjectService) UpdateTeamRoles(ctx context.Context, groupID, teamI
 	}
 	resp := a.MockResponses[a.index]
 	a.index++
-	return resp.ProjectTeamRespo, resp.HTTPResponse, resp.Err
+	return resp.ProjectTeamResp, resp.HTTPResponse, resp.Err
 }
 
 func (a *MockProjectService) AddAllTeamsToProject(ctx context.Context, groupID string, teamRole *[]admin.TeamRole) (*admin.PaginatedTeamRole, *http.Response, error) {
@@ -948,12 +948,12 @@ func (a *MockProjectService) AddAllTeamsToProject(ctx context.Context, groupID s
 	}
 	resp := a.MockResponses[a.index]
 	a.index++
-	return resp.ProjectTeamRespo, resp.HTTPResponse, resp.Err
+	return resp.ProjectTeamResp, resp.HTTPResponse, resp.Err
 }
 
 type ProjectResponse struct {
 	ProjectResp                *admin.Group
-	ProjectTeamRespo           *admin.PaginatedTeamRole
+	ProjectTeamResp           *admin.PaginatedTeamRole
 	GroupSettingsResponse      *admin.GroupSettings
 	HTTPResponse               *http.Response
 	Err                        error
