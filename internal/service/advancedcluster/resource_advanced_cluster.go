@@ -422,6 +422,11 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedCreate, err))
 	}
 
+	d.SetId(conversion.EncodeStateID(map[string]string{
+		"project_id":   projectID,
+		"cluster_name": cluster.Name,
+	}))
+
 	timeout := d.Timeout(schema.TimeoutCreate)
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
@@ -465,12 +470,6 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 			return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, d.Get("name").(string), err))
 		}
 	}
-
-	d.SetId(conversion.EncodeStateID(map[string]string{
-		"cluster_id":   cluster.ID,
-		"project_id":   projectID,
-		"cluster_name": cluster.Name,
-	}))
 
 	return resourceMongoDBAtlasAdvancedClusterRead(ctx, d, meta)
 }
@@ -626,7 +625,6 @@ func resourceMongoDBAtlasAdvancedClusterUpgrade(ctx context.Context, d *schema.R
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"cluster_id":   upgradeResponse.ID,
 		"project_id":   projectID,
 		"cluster_name": clusterName,
 	}))
@@ -815,7 +813,6 @@ func resourceMongoDBAtlasAdvancedClusterImportState(ctx context.Context, d *sche
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"cluster_id":   u.ID,
 		"project_id":   *projectID,
 		"cluster_name": u.Name,
 	}))
