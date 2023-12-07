@@ -19,7 +19,7 @@ func TestAccConfigDSAtlasUser_ByUserID(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_user.test"
 		userID         = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
-		user           = fetchUser(userID, t)
+		user           = fetchUser(t, userID)
 	)
 	resource.Test(t, resource.TestCase{ // does not run in parallel to avoid changes in fetched user during execution
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckBasicOwnerID(t) },
@@ -40,7 +40,7 @@ func TestAccConfigDSAtlasUser_ByUsername(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_user.test"
 		username       = os.Getenv("MONGODB_ATLAS_USERNAME_CLOUD_DEV")
-		user           = fetchUserByUsername(username, t)
+		user           = fetchUserByUsername(t, username)
 	)
 	resource.Test(t, resource.TestCase{ // does not run in parallel to avoid changes in fetched user during execution
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckAtlasUsername(t) },
@@ -89,7 +89,8 @@ func TestAccConfigDSAtlasUser_InvalidAttrCombination(t *testing.T) {
 	})
 }
 
-func fetchUser(userID string, t *testing.T) *admin.CloudAppUser {
+func fetchUser(t *testing.T, userID string) *admin.CloudAppUser {
+	t.Helper()
 	connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 	userResp, _, err := connV2.MongoDBCloudUsersApi.GetUser(context.Background(), userID).Execute()
 	if err != nil {
@@ -98,7 +99,8 @@ func fetchUser(userID string, t *testing.T) *admin.CloudAppUser {
 	return userResp
 }
 
-func fetchUserByUsername(username string, t *testing.T) *admin.CloudAppUser {
+func fetchUserByUsername(t *testing.T, username string) *admin.CloudAppUser {
+	t.Helper()
 	connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 
 	userResp, _, err := connV2.MongoDBCloudUsersApi.GetUserByUsername(context.Background(), username).Execute()

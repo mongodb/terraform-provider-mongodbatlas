@@ -105,6 +105,7 @@ func TestSearchDeploymentTFModelToSDK(t *testing.T) {
 }
 
 func tfSpecsList(t *testing.T, instanceSize string, nodeCount int64) basetypes.ListValue {
+	t.Helper()
 	tfSpecsList, diags := types.ListValueFrom(context.Background(), searchdeployment.SpecObjectType, []searchdeployment.TFSearchNodeSpecModel{
 		{
 			InstanceSize: types.StringValue(instanceSize),

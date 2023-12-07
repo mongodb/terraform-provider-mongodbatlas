@@ -37,6 +37,7 @@ func IsProviderVersionAtLeast(minVersion string) bool {
 }
 
 func checkLastVersion(tb testing.TB) {
+	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_LAST_VERSION") == "" {
 		tb.Fatal("`MONGODB_ATLAS_LAST_VERSION` must be set for migration acceptance testing")
 	}

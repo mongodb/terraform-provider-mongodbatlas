@@ -7,15 +7,18 @@ import (
 )
 
 func PreCheckBasic(tb testing.TB) {
+	tb.Helper()
 	checkLastVersion(tb)
 	acc.PreCheckBasic(tb)
 }
 
 func PreCheck(tb testing.TB) {
+	tb.Helper()
 	checkLastVersion(tb)
 	acc.PreCheck(tb)
 }
 
 func PreCheckBasicOwnerID(tb testing.TB) {
+	tb.Helper()
 	PreCheckBasic(tb)
 }
