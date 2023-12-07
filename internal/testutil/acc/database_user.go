@@ -59,7 +59,7 @@ func CheckDatabaseUserAttributes(dbUser *admin.CloudDatabaseUser, username strin
 }
 
 func CheckDestroyDatabaseUser(s *terraform.State) error {
-	conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
+	connV2 := TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_database_user" {
@@ -71,7 +71,7 @@ func CheckDestroyDatabaseUser(s *terraform.State) error {
 			continue
 		}
 		// Try to find the database user
-		_, _, err = conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
+		_, _, err = connV2.DatabaseUsersApi.GetDatabaseUser(context.Background(), projectID, authDatabaseName, username).Execute()
 		if err == nil {
 			return fmt.Errorf("database user (%s) still exists", projectID)
 		}
