@@ -124,7 +124,7 @@ func testAccMongoDBAtlasPrivateLinkEndpointServiceServerlessConfig(orgID, projec
 		name         = %[3]q
 		provider_settings_backing_provider_name = "AWS"
 		provider_settings_provider_name = "SERVERLESS"
-		provider_settings_region_name = "US_EAST_1"
+		provider_settings_region_name = "EU_WEST_1"
 		continuous_backup_enabled = true
 
 		lifecycle {

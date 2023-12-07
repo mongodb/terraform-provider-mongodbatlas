@@ -179,7 +179,7 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 		projectName                 = acctest.RandomWithPrefix("test-acc")
 		name                        = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 		cloudProvider               = "AWS"
-		processRegion               = "US_EAST_1"
+		processRegion               = "EU_WEST_1"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -474,7 +474,7 @@ func testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName
 		replication_specs {
 		  num_shards = 1
 		  regions_config {
-			 region_name     = "US_EAST_1"
+			 region_name     = "EU_WEST_1"
 			 electable_nodes = 3
 			 priority        = 7
 			 read_only_nodes = 0

@@ -36,7 +36,7 @@ func TestAccNetworkRSNetworkContainer_basicAWS(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasNetworkContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlock, providerName, "US_EAST_1"),
+				Config: testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlock, providerName, "EU_WEST_1"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasNetworkContainerExists(resourceName, &container),
 					testAccCheckMongoDBAtlasNetworkContainerAttributes(&container, providerName),
@@ -205,7 +205,7 @@ func TestAccNetworkRSNetworkContainer_importBasic(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasNetworkContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlock, providerName, "US_EAST_1"),
+				Config: testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlock, providerName, "EU_WEST_1"),
 			},
 			{
 				ResourceName:            resourceName,
