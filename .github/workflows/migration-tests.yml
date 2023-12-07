@@ -25,8 +25,6 @@ on:
         description: 'MongoDB Atlas Provider version to use, empty for latest'     
         type: string
         required: false
-  pull_request: # you can run a specic job in your PR using GitHub labels
-    types: [ labeled ]
 
 env:
     terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
