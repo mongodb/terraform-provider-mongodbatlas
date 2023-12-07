@@ -345,11 +345,10 @@ func testAccCheckMongoDBAtlasProjectAPIKeyDestroy(s *terraform.State) error {
 
 func TestAccConfigRSProjectAPIKey_Invalid_Role(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_project_api_key.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		description  = fmt.Sprintf("test-acc-project-api_key-%s", acctest.RandString(5))
-		roleName     = "INVALID_ROLE"
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		description = projectName
+		roleName    = "INVALID_ROLE"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -358,12 +357,7 @@ func TestAccConfigRSProjectAPIKey_Invalid_Role(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName, false),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "description", description),
-					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
-					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
-				),
+				Config:      testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName, false),
 				ExpectError: regexp.MustCompile("INVALID_ENUM_VALUE"),
 			},
 		},
