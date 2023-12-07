@@ -42,12 +42,12 @@ var (
 	projectStateNameDiff = project.TfProjectRSModel{
 		Name: diffName,
 	}
+	dummyProjectID = "projectId"
 )
 
 func TestGetProjectPropsFromAPI(t *testing.T) {
 	testCases := []struct {
 		name          string
-		projectID     string
 		mockResponses []ProjectResponse
 		expectedError bool
 	}{
@@ -59,7 +59,6 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 				successfulGroupSettingsResponse,
 			},
 			expectedError: false,
-			projectID:     "projectId",
 		},
 		{
 			name: "Fail to get project's teams assigned ",
@@ -71,7 +70,6 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 				},
 			},
 			expectedError: true,
-			projectID:     "projectId",
 		},
 		{
 			name: "Fail to get project's limits",
@@ -84,7 +82,6 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 				},
 			},
 			expectedError: true,
-			projectID:     "projectId",
 		},
 		{
 			name: "Fail to get project's settings",
@@ -98,7 +95,6 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 				},
 			},
 			expectedError: true,
-			projectID:     "projectId",
 		},
 	}
 
@@ -114,7 +110,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			if len(tc.mockResponses) > 2 {
 				testObject.On("GetProjectSettings", mock.Anything, mock.Anything).Return(tc.mockResponses[2])
 			}
-			_, _, _, err := project.GetProjectPropsFromAPI(context.Background(), testObject, tc.projectID)
+			_, _, _, err := project.GetProjectPropsFromAPI(context.Background(), testObject, dummyProjectID)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
