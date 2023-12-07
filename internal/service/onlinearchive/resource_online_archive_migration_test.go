@@ -23,8 +23,11 @@ func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing
 		orgID                     = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName               = acctest.RandomWithPrefix("test-acc")
 		name                      = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-		deleteExpirationDays      = mig.ValueIfVersionAtLeast(t, 7, "1.12.2")
+		deleteExpirationDays      = 0
 	)
+	if mig.IsProviderVersionAtLeast("1.12.2") {
+		deleteExpirationDays = 7
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },

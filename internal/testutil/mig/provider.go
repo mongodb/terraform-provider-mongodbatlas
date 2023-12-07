@@ -30,22 +30,10 @@ func ExternalProvidersWithAWS(tb testing.TB, awsVersion string) map[string]resou
 	}
 }
 
-func ValueIfVersionAtLeast[T any](tb testing.TB, val T, minVersion string) T {
-	var zero T
+func IsProviderVersionAtLeast(minVersion string) bool {
 	vProvider, errProvider := version.NewVersion(versionConstraint())
 	vMin, errMin := version.NewVersion(minVersion)
-	if errProvider != nil {
-		tb.Fatal(errProvider)
-		return zero
-	}
-	if errMin != nil {
-		tb.Fatal(errMin)
-		return zero
-	}
-	if vProvider.LessThan(vMin) {
-		return zero
-	}
-	return val
+	return errProvider == nil && errMin == nil && vProvider.GreaterThanOrEqual(vMin)
 }
 
 func checkLastVersion(tb testing.TB) {
