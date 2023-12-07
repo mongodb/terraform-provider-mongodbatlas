@@ -22,7 +22,7 @@ import (
 var (
 	successfulPaginatedTeamRole = ProjectResponse{
 		ProjectTeamResp: &admin.PaginatedTeamRole{},
-		Err:              nil,
+		Err:             nil,
 	}
 	successfulDataFederationLimit = ProjectResponse{
 		LimitsResponse: []admin.DataFederationLimit{},
