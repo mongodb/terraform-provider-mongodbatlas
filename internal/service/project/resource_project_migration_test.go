@@ -22,7 +22,7 @@ func TestAccMigrationProjectRS_NoProps(t *testing.T) {
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
+		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
@@ -78,7 +78,7 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
+		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
@@ -117,7 +117,7 @@ func TestAccMigrationProjectRS_WithFalseDefaultSettings(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasicOwnerIDMigration(t) },
+		PreCheck:     func() { mig.PreCheckBasicOwnerID(t) },
 		CheckDestroy: acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
@@ -162,7 +162,7 @@ func TestAccMigrationProjectRS_WithLimits(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
+		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
@@ -199,7 +199,7 @@ func TestAccMigrationProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T)
 	comment := fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
+		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyProjectIPAccessList,
 		Steps: []resource.TestStep{
 			{
@@ -235,7 +235,7 @@ func TestAccMigrationProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T)
 	comment := fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
+		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyProjectIPAccessList,
 		Steps: []resource.TestStep{
 			{
@@ -290,7 +290,7 @@ func TestAccMigrationProjectRSProjectIPAccessList_Multiple_SettingMultiple(t *te
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
+		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyProjectIPAccessList,
 		Steps: []resource.TestStep{
 			{

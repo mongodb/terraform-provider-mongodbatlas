@@ -20,7 +20,7 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T)
 	comment := fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { acc.PreCheckBasicMigration(t) },
+		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
@@ -55,7 +55,7 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T)
 	comment := fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { acc.PreCheckBasicMigration(t) },
+		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),

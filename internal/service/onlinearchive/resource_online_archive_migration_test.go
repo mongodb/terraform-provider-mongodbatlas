@@ -26,7 +26,7 @@ func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
+		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
