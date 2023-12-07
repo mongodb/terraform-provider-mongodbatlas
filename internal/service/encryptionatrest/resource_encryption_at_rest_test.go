@@ -6,11 +6,12 @@ import (
 	"os"
 	"testing"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mwielbut/pointy"
@@ -104,22 +105,22 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
-		awsKms = matlas.AwsKms{
+		awsKms = admin.AWSKMSConfiguration{
 			Enabled:             pointy.Bool(true),
-			AccessKeyID:         os.Getenv("AWS_ACCESS_KEY_ID"),
-			SecretAccessKey:     os.Getenv("AWS_SECRET_ACCESS_KEY"),
-			CustomerMasterKeyID: os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID"),
-			Region:              os.Getenv("AWS_REGION"),
-			RoleID:              os.Getenv("AWS_ROLE_ID"),
+			AccessKeyID:         conversion.StringPtr(os.Getenv("AWS_ACCESS_KEY_ID")),
+			SecretAccessKey:     conversion.StringPtr(os.Getenv("AWS_SECRET_ACCESS_KEY")),
+			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
+			Region:              conversion.StringPtr(os.Getenv("AWS_REGION")),
+			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
 		}
 
-		awsKmsUpdated = matlas.AwsKms{
+		awsKmsUpdated = admin.AWSKMSConfiguration{
 			Enabled:             pointy.Bool(true),
-			AccessKeyID:         os.Getenv("AWS_ACCESS_KEY_ID_UPDATED"),
-			SecretAccessKey:     os.Getenv("AWS_SECRET_ACCESS_KEY_UPDATED"),
-			CustomerMasterKeyID: os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID_UPDATED"),
-			Region:              os.Getenv("AWS_REGION_UPDATED"),
-			RoleID:              os.Getenv("AWS_ROLE_ID"),
+			AccessKeyID:         conversion.StringPtr(os.Getenv("AWS_ACCESS_KEY_ID_UPDATED")),
+			SecretAccessKey:     conversion.StringPtr(os.Getenv("AWS_SECRET_ACCESS_KEY_UPDATED")),
+			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID_UPDATED")),
+			Region:              conversion.StringPtr(os.Getenv("AWS_REGION_UPDATED")),
+			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
 		}
 	)
 
@@ -134,8 +135,8 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKms.Region),
-					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.role_id", awsKms.RoleID),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKms.GetRegion()),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.role_id", awsKms.GetRoleId()),
 				),
 			},
 			{
@@ -144,8 +145,8 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKmsUpdated.Region),
-					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.role_id", awsKmsUpdated.RoleID),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKmsUpdated.GetRegion()),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.role_id", awsKmsUpdated.GetRoleId()),
 				),
 			},
 			{
@@ -165,28 +166,28 @@ func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
-		azureKeyVault = matlas.AzureKeyVault{
+		azureKeyVault = admin.AzureKeyVault{
 			Enabled:           pointy.Bool(true),
-			ClientID:          os.Getenv("AZURE_CLIENT_ID"),
-			AzureEnvironment:  "AZURE",
-			SubscriptionID:    os.Getenv("AZURE_SUBSCRIPTION_ID"),
-			ResourceGroupName: os.Getenv("AZURE_RESOURCE_GROUP_NAME"),
-			KeyVaultName:      os.Getenv("AZURE_KEY_VAULT_NAME"),
-			KeyIdentifier:     os.Getenv("AZURE_KEY_IDENTIFIER"),
-			Secret:            os.Getenv("AZURE_SECRET"),
-			TenantID:          os.Getenv("AZURE_TENANT_ID"),
+			ClientID:          conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
+			AzureEnvironment:  conversion.StringPtr("AZURE"),
+			SubscriptionID:    conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
+			ResourceGroupName: conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME")),
+			KeyVaultName:      conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME")),
+			KeyIdentifier:     conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER")),
+			Secret:            conversion.StringPtr(os.Getenv("AZURE_SECRET")),
+			TenantID:          conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
 		}
 
-		azureKeyVaultUpdated = matlas.AzureKeyVault{
+		azureKeyVaultUpdated = admin.AzureKeyVault{
 			Enabled:           pointy.Bool(true),
-			ClientID:          os.Getenv("AZURE_CLIENT_ID_UPDATED"),
-			AzureEnvironment:  "AZURE",
-			SubscriptionID:    os.Getenv("AZURE_SUBSCRIPTION_ID"),
-			ResourceGroupName: os.Getenv("AZURE_RESOURCE_GROUP_NAME_UPDATED"),
-			KeyVaultName:      os.Getenv("AZURE_KEY_VAULT_NAME_UPDATED"),
-			KeyIdentifier:     os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED"),
-			Secret:            os.Getenv("AZURE_SECRET_UPDATED"),
-			TenantID:          os.Getenv("AZURE_TENANT_ID"),
+			ClientID:          conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID_UPDATED")),
+			AzureEnvironment:  conversion.StringPtr("AZURE"),
+			SubscriptionID:    conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
+			ResourceGroupName: conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME_UPDATED")),
+			KeyVaultName:      conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME_UPDATED")),
+			KeyIdentifier:     conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED")),
+			Secret:            conversion.StringPtr(os.Getenv("AZURE_SECRET_UPDATED")),
+			TenantID:          conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
 		}
 	)
 
@@ -201,9 +202,9 @@ func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.azure_environment", azureKeyVault.AzureEnvironment),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.resource_group_name", azureKeyVault.ResourceGroupName),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.key_vault_name", azureKeyVault.KeyVaultName),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.azure_environment", azureKeyVault.GetAzureEnvironment()),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.resource_group_name", azureKeyVault.GetResourceGroupName()),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.key_vault_name", azureKeyVault.GetKeyVaultName()),
 				),
 			},
 			{
@@ -212,9 +213,9 @@ func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.azure_environment", azureKeyVaultUpdated.AzureEnvironment),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.resource_group_name", azureKeyVaultUpdated.ResourceGroupName),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.key_vault_name", azureKeyVaultUpdated.KeyVaultName),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.azure_environment", azureKeyVaultUpdated.GetAzureEnvironment()),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.resource_group_name", azureKeyVaultUpdated.GetResourceGroupName()),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.key_vault_name", azureKeyVaultUpdated.GetKeyVaultName()),
 				),
 			},
 			{
@@ -235,16 +236,16 @@ func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
-		googleCloudKms = matlas.GoogleCloudKms{
+		googleCloudKms = admin.GoogleCloudKMS{
 			Enabled:              pointy.Bool(true),
-			ServiceAccountKey:    os.Getenv("GCP_SERVICE_ACCOUNT_KEY"),
-			KeyVersionResourceID: os.Getenv("GCP_KEY_VERSION_RESOURCE_ID"),
+			ServiceAccountKey:    conversion.StringPtr(os.Getenv("GCP_SERVICE_ACCOUNT_KEY")),
+			KeyVersionResourceID: conversion.StringPtr(os.Getenv("GCP_KEY_VERSION_RESOURCE_ID")),
 		}
 
-		googleCloudKmsUpdated = matlas.GoogleCloudKms{
+		googleCloudKmsUpdated = admin.GoogleCloudKMS{
 			Enabled:              pointy.Bool(true),
-			ServiceAccountKey:    os.Getenv("GCP_SERVICE_ACCOUNT_KEY_UPDATED"),
-			KeyVersionResourceID: os.Getenv("GCP_KEY_VERSION_RESOURCE_ID_UPDATED"),
+			ServiceAccountKey:    conversion.StringPtr(os.Getenv("GCP_SERVICE_ACCOUNT_KEY_UPDATED")),
+			KeyVersionResourceID: conversion.StringPtr(os.Getenv("GCP_KEY_VERSION_RESOURCE_ID_UPDATED")),
 		}
 	)
 
@@ -292,10 +293,10 @@ func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 		policyName   = acctest.RandomWithPrefix("test-aws-policy")
 		roleName     = acctest.RandomWithPrefix("test-aws-role")
 
-		awsKms = matlas.AwsKms{
+		awsKms = admin.AWSKMSConfiguration{
 			Enabled:             pointy.Bool(true),
-			CustomerMasterKeyID: os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID"),
-			Region:              os.Getenv("AWS_REGION"),
+			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
+			Region:              conversion.StringPtr(os.Getenv("AWS_REGION")),
 		}
 	)
 
@@ -311,10 +312,10 @@ func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.Region, accessKeyID, secretKey, projectID, policyName, roleName, false, &awsKms),
+				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.GetRegion(), accessKeyID, secretKey, projectID, policyName, roleName, false, &awsKms),
 			},
 			{
-				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.Region, accessKeyID, secretKey, projectID, policyName, roleName, true, &awsKms),
+				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.GetRegion(), accessKeyID, secretKey, projectID, policyName, roleName, true, &awsKms),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -373,7 +374,7 @@ func testAccCheckMongoDBAtlasEncryptionAtRestDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID string, aws *matlas.AwsKms) string {
+func testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID string, aws *admin.AWSKMSConfiguration) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_encryption_at_rest" "test" {
 			project_id = "%s"
@@ -385,10 +386,10 @@ func testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID string, aws *matl
 				role_id              = "%s"
 			}
 		}
-	`, projectID, *aws.Enabled, aws.CustomerMasterKeyID, aws.Region, aws.RoleID)
+	`, projectID, aws.GetEnabled(), aws.GetCustomerMasterKeyID(), aws.GetRegion(), aws.GetRoleId())
 }
 
-func testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID string, azure *matlas.AzureKeyVault) string {
+func testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID string, azure *admin.AzureKeyVault) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_encryption_at_rest" "test" {
 			project_id = "%s"
@@ -405,11 +406,11 @@ func testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID string, az
 				tenant_id  					= "%s"
 			}
 		}
-	`, projectID, *azure.Enabled, azure.ClientID, azure.AzureEnvironment, azure.SubscriptionID, azure.ResourceGroupName,
-		azure.KeyVaultName, azure.KeyIdentifier, azure.Secret, azure.TenantID)
+	`, projectID, *azure.Enabled, azure.GetClientID(), azure.GetAzureEnvironment(), azure.GetSubscriptionID(), azure.GetResourceGroupName(),
+		azure.GetKeyVaultName(), azure.GetKeyIdentifier(), azure.GetSecret(), azure.GetTenantID())
 }
 
-func testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID string, google *matlas.GoogleCloudKms) string {
+func testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID string, google *admin.GoogleCloudKMS) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_encryption_at_rest" "test" {
 			project_id = "%s"
@@ -420,13 +421,13 @@ func testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID string, g
 				key_version_resource_id = "%s"
 			}
 		}
-	`, projectID, *google.Enabled, google.ServiceAccountKey, google.KeyVersionResourceID)
+	`, projectID, *google.Enabled, google.GetServiceAccountKey(), google.GetKeyVersionResourceID())
 }
 
-func testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(region, awsAccesKey, awsSecretKey, projectID, policyName, awsRoleName string, isUpdate bool, aws *matlas.AwsKms) string {
+func testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(region, awsAccesKey, awsSecretKey, projectID, policyName, awsRoleName string, isUpdate bool, aws *admin.AWSKMSConfiguration) string {
 	cfg := fmt.Sprintf(initialConfigEncryptionRestRoleAWS, region, awsAccesKey, awsSecretKey, projectID, policyName, awsRoleName, "", "", "")
 	if isUpdate {
-		configEncrypt := fmt.Sprintf(configEncryptionRest, projectID, *aws.Enabled, aws.CustomerMasterKeyID, aws.Region)
+		configEncrypt := fmt.Sprintf(configEncryptionRest, projectID, *aws.Enabled, aws.GetCustomerMasterKeyID(), aws.GetRegion())
 		dataAWSARN := fmt.Sprintf(dataAWSARNConfig, awsRoleName)
 		dataARN := `iam_assumed_role_arn = data.aws_iam_role.test.arn`
 		cfg = fmt.Sprintf(initialConfigEncryptionRestRoleAWS, region, awsAccesKey, awsSecretKey, projectID, policyName, awsRoleName, dataAWSARN, dataARN, configEncrypt)
