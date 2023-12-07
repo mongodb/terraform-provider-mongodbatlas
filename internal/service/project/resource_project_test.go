@@ -47,52 +47,47 @@ var (
 
 func TestGetProjectPropsFromAPI(t *testing.T) {
 	testCases := []struct {
-		name          string
-		mockResponses []ProjectResponse
-		expectedError bool
+		name            string
+		mockResponses   []ProjectResponse
+		teamRoleReponse ProjectResponse
+		limitResponse   ProjectResponse
+		groupResponse   ProjectResponse
+		expectedError   bool
 	}{
 		{
-			name: "Successful",
-			mockResponses: []ProjectResponse{
-				successfulPaginatedTeamRole,
-				successfulDataFederationLimit,
-				successfulGroupSettingsResponse,
-			},
-			expectedError: false,
+			name:            "Successful",
+			teamRoleReponse: successfulPaginatedTeamRole,
+			limitResponse:   successfulDataFederationLimit,
+			groupResponse:   successfulGroupSettingsResponse,
+			expectedError:   false,
 		},
 		{
 			name: "Fail to get project's teams assigned ",
-			mockResponses: []ProjectResponse{
-				{
-					ProjectTeamResp: nil,
-					HTTPResponse:    &http.Response{StatusCode: 503},
-					Err:             errors.New("Service Unavailable"),
-				},
+			teamRoleReponse: ProjectResponse{
+				ProjectTeamResp: nil,
+				HTTPResponse:    &http.Response{StatusCode: 503},
+				Err:             errors.New("Service Unavailable"),
 			},
 			expectedError: true,
 		},
 		{
-			name: "Fail to get project's limits",
-			mockResponses: []ProjectResponse{
-				successfulPaginatedTeamRole,
-				{
-					LimitsResponse: nil,
-					HTTPResponse:   &http.Response{StatusCode: 503},
-					Err:            errors.New("Service Unavailable"),
-				},
+			name:            "Fail to get project's limits",
+			teamRoleReponse: successfulPaginatedTeamRole,
+			limitResponse: ProjectResponse{
+				LimitsResponse: nil,
+				HTTPResponse:   &http.Response{StatusCode: 503},
+				Err:            errors.New("Service Unavailable"),
 			},
 			expectedError: true,
 		},
 		{
-			name: "Fail to get project's settings",
-			mockResponses: []ProjectResponse{
-				successfulPaginatedTeamRole,
-				successfulDataFederationLimit,
-				{
-					GroupSettingsResponse: nil,
-					HTTPResponse:          &http.Response{StatusCode: 503},
-					Err:                   errors.New("Service Unavailable"),
-				},
+			name:            "Fail to get project's settings",
+			teamRoleReponse: successfulPaginatedTeamRole,
+			limitResponse:   successfulDataFederationLimit,
+			groupResponse: ProjectResponse{
+				GroupSettingsResponse: nil,
+				HTTPResponse:          &http.Response{StatusCode: 503},
+				Err:                   errors.New("Service Unavailable"),
 			},
 			expectedError: true,
 		},
@@ -101,15 +96,9 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			testObject := new(MockProjectService)
-			if len(tc.mockResponses) > 0 {
-				testObject.On("ListProjectTeams", mock.Anything, mock.Anything).Return(tc.mockResponses[0])
-			}
-			if len(tc.mockResponses) > 1 {
-				testObject.On("ListProjectLimits", mock.Anything, mock.Anything).Return(tc.mockResponses[1])
-			}
-			if len(tc.mockResponses) > 2 {
-				testObject.On("GetProjectSettings", mock.Anything, mock.Anything).Return(tc.mockResponses[2])
-			}
+			testObject.On("ListProjectTeams", mock.Anything, mock.Anything).Return(tc.teamRoleReponse)
+			testObject.On("ListProjectLimits", mock.Anything, mock.Anything).Return(tc.limitResponse)
+			testObject.On("GetProjectSettings", mock.Anything, mock.Anything).Return(tc.groupResponse)
 			_, _, _, err := project.GetProjectPropsFromAPI(context.Background(), testObject, dummyProjectID)
 
 			if (err != nil) != tc.expectedError {
