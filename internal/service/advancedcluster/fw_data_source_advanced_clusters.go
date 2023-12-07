@@ -129,22 +129,22 @@ func newTfAdvClustersDSModel(ctx context.Context, conn *mongodbatlas.Client, api
 	var d diag.Diagnostics
 
 	clusterModel := tfAdvancedClusterDSModel{
-		ID:                           types.StringValue(apiResp.ID),
+		ID:                           conversion.StringNullIfEmpty(apiResp.ID),
 		BackupEnabled:                types.BoolPointerValue(apiResp.BackupEnabled),
-		ClusterType:                  types.StringValue(apiResp.ClusterType),
-		CreateDate:                   types.StringValue(apiResp.CreateDate),
+		ClusterType:                  conversion.StringNullIfEmpty(apiResp.ClusterType),
+		CreateDate:                   conversion.StringNullIfEmpty(apiResp.CreateDate),
 		DiskSizeGb:                   types.Float64PointerValue(apiResp.DiskSizeGB),
-		EncryptionAtRestProvider:     types.StringValue(apiResp.EncryptionAtRestProvider),
-		MongoDBMajorVersion:          types.StringValue(apiResp.MongoDBMajorVersion),
-		MongoDBVersion:               types.StringValue(apiResp.MongoDBVersion),
-		Name:                         types.StringValue(apiResp.Name),
+		EncryptionAtRestProvider:     conversion.StringNullIfEmpty(apiResp.EncryptionAtRestProvider),
+		MongoDBMajorVersion:          conversion.StringNullIfEmpty(apiResp.MongoDBMajorVersion),
+		MongoDBVersion:               conversion.StringNullIfEmpty(apiResp.MongoDBVersion),
+		Name:                         conversion.StringNullIfEmpty(apiResp.Name),
 		Paused:                       types.BoolPointerValue(apiResp.Paused),
 		PitEnabled:                   types.BoolPointerValue(apiResp.PitEnabled),
-		RootCertType:                 types.StringValue(apiResp.RootCertType),
-		StateName:                    types.StringValue(apiResp.StateName),
+		RootCertType:                 conversion.StringNullIfEmpty(apiResp.RootCertType),
+		StateName:                    conversion.StringNullIfEmpty(apiResp.StateName),
 		TerminationProtectionEnabled: types.BoolPointerValue(apiResp.TerminationProtectionEnabled),
-		VersionReleaseSystem:         types.StringValue(apiResp.VersionReleaseSystem),
-		ProjectID:                    types.StringValue(projectID),
+		VersionReleaseSystem:         conversion.StringNullIfEmpty(apiResp.VersionReleaseSystem),
+		ProjectID:                    conversion.StringNullIfEmpty(projectID),
 	}
 	clusterModel.BiConnectorConfig, d = types.ListValueFrom(ctx, TfBiConnectorConfigType, NewTfBiConnectorConfigModel(apiResp.BiConnector))
 	diags.Append(d...)

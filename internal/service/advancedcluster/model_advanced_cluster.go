@@ -191,10 +191,10 @@ func newTfConnectionStringsModel(ctx context.Context, connString *matlas.Connect
 
 	if connString != nil {
 		res = append(res, &tfConnectionStringModel{
-			Standard:        types.StringValue(connString.Standard),
-			StandardSrv:     types.StringValue(connString.StandardSrv),
-			Private:         types.StringValue(connString.Private),
-			PrivateSrv:      types.StringValue(connString.PrivateSrv),
+			Standard:        conversion.StringNullIfEmpty(connString.Standard),
+			StandardSrv:     conversion.StringNullIfEmpty(connString.StandardSrv),
+			Private:         conversion.StringNullIfEmpty(connString.Private),
+			PrivateSrv:      conversion.StringNullIfEmpty(connString.PrivateSrv),
 			PrivateEndpoint: NewTfPrivateEndpointModel(ctx, connString.PrivateEndpoint),
 		})
 	}

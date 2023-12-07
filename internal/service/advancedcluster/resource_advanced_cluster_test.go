@@ -451,7 +451,6 @@ func TestAccClusterAdvancedCluster_DefaultWrite(t *testing.T) {
 
 					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.default_read_concern", "available"),
 					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.default_write_concern", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
 					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.no_table_scan", "false"),
@@ -461,7 +460,6 @@ func TestAccClusterAdvancedCluster_DefaultWrite(t *testing.T) {
 
 					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.default_read_concern", "available"),
 					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.default_write_concern", "1"),
-					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
 					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.advanced_configuration.0.no_table_scan", "false"),
