@@ -7,14 +7,16 @@ on:
         description: 'Terraform version to use, empty for latest'     
         type: string
         required: false
+      test_group:
+        description: 'Test group to run, e.g. advanced_cluster, empty for all'
+        type: string
+        required: false
   workflow_call: # workflow runs after Test Suite or code-health
     inputs:
       terraform_version:
         description: 'Terraform version to use, empty for latest'     
         type: string
         required: false
-  pull_request: # you can run a specic job in your PR using GitHub labels
-    types: [ labeled ]
 
 env:
   terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
@@ -50,7 +52,6 @@ jobs:
       search_index: ${{ steps.filter.outputs.search_index }}
     steps:
     - uses: actions/checkout@v4
-      if: ${{ github.event_name == 'push' ||  github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
     - uses: dorny/paths-filter@v2
       id: filter
       with:
@@ -119,7 +120,7 @@ jobs:
   
   cluster_outage_simulation:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-cluster-outage-simulation' }}
+    if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || inputs.test_group == 'cluster_outage_simulation' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -143,7 +144,7 @@ jobs:
 
   advanced_cluster:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-advanced-cluster' }}
+    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -167,7 +168,7 @@ jobs:
 
   cluster:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.cluster == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-cluster' }}
+    if: ${{ needs.change-detection.outputs.cluster == 'true' || inputs.test_group == 'cluster' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -191,7 +192,7 @@ jobs:
 
   search_deployment:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.search_deployment == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-search-deployment' }}
+    if: ${{ needs.change-detection.outputs.search_deployment == 'true' || inputs.test_group == 'search_deployment' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -215,7 +216,7 @@ jobs:
 
   stream:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.stream == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-stream' }}
+    if: ${{ needs.change-detection.outputs.stream == 'true' || inputs.test_group == 'stream' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -239,7 +240,7 @@ jobs:
 
   generic: # Acceptance tests that do not use any time-consuming resource (example: cluster)
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.generic == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-generic' }}
+    if: ${{ needs.change-detection.outputs.generic == 'true' || inputs.test_group == 'generic' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -266,7 +267,7 @@ jobs:
 
   backup_online_archive:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-backup-online-archive' }}
+    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || inputs.test_group == 'backup_online_archive' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -291,7 +292,7 @@ jobs:
 
   backup_snapshots:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_snapshots == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-backup-snapshots' }}
+    if: ${{ needs.change-detection.outputs.backup_snapshots == 'true' || inputs.test_group == 'backup_snapshots' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -316,7 +317,7 @@ jobs:
         
   backup_schedule:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_schedule == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-backup-schedule' }}
+    if: ${{ needs.change-detection.outputs.backup_schedule == 'true' || inputs.test_group == 'backup_schedule' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -340,7 +341,7 @@ jobs:
         run: make testacc
   project: 
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.project == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project' }}
+    if: ${{ needs.change-detection.outputs.project == 'true' || inputs.test_group == 'project' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -365,7 +366,7 @@ jobs:
         run: make testacc
   serverless:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.serverless == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-serverless' }}
+    if: ${{ needs.change-detection.outputs.serverless == 'true' || inputs.test_group == 'serverless' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -388,7 +389,7 @@ jobs:
         run: make testacc
   network:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.network == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-network' }}
+    if: ${{ needs.change-detection.outputs.network == 'true' || inputs.test_group == 'network' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -416,7 +417,7 @@ jobs:
 
   federation:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.federation == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-federation' }}
+    if: ${{ needs.change-detection.outputs.federation == 'true' || inputs.test_group == 'federation' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -440,7 +441,7 @@ jobs:
       
   config:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.config == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-config' }}
+    if: ${{ needs.change-detection.outputs.config == 'true' || inputs.test_group == 'config' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -469,7 +470,7 @@ jobs:
 
   assume_role:
     needs: [ change-detection]
-    if: ${{ needs.change-detection.outputs.assume_role == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-config' }}
+    if: ${{ needs.change-detection.outputs.assume_role == 'true' || inputs.test_group == 'assume_role' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -507,7 +508,7 @@ jobs:
 
   search_index:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.search_index == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-search-index' }}
+    if: ${{ needs.change-detection.outputs.search_index == 'true' || inputs.test_group == 'search_index' || github.event_name == 'schedule'|| (github.event_name == 'workflow_dispatch' && inputs.test_group == '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
