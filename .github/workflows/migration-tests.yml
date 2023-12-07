@@ -163,7 +163,7 @@ jobs:
 
   advanced_cluster:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || inputs.test_group == 'backup_online_archive' }}
+    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
