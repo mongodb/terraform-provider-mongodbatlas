@@ -26,7 +26,7 @@ func TestAccMigrationAdvancedClusterRS_singleAWSProvider(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: mig.ExternalProviders(),
+				ExternalProviders: mig.ExternalProviders(t),
 				Config:            testAccMongoDBAtlasAdvancedClusterConfigSingleProvider(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
@@ -66,7 +66,7 @@ func TestAccMigrationAdvancedClusterRS_multiCloud(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: mig.ExternalProviders(),
+				ExternalProviders: mig.ExternalProviders(t),
 				Config:            testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),

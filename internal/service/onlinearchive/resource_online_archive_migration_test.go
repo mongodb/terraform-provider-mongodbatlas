@@ -30,14 +30,14 @@ func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing
 		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: mig.ExternalProviders(),
+				ExternalProviders: mig.ExternalProviders(t),
 				Config:            testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, name),
 				Check: resource.ComposeTestCheckFunc(
 					populateWithSampleData(resourceName, &cluster),
 				),
 			},
 			{
-				ExternalProviders: mig.ExternalProviders(),
+				ExternalProviders: mig.ExternalProviders(t),
 				Config:            testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 1, 0),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "partition_fields.0.field_name", "last_review"),

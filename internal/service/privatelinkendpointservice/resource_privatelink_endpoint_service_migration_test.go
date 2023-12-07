@@ -33,7 +33,7 @@ func TestAccMigrationNetworkRSPrivateLinkEndpointService_Complete(t *testing.T) 
 		CheckDestroy: testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: mig.ExternalProvidersWithAWS("5.1.0"),
+				ExternalProviders: mig.ExternalProvidersWithAWS(t, "5.1.0"),
 				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(
 					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, resourceSuffix,
 				),
