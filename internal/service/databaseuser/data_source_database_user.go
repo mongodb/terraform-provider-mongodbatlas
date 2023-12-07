@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
 type databaseUserDS struct {
@@ -131,8 +131,8 @@ func (d *databaseUserDS) Read(ctx context.Context, req datasource.ReadRequest, r
 	projectID := databaseDSUserModel.ProjectID.ValueString()
 	authDatabaseName := databaseDSUserModel.AuthDatabaseName.ValueString()
 
-	conn := d.Client.Atlas
-	dbUser, _, err := conn.DatabaseUsers.Get(ctx, authDatabaseName, projectID, username)
+	connV2 := d.Client.AtlasV2
+	dbUser, _, err := connV2.DatabaseUsersApi.GetDatabaseUser(ctx, projectID, authDatabaseName, username).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error getting database user information", err.Error())
 		return
@@ -150,18 +150,18 @@ func (d *databaseUserDS) Read(ctx context.Context, req datasource.ReadRequest, r
 	}
 }
 
-func newTFDatabaseDSUserModel(ctx context.Context, dbUser *matlas.DatabaseUser) (*tfDatabaseUserDSModel, diag.Diagnostics) {
-	id := fmt.Sprintf("%s-%s-%s", dbUser.GroupID, dbUser.Username, dbUser.DatabaseName)
+func newTFDatabaseDSUserModel(ctx context.Context, dbUser *admin.CloudDatabaseUser) (*tfDatabaseUserDSModel, diag.Diagnostics) {
+	id := fmt.Sprintf("%s-%s-%s", dbUser.GroupId, dbUser.Username, dbUser.DatabaseName)
 	databaseUserModel := &tfDatabaseUserDSModel{
 		ID:               types.StringValue(id),
-		ProjectID:        types.StringValue(dbUser.GroupID),
+		ProjectID:        types.StringValue(dbUser.GroupId),
 		AuthDatabaseName: types.StringValue(dbUser.DatabaseName),
 		Username:         types.StringValue(dbUser.Username),
-		Password:         types.StringValue(dbUser.Password),
-		X509Type:         types.StringValue(dbUser.X509Type),
-		OIDCAuthType:     types.StringValue(dbUser.OIDCAuthType),
-		LDAPAuthType:     types.StringValue(dbUser.LDAPAuthType),
-		AWSIAMType:       types.StringValue(dbUser.AWSIAMType),
+		Password:         types.StringValue(dbUser.GetPassword()),
+		X509Type:         types.StringValue(dbUser.GetX509Type()),
+		OIDCAuthType:     types.StringValue(dbUser.GetOidcAuthType()),
+		LDAPAuthType:     types.StringValue(dbUser.GetLdapAuthType()),
+		AWSIAMType:       types.StringValue(dbUser.GetAwsIAMType()),
 		Roles:            newTFRolesModel(dbUser.Roles),
 		Labels:           newTFLabelsModel(dbUser.Labels),
 		Scopes:           newTFScopesModel(dbUser.Scopes),

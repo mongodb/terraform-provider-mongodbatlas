@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
 const (
@@ -221,8 +221,8 @@ func (r *databaseUserRS) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	conn := r.Client.Atlas
-	dbUser, _, err := conn.DatabaseUsers.Create(ctx, databaseUserPlan.ProjectID.ValueString(), dbUserReq)
+	connV2 := r.Client.AtlasV2
+	dbUser, _, err := connV2.DatabaseUsersApi.CreateDatabaseUser(ctx, databaseUserPlan.ProjectID.ValueString(), dbUserReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error during database user creation", err.Error())
 		return
@@ -261,8 +261,8 @@ func (r *databaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 		}
 	}
 
-	conn := r.Client.Atlas
-	dbUser, httpResponse, err := conn.DatabaseUsers.Get(ctx, authDatabaseName, projectID, username)
+	connV2 := r.Client.AtlasV2
+	dbUser, httpResponse, err := connV2.DatabaseUsersApi.GetDatabaseUser(ctx, projectID, authDatabaseName, username).Execute()
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -302,8 +302,11 @@ func (r *databaseUserRS) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
-	conn := r.Client.Atlas
-	dbUser, _, err := conn.DatabaseUsers.Update(ctx, databaseUserPlan.ProjectID.ValueString(), databaseUserPlan.Username.ValueString(), dbUserReq)
+	connV2 := r.Client.AtlasV2
+	dbUser, _, err := connV2.DatabaseUsersApi.UpdateDatabaseUser(ctx,
+		databaseUserPlan.ProjectID.ValueString(),
+		databaseUserPlan.AuthDatabaseName.ValueString(),
+		databaseUserPlan.Username.ValueString(), dbUserReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error during database user creation", err.Error())
 		return
@@ -329,8 +332,12 @@ func (r *databaseUserRS) Delete(ctx context.Context, req resource.DeleteRequest,
 		return
 	}
 
-	conn := r.Client.Atlas
-	_, err := conn.DatabaseUsers.Delete(ctx, databaseUserState.AuthDatabaseName.ValueString(), databaseUserState.ProjectID.ValueString(), databaseUserState.Username.ValueString())
+	connV2 := r.Client.AtlasV2
+	_, _, err := connV2.DatabaseUsersApi.DeleteDatabaseUser(
+		ctx,
+		databaseUserState.ProjectID.ValueString(),
+		databaseUserState.AuthDatabaseName.ValueString(),
+		databaseUserState.Username.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error when destroying the database user resource", err.Error())
 		return
@@ -357,7 +364,7 @@ func SplitDatabaseUserImportID(id string) (projectID, username, authDatabaseName
 	return
 }
 
-func newMongoDBDatabaseUser(ctx context.Context, dbUserModel *tfDatabaseUserModel) (*matlas.DatabaseUser, diag.Diagnostics) {
+func newMongoDBDatabaseUser(ctx context.Context, dbUserModel *tfDatabaseUserModel) (*admin.CloudDatabaseUser, diag.Diagnostics) {
 	var rolesModel []*tfRoleModel
 	var labelsModel []*tfLabelModel
 	var scopesModel []*tfScopeModel
@@ -377,14 +384,14 @@ func newMongoDBDatabaseUser(ctx context.Context, dbUserModel *tfDatabaseUserMode
 		return nil, diags
 	}
 
-	return &matlas.DatabaseUser{
-		GroupID:      dbUserModel.ProjectID.ValueString(),
+	return &admin.CloudDatabaseUser{
+		GroupId:      dbUserModel.ProjectID.ValueString(),
 		Username:     dbUserModel.Username.ValueString(),
-		Password:     dbUserModel.Password.ValueString(),
-		X509Type:     dbUserModel.X509Type.ValueString(),
-		AWSIAMType:   dbUserModel.AWSIAMType.ValueString(),
-		OIDCAuthType: dbUserModel.OIDCAuthType.ValueString(),
-		LDAPAuthType: dbUserModel.LDAPAuthType.ValueString(),
+		Password:     dbUserModel.Password.ValueStringPointer(),
+		X509Type:     dbUserModel.X509Type.ValueStringPointer(),
+		AwsIAMType:   dbUserModel.AWSIAMType.ValueStringPointer(),
+		OidcAuthType: dbUserModel.OIDCAuthType.ValueStringPointer(),
+		LdapAuthType: dbUserModel.LDAPAuthType.ValueStringPointer(),
 		DatabaseName: dbUserModel.AuthDatabaseName.ValueString(),
 		Roles:        newMongoDBAtlasRoles(rolesModel),
 		Labels:       newMongoDBAtlasLabels(labelsModel),
@@ -392,7 +399,7 @@ func newMongoDBDatabaseUser(ctx context.Context, dbUserModel *tfDatabaseUserMode
 	}, nil
 }
 
-func newTFDatabaseUserModel(ctx context.Context, model *tfDatabaseUserModel, dbUser *matlas.DatabaseUser) (*tfDatabaseUserModel, diag.Diagnostics) {
+func newTFDatabaseUserModel(ctx context.Context, model *tfDatabaseUserModel, dbUser *admin.CloudDatabaseUser) (*tfDatabaseUserModel, diag.Diagnostics) {
 	rolesSet, diagnostic := types.SetValueFrom(ctx, RoleObjectType, newTFRolesModel(dbUser.Roles))
 	if diagnostic.HasError() {
 		return nil, diagnostic
@@ -410,19 +417,19 @@ func newTFDatabaseUserModel(ctx context.Context, model *tfDatabaseUserModel, dbU
 
 	// ID is encoded to preserve format defined in previous versions.
 	encodedID := conversion.EncodeStateID(map[string]string{
-		"project_id":         dbUser.GroupID,
+		"project_id":         dbUser.GroupId,
 		"username":           dbUser.Username,
 		"auth_database_name": dbUser.DatabaseName,
 	})
 	databaseUserModel := &tfDatabaseUserModel{
 		ID:               types.StringValue(encodedID),
-		ProjectID:        types.StringValue(dbUser.GroupID),
+		ProjectID:        types.StringValue(dbUser.GroupId),
 		AuthDatabaseName: types.StringValue(dbUser.DatabaseName),
 		Username:         types.StringValue(dbUser.Username),
-		X509Type:         types.StringValue(dbUser.X509Type),
-		OIDCAuthType:     types.StringValue(dbUser.OIDCAuthType),
-		LDAPAuthType:     types.StringValue(dbUser.LDAPAuthType),
-		AWSIAMType:       types.StringValue(dbUser.AWSIAMType),
+		X509Type:         types.StringValue(dbUser.GetX509Type()),
+		OIDCAuthType:     types.StringValue(dbUser.GetOidcAuthType()),
+		LDAPAuthType:     types.StringValue(dbUser.GetLdapAuthType()),
+		AWSIAMType:       types.StringValue(dbUser.GetAwsIAMType()),
 		Roles:            rolesSet,
 		Labels:           labelsSet,
 		Scopes:           scopesSet,
@@ -436,7 +443,7 @@ func newTFDatabaseUserModel(ctx context.Context, model *tfDatabaseUserModel, dbU
 	return databaseUserModel, nil
 }
 
-func newTFScopesModel(scopes []matlas.Scope) []tfScopeModel {
+func newTFScopesModel(scopes []admin.UserScope) []tfScopeModel {
 	if len(scopes) == 0 {
 		return nil
 	}
@@ -452,7 +459,7 @@ func newTFScopesModel(scopes []matlas.Scope) []tfScopeModel {
 	return out
 }
 
-func newTFLabelsModel(labels []matlas.Label) []tfLabelModel {
+func newTFLabelsModel(labels []admin.ComponentLabel) []tfLabelModel {
 	if len(labels) == 0 {
 		return nil
 	}
@@ -460,15 +467,15 @@ func newTFLabelsModel(labels []matlas.Label) []tfLabelModel {
 	out := make([]tfLabelModel, len(labels))
 	for i, v := range labels {
 		out[i] = tfLabelModel{
-			Key:   types.StringValue(v.Key),
-			Value: types.StringValue(v.Value),
+			Key:   types.StringValue(v.GetKey()),
+			Value: types.StringValue(v.GetValue()),
 		}
 	}
 
 	return out
 }
 
-func newTFRolesModel(roles []matlas.Role) []tfRoleModel {
+func newTFRolesModel(roles []admin.DatabaseUserRole) []tfRoleModel {
 	if len(roles) == 0 {
 		return nil
 	}
@@ -480,55 +487,55 @@ func newTFRolesModel(roles []matlas.Role) []tfRoleModel {
 			DatabaseName: types.StringValue(v.DatabaseName),
 		}
 
-		if v.CollectionName != "" {
-			out[i].CollectionName = types.StringValue(v.CollectionName)
+		if v.GetCollectionName() != "" {
+			out[i].CollectionName = types.StringValue(v.GetCollectionName())
 		}
 	}
 
 	return out
 }
 
-func newMongoDBAtlasRoles(roles []*tfRoleModel) []matlas.Role {
+func newMongoDBAtlasRoles(roles []*tfRoleModel) []admin.DatabaseUserRole {
 	if len(roles) == 0 {
-		return []matlas.Role{}
+		return []admin.DatabaseUserRole{}
 	}
 
-	out := make([]matlas.Role, len(roles))
+	out := make([]admin.DatabaseUserRole, len(roles))
 	for i, v := range roles {
-		out[i] = matlas.Role{
+		out[i] = admin.DatabaseUserRole{
 			RoleName:       v.RoleName.ValueString(),
 			DatabaseName:   v.DatabaseName.ValueString(),
-			CollectionName: v.CollectionName.ValueString(),
+			CollectionName: v.CollectionName.ValueStringPointer(),
 		}
 	}
 
 	return out
 }
 
-func newMongoDBAtlasLabels(labels []*tfLabelModel) []matlas.Label {
+func newMongoDBAtlasLabels(labels []*tfLabelModel) []admin.ComponentLabel {
 	if len(labels) == 0 {
-		return []matlas.Label{}
+		return []admin.ComponentLabel{}
 	}
 
-	out := make([]matlas.Label, len(labels))
+	out := make([]admin.ComponentLabel, len(labels))
 	for i, v := range labels {
-		out[i] = matlas.Label{
-			Key:   v.Key.ValueString(),
-			Value: v.Value.ValueString(),
+		out[i] = admin.ComponentLabel{
+			Key:   v.Key.ValueStringPointer(),
+			Value: v.Value.ValueStringPointer(),
 		}
 	}
 
 	return out
 }
 
-func newMongoDBAtlasScopes(scopes []*tfScopeModel) []matlas.Scope {
+func newMongoDBAtlasScopes(scopes []*tfScopeModel) []admin.UserScope {
 	if len(scopes) == 0 {
-		return []matlas.Scope{}
+		return []admin.UserScope{}
 	}
 
-	out := make([]matlas.Scope, len(scopes))
+	out := make([]admin.UserScope, len(scopes))
 	for i, v := range scopes {
-		out[i] = matlas.Scope{
+		out[i] = admin.UserScope{
 			Name: v.Name.ValueString(),
 			Type: v.Type.ValueString(),
 		}
