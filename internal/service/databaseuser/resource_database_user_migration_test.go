@@ -10,15 +10,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 func TestAccMigrationConfigRSDatabaseUser_Basic(t *testing.T) {
 	var (
-		resourceName          = "mongodbatlas_database_user.basic_ds"
-		username              = acctest.RandomWithPrefix("dbUser")
-		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName           = acctest.RandomWithPrefix("test-acc")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+		resourceName = "mongodbatlas_database_user.basic_ds"
+		username     = acctest.RandomWithPrefix("dbUser")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -27,7 +27,7 @@ func TestAccMigrationConfigRSDatabaseUser_Basic(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -57,12 +57,11 @@ func TestAccMigrationConfigRSDatabaseUser_Basic(t *testing.T) {
 
 func TestAccMigrationConfigRSDatabaseUser_WithX509TypeCustomer(t *testing.T) {
 	var (
-		resourceName          = "mongodbatlas_database_user.test"
-		username              = "CN=ellen@example.com,OU=users,DC=example,DC=com"
-		x509Type              = "CUSTOMER"
-		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName           = acctest.RandomWithPrefix("test-acc")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+		resourceName = "mongodbatlas_database_user.test"
+		username     = "CN=ellen@example.com,OU=users,DC=example,DC=com"
+		x509Type     = "CUSTOMER"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -71,7 +70,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithX509TypeCustomer(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -99,11 +98,10 @@ func TestAccMigrationConfigRSDatabaseUser_WithX509TypeCustomer(t *testing.T) {
 }
 func TestAccMigrationConfigRSDatabaseUser_WithAWSIAMType(t *testing.T) {
 	var (
-		resourceName          = "mongodbatlas_database_user.test"
-		username              = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
-		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName           = acctest.RandomWithPrefix("test-acc")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+		resourceName = "mongodbatlas_database_user.test"
+		username     = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -112,7 +110,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithAWSIAMType(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -141,12 +139,11 @@ func TestAccMigrationConfigRSDatabaseUser_WithAWSIAMType(t *testing.T) {
 
 func TestAccMigrationConfigRSDatabaseUser_WithLabels(t *testing.T) {
 	var (
-		dbUser                matlas.DatabaseUser
-		resourceName          = "mongodbatlas_database_user.test"
-		username              = acctest.RandomWithPrefix("test-acc")
-		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName           = acctest.RandomWithPrefix("test-acc")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+		dbUser       matlas.DatabaseUser
+		resourceName = "mongodbatlas_database_user.test"
+		username     = acctest.RandomWithPrefix("test-acc")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -156,7 +153,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithLabels(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -208,11 +205,10 @@ func TestAccMigrationConfigRSDatabaseUser_WithLabels(t *testing.T) {
 }
 func TestAccMigrationConfigRSDatabaseUser_WithEmptyLabels(t *testing.T) {
 	var (
-		resourceName          = "mongodbatlas_database_user.test"
-		username              = acctest.RandomWithPrefix("test-acc")
-		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName           = acctest.RandomWithPrefix("test-acc")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+		resourceName = "mongodbatlas_database_user.test"
+		username     = acctest.RandomWithPrefix("test-acc")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -221,7 +217,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithEmptyLabels(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -250,12 +246,11 @@ func TestAccMigrationConfigRSDatabaseUser_WithEmptyLabels(t *testing.T) {
 
 func TestAccMigrationConfigRSDatabaseUser_WithRoles(t *testing.T) {
 	var (
-		resourceName          = "mongodbatlas_database_user.test"
-		username              = acctest.RandomWithPrefix("test-acc-user-")
-		password              = acctest.RandomWithPrefix("test-acc-pass-")
-		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName           = acctest.RandomWithPrefix("test-acc")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+		resourceName = "mongodbatlas_database_user.test"
+		username     = acctest.RandomWithPrefix("test-acc-user-")
+		password     = acctest.RandomWithPrefix("test-acc-pass-")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -264,7 +259,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithRoles(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -319,13 +314,12 @@ func TestAccMigrationConfigRSDatabaseUser_WithRoles(t *testing.T) {
 
 func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 	var (
-		resourceName          = "mongodbatlas_database_user.test"
-		username              = acctest.RandomWithPrefix("test-acc-user-")
-		password              = acctest.RandomWithPrefix("test-acc-pass-")
-		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName           = acctest.RandomWithPrefix("test-acc")
-		clusterName           = acctest.RandomWithPrefix("test-acc-cluster")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+		resourceName = "mongodbatlas_database_user.test"
+		username     = acctest.RandomWithPrefix("test-acc-user-")
+		password     = acctest.RandomWithPrefix("test-acc-pass-")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		clusterName  = acctest.RandomWithPrefix("test-acc-cluster")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -334,7 +328,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -377,13 +371,12 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 
 func TestAccMigrationConfigRSDatabaseUser_WithScopesAndEmpty(t *testing.T) {
 	var (
-		resourceName          = "mongodbatlas_database_user.test"
-		username              = acctest.RandomWithPrefix("test-acc-user-")
-		password              = acctest.RandomWithPrefix("test-acc-pass-")
-		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName           = acctest.RandomWithPrefix("test-acc")
-		clusterName           = acctest.RandomWithPrefix("test-acc-cluster")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+		resourceName = "mongodbatlas_database_user.test"
+		username     = acctest.RandomWithPrefix("test-acc-user-")
+		password     = acctest.RandomWithPrefix("test-acc-pass-")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		clusterName  = acctest.RandomWithPrefix("test-acc-cluster")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -392,7 +385,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopesAndEmpty(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -425,11 +418,10 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopesAndEmpty(t *testing.T) {
 
 func TestAccMigrationConfigRSDatabaseUser_WithLDAPAuthType(t *testing.T) {
 	var (
-		resourceName          = "mongodbatlas_database_user.test"
-		username              = "CN=david@example.com,OU=users,DC=example,DC=com"
-		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName           = acctest.RandomWithPrefix("test-acc")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+		resourceName = "mongodbatlas_database_user.test"
+		username     = "CN=david@example.com,OU=users,DC=example,DC=com"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -438,7 +430,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithLDAPAuthType(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},

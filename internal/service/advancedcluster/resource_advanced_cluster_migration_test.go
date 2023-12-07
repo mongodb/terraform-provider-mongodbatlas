@@ -8,17 +8,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccMigrationAdvancedClusterRS_singleAWSProvider(t *testing.T) {
 	var (
-		cluster               matlas.AdvancedCluster
-		resourceName          = "mongodbatlas_advanced_cluster.test"
-		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName           = acctest.RandomWithPrefix("test-acc")
-		rName                 = acctest.RandomWithPrefix("test-acc")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+		cluster      matlas.AdvancedCluster
+		resourceName = "mongodbatlas_advanced_cluster.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		rName        = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -28,7 +28,7 @@ func TestAccMigrationAdvancedClusterRS_singleAWSProvider(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -59,12 +59,11 @@ func TestAccMigrationAdvancedClusterRS_singleAWSProvider(t *testing.T) {
 
 func TestAccMigrationAdvancedClusterRS_multiCloud(t *testing.T) {
 	var (
-		cluster               matlas.AdvancedCluster
-		resourceName          = "mongodbatlas_advanced_cluster.test"
-		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName           = acctest.RandomWithPrefix("test-acc")
-		rName                 = acctest.RandomWithPrefix("test-acc")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+		cluster      matlas.AdvancedCluster
+		resourceName = "mongodbatlas_advanced_cluster.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		rName        = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -74,7 +73,7 @@ func TestAccMigrationAdvancedClusterRS_multiCloud(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},

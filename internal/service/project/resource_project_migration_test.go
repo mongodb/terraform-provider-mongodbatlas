@@ -12,14 +12,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 func TestAccMigrationProjectRS_NoProps(t *testing.T) {
 	var (
-		resourceName          = "mongodbatlas_project.test"
-		projectName           = acctest.RandomWithPrefix("test-acc-migration")
-		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+		resourceName = "mongodbatlas_project.test"
+		projectName  = acctest.RandomWithPrefix("test-acc-migration")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
@@ -28,7 +28,7 @@ func TestAccMigrationProjectRS_NoProps(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -80,7 +80,6 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 					RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 				},
 			})
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -90,7 +89,7 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -119,13 +118,12 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 
 func TestAccMigrationProjectRS_WithFalseDefaultSettings(t *testing.T) {
 	var (
-		project               admin.Group
-		resourceName          = "mongodbatlas_project.test"
-		projectName           = acctest.RandomWithPrefix("tf-acc-project")
-		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectOwnerID        = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
-		configWithTeams       = acc.ConfigProjectWithFalseDefaultSettings(projectName, orgID, projectOwnerID)
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+		project         admin.Group
+		resourceName    = "mongodbatlas_project.test"
+		projectName     = acctest.RandomWithPrefix("tf-acc-project")
+		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectOwnerID  = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+		configWithTeams = acc.ConfigProjectWithFalseDefaultSettings(projectName, orgID, projectOwnerID)
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -135,7 +133,7 @@ func TestAccMigrationProjectRS_WithFalseDefaultSettings(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -176,7 +174,6 @@ func TestAccMigrationProjectRS_WithLimits(t *testing.T) {
 				Value: 2,
 			},
 		})
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -186,7 +183,7 @@ func TestAccMigrationProjectRS_WithLimits(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -220,7 +217,6 @@ func TestAccMigrationProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T)
 	projectName := acctest.RandomWithPrefix("test-acc")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
-	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
@@ -229,7 +225,7 @@ func TestAccMigrationProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T)
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -262,7 +258,6 @@ func TestAccMigrationProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T)
 	projectName := acctest.RandomWithPrefix("test-acc")
 	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
-	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
@@ -271,7 +266,7 @@ func TestAccMigrationProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T)
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -304,7 +299,6 @@ func TestAccMigrationProjectRSProjectIPAccessList_Multiple_SettingMultiple(t *te
 	projectName := acctest.RandomWithPrefix("test-acc")
 	const ipWhiteListCount = 20
 	accessList := make([]map[string]string, 0)
-	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	for i := 0; i < ipWhiteListCount; i++ {
 		entry := make(map[string]string)
@@ -332,7 +326,7 @@ func TestAccMigrationProjectRSProjectIPAccessList_Multiple_SettingMultiple(t *te
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},

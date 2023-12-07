@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 func TestAccMigrationNetworkRSPrivateLinkEndpointService_Complete(t *testing.T) {
@@ -19,13 +20,12 @@ func TestAccMigrationNetworkRSPrivateLinkEndpointService_Complete(t *testing.T) 
 		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
 		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
 
-		providerName          = "AWS"
-		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		region                = os.Getenv("AWS_REGION")
-		vpcID                 = os.Getenv("AWS_VPC_ID")
-		subnetID              = os.Getenv("AWS_SUBNET_ID")
-		securityGroupID       = os.Getenv("AWS_SECURITY_GROUP_ID")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+		providerName    = "AWS"
+		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		region          = os.Getenv("AWS_REGION")
+		vpcID           = os.Getenv("AWS_VPC_ID")
+		subnetID        = os.Getenv("AWS_SUBNET_ID")
+		securityGroupID = os.Getenv("AWS_SECURITY_GROUP_ID")
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -35,7 +35,7 @@ func TestAccMigrationNetworkRSPrivateLinkEndpointService_Complete(t *testing.T) 
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 					"aws": {

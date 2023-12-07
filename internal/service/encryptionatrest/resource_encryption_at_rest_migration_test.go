@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 	"github.com/mwielbut/pointy"
 )
 
@@ -25,7 +26,6 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAWS(t *testing.T) {
 			Region:              os.Getenv("AWS_REGION"),
 			RoleID:              os.Getenv("AWS_ROLE_ID"),
 		}
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -35,7 +35,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAWS(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -66,15 +66,13 @@ func TestAccMigrationAdvRS_EncryptionAtRest_WithRole_basicAWS(t *testing.T) {
 	acc.SkipTest(t)
 	acc.SkipTestExtCred(t)
 	var (
-		resourceName          = "mongodbatlas_encryption_at_rest.test"
-		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		accessKeyID           = os.Getenv("AWS_ACCESS_KEY_ID")
-		secretKey             = os.Getenv("AWS_SECRET_ACCESS_KEY")
-		policyName            = acctest.RandomWithPrefix("test-aws-policy")
-		roleName              = acctest.RandomWithPrefix("test-aws-role")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
-
-		awsKms = matlas.AwsKms{
+		resourceName = "mongodbatlas_encryption_at_rest.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		accessKeyID  = os.Getenv("AWS_ACCESS_KEY_ID")
+		secretKey    = os.Getenv("AWS_SECRET_ACCESS_KEY")
+		policyName   = acctest.RandomWithPrefix("test-aws-policy")
+		roleName     = acctest.RandomWithPrefix("test-aws-role")
+		awsKms       = matlas.AwsKms{
 			Enabled:             pointy.Bool(true),
 			CustomerMasterKeyID: os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID"),
 			Region:              os.Getenv("AWS_REGION"),
@@ -88,7 +86,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_WithRole_basicAWS(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 					"aws": {
@@ -128,10 +126,8 @@ func TestAccMigrationAdvRS_EncryptionAtRest_WithRole_basicAWS(t *testing.T) {
 func TestAccMigrationAdvRS_EncryptionAtRest_basicAzure(t *testing.T) {
 	acc.SkipTestExtCred(t)
 	var (
-		resourceName          = "mongodbatlas_encryption_at_rest.test"
-		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
-
+		resourceName  = "mongodbatlas_encryption_at_rest.test"
+		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		azureKeyVault = matlas.AzureKeyVault{
 			Enabled:           pointy.Bool(true),
 			ClientID:          os.Getenv("AZURE_CLIENT_ID"),
@@ -152,7 +148,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAzure(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -183,10 +179,8 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAzure(t *testing.T) {
 func TestAccMigrationAdvRS_EncryptionAtRest_basicGCP(t *testing.T) {
 	acc.SkipTestExtCred(t)
 	var (
-		resourceName          = "mongodbatlas_encryption_at_rest.test"
-		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
-
+		resourceName   = "mongodbatlas_encryption_at_rest.test"
+		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		googleCloudKms = matlas.GoogleCloudKms{
 			Enabled:              pointy.Bool(true),
 			ServiceAccountKey:    os.Getenv("GCP_SERVICE_ACCOUNT_KEY"),
@@ -201,7 +195,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicGCP(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing.T) {
@@ -22,7 +23,6 @@ func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing
 		orgID                     = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName               = acctest.RandomWithPrefix("test-acc")
 		name                      = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-		lastVersionConstraint     = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -32,7 +32,7 @@ func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -44,7 +44,7 @@ func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
+						VersionConstraint: mig.VersionConstraint(),
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
