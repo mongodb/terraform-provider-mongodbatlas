@@ -24,7 +24,7 @@ func TestAccClusterRSAdvancedClusterMigrateState_empty_advancedConfig(t *testing
 							},
 						},
 						"provider_name": "AWS",
-						"region_name":   "US_WEST_2",
+						"region_name":   "US_EAST_1",
 						"priority":      7,
 					},
 				},
@@ -74,7 +74,7 @@ func TestAccClusterRSAdvancedClusterV0StateUpgrade_ReplicationSpecs(t *testing.T
 					map[string]any{
 						"priority":      7,
 						"provider_name": "AWS",
-						"region_name":   "US_WEST_2",
+						"region_name":   "US_EAST_1",
 						"electable_specs": []any{
 							map[string]any{
 								"instance_size": "M30",
