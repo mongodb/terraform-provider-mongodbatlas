@@ -334,7 +334,7 @@ func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 
 func testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestMongoDBClient.(*config.MongoDBClient).Atlas
+		connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -345,7 +345,7 @@ func testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName string) resourc
 			return fmt.Errorf("no ID is set")
 		}
 
-		if _, _, err := conn.EncryptionsAtRest.Get(context.Background(), rs.Primary.ID); err == nil {
+		if _, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), rs.Primary.ID).Execute(); err == nil {
 			return nil
 		}
 
@@ -354,14 +354,14 @@ func testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName string) resourc
 }
 
 func testAccCheckMongoDBAtlasEncryptionAtRestDestroy(s *terraform.State) error {
-	conn := acc.TestMongoDBClient.(*config.MongoDBClient).Atlas
+	connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_encryption_at_rest" {
 			continue
 		}
 
-		res, _, err := conn.EncryptionsAtRest.Get(context.Background(), rs.Primary.ID)
+		res, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), rs.Primary.ID).Execute()
 
 		if err != nil ||
 			(*res.AwsKms.Enabled != false &&
