@@ -402,7 +402,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 }
 
 func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{
+	dataSources := []func() datasource.DataSource{
 		project.DataSource,
 		project.PluralDataSource,
 		databaseuser.DataSource,
@@ -413,21 +413,33 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		atlasuser.DataSource,
 		atlasuser.PluralDataSource,
 		searchdeployment.DataSource,
+	}
+	betaDataSources := []func() datasource.DataSource{
 		streaminstance.DataSource,
 		streaminstance.PluralDataSource,
 	}
+	if ProviderEnableBeta {
+		dataSources = append(dataSources, betaDataSources...)
+	}
+	return dataSources
 }
 
 func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resource {
-	return []func() resource.Resource{
+	resources := []func() resource.Resource{
 		project.Resource,
 		encryptionatrest.Resource,
 		databaseuser.Resource,
 		alertconfiguration.Resource,
 		projectipaccesslist.Resource,
 		searchdeployment.Resource,
+	}
+	betaResources := []func() resource.Resource{
 		streaminstance.Resource,
 	}
+	if ProviderEnableBeta {
+		resources = append(resources, betaResources...)
+	}
+	return resources
 }
 
 func NewFrameworkProvider() provider.Provider {
