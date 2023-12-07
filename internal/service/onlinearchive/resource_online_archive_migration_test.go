@@ -23,6 +23,7 @@ func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing
 		orgID                     = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName               = acctest.RandomWithPrefix("test-acc")
 		name                      = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		deleteExpirationDays      = mig.ValueIfVersionAtLeast(t, 7, "1.12.2")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -38,14 +39,14 @@ func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing
 			},
 			{
 				ExternalProviders: mig.ExternalProviders(t),
-				Config:            testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 1, 0),
+				Config:            testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 1, deleteExpirationDays),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "partition_fields.0.field_name", "last_review"),
 				),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 1, 0),
+				Config:                   testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 1, deleteExpirationDays),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
 						acc.DebugPlan(),
