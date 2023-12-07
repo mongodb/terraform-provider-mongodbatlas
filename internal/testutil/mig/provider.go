@@ -9,7 +9,6 @@ import (
 )
 
 func ExternalProviders(tb testing.TB) map[string]resource.ExternalProvider {
-	checkLastVersion(tb)
 	return map[string]resource.ExternalProvider{
 		"mongodbatlas": {
 			VersionConstraint: versionConstraint(),
@@ -19,7 +18,6 @@ func ExternalProviders(tb testing.TB) map[string]resource.ExternalProvider {
 }
 
 func ExternalProvidersWithAWS(tb testing.TB, awsVersion string) map[string]resource.ExternalProvider {
-	checkLastVersion(tb)
 	return map[string]resource.ExternalProvider{
 		"mongodbatlas": {
 			VersionConstraint: versionConstraint(),
