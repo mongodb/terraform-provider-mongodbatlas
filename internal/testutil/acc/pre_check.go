@@ -25,6 +25,13 @@ func PreCheck(tb testing.TB) {
 	}
 }
 
+func PreCheckBetaFlag(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("MONGODB_ATLAS_ENABLE_BETA") == "" {
+		tb.Fatal("`MONGODB_ATLAS_ENABLE_BETA` must be set for running this acceptance test")
+	}
+}
+
 func PreCheckCloudProviderAccessAzure(tb testing.TB) {
 	tb.Helper()
 	PreCheckBasic(tb)
