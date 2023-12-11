@@ -12,26 +12,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 func TestAccMigrationProjectRS_NoProps(t *testing.T) {
 	var (
-		resourceName          = "mongodbatlas_project.test"
-		projectName           = acctest.RandomWithPrefix("test-acc-migration")
-		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+		resourceName = "mongodbatlas_project.test"
+		projectName  = acctest.RandomWithPrefix("test-acc-migration")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
+		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
+				ExternalProviders: mig.ExternalProviders(),
 				Config: fmt.Sprintf(`resource "mongodbatlas_project" "test" {
 					name   = "%s"
 					org_id = "%s"
@@ -80,21 +75,15 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 					RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 				},
 			})
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
+		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: configWithTeams,
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            configWithTeams,
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectExists(resourceName, &project),
 					acc.CheckProjectAttributes(&project, projectName),
@@ -119,27 +108,21 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 
 func TestAccMigrationProjectRS_WithFalseDefaultSettings(t *testing.T) {
 	var (
-		project               admin.Group
-		resourceName          = "mongodbatlas_project.test"
-		projectName           = acctest.RandomWithPrefix("tf-acc-project")
-		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectOwnerID        = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
-		configWithTeams       = acc.ConfigProjectWithFalseDefaultSettings(projectName, orgID, projectOwnerID)
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+		project         admin.Group
+		resourceName    = "mongodbatlas_project.test"
+		projectName     = acctest.RandomWithPrefix("tf-acc-project")
+		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectOwnerID  = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+		configWithTeams = acc.ConfigProjectWithFalseDefaultSettings(projectName, orgID, projectOwnerID)
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasicOwnerIDMigration(t) },
+		PreCheck:     func() { mig.PreCheckBasicOwnerID(t) },
 		CheckDestroy: acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: configWithTeams,
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            configWithTeams,
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectExists(resourceName, &project),
 					acc.CheckProjectAttributes(&project, projectName),
@@ -176,21 +159,15 @@ func TestAccMigrationProjectRS_WithLimits(t *testing.T) {
 				Value: 2,
 			},
 		})
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
+		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: config,
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -220,20 +197,14 @@ func TestAccMigrationProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T)
 	projectName := acctest.RandomWithPrefix("test-acc")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
-	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
+		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyProjectIPAccessList,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: acc.ConfigProjectIPAccessListWithIPAddress(orgID, projectName, ipAddress, comment),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            acc.ConfigProjectIPAccessListWithIPAddress(orgID, projectName, ipAddress, comment),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
@@ -262,20 +233,14 @@ func TestAccMigrationProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T)
 	projectName := acctest.RandomWithPrefix("test-acc")
 	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
-	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
+		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyProjectIPAccessList,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: acc.ConfigProjectIPAccessListWithCIDRBlock(orgID, projectName, cidrBlock, comment),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            acc.ConfigProjectIPAccessListWithCIDRBlock(orgID, projectName, cidrBlock, comment),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "cidr_block"),
@@ -304,7 +269,6 @@ func TestAccMigrationProjectRSProjectIPAccessList_Multiple_SettingMultiple(t *te
 	projectName := acctest.RandomWithPrefix("test-acc")
 	const ipWhiteListCount = 20
 	accessList := make([]map[string]string, 0)
-	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	for i := 0; i < ipWhiteListCount; i++ {
 		entry := make(map[string]string)
@@ -326,17 +290,12 @@ func TestAccMigrationProjectRSProjectIPAccessList_Multiple_SettingMultiple(t *te
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
+		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyProjectIPAccessList,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: acc.ConfigProjectIPAccessListWithMultiple(projectName, orgID, accessList, false),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            acc.ConfigProjectIPAccessListWithMultiple(projectName, orgID, accessList, false),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
