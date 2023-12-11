@@ -7,6 +7,7 @@ import (
 )
 
 func PreCheckBasic(tb testing.TB) {
+	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_ORG_ID") == "" {
@@ -15,6 +16,7 @@ func PreCheckBasic(tb testing.TB) {
 }
 
 func PreCheck(tb testing.TB) {
+	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_PROJECT_ID") == "" ||
@@ -23,7 +25,15 @@ func PreCheck(tb testing.TB) {
 	}
 }
 
+func PreCheckBetaFlag(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("MONGODB_ATLAS_ENABLE_BETA") == "" {
+		tb.Fatal("`MONGODB_ATLAS_ENABLE_BETA` must be set for running this acceptance test")
+	}
+}
+
 func PreCheckCloudProviderAccessAzure(tb testing.TB) {
+	tb.Helper()
 	PreCheckBasic(tb)
 	if os.Getenv("AZURE_ATLAS_APP_ID") == "" ||
 		os.Getenv("AZURE_SERVICE_PRINCIPAL_ID") == "" ||
@@ -33,6 +43,7 @@ func PreCheckCloudProviderAccessAzure(tb testing.TB) {
 }
 
 func PreCheckBasicOwnerID(tb testing.TB) {
+	tb.Helper()
 	PreCheckBasic(tb)
 	if os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID") == "" {
 		tb.Fatal("`MONGODB_ATLAS_PROJECT_OWNER_ID` must be set ")
@@ -40,6 +51,7 @@ func PreCheckBasicOwnerID(tb testing.TB) {
 }
 
 func PreCheckAtlasUsername(tb testing.TB) {
+	tb.Helper()
 	PreCheckBasic(tb)
 	if os.Getenv("MONGODB_ATLAS_USERNAME_CLOUD_DEV") == "" {
 		tb.Fatal("`MONGODB_ATLAS_USERNAME_CLOUD_DEV` must be set ")
@@ -47,6 +59,7 @@ func PreCheckAtlasUsername(tb testing.TB) {
 }
 
 func PreCheckProjectTeamsIdsWithMinCount(tb testing.TB, minTeamsCount int) {
+	tb.Helper()
 	envVar := os.Getenv("MONGODB_ATLAS_TEAMS_IDS")
 	if envVar == "" {
 		tb.Fatal("`MONGODB_ATLAS_TEAMS_IDS` must be set for Projects acceptance testing")
@@ -69,6 +82,7 @@ func GetProjectTeamsIdsWithPos(pos int) string {
 }
 
 func PreCheckGov(tb testing.TB) {
+	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_PROJECT_ID_GOV") == "" ||
@@ -78,12 +92,14 @@ func PreCheckGov(tb testing.TB) {
 }
 
 func PreCheckGPCEnv(tb testing.TB) {
+	tb.Helper()
 	if os.Getenv("GCP_SERVICE_ACCOUNT_KEY") == "" || os.Getenv("GCP_KEY_VERSION_RESOURCE_ID") == "" {
 		tb.Fatal("`GCP_SERVICE_ACCOUNT_KEY` and `GCP_KEY_VERSION_RESOURCE_ID` must be set for acceptance testing")
 	}
 }
 
 func PreCheckPeeringEnvAWS(tb testing.TB) {
+	tb.Helper()
 	if os.Getenv("AWS_ACCOUNT_ID") == "" ||
 		os.Getenv("AWS_VPC_ID") == "" ||
 		os.Getenv("AWS_VPC_CIDR_BLOCK") == "" ||
@@ -93,6 +109,7 @@ func PreCheckPeeringEnvAWS(tb testing.TB) {
 }
 
 func PreCheckPeeringEnvAzure(tb testing.TB) {
+	tb.Helper()
 	if os.Getenv("AZURE_DIRECTORY_ID") == "" ||
 		os.Getenv("AZURE_SUBSCRIPTION_ID") == "" ||
 		os.Getenv("AZURE_VNET_NAME") == "" ||
@@ -102,6 +119,7 @@ func PreCheckPeeringEnvAzure(tb testing.TB) {
 }
 
 func PreCheckEncryptionAtRestEnvAzure(tb testing.TB) {
+	tb.Helper()
 	if os.Getenv("AZURE_CLIENT_ID") == "" ||
 		os.Getenv("AZURE_CLIENT_ID_UPDATED") == "" ||
 		os.Getenv("AZURE_SUBSCRIPTION_ID") == "" ||
@@ -121,6 +139,7 @@ func PreCheckEncryptionAtRestEnvAzure(tb testing.TB) {
 }
 
 func PreCheckPeeringEnvGCP(tb testing.TB) {
+	tb.Helper()
 	if os.Getenv("GCP_PROJECT_ID") == "" ||
 		os.Getenv("GCP_CLUSTER_REGION_NAME") == "" ||
 		os.Getenv("GCP_REGION_NAME") == "" ||
@@ -130,6 +149,7 @@ func PreCheckPeeringEnvGCP(tb testing.TB) {
 }
 
 func PreCheckAwsEnv(tb testing.TB) {
+	tb.Helper()
 	if os.Getenv("AWS_ACCESS_KEY_ID") == "" ||
 		os.Getenv("AWS_SECRET_ACCESS_KEY") == "" ||
 		os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID") == "" {
@@ -138,12 +158,14 @@ func PreCheckAwsEnv(tb testing.TB) {
 }
 
 func PreCheckRegularCredsAreEmpty(tb testing.TB) {
+	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") != "" || os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") != "" {
 		tb.Fatal(`"MONGODB_ATLAS_PUBLIC_KEY" and "MONGODB_ATLAS_PRIVATE_KEY" are defined in this test and they should not.`)
 	}
 }
 
 func PreCheckSearchIndex(tb testing.TB) {
+	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_ORG_ID") == "" ||
@@ -153,6 +175,7 @@ func PreCheckSearchIndex(tb testing.TB) {
 }
 
 func PreCheckSTSAssumeRole(tb testing.TB) {
+	tb.Helper()
 	if os.Getenv("AWS_REGION") == "" {
 		tb.Fatal(`'AWS_REGION' must be set for acceptance testing with STS Assume Role.`)
 	}
@@ -177,6 +200,7 @@ func PreCheckSTSAssumeRole(tb testing.TB) {
 }
 
 func PreCheckDataLakePipelineRun(tb testing.TB) {
+	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_DATA_LAKE_PIPELINE_RUN_ID") == "" {
 		tb.Skip("`MONGODB_ATLAS_DATA_LAKE_PIPELINE_RUN_ID` must be set for Projects acceptance testing")
 	}
@@ -184,12 +208,14 @@ func PreCheckDataLakePipelineRun(tb testing.TB) {
 }
 
 func PreCheckDataLakePipelineRuns(tb testing.TB) {
+	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME") == "" {
 		tb.Skip("`MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME` must be set for Projects acceptance testing")
 	}
 }
 
 func PreCheckLDAP(tb testing.TB) {
+	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME") == "" ||
 		os.Getenv("MONGODB_ATLAS_LDAP_USERNAME") == "" ||
 		os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD") == "" ||
@@ -199,6 +225,7 @@ func PreCheckLDAP(tb testing.TB) {
 }
 
 func PreCheckFederatedSettings(tb testing.TB) {
+	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_FEDERATED_PROJECT_ID") == "" ||
 		os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID") == "" ||
 		os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID") == "" {
@@ -207,6 +234,7 @@ func PreCheckFederatedSettings(tb testing.TB) {
 }
 
 func PreCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(tb testing.TB) {
+	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID") == "" {
 		tb.Skip("`MONGODB_ATLAS_PRIVATE_ENDPOINT_ID` must be set for Private Endpoint Service Data Federation and Online Archive acceptance testing")
 	}
