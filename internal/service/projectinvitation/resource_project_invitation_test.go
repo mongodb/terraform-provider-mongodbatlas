@@ -100,6 +100,7 @@ func TestAccProjectRSProjectInvitation_importBasic(t *testing.T) {
 }
 
 func testAccCheckMongoDBAtlasProjectInvitationExists(t *testing.T, resourceName string, invitation *matlas.Invitation) resource.TestCheckFunc {
+	t.Helper()
 	return func(s *terraform.State) error {
 		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
 

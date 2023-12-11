@@ -235,6 +235,7 @@ func TestStreamInstanceTFToSDKUpdateModel(t *testing.T) {
 }
 
 func tfRegionObject(t *testing.T, cloudProvider, region string) types.Object {
+	t.Helper()
 	dataProcessRegion, diags := types.ObjectValueFrom(context.Background(), streaminstance.ProcessRegionObjectType.AttrTypes, streaminstance.TFInstanceProcessRegionSpecModel{
 		CloudProvider: types.StringValue(cloudProvider),
 		Region:        types.StringValue(region),
@@ -246,6 +247,7 @@ func tfRegionObject(t *testing.T, cloudProvider, region string) types.Object {
 }
 
 func tfHostnamesList(t *testing.T, hostnames []string) types.List {
+	t.Helper()
 	resultList, diags := types.ListValueFrom(context.Background(), types.StringType, hostnames)
 	if diags.HasError() {
 		t.Errorf("failed to create terraform hostnames list: %s", diags.Errors()[0].Summary())

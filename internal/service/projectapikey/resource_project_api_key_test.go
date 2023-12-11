@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -340,6 +341,27 @@ func testAccCheckMongoDBAtlasProjectAPIKeyDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func TestAccConfigRSProjectAPIKey_Invalid_Role(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		description = projectName
+		roleName    = "INVALID_ROLE"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName, false),
+				ExpectError: regexp.MustCompile("INVALID_ENUM_VALUE"),
+			},
+		},
+	})
 }
 
 func testAccCheckMongoDBAtlasProjectAPIKeyImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
