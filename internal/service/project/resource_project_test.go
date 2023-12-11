@@ -42,7 +42,7 @@ var (
 	projectStateNameDiff = project.TfProjectRSModel{
 		Name: diffName,
 	}
-	dummyProjectID = "projectId"
+	dummyProjectID = "6575af27f93c7a6a4b50b239"
 )
 
 func TestGetProjectPropsFromAPI(t *testing.T) {
@@ -460,7 +460,7 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			testObject := new(MockProjectService)
 
-			testObject.On("ListClusters", mock.Anything, mock.Anything).Return(tc.mockResponses)
+			testObject.On("ListClusters", mock.Anything, dummyProjectID).Return(tc.mockResponses)
 
 			_, _, err := project.ResourceProjectDependentsDeletingRefreshFunc(context.Background(), dummyProjectID, testObject)()
 
