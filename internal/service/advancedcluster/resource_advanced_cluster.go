@@ -19,11 +19,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mwielbut/pointy"
+	"github.com/spf13/cast"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mwielbut/pointy"
-	"github.com/spf13/cast"
 )
 
 type acCtxKey string
@@ -33,8 +34,8 @@ const (
 	errorClusterAdvancedRead               = "error reading MongoDB ClusterAdvanced (%s): %s"
 	errorClusterAdvancedDelete             = "error deleting MongoDB ClusterAdvanced (%s): %s"
 	errorClusterAdvancedUpdate             = "error updating MongoDB ClusterAdvanced (%s): %s"
-	errorAdvancedClusterAdvancedConfUpdate = "error updating Advanced Configuration Option form MongoDB Cluster (%s): %s"
-	errorAdvancedClusterAdvancedConfRead   = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
+	errorAdvancedClusterAdvancedConfUpdate = "error updating Advanced Configuration Option for MongoDB Cluster (%s): %s"
+	errorAdvancedClusterAdvancedConfRead   = "error reading Advanced Configuration Option for MongoDB Cluster (%s): %s"
 )
 
 var upgradeRequestCtxKey acCtxKey = "upgradeRequest"
@@ -1301,36 +1302,6 @@ func getUpgradeRequest(d *schema.ResourceData) *matlas.Cluster {
 			RegionName:       updatedRegion.RegionName,
 		},
 	}
-}
-
-func updateAdvancedCluster(
-	ctx context.Context,
-	conn *matlas.Client,
-	request *matlas.AdvancedCluster,
-	projectID, name string,
-	timeout time.Duration,
-) (*matlas.AdvancedCluster, *matlas.Response, error) {
-	cluster, resp, err := conn.AdvancedClusters.Update(ctx, projectID, name, request)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
-		Target:     []string{"IDLE"},
-		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, name, projectID, conn),
-		Timeout:    timeout,
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute,
-	}
-
-	// Wait, catching any errors
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return cluster, resp, nil
 }
 
 func getAdvancedClusterContainerID(containers []matlas.Container, cluster *matlas.AdvancedRegionConfig) string {
