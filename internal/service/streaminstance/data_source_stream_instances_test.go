@@ -19,7 +19,7 @@ func TestAccStreamDSStreamInstances_basic(t *testing.T) {
 		dataSourceName = "data.mongodbatlas_stream_instances.test"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroyStreamInstance,
 		Steps: []resource.TestStep{
@@ -39,7 +39,7 @@ func TestAccStreamDSStreamInstances_withPageConfig(t *testing.T) {
 		dataSourceName = "data.mongodbatlas_stream_instances.test"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroyStreamInstance,
 		Steps: []resource.TestStep{

@@ -21,7 +21,7 @@ func TestAccConfigDSAtlasUsers_ByOrgID(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		users          = fetchOrgUsers(orgID, t)
+		users          = fetchOrgUsers(t, orgID)
 	)
 	checks := []resource.TestCheckFunc{testAccCheckMongoDBAtlasOrgWithUsersExists(dataSourceName)} // check that org has at least one user
 	checks = append(checks, dataSourceChecksForUsers(dataSourceName, orgID, users)...)
@@ -202,7 +202,8 @@ func TestAccConfigDSAtlasUsers_InvalidAttrCombinations(t *testing.T) {
 	}
 }
 
-func fetchOrgUsers(orgID string, t *testing.T) *admin.PaginatedAppUser {
+func fetchOrgUsers(t *testing.T, orgID string) *admin.PaginatedAppUser {
+	t.Helper()
 	connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 	users, _, err := connV2.OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
 	if err != nil {

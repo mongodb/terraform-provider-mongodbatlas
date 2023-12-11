@@ -299,6 +299,15 @@ func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resour
 }
 
 func testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, clusterName string, startHour, deleteExpirationDays int) string {
+	var dataExpirationRuleBlock string
+	if deleteExpirationDays > 0 {
+		dataExpirationRuleBlock = fmt.Sprintf(`
+		data_expiration_rule {
+			expire_after_days = %d
+		}
+		`, deleteExpirationDays)
+	}
+
 	return fmt.Sprintf(`
 	%[1]s
 	resource "mongodbatlas_online_archive" "users_archive" {
@@ -314,10 +323,8 @@ func testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, clu
 			date_format = "ISODATE"
 			expire_after_days = 2
 		}
-
-		data_expiration_rule {
-			expire_after_days = %[3]d
-		}
+		
+		%[3]s
 
 		schedule {
 			type = "DAILY"
@@ -355,7 +362,7 @@ func testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, clu
 		project_id =  mongodbatlas_online_archive.users_archive.project_id
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
-	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName), startHour, deleteExpirationDays)
+	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName), startHour, dataExpirationRuleBlock)
 }
 
 func testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, clusterName string) string {

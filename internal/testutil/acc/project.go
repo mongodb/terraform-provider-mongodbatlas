@@ -10,12 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func CheckProjectExists(resourceName string, project *matlas.Project) resource.TestCheckFunc {
+func CheckProjectExists(resourceName string, project *admin.Group) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
+		connV2 := TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -28,7 +27,7 @@ func CheckProjectExists(resourceName string, project *matlas.Project) resource.T
 
 		log.Printf("[DEBUG] projectID: %s", rs.Primary.ID)
 
-		if projectResp, _, err := conn.Projects.GetOneProjectByName(context.Background(), rs.Primary.Attributes["name"]); err == nil {
+		if projectResp, _, err := connV2.ProjectsApi.GetProjectByName(context.Background(), rs.Primary.Attributes["name"]).Execute(); err == nil {
 			*project = *projectResp
 			return nil
 		}
@@ -37,7 +36,7 @@ func CheckProjectExists(resourceName string, project *matlas.Project) resource.T
 	}
 }
 
-func CheckProjectAttributes(project *matlas.Project, projectName string) resource.TestCheckFunc {
+func CheckProjectAttributes(project *admin.Group, projectName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if project.Name != projectName {
 			return fmt.Errorf("bad project name: %s", project.Name)
@@ -64,7 +63,7 @@ func CheckDestroyProject(s *terraform.State) error {
 	return nil
 }
 
-func ConfigProject(projectName, orgID string, teams []*matlas.ProjectTeam) string {
+func ConfigProject(projectName, orgID string, teams []*admin.TeamRole) string {
 	var ts string
 
 	for _, t := range teams {
@@ -73,7 +72,7 @@ func ConfigProject(projectName, orgID string, teams []*matlas.ProjectTeam) strin
 			team_id = "%s"
 			role_names = %s
 		}
-		`, t.TeamID, strings.ReplaceAll(fmt.Sprintf("%+q", t.RoleNames), " ", ","))
+		`, t.GetTeamId(), strings.ReplaceAll(fmt.Sprintf("%+q", t.RoleNames), " ", ","))
 	}
 
 	return fmt.Sprintf(`
