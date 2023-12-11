@@ -24,7 +24,7 @@ const (
 func TestAccSearchIndexRS_basic(t *testing.T) {
 	var (
 		projectID                                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(projectID)
+		clusterName, clusterNameStr, clusterTerraformStr = acc.GetClusterInfo(projectID)
 		indexName                                        = acctest.RandomWithPrefix("test-acc-index")
 		databaseName                                     = acctest.RandomWithPrefix("test-acc-db")
 	)
@@ -64,7 +64,7 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 func TestAccSearchIndexRS_withSearchType(t *testing.T) {
 	var (
 		projectID                                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(projectID)
+		clusterName, clusterNameStr, clusterTerraformStr = acc.GetClusterInfo(projectID)
 		indexName                                        = acctest.RandomWithPrefix("test-acc-index")
 		databaseName                                     = acctest.RandomWithPrefix("test-acc-db")
 	)
@@ -104,7 +104,7 @@ func TestAccSearchIndexRS_withSearchType(t *testing.T) {
 func TestAccSearchIndexRS_withMapping(t *testing.T) {
 	var (
 		projectID                                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(projectID)
+		clusterName, clusterNameStr, clusterTerraformStr = acc.GetClusterInfo(projectID)
 		indexName                                        = acctest.RandomWithPrefix("test-acc-index")
 		databaseName                                     = acctest.RandomWithPrefix("test-acc-db")
 	)
@@ -149,7 +149,7 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 	var (
 		projectID                                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(projectID)
+		clusterName, clusterNameStr, clusterTerraformStr = acc.GetClusterInfo(projectID)
 		indexName                                        = acctest.RandomWithPrefix("test-acc-index")
 		databaseName                                     = acctest.RandomWithPrefix("test-acc-db")
 	)
@@ -198,7 +198,7 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 func TestAccSearchIndexRS_importBasic(t *testing.T) {
 	var (
 		projectID                                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(projectID)
+		clusterName, clusterNameStr, clusterTerraformStr = acc.GetClusterInfo(projectID)
 		indexName                                        = acctest.RandomWithPrefix("test-acc-index")
 		databaseName                                     = acctest.RandomWithPrefix("test-acc-db")
 	)
@@ -230,7 +230,7 @@ func TestAccSearchIndexRS_importBasic(t *testing.T) {
 func TestAccSearchIndexRS_withVector(t *testing.T) {
 	var (
 		projectID                                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(projectID)
+		clusterName, clusterNameStr, clusterTerraformStr = acc.GetClusterInfo(projectID)
 		indexName                                        = acctest.RandomWithPrefix("test-acc-index")
 		databaseName                                     = acctest.RandomWithPrefix("test-acc-db")
 	)
@@ -466,38 +466,4 @@ func testAccCheckMongoDBAtlasSearchIndexImportStateIDFunc(resourceName string) r
 
 		return fmt.Sprintf("%s--%s--%s", ids["project_id"], ids["cluster_name"], ids["index_id"]), nil
 	}
-}
-
-func getClusterInfo(projectID string) (clusterName, clusterNameStr, clusterTerraformStr string) {
-	// Allows faster test execution in local, don't use in CI
-	clusterName = os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
-	if clusterName != "" {
-		clusterNameStr = fmt.Sprintf("%q", clusterName)
-	} else {
-		clusterName = acctest.RandomWithPrefix("test-acc-index")
-		clusterNameStr = "mongodbatlas_cluster.test_cluster.name"
-		clusterTerraformStr = fmt.Sprintf(`
-			resource "mongodbatlas_cluster" "test_cluster" {
-				project_id   									= %[1]q
-				name         									= %[2]q
-				disk_size_gb 									= 10
-				backup_enabled               	= false
-				auto_scaling_disk_gb_enabled	= false
-				provider_name               	= "AWS"
-				provider_instance_size_name 	= "M10"
-			
-				cluster_type = "REPLICASET"
-				replication_specs {
-					num_shards = 1
-					regions_config {
-						region_name     = "US_WEST_2"
-						electable_nodes = 3
-						priority        = 7
-						read_only_nodes = 0
-					}
-				}
-			}
-		`, projectID, clusterName)
-	}
-	return clusterName, clusterNameStr, clusterTerraformStr
 }

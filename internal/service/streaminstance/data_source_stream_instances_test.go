@@ -21,7 +21,7 @@ func TestAccStreamDSStreamInstances_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroyStreamInstance,
+		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
 			{
 				Config: streamInstancesDataSourceConfig(orgID, projectName, instanceName, region, cloudProvider),
@@ -41,7 +41,7 @@ func TestAccStreamDSStreamInstances_withPageConfig(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroyStreamInstance,
+		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
 			{
 				Config: streamInstancesWithPageAttrDataSourceConfig(orgID, projectName, instanceName, region, cloudProvider),
@@ -58,7 +58,7 @@ func streamInstancesDataSourceConfig(orgID, projectName, instanceName, region, c
 		data "mongodbatlas_stream_instances" "test" {
 			project_id = mongodbatlas_stream_instance.test.project_id
 		}
-	`, streamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider))
+	`, acc.StreamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider))
 }
 
 func streamInstancesWithPageAttrDataSourceConfig(orgID, projectName, instanceName, region, cloudProvider string) string {
@@ -70,7 +70,7 @@ func streamInstancesWithPageAttrDataSourceConfig(orgID, projectName, instanceNam
 			page_num = 2
 			items_per_page = 1
 		}
-	`, streamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider))
+	`, acc.StreamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider))
 }
 
 func streamInstancesAttributeChecks(resourceName string, pageNum, itemsPerPage *int, totalCount int) resource.TestCheckFunc {

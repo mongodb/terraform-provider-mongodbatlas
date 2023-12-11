@@ -20,7 +20,7 @@ func TestAccStreamDSStreamInstance_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroyStreamInstance,
+		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
 			{
 				Config: streamInstanceDataSourceConfig(orgID, projectName, instanceName, region, cloudProvider),
@@ -38,5 +38,5 @@ func streamInstanceDataSourceConfig(orgID, projectName, instanceName, region, cl
 			project_id = mongodbatlas_stream_instance.test.project_id
 			instance_name = mongodbatlas_stream_instance.test.instance_name
 		}
-	`, streamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider))
+	`, acc.StreamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider))
 }
