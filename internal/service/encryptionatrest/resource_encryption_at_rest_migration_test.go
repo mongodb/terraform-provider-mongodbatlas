@@ -62,13 +62,12 @@ func TestAccMigrationAdvRS_EncryptionAtRest_WithRole_basicAWS(t *testing.T) {
 	acc.SkipTest(t)
 	acc.SkipTestExtCred(t)
 	var (
-		resourceName          = "mongodbatlas_encryption_at_rest.test"
-		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		accessKeyID           = os.Getenv("AWS_ACCESS_KEY_ID")
-		secretKey             = os.Getenv("AWS_SECRET_ACCESS_KEY")
-		policyName            = acctest.RandomWithPrefix("test-aws-policy")
-		roleName              = acctest.RandomWithPrefix("test-aws-role")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+		resourceName = "mongodbatlas_encryption_at_rest.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		accessKeyID  = os.Getenv("AWS_ACCESS_KEY_ID")
+		secretKey    = os.Getenv("AWS_SECRET_ACCESS_KEY")
+		policyName   = acctest.RandomWithPrefix("test-aws-policy")
+		roleName     = acctest.RandomWithPrefix("test-aws-role")
 
 		awsKms = admin.AWSKMSConfiguration{
 			Enabled:             pointy.Bool(true),
@@ -82,17 +81,8 @@ func TestAccMigrationAdvRS_EncryptionAtRest_WithRole_basicAWS(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
-						Source:            "mongodb/mongodbatlas",
-					},
-					"aws": {
-						VersionConstraint: "5.1.0",
-						Source:            "hashicorp/aws",
-					},
-				},
-				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.GetRegion(), accessKeyID, secretKey, projectID, policyName, roleName, false, &awsKms),
+				ExternalProviders: mig.ExternalProvidersWithAWS("5.1.0"),
+				Config:            testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.GetRegion(), accessKeyID, secretKey, projectID, policyName, roleName, false, &awsKms),
 			},
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
@@ -124,8 +114,8 @@ func TestAccMigrationAdvRS_EncryptionAtRest_WithRole_basicAWS(t *testing.T) {
 func TestAccMigrationAdvRS_EncryptionAtRest_basicAzure(t *testing.T) {
 	acc.SkipTestExtCred(t)
 	var (
-		resourceName          = "mongodbatlas_encryption_at_rest.test"
-		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		resourceName = "mongodbatlas_encryption_at_rest.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 		azureKeyVault = admin.AzureKeyVault{
 			Enabled:           pointy.Bool(true),
@@ -173,8 +163,8 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAzure(t *testing.T) {
 func TestAccMigrationAdvRS_EncryptionAtRest_basicGCP(t *testing.T) {
 	acc.SkipTestExtCred(t)
 	var (
-		resourceName          = "mongodbatlas_encryption_at_rest.test"
-		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		resourceName = "mongodbatlas_encryption_at_rest.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 		googleCloudKms = admin.GoogleCloudKMS{
 			Enabled:              pointy.Bool(true),
