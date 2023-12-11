@@ -430,7 +430,7 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 				clusterReponse: &admin.PaginatedAdvancedClusterDescription{},
 				Err:            errors.New("Non-API error"),
 			},
-			expectedError: false,
+			expectedError: true,
 		},
 		{
 			name: "Error from the API",

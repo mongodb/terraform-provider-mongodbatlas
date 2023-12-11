@@ -760,12 +760,8 @@ func ResourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID
 		clusters, _, listClustersErr := client.ListClusters(ctx, projectID)
 		dependents := AtlasProjectDependants{AdvancedClusters: clusters}
 
-		if _, ok := admin.AsError(listClustersErr); ok {
-			return nil, "", listClustersErr
-		}
-
 		if listClustersErr != nil {
-			return nil, projectDependentsStateRetry, nil
+			return nil, "", listClustersErr
 		}
 
 		if *dependents.AdvancedClusters.TotalCount == 0 {
