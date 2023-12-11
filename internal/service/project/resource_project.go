@@ -729,7 +729,7 @@ func deleteProject(ctx context.Context, connV2 *admin.APIClient, projectID strin
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{projectDependentsStateDeleting, projectDependentsStateRetry},
 		Target:     []string{projectDependentsStateIdle},
-		Refresh:    resourceProjectDependentsDeletingRefreshFunc(ctx, projectID, connV2),
+		Refresh:    ResourceProjectDependentsDeletingRefreshFunc(ctx, projectID, ServiceFromClient(connV2)),
 		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Delay:      0,
@@ -755,13 +755,17 @@ Else consider the aggregate dependents idle.
 If we get a defined error response, return that right away
 Else retry
 */
-func resourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
+func ResourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID string, client GroupProjectService) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		clusters, _, listClustersErr := connV2.ClustersApi.ListClusters(ctx, projectID).Execute()
+		clusters, _, listClustersErr := client.ListClusters(ctx, projectID)
 		dependents := AtlasProjectDependants{AdvancedClusters: clusters}
 
-		if listClustersErr != nil {
+		if _, ok := admin.AsError(listClustersErr); ok {
 			return nil, "", listClustersErr
+		}
+
+		if listClustersErr != nil {
+			return nil, projectDependentsStateRetry, nil
 		}
 
 		if *dependents.AdvancedClusters.TotalCount == 0 {
