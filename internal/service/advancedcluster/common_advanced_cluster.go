@@ -3,18 +3,18 @@ package advancedcluster
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"hash/crc32"
 	"log"
 	"reflect"
 	"strings"
 	"time"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -202,14 +202,6 @@ func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID strin
 
 		return clusters, "IDLE", nil
 	}
-}
-
-func FormatMongoDBMajorVersion(val any) string {
-	if strings.Contains(val.(string), ".") {
-		return val.(string)
-	}
-
-	return fmt.Sprintf("%.1f", cast.ToFloat32(val))
 }
 
 func FlattenLabels(l []matlas.Label) []map[string]any {

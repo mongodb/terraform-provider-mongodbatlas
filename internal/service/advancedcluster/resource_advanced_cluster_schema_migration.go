@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/utility"
 )
 
 func ResourceV0() *schema.Resource {
@@ -88,7 +89,7 @@ func ResourceV0() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Computed:  true,
-				StateFunc: FormatMongoDBMajorVersion,
+				StateFunc: utility.FormatMongoDBMajorVersion,
 			},
 			"mongo_db_version": {
 				Type:     schema.TypeString,

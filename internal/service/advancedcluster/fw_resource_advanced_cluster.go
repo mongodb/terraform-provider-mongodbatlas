@@ -33,6 +33,9 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customtypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/planmodifiers"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/utility"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -76,13 +79,14 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 			"cluster_id": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"backup_enabled": schema.BoolAttribute{
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.Bool{
+					// planmodifiers.UseNullForUnknownBool(),
 					boolplanmodifier.UseStateForUnknown(),
 				},
 			},
@@ -112,13 +116,14 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+					// planmodifiers.UseNullForUnknownString(),
 				},
 			},
-			// https://discuss.hashicorp.com/t/is-it-possible-to-have-statefunc-like-behavior-with-the-plugin-framework/58377/2
+			// https://developer.hashicorp.com/terraform/plugin/framework/migrating/resources/crud#planned-value-does-not-match-config-value
 			"mongo_db_major_version": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				// StateFunc: FormatMongoDBMajorVersion,
+				CustomType: customtypes.DBVersionStringType{},
+				Optional:   true,
+				Computed:   true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -149,7 +154,6 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 					boolplanmodifier.UseStateForUnknown(),
 				},
 			},
-
 			"root_cert_type": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
@@ -192,46 +196,85 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 						"default_read_concern": schema.StringAttribute{
 							Optional: true,
 							Computed: true,
+							PlanModifiers: []planmodifier.String{
+								planmodifiers.UseNullForUnknownString(),
+								// stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"default_write_concern": schema.StringAttribute{
 							Optional: true,
 							Computed: true,
+							PlanModifiers: []planmodifier.String{
+								planmodifiers.UseNullForUnknownString(),
+								//stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"fail_index_key_too_long": schema.BoolAttribute{
 							Optional: true,
 							Computed: true,
+							PlanModifiers: []planmodifier.Bool{
+								planmodifiers.UseNullForUnknownBool(),
+								//boolplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"javascript_enabled": schema.BoolAttribute{
 							Optional: true,
 							Computed: true,
+							PlanModifiers: []planmodifier.Bool{
+								planmodifiers.UseNullForUnknownBool(),
+								//boolplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"minimum_enabled_tls_protocol": schema.StringAttribute{
 							Optional: true,
 							Computed: true,
+							PlanModifiers: []planmodifier.String{
+								planmodifiers.UseNullForUnknownString(),
+								//stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"no_table_scan": schema.BoolAttribute{
 							Optional: true,
 							Computed: true,
+							PlanModifiers: []planmodifier.Bool{
+								planmodifiers.UseNullForUnknownBool(),
+								//boolplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"oplog_min_retention_hours": schema.Int64Attribute{
 							Optional: true,
-							// Computed: true,
 						},
 						"oplog_size_mb": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
+							PlanModifiers: []planmodifier.Int64{
+								planmodifiers.UseNullForUnknownInt64(),
+								//int64planmodifier.UseStateForUnknown(),
+							},
 						},
 						"sample_refresh_interval_bi_connector": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
+							PlanModifiers: []planmodifier.Int64{
+								planmodifiers.UseNullForUnknownInt64(),
+								// int64planmodifier.UseStateForUnknown(),
+							},
 						},
 						"sample_size_bi_connector": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
+							PlanModifiers: []planmodifier.Int64{
+								planmodifiers.UseNullForUnknownInt64(),
+								//int64planmodifier.UseStateForUnknown(),
+							},
 						},
 						"transaction_lifetime_limit_seconds": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
+							PlanModifiers: []planmodifier.Int64{
+								planmodifiers.UseNullForUnknownInt64(),
+								// int64planmodifier.UseStateForUnknown(),
+							},
 						},
 					},
 				},
@@ -254,6 +297,9 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 				},
 				Validators: []validator.List{
 					listvalidator.SizeAtMost(1),
+				},
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"labels": schema.SetNestedBlock{
@@ -533,7 +579,7 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 	// }
 
 	if v := plan.MongoDBMajorVersion; !v.IsNull() {
-		request.MongoDBMajorVersion = FormatMongoDBMajorVersion(v.ValueString()) // TODO
+		request.MongoDBMajorVersion = utility.FormatMongoDBMajorVersion(v.ValueString()) // TODO
 	}
 
 	if v := plan.PitEnabled; !v.IsNull() {
@@ -655,7 +701,7 @@ func (r *advancedClusterRS) Read(ctx context.Context, request resource.ReadReque
 		CreateDate:                   types.StringValue(cluster.CreateDate),
 		DiskSizeGb:                   types.Float64PointerValue(cluster.DiskSizeGB),
 		EncryptionAtRestProvider:     types.StringValue(cluster.EncryptionAtRestProvider),
-		MongoDBMajorVersion:          types.StringValue(cluster.MongoDBMajorVersion),
+		MongoDBMajorVersion:          customtypes.DBVersionStringValue{StringValue: types.StringValue(cluster.MongoDBMajorVersion)},
 		MongoDBVersion:               types.StringValue(cluster.MongoDBVersion),
 		Name:                         types.StringValue(cluster.Name),
 		Paused:                       types.BoolPointerValue(cluster.Paused),
@@ -1222,25 +1268,26 @@ func updateAdvancedCluster(
 }
 
 type tfAdvancedClusterRSModel struct {
-	BackupEnabled                             types.Bool    `tfsdk:"backup_enabled"`
-	ClusterID                                 types.String  `tfsdk:"cluster_id"`
-	ClusterType                               types.String  `tfsdk:"cluster_type"`
-	CreateDate                                types.String  `tfsdk:"create_date"`
-	DiskSizeGb                                types.Float64 `tfsdk:"disk_size_gb"`
-	EncryptionAtRestProvider                  types.String  `tfsdk:"encryption_at_rest_provider"`
-	ID                                        types.String  `tfsdk:"id"`
-	MongoDBMajorVersion                       types.String  `tfsdk:"mongo_db_major_version"`
-	MongoDBVersion                            types.String  `tfsdk:"mongo_db_version"`
-	Name                                      types.String  `tfsdk:"name"`
-	Paused                                    types.Bool    `tfsdk:"paused"`
-	PitEnabled                                types.Bool    `tfsdk:"pit_enabled"`
-	ProjectID                                 types.String  `tfsdk:"project_id"`
-	RetainBackupsEnabled                      types.Bool    `tfsdk:"retain_backups_enabled"`
-	RootCertType                              types.String  `tfsdk:"root_cert_type"`
-	StateName                                 types.String  `tfsdk:"state_name"`
-	TerminationProtectionEnabled              types.Bool    `tfsdk:"termination_protection_enabled"`
-	VersionReleaseSystem                      types.String  `tfsdk:"version_release_system"`
-	AcceptDataRisksAndForceReplicaSetReconfig types.String  `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
+	BackupEnabled            types.Bool    `tfsdk:"backup_enabled"`
+	ClusterID                types.String  `tfsdk:"cluster_id"`
+	ClusterType              types.String  `tfsdk:"cluster_type"`
+	CreateDate               types.String  `tfsdk:"create_date"`
+	DiskSizeGb               types.Float64 `tfsdk:"disk_size_gb"`
+	EncryptionAtRestProvider types.String  `tfsdk:"encryption_at_rest_provider"`
+	ID                       types.String  `tfsdk:"id"`
+	// MongoDBMajorVersion                       types.String  `tfsdk:"mongo_db_major_version"`
+	MongoDBMajorVersion                       customtypes.DBVersionStringValue `tfsdk:"mongo_db_major_version"`
+	MongoDBVersion                            types.String                     `tfsdk:"mongo_db_version"`
+	Name                                      types.String                     `tfsdk:"name"`
+	Paused                                    types.Bool                       `tfsdk:"paused"`
+	PitEnabled                                types.Bool                       `tfsdk:"pit_enabled"`
+	ProjectID                                 types.String                     `tfsdk:"project_id"`
+	RetainBackupsEnabled                      types.Bool                       `tfsdk:"retain_backups_enabled"`
+	RootCertType                              types.String                     `tfsdk:"root_cert_type"`
+	StateName                                 types.String                     `tfsdk:"state_name"`
+	TerminationProtectionEnabled              types.Bool                       `tfsdk:"termination_protection_enabled"`
+	VersionReleaseSystem                      types.String                     `tfsdk:"version_release_system"`
+	AcceptDataRisksAndForceReplicaSetReconfig types.String                     `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
 
 	Labels                types.Set  `tfsdk:"labels"`
 	Tags                  types.Set  `tfsdk:"tags"`

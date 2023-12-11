@@ -24,6 +24,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/utility"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -139,7 +140,7 @@ func Resource() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Computed:  true,
-				StateFunc: FormatMongoDBMajorVersion,
+				StateFunc: utility.FormatMongoDBMajorVersion,
 			},
 			"mongo_db_version": {
 				Type:     schema.TypeString,
@@ -395,7 +396,7 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 		request.Tags = ExpandTagSliceFromSetSchema(d)
 	}
 	if v, ok := d.GetOk("mongo_db_major_version"); ok {
-		request.MongoDBMajorVersion = FormatMongoDBMajorVersion(v.(string))
+		request.MongoDBMajorVersion = utility.FormatMongoDBMajorVersion(v.(string))
 	}
 	if v, ok := d.GetOk("pit_enabled"); ok {
 		request.PitEnabled = pointy.Bool(v.(bool))
@@ -678,7 +679,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	}
 
 	if d.HasChange("mongo_db_major_version") {
-		cluster.MongoDBMajorVersion = FormatMongoDBMajorVersion(d.Get("mongo_db_major_version"))
+		cluster.MongoDBMajorVersion = utility.FormatMongoDBMajorVersion(d.Get("mongo_db_major_version"))
 	}
 
 	if d.HasChange("pit_enabled") {
