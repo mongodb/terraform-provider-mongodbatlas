@@ -848,6 +848,7 @@ func TestUpgradeCloudBackupSnapshot(t *testing.T) {
 
 // This func means that the terraform state will be always clean to avoid error about resource already used
 func CleanUpState(t *testing.T, path string) string {
+	t.Helper()
 	// Root folder where terraform files should be (relative to the test folder)
 	rootFolder := ".."
 	// Relative path to terraform module being tested from the root folder

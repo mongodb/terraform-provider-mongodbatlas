@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 	"github.com/mwielbut/pointy"
 )
 
@@ -26,21 +27,15 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAWS(t *testing.T) {
 			Region:              conversion.StringPtr(os.Getenv("AWS_REGION")),
 			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
 		}
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckMigration(t); acc.PreCheckAwsEnv(t) },
+		PreCheck:     func() { mig.PreCheck(t); acc.PreCheckAwsEnv(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID, &awsKms),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID, &awsKms),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -83,7 +78,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_WithRole_basicAWS(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckMigration(t); acc.PreCheckAwsEnv(t) },
+		PreCheck:     func() { mig.PreCheck(t); acc.PreCheckAwsEnv(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -147,17 +142,12 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAzure(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckMigration(t); acc.PreCheckEncryptionAtRestEnvAzure(t) },
+		PreCheck:     func() { mig.PreCheck(t); acc.PreCheckEncryptionAtRestEnvAzure(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID, &azureKeyVault),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID, &azureKeyVault),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -196,17 +186,12 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicGCP(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckMigration(t); acc.PreCheckGPCEnv(t) },
+		PreCheck:     func() { mig.PreCheck(t); acc.PreCheckGPCEnv(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID, &googleCloudKms),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID, &googleCloudKms),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -244,7 +229,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) 
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckMigration(t); acc.PreCheckAwsEnv(t) },
+		PreCheck:     func() { mig.PreCheck(t); acc.PreCheckAwsEnv(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{

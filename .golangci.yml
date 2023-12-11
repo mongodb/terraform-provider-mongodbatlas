@@ -98,6 +98,13 @@ linters:
     - unconvert
     - unused
     - whitespace
+    - thelper
+    - testifylint
+    - exhaustive
+    - makezero
+    - noctx
+    - tenv
+
   # don't enable:
   #   - deadcode
   #   - varcheck
