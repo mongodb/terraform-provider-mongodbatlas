@@ -429,6 +429,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		projectipaccesslist.Resource,
 		searchdeployment.Resource,
 		streaminstance.Resource,
+		advancedcluster.Fw_Resource,
 	}
 }
 
