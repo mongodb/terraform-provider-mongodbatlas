@@ -126,7 +126,6 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAzure(t *testing.T) {
 	var (
 		resourceName          = "mongodbatlas_encryption_at_rest.test"
 		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 		azureKeyVault = admin.AzureKeyVault{
 			Enabled:           pointy.Bool(true),
@@ -176,7 +175,6 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicGCP(t *testing.T) {
 	var (
 		resourceName          = "mongodbatlas_encryption_at_rest.test"
 		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 		googleCloudKms = admin.GoogleCloudKMS{
 			Enabled:              pointy.Bool(true),
