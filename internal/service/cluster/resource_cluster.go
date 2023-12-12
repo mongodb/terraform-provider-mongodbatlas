@@ -144,7 +144,7 @@ func Resource() *schema.Resource {
 			"cloud_backup": {
 				Type:          schema.TypeBool,
 				Optional:      true,
-				Default:       false,
+				Computed:      true,
 				ConflictsWith: []string{"backup_enabled"},
 			},
 			"provider_instance_size_name": {
@@ -213,9 +213,10 @@ func Resource() *schema.Resource {
 				Computed: true,
 			},
 			"replication_specs": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Computed: true,
+				Type:       schema.TypeSet,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -228,9 +229,10 @@ func Resource() *schema.Resource {
 							Required: true,
 						},
 						"regions_config": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							Computed: true,
+							Type:       schema.TypeSet,
+							Optional:   true,
+							Computed:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"region_name": {
