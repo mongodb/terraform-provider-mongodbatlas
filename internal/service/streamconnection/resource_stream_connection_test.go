@@ -2,6 +2,7 @@ package streamconnection_test
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 	"os"
 	"testing"
@@ -11,8 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/constant"
 )
+
+//go:embed testdata/dummy-ca.pem
+var DummyCACert string
 
 func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 	var (
@@ -110,7 +113,7 @@ func kafkaStreamConnectionConfig(orgID, projectName, instanceName, username, pas
 		security = {
 		    broker_public_certificate = %q
 		    protocol = "SSL"
-		}`, constant.DummyCert)
+		}`, DummyCACert)
 	}
 
 	return fmt.Sprintf(`

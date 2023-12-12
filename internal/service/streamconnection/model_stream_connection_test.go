@@ -11,16 +11,15 @@ import (
 )
 
 const (
-	connectionName            = "Connection"
-	typeValue                 = ""
-	clusterName               = "Cluster0"
-	dummyProjectID            = "111111111111111111111111"
-	instanceName              = "InstanceName"
-	authMechanism             = "PLAIN"
-	authUsername              = "user1"
-	securityProtocol          = "SSL"
-	securityBrokerCertificate = "link-to-certificate.com"
-	bootstrapServers          = "localhost:9092,another.host:9092"
+	connectionName   = "Connection"
+	typeValue        = ""
+	clusterName      = "Cluster0"
+	dummyProjectID   = "111111111111111111111111"
+	instanceName     = "InstanceName"
+	authMechanism    = "PLAIN"
+	authUsername     = "user1"
+	securityProtocol = "SSL"
+	bootstrapServers = "localhost:9092,another.host:9092"
 )
 
 var configMap = map[string]string{
@@ -71,7 +70,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				Config:           &configMap,
 				Security: &admin.StreamsKafkaSecurity{
 					Protocol:                admin.PtrString(securityProtocol),
-					BrokerPublicCertificate: admin.PtrString(securityBrokerCertificate),
+					BrokerPublicCertificate: admin.PtrString(DummyCACert),
 				},
 			},
 			providedConfig: &streamconnection.TFStreamConnectionRSModel{
@@ -87,7 +86,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				Authentication:   tfAuthenticationObject(t, authMechanism, authUsername, "raw password"), // password value is obtained from config, not api resp.
 				BootstrapServers: types.StringValue(bootstrapServers),
 				Config:           tfConfigMap(t, configMap),
-				Security:         tfSecurityObject(t, securityBrokerCertificate, securityProtocol),
+				Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
 			},
 		},
 		{
@@ -123,7 +122,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				Config:           &configMap,
 				Security: &admin.StreamsKafkaSecurity{
 					Protocol:                admin.PtrString(securityProtocol),
-					BrokerPublicCertificate: admin.PtrString(securityBrokerCertificate),
+					BrokerPublicCertificate: admin.PtrString(DummyCACert),
 				},
 			},
 			providedConfig: &streamconnection.TFStreamConnectionRSModel{
@@ -138,7 +137,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				Authentication:   tfAuthenticationObjectWithNoPassword(t, authMechanism, authUsername),
 				BootstrapServers: types.StringValue(bootstrapServers),
 				Config:           tfConfigMap(t, configMap),
-				Security:         tfSecurityObject(t, securityBrokerCertificate, securityProtocol),
+				Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
 			},
 		},
 	}
@@ -190,7 +189,7 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				Authentication:   tfAuthenticationObject(t, authMechanism, authUsername, "raw password"),
 				BootstrapServers: types.StringValue(bootstrapServers),
 				Config:           tfConfigMap(t, configMap),
-				Security:         tfSecurityObject(t, securityBrokerCertificate, securityProtocol),
+				Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
 			},
 			expectedSDKReq: &admin.StreamsConnection{
 				Name: admin.PtrString(connectionName),
@@ -204,7 +203,7 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				Config:           &configMap,
 				Security: &admin.StreamsKafkaSecurity{
 					Protocol:                admin.PtrString(securityProtocol),
-					BrokerPublicCertificate: admin.PtrString(securityBrokerCertificate),
+					BrokerPublicCertificate: admin.PtrString(DummyCACert),
 				},
 			},
 		},
