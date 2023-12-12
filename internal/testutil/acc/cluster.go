@@ -7,47 +7,59 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
+type ClusterInfo struct {
+	ProjectIDStr        string
+	ClusterName         string
+	ClusterNameStr      string
+	ClusterTerraformStr string
+}
+
 // GetClusterInfo is used to obtain a project and cluster configuration resource.
-// If env variables `MONGODB_ATLAS_CLUSTER_NAME` and `MONGODB_ATLAS_PROJECT_ID` are defined, creation of resources is avoided (useful for local execution)
-func GetClusterInfo(orgID string) (projectIDStr, clusterName, clusterNameStr, clusterTerraformStr string) {
-	// Allows faster test execution in local, don't use in CI
-	clusterName = os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
+// When `MONGODB_ATLAS_CLUSTER_NAME` and `MONGODB_ATLAS_PROJECT_ID` are defined, creation of resources is avoided. This is useful for local execution but not intended for CI executions.
+func GetClusterInfo(orgID string) ClusterInfo {
+	clusterName := os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	if clusterName != "" && projectID != "" {
-		clusterNameStr = fmt.Sprintf("%q", clusterName)
-		projectIDStr = fmt.Sprintf("%q", projectID)
-	} else {
-		clusterName = acctest.RandomWithPrefix("test-acc")
-		projectName := acctest.RandomWithPrefix("test-acc")
-		projectIDStr = "mongodbatlas_project.test.id"
-		clusterNameStr = "mongodbatlas_cluster.test_cluster.name"
-		clusterTerraformStr = fmt.Sprintf(`
-			resource "mongodbatlas_project" "test" {
-				org_id = %[1]q
-				name   = %[2]q
-			}
+		return ClusterInfo{
+			ProjectIDStr:        fmt.Sprintf("%q", projectID),
+			ClusterName:         clusterName,
+			ClusterNameStr:      fmt.Sprintf("%q", clusterName),
+			ClusterTerraformStr: "",
+		}
+	}
+	clusterName = acctest.RandomWithPrefix("test-acc")
+	projectName := acctest.RandomWithPrefix("test-acc")
+	clusterTerraformStr := fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+	
+		resource "mongodbatlas_cluster" "test_cluster" {
+			project_id   									= mongodbatlas_project.test.id
+			name         									= %[3]q
+			disk_size_gb 									= 10
+			backup_enabled               	= false
+			auto_scaling_disk_gb_enabled	= false
+			provider_name               	= "AWS"
+			provider_instance_size_name 	= "M10"
 		
-			resource "mongodbatlas_cluster" "test_cluster" {
-				project_id   									= mongodbatlas_project.test.id
-				name         									= %[3]q
-				disk_size_gb 									= 10
-				backup_enabled               	= false
-				auto_scaling_disk_gb_enabled	= false
-				provider_name               	= "AWS"
-				provider_instance_size_name 	= "M10"
-			
-				cluster_type = "REPLICASET"
-				replication_specs {
-					num_shards = 1
-					regions_config {
-						region_name     = "US_WEST_2"
-						electable_nodes = 3
-						priority        = 7
-						read_only_nodes = 0
-					}
+			cluster_type = "REPLICASET"
+			replication_specs {
+				num_shards = 1
+				regions_config {
+					region_name     = "US_WEST_2"
+					electable_nodes = 3
+					priority        = 7
+					read_only_nodes = 0
 				}
 			}
-		`, orgID, projectName, clusterName)
+		}
+	`, orgID, projectName, clusterName)
+	return ClusterInfo{
+		ProjectIDStr:        "mongodbatlas_project.test.id",
+		ClusterName:         clusterName,
+		ClusterNameStr:      "mongodbatlas_cluster.test_cluster.name",
+		ClusterTerraformStr: clusterTerraformStr,
 	}
-	return projectIDStr, clusterName, clusterNameStr, clusterTerraformStr
 }

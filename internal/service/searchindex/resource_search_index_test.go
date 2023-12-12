@@ -23,10 +23,10 @@ const (
 
 func TestAccSearchIndexRS_basic(t *testing.T) {
 	var (
-		orgID                                                          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectIDStr, clusterName, clusterNameStr, clusterTerraformStr = acc.GetClusterInfo(orgID)
-		indexName                                                      = acctest.RandomWithPrefix("test-acc-index")
-		databaseName                                                   = acctest.RandomWithPrefix("test-acc-db")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		clusterInfo  = acc.GetClusterInfo(orgID)
+		indexName    = acctest.RandomWithPrefix("test-acc-index")
+		databaseName = acctest.RandomWithPrefix("test-acc-db")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -34,12 +34,12 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfigBasic(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr, false),
+				Config: testAccSearchIndexConfigBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttr(resourceName, "database", databaseName),
 					resource.TestCheckResourceAttr(resourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(resourceName, "search_analyzer", searchAnalyzer),
@@ -47,7 +47,7 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(datasourceName, "project_id"),
-					resource.TestCheckResourceAttr(datasourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(datasourceName, "cluster_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttr(datasourceName, "database", databaseName),
 					resource.TestCheckResourceAttr(datasourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(datasourceName, "mappings_dynamic", "true"),
@@ -63,10 +63,10 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 
 func TestAccSearchIndexRS_withSearchType(t *testing.T) {
 	var (
-		orgID                                                          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectIDStr, clusterName, clusterNameStr, clusterTerraformStr = acc.GetClusterInfo(orgID)
-		indexName                                                      = acctest.RandomWithPrefix("test-acc-index")
-		databaseName                                                   = acctest.RandomWithPrefix("test-acc-db")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		clusterInfo  = acc.GetClusterInfo(orgID)
+		indexName    = acctest.RandomWithPrefix("test-acc-index")
+		databaseName = acctest.RandomWithPrefix("test-acc-db")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -74,12 +74,12 @@ func TestAccSearchIndexRS_withSearchType(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfigBasic(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr, true),
+				Config: testAccSearchIndexConfigBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttr(resourceName, "database", databaseName),
 					resource.TestCheckResourceAttr(resourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(resourceName, "search_analyzer", searchAnalyzer),
@@ -87,7 +87,7 @@ func TestAccSearchIndexRS_withSearchType(t *testing.T) {
 
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(datasourceName, "project_id"),
-					resource.TestCheckResourceAttr(datasourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(datasourceName, "cluster_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttr(datasourceName, "database", databaseName),
 					resource.TestCheckResourceAttr(datasourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(datasourceName, "mappings_dynamic", "true"),
@@ -103,10 +103,10 @@ func TestAccSearchIndexRS_withSearchType(t *testing.T) {
 
 func TestAccSearchIndexRS_withMapping(t *testing.T) {
 	var (
-		orgID                                                          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectIDStr, clusterName, clusterNameStr, clusterTerraformStr = acc.GetClusterInfo(orgID)
-		indexName                                                      = acctest.RandomWithPrefix("test-acc-index")
-		databaseName                                                   = acctest.RandomWithPrefix("test-acc-db")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		clusterInfo  = acc.GetClusterInfo(orgID)
+		indexName    = acctest.RandomWithPrefix("test-acc-index")
+		databaseName = acctest.RandomWithPrefix("test-acc-db")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -114,13 +114,13 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfigMapping(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr),
+				Config: testAccSearchIndexConfigMapping(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
 
 					resource.TestCheckResourceAttr(resourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttr(resourceName, "database", databaseName),
 					resource.TestCheckResourceAttr(resourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(resourceName, "search_analyzer", searchAnalyzer),
@@ -130,7 +130,7 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(datasourceName, "project_id"),
-					resource.TestCheckResourceAttr(datasourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(datasourceName, "cluster_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttr(datasourceName, "database", databaseName),
 					resource.TestCheckResourceAttr(datasourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(datasourceName, "search_analyzer", searchAnalyzer),
@@ -148,10 +148,10 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 
 func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 	var (
-		orgID                                                          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectIDStr, clusterName, clusterNameStr, clusterTerraformStr = acc.GetClusterInfo(orgID)
-		indexName                                                      = acctest.RandomWithPrefix("test-acc-index")
-		databaseName                                                   = acctest.RandomWithPrefix("test-acc-db")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		clusterInfo  = acc.GetClusterInfo(orgID)
+		indexName    = acctest.RandomWithPrefix("test-acc-index")
+		databaseName = acctest.RandomWithPrefix("test-acc-db")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -159,13 +159,13 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfigSynonyms(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr),
+				Config: testAccSearchIndexConfigSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
 
 					resource.TestCheckResourceAttr(resourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttr(resourceName, "database", databaseName),
 					resource.TestCheckResourceAttr(resourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(resourceName, "search_analyzer", searchAnalyzer),
@@ -177,7 +177,7 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(datasourceName, "project_id"),
-					resource.TestCheckResourceAttr(datasourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(datasourceName, "cluster_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttr(datasourceName, "database", databaseName),
 					resource.TestCheckResourceAttr(datasourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(datasourceName, "search_analyzer", searchAnalyzer),
@@ -197,10 +197,10 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 
 func TestAccSearchIndexRS_importBasic(t *testing.T) {
 	var (
-		orgID                                                          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectIDStr, clusterName, clusterNameStr, clusterTerraformStr = acc.GetClusterInfo(orgID)
-		indexName                                                      = acctest.RandomWithPrefix("test-acc-index")
-		databaseName                                                   = acctest.RandomWithPrefix("test-acc-db")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		clusterInfo  = acc.GetClusterInfo(orgID)
+		indexName    = acctest.RandomWithPrefix("test-acc-index")
+		databaseName = acctest.RandomWithPrefix("test-acc-db")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -208,16 +208,16 @@ func TestAccSearchIndexRS_importBasic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfigBasic(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr, false),
+				Config: testAccSearchIndexConfigBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
 				),
 			},
 			{
-				Config:            testAccSearchIndexConfigBasic(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr, false),
+				Config:            testAccSearchIndexConfigBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: testAccCheckMongoDBAtlasSearchIndexImportStateIDFunc(resourceName),
 				ImportState:       true,
@@ -229,10 +229,10 @@ func TestAccSearchIndexRS_importBasic(t *testing.T) {
 
 func TestAccSearchIndexRS_withVector(t *testing.T) {
 	var (
-		orgID                                                          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectIDStr, clusterName, clusterNameStr, clusterTerraformStr = acc.GetClusterInfo(orgID)
-		indexName                                                      = acctest.RandomWithPrefix("test-acc-index")
-		databaseName                                                   = acctest.RandomWithPrefix("test-acc-db")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		clusterInfo  = acc.GetClusterInfo(orgID)
+		indexName    = acctest.RandomWithPrefix("test-acc-index")
+		databaseName = acctest.RandomWithPrefix("test-acc-db")
 	)
 	fields := []map[string]interface{}{
 		{
@@ -248,12 +248,12 @@ func TestAccSearchIndexRS_withVector(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfigVector(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr),
+				Config: testAccSearchIndexConfigVector(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttr(resourceName, "database", databaseName),
 					resource.TestCheckResourceAttr(resourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(resourceName, "type", "vectorSearch"),
@@ -263,7 +263,7 @@ func TestAccSearchIndexRS_withVector(t *testing.T) {
 					resource.TestCheckResourceAttr(datasourceName, "type", "vectorSearch"),
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(datasourceName, "project_id"),
-					resource.TestCheckResourceAttr(datasourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(datasourceName, "cluster_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttr(datasourceName, "database", databaseName),
 					resource.TestCheckResourceAttr(datasourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),

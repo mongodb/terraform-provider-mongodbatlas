@@ -77,10 +77,10 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 
 func TestAccStreamRSStreamConnection_cluster(t *testing.T) {
 	var (
-		orgID                                                          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectIDStr, clusterName, clusterNameStr, clusterTerraformStr = acc.GetClusterInfo(orgID)
-		instanceName                                                   = acctest.RandomWithPrefix("test-acc-name")
-		resourceName                                                   = "mongodbatlas_stream_connection.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		clusterInfo  = acc.GetClusterInfo(orgID)
+		instanceName = acctest.RandomWithPrefix("test-acc-name")
+		resourceName = "mongodbatlas_stream_connection.test"
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },
@@ -88,8 +88,8 @@ func TestAccStreamRSStreamConnection_cluster(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: clusterStreamConnectionConfig(projectIDStr, instanceName, clusterNameStr, clusterTerraformStr),
-				Check:  clusterStreamConnectionAttributeChecks(resourceName, clusterName),
+				Config: clusterStreamConnectionConfig(clusterInfo.ProjectIDStr, instanceName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr),
+				Check:  clusterStreamConnectionAttributeChecks(resourceName, clusterInfo.ClusterName),
 			},
 			{
 				ResourceName:      resourceName,
