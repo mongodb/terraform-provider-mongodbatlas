@@ -91,8 +91,10 @@ func Resource() *schema.Resource {
 				Computed: true,
 			},
 			"regions": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
