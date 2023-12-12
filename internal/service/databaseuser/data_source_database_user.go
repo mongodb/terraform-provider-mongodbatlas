@@ -34,9 +34,9 @@ type tfDatabaseUserDSModel struct {
 	OIDCAuthType     types.String   `tfsdk:"oidc_auth_type"`
 	LDAPAuthType     types.String   `tfsdk:"ldap_auth_type"`
 	AWSIAMType       types.String   `tfsdk:"aws_iam_type"`
-	Roles            []tfRoleModel  `tfsdk:"roles"`
+	Roles            []TfRoleModel  `tfsdk:"roles"`
 	Labels           []tfLabelModel `tfsdk:"labels"`
-	Scopes           []tfScopeModel `tfsdk:"scopes"`
+	Scopes           []TfScopeModel `tfsdk:"scopes"`
 }
 
 var _ datasource.DataSource = &databaseUserDS{}
@@ -162,10 +162,63 @@ func newTFDatabaseDSUserModel(ctx context.Context, dbUser *admin.CloudDatabaseUs
 		OIDCAuthType:     types.StringValue(dbUser.GetOidcAuthType()),
 		LDAPAuthType:     types.StringValue(dbUser.GetLdapAuthType()),
 		AWSIAMType:       types.StringValue(dbUser.GetAwsIAMType()),
-		Roles:            newTFRolesModel(dbUser.Roles),
-		Labels:           newTFLabelsModel(dbUser.Labels),
-		Scopes:           newTFScopesModel(dbUser.Scopes),
+		Roles:            NewTFRolesModel(dbUser.Roles),
+		Labels:           NewTFLabelsModel(dbUser.Labels),
+		Scopes:           NewTFScopesModel(dbUser.Scopes),
 	}
 
 	return databaseUserModel, nil
+}
+
+func NewTFLabelsModel(labels []admin.ComponentLabel) []tfLabelModel {
+	if len(labels) == 0 {
+		return nil
+	}
+
+	out := make([]tfLabelModel, len(labels))
+	for i, v := range labels {
+		out[i] = tfLabelModel{
+			Key:   types.StringValue(v.GetKey()),
+			Value: types.StringValue(v.GetValue()),
+		}
+	}
+
+	return out
+}
+
+func NewTFRolesModel(roles []admin.DatabaseUserRole) []TfRoleModel {
+	if len(roles) == 0 {
+		return nil
+	}
+
+	out := make([]TfRoleModel, len(roles))
+	for i, v := range roles {
+		out[i] = TfRoleModel{
+			RoleName:     types.StringValue(v.RoleName),
+			DatabaseName: types.StringValue(v.DatabaseName),
+		}
+
+		if v.GetCollectionName() != "" {
+			out[i].CollectionName = types.StringValue(v.GetCollectionName())
+		}
+	}
+
+	return out
+}
+
+func NewMongoDBAtlasRoles(roles []*TfRoleModel) []admin.DatabaseUserRole {
+	if len(roles) == 0 {
+		return []admin.DatabaseUserRole{}
+	}
+
+	out := make([]admin.DatabaseUserRole, len(roles))
+	for i, v := range roles {
+		out[i] = admin.DatabaseUserRole{
+			RoleName:       v.RoleName.ValueString(),
+			DatabaseName:   v.DatabaseName.ValueString(),
+			CollectionName: v.CollectionName.ValueStringPointer(),
+		}
+	}
+
+	return out
 }
