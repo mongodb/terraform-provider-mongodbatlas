@@ -115,5 +115,9 @@ func (v DBVersionStringValue) StringSemanticEquals(
 		return false, diags
 	}
 
-	return strings.EqualFold(utility.FormatMongoDBMajorVersion(newValue.ValueString()), utility.FormatMongoDBMajorVersion(v.ValueString())), diags
+	priorVal := utility.FormatMongoDBMajorVersion(v.StringValue.ValueString())
+
+	newVal := utility.FormatMongoDBMajorVersion(newValue.ValueString())
+
+	return strings.EqualFold(newVal, priorVal), diags
 }

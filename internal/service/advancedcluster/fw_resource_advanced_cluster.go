@@ -63,8 +63,7 @@ func Fw_Resource() resource.Resource {
 func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
 	s := schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"id": // TODO framework.IDAttribute()
-			schema.StringAttribute{
+			"id": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -86,8 +85,8 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.Bool{
-					// planmodifiers.UseNullForUnknownBool(),
-					boolplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseNullForUnknownBool(),
+					// boolplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"retain_backups_enabled": schema.BoolAttribute{
@@ -101,7 +100,8 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 			"create_date": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					// stringplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseNullForUnknownString(),
 				},
 			},
 			"disk_size_gb": schema.Float64Attribute{
@@ -109,14 +109,15 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 				Computed: true,
 				PlanModifiers: []planmodifier.Float64{
 					float64planmodifier.UseStateForUnknown(),
+					// TODO floatplanmodifier
 				},
 			},
 			"encryption_at_rest_provider": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-					// planmodifiers.UseNullForUnknownString(),
+					// stringplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseNullForUnknownString(),
 				},
 			},
 			// https://developer.hashicorp.com/terraform/plugin/framework/migrating/resources/crud#planned-value-does-not-match-config-value
@@ -125,7 +126,8 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 				Optional:   true,
 				Computed:   true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					// stringplanmodifier.UseStateForUnknown(),
+					planmodifiers.DBVersion(),
 				},
 			},
 			"mongo_db_version": schema.StringAttribute{
@@ -288,18 +290,23 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 						"enabled": schema.BoolAttribute{
 							Optional: true,
 							Computed: true,
+							PlanModifiers: []planmodifier.Bool{
+								planmodifiers.UseNullForUnknownBool(),
+								//boolplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"read_preference": schema.StringAttribute{
 							Optional: true,
 							Computed: true,
+							PlanModifiers: []planmodifier.String{
+								planmodifiers.UseNullForUnknownString(),
+								//boolplanmodifier.UseStateForUnknown(),
+							},
 						},
 					},
 				},
 				Validators: []validator.List{
 					listvalidator.SizeAtMost(1),
-				},
-				PlanModifiers: []planmodifier.List{
-					listplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"labels": schema.SetNestedBlock{
