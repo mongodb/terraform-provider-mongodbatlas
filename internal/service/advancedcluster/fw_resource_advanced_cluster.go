@@ -765,7 +765,7 @@ func (r *advancedClusterRS) Read(ctx context.Context, request resource.ReadReque
 
 	// replicationSpecs, d := newTfReplicationSpecsRSModel(ctx, conn, cluster.ReplicationSpecs, projectID)
 	replicationSpecs, diags := newTfReplicationSpecsRSModel_1(ctx, conn, cluster.ReplicationSpecs, state.ReplicationSpecs, projectID)
-	newState.ReplicationSpecs = replicationSpecs
+
 	// diags.Append(d...)
 	response.Diagnostics.Append(d...)
 
@@ -773,7 +773,7 @@ func (r *advancedClusterRS) Read(ctx context.Context, request resource.ReadReque
 		return
 		// return nil, diags
 	}
-	// newState.ReplicationSpecs, diags = types.ListValueFrom(ctx, tfReplicationSpecRSType, replicationSpecs)
+	newState.ReplicationSpecs, diags = types.ListValueFrom(ctx, tfReplicationSpecRSType, replicationSpecs)
 
 	advancedConfiguration, err := NewTfAdvancedConfigurationModelDSFromAtlas(ctx, conn, projectID, cluster.Name)
 	if err != nil {
@@ -794,15 +794,15 @@ func (r *advancedClusterRS) Read(ctx context.Context, request resource.ReadReque
 // api to tf state:
 func newTfReplicationSpecsRSModel_1(ctx context.Context, conn *matlas.Client,
 	rawAPIObjects []*matlas.AdvancedReplicationSpec,
-	configSpecs []tfReplicationSpecRSModel,
+	configSpecsList types.List,
 	projectID string) ([]tfReplicationSpecRSModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	// var configSpecs []tfReplicationSpecRSModel
+	var configSpecs []tfReplicationSpecRSModel
 	// var tfList []*tfReplicationSpecRSModel
 
-	// if !configSpecsList.IsNull() { //create return to state - filter by config, read/tf plan - filter by config, update - filter by config, import - return everything from API
-	// 	configSpecsList.ElementsAs(ctx, &configSpecs, true)
-	// }
+	if !configSpecsList.IsNull() { //create return to state - filter by config, read/tf plan - filter by config, update - filter by config, import - return everything from API
+		configSpecsList.ElementsAs(ctx, &configSpecs, true)
+	}
 
 	var apiObjects []*matlas.AdvancedReplicationSpec
 
@@ -891,22 +891,22 @@ func flattenAdvancedReplicationSpec_1(ctx context.Context, apiObject *matlas.Adv
 		if diags.HasError() {
 			return nil, diags
 		}
-		// l, diags := types.ListValueFrom(ctx, tfRegionsConfigType, object)
-		// if diags.HasError() {
-		// 	return nil, diags
-		// }
-		tfMap.RegionsConfigs = object
-		tfMap.ContainerID = containerIds
-	} else {
-		object, containerIds, diags := flattenAdvancedReplicationSpecRegionConfigs_1(ctx, apiObject.RegionConfigs, nil, conn, projectID)
+		l, diags := types.ListValueFrom(ctx, tfRegionsConfigType, object)
 		if diags.HasError() {
 			return nil, diags
 		}
-		// l, diags := types.ListValueFrom(ctx, tfRegionsConfigType, object)
-		// if diags.HasError() {
-		// 	return nil, diags
-		// }
-		tfMap.RegionsConfigs = object
+		tfMap.RegionsConfigs = l
+		tfMap.ContainerID = containerIds
+	} else {
+		object, containerIds, diags := flattenAdvancedReplicationSpecRegionConfigs_1(ctx, apiObject.RegionConfigs, types.ListNull(tfRegionsConfigType), conn, projectID)
+		if diags.HasError() {
+			return nil, diags
+		}
+		l, diags := types.ListValueFrom(ctx, tfRegionsConfigType, object)
+		if diags.HasError() {
+			return nil, diags
+		}
+		tfMap.RegionsConfigs = l
 		tfMap.ContainerID = containerIds
 	}
 	tfMap.ZoneName = types.StringValue(apiObject.ZoneName)
@@ -915,25 +915,24 @@ func flattenAdvancedReplicationSpec_1(ctx context.Context, apiObject *matlas.Adv
 }
 
 // api to terrafiorm state
-func flattenAdvancedReplicationSpecRegionConfigs_1(ctx context.Context, apiObjects []*matlas.AdvancedRegionConfig, configRegionConfigs []tfRegionsConfigRSModel,
-	conn *matlas.Client, projectID string) (tfResult []tfRegionsConfigRSModel, containersIDs types.Map, diags1 diag.Diagnostics) {
-
+func flattenAdvancedReplicationSpecRegionConfigs_1(ctx context.Context, apiObjects []*matlas.AdvancedRegionConfig, configRegionConfigsList types.List,
+	conn *matlas.Client, projectID string) (tfResult []tfRegionsConfigModel, containersIDs types.Map, diags1 diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	if len(apiObjects) == 0 || len(configRegionConfigs) == 0 {
+	if len(apiObjects) == 0 {
 		return nil, types.MapNull(types.StringType), diags
 	}
 
-	// var configRegionConfigs []*tfRegionsConfigModel
+	var configRegionConfigs []*tfRegionsConfigModel
 	containerIDsMap := map[string]attr.Value{}
 
 	// var tfList []*tfReplicationSpecRSModel
 
-	// if !configRegionConfigsList.IsNull() { //create return to state - filter by config, read/tf plan - filter by config, update - filter by config, import - return everything from API
-	// 	configRegionConfigsList.ElementsAs(ctx, &configRegionConfigs, true)
-	// }
+	if !configRegionConfigsList.IsNull() { //create return to state - filter by config, read/tf plan - filter by config, update - filter by config, import - return everything from API
+		configRegionConfigsList.ElementsAs(ctx, &configRegionConfigs, true)
+	}
 
-	var tfList []tfRegionsConfigRSModel
+	var tfList []tfRegionsConfigModel
 	// containerIds := make(map[string]string)
 
 	for i, apiObject := range apiObjects {
@@ -943,7 +942,7 @@ func flattenAdvancedReplicationSpecRegionConfigs_1(ctx context.Context, apiObjec
 
 		if len(configRegionConfigs) > i {
 			tfMapObject := configRegionConfigs[i]
-			rc, diags := flattenAdvancedReplicationSpecRegionConfig_1(ctx, apiObject, &tfMapObject)
+			rc, diags := flattenAdvancedReplicationSpecRegionConfig_1(ctx, apiObject, tfMapObject)
 			if diags.HasError() {
 				break
 			}
@@ -978,48 +977,38 @@ func flattenAdvancedReplicationSpecRegionConfigs_1(ctx context.Context, apiObjec
 }
 
 // api to terrafiorm state
-func flattenAdvancedReplicationSpecRegionConfig_1(ctx context.Context, apiObject *matlas.AdvancedRegionConfig, configRegionConfig *tfRegionsConfigRSModel) (*tfRegionsConfigRSModel, diag.Diagnostics) {
+func flattenAdvancedReplicationSpecRegionConfig_1(ctx context.Context, apiObject *matlas.AdvancedRegionConfig, configRegionConfig *tfRegionsConfigModel) (*tfRegionsConfigModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if apiObject == nil {
 		return nil, diags
 	}
 
-	tfMap := tfRegionsConfigRSModel{}
+	tfMap := tfRegionsConfigModel{}
 	if configRegionConfig != nil {
 		// if v, ok := configRegionConfig["analytics_specs"]; ok && len(v.([]any)) > 0 {
 		// 	tfMap["analytics_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.AnalyticsSpecs, apiObject.ProviderName, tfMapObject["analytics_specs"].([]any))
 		// }
-		if v := configRegionConfig.AnalyticsSpecs; len(v) > 0 {
+		if v := configRegionConfig.AnalyticsSpecs; !v.IsNull() && len(v.Elements()) > 0 {
 			tfMap.AnalyticsSpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.AnalyticsSpecs, apiObject.ProviderName, configRegionConfig.AnalyticsSpecs)
-		} else {
-			tfMap.AnalyticsSpecs = []tfRegionsConfigSpecsModel{}
 		}
-		if v := configRegionConfig.ElectableSpecs; len(v) > 0 {
+		if v := configRegionConfig.ElectableSpecs; !v.IsNull() && len(v.Elements()) > 0 {
 			tfMap.ElectableSpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.ElectableSpecs, apiObject.ProviderName, configRegionConfig.ElectableSpecs)
-		} else {
-			tfMap.ElectableSpecs = []tfRegionsConfigSpecsModel{}
 		}
-		if v := configRegionConfig.ReadOnlySpecs; len(v) > 0 {
+		if v := configRegionConfig.ReadOnlySpecs; !v.IsNull() && len(v.Elements()) > 0 {
 			tfMap.ReadOnlySpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.ReadOnlySpecs, apiObject.ProviderName, configRegionConfig.ReadOnlySpecs)
-		} else {
-			tfMap.ReadOnlySpecs = []tfRegionsConfigSpecsModel{}
 		}
-		if v := configRegionConfig.AutoScaling; len(v) > 0 {
+		if v := configRegionConfig.AutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
 			tfMap.AutoScaling, diags = flattenAdvancedReplicationSpecAutoScaling_1(ctx, apiObject.AutoScaling)
-		} else {
-			tfMap.AutoScaling = []tfRegionsConfigAutoScalingSpecsModel{}
 		}
-		if v := configRegionConfig.AnalyticsAutoScaling; len(v) > 0 {
+		if v := configRegionConfig.AnalyticsAutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
 			tfMap.AnalyticsAutoScaling, diags = flattenAdvancedReplicationSpecAutoScaling_1(ctx, apiObject.AnalyticsAutoScaling)
-		} else {
-			tfMap.AnalyticsAutoScaling = []tfRegionsConfigAutoScalingSpecsModel{}
 		}
 	} else {
-		// nilSpecList := types.ListNull(tfRegionsConfigSpecType)
-		tfMap.AnalyticsSpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.AnalyticsSpecs, apiObject.ProviderName, nil)
-		tfMap.ElectableSpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.ElectableSpecs, apiObject.ProviderName, nil)
-		tfMap.ReadOnlySpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.ReadOnlySpecs, apiObject.ProviderName, nil)
+		nilSpecList := types.ListNull(tfRegionsConfigSpecType)
+		tfMap.AnalyticsSpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.AnalyticsSpecs, apiObject.ProviderName, nilSpecList)
+		tfMap.ElectableSpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.ElectableSpecs, apiObject.ProviderName, nilSpecList)
+		tfMap.ReadOnlySpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.ReadOnlySpecs, apiObject.ProviderName, nilSpecList)
 		tfMap.AutoScaling, diags = flattenAdvancedReplicationSpecAutoScaling_1(ctx, apiObject.AutoScaling)
 		tfMap.AnalyticsAutoScaling, diags = flattenAdvancedReplicationSpecAutoScaling_1(ctx, apiObject.AnalyticsAutoScaling)
 	}
@@ -1033,18 +1022,18 @@ func flattenAdvancedReplicationSpecRegionConfig_1(ctx context.Context, apiObject
 }
 
 // api to terrafiorm state
-func flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx context.Context, apiObject *matlas.Specs, providerName string, configRegionConfigSpecs []tfRegionsConfigSpecsModel) ([]tfRegionsConfigSpecsModel, diag.Diagnostics) {
+func flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx context.Context, apiObject *matlas.Specs, providerName string, tfMapObjects types.List) (types.List, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	if apiObject == nil || len(configRegionConfigSpecs) == 0 {
-		return nil, diags
+	if apiObject == nil {
+		return types.ListNull(tfRegionsConfigSpecType), diags
 	}
 
-	// var configRegionConfigSpecs []*tfRegionsConfigSpecsModel
+	var configRegionConfigSpecs []*tfRegionsConfigSpecsModel
 
-	// if !tfMapObjects.IsNull() { //create return to state - filter by config, read/tf plan - filter by config, update - filter by config, import - return everything from API
-	// 	tfMapObjects.ElementsAs(ctx, &configRegionConfigSpecs, true)
-	// }
+	if !tfMapObjects.IsNull() { //create return to state - filter by config, read/tf plan - filter by config, update - filter by config, import - return everything from API
+		tfMapObjects.ElementsAs(ctx, &configRegionConfigSpecs, true)
+	}
 
 	var tfList []tfRegionsConfigSpecsModel
 
@@ -1075,16 +1064,16 @@ func flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx context.Context, apiOb
 		tfMap.InstanceSize = types.StringValue(apiObject.InstanceSize)
 		tfList = append(tfList, tfMap)
 	}
-	return tfList, diags
-	// return types.ListValueFrom(ctx, tfRegionsConfigSpecType, tfList)
+
+	return types.ListValueFrom(ctx, tfRegionsConfigSpecType, tfList)
 }
 
 // api to terrafiorm state
-func flattenAdvancedReplicationSpecAutoScaling_1(ctx context.Context, apiObject *matlas.AdvancedAutoScaling) ([]tfRegionsConfigAutoScalingSpecsModel, diag.Diagnostics) {
+func flattenAdvancedReplicationSpecAutoScaling_1(ctx context.Context, apiObject *matlas.AdvancedAutoScaling) (types.List, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if apiObject == nil {
-		return nil, diags
+		return types.ListNull(tfRegionsConfigAutoScalingSpecType), diags
 	}
 
 	var tfList []tfRegionsConfigAutoScalingSpecsModel
@@ -1102,8 +1091,7 @@ func flattenAdvancedReplicationSpecAutoScaling_1(ctx context.Context, apiObject 
 
 	tfList = append(tfList, tfMap)
 
-	return tfList, diags
-	// return types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, tfList)
+	return types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, tfList)
 }
 
 func doesAdvancedReplicationSpecMatchAPI_1(tfObject tfReplicationSpecRSModel, apiObject *matlas.AdvancedReplicationSpec) bool {
@@ -1125,13 +1113,13 @@ func newTfReplicationSpecsRSModel(ctx context.Context, conn *matlas.Client, repl
 			return nil, diags
 		}
 
-		// regionConfigsSet, diags := types.ListValueFrom(ctx, tfRegionsConfigType, regionConfigs)
+		regionConfigsSet, diags := types.ListValueFrom(ctx, tfRegionsConfigType, regionConfigs)
 		if diags.HasError() {
 			return nil, diags
 		}
 
 		tfRepSpec.ContainerID = containerIDs
-		tfRepSpec.RegionsConfigs = regionConfigs
+		tfRepSpec.RegionsConfigs = regionConfigsSet
 
 		res[i] = tfRepSpec
 	}
@@ -1430,17 +1418,17 @@ func newBiConnectorConfig(ctx context.Context, tfList basetypes.ListValue) *matl
 	return &biConnector
 }
 
-func newReplicationSpecs(ctx context.Context, tfRepSpecs []tfReplicationSpecRSModel) []*matlas.AdvancedReplicationSpec {
-	// if tfList.IsNull() || len(tfList.Elements()) == 0 {
-	// 	return nil
-	// }
-
-	// var tfRepSpecs []tfReplicationSpecRSModel
-	// tfList.ElementsAs(ctx, &tfRepSpecs, true)
-
-	if len(tfRepSpecs) == 0 {
+func newReplicationSpecs(ctx context.Context, tfList basetypes.ListValue) []*matlas.AdvancedReplicationSpec {
+	if tfList.IsNull() || len(tfList.Elements()) == 0 {
 		return nil
 	}
+
+	var tfRepSpecs []tfReplicationSpecRSModel
+	tfList.ElementsAs(ctx, &tfRepSpecs, true)
+
+	// if len(tfRepSpecs) < 0 {
+	// 	return nil
+	// }
 
 	var repSpecs []*matlas.AdvancedReplicationSpec
 
@@ -1463,17 +1451,17 @@ func newReplicationSpec(ctx context.Context, tfRepSpec *tfReplicationSpecRSModel
 	}
 }
 
-func newRegionConfigs(ctx context.Context, tfRegionConfigs []tfRegionsConfigRSModel) []*matlas.AdvancedRegionConfig {
-	// if tfList.IsNull() || len(tfList.Elements()) == 0 {
-	// 	return nil
-	// }
-
-	// var tfRegionConfigs []tfRegionsConfigRSModel
-	// tfList.ElementsAs(ctx, &tfRegionConfigs, true)
-
-	if len(tfRegionConfigs) < 0 {
+func newRegionConfigs(ctx context.Context, tfList basetypes.ListValue) []*matlas.AdvancedRegionConfig {
+	if tfList.IsNull() || len(tfList.Elements()) == 0 {
 		return nil
 	}
+
+	var tfRegionConfigs []tfRegionsConfigModel
+	tfList.ElementsAs(ctx, &tfRegionConfigs, true)
+
+	// if len(tfRegionConfigs) < 0 {
+	// 	return nil
+	// }
 
 	var regionConfigs []*matlas.AdvancedRegionConfig
 
@@ -1486,7 +1474,7 @@ func newRegionConfigs(ctx context.Context, tfRegionConfigs []tfRegionsConfigRSMo
 	return regionConfigs
 }
 
-func newRegionConfig(ctx context.Context, tfRegionConfig *tfRegionsConfigRSModel) *matlas.AdvancedRegionConfig {
+func newRegionConfig(ctx context.Context, tfRegionConfig *tfRegionsConfigModel) *matlas.AdvancedRegionConfig {
 	if tfRegionConfig == nil {
 		return nil
 	}
@@ -1498,19 +1486,19 @@ func newRegionConfig(ctx context.Context, tfRegionConfig *tfRegionsConfigRSModel
 		RegionName:   tfRegionConfig.RegionName.ValueString(),
 	}
 
-	if v := tfRegionConfig.AnalyticsSpecs; len(v) > 0 {
+	if v := tfRegionConfig.AnalyticsSpecs; !v.IsNull() && len(v.Elements()) > 0 {
 		apiObject.AnalyticsSpecs = newRegionConfigSpec(ctx, v, providerName)
 	}
-	if v := tfRegionConfig.ElectableSpecs; len(v) > 0 {
+	if v := tfRegionConfig.ElectableSpecs; !v.IsNull() && len(v.Elements()) > 0 {
 		apiObject.ElectableSpecs = newRegionConfigSpec(ctx, v, providerName)
 	}
-	if v := tfRegionConfig.ReadOnlySpecs; len(v) > 0 {
+	if v := tfRegionConfig.ReadOnlySpecs; !v.IsNull() && len(v.Elements()) > 0 {
 		apiObject.ReadOnlySpecs = newRegionConfigSpec(ctx, v, providerName)
 	}
-	if v := tfRegionConfig.AutoScaling; len(v) > 0 {
+	if v := tfRegionConfig.AutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
 		apiObject.AutoScaling = newRegionConfigAutoScalingSpec(ctx, v)
 	}
-	if v := tfRegionConfig.AnalyticsAutoScaling; len(v) > 0 {
+	if v := tfRegionConfig.AnalyticsSpecs; !v.IsNull() && len(v.Elements()) > 0 {
 		apiObject.AnalyticsAutoScaling = newRegionConfigAutoScalingSpec(ctx, v)
 	}
 	if v := tfRegionConfig.BackingProviderName; !v.IsNull() {
@@ -1520,16 +1508,13 @@ func newRegionConfig(ctx context.Context, tfRegionConfig *tfRegionsConfigRSModel
 	return apiObject
 }
 
-func newRegionConfigAutoScalingSpec(ctx context.Context, specs []tfRegionsConfigAutoScalingSpecsModel) *matlas.AdvancedAutoScaling {
-	if len(specs) == 0 {
+func newRegionConfigAutoScalingSpec(ctx context.Context, tfList basetypes.ListValue) *matlas.AdvancedAutoScaling {
+	if tfList.IsNull() || len(tfList.Elements()) == 0 {
 		return nil
 	}
-	// if tfList.IsNull() || len(tfList.Elements()) == 0 {
-	// 	return nil
-	// }
 
-	// var specs []tfRegionsConfigAutoScalingSpecsModel
-	// tfList.ElementsAs(ctx, &specs, true)
+	var specs []tfRegionsConfigAutoScalingSpecsModel
+	tfList.ElementsAs(ctx, &specs, true)
 
 	spec := specs[0]
 	advancedAutoScaling := &matlas.AdvancedAutoScaling{}
@@ -1564,16 +1549,13 @@ func newRegionConfigAutoScalingSpec(ctx context.Context, specs []tfRegionsConfig
 	return advancedAutoScaling
 }
 
-func newRegionConfigSpec(ctx context.Context, specs []tfRegionsConfigSpecsModel, providerName string) *matlas.Specs {
-	if len(specs) == 0 {
+func newRegionConfigSpec(ctx context.Context, tfList basetypes.ListValue, providerName string) *matlas.Specs {
+	if tfList.IsNull() || len(tfList.Elements()) == 0 {
 		return nil
 	}
-	// if tfList.IsNull() || len(tfList.Elements()) == 0 {
-	// 	return nil
-	// }
 
-	// var specs []tfRegionsConfigSpecsModel
-	// tfList.ElementsAs(ctx, &specs, true)
+	var specs []tfRegionsConfigSpecsModel
+	tfList.ElementsAs(ctx, &specs, true)
 
 	spec := specs[0]
 	apiObject := &matlas.Specs{}
@@ -1648,11 +1630,9 @@ type tfAdvancedClusterRSModel struct {
 	VersionReleaseSystem                      types.String                     `tfsdk:"version_release_system"`
 	AcceptDataRisksAndForceReplicaSetReconfig types.String                     `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
 
-	Labels types.Set `tfsdk:"labels"`
-	Tags   types.Set `tfsdk:"tags"`
-	// ReplicationSpecs      types.List `tfsdk:"replication_specs"`
-	ReplicationSpecs []tfReplicationSpecRSModel `tfsdk:"replication_specs"`
-
+	Labels                types.Set  `tfsdk:"labels"`
+	Tags                  types.Set  `tfsdk:"tags"`
+	ReplicationSpecs      types.List `tfsdk:"replication_specs"`
 	BiConnectorConfig     types.List `tfsdk:"bi_connector_config"`
 	ConnectionStrings     types.List `tfsdk:"connection_strings"`
 	AdvancedConfiguration types.List `tfsdk:"advanced_configuration"`
@@ -1661,11 +1641,11 @@ type tfAdvancedClusterRSModel struct {
 }
 
 type tfReplicationSpecRSModel struct {
-	RegionsConfigs []tfRegionsConfigRSModel `tfsdk:"region_configs"`
-	ContainerID    types.Map                `tfsdk:"container_id"`
-	ID             types.String             `tfsdk:"id"`
-	ZoneName       types.String             `tfsdk:"zone_name"`
-	NumShards      types.Int64              `tfsdk:"num_shards"`
+	RegionsConfigs types.List   `tfsdk:"region_configs"`
+	ContainerID    types.Map    `tfsdk:"container_id"`
+	ID             types.String `tfsdk:"id"`
+	ZoneName       types.String `tfsdk:"zone_name"`
+	NumShards      types.Int64  `tfsdk:"num_shards"`
 }
 
 var tfReplicationSpecRSType = types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -1673,45 +1653,6 @@ var tfReplicationSpecRSType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"zone_name":      types.StringType,
 	"num_shards":     types.Int64Type,
 	"container_id":   types.MapType{ElemType: types.StringType},
-	"region_configs": types.ListType{ElemType: tfRegionsConfigRSType},
+	"region_configs": types.ListType{ElemType: tfRegionsConfigType},
 },
 }
-
-type tfRegionsConfigRSModel struct {
-	AnalyticsSpecs       []tfRegionsConfigSpecsModel            `tfsdk:"analytics_specs"`
-	AutoScaling          []tfRegionsConfigAutoScalingSpecsModel `tfsdk:"auto_scaling"`
-	AnalyticsAutoScaling []tfRegionsConfigAutoScalingSpecsModel `tfsdk:"analytics_auto_scaling"`
-	ReadOnlySpecs        []tfRegionsConfigSpecsModel            `tfsdk:"read_only_specs"`
-	ElectableSpecs       []tfRegionsConfigSpecsModel            `tfsdk:"electable_specs"`
-	BackingProviderName  types.String                           `tfsdk:"backing_provider_name"`
-	ProviderName         types.String                           `tfsdk:"provider_name"`
-	RegionName           types.String                           `tfsdk:"region_name"`
-	Priority             types.Int64                            `tfsdk:"priority"`
-}
-
-var tfRegionsConfigRSType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"backing_provider_name":  types.StringType,
-	"priority":               types.Int64Type,
-	"provider_name":          types.StringType,
-	"region_name":            types.StringType,
-	"analytics_specs":        types.ListType{ElemType: tfRegionsConfigSpecType},
-	"electable_specs":        types.ListType{ElemType: tfRegionsConfigSpecType},
-	"read_only_specs":        types.ListType{ElemType: tfRegionsConfigSpecType},
-	"auto_scaling":           types.ListType{ElemType: tfRegionsConfigAutoScalingSpecType},
-	"analytics_auto_scaling": types.ListType{ElemType: tfRegionsConfigAutoScalingSpecType},
-}}
-
-// type tfRegionsConfigSpecsRSModel struct {
-// 	InstanceSize  types.String `tfsdk:"instance_size"`
-// 	EBSVolumeType types.String `tfsdk:"ebs_volume_type"`
-// 	DiskIOPS      types.Int64  `tfsdk:"disk_iops"`
-// 	NodeCount     types.Int64  `tfsdk:"node_count"`
-// }
-
-// type tfRegionsConfigAutoScalingSpecsRSModel struct {
-// 	ComputeMinInstanceSize  types.String `tfsdk:"compute_min_instance_size"`
-// 	ComputeMaxInstanceSize  types.String `tfsdk:"compute_max_instance_size"`
-// 	DiskGBEnabled           types.Bool   `tfsdk:"disk_gb_enabled"`
-// 	ComputeScaleDownEnabled types.Bool   `tfsdk:"compute_scale_down_enabled"`
-// 	ComputeEnabled          types.Bool   `tfsdk:"compute_enabled"`
-// }

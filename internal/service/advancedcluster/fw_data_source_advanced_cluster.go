@@ -162,12 +162,12 @@ func newTfReplicationSpecsDSModel(ctx context.Context, conn *matlas.Client, repl
 	return res, diags
 }
 
-func getTfRegionConfigsAndContainerIDs(ctx context.Context, conn *matlas.Client, apiObjects []*matlas.AdvancedRegionConfig, projectID string) ([]tfRegionsConfigRSModel, types.Map, diag.Diagnostics) {
+func getTfRegionConfigsAndContainerIDs(ctx context.Context, conn *matlas.Client, apiObjects []*matlas.AdvancedRegionConfig, projectID string) ([]tfRegionsConfigModel, types.Map, diag.Diagnostics) {
 	var tfContainersIDsMap basetypes.MapValue
 	var diags diag.Diagnostics
 	containerIDsMap := map[string]attr.Value{}
 
-	tfRegionConfigs := make([]tfRegionsConfigRSModel, len(apiObjects))
+	tfRegionConfigs := make([]tfRegionsConfigModel, len(apiObjects))
 
 	for i, apiObject := range apiObjects {
 		tfRegionConfig, diags := newTfRegionConfig(ctx, conn, apiObject, projectID)
