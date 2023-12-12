@@ -136,10 +136,12 @@ func returnServerlessInstanceSchema() map[string]*schema.Schema {
 				Schema: map[string]*schema.Schema{
 					"href": {
 						Type:     schema.TypeString,
+						Optional: true,
 						Computed: true,
 					},
 					"rel": {
 						Type:     schema.TypeString,
+						Optional: true,
 						Computed: true,
 					},
 				}},
