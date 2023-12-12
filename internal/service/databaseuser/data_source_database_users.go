@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
 const (
@@ -137,14 +137,14 @@ func (d *DatabaseUsersDS) Read(ctx context.Context, req datasource.ReadRequest, 
 	}
 
 	projectID := databaseUsersModel.ProjectID.ValueString()
-	conn := d.Client.Atlas
-	dbUser, _, err := conn.DatabaseUsers.List(ctx, projectID, nil)
+	connV2 := d.Client.AtlasV2
+	dbUser, _, err := connV2.DatabaseUsersApi.ListDatabaseUsers(ctx, projectID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error getting database user information", err.Error())
 		return
 	}
 
-	dbUserModel, diagnostic := newTFDatabaseUsersMode(ctx, projectID, dbUser)
+	dbUserModel, diagnostic := newTFDatabaseUsersMode(ctx, projectID, dbUser.GetResults())
 	resp.Diagnostics.Append(diagnostic...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -156,7 +156,7 @@ func (d *DatabaseUsersDS) Read(ctx context.Context, req datasource.ReadRequest, 
 	}
 }
 
-func newTFDatabaseUsersMode(ctx context.Context, projectID string, dbUsers []matlas.DatabaseUser) (*tfDatabaseUsersDSModel, diag.Diagnostics) {
+func newTFDatabaseUsersMode(ctx context.Context, projectID string, dbUsers []admin.CloudDatabaseUser) (*tfDatabaseUsersDSModel, diag.Diagnostics) {
 	results := make([]*tfDatabaseUserDSModel, len(dbUsers))
 	for i := range dbUsers {
 		dbUserModel, d := newTFDatabaseDSUserModel(ctx, &dbUsers[i])
