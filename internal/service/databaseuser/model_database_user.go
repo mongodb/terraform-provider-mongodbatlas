@@ -2,9 +2,11 @@ package databaseuser
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
@@ -86,6 +88,43 @@ func NewTfDatabaseUserModel(ctx context.Context, model *TfDatabaseUserModel, dbU
 	}
 
 	return databaseUserModel, nil
+}
+
+func NewTFDatabaseDSUserModel(ctx context.Context, dbUser *admin.CloudDatabaseUser) (*TfDatabaseUserDSModel, diag.Diagnostics) {
+	databaseID := fmt.Sprintf("%s-%s-%s", dbUser.GroupId, dbUser.Username, dbUser.DatabaseName)
+	databaseUserModel := &TfDatabaseUserDSModel{
+		ID:               types.StringValue(databaseID),
+		ProjectID:        types.StringValue(dbUser.GroupId),
+		AuthDatabaseName: types.StringValue(dbUser.DatabaseName),
+		Username:         types.StringValue(dbUser.Username),
+		Password:         types.StringValue(dbUser.GetPassword()),
+		X509Type:         types.StringValue(dbUser.GetX509Type()),
+		OIDCAuthType:     types.StringValue(dbUser.GetOidcAuthType()),
+		LDAPAuthType:     types.StringValue(dbUser.GetLdapAuthType()),
+		AWSIAMType:       types.StringValue(dbUser.GetAwsIAMType()),
+		Roles:            NewTFRolesModel(dbUser.Roles),
+		Labels:           NewTFLabelsModel(dbUser.Labels),
+		Scopes:           NewTFScopesModel(dbUser.Scopes),
+	}
+
+	return databaseUserModel, nil
+}
+
+func NewTFDatabaseUsersMode(ctx context.Context, projectID string, dbUsers []admin.CloudDatabaseUser) (*TfDatabaseUsersDSModel, diag.Diagnostics) {
+	results := make([]*TfDatabaseUserDSModel, len(dbUsers))
+	for i := range dbUsers {
+		dbUserModel, d := NewTFDatabaseDSUserModel(ctx, &dbUsers[i])
+		if d.HasError() {
+			return nil, d
+		}
+		results[i] = dbUserModel
+	}
+
+	return &TfDatabaseUsersDSModel{
+		ProjectID: types.StringValue(projectID),
+		Results:   results,
+		ID:        types.StringValue(id.UniqueId()),
+	}, nil
 }
 
 func NewTFScopesModel(scopes []admin.UserScope) []TfScopeModel {
