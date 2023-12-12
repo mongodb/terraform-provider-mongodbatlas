@@ -28,25 +28,38 @@ var (
 	value            = "value"
 	name             = "name"
 	typeVar          = "type"
-	userRole         = databaseuser.TfRoleModel{
+	tfUserRole       = databaseuser.TfRoleModel{
 		RoleName:       types.StringValue(roleName),
 		CollectionName: types.StringValue(collectionName),
 		DatabaseName:   types.StringValue(databaseName),
 	}
-	labels = databaseuser.TfLabelModel{
+	tfLabel = databaseuser.TfLabelModel{
 		Key:   types.StringValue(key),
 		Value: types.StringValue(value),
 	}
-	scopes = databaseuser.TfScopeModel{
+	tfScope = databaseuser.TfScopeModel{
 		Name: types.StringValue(name),
 		Type: types.StringValue(typeVar),
 	}
-	rolesSet, _       = types.SetValueFrom(context.Background(), databaseuser.RoleObjectType, []databaseuser.TfRoleModel{userRole})
-	labelsSet, _      = types.SetValueFrom(context.Background(), databaseuser.LabelObjectType, []databaseuser.TfLabelModel{labels})
-	scopesSet, _      = types.SetValueFrom(context.Background(), databaseuser.ScopeObjectType, []databaseuser.TfScopeModel{scopes})
-	wrongRoleSet, _   = types.SetValueFrom(context.Background(), databaseuser.LabelObjectType, []databaseuser.TfRoleModel{userRole})
-	wrongLabelSet, _  = types.SetValueFrom(context.Background(), databaseuser.RoleObjectType, []databaseuser.TfLabelModel{labels})
-	wrongScopeSet, _  = types.SetValueFrom(context.Background(), databaseuser.RoleObjectType, []databaseuser.TfScopeModel{scopes})
+	sdkScope = admin.UserScope{
+		Name: name,
+		Type: typeVar,
+	}
+	sdkLabel = admin.ComponentLabel{
+		Key:   &key,
+		Value: &value,
+	}
+	sdkRole = admin.DatabaseUserRole{
+		CollectionName: &collectionName,
+		DatabaseName:   databaseName,
+		RoleName:       roleName,
+	}
+	rolesSet, _       = types.SetValueFrom(context.Background(), databaseuser.RoleObjectType, []databaseuser.TfRoleModel{tfUserRole})
+	labelsSet, _      = types.SetValueFrom(context.Background(), databaseuser.LabelObjectType, []databaseuser.TfLabelModel{tfLabel})
+	scopesSet, _      = types.SetValueFrom(context.Background(), databaseuser.ScopeObjectType, []databaseuser.TfScopeModel{tfScope})
+	wrongRoleSet, _   = types.SetValueFrom(context.Background(), databaseuser.LabelObjectType, []databaseuser.TfRoleModel{tfUserRole})
+	wrongLabelSet, _  = types.SetValueFrom(context.Background(), databaseuser.RoleObjectType, []databaseuser.TfLabelModel{tfLabel})
+	wrongScopeSet, _  = types.SetValueFrom(context.Background(), databaseuser.RoleObjectType, []databaseuser.TfScopeModel{tfScope})
 	cloudDatabaseUser = &admin.CloudDatabaseUser{
 		GroupId:      projectID,
 		DatabaseName: authDatabaseName,
@@ -56,25 +69,9 @@ var (
 		OidcAuthType: &oidCAuthType,
 		LdapAuthType: &ldapAuthType,
 		AwsIAMType:   &awsIAMType,
-		Roles: []admin.DatabaseUserRole{
-			{
-				CollectionName: &collectionName,
-				DatabaseName:   databaseName,
-				RoleName:       roleName,
-			},
-		},
-		Labels: []admin.ComponentLabel{
-			{
-				Key:   &key,
-				Value: &value,
-			},
-		},
-		Scopes: []admin.UserScope{
-			{
-				Name: name,
-				Type: typeVar,
-			},
-		},
+		Roles:        []admin.DatabaseUserRole{sdkRole},
+		Labels:       []admin.ComponentLabel{sdkLabel},
+		Scopes:       []admin.UserScope{sdkScope},
 	}
 )
 
@@ -146,6 +143,93 @@ func TestNewTfDatabaseUserModel(t *testing.T) {
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
 			}
+			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
+				t.Errorf("created terraform model did not match expected output")
+			}
+		})
+	}
+}
+
+func TestNewTFScopesModel(t *testing.T) {
+	testCases := []struct {
+		name           string
+		currentScopes  []admin.UserScope
+		expectedResult []databaseuser.TfScopeModel
+	}{
+		{
+			name:           "Success TfScopeModel",
+			currentScopes:  []admin.UserScope{sdkScope},
+			expectedResult: []databaseuser.TfScopeModel{tfScope},
+		},
+		{
+			name:           "Empty TfScopeModel",
+			currentScopes:  []admin.UserScope{},
+			expectedResult: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel := databaseuser.NewTFScopesModel(tc.currentScopes)
+
+			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
+				t.Errorf("created terraform model did not match expected output")
+			}
+		})
+	}
+}
+
+func TestNewMongoDBAtlasLabels(t *testing.T) {
+	testCases := []struct {
+		name           string
+		currentLabels  []*databaseuser.TfLabelModel
+		expectedResult []admin.ComponentLabel
+	}{
+		{
+			name:           "Success TfLabelModel",
+			currentLabels:  []*databaseuser.TfLabelModel{&tfLabel},
+			expectedResult: []admin.ComponentLabel{sdkLabel},
+		},
+		{
+			name:           "Empty TfLabelModel",
+			currentLabels:  []*databaseuser.TfLabelModel{},
+			expectedResult: []admin.ComponentLabel{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel := databaseuser.NewMongoDBAtlasLabels(tc.currentLabels)
+
+			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
+				t.Errorf("created terraform model did not match expected output")
+			}
+		})
+	}
+}
+
+func TestNewMongoDBAtlasScopes(t *testing.T) {
+	testCases := []struct {
+		name           string
+		currentScopes  []*databaseuser.TfScopeModel
+		expectedResult []admin.UserScope
+	}{
+		{
+			name:           "Success TfScopeModel",
+			currentScopes:  []*databaseuser.TfScopeModel{&tfScope},
+			expectedResult: []admin.UserScope{sdkScope},
+		},
+		{
+			name:           "Empty TfScopeModel",
+			currentScopes:  []*databaseuser.TfScopeModel{},
+			expectedResult: []admin.UserScope{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel := databaseuser.NewMongoDBAtlasScopes(tc.currentScopes)
+
 			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
 				t.Errorf("created terraform model did not match expected output")
 			}
