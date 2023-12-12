@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"reflect"
 	"time"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"golang.org/x/exp/slices"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
@@ -20,7 +22,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -328,9 +332,17 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 						"container_id": schema.MapAttribute{
 							ElementType: types.StringType,
 							Computed:    true,
+							PlanModifiers: []planmodifier.Map{
+								// planmodifiers.UseNullForUnknownBool(),
+								mapplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"id": schema.StringAttribute{
 							Computed: true,
+							PlanModifiers: []planmodifier.String{
+								// planmodifiers.UseNullForUnknownBool(),
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"num_shards": schema.Int64Attribute{
 							Optional: true,
@@ -475,6 +487,9 @@ func advancedClusterRSRegionConfigSpecsBlock() schema.ListNestedBlock {
 				"disk_iops": schema.Int64Attribute{
 					Optional: true,
 					Computed: true,
+					PlanModifiers: []planmodifier.Int64{
+						int64planmodifier.UseStateForUnknown(),
+					},
 				},
 				"ebs_volume_type": schema.StringAttribute{
 					Optional: true,
@@ -500,6 +515,9 @@ func advancedClusterRSRegionConfigAutoScalingSpecsBlock() schema.ListNestedBlock
 				"compute_enabled": schema.BoolAttribute{
 					Optional: true,
 					Computed: true,
+					PlanModifiers: []planmodifier.Bool{
+						boolplanmodifier.UseStateForUnknown(),
+					},
 				},
 				"compute_max_instance_size": schema.StringAttribute{
 					Optional: true,
@@ -512,10 +530,16 @@ func advancedClusterRSRegionConfigAutoScalingSpecsBlock() schema.ListNestedBlock
 				"compute_scale_down_enabled": schema.BoolAttribute{
 					Optional: true,
 					Computed: true,
+					PlanModifiers: []planmodifier.Bool{
+						boolplanmodifier.UseStateForUnknown(),
+					},
 				},
 				"disk_gb_enabled": schema.BoolAttribute{
 					Optional: true,
 					Computed: true,
+					PlanModifiers: []planmodifier.Bool{
+						boolplanmodifier.UseStateForUnknown(),
+					},
 				},
 			},
 		},
@@ -703,6 +727,7 @@ func (r *advancedClusterRS) Read(ctx context.Context, request resource.ReadReque
 	var d diag.Diagnostics
 	newState := tfAdvancedClusterRSModel{
 		ID:                           types.StringValue(cluster.ID),
+		ClusterID:                    types.StringValue(cluster.ID),
 		BackupEnabled:                types.BoolPointerValue(cluster.BackupEnabled),
 		ClusterType:                  types.StringValue(cluster.ClusterType),
 		CreateDate:                   types.StringValue(cluster.CreateDate),
@@ -738,7 +763,9 @@ func (r *advancedClusterRS) Read(ctx context.Context, request resource.ReadReque
 	// diags.Append(d...)
 	response.Diagnostics.Append(d...)
 
-	replicationSpecs, d := newTfReplicationSpecsRSModel(ctx, conn, cluster.ReplicationSpecs, projectID)
+	// replicationSpecs, d := newTfReplicationSpecsRSModel(ctx, conn, cluster.ReplicationSpecs, projectID)
+	replicationSpecs, diags := newTfReplicationSpecsRSModel_1(ctx, conn, cluster.ReplicationSpecs, state.ReplicationSpecs, projectID)
+
 	// diags.Append(d...)
 	response.Diagnostics.Append(d...)
 
@@ -762,6 +789,313 @@ func (r *advancedClusterRS) Read(ctx context.Context, request resource.ReadReque
 
 	// save updated data into terraform state
 	response.Diagnostics.Append(response.State.Set(ctx, &newState)...)
+}
+
+// api to tf state:
+func newTfReplicationSpecsRSModel_1(ctx context.Context, conn *matlas.Client,
+	rawAPIObjects []*matlas.AdvancedReplicationSpec,
+	configSpecsList types.List,
+	projectID string) ([]tfReplicationSpecRSModel, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var configSpecs []tfReplicationSpecRSModel
+	// var tfList []*tfReplicationSpecRSModel
+
+	if !configSpecsList.IsNull() { //create return to state - filter by config, read/tf plan - filter by config, update - filter by config, import - return everything from API
+		configSpecsList.ElementsAs(ctx, &configSpecs, true)
+	}
+
+	var apiObjects []*matlas.AdvancedReplicationSpec
+
+	for _, advancedReplicationSpec := range rawAPIObjects {
+		if advancedReplicationSpec != nil {
+			apiObjects = append(apiObjects, advancedReplicationSpec)
+		}
+	}
+
+	if len(apiObjects) == 0 {
+		return nil, diags
+	}
+
+	tfList := make([]tfReplicationSpecRSModel, len(apiObjects))
+	wasAPIObjectUsed := make([]bool, len(apiObjects))
+
+	for i := 0; i < len(tfList); i++ {
+		var tfMapObject tfReplicationSpecRSModel
+
+		if len(configSpecs) > i {
+			tfMapObject = configSpecs[i]
+		}
+
+		for j := 0; j < len(apiObjects); j++ {
+			if wasAPIObjectUsed[j] {
+				continue
+			}
+
+			if !doesAdvancedReplicationSpecMatchAPI_1(tfMapObject, apiObjects[j]) {
+				continue
+			}
+
+			advancedReplicationSpec, diags := flattenAdvancedReplicationSpec_1(ctx, apiObjects[j], &tfMapObject, conn, projectID)
+			if diags.HasError() {
+				return nil, diags
+			}
+
+			tfList[i] = *advancedReplicationSpec
+			wasAPIObjectUsed[j] = true
+			break
+		}
+	}
+
+	for i, tfo := range tfList {
+		var tfMapObject *tfReplicationSpecRSModel
+		if !reflect.DeepEqual(tfo, (tfReplicationSpecRSModel{})) {
+			continue
+		}
+
+		// if tfo != (tfReplicationSpecRSModel{}) {
+		// 	continue
+		// }
+
+		if len(configSpecs) > i {
+			tfMapObject = &configSpecs[i]
+		}
+
+		j := slices.IndexFunc(wasAPIObjectUsed, func(isUsed bool) bool { return !isUsed })
+		advancedReplicationSpec, diags := flattenAdvancedReplicationSpec_1(ctx, apiObjects[j], tfMapObject, conn, projectID)
+
+		if diags.HasError() {
+			return nil, diags
+		}
+
+		tfList[i] = *advancedReplicationSpec
+		wasAPIObjectUsed[j] = true
+	}
+
+	return tfList, nil
+
+}
+
+func flattenAdvancedReplicationSpec_1(ctx context.Context, apiObject *matlas.AdvancedReplicationSpec, configSpec *tfReplicationSpecRSModel,
+	conn *matlas.Client, projectID string) (*tfReplicationSpecRSModel, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	if apiObject == nil {
+		return nil, diags
+	}
+
+	tfMap := tfReplicationSpecRSModel{}
+	tfMap.NumShards = types.Int64Value(cast.ToInt64(apiObject.NumShards))
+	tfMap.ID = types.StringValue(apiObject.ID)
+	if configSpec != nil {
+		object, containerIds, diags := flattenAdvancedReplicationSpecRegionConfigs_1(ctx, apiObject.RegionConfigs, configSpec.RegionsConfigs, conn, projectID)
+		if diags.HasError() {
+			return nil, diags
+		}
+		l, diags := types.ListValueFrom(ctx, tfRegionsConfigType, object)
+		if diags.HasError() {
+			return nil, diags
+		}
+		tfMap.RegionsConfigs = l
+		tfMap.ContainerID = containerIds
+	} else {
+		object, containerIds, diags := flattenAdvancedReplicationSpecRegionConfigs_1(ctx, apiObject.RegionConfigs, types.ListNull(tfRegionsConfigType), conn, projectID)
+		if diags.HasError() {
+			return nil, diags
+		}
+		l, diags := types.ListValueFrom(ctx, tfRegionsConfigType, object)
+		if diags.HasError() {
+			return nil, diags
+		}
+		tfMap.RegionsConfigs = l
+		tfMap.ContainerID = containerIds
+	}
+	tfMap.ZoneName = types.StringValue(apiObject.ZoneName)
+
+	return &tfMap, diags
+}
+
+// api to terrafiorm state
+func flattenAdvancedReplicationSpecRegionConfigs_1(ctx context.Context, apiObjects []*matlas.AdvancedRegionConfig, configRegionConfigsList types.List,
+	conn *matlas.Client, projectID string) (tfResult []tfRegionsConfigModel, containersIDs types.Map, diags1 diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	if len(apiObjects) == 0 {
+		return nil, types.MapNull(types.StringType), diags
+	}
+
+	var configRegionConfigs []*tfRegionsConfigModel
+	containerIDsMap := map[string]attr.Value{}
+
+	// var tfList []*tfReplicationSpecRSModel
+
+	if !configRegionConfigsList.IsNull() { //create return to state - filter by config, read/tf plan - filter by config, update - filter by config, import - return everything from API
+		configRegionConfigsList.ElementsAs(ctx, &configRegionConfigs, true)
+	}
+
+	var tfList []tfRegionsConfigModel
+	// containerIds := make(map[string]string)
+
+	for i, apiObject := range apiObjects {
+		if apiObject == nil {
+			continue
+		}
+
+		if len(configRegionConfigs) > i {
+			tfMapObject := configRegionConfigs[i]
+			rc, diags := flattenAdvancedReplicationSpecRegionConfig_1(ctx, apiObject, tfMapObject)
+			if diags.HasError() {
+				break
+			}
+
+			tfList = append(tfList, *rc)
+		} else {
+			rc, diags := flattenAdvancedReplicationSpecRegionConfig_1(ctx, apiObject, nil)
+			if diags.HasError() {
+				break
+			}
+
+			tfList = append(tfList, *rc)
+		}
+
+		if apiObject.ProviderName != "TENANT" {
+			containers, _, err := conn.Containers.List(ctx, projectID,
+				&matlas.ContainersListOptions{ProviderName: apiObject.ProviderName})
+			if err != nil {
+				diags.AddError("error when getting containers list from Atlas", err.Error())
+				return nil, types.MapNull(types.StringType), diags
+			}
+			if result := getAdvancedClusterContainerID(containers, apiObject); result != "" {
+				// Will print as "providerName:regionName" = "containerId" in terraform show
+				key := fmt.Sprintf("%s:%s", apiObject.ProviderName, apiObject.RegionName)
+				containerIDsMap[key] = types.StringValue(result)
+			}
+		}
+	}
+	tfContainersIDsMap, _ := types.MapValue(types.StringType, containerIDsMap)
+
+	return tfList, tfContainersIDsMap, diags
+}
+
+// api to terrafiorm state
+func flattenAdvancedReplicationSpecRegionConfig_1(ctx context.Context, apiObject *matlas.AdvancedRegionConfig, configRegionConfig *tfRegionsConfigModel) (*tfRegionsConfigModel, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	if apiObject == nil {
+		return nil, diags
+	}
+
+	tfMap := tfRegionsConfigModel{}
+	if configRegionConfig != nil {
+		// if v, ok := configRegionConfig["analytics_specs"]; ok && len(v.([]any)) > 0 {
+		// 	tfMap["analytics_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.AnalyticsSpecs, apiObject.ProviderName, tfMapObject["analytics_specs"].([]any))
+		// }
+		if v := configRegionConfig.AnalyticsSpecs; !v.IsNull() && len(v.Elements()) > 0 {
+			tfMap.AnalyticsSpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.AnalyticsSpecs, apiObject.ProviderName, configRegionConfig.AnalyticsSpecs)
+		}
+		if v := configRegionConfig.ElectableSpecs; !v.IsNull() && len(v.Elements()) > 0 {
+			tfMap.ElectableSpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.ElectableSpecs, apiObject.ProviderName, configRegionConfig.ElectableSpecs)
+		}
+		if v := configRegionConfig.ReadOnlySpecs; !v.IsNull() && len(v.Elements()) > 0 {
+			tfMap.ReadOnlySpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.ReadOnlySpecs, apiObject.ProviderName, configRegionConfig.ReadOnlySpecs)
+		}
+		if v := configRegionConfig.AutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
+			tfMap.AutoScaling, diags = flattenAdvancedReplicationSpecAutoScaling_1(ctx, apiObject.AutoScaling)
+		}
+		if v := configRegionConfig.AnalyticsAutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
+			tfMap.AnalyticsAutoScaling, diags = flattenAdvancedReplicationSpecAutoScaling_1(ctx, apiObject.AnalyticsAutoScaling)
+		}
+	} else {
+		nilSpecList := types.ListNull(tfRegionsConfigSpecType)
+		tfMap.AnalyticsSpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.AnalyticsSpecs, apiObject.ProviderName, nilSpecList)
+		tfMap.ElectableSpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.ElectableSpecs, apiObject.ProviderName, nilSpecList)
+		tfMap.ReadOnlySpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.ReadOnlySpecs, apiObject.ProviderName, nilSpecList)
+		tfMap.AutoScaling, diags = flattenAdvancedReplicationSpecAutoScaling_1(ctx, apiObject.AutoScaling)
+		tfMap.AnalyticsAutoScaling, diags = flattenAdvancedReplicationSpecAutoScaling_1(ctx, apiObject.AnalyticsAutoScaling)
+	}
+
+	tfMap.RegionName = types.StringValue(apiObject.RegionName)
+	tfMap.ProviderName = types.StringValue(apiObject.ProviderName)
+	tfMap.BackingProviderName = types.StringValue(apiObject.BackingProviderName)
+	tfMap.Priority = types.Int64Value(cast.ToInt64(apiObject.Priority))
+
+	return &tfMap, diags
+}
+
+// api to terrafiorm state
+func flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx context.Context, apiObject *matlas.Specs, providerName string, tfMapObjects types.List) (types.List, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	if apiObject == nil {
+		return types.ListNull(tfRegionsConfigSpecType), diags
+	}
+
+	var configRegionConfigSpecs []*tfRegionsConfigSpecsModel
+
+	if !tfMapObjects.IsNull() { //create return to state - filter by config, read/tf plan - filter by config, update - filter by config, import - return everything from API
+		tfMapObjects.ElementsAs(ctx, &configRegionConfigSpecs, true)
+	}
+
+	var tfList []tfRegionsConfigSpecsModel
+
+	tfMap := tfRegionsConfigSpecsModel{}
+
+	if len(configRegionConfigSpecs) > 0 {
+		tfMapObject := configRegionConfigSpecs[0]
+
+		if providerName == "AWS" {
+			if cast.ToInt64(apiObject.DiskIOPS) > 0 {
+				tfMap.DiskIOPS = types.Int64PointerValue(apiObject.DiskIOPS)
+			}
+			if v := tfMapObject.EBSVolumeType; !v.IsNull() && v.ValueString() != "" {
+				tfMap.EBSVolumeType = types.StringValue(apiObject.EbsVolumeType)
+			}
+		}
+		if v := tfMapObject.NodeCount; !v.IsNull() {
+			tfMap.NodeCount = types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiObject.NodeCount))
+		}
+		if v := tfMapObject.InstanceSize; !v.IsNull() && v.ValueString() != "" {
+			tfMap.InstanceSize = types.StringValue(apiObject.InstanceSize)
+			tfList = append(tfList, tfMap)
+		}
+	} else {
+		tfMap.DiskIOPS = types.Int64PointerValue(apiObject.DiskIOPS)
+		tfMap.EBSVolumeType = types.StringValue(apiObject.EbsVolumeType)
+		tfMap.NodeCount = types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiObject.NodeCount))
+		tfMap.InstanceSize = types.StringValue(apiObject.InstanceSize)
+		tfList = append(tfList, tfMap)
+	}
+
+	return types.ListValueFrom(ctx, tfRegionsConfigSpecType, tfList)
+}
+
+// api to terrafiorm state
+func flattenAdvancedReplicationSpecAutoScaling_1(ctx context.Context, apiObject *matlas.AdvancedAutoScaling) (types.List, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	if apiObject == nil {
+		return types.ListNull(tfRegionsConfigAutoScalingSpecType), diags
+	}
+
+	var tfList []tfRegionsConfigAutoScalingSpecsModel
+
+	tfMap := tfRegionsConfigAutoScalingSpecsModel{}
+	if apiObject.DiskGB != nil {
+		tfMap.DiskGBEnabled = types.BoolPointerValue(apiObject.DiskGB.Enabled)
+	}
+	if apiObject.Compute != nil {
+		tfMap.ComputeEnabled = types.BoolPointerValue(apiObject.Compute.Enabled)
+		tfMap.ComputeScaleDownEnabled = types.BoolPointerValue(apiObject.Compute.ScaleDownEnabled)
+		tfMap.ComputeMinInstanceSize = types.StringValue(apiObject.Compute.MinInstanceSize)
+		tfMap.ComputeMaxInstanceSize = types.StringValue(apiObject.Compute.MaxInstanceSize)
+	}
+
+	tfList = append(tfList, tfMap)
+
+	return types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, tfList)
+}
+
+func doesAdvancedReplicationSpecMatchAPI_1(tfObject tfReplicationSpecRSModel, apiObject *matlas.AdvancedReplicationSpec) bool {
+	return tfObject.ID.ValueString() == apiObject.ID || (tfObject.ID.IsNull() && tfObject.ZoneName.ValueString() == apiObject.ZoneName)
 }
 
 func newTfReplicationSpecsRSModel(ctx context.Context, conn *matlas.Client, replicationSpecs []*matlas.AdvancedReplicationSpec, projectID string) ([]*tfReplicationSpecRSModel, diag.Diagnostics) {
