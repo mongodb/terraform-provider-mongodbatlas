@@ -237,7 +237,8 @@ func Resource() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"region_name": {
 										Type:     schema.TypeString,
-										Required: true,
+										Optional: true,
+										Computed: true,
 									},
 									"electable_nodes": {
 										Type:     schema.TypeInt,
@@ -252,12 +253,12 @@ func Resource() *schema.Resource {
 									"read_only_nodes": {
 										Type:     schema.TypeInt,
 										Optional: true,
-										Default:  0,
+										Computed: true,
 									},
 									"analytics_nodes": {
 										Type:     schema.TypeInt,
 										Optional: true,
-										Default:  0,
+										Computed: true,
 									},
 								},
 							},
