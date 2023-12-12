@@ -1,1 +1,176 @@
 package databaseuser_test
+
+import (
+	"context"
+	"reflect"
+	"testing"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
+	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+)
+
+var (
+	projectID        = "projectID"
+	authDatabaseName = "AuthDatabaseName"
+	username         = "Username"
+	password         = "Password"
+	x509Type         = "X509Type"
+	oidCAuthType     = "OIDCAuthType"
+	ldapAuthType     = "LDAPAuthType"
+	awsIAMType       = "AWSIAMType"
+	roleName         = "roleName"
+	collectionName   = "collectionName"
+	databaseName     = "databaseName"
+	key              = "key"
+	value            = "value"
+	name             = "name"
+	typeVar          = "type"
+	userRole         = databaseuser.TfRoleModel{
+		RoleName:       types.StringValue(roleName),
+		CollectionName: types.StringValue(collectionName),
+		DatabaseName:   types.StringValue(databaseName),
+	}
+	labels = databaseuser.TfLabelModel{
+		Key:   types.StringValue(key),
+		Value: types.StringValue(value),
+	}
+	scopes = databaseuser.TfScopeModel{
+		Name: types.StringValue(name),
+		Type: types.StringValue(typeVar),
+	}
+	rolesSet, _       = types.SetValueFrom(context.Background(), databaseuser.RoleObjectType, []databaseuser.TfRoleModel{userRole})
+	labelsSet, _      = types.SetValueFrom(context.Background(), databaseuser.LabelObjectType, []databaseuser.TfLabelModel{labels})
+	scopesSet, _      = types.SetValueFrom(context.Background(), databaseuser.ScopeObjectType, []databaseuser.TfScopeModel{scopes})
+	wrongRoleSet, _   = types.SetValueFrom(context.Background(), databaseuser.LabelObjectType, []databaseuser.TfRoleModel{userRole})
+	wrongLabelSet, _  = types.SetValueFrom(context.Background(), databaseuser.RoleObjectType, []databaseuser.TfLabelModel{labels})
+	wrongScopeSet, _  = types.SetValueFrom(context.Background(), databaseuser.RoleObjectType, []databaseuser.TfScopeModel{scopes})
+	cloudDatabaseUser = &admin.CloudDatabaseUser{
+		GroupId:      projectID,
+		DatabaseName: authDatabaseName,
+		Username:     username,
+		Password:     &password,
+		X509Type:     &x509Type,
+		OidcAuthType: &oidCAuthType,
+		LdapAuthType: &ldapAuthType,
+		AwsIAMType:   &awsIAMType,
+		Roles: []admin.DatabaseUserRole{
+			{
+				CollectionName: &collectionName,
+				DatabaseName:   databaseName,
+				RoleName:       roleName,
+			},
+		},
+		Labels: []admin.ComponentLabel{
+			{
+				Key:   &key,
+				Value: &value,
+			},
+		},
+		Scopes: []admin.UserScope{
+			{
+				Name: name,
+				Type: typeVar,
+			},
+		},
+	}
+)
+
+func TestNewMongoDBDatabaseUser(t *testing.T) {
+	testCases := []struct {
+		TfDatabaseUserModel databaseuser.TfDatabaseUserModel
+		expectedResult      *admin.CloudDatabaseUser
+		name                string
+		expectedError       bool
+	}{
+		{
+			name:                "Success CloudDatabaseUser",
+			TfDatabaseUserModel: *getDatabaseUserModel(rolesSet, labelsSet, scopesSet),
+			expectedResult:      cloudDatabaseUser,
+			expectedError:       false,
+		},
+		{
+			name:                "Roles fail",
+			TfDatabaseUserModel: *getDatabaseUserModel(wrongRoleSet, labelsSet, scopesSet),
+			expectedError:       true,
+		},
+		{
+			name:                "Labels fail",
+			TfDatabaseUserModel: *getDatabaseUserModel(rolesSet, wrongLabelSet, scopesSet),
+			expectedError:       true,
+		},
+		{
+			name:                "Scopes fail",
+			TfDatabaseUserModel: *getDatabaseUserModel(rolesSet, labelsSet, wrongScopeSet),
+			expectedError:       true,
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel, err := databaseuser.NewMongoDBDatabaseUser(context.Background(), &testCases[i].TfDatabaseUserModel)
+
+			if (err != nil) != tc.expectedError {
+				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
+			}
+			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
+				t.Errorf("created terraform model did not match expected output")
+			}
+		})
+	}
+}
+
+func TestNewTfDatabaseUserModel(t *testing.T) {
+	testCases := []struct {
+		expectedResult  *databaseuser.TfDatabaseUserModel
+		currentModel    databaseuser.TfDatabaseUserModel
+		sdkDatabaseUser *admin.CloudDatabaseUser
+		name            string
+		expectedError   bool
+	}{
+		{
+			name:            "Success TfDatabaseUserModel",
+			sdkDatabaseUser: cloudDatabaseUser,
+			currentModel:    databaseuser.TfDatabaseUserModel{Password: types.StringValue(password)},
+			expectedResult:  getDatabaseUserModel(rolesSet, labelsSet, scopesSet),
+			expectedError:   false,
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel, err := databaseuser.NewTfDatabaseUserModel(context.Background(), &testCases[i].currentModel, testCases[i].sdkDatabaseUser)
+
+			if (err != nil) != tc.expectedError {
+				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
+			}
+			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
+				t.Errorf("created terraform model did not match expected output")
+			}
+		})
+	}
+}
+
+func getDatabaseUserModel(roles, labels, scopes basetypes.SetValue) *databaseuser.TfDatabaseUserModel {
+	encodedID := conversion.EncodeStateID(map[string]string{
+		"project_id":         projectID,
+		"username":           username,
+		"auth_database_name": authDatabaseName,
+	})
+	return &databaseuser.TfDatabaseUserModel{
+		ID:               types.StringValue(encodedID),
+		ProjectID:        types.StringValue(projectID),
+		AuthDatabaseName: types.StringValue(authDatabaseName),
+		Username:         types.StringValue(username),
+		Password:         types.StringValue(password),
+		X509Type:         types.StringValue(x509Type),
+		OIDCAuthType:     types.StringValue(oidCAuthType),
+		LDAPAuthType:     types.StringValue(ldapAuthType),
+		AWSIAMType:       types.StringValue(awsIAMType),
+		Roles:            roles,
+		Labels:           labels,
+		Scopes:           scopes,
+	}
+}
