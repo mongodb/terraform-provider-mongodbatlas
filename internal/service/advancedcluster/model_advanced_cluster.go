@@ -201,40 +201,50 @@ func newTfConnectionStringsModel(ctx context.Context, connString *matlas.Connect
 	return res
 }
 
-func newTfRegionConfig(ctx context.Context, conn *matlas.Client, apiObject *matlas.AdvancedRegionConfig, projectID string) (tfRegionsConfigModel, diag.Diagnostics) {
+func newTfRegionConfig(ctx context.Context, conn *matlas.Client, apiObject *matlas.AdvancedRegionConfig, projectID string) (tfRegionsConfigRSModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var d diag.Diagnostics
 
 	if apiObject == nil {
-		return tfRegionsConfigModel{}, diags
+		return tfRegionsConfigRSModel{}, diags
 	}
 
-	tfRegionsConfig := tfRegionsConfigModel{
+	tfRegionsConfig := tfRegionsConfigRSModel{
 		BackingProviderName: conversion.StringNullIfEmpty(apiObject.BackingProviderName),
 		ProviderName:        conversion.StringNullIfEmpty(apiObject.ProviderName),
 		RegionName:          conversion.StringNullIfEmpty(apiObject.RegionName),
 		Priority:            types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiObject.Priority)),
 	}
 
-	tfRegionsConfig.AnalyticsSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.AnalyticsSpecs))
+	tfRegionsConfig.AnalyticsSpecs = newTfRegionsConfigSpecsModel(apiObject.AnalyticsSpecs)
+	tfRegionsConfig.ElectableSpecs = newTfRegionsConfigSpecsModel(apiObject.ElectableSpecs)
 	diags.Append(d...)
-	tfRegionsConfig.ElectableSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.ElectableSpecs))
+	tfRegionsConfig.ReadOnlySpecs = newTfRegionsConfigSpecsModel(apiObject.ReadOnlySpecs)
 	diags.Append(d...)
-	tfRegionsConfig.ReadOnlySpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.ReadOnlySpecs))
+	tfRegionsConfig.AnalyticsAutoScaling = newTfRegionsConfigAutoScalingSpecsModel(apiObject.AnalyticsAutoScaling)
 	diags.Append(d...)
-	tfRegionsConfig.AnalyticsAutoScaling, d = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, newTfRegionsConfigAutoScalingSpecsModel(apiObject.AnalyticsAutoScaling))
+	tfRegionsConfig.AutoScaling = newTfRegionsConfigAutoScalingSpecsModel(apiObject.AutoScaling)
 	diags.Append(d...)
-	tfRegionsConfig.AutoScaling, d = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, newTfRegionsConfigAutoScalingSpecsModel(apiObject.AutoScaling))
-	diags.Append(d...)
+
+	// tfRegionsConfig.AnalyticsSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.AnalyticsSpecs))
+	// diags.Append(d...)
+	// tfRegionsConfig.ElectableSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.ElectableSpecs))
+	// diags.Append(d...)
+	// tfRegionsConfig.ReadOnlySpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.ReadOnlySpecs))
+	// diags.Append(d...)
+	// tfRegionsConfig.AnalyticsAutoScaling, d = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, newTfRegionsConfigAutoScalingSpecsModel(apiObject.AnalyticsAutoScaling))
+	// diags.Append(d...)
+	// tfRegionsConfig.AutoScaling, d = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, newTfRegionsConfigAutoScalingSpecsModel(apiObject.AutoScaling))
+	// diags.Append(d...)
 
 	return tfRegionsConfig, diags
 }
 
-func newTfRegionsConfigSpecsModel(apiSpecs *matlas.Specs) []*tfRegionsConfigSpecsModel {
-	res := make([]*tfRegionsConfigSpecsModel, 0)
+func newTfRegionsConfigSpecsModel(apiSpecs *matlas.Specs) []tfRegionsConfigSpecsModel {
+	res := make([]tfRegionsConfigSpecsModel, 0)
 
 	if apiSpecs != nil {
-		res = append(res, &tfRegionsConfigSpecsModel{
+		res = append(res, tfRegionsConfigSpecsModel{
 			DiskIOPS:      types.Int64PointerValue(apiSpecs.DiskIOPS),
 			InstanceSize:  conversion.StringNullIfEmpty(apiSpecs.InstanceSize),
 			NodeCount:     types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiSpecs.NodeCount)),
@@ -245,11 +255,11 @@ func newTfRegionsConfigSpecsModel(apiSpecs *matlas.Specs) []*tfRegionsConfigSpec
 	return res
 }
 
-func newTfRegionsConfigAutoScalingSpecsModel(apiSpecs *matlas.AdvancedAutoScaling) []*tfRegionsConfigAutoScalingSpecsModel {
-	res := make([]*tfRegionsConfigAutoScalingSpecsModel, 0)
+func newTfRegionsConfigAutoScalingSpecsModel(apiSpecs *matlas.AdvancedAutoScaling) []tfRegionsConfigAutoScalingSpecsModel {
+	res := make([]tfRegionsConfigAutoScalingSpecsModel, 0)
 
 	if apiSpecs != nil && apiSpecs.Compute != nil {
-		res = append(res, &tfRegionsConfigAutoScalingSpecsModel{
+		res = append(res, tfRegionsConfigAutoScalingSpecsModel{
 			DiskGBEnabled:           types.BoolPointerValue(apiSpecs.DiskGB.Enabled),
 			ComputeEnabled:          types.BoolPointerValue(apiSpecs.Compute.Enabled),
 			ComputeScaleDownEnabled: types.BoolPointerValue(apiSpecs.Compute.ScaleDownEnabled),
