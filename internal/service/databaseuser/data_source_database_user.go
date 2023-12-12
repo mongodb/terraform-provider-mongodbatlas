@@ -35,7 +35,7 @@ type tfDatabaseUserDSModel struct {
 	LDAPAuthType     types.String   `tfsdk:"ldap_auth_type"`
 	AWSIAMType       types.String   `tfsdk:"aws_iam_type"`
 	Roles            []TfRoleModel  `tfsdk:"roles"`
-	Labels           []tfLabelModel `tfsdk:"labels"`
+	Labels           []TfLabelModel `tfsdk:"labels"`
 	Scopes           []TfScopeModel `tfsdk:"scopes"`
 }
 
@@ -170,14 +170,14 @@ func newTFDatabaseDSUserModel(ctx context.Context, dbUser *admin.CloudDatabaseUs
 	return databaseUserModel, nil
 }
 
-func NewTFLabelsModel(labels []admin.ComponentLabel) []tfLabelModel {
+func NewTFLabelsModel(labels []admin.ComponentLabel) []TfLabelModel {
 	if len(labels) == 0 {
 		return nil
 	}
 
-	out := make([]tfLabelModel, len(labels))
+	out := make([]TfLabelModel, len(labels))
 	for i, v := range labels {
-		out[i] = tfLabelModel{
+		out[i] = TfLabelModel{
 			Key:   types.StringValue(v.GetKey()),
 			Value: types.StringValue(v.GetValue()),
 		}

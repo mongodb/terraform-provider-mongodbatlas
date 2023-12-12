@@ -11,7 +11,7 @@ import (
 
 func NewMongoDBDatabaseUser(ctx context.Context, dbUserModel *TfDatabaseUserModel) (*admin.CloudDatabaseUser, diag.Diagnostics) {
 	var rolesModel []*TfRoleModel
-	var labelsModel []*tfLabelModel
+	var labelsModel []*TfLabelModel
 	var scopesModel []*TfScopeModel
 
 	diags := dbUserModel.Roles.ElementsAs(ctx, &rolesModel, false)
@@ -104,7 +104,7 @@ func NewTFScopesModel(scopes []admin.UserScope) []TfScopeModel {
 	return out
 }
 
-func NewMongoDBAtlasLabels(labels []*tfLabelModel) []admin.ComponentLabel {
+func NewMongoDBAtlasLabels(labels []*TfLabelModel) []admin.ComponentLabel {
 	if len(labels) == 0 {
 		return []admin.ComponentLabel{}
 	}

@@ -61,7 +61,7 @@ type TfRoleModel struct {
 	DatabaseName   types.String `tfsdk:"database_name"`
 }
 
-type tfLabelModel struct {
+type TfLabelModel struct {
 	Key   types.String `tfsdk:"key"`
 	Value types.String `tfsdk:"value"`
 }
