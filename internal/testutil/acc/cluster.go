@@ -7,18 +7,29 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
-func GetClusterInfo(projectID string) (clusterName, clusterNameStr, clusterTerraformStr string) {
+// GetClusterInfo is used to obtain a project and cluster configuration resource.
+// If env variables `MONGODB_ATLAS_CLUSTER_NAME` and `MONGODB_ATLAS_PROJECT_ID` are defined, creation of resources is avoided (useful for local execution)
+func GetClusterInfo(orgID string) (projectIDStr, clusterName, clusterNameStr, clusterTerraformStr string) {
 	// Allows faster test execution in local, don't use in CI
 	clusterName = os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
-	if clusterName != "" {
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	if clusterName != "" && projectID != "" {
 		clusterNameStr = fmt.Sprintf("%q", clusterName)
+		projectIDStr = fmt.Sprintf("%q", projectID)
 	} else {
 		clusterName = acctest.RandomWithPrefix("test-acc")
+		projectName := acctest.RandomWithPrefix("test-acc")
+		projectIDStr = "mongodbatlas_project.test.id"
 		clusterNameStr = "mongodbatlas_cluster.test_cluster.name"
 		clusterTerraformStr = fmt.Sprintf(`
+			resource "mongodbatlas_project" "test" {
+				org_id = %[1]q
+				name   = %[2]q
+			}
+		
 			resource "mongodbatlas_cluster" "test_cluster" {
-				project_id   									= %[1]q
-				name         									= %[2]q
+				project_id   									= mongodbatlas_project.test.id
+				name         									= %[3]q
 				disk_size_gb 									= 10
 				backup_enabled               	= false
 				auto_scaling_disk_gb_enabled	= false
@@ -36,7 +47,7 @@ func GetClusterInfo(projectID string) (clusterName, clusterNameStr, clusterTerra
 					}
 				}
 			}
-		`, projectID, clusterName)
+		`, orgID, projectName, clusterName)
 	}
-	return clusterName, clusterNameStr, clusterTerraformStr
+	return projectIDStr, clusterName, clusterNameStr, clusterTerraformStr
 }
