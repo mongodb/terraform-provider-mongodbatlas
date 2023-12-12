@@ -150,6 +150,35 @@ func TestNewTfDatabaseUserModel(t *testing.T) {
 	}
 }
 
+func TestNewMongoDBAtlasScopes(t *testing.T) {
+	testCases := []struct {
+		name           string
+		currentScopes  []*databaseuser.TfScopeModel
+		expectedResult []admin.UserScope
+	}{
+		{
+			name:           "Success TfScopeModel",
+			currentScopes:  []*databaseuser.TfScopeModel{&tfScope},
+			expectedResult: []admin.UserScope{sdkScope},
+		},
+		{
+			name:           "Empty TfScopeModel",
+			currentScopes:  []*databaseuser.TfScopeModel{},
+			expectedResult: []admin.UserScope{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel := databaseuser.NewMongoDBAtlasScopes(tc.currentScopes)
+
+			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
+				t.Errorf("created terraform model did not match expected output")
+			}
+		})
+	}
+}
+
 func TestNewTFScopesModel(t *testing.T) {
 	testCases := []struct {
 		name           string
@@ -208,27 +237,85 @@ func TestNewMongoDBAtlasLabels(t *testing.T) {
 	}
 }
 
-func TestNewMongoDBAtlasScopes(t *testing.T) {
+func TestNewTFLabelsModel(t *testing.T) {
 	testCases := []struct {
 		name           string
-		currentScopes  []*databaseuser.TfScopeModel
-		expectedResult []admin.UserScope
+		currentLabels  []admin.ComponentLabel
+		expectedResult []databaseuser.TfLabelModel
 	}{
 		{
-			name:           "Success TfScopeModel",
-			currentScopes:  []*databaseuser.TfScopeModel{&tfScope},
-			expectedResult: []admin.UserScope{sdkScope},
+			name:           "Success TfLabelModel",
+			currentLabels:  []admin.ComponentLabel{sdkLabel},
+			expectedResult: []databaseuser.TfLabelModel{tfLabel},
 		},
 		{
-			name:           "Empty TfScopeModel",
-			currentScopes:  []*databaseuser.TfScopeModel{},
-			expectedResult: []admin.UserScope{},
+			name:           "Empty TfLabelModel",
+			currentLabels:  []admin.ComponentLabel{},
+			expectedResult: nil,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := databaseuser.NewMongoDBAtlasScopes(tc.currentScopes)
+			resultModel := databaseuser.NewTFLabelsModel(tc.currentLabels)
+
+			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
+				t.Errorf("created terraform model did not match expected output")
+			}
+		})
+	}
+}
+
+func TestNewMongoDBAtlasRoles(t *testing.T) {
+	testCases := []struct {
+		name           string
+		currentRoles   []*databaseuser.TfRoleModel
+		expectedResult []admin.DatabaseUserRole
+	}{
+		{
+			name:           "Success DatabaseUserRole",
+			currentRoles:   []*databaseuser.TfRoleModel{&tfUserRole},
+			expectedResult: []admin.DatabaseUserRole{sdkRole},
+		},
+		{
+			name:           "Empty DatabaseUserRole",
+			currentRoles:   []*databaseuser.TfRoleModel{},
+			expectedResult: []admin.DatabaseUserRole{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel := databaseuser.NewMongoDBAtlasRoles(tc.currentRoles)
+
+			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
+				t.Errorf("created terraform model did not match expected output")
+			}
+		})
+	}
+}
+
+func TestNewTFRolesModel(t *testing.T) {
+	testCases := []struct {
+		name           string
+		currentRoles   []admin.DatabaseUserRole
+		expectedResult []databaseuser.TfRoleModel
+	}{
+		{
+			name:           "Success DatabaseUserRole",
+			currentRoles:   []admin.DatabaseUserRole{sdkRole},
+			expectedResult: []databaseuser.TfRoleModel{tfUserRole},
+		},
+		{
+			name:           "Empty DatabaseUserRole",
+			currentRoles:   []admin.DatabaseUserRole{},
+			expectedResult: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel := databaseuser.NewTFRolesModel(tc.currentRoles)
 
 			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
 				t.Errorf("created terraform model did not match expected output")
