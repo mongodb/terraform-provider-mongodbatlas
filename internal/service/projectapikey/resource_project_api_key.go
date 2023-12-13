@@ -32,6 +32,7 @@ func Resource() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:       schema.TypeString,
+				Computed:   true,
 				Optional:   true,
 				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.16.0"),
 			},
