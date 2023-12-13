@@ -241,7 +241,7 @@ func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	encryptionAtRestPlanNew := NewTfEncryptionAtRestRSModel(ctx, projectID, encryptionResp.(*admin.EncryptionAtRest), encryptionAtRestPlan)
+	encryptionAtRestPlanNew := NewTfEncryptionAtRestRSModel(ctx, projectID, encryptionResp.(*admin.EncryptionAtRest))
 	resetDefaultsFromConfigOrState(ctx, encryptionAtRestPlan, encryptionAtRestPlanNew, encryptionAtRestConfig)
 
 	// set state to fully populated data
@@ -295,7 +295,7 @@ func (r *encryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	encryptionAtRestStateNew := NewTfEncryptionAtRestRSModel(ctx, projectID, encryptionResp, &encryptionAtRestState)
+	encryptionAtRestStateNew := NewTfEncryptionAtRestRSModel(ctx, projectID, encryptionResp)
 	if !isImport {
 		resetDefaultsFromConfigOrState(ctx, &encryptionAtRestState, encryptionAtRestStateNew, nil)
 	}
@@ -355,7 +355,7 @@ func (r *encryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	encryptionAtRestStateNew := NewTfEncryptionAtRestRSModel(ctx, projectID, encryptionResp, encryptionAtRestPlan)
+	encryptionAtRestStateNew := NewTfEncryptionAtRestRSModel(ctx, projectID, encryptionResp)
 	resetDefaultsFromConfigOrState(ctx, encryptionAtRestState, encryptionAtRestStateNew, encryptionAtRestConfig)
 
 	// save updated data into Terraform state

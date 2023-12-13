@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
-func NewTfEncryptionAtRestRSModel(ctx context.Context, projectID string, encryptionResp *admin.EncryptionAtRest, plan *TfEncryptionAtRestRSModel) *TfEncryptionAtRestRSModel {
+func NewTfEncryptionAtRestRSModel(ctx context.Context, projectID string, encryptionResp *admin.EncryptionAtRest) *TfEncryptionAtRestRSModel {
 	return &TfEncryptionAtRestRSModel{
 		ID:                   types.StringValue(projectID),
 		ProjectID:            types.StringValue(projectID),
