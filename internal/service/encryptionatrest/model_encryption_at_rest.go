@@ -70,7 +70,7 @@ func NewTFGcpKmsConfig(ctx context.Context, gcpKms *admin.GoogleCloudKMS) []TfGc
 }
 
 func NewAtlasAwsKms(tfAwsKmsConfigSlice []TfAwsKmsConfigModel) *admin.AWSKMSConfiguration {
-	if tfAwsKmsConfigSlice == nil || len(tfAwsKmsConfigSlice) < 1 {
+	if len(tfAwsKmsConfigSlice) == 0 {
 		return &admin.AWSKMSConfiguration{}
 	}
 	v := tfAwsKmsConfigSlice[0]
@@ -88,7 +88,7 @@ func NewAtlasAwsKms(tfAwsKmsConfigSlice []TfAwsKmsConfigModel) *admin.AWSKMSConf
 }
 
 func NewAtlasGcpKms(tfGcpKmsConfigSlice []TfGcpKmsConfigModel) *admin.GoogleCloudKMS {
-	if tfGcpKmsConfigSlice == nil || len(tfGcpKmsConfigSlice) < 1 {
+	if len(tfGcpKmsConfigSlice) == 0 {
 		return &admin.GoogleCloudKMS{}
 	}
 	v := tfGcpKmsConfigSlice[0]
@@ -101,7 +101,7 @@ func NewAtlasGcpKms(tfGcpKmsConfigSlice []TfGcpKmsConfigModel) *admin.GoogleClou
 }
 
 func NewAtlasAzureKeyVault(tfAzKeyVaultConfigSlice []TfAzureKeyVaultConfigModel) *admin.AzureKeyVault {
-	if tfAzKeyVaultConfigSlice == nil || len(tfAzKeyVaultConfigSlice) < 1 {
+	if len(tfAzKeyVaultConfigSlice) == 0 {
 		return &admin.AzureKeyVault{}
 	}
 	v := tfAzKeyVaultConfigSlice[0]
