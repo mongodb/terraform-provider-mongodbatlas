@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -51,9 +50,22 @@ const (
 
 var _ resource.ResourceWithConfigure = &advancedClusterRS{}
 var _ resource.ResourceWithImportState = &advancedClusterRS{}
+var _ resource.ResourceWithUpgradeState = &advancedClusterRS{}
 
 type advancedClusterRS struct {
 	config.RSCommon
+}
+
+// UpgradeState implements resource.ResourceWithUpgradeState.
+func (*advancedClusterRS) UpgradeState(context.Context) map[int64]resource.StateUpgrader {
+	schemaV0 := fw_ResourceV0()
+
+	return map[int64]resource.StateUpgrader{
+		0: {
+			PriorSchema:   &schemaV0,
+			StateUpgrader: upgradeAdvClusterResourceStateV0toV1,
+		},
+	}
 }
 
 // TODO rename to Resource() after deleting old resource
@@ -199,47 +211,47 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.String{
-								// planmodifiers.UseNullForUnknownString(),
-								stringplanmodifier.UseStateForUnknown(),
+								planmodifiers.UseNullForUnknownString(),
+								// stringplanmodifier.UseStateForUnknown(),
 							},
 						},
 						"default_write_concern": schema.StringAttribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.String{
-								// planmodifiers.UseNullForUnknownString(),
-								stringplanmodifier.UseStateForUnknown(),
+								planmodifiers.UseNullForUnknownString(),
+								// stringplanmodifier.UseStateForUnknown(),
 							},
 						},
 						"fail_index_key_too_long": schema.BoolAttribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Bool{
-								// planmodifiers.UseNullForUnknownBool(),
-								boolplanmodifier.UseStateForUnknown(),
+								planmodifiers.UseNullForUnknownBool(),
+								// boolplanmodifier.UseStateForUnknown(),
 							},
 						},
 						"javascript_enabled": schema.BoolAttribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Bool{
-								// planmodifiers.UseNullForUnknownBool(),
-								boolplanmodifier.UseStateForUnknown(),
+								planmodifiers.UseNullForUnknownBool(),
+								// boolplanmodifier.UseStateForUnknown(),
 							},
 						},
 						"minimum_enabled_tls_protocol": schema.StringAttribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.String{
-								// planmodifiers.UseNullForUnknownString(),
-								stringplanmodifier.UseStateForUnknown(),
+								planmodifiers.UseNullForUnknownString(),
+								// stringplanmodifier.UseStateForUnknown(),
 							},
 						},
 						"no_table_scan": schema.BoolAttribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Bool{
-								// planmodifiers.UseNullForUnknownBool(),
+								planmodifiers.UseNullForUnknownBool(),
 								boolplanmodifier.UseStateForUnknown(),
 							},
 						},
@@ -250,32 +262,32 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Int64{
-								// planmodifiers.UseNullForUnknownInt64(),
-								int64planmodifier.UseStateForUnknown(),
+								planmodifiers.UseNullForUnknownInt64(),
+								// int64planmodifier.UseStateForUnknown(),
 							},
 						},
 						"sample_refresh_interval_bi_connector": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Int64{
-								// planmodifiers.UseNullForUnknownInt64(),
-								int64planmodifier.UseStateForUnknown(),
+								planmodifiers.UseNullForUnknownInt64(),
+								// int64planmodifier.UseStateForUnknown(),
 							},
 						},
 						"sample_size_bi_connector": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Int64{
-								// planmodifiers.UseNullForUnknownInt64(),
-								int64planmodifier.UseStateForUnknown(),
+								planmodifiers.UseNullForUnknownInt64(),
+								// int64planmodifier.UseStateForUnknown(),
 							},
 						},
 						"transaction_lifetime_limit_seconds": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Int64{
-								// planmodifiers.UseNullForUnknownInt64(),
-								int64planmodifier.UseStateForUnknown(),
+								planmodifiers.UseNullForUnknownInt64(),
+								// int64planmodifier.UseStateForUnknown(),
 							},
 						},
 					},
@@ -600,7 +612,7 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 		ReplicationSpecs: newReplicationSpecs(ctx, plan.ReplicationSpecs),
 	}
 
-	if v := plan.BackupEnabled; !v.IsNull() {
+	if v := plan.BackupEnabled; !v.IsUnknown() {
 		request.BackupEnabled = v.ValueBoolPointer()
 	}
 
@@ -608,11 +620,11 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 	request.BiConnector = newBiConnectorConfig(ctx, plan.BiConnectorConfig)
 	// }
 
-	if v := plan.DiskSizeGb; !v.IsNull() {
+	if v := plan.DiskSizeGb; !v.IsUnknown() {
 		request.DiskSizeGB = v.ValueFloat64Pointer()
 	}
 
-	if v := plan.EncryptionAtRestProvider; !v.IsNull() {
+	if v := plan.EncryptionAtRestProvider; !v.IsUnknown() {
 		request.EncryptionAtRestProvider = v.ValueString()
 	}
 
@@ -622,20 +634,20 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 	request.Tags = newTags(ctx, plan.Tags)
 	// }
 
-	if v := plan.MongoDBMajorVersion; !v.IsNull() {
+	if v := plan.MongoDBMajorVersion; !v.IsUnknown() {
 		request.MongoDBMajorVersion = utility.FormatMongoDBMajorVersion(v.ValueString())
 	}
 
-	if v := plan.PitEnabled; !v.IsNull() {
+	if v := plan.PitEnabled; !v.IsUnknown() {
 		request.PitEnabled = v.ValueBoolPointer()
 	}
-	if v := plan.RootCertType; !v.IsNull() {
+	if v := plan.RootCertType; !v.IsUnknown() {
 		request.RootCertType = v.ValueString()
 	}
-	if v := plan.TerminationProtectionEnabled; !v.IsNull() {
+	if v := plan.TerminationProtectionEnabled; !v.IsUnknown() {
 		request.TerminationProtectionEnabled = v.ValueBoolPointer()
 	}
-	if v := plan.VersionReleaseSystem; !v.IsNull() {
+	if v := plan.VersionReleaseSystem; !v.IsUnknown() {
 		request.VersionReleaseSystem = v.ValueString()
 	}
 
@@ -708,7 +720,7 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 // create - plan
 // update -
 // read - state
-func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *matlas.AdvancedCluster, state *tfAdvancedClusterRSModel) (*tfAdvancedClusterRSModel, diag.Diagnostics) {
+func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *matlas.AdvancedCluster, state *tfAdvancedClusterRSModel, isImport bool) (*tfAdvancedClusterRSModel, diag.Diagnostics) {
 	var d, diags diag.Diagnostics
 	projectID := cluster.GroupID
 	name := cluster.Name
@@ -731,8 +743,8 @@ func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *m
 		VersionReleaseSystem:         types.StringValue(cluster.VersionReleaseSystem),
 		AcceptDataRisksAndForceReplicaSetReconfig: types.StringValue(cluster.AcceptDataRisksAndForceReplicaSetReconfig),
 		ProjectID: types.StringValue(projectID),
-		Timeouts:  state.Timeouts,
 	}
+
 	clusterModel.ID = types.StringValue(conversion.EncodeStateID(map[string]string{
 		"cluster_id":   cluster.ID,
 		"project_id":   projectID,
@@ -770,6 +782,10 @@ func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *m
 		return nil, diags
 	}
 
+	if !isImport {
+		clusterModel.Timeouts = state.Timeouts
+	}
+
 	return &clusterModel, diags
 }
 
@@ -805,7 +821,7 @@ func (r *advancedClusterRS) Read(ctx context.Context, req resource.ReadRequest, 
 
 	log.Printf("[DEBUG] GET ClusterAdvanced %+v", cluster)
 
-	newClusterModel, diags := newTfAdvClusterRSModel(ctx, conn, cluster, &state)
+	newClusterModel, diags := newTfAdvClusterRSModel(ctx, conn, cluster, &state, isImport)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -1539,7 +1555,7 @@ func newRegionConfig(ctx context.Context, tfRegionConfig *tfRegionsConfigModel) 
 	if v := tfRegionConfig.AutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
 		apiObject.AutoScaling = newRegionConfigAutoScalingSpec(ctx, v)
 	}
-	if v := tfRegionConfig.AnalyticsSpecs; !v.IsNull() && len(v.Elements()) > 0 {
+	if v := tfRegionConfig.AnalyticsAutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
 		apiObject.AnalyticsAutoScaling = newRegionConfigAutoScalingSpec(ctx, v)
 	}
 	if v := tfRegionConfig.BackingProviderName; !v.IsNull() {
