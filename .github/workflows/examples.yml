@@ -2,14 +2,16 @@ name: Examples Checks
 on:
   push:
     branches:
-      - main
+      - master
   pull_request:
     paths:
       - .github/workflows/examples.yml
       - examples/**
+  workflow_dispatch: {}
 
 env:
   AWS_DEFAULT_REGION: us-west-2
+  MONGODB_ATLAS_ENABLE_BETA: ${{ vars.MONGODB_ATLAS_ENABLE_BETA }}
 
 jobs:
   tf-validate:
@@ -17,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        terraform_version: ["1.5.2"]
+        terraform_version: ["${{vars.TF_VERSION_LATEST}}"]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -51,7 +53,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        terraform_version: ["1.5.2"]
+        terraform_version: ["${{vars.TF_VERSION_LATEST}}"]
     steps:
       - uses: actions/checkout@v4
         with:
