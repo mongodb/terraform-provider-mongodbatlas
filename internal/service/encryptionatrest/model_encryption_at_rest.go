@@ -12,58 +12,61 @@ func NewTfEncryptionAtRestRSModel(ctx context.Context, projectID string, encrypt
 	return &TfEncryptionAtRestRSModel{
 		ID:                   types.StringValue(projectID),
 		ProjectID:            types.StringValue(projectID),
-		AwsKmsConfig:         NewTFAwsKmsConfig(ctx, encryptionResp.AwsKms, plan.AwsKmsConfig),
-		AzureKeyVaultConfig:  NewTFAzureKeyVaultConfig(ctx, encryptionResp.AzureKeyVault, plan.AzureKeyVaultConfig),
-		GoogleCloudKmsConfig: NewTFGcpKmsConfig(ctx, encryptionResp.GoogleCloudKms, plan.GoogleCloudKmsConfig),
+		AwsKmsConfig:         NewTFAwsKmsConfig(ctx, encryptionResp.AwsKms),
+		AzureKeyVaultConfig:  NewTFAzureKeyVaultConfig(ctx, encryptionResp.AzureKeyVault),
+		GoogleCloudKmsConfig: NewTFGcpKmsConfig(ctx, encryptionResp.GoogleCloudKms),
 	}
 }
 
-func NewTFAwsKmsConfig(ctx context.Context, awsKms *admin.AWSKMSConfiguration, currStateSlice []TfAwsKmsConfigModel) []TfAwsKmsConfigModel {
+func NewTFAwsKmsConfig(ctx context.Context, awsKms *admin.AWSKMSConfiguration) []TfAwsKmsConfigModel {
 	if awsKms == nil {
 		return []TfAwsKmsConfigModel{}
 	}
-	newState := TfAwsKmsConfigModel{}
 
-	newState.Enabled = types.BoolPointerValue(awsKms.Enabled)
-	newState.CustomerMasterKeyID = types.StringValue(awsKms.GetCustomerMasterKeyID())
-	newState.Region = types.StringValue(awsKms.GetRegion())
-	newState.AccessKeyID = conversion.StringNullIfEmpty(awsKms.GetAccessKeyID())
-	newState.SecretAccessKey = conversion.StringNullIfEmpty(awsKms.GetSecretAccessKey())
-	newState.RoleID = conversion.StringNullIfEmpty(awsKms.GetRoleId())
-
-	return []TfAwsKmsConfigModel{newState}
+	return []TfAwsKmsConfigModel{
+		{
+			Enabled:             types.BoolPointerValue(awsKms.Enabled),
+			CustomerMasterKeyID: types.StringValue(awsKms.GetCustomerMasterKeyID()),
+			Region:              types.StringValue(awsKms.GetRegion()),
+			AccessKeyID:         conversion.StringNullIfEmpty(awsKms.GetAccessKeyID()),
+			SecretAccessKey:     conversion.StringNullIfEmpty(awsKms.GetSecretAccessKey()),
+			RoleID:              conversion.StringNullIfEmpty(awsKms.GetRoleId()),
+		},
+	}
 }
 
-func NewTFAzureKeyVaultConfig(ctx context.Context, az *admin.AzureKeyVault, currStateSlice []TfAzureKeyVaultConfigModel) []TfAzureKeyVaultConfigModel {
+func NewTFAzureKeyVaultConfig(ctx context.Context, az *admin.AzureKeyVault) []TfAzureKeyVaultConfigModel {
 	if az == nil {
 		return []TfAzureKeyVaultConfigModel{}
 	}
-	newState := TfAzureKeyVaultConfigModel{}
 
-	newState.Enabled = types.BoolPointerValue(az.Enabled)
-	newState.ClientID = types.StringValue(az.GetClientID())
-	newState.AzureEnvironment = types.StringValue(az.GetAzureEnvironment())
-	newState.SubscriptionID = types.StringValue(az.GetSubscriptionID())
-	newState.ResourceGroupName = types.StringValue(az.GetResourceGroupName())
-	newState.KeyVaultName = types.StringValue(az.GetKeyVaultName())
-	newState.KeyIdentifier = types.StringValue(az.GetKeyIdentifier())
-	newState.TenantID = types.StringValue(az.GetTenantID())
-	newState.Secret = conversion.StringNullIfEmpty(az.GetSecret())
-
-	return []TfAzureKeyVaultConfigModel{newState}
+	return []TfAzureKeyVaultConfigModel{
+		{
+			Enabled:           types.BoolPointerValue(az.Enabled),
+			ClientID:          types.StringValue(az.GetClientID()),
+			AzureEnvironment:  types.StringValue(az.GetAzureEnvironment()),
+			SubscriptionID:    types.StringValue(az.GetSubscriptionID()),
+			ResourceGroupName: types.StringValue(az.GetResourceGroupName()),
+			KeyVaultName:      types.StringValue(az.GetKeyVaultName()),
+			KeyIdentifier:     types.StringValue(az.GetKeyIdentifier()),
+			TenantID:          types.StringValue(az.GetTenantID()),
+			Secret:            conversion.StringNullIfEmpty(az.GetSecret()),
+		},
+	}
 }
 
-func NewTFGcpKmsConfig(ctx context.Context, gcpKms *admin.GoogleCloudKMS, currStateSlice []TfGcpKmsConfigModel) []TfGcpKmsConfigModel {
+func NewTFGcpKmsConfig(ctx context.Context, gcpKms *admin.GoogleCloudKMS) []TfGcpKmsConfigModel {
 	if gcpKms == nil {
 		return []TfGcpKmsConfigModel{}
 	}
-	newState := TfGcpKmsConfigModel{}
 
-	newState.Enabled = types.BoolPointerValue(gcpKms.Enabled)
-	newState.KeyVersionResourceID = types.StringValue(gcpKms.GetKeyVersionResourceID())
-	newState.ServiceAccountKey = conversion.StringNullIfEmpty(gcpKms.GetServiceAccountKey())
-
-	return []TfGcpKmsConfigModel{newState}
+	return []TfGcpKmsConfigModel{
+		{
+			Enabled:              types.BoolPointerValue(gcpKms.Enabled),
+			KeyVersionResourceID: types.StringValue(gcpKms.GetKeyVersionResourceID()),
+			ServiceAccountKey:    conversion.StringNullIfEmpty(gcpKms.GetServiceAccountKey()),
+		},
+	}
 }
 
 func NewAtlasAwsKms(tfAwsKmsConfigSlice []TfAwsKmsConfigModel) *admin.AWSKMSConfiguration {
