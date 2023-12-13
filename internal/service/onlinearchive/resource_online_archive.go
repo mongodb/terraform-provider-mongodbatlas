@@ -204,6 +204,7 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 					},
 					"field_type": {
 						Type:     schema.TypeString,
+						Optional: true,
 						Computed: true,
 					},
 				},
