@@ -20,7 +20,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
 const (
@@ -143,13 +143,13 @@ func (r *projectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	conn := r.Client.Atlas
+	connV2 := r.Client.AtlasV2
 	projectID := projectIPAccessListModel.ProjectID.ValueString()
 	stateConf := &retry.StateChangeConf{
 		Pending: []string{"pending"},
 		Target:  []string{"created", "failed"},
 		Refresh: func() (any, string, error) {
-			_, _, err := conn.ProjectIPAccessList.Create(ctx, projectID, newMongoDBProjectIPAccessList(projectIPAccessListModel))
+			_, _, err := connV2.ProjectIPAccessListApi.CreateProjectIpAccessList(ctx, projectID, newMongoDBProjectIPAccessList(projectIPAccessListModel)).Execute()
 			if err != nil {
 				if strings.Contains(err.Error(), "Unexpected error") ||
 					strings.Contains(err.Error(), "UNEXPECTED_ERROR") ||
@@ -166,7 +166,7 @@ func (r *projectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 				accessListEntry = projectIPAccessListModel.AWSSecurityGroup.ValueString()
 			}
 
-			entry, exists, err := isEntryInProjectAccessList(ctx, conn, projectID, accessListEntry)
+			entry, exists, err := isEntryInProjectAccessList(ctx, connV2, projectID, accessListEntry)
 			if err != nil {
 				if strings.Contains(err.Error(), "500") {
 					return nil, "pending", nil
@@ -194,7 +194,7 @@ func (r *projectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	entry, ok := accessList.(*matlas.ProjectIPAccessList)
+	entry, ok := accessList.(*admin.NetworkPermissionEntry)
 	if !ok {
 		resp.Diagnostics.AddError("error", errorAccessListCreate)
 		return
@@ -207,37 +207,37 @@ func (r *projectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 	}
 }
 
-func newTFProjectIPAccessListModel(projectIPAccessListModel *tfProjectIPAccessListModel, projectIPAccessList *matlas.ProjectIPAccessList) *tfProjectIPAccessListModel {
-	entry := projectIPAccessList.IPAddress
-	if projectIPAccessList.CIDRBlock != "" {
-		entry = projectIPAccessList.CIDRBlock
-	} else if projectIPAccessList.AwsSecurityGroup != "" {
-		entry = projectIPAccessList.AwsSecurityGroup
+func newTFProjectIPAccessListModel(projectIPAccessListModel *tfProjectIPAccessListModel, projectIPAccessList *admin.NetworkPermissionEntry) *tfProjectIPAccessListModel {
+	entry := projectIPAccessList.GetIpAddress()
+	if projectIPAccessList.GetCidrBlock() != "" {
+		entry = projectIPAccessList.GetCidrBlock()
+	} else if projectIPAccessList.GetAwsSecurityGroup() != "" {
+		entry = projectIPAccessList.GetAwsSecurityGroup()
 	}
 
 	id := conversion.EncodeStateID(map[string]string{
 		"entry":      entry,
-		"project_id": projectIPAccessList.GroupID,
+		"project_id": projectIPAccessList.GetGroupId(),
 	})
 
 	return &tfProjectIPAccessListModel{
 		ID:               types.StringValue(id),
-		ProjectID:        types.StringValue(projectIPAccessList.GroupID),
-		CIDRBlock:        types.StringValue(projectIPAccessList.CIDRBlock),
-		IPAddress:        types.StringValue(projectIPAccessList.IPAddress),
-		AWSSecurityGroup: types.StringValue(projectIPAccessList.AwsSecurityGroup),
-		Comment:          types.StringValue(projectIPAccessList.Comment),
+		ProjectID:        types.StringValue(projectIPAccessList.GetGroupId()),
+		CIDRBlock:        types.StringValue(projectIPAccessList.GetCidrBlock()),
+		IPAddress:        types.StringValue(projectIPAccessList.GetIpAddress()),
+		AWSSecurityGroup: types.StringValue(projectIPAccessList.GetAwsSecurityGroup()),
+		Comment:          types.StringValue(projectIPAccessList.GetComment()),
 		Timeouts:         projectIPAccessListModel.Timeouts,
 	}
 }
 
-func newMongoDBProjectIPAccessList(projectIPAccessListModel *tfProjectIPAccessListModel) []*matlas.ProjectIPAccessList {
-	return []*matlas.ProjectIPAccessList{
+func newMongoDBProjectIPAccessList(projectIPAccessListModel *tfProjectIPAccessListModel) *[]admin.NetworkPermissionEntry {
+	return &[]admin.NetworkPermissionEntry{
 		{
-			AwsSecurityGroup: projectIPAccessListModel.AWSSecurityGroup.ValueString(),
-			CIDRBlock:        projectIPAccessListModel.CIDRBlock.ValueString(),
-			IPAddress:        projectIPAccessListModel.IPAddress.ValueString(),
-			Comment:          projectIPAccessListModel.Comment.ValueString(),
+			AwsSecurityGroup: projectIPAccessListModel.AWSSecurityGroup.ValueStringPointer(),
+			CidrBlock:        projectIPAccessListModel.CIDRBlock.ValueStringPointer(),
+			IpAddress:        projectIPAccessListModel.IPAddress.ValueStringPointer(),
+			Comment:          projectIPAccessListModel.Comment.ValueStringPointer(),
 		},
 	}
 }
@@ -261,9 +261,9 @@ func (r *projectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	conn := r.Client.Atlas
+	connV2 := r.Client.AtlasV2
 	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-		accessList, httpResponse, err := conn.ProjectIPAccessList.Get(ctx, decodedIDMap["project_id"], decodedIDMap["entry"])
+		accessList, httpResponse, err := connV2.ProjectIPAccessListApi.GetProjectIpList(ctx, decodedIDMap["project_id"], decodedIDMap["entry"]).Execute()
 		if err != nil {
 			// case 404
 			// deleted in the backend case
@@ -306,7 +306,7 @@ func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 		entry = projectIPAccessListModelState.AWSSecurityGroup.ValueString()
 	}
 
-	conn := r.Client.Atlas
+	connV2 := r.Client.AtlasV2
 	projectID := projectIPAccessListModelState.ProjectID.ValueString()
 
 	timeout, diags := projectIPAccessListModelState.Timeouts.Delete(ctx, projectIPAccessListTimeout)
@@ -316,7 +316,7 @@ func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 	}
 
 	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-		httpResponse, err := conn.ProjectIPAccessList.Delete(ctx, projectID, entry)
+		_, httpResponse, err := connV2.ProjectIPAccessListApi.DeleteProjectIpAccessList(ctx, projectID, entry).Execute()
 		if err != nil {
 			if httpResponse != nil && httpResponse.StatusCode == http.StatusInternalServerError {
 				return retry.RetryableError(err)
@@ -330,7 +330,7 @@ func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 			return retry.NonRetryableError(fmt.Errorf(errorAccessListDelete, err))
 		}
 
-		entry, httpResponse, err := conn.ProjectIPAccessList.Get(ctx, projectID, entry)
+		entry, httpResponse, err := connV2.ProjectIPAccessListApi.GetProjectIpList(ctx, projectID, entry).Execute()
 		if err != nil {
 			if httpResponse != nil && httpResponse.StatusCode == http.StatusNotFound {
 				return nil
@@ -368,10 +368,10 @@ func (r *projectIPAccessListRS) ImportState(ctx context.Context, req resource.Im
 	}))...)
 }
 
-func isEntryInProjectAccessList(ctx context.Context, conn *matlas.Client, projectID, entry string) (*matlas.ProjectIPAccessList, bool, error) {
-	var out matlas.ProjectIPAccessList
+func isEntryInProjectAccessList(ctx context.Context, connV2 *admin.APIClient, projectID, entry string) (*admin.NetworkPermissionEntry, bool, error) {
+	var out admin.NetworkPermissionEntry
 	err := retry.RetryContext(ctx, projectIPAccessListRetry, func() *retry.RetryError {
-		accessList, httpResponse, err := conn.ProjectIPAccessList.Get(ctx, projectID, entry)
+		accessList, httpResponse, err := connV2.ProjectIPAccessListApi.GetProjectIpList(ctx, projectID, entry).Execute()
 		if err != nil {
 			switch {
 			case httpResponse != nil && httpResponse.StatusCode == http.StatusInternalServerError:
