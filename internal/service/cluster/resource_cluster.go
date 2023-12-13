@@ -252,12 +252,12 @@ func Resource() *schema.Resource {
 									"read_only_nodes": {
 										Type:     schema.TypeInt,
 										Optional: true,
-										Default:  0,
+										Computed: true,
 									},
 									"analytics_nodes": {
 										Type:     schema.TypeInt,
 										Optional: true,
-										Default:  0,
+										Computed: true,
 									},
 								},
 							},
