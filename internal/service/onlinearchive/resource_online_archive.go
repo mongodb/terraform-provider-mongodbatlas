@@ -70,13 +70,15 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 			Type:       schema.TypeList,
 			MinItems:   1,
 			MaxItems:   1,
-			Required:   true,
+			Optional:   true,
+			Computed:   true,
 			ConfigMode: schema.SchemaConfigModeAttr,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"type": {
 						Type:         schema.TypeString,
-						Required:     true,
+						Optional:     true,
+						Computed:     true,
 						ValidateFunc: validation.StringInSlice([]string{"DATE", "CUSTOM"}, false),
 					},
 					"date_field": {
@@ -104,15 +106,18 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 			},
 		},
 		"data_expiration_rule": {
-			Type:     schema.TypeList,
-			MinItems: 1,
-			MaxItems: 1,
-			Optional: true,
+			Type:       schema.TypeList,
+			MinItems:   1,
+			MaxItems:   1,
+			Optional:   true,
+			Computed:   true,
+			ConfigMode: schema.SchemaConfigModeAttr,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"expire_after_days": {
 						Type:     schema.TypeInt,
-						Required: true,
+						Optional: true,
+						Computed: true,
 					},
 				},
 			},
@@ -150,7 +155,8 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 				Schema: map[string]*schema.Schema{
 					"type": {
 						Type:         schema.TypeString,
-						Required:     true,
+						Optional:     true,
+						Computed:     true,
 						ValidateFunc: validation.StringInSlice([]string{"DAILY", "MONTHLY", "WEEKLY"}, false),
 					},
 					"end_hour": {
@@ -195,11 +201,13 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 				Schema: map[string]*schema.Schema{
 					"field_name": {
 						Type:     schema.TypeString,
-						Required: true,
+						Optional: true,
+						Computed: true,
 					},
 					"order": {
 						Type:         schema.TypeInt,
-						Required:     true,
+						Optional:     true,
+						Computed:     true,
 						ValidateFunc: validation.IntAtLeast(0),
 					},
 					"field_type": {
