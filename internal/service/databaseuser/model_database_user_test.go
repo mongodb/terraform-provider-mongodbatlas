@@ -2,13 +2,13 @@ package databaseuser_test
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
+	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
@@ -112,9 +112,7 @@ func TestNewMongoDBDatabaseUser(t *testing.T) {
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
 			}
-			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedResult, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
@@ -143,9 +141,7 @@ func TestNewTfDatabaseUserModel(t *testing.T) {
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
 			}
-			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedResult, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
@@ -172,9 +168,7 @@ func TestNewMongoDBAtlasScopes(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := databaseuser.NewMongoDBAtlasScopes(tc.currentScopes)
 
-			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedResult, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
@@ -201,9 +195,7 @@ func TestNewTFScopesModel(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := databaseuser.NewTFScopesModel(tc.currentScopes)
 
-			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedResult, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
@@ -230,9 +222,7 @@ func TestNewMongoDBAtlasLabels(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := databaseuser.NewMongoDBAtlasLabels(tc.currentLabels)
 
-			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedResult, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
@@ -259,9 +249,7 @@ func TestNewTFLabelsModel(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := databaseuser.NewTFLabelsModel(tc.currentLabels)
 
-			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedResult, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
@@ -288,9 +276,7 @@ func TestNewMongoDBAtlasRoles(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := databaseuser.NewMongoDBAtlasRoles(tc.currentRoles)
 
-			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedResult, resultModel, "created SDK model did not match expected output")
 		})
 	}
 }
@@ -317,9 +303,7 @@ func TestNewTFRolesModel(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := databaseuser.NewTFRolesModel(tc.currentRoles)
 
-			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedResult, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
