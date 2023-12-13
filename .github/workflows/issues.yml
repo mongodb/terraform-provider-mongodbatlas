@@ -10,7 +10,7 @@
   jobs:
     jira_task:
       name: Create Jira issue
-      if: github.event_name == 'issues' && github.event.action == 'opened'
+      if: github.event.action == 'opened'
       runs-on: ubuntu-latest
       steps:
       - name: Create JIRA ticket
@@ -69,7 +69,7 @@
             The ticket [${{ steps.create.outputs.jira-ticket-id }}](https://jira.mongodb.org/browse/${{ steps.create.outputs.jira-ticket-id }}) was created for internal tracking.
     reopen_jira_ticket:
       name: Reopen JIRA ticket
-      if: github.event_name == 'issues' && github.event.action == 'reopened'
+      if: github.event.action == 'reopened'
       runs-on: ubuntu-latest
       steps:
         - name: Reopened JIRA ticket if exists
@@ -117,7 +117,7 @@
               echo "Response: ${json_response}"
     close_jira_ticket:
       name: Close JIRA ticket
-      if: github.event_name == 'issues' && github.event.action == 'closed'
+      if: github.event.action == 'closed'
       runs-on: ubuntu-latest
       steps:
         - name: Close JIRA ticket if exists
