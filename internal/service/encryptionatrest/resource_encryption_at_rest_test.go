@@ -340,16 +340,29 @@ var (
 	googleCloudConfigWithServiceAccountKey = []encryptionatrest.TfGcpKmsConfigModel{
 		{ServiceAccountKey: ServiceAccountKey},
 	}
+	awsConfigWithRegion = []encryptionatrest.TfAwsKmsConfigModel{
+		{
+			Region: types.StringValue(region),
+		},
+	}
+	awsConfigWithRegionAndSecretAccessKey = []encryptionatrest.TfAwsKmsConfigModel{
+		{
+			Region:          types.StringValue(region),
+			SecretAccessKey: ServiceAccountKey,
+		},
+	}
 )
 
+type testHandleConfig struct {
+	earRSCurrent      *encryptionatrest.TfEncryptionAtRestRSModel
+	earRSNew          *encryptionatrest.TfEncryptionAtRestRSModel
+	earRSConfig       *encryptionatrest.TfEncryptionAtRestRSModel
+	expectedEarResult *encryptionatrest.TfEncryptionAtRestRSModel
+	name              string
+}
+
 func TestHandleGcpKmsConfig(t *testing.T) {
-	testCases := []struct {
-		earRSCurrent      *encryptionatrest.TfEncryptionAtRestRSModel
-		earRSNew          *encryptionatrest.TfEncryptionAtRestRSModel
-		earRSConfig       *encryptionatrest.TfEncryptionAtRestRSModel
-		expectedEarResult *encryptionatrest.TfEncryptionAtRestRSModel
-		name              string
-	}{
+	testCases := []testHandleConfig{
 		{
 			name: "Current GoogleCloudKmsConfig is nil",
 			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
@@ -395,6 +408,58 @@ func TestHandleGcpKmsConfig(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			encryptionatrest.HandleGcpKmsConfig(context.Background(), tc.earRSCurrent, tc.earRSNew, tc.earRSConfig)
+			assert.Equal(t, tc.expectedEarResult, tc.earRSNew, "result did not match expected output")
+		})
+	}
+}
+
+func TestHandleAwsKmsConfigDefaults(t *testing.T) {
+	testCases := []testHandleConfig{
+		{
+			name: "Current AwsKmsConfig is nil",
+			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AwsKmsConfig: nil,
+			},
+			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AwsKmsConfig: []encryptionatrest.TfAwsKmsConfigModel{},
+			},
+			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AwsKmsConfig: []encryptionatrest.TfAwsKmsConfigModel{},
+			},
+		},
+		{
+			name: "Current AwsKmsConfig not nil, AwsKmsConfig config is available",
+			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AwsKmsConfig: []encryptionatrest.TfAwsKmsConfigModel{},
+			},
+			earRSConfig: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AwsKmsConfig: awsConfigWithRegion,
+			},
+			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AwsKmsConfig: []encryptionatrest.TfAwsKmsConfigModel{{}},
+			},
+			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AwsKmsConfig: awsConfigWithRegion,
+			},
+		},
+		{
+			name: "Current AwsKmsConfig not nil, AwsKmsConfig config is not available",
+			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AwsKmsConfig: awsConfigWithRegionAndSecretAccessKey,
+			},
+			earRSConfig: &encryptionatrest.TfEncryptionAtRestRSModel{},
+			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AwsKmsConfig: []encryptionatrest.TfAwsKmsConfigModel{{}},
+			},
+			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AwsKmsConfig: awsConfigWithRegionAndSecretAccessKey,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			encryptionatrest.HandleAwsKmsConfigDefaults(context.Background(), tc.earRSCurrent, tc.earRSNew, tc.earRSConfig)
 			assert.Equal(t, tc.expectedEarResult, tc.earRSNew, "result did not match expected output")
 		})
 	}
