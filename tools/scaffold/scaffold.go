@@ -64,6 +64,10 @@ func filesToGenerate(params *ScaffoldParams) ([]FileGeneration, error) {
 				OutputPath:   fmt.Sprintf("%s/resource_%s.go", folderPath, params.NameSnakeCase),
 			},
 			{
+				TemplatePath: "tools/scaffold/template/acc_test.tmpl",
+				OutputPath:   fmt.Sprintf("%s/resource_%s_test.go", folderPath, params.NameSnakeCase),
+			},
+			{
 				TemplatePath: "tools/scaffold/template/model.tmpl",
 				OutputPath:   fmt.Sprintf("%s/model_%s.go", folderPath, params.NameSnakeCase),
 			},
@@ -79,6 +83,10 @@ func filesToGenerate(params *ScaffoldParams) ([]FileGeneration, error) {
 				OutputPath:   fmt.Sprintf("%s/data_source_%s.go", folderPath, params.NameSnakeCase),
 			},
 			{
+				TemplatePath: "tools/scaffold/template/acc_test.tmpl",
+				OutputPath:   fmt.Sprintf("%s/data_source_%s_test.go", folderPath, params.NameSnakeCase),
+			},
+			{
 				TemplatePath: "tools/scaffold/template/model.tmpl",
 				OutputPath:   fmt.Sprintf("%s/model_%s.go", folderPath, params.NameSnakeCase),
 			},
@@ -92,6 +100,10 @@ func filesToGenerate(params *ScaffoldParams) ([]FileGeneration, error) {
 			{
 				TemplatePath: "tools/scaffold/template/pluraldatasource.tmpl",
 				OutputPath:   fmt.Sprintf("%s/data_source_%ss.go", folderPath, params.NameSnakeCase),
+			},
+			{
+				TemplatePath: "tools/scaffold/template/acc_test.tmpl",
+				OutputPath:   fmt.Sprintf("%s/data_source_%ss_test.go", folderPath, params.NameSnakeCase),
 			},
 			{
 				TemplatePath: "tools/scaffold/template/model.tmpl",
