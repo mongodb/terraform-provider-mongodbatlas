@@ -420,10 +420,10 @@ func hasAwsKmsConfigChanged(awsKmsConfigPlan, awsKmsConfigState []TfAwsKmsConfig
 func resetDefaultsFromConfigOrState(ctx context.Context, encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig *TfEncryptionAtRestRSModel) {
 	handleAwsKmsConfigDefaults(ctx, encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig)
 	handleAzureKeyVaultConfigDefaults(ctx, encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig)
-	handleGcpKmsConfig(ctx, encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig)
+	HandleGcpKmsConfig(ctx, encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig)
 }
 
-func handleGcpKmsConfig(ctx context.Context, earRSCurrent, earRSNew, earRSConfig *TfEncryptionAtRestRSModel) {
+func HandleGcpKmsConfig(ctx context.Context, earRSCurrent, earRSNew, earRSConfig *TfEncryptionAtRestRSModel) {
 	// this is required to avoid unnecessary change detection during plan after migration to Plugin Framework if user didn't set this block
 	if earRSCurrent.GoogleCloudKmsConfig == nil {
 		earRSNew.GoogleCloudKmsConfig = []TfGcpKmsConfigModel{}

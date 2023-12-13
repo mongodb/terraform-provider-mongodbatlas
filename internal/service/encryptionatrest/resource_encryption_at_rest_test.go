@@ -8,13 +8,16 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mwielbut/pointy"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -330,6 +333,71 @@ func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 			},
 		},
 	})
+}
+
+var (
+	ServiceAccountKey                      = types.StringValue("service")
+	googleCloudConfigWithServiceAccountKey = []encryptionatrest.TfGcpKmsConfigModel{
+		{ServiceAccountKey: ServiceAccountKey},
+	}
+)
+
+func TestHandleGcpKmsConfig(t *testing.T) {
+	testCases := []struct {
+		earRSCurrent      *encryptionatrest.TfEncryptionAtRestRSModel
+		earRSNew          *encryptionatrest.TfEncryptionAtRestRSModel
+		earRSConfig       *encryptionatrest.TfEncryptionAtRestRSModel
+		expectedEarResult *encryptionatrest.TfEncryptionAtRestRSModel
+		name              string
+	}{
+		{
+			name: "Current GoogleCloudKmsConfig is nil",
+			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
+				GoogleCloudKmsConfig: nil,
+			},
+			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
+				GoogleCloudKmsConfig: []encryptionatrest.TfGcpKmsConfigModel{},
+			},
+			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
+				GoogleCloudKmsConfig: []encryptionatrest.TfGcpKmsConfigModel{},
+			},
+		},
+		{
+			name: "Current GoogleCloudKmsConfig not nil, GoogleCloudKmsConfig config is available",
+			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
+				GoogleCloudKmsConfig: []encryptionatrest.TfGcpKmsConfigModel{},
+			},
+			earRSConfig: &encryptionatrest.TfEncryptionAtRestRSModel{
+				GoogleCloudKmsConfig: googleCloudConfigWithServiceAccountKey,
+			},
+			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
+				GoogleCloudKmsConfig: []encryptionatrest.TfGcpKmsConfigModel{{}},
+			},
+			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
+				GoogleCloudKmsConfig: googleCloudConfigWithServiceAccountKey,
+			},
+		},
+		{
+			name: "Current GoogleCloudKmsConfig not nil, GoogleCloudKmsConfig config is not available",
+			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
+				GoogleCloudKmsConfig: googleCloudConfigWithServiceAccountKey,
+			},
+			earRSConfig: &encryptionatrest.TfEncryptionAtRestRSModel{},
+			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
+				GoogleCloudKmsConfig: []encryptionatrest.TfGcpKmsConfigModel{{}},
+			},
+			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
+				GoogleCloudKmsConfig: googleCloudConfigWithServiceAccountKey,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			encryptionatrest.HandleGcpKmsConfig(context.Background(), tc.earRSCurrent, tc.earRSNew, tc.earRSConfig)
+			assert.Equal(t, tc.expectedEarResult, tc.earRSNew, "result did not match expected output")
+		})
+	}
 }
 
 func testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName string) resource.TestCheckFunc {
