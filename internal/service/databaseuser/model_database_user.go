@@ -110,7 +110,7 @@ func NewTFDatabaseDSUserModel(ctx context.Context, dbUser *admin.CloudDatabaseUs
 	return databaseUserModel, nil
 }
 
-func NewTFDatabaseUsersMode(ctx context.Context, projectID string, dbUsers []admin.CloudDatabaseUser) (*TfDatabaseUsersDSModel, diag.Diagnostics) {
+func NewTFDatabaseUsersModel(ctx context.Context, projectID string, dbUsers []admin.CloudDatabaseUser) (*TfDatabaseUsersDSModel, diag.Diagnostics) {
 	results := make([]*TfDatabaseUserDSModel, len(dbUsers))
 	for i := range dbUsers {
 		dbUserModel, d := NewTFDatabaseDSUserModel(ctx, &dbUsers[i])

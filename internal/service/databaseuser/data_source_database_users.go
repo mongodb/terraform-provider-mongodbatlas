@@ -141,7 +141,7 @@ func (d *DatabaseUsersDS) Read(ctx context.Context, req datasource.ReadRequest, 
 		return
 	}
 
-	dbUserModel, diagnostic := NewTFDatabaseUsersMode(ctx, projectID, dbUser.GetResults())
+	dbUserModel, diagnostic := NewTFDatabaseUsersModel(ctx, projectID, dbUser.GetResults())
 	resp.Diagnostics.Append(diagnostic...)
 	if resp.Diagnostics.HasError() {
 		return
