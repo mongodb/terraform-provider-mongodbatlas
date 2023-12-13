@@ -2,11 +2,11 @@ package encryptionatrest_test
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
+	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
@@ -105,9 +105,7 @@ func TestNewTfEncryptionAtRestRSModel(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := encryptionatrest.NewTfEncryptionAtRestRSModel(context.Background(), projectID, tc.sdkModel)
-			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedResult, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
@@ -135,9 +133,7 @@ func TestNewTFAwsKmsConfig(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := encryptionatrest.NewTFAwsKmsConfig(context.Background(), tc.sdkModel)
-			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedResult, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
@@ -165,9 +161,7 @@ func TestNewTFAzureKeyVaultConfig(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := encryptionatrest.NewTFAzureKeyVaultConfig(context.Background(), tc.sdkModel)
-			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedResult, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
@@ -195,9 +189,7 @@ func TestNewTFGcpKmsConfig(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := encryptionatrest.NewTFGcpKmsConfig(context.Background(), tc.sdkModel)
-			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedResult, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
@@ -223,9 +215,7 @@ func TestNewAtlasAwsKms(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := encryptionatrest.NewAtlasAwsKms(tc.tfModel)
-			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
-				t.Errorf("created SDK model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedResult, resultModel, "created SDK model did not match expected output")
 		})
 	}
 }
@@ -251,9 +241,7 @@ func TestNewAtlasGcpKms(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := encryptionatrest.NewAtlasGcpKms(tc.tfModel)
-			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
-				t.Errorf("created SDK model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedResult, resultModel, "created SDK model did not match expected output")
 		})
 	}
 }
@@ -279,9 +267,7 @@ func TestNewAtlasAzureKeyVault(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := encryptionatrest.NewAtlasAzureKeyVault(tc.tfModel)
-			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
-				t.Errorf("created SDK model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedResult, resultModel, "created SDK model did not match expected output")
 		})
 	}
 }
