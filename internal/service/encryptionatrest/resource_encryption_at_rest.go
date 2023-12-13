@@ -228,7 +228,7 @@ func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{retrystrategy.RetryStrategyPendingState},
 		Target:     []string{retrystrategy.RetryStrategyCompletedState, retrystrategy.RetryStrategyErrorState},
-		Refresh:    resourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx, projectID, connV2, encryptionAtRestReq),
+		Refresh:    resourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx, projectID, ServiceFromClient(connV2), encryptionAtRestReq),
 		Timeout:    1 * time.Minute,
 		MinTimeout: 1 * time.Second,
 		Delay:      0,
@@ -252,9 +252,9 @@ func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 	}
 }
 
-func resourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx context.Context, projectID string, connV2 *admin.APIClient, encryptionAtRestReq *admin.EncryptionAtRest) retry.StateRefreshFunc {
+func resourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx context.Context, projectID string, client EarService, encryptionAtRestReq *admin.EncryptionAtRest) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		encryptionResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.UpdateEncryptionAtRest(ctx, projectID, encryptionAtRestReq).Execute()
+		encryptionResp, _, err := client.UpdateEncryptionAtRest(ctx, projectID, encryptionAtRestReq)
 		if err != nil {
 			if errors.Is(err, errors.New("CANNOT_ASSUME_ROLE")) ||
 				errors.Is(err, errors.New("INVALID_AWS_CREDENTIALS")) ||
