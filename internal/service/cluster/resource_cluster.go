@@ -213,10 +213,9 @@ func Resource() *schema.Resource {
 				Computed: true,
 			},
 			"replication_specs": {
-				Type:       schema.TypeSet,
-				Optional:   true,
-				Computed:   true,
-				ConfigMode: schema.SchemaConfigModeAttr,
+				Type:     schema.TypeSet,
+				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -229,10 +228,9 @@ func Resource() *schema.Resource {
 							Required: true,
 						},
 						"regions_config": {
-							Type:       schema.TypeSet,
-							Optional:   true,
-							Computed:   true,
-							ConfigMode: schema.SchemaConfigModeAttr,
+							Type:     schema.TypeSet,
+							Optional: true,
+							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"region_name": {
