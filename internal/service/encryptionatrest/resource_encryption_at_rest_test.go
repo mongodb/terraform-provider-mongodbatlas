@@ -338,7 +338,9 @@ func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 var (
 	ServiceAccountKey                      = types.StringValue("service")
 	googleCloudConfigWithServiceAccountKey = []encryptionatrest.TfGcpKmsConfigModel{
-		{ServiceAccountKey: ServiceAccountKey},
+		{
+			ServiceAccountKey: ServiceAccountKey,
+		},
 	}
 	awsConfigWithRegion = []encryptionatrest.TfAwsKmsConfigModel{
 		{
@@ -349,6 +351,11 @@ var (
 		{
 			Region:          types.StringValue(region),
 			SecretAccessKey: ServiceAccountKey,
+		},
+	}
+	azureConfigWithSecret = []encryptionatrest.TfAzureKeyVaultConfigModel{
+		{
+			Secret: types.StringValue(secret),
 		},
 	}
 )
@@ -460,6 +467,58 @@ func TestHandleAwsKmsConfigDefaults(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			encryptionatrest.HandleAwsKmsConfigDefaults(context.Background(), tc.earRSCurrent, tc.earRSNew, tc.earRSConfig)
+			assert.Equal(t, tc.expectedEarResult, tc.earRSNew, "result did not match expected output")
+		})
+	}
+}
+
+func TestHandleAzureKeyVaultConfigDefaults(t *testing.T) {
+	testCases := []testHandleConfig{
+		{
+			name: "Current AzureKeyVaultConfig is nil",
+			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AzureKeyVaultConfig: nil,
+			},
+			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AzureKeyVaultConfig: []encryptionatrest.TfAzureKeyVaultConfigModel{},
+			},
+			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AzureKeyVaultConfig: []encryptionatrest.TfAzureKeyVaultConfigModel{},
+			},
+		},
+		{
+			name: "Current AzureKeyVaultConfig not nil, AzureKeyVaultConfig config is available",
+			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AzureKeyVaultConfig: []encryptionatrest.TfAzureKeyVaultConfigModel{},
+			},
+			earRSConfig: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AzureKeyVaultConfig: azureConfigWithSecret,
+			},
+			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AzureKeyVaultConfig: []encryptionatrest.TfAzureKeyVaultConfigModel{{}},
+			},
+			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AzureKeyVaultConfig: azureConfigWithSecret,
+			},
+		},
+		{
+			name: "Current AzureKeyVaultConfig not nil, AzureKeyVaultConfig config is not available",
+			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AzureKeyVaultConfig: azureConfigWithSecret,
+			},
+			earRSConfig: &encryptionatrest.TfEncryptionAtRestRSModel{},
+			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AzureKeyVaultConfig: []encryptionatrest.TfAzureKeyVaultConfigModel{{}},
+			},
+			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AzureKeyVaultConfig: azureConfigWithSecret,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			encryptionatrest.HandleAzureKeyVaultConfigDefaults(context.Background(), tc.earRSCurrent, tc.earRSNew, tc.earRSConfig)
 			assert.Equal(t, tc.expectedEarResult, tc.earRSNew, "result did not match expected output")
 		})
 	}

@@ -419,7 +419,7 @@ func hasAwsKmsConfigChanged(awsKmsConfigPlan, awsKmsConfigState []TfAwsKmsConfig
 // encryptionAtRestRSConfig - Config object for this resource
 func resetDefaultsFromConfigOrState(ctx context.Context, encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig *TfEncryptionAtRestRSModel) {
 	HandleAwsKmsConfigDefaults(ctx, encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig)
-	handleAzureKeyVaultConfigDefaults(ctx, encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig)
+	HandleAzureKeyVaultConfigDefaults(ctx, encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig)
 	HandleGcpKmsConfig(ctx, encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig)
 }
 
@@ -460,7 +460,7 @@ func HandleAwsKmsConfigDefaults(ctx context.Context, currentStateFile, newStateF
 	}
 }
 
-func handleAzureKeyVaultConfigDefaults(ctx context.Context, earRSCurrent, earRSNew, earRSConfig *TfEncryptionAtRestRSModel) {
+func HandleAzureKeyVaultConfigDefaults(ctx context.Context, earRSCurrent, earRSNew, earRSConfig *TfEncryptionAtRestRSModel) {
 	// this is required to avoid unnecessary change detection during plan after migration to Plugin Framework if user didn't set this block
 	if earRSCurrent.AzureKeyVaultConfig == nil {
 		earRSNew.AzureKeyVaultConfig = []TfAzureKeyVaultConfigModel{}
