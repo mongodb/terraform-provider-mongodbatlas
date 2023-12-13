@@ -67,10 +67,11 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 			Required: true,
 		},
 		"criteria": {
-			Type:     schema.TypeList,
-			MinItems: 1,
-			MaxItems: 1,
-			Required: true,
+			Type:       schema.TypeList,
+			MinItems:   1,
+			MaxItems:   1,
+			Required:   true,
+			ConfigMode: schema.SchemaConfigModeAttr,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"type": {
@@ -81,20 +82,23 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 					"date_field": {
 						Type:     schema.TypeString,
 						Optional: true,
+						Computed: true,
 					},
 					"date_format": {
 						Type:         schema.TypeString,
 						Optional:     true,
-						Computed:     true, // api will set the default
+						Computed:     true,
 						ValidateFunc: validation.StringInSlice([]string{"ISODATE", "EPOCH_SECONDS", "EPOCH_MILLIS", "EPOCH_NANOSECONDS"}, false),
 					},
 					"expire_after_days": {
 						Type:     schema.TypeInt,
 						Optional: true,
+						Computed: true,
 					},
 					"query": {
 						Type:     schema.TypeString,
 						Optional: true,
+						Computed: true,
 					},
 				},
 			},
@@ -117,9 +121,9 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 			Type:       schema.TypeList,
 			MinItems:   1,
 			MaxItems:   1,
-			ConfigMode: schema.SchemaConfigModeAttr,
 			Optional:   true,
 			Computed:   true,
+			ConfigMode: schema.SchemaConfigModeAttr,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"region": {
@@ -136,10 +140,12 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 			},
 		},
 		"schedule": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MinItems: 1,
-			MaxItems: 1,
+			Type:       schema.TypeList,
+			Optional:   true,
+			Computed:   true,
+			MinItems:   1,
+			MaxItems:   1,
+			ConfigMode: schema.SchemaConfigModeAttr,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"type": {
@@ -150,34 +156,41 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 					"end_hour": {
 						Type:     schema.TypeInt,
 						Optional: true,
+						Computed: true,
 					},
 					"end_minute": {
 						Type:     schema.TypeInt,
 						Optional: true,
+						Computed: true,
 					},
 					"start_hour": {
 						Type:     schema.TypeInt,
 						Optional: true,
+						Computed: true,
 					},
 					"start_minute": {
 						Type:     schema.TypeInt,
 						Optional: true,
+						Computed: true,
 					},
 					"day_of_month": {
 						Type:     schema.TypeInt,
 						Optional: true,
+						Computed: true,
 					},
 					"day_of_week": {
 						Type:     schema.TypeInt,
 						Optional: true,
+						Computed: true,
 					},
 				},
 			},
 		},
 		"partition_fields": {
-			Type:     schema.TypeList,
-			Optional: true,
-			Computed: true,
+			Type:       schema.TypeList,
+			Optional:   true,
+			Computed:   true,
+			ConfigMode: schema.SchemaConfigModeAttr,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"field_name": {
@@ -212,7 +225,7 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 		"sync_creation": {
 			Type:     schema.TypeBool,
 			Optional: true,
-			Default:  false,
+			Computed: true,
 		},
 	}
 }
