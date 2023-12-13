@@ -105,7 +105,7 @@ func TestNewTfEncryptionAtRestRSModel(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := encryptionatrest.NewTfEncryptionAtRestRSModel(context.Background(), projectID, tc.sdkModel)
-			assert.Equal(t, tc.expectedResult, resultModel, "created terraform model did not match expected output")
+			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}
 }
@@ -133,7 +133,7 @@ func TestNewTFAwsKmsConfig(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := encryptionatrest.NewTFAwsKmsConfig(context.Background(), tc.sdkModel)
-			assert.Equal(t, tc.expectedResult, resultModel, "created terraform model did not match expected output")
+			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}
 }
@@ -161,7 +161,7 @@ func TestNewTFAzureKeyVaultConfig(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := encryptionatrest.NewTFAzureKeyVaultConfig(context.Background(), tc.sdkModel)
-			assert.Equal(t, tc.expectedResult, resultModel, "created terraform model did not match expected output")
+			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}
 }
@@ -189,7 +189,7 @@ func TestNewTFGcpKmsConfig(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := encryptionatrest.NewTFGcpKmsConfig(context.Background(), tc.sdkModel)
-			assert.Equal(t, tc.expectedResult, resultModel, "created terraform model did not match expected output")
+			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}
 }
@@ -215,7 +215,7 @@ func TestNewAtlasAwsKms(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := encryptionatrest.NewAtlasAwsKms(tc.tfModel)
-			assert.Equal(t, tc.expectedResult, resultModel, "created SDK model did not match expected output")
+			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}
 }
@@ -241,7 +241,7 @@ func TestNewAtlasGcpKms(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := encryptionatrest.NewAtlasGcpKms(tc.tfModel)
-			assert.Equal(t, tc.expectedResult, resultModel, "created SDK model did not match expected output")
+			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}
 }
@@ -267,7 +267,7 @@ func TestNewAtlasAzureKeyVault(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := encryptionatrest.NewAtlasAzureKeyVault(tc.tfModel)
-			assert.Equal(t, tc.expectedResult, resultModel, "created SDK model did not match expected output")
+			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}
 }
