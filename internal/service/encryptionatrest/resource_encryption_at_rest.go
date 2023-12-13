@@ -24,7 +24,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
 const (
@@ -205,7 +205,7 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var encryptionAtRestPlan *tfEncryptionAtRestRSModel
 	var encryptionAtRestConfig *tfEncryptionAtRestRSModel
-	conn := r.Client.Atlas
+	connV2 := r.Client.AtlasV2
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &encryptionAtRestPlan)...)
 	resp.Diagnostics.Append(req.Config.Get(ctx, &encryptionAtRestConfig)...)
@@ -214,23 +214,21 @@ func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	projectID := encryptionAtRestPlan.ProjectID.ValueString()
-	encryptionAtRestReq := &matlas.EncryptionAtRest{
-		GroupID: projectID,
-	}
+	encryptionAtRestReq := &admin.EncryptionAtRest{}
 	if encryptionAtRestPlan.AwsKmsConfig != nil {
-		encryptionAtRestReq.AwsKms = *newAtlasAwsKms(encryptionAtRestPlan.AwsKmsConfig)
+		encryptionAtRestReq.AwsKms = newAtlasAwsKms(encryptionAtRestPlan.AwsKmsConfig)
 	}
 	if encryptionAtRestPlan.AzureKeyVaultConfig != nil {
-		encryptionAtRestReq.AzureKeyVault = *newAtlasAzureKeyVault(encryptionAtRestPlan.AzureKeyVaultConfig)
+		encryptionAtRestReq.AzureKeyVault = newAtlasAzureKeyVault(encryptionAtRestPlan.AzureKeyVaultConfig)
 	}
 	if encryptionAtRestPlan.GoogleCloudKmsConfig != nil {
-		encryptionAtRestReq.GoogleCloudKms = *newAtlasGcpKms(encryptionAtRestPlan.GoogleCloudKmsConfig)
+		encryptionAtRestReq.GoogleCloudKms = newAtlasGcpKms(encryptionAtRestPlan.GoogleCloudKmsConfig)
 	}
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{retrystrategy.RetryStrategyPendingState},
 		Target:     []string{retrystrategy.RetryStrategyCompletedState, retrystrategy.RetryStrategyErrorState},
-		Refresh:    resourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx, projectID, conn, encryptionAtRestReq),
+		Refresh:    resourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx, projectID, connV2, encryptionAtRestReq),
 		Timeout:    1 * time.Minute,
 		MinTimeout: 1 * time.Second,
 		Delay:      0,
@@ -243,7 +241,7 @@ func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	encryptionAtRestPlanNew := newTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp.(*matlas.EncryptionAtRest), encryptionAtRestPlan)
+	encryptionAtRestPlanNew := newTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp.(*admin.EncryptionAtRest), encryptionAtRestPlan)
 	resetDefaultsFromConfigOrState(ctx, encryptionAtRestPlan, encryptionAtRestPlanNew, encryptionAtRestConfig)
 
 	// set state to fully populated data
@@ -254,9 +252,9 @@ func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 	}
 }
 
-func resourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx context.Context, projectID string, conn *matlas.Client, encryptionAtRestReq *matlas.EncryptionAtRest) retry.StateRefreshFunc {
+func resourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx context.Context, projectID string, connV2 *admin.APIClient, encryptionAtRestReq *admin.EncryptionAtRest) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		encryptionResp, _, err := conn.EncryptionsAtRest.Create(ctx, encryptionAtRestReq)
+		encryptionResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.UpdateEncryptionAtRest(ctx, projectID, encryptionAtRestReq).Execute()
 		if err != nil {
 			if errors.Is(err, errors.New("CANNOT_ASSUME_ROLE")) ||
 				errors.Is(err, errors.New("INVALID_AWS_CREDENTIALS")) ||
@@ -264,7 +262,6 @@ func resourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx context.Context, 
 				log.Printf("warning issue performing authorize EncryptionsAtRest not done try again: %s \n", err.Error())
 				log.Println("retrying ")
 
-				encryptionAtRestReq.GroupID = projectID
 				return encryptionResp, retrystrategy.RetryStrategyPendingState, nil
 			}
 			return encryptionResp, retrystrategy.RetryStrategyErrorState, err
@@ -290,9 +287,9 @@ func (r *encryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest,
 		isImport = true
 	}
 
-	conn := r.Client.Atlas
+	connV2 := r.Client.AtlasV2
 
-	encryptionResp, _, err := conn.EncryptionsAtRest.Get(context.Background(), projectID)
+	encryptionResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), projectID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting encryption at rest resource during read", fmt.Sprintf(errorReadEncryptionAtRest, err.Error()))
 		return
@@ -314,7 +311,7 @@ func (r *encryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 	var encryptionAtRestState *tfEncryptionAtRestRSModel
 	var encryptionAtRestConfig *tfEncryptionAtRestRSModel
 	var encryptionAtRestPlan *tfEncryptionAtRestRSModel
-	conn := r.Client.Atlas
+	connV2 := r.Client.AtlasV2
 
 	// get current config
 	resp.Diagnostics.Append(req.Config.Get(ctx, &encryptionAtRestConfig)...)
@@ -332,7 +329,7 @@ func (r *encryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 	projectID := encryptionAtRestState.ProjectID.ValueString()
-	atlasEncryptionAtRest, atlasResp, err := conn.EncryptionsAtRest.Get(context.Background(), projectID)
+	atlasEncryptionAtRest, atlasResp, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), projectID).Execute()
 	if err != nil {
 		if resp != nil && atlasResp.StatusCode == http.StatusNotFound {
 			resp.State.RemoveResource(ctx)
@@ -343,18 +340,16 @@ func (r *encryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	if hasAwsKmsConfigChanged(encryptionAtRestPlan.AwsKmsConfig, encryptionAtRestState.AwsKmsConfig) {
-		atlasEncryptionAtRest.AwsKms = *newAtlasAwsKms(encryptionAtRestPlan.AwsKmsConfig)
+		atlasEncryptionAtRest.AwsKms = newAtlasAwsKms(encryptionAtRestPlan.AwsKmsConfig)
 	}
 	if hasAzureKeyVaultConfigChanged(encryptionAtRestPlan.AzureKeyVaultConfig, encryptionAtRestState.AzureKeyVaultConfig) {
-		atlasEncryptionAtRest.AzureKeyVault = *newAtlasAzureKeyVault(encryptionAtRestPlan.AzureKeyVaultConfig)
+		atlasEncryptionAtRest.AzureKeyVault = newAtlasAzureKeyVault(encryptionAtRestPlan.AzureKeyVaultConfig)
 	}
 	if hasGcpKmsConfigChanged(encryptionAtRestPlan.GoogleCloudKmsConfig, encryptionAtRestState.GoogleCloudKmsConfig) {
-		atlasEncryptionAtRest.GoogleCloudKms = *newAtlasGcpKms(encryptionAtRestPlan.GoogleCloudKmsConfig)
+		atlasEncryptionAtRest.GoogleCloudKms = newAtlasGcpKms(encryptionAtRestPlan.GoogleCloudKmsConfig)
 	}
 
-	atlasEncryptionAtRest.GroupID = projectID
-
-	encryptionResp, _, err := conn.EncryptionsAtRest.Create(ctx, atlasEncryptionAtRest)
+	encryptionResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.UpdateEncryptionAtRest(ctx, projectID, atlasEncryptionAtRest).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error updating encryption at rest", fmt.Sprintf(errorUpdateEncryptionAtRest, err.Error()))
 		return
@@ -376,9 +371,22 @@ func (r *encryptionAtRestRS) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	conn := r.Client.Atlas
+	enabled := false
+	connV2 := r.Client.AtlasV2
 	projectID := encryptionAtRestState.ProjectID.ValueString()
-	_, err := conn.EncryptionsAtRest.Delete(ctx, projectID)
+
+	_, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), projectID).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError("error when destroying resource", fmt.Sprintf(errorDeleteEncryptionAtRest, projectID, err.Error()))
+		return
+	}
+
+	softDelete := admin.EncryptionAtRest{
+		AwsKms:         &admin.AWSKMSConfiguration{Enabled: &enabled},
+		AzureKeyVault:  &admin.AzureKeyVault{Enabled: &enabled},
+		GoogleCloudKms: &admin.GoogleCloudKMS{Enabled: &enabled},
+	}
+	_, _, err = connV2.EncryptionAtRestUsingCustomerKeyManagementApi.UpdateEncryptionAtRest(ctx, projectID, &softDelete).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError("error when destroying resource", fmt.Sprintf(errorDeleteEncryptionAtRest, projectID, err.Error()))
@@ -468,110 +476,110 @@ func handleAzureKeyVaultConfigDefaults(ctx context.Context, earRSCurrent, earRSN
 	}
 }
 
-func newTFEncryptionAtRestRSModel(ctx context.Context, projectID string, encryptionResp *matlas.EncryptionAtRest, plan *tfEncryptionAtRestRSModel) *tfEncryptionAtRestRSModel {
+func newTFEncryptionAtRestRSModel(ctx context.Context, projectID string, encryptionResp *admin.EncryptionAtRest, plan *tfEncryptionAtRestRSModel) *tfEncryptionAtRestRSModel {
 	return &tfEncryptionAtRestRSModel{
 		ID:                   types.StringValue(projectID),
 		ProjectID:            types.StringValue(projectID),
-		AwsKmsConfig:         newTFAwsKmsConfig(ctx, &encryptionResp.AwsKms, plan.AwsKmsConfig),
-		AzureKeyVaultConfig:  newTFAzureKeyVaultConfig(ctx, &encryptionResp.AzureKeyVault, plan.AzureKeyVaultConfig),
-		GoogleCloudKmsConfig: newTFGcpKmsConfig(ctx, &encryptionResp.GoogleCloudKms, plan.GoogleCloudKmsConfig),
+		AwsKmsConfig:         newTFAwsKmsConfig(ctx, encryptionResp.AwsKms, plan.AwsKmsConfig),
+		AzureKeyVaultConfig:  newTFAzureKeyVaultConfig(ctx, encryptionResp.AzureKeyVault, plan.AzureKeyVaultConfig),
+		GoogleCloudKmsConfig: newTFGcpKmsConfig(ctx, encryptionResp.GoogleCloudKms, plan.GoogleCloudKmsConfig),
 	}
 }
 
-func newTFAwsKmsConfig(ctx context.Context, awsKms *matlas.AwsKms, currStateSlice []tfAwsKmsConfigModel) []tfAwsKmsConfigModel {
+func newTFAwsKmsConfig(ctx context.Context, awsKms *admin.AWSKMSConfiguration, currStateSlice []tfAwsKmsConfigModel) []tfAwsKmsConfigModel {
 	if awsKms == nil {
 		return []tfAwsKmsConfigModel{}
 	}
 	newState := tfAwsKmsConfigModel{}
 
 	newState.Enabled = types.BoolPointerValue(awsKms.Enabled)
-	newState.CustomerMasterKeyID = types.StringValue(awsKms.CustomerMasterKeyID)
-	newState.Region = types.StringValue(awsKms.Region)
-	newState.AccessKeyID = conversion.StringNullIfEmpty(awsKms.AccessKeyID)
-	newState.SecretAccessKey = conversion.StringNullIfEmpty(awsKms.SecretAccessKey)
-	newState.RoleID = conversion.StringNullIfEmpty(awsKms.RoleID)
+	newState.CustomerMasterKeyID = types.StringValue(awsKms.GetCustomerMasterKeyID())
+	newState.Region = types.StringValue(awsKms.GetRegion())
+	newState.AccessKeyID = conversion.StringNullIfEmpty(awsKms.GetAccessKeyID())
+	newState.SecretAccessKey = conversion.StringNullIfEmpty(awsKms.GetSecretAccessKey())
+	newState.RoleID = conversion.StringNullIfEmpty(awsKms.GetRoleId())
 
 	return []tfAwsKmsConfigModel{newState}
 }
 
-func newTFAzureKeyVaultConfig(ctx context.Context, az *matlas.AzureKeyVault, currStateSlice []tfAzureKeyVaultConfigModel) []tfAzureKeyVaultConfigModel {
+func newTFAzureKeyVaultConfig(ctx context.Context, az *admin.AzureKeyVault, currStateSlice []tfAzureKeyVaultConfigModel) []tfAzureKeyVaultConfigModel {
 	if az == nil {
 		return []tfAzureKeyVaultConfigModel{}
 	}
 	newState := tfAzureKeyVaultConfigModel{}
 
 	newState.Enabled = types.BoolPointerValue(az.Enabled)
-	newState.ClientID = types.StringValue(az.ClientID)
-	newState.AzureEnvironment = types.StringValue(az.AzureEnvironment)
-	newState.SubscriptionID = types.StringValue(az.SubscriptionID)
-	newState.ResourceGroupName = types.StringValue(az.ResourceGroupName)
-	newState.KeyVaultName = types.StringValue(az.KeyVaultName)
-	newState.KeyIdentifier = types.StringValue(az.KeyIdentifier)
-	newState.TenantID = types.StringValue(az.TenantID)
-	newState.Secret = conversion.StringNullIfEmpty(az.Secret)
+	newState.ClientID = types.StringValue(az.GetClientID())
+	newState.AzureEnvironment = types.StringValue(az.GetAzureEnvironment())
+	newState.SubscriptionID = types.StringValue(az.GetSubscriptionID())
+	newState.ResourceGroupName = types.StringValue(az.GetResourceGroupName())
+	newState.KeyVaultName = types.StringValue(az.GetKeyVaultName())
+	newState.KeyIdentifier = types.StringValue(az.GetKeyIdentifier())
+	newState.TenantID = types.StringValue(az.GetTenantID())
+	newState.Secret = conversion.StringNullIfEmpty(az.GetSecret())
 
 	return []tfAzureKeyVaultConfigModel{newState}
 }
 
-func newTFGcpKmsConfig(ctx context.Context, gcpKms *matlas.GoogleCloudKms, currStateSlice []tfGcpKmsConfigModel) []tfGcpKmsConfigModel {
+func newTFGcpKmsConfig(ctx context.Context, gcpKms *admin.GoogleCloudKMS, currStateSlice []tfGcpKmsConfigModel) []tfGcpKmsConfigModel {
 	if gcpKms == nil {
 		return []tfGcpKmsConfigModel{}
 	}
 	newState := tfGcpKmsConfigModel{}
 
 	newState.Enabled = types.BoolPointerValue(gcpKms.Enabled)
-	newState.KeyVersionResourceID = types.StringValue(gcpKms.KeyVersionResourceID)
-	newState.ServiceAccountKey = conversion.StringNullIfEmpty(gcpKms.ServiceAccountKey)
+	newState.KeyVersionResourceID = types.StringValue(gcpKms.GetKeyVersionResourceID())
+	newState.ServiceAccountKey = conversion.StringNullIfEmpty(gcpKms.GetServiceAccountKey())
 
 	return []tfGcpKmsConfigModel{newState}
 }
 
-func newAtlasAwsKms(tfAwsKmsConfigSlice []tfAwsKmsConfigModel) *matlas.AwsKms {
+func newAtlasAwsKms(tfAwsKmsConfigSlice []tfAwsKmsConfigModel) *admin.AWSKMSConfiguration {
 	if tfAwsKmsConfigSlice == nil || len(tfAwsKmsConfigSlice) < 1 {
-		return &matlas.AwsKms{}
+		return &admin.AWSKMSConfiguration{}
 	}
 	v := tfAwsKmsConfigSlice[0]
 
 	awsRegion, _ := conversion.ValRegion(v.Region.ValueString())
 
-	return &matlas.AwsKms{
+	return &admin.AWSKMSConfiguration{
 		Enabled:             v.Enabled.ValueBoolPointer(),
-		AccessKeyID:         v.AccessKeyID.ValueString(),
-		SecretAccessKey:     v.SecretAccessKey.ValueString(),
-		CustomerMasterKeyID: v.CustomerMasterKeyID.ValueString(),
-		Region:              awsRegion,
-		RoleID:              v.RoleID.ValueString(),
+		AccessKeyID:         v.AccessKeyID.ValueStringPointer(),
+		SecretAccessKey:     v.SecretAccessKey.ValueStringPointer(),
+		CustomerMasterKeyID: v.CustomerMasterKeyID.ValueStringPointer(),
+		Region:              conversion.StringPtr(awsRegion),
+		RoleId:              v.RoleID.ValueStringPointer(),
 	}
 }
 
-func newAtlasGcpKms(tfGcpKmsConfigSlice []tfGcpKmsConfigModel) *matlas.GoogleCloudKms {
+func newAtlasGcpKms(tfGcpKmsConfigSlice []tfGcpKmsConfigModel) *admin.GoogleCloudKMS {
 	if tfGcpKmsConfigSlice == nil || len(tfGcpKmsConfigSlice) < 1 {
-		return &matlas.GoogleCloudKms{}
+		return &admin.GoogleCloudKMS{}
 	}
 	v := tfGcpKmsConfigSlice[0]
 
-	return &matlas.GoogleCloudKms{
+	return &admin.GoogleCloudKMS{
 		Enabled:              v.Enabled.ValueBoolPointer(),
-		ServiceAccountKey:    v.ServiceAccountKey.ValueString(),
-		KeyVersionResourceID: v.KeyVersionResourceID.ValueString(),
+		ServiceAccountKey:    v.ServiceAccountKey.ValueStringPointer(),
+		KeyVersionResourceID: v.KeyVersionResourceID.ValueStringPointer(),
 	}
 }
 
-func newAtlasAzureKeyVault(tfAzKeyVaultConfigSlice []tfAzureKeyVaultConfigModel) *matlas.AzureKeyVault {
+func newAtlasAzureKeyVault(tfAzKeyVaultConfigSlice []tfAzureKeyVaultConfigModel) *admin.AzureKeyVault {
 	if tfAzKeyVaultConfigSlice == nil || len(tfAzKeyVaultConfigSlice) < 1 {
-		return &matlas.AzureKeyVault{}
+		return &admin.AzureKeyVault{}
 	}
 	v := tfAzKeyVaultConfigSlice[0]
 
-	return &matlas.AzureKeyVault{
+	return &admin.AzureKeyVault{
 		Enabled:           v.Enabled.ValueBoolPointer(),
-		ClientID:          v.ClientID.ValueString(),
-		AzureEnvironment:  v.AzureEnvironment.ValueString(),
-		SubscriptionID:    v.SubscriptionID.ValueString(),
-		ResourceGroupName: v.ResourceGroupName.ValueString(),
-		KeyVaultName:      v.KeyVaultName.ValueString(),
-		KeyIdentifier:     v.KeyIdentifier.ValueString(),
-		Secret:            v.Secret.ValueString(),
-		TenantID:          v.TenantID.ValueString(),
+		ClientID:          v.ClientID.ValueStringPointer(),
+		AzureEnvironment:  v.AzureEnvironment.ValueStringPointer(),
+		SubscriptionID:    v.SubscriptionID.ValueStringPointer(),
+		ResourceGroupName: v.ResourceGroupName.ValueStringPointer(),
+		KeyVaultName:      v.KeyVaultName.ValueStringPointer(),
+		KeyIdentifier:     v.KeyIdentifier.ValueStringPointer(),
+		Secret:            v.Secret.ValueStringPointer(),
+		TenantID:          v.TenantID.ValueStringPointer(),
 	}
 }
