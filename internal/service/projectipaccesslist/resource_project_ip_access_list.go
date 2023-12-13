@@ -234,10 +234,10 @@ func newTFProjectIPAccessListModel(projectIPAccessListModel *tfProjectIPAccessLi
 func newMongoDBProjectIPAccessList(projectIPAccessListModel *tfProjectIPAccessListModel) *[]admin.NetworkPermissionEntry {
 	return &[]admin.NetworkPermissionEntry{
 		{
-			AwsSecurityGroup: projectIPAccessListModel.AWSSecurityGroup.ValueStringPointer(),
-			CidrBlock:        projectIPAccessListModel.CIDRBlock.ValueStringPointer(),
-			IpAddress:        projectIPAccessListModel.IPAddress.ValueStringPointer(),
-			Comment:          projectIPAccessListModel.Comment.ValueStringPointer(),
+			AwsSecurityGroup: conversion.StringPtr(projectIPAccessListModel.AWSSecurityGroup.ValueString()),
+			CidrBlock:        conversion.StringPtr(projectIPAccessListModel.CIDRBlock.ValueString()),
+			IpAddress:        conversion.StringPtr(projectIPAccessListModel.IPAddress.ValueString()),
+			Comment:          conversion.StringPtr(projectIPAccessListModel.Comment.ValueString()),
 		},
 	}
 }
