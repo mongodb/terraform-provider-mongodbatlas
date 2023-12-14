@@ -2,19 +2,26 @@ package encryptionatrest_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"testing"
 
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mwielbut/pointy"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 const (
@@ -332,6 +339,248 @@ func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 	})
 }
 
+var (
+	ServiceAccountKey                      = types.StringValue("service")
+	googleCloudConfigWithServiceAccountKey = []encryptionatrest.TfGcpKmsConfigModel{
+		{
+			ServiceAccountKey: ServiceAccountKey,
+		},
+	}
+	awsConfigWithRegion = []encryptionatrest.TfAwsKmsConfigModel{
+		{
+			Region: types.StringValue(region),
+		},
+	}
+	awsConfigWithRegionAndSecretAccessKey = []encryptionatrest.TfAwsKmsConfigModel{
+		{
+			Region:          types.StringValue(region),
+			SecretAccessKey: ServiceAccountKey,
+		},
+	}
+	azureConfigWithSecret = []encryptionatrest.TfAzureKeyVaultConfigModel{
+		{
+			Secret: types.StringValue(secret),
+		},
+	}
+)
+
+type testHandleConfig struct {
+	earRSCurrent      *encryptionatrest.TfEncryptionAtRestRSModel
+	earRSNew          *encryptionatrest.TfEncryptionAtRestRSModel
+	earRSConfig       *encryptionatrest.TfEncryptionAtRestRSModel
+	expectedEarResult *encryptionatrest.TfEncryptionAtRestRSModel
+	name              string
+}
+
+func TestHandleGcpKmsConfig(t *testing.T) {
+	testCases := []testHandleConfig{
+		{
+			name: "Current GoogleCloudKmsConfig is nil",
+			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
+				GoogleCloudKmsConfig: nil,
+			},
+			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
+				GoogleCloudKmsConfig: []encryptionatrest.TfGcpKmsConfigModel{},
+			},
+			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
+				GoogleCloudKmsConfig: []encryptionatrest.TfGcpKmsConfigModel{},
+			},
+		},
+		{
+			name: "Current GoogleCloudKmsConfig not nil, GoogleCloudKmsConfig config is available",
+			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
+				GoogleCloudKmsConfig: []encryptionatrest.TfGcpKmsConfigModel{},
+			},
+			earRSConfig: &encryptionatrest.TfEncryptionAtRestRSModel{
+				GoogleCloudKmsConfig: googleCloudConfigWithServiceAccountKey,
+			},
+			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
+				GoogleCloudKmsConfig: []encryptionatrest.TfGcpKmsConfigModel{{}},
+			},
+			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
+				GoogleCloudKmsConfig: googleCloudConfigWithServiceAccountKey,
+			},
+		},
+		{
+			name: "Current GoogleCloudKmsConfig not nil, GoogleCloudKmsConfig config is not available",
+			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
+				GoogleCloudKmsConfig: googleCloudConfigWithServiceAccountKey,
+			},
+			earRSConfig: &encryptionatrest.TfEncryptionAtRestRSModel{},
+			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
+				GoogleCloudKmsConfig: []encryptionatrest.TfGcpKmsConfigModel{{}},
+			},
+			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
+				GoogleCloudKmsConfig: googleCloudConfigWithServiceAccountKey,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			encryptionatrest.HandleGcpKmsConfig(context.Background(), tc.earRSCurrent, tc.earRSNew, tc.earRSConfig)
+			assert.Equal(t, tc.expectedEarResult, tc.earRSNew, "result did not match expected output")
+		})
+	}
+}
+
+func TestHandleAwsKmsConfigDefaults(t *testing.T) {
+	testCases := []testHandleConfig{
+		{
+			name: "Current AwsKmsConfig is nil",
+			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AwsKmsConfig: nil,
+			},
+			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AwsKmsConfig: []encryptionatrest.TfAwsKmsConfigModel{},
+			},
+			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AwsKmsConfig: []encryptionatrest.TfAwsKmsConfigModel{},
+			},
+		},
+		{
+			name: "Current AwsKmsConfig not nil, AwsKmsConfig config is available",
+			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AwsKmsConfig: []encryptionatrest.TfAwsKmsConfigModel{},
+			},
+			earRSConfig: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AwsKmsConfig: awsConfigWithRegion,
+			},
+			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AwsKmsConfig: []encryptionatrest.TfAwsKmsConfigModel{{}},
+			},
+			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AwsKmsConfig: awsConfigWithRegion,
+			},
+		},
+		{
+			name: "Current AwsKmsConfig not nil, AwsKmsConfig config is not available",
+			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AwsKmsConfig: awsConfigWithRegionAndSecretAccessKey,
+			},
+			earRSConfig: &encryptionatrest.TfEncryptionAtRestRSModel{},
+			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AwsKmsConfig: []encryptionatrest.TfAwsKmsConfigModel{{}},
+			},
+			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AwsKmsConfig: awsConfigWithRegionAndSecretAccessKey,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			encryptionatrest.HandleAwsKmsConfigDefaults(context.Background(), tc.earRSCurrent, tc.earRSNew, tc.earRSConfig)
+			assert.Equal(t, tc.expectedEarResult, tc.earRSNew, "result did not match expected output")
+		})
+	}
+}
+
+func TestHandleAzureKeyVaultConfigDefaults(t *testing.T) {
+	testCases := []testHandleConfig{
+		{
+			name: "Current AzureKeyVaultConfig is nil",
+			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AzureKeyVaultConfig: nil,
+			},
+			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AzureKeyVaultConfig: []encryptionatrest.TfAzureKeyVaultConfigModel{},
+			},
+			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AzureKeyVaultConfig: []encryptionatrest.TfAzureKeyVaultConfigModel{},
+			},
+		},
+		{
+			name: "Current AzureKeyVaultConfig not nil, AzureKeyVaultConfig config is available",
+			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AzureKeyVaultConfig: []encryptionatrest.TfAzureKeyVaultConfigModel{},
+			},
+			earRSConfig: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AzureKeyVaultConfig: azureConfigWithSecret,
+			},
+			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AzureKeyVaultConfig: []encryptionatrest.TfAzureKeyVaultConfigModel{{}},
+			},
+			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AzureKeyVaultConfig: azureConfigWithSecret,
+			},
+		},
+		{
+			name: "Current AzureKeyVaultConfig not nil, AzureKeyVaultConfig config is not available",
+			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AzureKeyVaultConfig: azureConfigWithSecret,
+			},
+			earRSConfig: &encryptionatrest.TfEncryptionAtRestRSModel{},
+			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AzureKeyVaultConfig: []encryptionatrest.TfAzureKeyVaultConfigModel{{}},
+			},
+			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
+				AzureKeyVaultConfig: azureConfigWithSecret,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			encryptionatrest.HandleAzureKeyVaultConfigDefaults(context.Background(), tc.earRSCurrent, tc.earRSNew, tc.earRSConfig)
+			assert.Equal(t, tc.expectedEarResult, tc.earRSNew, "result did not match expected output")
+		})
+	}
+}
+
+type MockEarService struct {
+	mock.Mock
+}
+
+func TestResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(t *testing.T) {
+	var projectID = "projectID"
+	testCases := []struct {
+		name                  string
+		mockResponse          *admin.EncryptionAtRest
+		mockError             error
+		expectedResponse      *admin.EncryptionAtRest
+		expectedRetrystrategy string
+		expectedError         bool
+	}{
+		{
+			name:                  "Successful API call",
+			mockResponse:          &admin.EncryptionAtRest{},
+			mockError:             nil,
+			expectedResponse:      &admin.EncryptionAtRest{},
+			expectedRetrystrategy: retrystrategy.RetryStrategyCompletedState,
+			expectedError:         false,
+		},
+		{
+			name:                  "Failed API call: Error not one of CANNOT_ASSUME_ROLE, INVALID_AWS_CREDENTIALS, CLOUD_PROVIDER_ACCESS_ROLE_NOT_AUTHORIZED",
+			mockResponse:          nil,
+			mockError:             errors.New("random error"),
+			expectedResponse:      nil,
+			expectedRetrystrategy: retrystrategy.RetryStrategyErrorState,
+			expectedError:         true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			testObject := new(MockEarService)
+
+			mockedResponse := EarResponse{
+				encryptionAtRestResponse: tc.mockResponse,
+				Err:                      tc.mockError,
+			}
+			testObject.On("UpdateEncryptionAtRest", mock.Anything, mock.Anything, mock.Anything).Return(mockedResponse)
+
+			response, strategy, err := encryptionatrest.ResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(context.Background(), projectID, testObject, &admin.EncryptionAtRest{})()
+
+			if (err != nil) != tc.expectedError {
+				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
+			}
+
+			assert.Equal(t, tc.expectedResponse, response)
+			assert.Equal(t, tc.expectedRetrystrategy, strategy)
+		})
+	}
+}
+
 func testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
@@ -444,4 +693,16 @@ func testAccCheckMongoDBAtlasEncryptionAtRestImportStateIDFunc(resourceName stri
 
 		return rs.Primary.ID, nil
 	}
+}
+
+func (a *MockEarService) UpdateEncryptionAtRest(ctx context.Context, groupID string, encryptionAtRest *admin.EncryptionAtRest) (*admin.EncryptionAtRest, *http.Response, error) {
+	args := a.Called(ctx, groupID)
+	var response = args.Get(0).(EarResponse)
+	return response.encryptionAtRestResponse, response.HTTPResponse, response.Err
+}
+
+type EarResponse struct {
+	encryptionAtRestResponse *admin.EncryptionAtRest
+	HTTPResponse             *http.Response
+	Err                      error
 }

@@ -1,0 +1,157 @@
+package {{.NameLowerNoSpaces}}
+
+import (
+    "context"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+    "github.com/hashicorp/terraform-plugin-framework/types"
+    "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+)
+
+const {{.NameCamelCase}}Name = "{{.NameSnakeCase}}"
+
+var _ resource.ResourceWithConfigure = &{{.NameCamelCase}}RS{}
+var _ resource.ResourceWithImportState = &{{.NameCamelCase}}RS{}
+
+func Resource() resource.Resource {
+	return &{{.NameCamelCase}}RS{
+		RSCommon: config.RSCommon{
+			ResourceName: {{.NameCamelCase}}Name,
+		},
+	}
+}
+
+type {{.NameCamelCase}}RS struct {
+	config.RSCommon
+}
+
+type TF{{.NamePascalCase}}Model struct {
+	ID          types.String   `tfsdk:"id"`
+    // TODO: add attribute definitions
+}
+
+func (r *{{.NameCamelCase}}RS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+			},
+            // TODO: add attribute definitions
+        },
+    }
+}
+
+func (r *{{.NameCamelCase}}RS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var {{.NameCamelCase}}Plan TF{{.NamePascalCase}}Model
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &{{.NameCamelCase}}Plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+    {{.NameCamelCase}}Req, diags := New{{.NamePascalCase}}Req(ctx, &{{.NameCamelCase}}Plan)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	
+	// TODO: make POST request to Atlas API and handle error in response
+
+	// connV2 := r.Client.AtlasV2
+	//if err != nil {
+	//	resp.Diagnostics.AddError("error creating resource", err.Error())
+	//	return
+	//}
+	
+    // TODO: process response into new terraform state
+	new{{.NamePascalCase}}Model, diags := NewTF{{.NamePascalCase}}(ctx, apiResp)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, new{{.NamePascalCase}}Model)...)
+}
+
+func (r *{{.NameCamelCase}}RS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var {{.NameCamelCase}}State TF{{.NamePascalCase}}Model
+	resp.Diagnostics.Append(req.State.Get(ctx, &{{.NameCamelCase}}State)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// TODO: make get request to resource
+
+	// connV2 := r.Client.AtlasV2
+	//if err != nil {
+	//	resp.Diagnostics.AddError("error fetching resource", err.Error())
+	//	return
+	//}
+
+	// TODO: process response into new terraform state
+	new{{.NamePascalCase}}Model, diags := NewTF{{.NamePascalCase}}(ctx, apiResp)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, new{{.NamePascalCase}}Model)...)
+}
+
+func (r *{{.NameCamelCase}}RS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var {{.NameCamelCase}}Plan TF{{.NamePascalCase}}Model
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &{{.NameCamelCase}}Plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	{{.NameCamelCase}}Req, diags := New{{.NamePascalCase}}Req(ctx, &{{.NameCamelCase}}Plan)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
+	// TODO: make PATCH request to Atlas API and handle error in response
+	// connV2 := r.Client.AtlasV2
+	//if err != nil {
+	//	resp.Diagnostics.AddError("error updating resource", err.Error())
+	//	return
+	//}
+
+	// TODO: process response into new terraform state
+
+	new{{.NamePascalCase}}Model, diags := NewTF{{.NamePascalCase}}(ctx, apiResp)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, new{{.NamePascalCase}}Model)...)
+}
+
+func (r *{{.NameCamelCase}}RS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var {{.NameCamelCase}}State *TF{{.NamePascalCase}}Model
+	resp.Diagnostics.Append(req.State.Get(ctx, &{{.NameCamelCase}}State)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// TODO: make Delete request to Atlas API
+
+	// connV2 := r.Client.AtlasV2
+	// if _, _, err := connV2.Api.Delete().Execute(); err != nil {
+	// 	 resp.Diagnostics.AddError("error deleting resource", err.Error())
+	// 	 return
+	// }
+}
+
+func (r *{{.NameCamelCase}}RS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// TODO: parse req.ID string taking into account documented format. Example:
+	
+	// projectID, other, err := split{{.NamePascalCase}}ImportID(req.ID)
+	// if err != nil {
+	//	resp.Diagnostics.AddError("error splitting import ID", err.Error())
+	//	return
+	//}
+
+	// TODO: define attributes that are required for read operation to work correctly. Example:
+
+	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
+}
