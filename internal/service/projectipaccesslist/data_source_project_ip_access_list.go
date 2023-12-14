@@ -34,7 +34,7 @@ func DataSource() datasource.DataSource {
 var _ datasource.DataSource = &projectIPAccessListDS{}
 var _ datasource.DataSourceWithConfigure = &projectIPAccessListDS{}
 
-type tfProjectIPAccessListDSModel struct {
+type TfProjectIPAccessListDSModel struct {
 	ID               types.String `tfsdk:"id"`
 	ProjectID        types.String `tfsdk:"project_id"`
 	CIDRBlock        types.String `tfsdk:"cidr_block"`
@@ -92,7 +92,7 @@ func (d *projectIPAccessListDS) Schema(ctx context.Context, req datasource.Schem
 }
 
 func (d *projectIPAccessListDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var databaseDSUserConfig *tfProjectIPAccessListDSModel
+	var databaseDSUserConfig *TfProjectIPAccessListDSModel
 	var err error
 	resp.Diagnostics.Append(req.Config.Get(ctx, &databaseDSUserConfig)...)
 	if resp.Diagnostics.HasError() {
@@ -119,7 +119,7 @@ func (d *projectIPAccessListDS) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	accessListEntry, diagnostic := NewTFProjectIPAccessListDSModel(ctx, accessList)
+	accessListEntry, diagnostic := NewTfProjectIPAccessListDSModel(ctx, accessList)
 	resp.Diagnostics.Append(diagnostic...)
 	if resp.Diagnostics.HasError() {
 		return

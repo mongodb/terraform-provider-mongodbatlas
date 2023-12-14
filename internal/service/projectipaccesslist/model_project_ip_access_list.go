@@ -44,8 +44,8 @@ func NewTfProjectIPAccessListModel(projectIPAccessListModel *TfProjectIPAccessLi
 	}
 }
 
-func NewTFProjectIPAccessListDSModel(ctx context.Context, accessList *admin.NetworkPermissionEntry) (*tfProjectIPAccessListDSModel, diag.Diagnostics) {
-	databaseUserModel := &tfProjectIPAccessListDSModel{
+func NewTfProjectIPAccessListDSModel(ctx context.Context, accessList *admin.NetworkPermissionEntry) (*TfProjectIPAccessListDSModel, diag.Diagnostics) {
+	databaseUserModel := &TfProjectIPAccessListDSModel{
 		ProjectID:        types.StringValue(accessList.GetGroupId()),
 		Comment:          types.StringValue(accessList.GetComment()),
 		CIDRBlock:        types.StringValue(accessList.GetCidrBlock()),
