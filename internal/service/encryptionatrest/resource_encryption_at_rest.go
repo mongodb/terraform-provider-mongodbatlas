@@ -214,10 +214,11 @@ func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	projectID := encryptionAtRestPlan.ProjectID.ValueString()
-	encryptionAtRestReq := &admin.EncryptionAtRest{}
-	encryptionAtRestReq.AwsKms = NewAtlasAwsKms(encryptionAtRestPlan.AwsKmsConfig)
-	encryptionAtRestReq.AzureKeyVault = NewAtlasAzureKeyVault(encryptionAtRestPlan.AzureKeyVaultConfig)
-	encryptionAtRestReq.GoogleCloudKms = NewAtlasGcpKms(encryptionAtRestPlan.GoogleCloudKmsConfig)
+	encryptionAtRestReq := &admin.EncryptionAtRest{
+		AwsKms:         NewAtlasAwsKms(encryptionAtRestPlan.AwsKmsConfig),
+		AzureKeyVault:  NewAtlasAzureKeyVault(encryptionAtRestPlan.AzureKeyVaultConfig),
+		GoogleCloudKms: NewAtlasGcpKms(encryptionAtRestPlan.GoogleCloudKmsConfig),
+	}
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{retrystrategy.RetryStrategyPendingState},
