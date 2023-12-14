@@ -52,7 +52,7 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionRSModel
 }
 
 func NewTFStreamConnection(ctx context.Context, config *TFStreamConnectionRSModel, apiResp *admin.StreamsConnection) (*TFStreamConnectionRSModel, diag.Diagnostics) {
-	id := fmt.Sprintf("%s-%s-%s", config.InstanceName.ValueString(), config.InstanceName.ValueString(), conversion.SafeString(apiResp.Name))
+	id := fmt.Sprintf("%s-%s-%s", config.InstanceName.ValueString(), config.ProjectID.ValueString(), conversion.SafeString(apiResp.Name))
 	connectionModel := TFStreamConnectionRSModel{
 		ID:               types.StringValue(id),
 		ProjectID:        config.ProjectID,
