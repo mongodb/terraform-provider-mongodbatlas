@@ -14,7 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
 const (
@@ -114,8 +114,8 @@ func (d *projectIPAccessListDS) Read(ctx context.Context, req datasource.ReadReq
 		entry.WriteString(databaseDSUserConfig.AWSSecurityGroup.ValueString())
 	}
 
-	conn := d.Client.Atlas
-	accessList, _, err := conn.ProjectIPAccessList.Get(ctx, databaseDSUserConfig.ProjectID.ValueString(), entry.String())
+	connV2 := d.Client.AtlasV2
+	accessList, _, err := connV2.ProjectIPAccessListApi.GetProjectIpList(ctx, databaseDSUserConfig.ProjectID.ValueString(), entry.String()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error getting access list entry", err.Error())
 		return
@@ -133,25 +133,25 @@ func (d *projectIPAccessListDS) Read(ctx context.Context, req datasource.ReadReq
 	}
 }
 
-func newTFProjectIPAccessListDSModel(ctx context.Context, accessList *matlas.ProjectIPAccessList) (*tfProjectIPAccessListDSModel, diag.Diagnostics) {
+func newTFProjectIPAccessListDSModel(ctx context.Context, accessList *admin.NetworkPermissionEntry) (*tfProjectIPAccessListDSModel, diag.Diagnostics) {
 	databaseUserModel := &tfProjectIPAccessListDSModel{
-		ProjectID:        types.StringValue(accessList.GroupID),
-		Comment:          types.StringValue(accessList.Comment),
-		CIDRBlock:        types.StringValue(accessList.CIDRBlock),
-		IPAddress:        types.StringValue(accessList.IPAddress),
-		AWSSecurityGroup: types.StringValue(accessList.AwsSecurityGroup),
+		ProjectID:        types.StringValue(accessList.GetGroupId()),
+		Comment:          types.StringValue(accessList.GetComment()),
+		CIDRBlock:        types.StringValue(accessList.GetCidrBlock()),
+		IPAddress:        types.StringValue(accessList.GetIpAddress()),
+		AWSSecurityGroup: types.StringValue(accessList.GetAwsSecurityGroup()),
 	}
 
-	entry := accessList.CIDRBlock
-	if accessList.IPAddress != "" {
-		entry = accessList.IPAddress
-	} else if accessList.AwsSecurityGroup != "" {
-		entry = accessList.AwsSecurityGroup
+	entry := accessList.GetCidrBlock()
+	if accessList.GetIpAddress() != "" {
+		entry = accessList.GetIpAddress()
+	} else if accessList.GetAwsSecurityGroup() != "" {
+		entry = accessList.GetAwsSecurityGroup()
 	}
 
 	id := conversion.EncodeStateID(map[string]string{
 		"entry":      entry,
-		"project_id": accessList.GroupID,
+		"project_id": accessList.GetGroupId(),
 	})
 
 	databaseUserModel.ID = types.StringValue(id)
