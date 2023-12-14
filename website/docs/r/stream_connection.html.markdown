@@ -10,9 +10,9 @@ Provides a Stream Connection resource.
 
 `mongodbatlas_stream_connection` provides a Stream Connection resource. The resource lets you create, edit, and delete stream instance connections.
 
--> **NOTE:** Atlas Streams is currently in Preview, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA=true` to use this resource. To learn more about stream processing and existing limitations, see the [Atlas Stream Processing Documentation](https://www.mongodb.com/docs/atlas/atlas-sp/overview/#atlas-stream-processing-overview).
+-> **NOTE:** Atlas Streams is currently in preview, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA=true` to use this resource. To learn more about stream processing and existing limitations, see the [Atlas Stream Processing Documentation](https://www.mongodb.com/docs/atlas/atlas-sp/overview/#atlas-stream-processing-overview).
 
-~> **IMPORTANT:** All arguments including the Kafka authentication password will be stored in the raw state as plain-text. [Read more about sensitive data in state.](https://www.terraform.io/docs/state/sensitive-data.html)
+~> **IMPORTANT:** All arguments including the Kafka authentication password will be stored in the raw state as plaintext. [Read more about sensitive data in state.](https://www.terraform.io/docs/state/sensitive-data.html)
 
 
 ## Example Usage
@@ -81,7 +81,7 @@ resource "mongodbatlas_stream_connection" "test" {
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
 * `instance_name` - (Required) Human-readable label that identifies the stream instance.
 * `connection_name` - (Required) Human-readable label that identifies the stream connection.
-* `type` - (Required) Type of the connection. Can be either `Cluster` or `Kafka`.
+* `type` - (Required) Type of connection. Can be either `Cluster` or `Kafka`.
 
 If `type` is of value `Cluster` the following additional arguments are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
@@ -94,7 +94,7 @@ If `type` is of value `Kafka` the following additional arguments are defined:
 
 ### Authentication
 
-* `mehcanism` - Style of authentication. Can be one of `PLAIN`, `SCRAM-256`, or `SCRAM-512`.
+* `mechanism` - Style of authentication. Can be one of `PLAIN`, `SCRAM-256`, or `SCRAM-512`.
 * `username` - Username of the account to connect to the Kafka cluster.
 * `password` - Password of the account to connect to the Kafka cluster.
 
@@ -105,7 +105,7 @@ If `type` is of value `Kafka` the following additional arguments are defined:
 
 ## Import
 
-You can import stream connection resource using the instance name, project ID, and connection name. The format must be `INSTANCE_NAME-PROJECT_ID-CONNECTION_NAME`. For example:
+You can import a stream connection resource using the instance name, project ID, and connection name. The format must be `INSTANCE_NAME-PROJECT_ID-CONNECTION_NAME`. For example:
 
 ```
 $ terraform import mongodbatlas_stream_connection.test "DefaultInstance-12251446ae5f3f6ec7968b13-NewConnection"
