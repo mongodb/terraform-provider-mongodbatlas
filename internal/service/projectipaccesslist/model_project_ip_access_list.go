@@ -1,6 +1,9 @@
 package projectipaccesslist
 
 import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
@@ -39,4 +42,29 @@ func NewTfProjectIPAccessListModel(projectIPAccessListModel *TfProjectIPAccessLi
 		Comment:          types.StringValue(projectIPAccessList.GetComment()),
 		Timeouts:         projectIPAccessListModel.Timeouts,
 	}
+}
+
+func NewTFProjectIPAccessListDSModel(ctx context.Context, accessList *admin.NetworkPermissionEntry) (*tfProjectIPAccessListDSModel, diag.Diagnostics) {
+	databaseUserModel := &tfProjectIPAccessListDSModel{
+		ProjectID:        types.StringValue(accessList.GetGroupId()),
+		Comment:          types.StringValue(accessList.GetComment()),
+		CIDRBlock:        types.StringValue(accessList.GetCidrBlock()),
+		IPAddress:        types.StringValue(accessList.GetIpAddress()),
+		AWSSecurityGroup: types.StringValue(accessList.GetAwsSecurityGroup()),
+	}
+
+	entry := accessList.GetCidrBlock()
+	if accessList.GetIpAddress() != "" {
+		entry = accessList.GetIpAddress()
+	} else if accessList.GetAwsSecurityGroup() != "" {
+		entry = accessList.GetAwsSecurityGroup()
+	}
+
+	id := conversion.EncodeStateID(map[string]string{
+		"entry":      entry,
+		"project_id": accessList.GetGroupId(),
+	})
+
+	databaseUserModel.ID = types.StringValue(id)
+	return databaseUserModel, nil
 }
