@@ -1,0 +1,69 @@
+---
+layout: "mongodbatlas"
+page_title: "MongoDB Atlas: stream connections"
+sidebar_current: "docs-mongodbatlas-datasource-stream-connections"
+description: |-
+    Describes all connections of the stream instance for the specified project.
+---
+
+# Data Source: mongodbatlas_stream_connections
+
+`mongodbatlas_stream_connections` describes all connections of a stream instance for the specified project.
+
+-> **NOTE:** Atlas Streams is currently in Preview, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA=true` to use this data source. To learn more about stream processing and existing limitations, see the [Atlas Stream Processing Documentation](https://www.mongodb.com/docs/atlas/atlas-sp/overview/#atlas-stream-processing-overview).
+
+## Example Usage
+
+```terraform
+data "mongodbatlas_stream_connections" "test" {
+    project_id = "<PROJECT_ID>"
+    instance_name = "<INSTANCE_NAME>"
+}
+```
+
+## Argument Reference
+
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
+* `instance_name` - (Required) Human-readable label that identifies the stream instance.
+
+* `page_num` - (Optional) Number of the page that displays the current set of the total objects that the response returns. Defaults to `1`.
+* `items_per_page` - (Optional) Number of items that the response returns per page, up to a maximum of `500`. Defaults to `100`.
+
+
+## Attributes Reference
+
+In addition to all arguments above, it also exports the following attributes:
+
+* `results` - A list where each element contains a Stream Connection.
+* `total_count` - Count of the total number of items in the result set. The count might be greater than the number of objects in the results array if the entire result set is paginated.
+
+### Stream Connection
+
+* `project_id` - Unique 24-hexadecimal digit string that identifies your project.
+* `instance_name` - Human-readable label that identifies the stream instance.
+* `connection_name` - Human-readable label that identifies the stream connection.
+* `type` - Type of connection. Can be either `Cluster` or `Kafka`.
+
+If `type` is of value `Cluster` the following additional attributes are defined:
+* `cluster_name` - Name of the cluster configured for this connection.
+
+If `type` is of value `Kafka` the following additional attributes are defined:
+* `authentication` - User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode. See [authentication](#authentication).
+* `bootstrap_servers` - Comma separated list of server addresses.
+* `config` - A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
+* `security` - Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use. See [security](#security).
+
+### Authentication
+
+* `mechanism` - Style of authentication. Can be one of `PLAIN`, `SCRAM-256`, or `SCRAM-512`.
+* `username` - Username of the account to connect to the Kafka cluster.
+* `password` - Password of the account to connect to the Kafka cluster.
+
+### Security
+
+* `broker_public_certificate` - A trusted, public x509 certificate for connecting to Kafka over SSL. String value of the certificate must be defined in the attribute.
+* `protocol` - Describes the transport type. Can be either `PLAINTEXT` or `SSL`.
+
+
+To learn more, see: [MongoDB Atlas API - Stream Connection](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/listStreamConnections) Documentation.
+The [Terraform Provider Examples Section](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/atlas-streams/README.md) also contains details on the overall support for Atlas Streams in Terraform.

@@ -418,6 +418,8 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 	betaDataSources := []func() datasource.DataSource{
 		streaminstance.DataSource,
 		streaminstance.PluralDataSource,
+		streamconnection.DataSource,
+		streamconnection.PluralDataSource,
 	}
 	if ProviderEnableBeta {
 		dataSources = append(dataSources, betaDataSources...)

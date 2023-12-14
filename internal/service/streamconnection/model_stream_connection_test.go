@@ -2,6 +2,7 @@ package streamconnection_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -27,13 +28,17 @@ var configMap = map[string]string{
 }
 
 type sdkToTFModelTestCase struct {
-	SDKResp         *admin.StreamsConnection
-	providedConfig  *streamconnection.TFStreamConnectionRSModel
-	expectedTFModel *streamconnection.TFStreamConnectionRSModel
-	name            string
+	SDKResp              *admin.StreamsConnection
+	providedProjID       string
+	providedInstanceName string
+	providedAuthConfig   *types.Object
+	expectedTFModel      *streamconnection.TFStreamConnectionModel
+	name                 string
 }
 
 func TestStreamConnectionSDKToTFModel(t *testing.T) {
+	var authConfigWithPasswordDefined = tfAuthenticationObject(t, authMechanism, authUsername, "raw password")
+
 	testCases := []sdkToTFModelTestCase{
 		{
 			name: "Cluster connection type SDK response",
@@ -42,11 +47,10 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				Type:        admin.PtrString("Cluster"),
 				ClusterName: admin.PtrString(clusterName),
 			},
-			providedConfig: &streamconnection.TFStreamConnectionRSModel{
-				ProjectID:    types.StringValue(dummyProjectID),
-				InstanceName: types.StringValue(instanceName),
-			},
-			expectedTFModel: &streamconnection.TFStreamConnectionRSModel{
+			providedProjID:       dummyProjectID,
+			providedInstanceName: instanceName,
+			providedAuthConfig:   nil,
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:      types.StringValue(dummyProjectID),
 				InstanceName:   types.StringValue(instanceName),
 				ConnectionName: types.StringValue(connectionName),
@@ -73,12 +77,10 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					BrokerPublicCertificate: admin.PtrString(DummyCACert),
 				},
 			},
-			providedConfig: &streamconnection.TFStreamConnectionRSModel{
-				ProjectID:      types.StringValue(dummyProjectID),
-				InstanceName:   types.StringValue(instanceName),
-				Authentication: tfAuthenticationObject(t, authMechanism, authUsername, "raw password"),
-			},
-			expectedTFModel: &streamconnection.TFStreamConnectionRSModel{
+			providedProjID:       dummyProjectID,
+			providedInstanceName: instanceName,
+			providedAuthConfig:   &authConfigWithPasswordDefined,
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:        types.StringValue(dummyProjectID),
 				InstanceName:     types.StringValue(instanceName),
 				ConnectionName:   types.StringValue(connectionName),
@@ -95,11 +97,10 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				Name: admin.PtrString(connectionName),
 				Type: admin.PtrString("Kafka"),
 			},
-			providedConfig: &streamconnection.TFStreamConnectionRSModel{
-				ProjectID:    types.StringValue(dummyProjectID),
-				InstanceName: types.StringValue(instanceName),
-			},
-			expectedTFModel: &streamconnection.TFStreamConnectionRSModel{
+			providedProjID:       dummyProjectID,
+			providedInstanceName: instanceName,
+			providedAuthConfig:   nil,
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:      types.StringValue(dummyProjectID),
 				InstanceName:   types.StringValue(instanceName),
 				ConnectionName: types.StringValue(connectionName),
@@ -125,11 +126,10 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					BrokerPublicCertificate: admin.PtrString(DummyCACert),
 				},
 			},
-			providedConfig: &streamconnection.TFStreamConnectionRSModel{
-				ProjectID:    types.StringValue(dummyProjectID),
-				InstanceName: types.StringValue(instanceName),
-			},
-			expectedTFModel: &streamconnection.TFStreamConnectionRSModel{
+			providedProjID:       dummyProjectID,
+			providedInstanceName: instanceName,
+			providedAuthConfig:   nil,
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:        types.StringValue(dummyProjectID),
 				InstanceName:     types.StringValue(instanceName),
 				ConnectionName:   types.StringValue(connectionName),
@@ -144,7 +144,115 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := streamconnection.NewTFStreamConnection(context.Background(), tc.providedConfig, tc.SDKResp)
+			resultModel, diags := streamconnection.NewTFStreamConnection(context.Background(), tc.providedProjID, tc.providedInstanceName, tc.providedAuthConfig, tc.SDKResp)
+			if diags.HasError() {
+				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
+			}
+			tc.expectedTFModel.ID = resultModel.ID // id is auto-generated, have no way of defining within expected model
+			if !assert.Equal(t, tc.expectedTFModel, resultModel) {
+				t.Fatalf("created terraform model did not match expected output")
+			}
+		})
+	}
+}
+
+type paginatedConnectionsSDKToTFModelTestCase struct {
+	SDKResp         *admin.PaginatedApiStreamsConnection
+	providedConfig  *streamconnection.TFStreamConnectionsDSModel
+	expectedTFModel *streamconnection.TFStreamConnectionsDSModel
+	name            string
+}
+
+func TestStreamConnectionsSDKToTFModel(t *testing.T) {
+	testCases := []paginatedConnectionsSDKToTFModelTestCase{
+		{
+			name: "Complete SDK response with configured page options",
+			SDKResp: &admin.PaginatedApiStreamsConnection{
+				Results: []admin.StreamsConnection{
+					{
+						Name: admin.PtrString(connectionName),
+						Type: admin.PtrString("Kafka"),
+						Authentication: &admin.StreamsKafkaAuthentication{
+							Mechanism: admin.PtrString(authMechanism),
+							Username:  admin.PtrString(authUsername),
+						},
+						BootstrapServers: admin.PtrString(bootstrapServers),
+						Config:           &configMap,
+						Security: &admin.StreamsKafkaSecurity{
+							Protocol:                admin.PtrString(securityProtocol),
+							BrokerPublicCertificate: admin.PtrString(DummyCACert),
+						},
+					},
+					{
+						Name:        admin.PtrString(connectionName),
+						Type:        admin.PtrString("Cluster"),
+						ClusterName: admin.PtrString(clusterName),
+					},
+				},
+				TotalCount: admin.PtrInt(2),
+			},
+			providedConfig: &streamconnection.TFStreamConnectionsDSModel{
+				ProjectID:    types.StringValue(dummyProjectID),
+				InstanceName: types.StringValue(instanceName),
+				PageNum:      types.Int64Value(1),
+				ItemsPerPage: types.Int64Value(2),
+			},
+			expectedTFModel: &streamconnection.TFStreamConnectionsDSModel{
+				ProjectID:    types.StringValue(dummyProjectID),
+				InstanceName: types.StringValue(instanceName),
+				PageNum:      types.Int64Value(1),
+				ItemsPerPage: types.Int64Value(2),
+				TotalCount:   types.Int64Value(2),
+				Results: []streamconnection.TFStreamConnectionModel{
+					{
+						ID:               types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
+						ProjectID:        types.StringValue(dummyProjectID),
+						InstanceName:     types.StringValue(instanceName),
+						ConnectionName:   types.StringValue(connectionName),
+						Type:             types.StringValue("Kafka"),
+						Authentication:   tfAuthenticationObjectWithNoPassword(t, authMechanism, authUsername),
+						BootstrapServers: types.StringValue(bootstrapServers),
+						Config:           tfConfigMap(t, configMap),
+						Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
+					},
+					{
+						ID:             types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
+						ProjectID:      types.StringValue(dummyProjectID),
+						InstanceName:   types.StringValue(instanceName),
+						ConnectionName: types.StringValue(connectionName),
+						Type:           types.StringValue("Cluster"),
+						ClusterName:    types.StringValue(clusterName),
+						Authentication: types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+						Config:         types.MapNull(types.StringType),
+						Security:       types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+					},
+				},
+			},
+		},
+		{
+			name: "Without defining page options",
+			SDKResp: &admin.PaginatedApiStreamsConnection{
+				Results:    []admin.StreamsConnection{},
+				TotalCount: admin.PtrInt(0),
+			},
+			providedConfig: &streamconnection.TFStreamConnectionsDSModel{
+				ProjectID:    types.StringValue(dummyProjectID),
+				InstanceName: types.StringValue(instanceName),
+			},
+			expectedTFModel: &streamconnection.TFStreamConnectionsDSModel{
+				ProjectID:    types.StringValue(dummyProjectID),
+				InstanceName: types.StringValue(instanceName),
+				PageNum:      types.Int64Null(),
+				ItemsPerPage: types.Int64Null(),
+				TotalCount:   types.Int64Value(0),
+				Results:      []streamconnection.TFStreamConnectionModel{},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel, diags := streamconnection.NewTFStreamConnections(context.Background(), tc.providedConfig, tc.SDKResp)
 			if diags.HasError() {
 				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -157,7 +265,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 }
 
 type tfToSDKCreateModelTestCase struct {
-	tfModel        *streamconnection.TFStreamConnectionRSModel
+	tfModel        *streamconnection.TFStreamConnectionModel
 	expectedSDKReq *admin.StreamsConnection
 	name           string
 }
@@ -166,7 +274,7 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 	testCases := []tfToSDKCreateModelTestCase{
 		{
 			name: "Cluster type complete TF state",
-			tfModel: &streamconnection.TFStreamConnectionRSModel{
+			tfModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:      types.StringValue(dummyProjectID),
 				InstanceName:   types.StringValue(instanceName),
 				ConnectionName: types.StringValue(connectionName),
@@ -181,7 +289,7 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 		},
 		{
 			name: "Kafka type complete TF state",
-			tfModel: &streamconnection.TFStreamConnectionRSModel{
+			tfModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:        types.StringValue(dummyProjectID),
 				InstanceName:     types.StringValue(instanceName),
 				ConnectionName:   types.StringValue(connectionName),
@@ -209,7 +317,7 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 		},
 		{
 			name: "Kafka type TF state with no optional attributes",
-			tfModel: &streamconnection.TFStreamConnectionRSModel{
+			tfModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:      types.StringValue(dummyProjectID),
 				InstanceName:   types.StringValue(instanceName),
 				ConnectionName: types.StringValue(connectionName),

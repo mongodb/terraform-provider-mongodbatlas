@@ -2,6 +2,7 @@ package {{.NameLowerNoSpaces}}
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -13,8 +14,8 @@ import (
 var _ datasource.DataSource = &{{.NameCamelCase}}sDS{}
 var _ datasource.DataSourceWithConfigure = &{{.NameCamelCase}}sDS{}
 
-func DataSource() datasource.DataSource {
-	return &{{.NameCamelCase}}DS{
+func PluralDataSource() datasource.DataSource {
+	return &{{.NameCamelCase}}sDS{
 		DSCommon: config.DSCommon{
 			DataSourceName: fmt.Sprintf("%ss", {{.NameCamelCase}}Name),
 		},
