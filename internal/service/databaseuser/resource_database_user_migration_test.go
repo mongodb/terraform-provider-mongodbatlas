@@ -4,11 +4,12 @@ import (
 	"os"
 	"testing"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -124,7 +125,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithAWSIAMType(t *testing.T) {
 
 func TestAccMigrationConfigRSDatabaseUser_WithLabels(t *testing.T) {
 	var (
-		dbUser       matlas.DatabaseUser
+		dbUser       admin.CloudDatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
 		username     = acctest.RandomWithPrefix("test-acc")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -138,14 +139,14 @@ func TestAccMigrationConfigRSDatabaseUser_WithLabels(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config: acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username,
-					[]matlas.Label{
+					[]admin.ComponentLabel{
 						{
-							Key:   "key 1",
-							Value: "value 1",
+							Key:   conversion.StringPtr("key 1"),
+							Value: conversion.StringPtr("value 1"),
 						},
 						{
-							Key:   "key 2",
-							Value: "value 2",
+							Key:   conversion.StringPtr("key 2"),
+							Value: conversion.StringPtr("value 2"),
 						},
 					},
 				),
@@ -162,14 +163,14 @@ func TestAccMigrationConfigRSDatabaseUser_WithLabels(t *testing.T) {
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config: acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username,
-					[]matlas.Label{
+					[]admin.ComponentLabel{
 						{
-							Key:   "key 1",
-							Value: "value 1",
+							Key:   conversion.StringPtr("key 1"),
+							Value: conversion.StringPtr("value 1"),
 						},
 						{
-							Key:   "key 2",
-							Value: "value 2",
+							Key:   conversion.StringPtr("key 2"),
+							Value: conversion.StringPtr("value 2"),
 						},
 					},
 				),
@@ -196,7 +197,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithEmptyLabels(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username, []matlas.Label{}),
+				Config:            acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username, []admin.ComponentLabel{}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -207,7 +208,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithEmptyLabels(t *testing.T) {
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username, []matlas.Label{}),
+				Config:                   acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username, []admin.ComponentLabel{}),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
 						acc.DebugPlan(),
@@ -234,16 +235,16 @@ func TestAccMigrationConfigRSDatabaseUser_WithRoles(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config: acc.ConfigDatabaseUserWithRoles(username, password, projectName, orgID,
-					[]*matlas.Role{
+					[]*admin.DatabaseUserRole{
 						{
 							RoleName:       "read",
 							DatabaseName:   "admin",
-							CollectionName: "stir",
+							CollectionName: conversion.StringPtr("stir"),
 						},
 						{
 							RoleName:       "read",
 							DatabaseName:   "admin",
-							CollectionName: "unpledged",
+							CollectionName: conversion.StringPtr("unpledged"),
 						},
 					},
 				),
@@ -258,16 +259,16 @@ func TestAccMigrationConfigRSDatabaseUser_WithRoles(t *testing.T) {
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config: acc.ConfigDatabaseUserWithRoles(username, password, projectName, orgID,
-					[]*matlas.Role{
+					[]*admin.DatabaseUserRole{
 						{
 							RoleName:       "read",
 							DatabaseName:   "admin",
-							CollectionName: "stir",
+							CollectionName: conversion.StringPtr("stir"),
 						},
 						{
 							RoleName:       "read",
 							DatabaseName:   "admin",
-							CollectionName: "unpledged",
+							CollectionName: conversion.StringPtr("unpledged"),
 						},
 					},
 				),
@@ -298,7 +299,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config: acc.ConfigDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
-					[]*matlas.Scope{
+					[]*admin.UserScope{
 						{
 							Name: "test-acc-nurk4llu2z",
 							Type: "CLUSTER",
@@ -316,7 +317,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config: acc.ConfigDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
-					[]*matlas.Scope{
+					[]*admin.UserScope{
 						{
 							Name: "test-acc-nurk4llu2z",
 							Type: "CLUSTER",
@@ -350,7 +351,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopesAndEmpty(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config: acc.ConfigDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
-					[]*matlas.Scope{},
+					[]*admin.UserScope{},
 				),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -363,7 +364,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopesAndEmpty(t *testing.T) {
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config: acc.ConfigDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
-					[]*matlas.Scope{},
+					[]*admin.UserScope{},
 				),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{

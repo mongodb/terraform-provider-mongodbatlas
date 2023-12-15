@@ -110,3 +110,9 @@ link-git-hooks: ## Install git hooks
 update-atlas-sdk: ## Update the atlas-sdk dependency
 	./scripts/update-sdk.sh
 
+# details on usage can be found in CONTRIBUTING.md under "Creating New Resource and Data Sources"
+.PHONY: scaffold
+scaffold:
+	@go run ./tools/scaffold/*.go $(name) $(type)
+	@echo "Reminder: configure the new $(type) in provider.go"
+

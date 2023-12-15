@@ -10,12 +10,12 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
-func CheckDatabaseUserExists(resourceName string, dbUser *matlas.DatabaseUser) resource.TestCheckFunc {
+func CheckDatabaseUserExists(resourceName string, dbUser *admin.CloudDatabaseUser) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
+		connV2 := TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -38,7 +38,7 @@ func CheckDatabaseUserExists(resourceName string, dbUser *matlas.DatabaseUser) r
 		projectID := rs.Primary.Attributes["project_id"]
 		username := rs.Primary.Attributes["username"]
 
-		if dbUserResp, _, err := conn.DatabaseUsers.Get(context.Background(), authDB, projectID, username); err == nil {
+		if dbUserResp, _, err := connV2.DatabaseUsersApi.GetDatabaseUser(context.Background(), projectID, authDB, username).Execute(); err == nil {
 			*dbUser = *dbUserResp
 			return nil
 		}
@@ -47,7 +47,7 @@ func CheckDatabaseUserExists(resourceName string, dbUser *matlas.DatabaseUser) r
 	}
 }
 
-func CheckDatabaseUserAttributes(dbUser *matlas.DatabaseUser, username string) resource.TestCheckFunc {
+func CheckDatabaseUserAttributes(dbUser *admin.CloudDatabaseUser, username string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		log.Printf("[DEBUG] difference dbUser.Username: %s , username : %s", dbUser.Username, username)
 		if dbUser.Username != username {
@@ -59,7 +59,7 @@ func CheckDatabaseUserAttributes(dbUser *matlas.DatabaseUser, username string) r
 }
 
 func CheckDestroyDatabaseUser(s *terraform.State) error {
-	conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
+	connV2 := TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_database_user" {
@@ -71,7 +71,7 @@ func CheckDestroyDatabaseUser(s *terraform.State) error {
 			continue
 		}
 		// Try to find the database user
-		_, _, err = conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
+		_, _, err = connV2.DatabaseUsersApi.GetDatabaseUser(context.Background(), projectID, authDatabaseName, username).Execute()
 		if err == nil {
 			return fmt.Errorf("database user (%s) still exists", projectID)
 		}
@@ -132,7 +132,7 @@ func ConfigDatabaseUserWithX509Type(projectName, orgID, roleName, username, keyL
 	`, projectName, orgID, roleName, username, keyLabel, valueLabel, x509Type)
 }
 
-func ConfigDatabaseUserWithLabels(projectName, orgID, roleName, username string, labels []matlas.Label) string {
+func ConfigDatabaseUserWithLabels(projectName, orgID, roleName, username string, labels []admin.ComponentLabel) string {
 	var labelsConf string
 	for _, label := range labels {
 		labelsConf += fmt.Sprintf(`
@@ -140,7 +140,7 @@ func ConfigDatabaseUserWithLabels(projectName, orgID, roleName, username string,
 				key   = "%s"
 				value = "%s"
 			}
-		`, label.Key, label.Value)
+		`, label.GetKey(), label.GetValue())
 	}
 
 	return fmt.Sprintf(`
@@ -166,7 +166,7 @@ func ConfigDatabaseUserWithLabels(projectName, orgID, roleName, username string,
 	`, projectName, orgID, roleName, username, labelsConf)
 }
 
-func ConfigDatabaseUserWithRoles(username, password, projectName, orgID string, rolesArr []*matlas.Role) string {
+func ConfigDatabaseUserWithRoles(username, password, projectName, orgID string, rolesArr []*admin.DatabaseUserRole) string {
 	var roles string
 
 	for _, role := range rolesArr {
@@ -180,8 +180,8 @@ func ConfigDatabaseUserWithRoles(username, password, projectName, orgID string, 
 			databaseName = fmt.Sprintf(`database_name = %q`, role.DatabaseName)
 		}
 
-		if role.CollectionName != "" {
-			collection = fmt.Sprintf(`collection_name = %q`, role.CollectionName)
+		if role.GetCollectionName() != "" {
+			collection = fmt.Sprintf(`collection_name = %q`, role.GetCollectionName())
 		}
 
 		roles += fmt.Sprintf(`
@@ -237,7 +237,7 @@ func ConfigDatabaseUserWithAWSIAMType(projectName, orgID, roleName, username, ke
 	`, projectName, orgID, roleName, username, keyLabel, valueLabel)
 }
 
-func ConfigDatabaseUserWithScopes(username, password, projectName, orgID, roleName, clusterName string, scopesArr []*matlas.Scope) string {
+func ConfigDatabaseUserWithScopes(username, password, projectName, orgID, roleName, clusterName string, scopesArr []*admin.UserScope) string {
 	var scopes string
 
 	for _, scope := range scopesArr {

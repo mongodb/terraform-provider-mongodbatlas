@@ -5,11 +5,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -31,10 +28,10 @@ func PluralDataSource() datasource.DataSource {
 var _ datasource.DataSource = &DatabaseUsersDS{}
 var _ datasource.DataSourceWithConfigure = &DatabaseUsersDS{}
 
-type tfDatabaseUsersDSModel struct {
+type TfDatabaseUsersDSModel struct {
 	ID        types.String             `tfsdk:"id"`
 	ProjectID types.String             `tfsdk:"project_id"`
-	Results   []*tfDatabaseUserDSModel `tfsdk:"results"`
+	Results   []*TfDatabaseUserDSModel `tfsdk:"results"`
 }
 
 func (d *DatabaseUsersDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -129,7 +126,7 @@ func (d *DatabaseUsersDS) Schema(ctx context.Context, req datasource.SchemaReque
 }
 
 func (d *DatabaseUsersDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var databaseUsersModel *tfDatabaseUsersDSModel
+	var databaseUsersModel *TfDatabaseUsersDSModel
 	var err error
 	resp.Diagnostics.Append(req.Config.Get(ctx, &databaseUsersModel)...)
 	if resp.Diagnostics.HasError() {
@@ -137,14 +134,14 @@ func (d *DatabaseUsersDS) Read(ctx context.Context, req datasource.ReadRequest, 
 	}
 
 	projectID := databaseUsersModel.ProjectID.ValueString()
-	conn := d.Client.Atlas
-	dbUser, _, err := conn.DatabaseUsers.List(ctx, projectID, nil)
+	connV2 := d.Client.AtlasV2
+	dbUser, _, err := connV2.DatabaseUsersApi.ListDatabaseUsers(ctx, projectID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error getting database user information", err.Error())
 		return
 	}
 
-	dbUserModel, diagnostic := newTFDatabaseUsersMode(ctx, projectID, dbUser)
+	dbUserModel, diagnostic := NewTFDatabaseUsersModel(ctx, projectID, dbUser.GetResults())
 	resp.Diagnostics.Append(diagnostic...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -154,21 +151,4 @@ func (d *DatabaseUsersDS) Read(ctx context.Context, req datasource.ReadRequest, 
 	if resp.Diagnostics.HasError() {
 		return
 	}
-}
-
-func newTFDatabaseUsersMode(ctx context.Context, projectID string, dbUsers []matlas.DatabaseUser) (*tfDatabaseUsersDSModel, diag.Diagnostics) {
-	results := make([]*tfDatabaseUserDSModel, len(dbUsers))
-	for i := range dbUsers {
-		dbUserModel, d := newTFDatabaseDSUserModel(ctx, &dbUsers[i])
-		if d.HasError() {
-			return nil, d
-		}
-		results[i] = dbUserModel
-	}
-
-	return &tfDatabaseUsersDSModel{
-		ProjectID: types.StringValue(projectID),
-		Results:   results,
-		ID:        types.StringValue(id.UniqueId()),
-	}, nil
 }

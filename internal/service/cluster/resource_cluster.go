@@ -1220,7 +1220,8 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 						break
 					}
 				}
-				if id == "" && oldSpecs != nil {
+				// If there was an item before and after then use the same id assuming it's the same replication spec
+				if id == "" && oldSpecs != nil && len(vRSpecs.(*schema.Set).List()) == 1 && len(original.(*schema.Set).List()) == 1 {
 					id = oldSpecs["id"].(string)
 				}
 			}
