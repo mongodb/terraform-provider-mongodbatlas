@@ -127,6 +127,9 @@ func newTfAdvClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *m
 		return nil, diags
 	}
 	clusterModel.AdvancedConfiguration, diags = types.ListValueFrom(ctx, tfAdvancedConfigurationType, advancedConfiguration)
+	if diags.HasError() {
+		return nil, diags
+	}
 
 	return &clusterModel, nil
 }

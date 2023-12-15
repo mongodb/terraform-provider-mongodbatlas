@@ -34,6 +34,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
@@ -413,12 +414,14 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		atlasuser.DataSource,
 		atlasuser.PluralDataSource,
 		searchdeployment.DataSource,
+		advancedcluster.DataSource,
+		advancedcluster.PluralDataSource,
 	}
 	betaDataSources := []func() datasource.DataSource{
 		streaminstance.DataSource,
 		streaminstance.PluralDataSource,
-		advancedcluster.DataSource,
-		advancedcluster.PluralDataSource,
+		streamconnection.DataSource,
+		streamconnection.PluralDataSource,
 	}
 	if ProviderEnableBeta {
 		dataSources = append(dataSources, betaDataSources...)
@@ -438,7 +441,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 	}
 	betaResources := []func() resource.Resource{
 		streaminstance.Resource,
-		advancedcluster.Fw_Resource,
+		streamconnection.Resource,
 	}
 	if ProviderEnableBeta {
 		resources = append(resources, betaResources...)

@@ -42,6 +42,7 @@ func Resource() *schema.Resource {
 			"enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Computed: true,
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{

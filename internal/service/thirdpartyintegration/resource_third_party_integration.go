@@ -56,8 +56,9 @@ func Resource() *schema.Resource {
 			},
 			"api_key": {
 				Type:      schema.TypeString,
-				Sensitive: true,
 				Optional:  true,
+				Computed:  true,
+				Sensitive: true,
 			},
 			"region": {
 				Type:     schema.TypeString,
@@ -66,25 +67,30 @@ func Resource() *schema.Resource {
 			},
 			"service_key": {
 				Type:      schema.TypeString,
-				Sensitive: true,
 				Optional:  true,
+				Computed:  true,
+				Sensitive: true,
 			},
 			"team_name": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"channel_name": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"routing_key": {
 				Type:      schema.TypeString,
 				Optional:  true,
+				Computed:  true,
 				Sensitive: true,
 			},
 			"url": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"secret": {
 				Type:      schema.TypeString,
@@ -93,30 +99,36 @@ func Resource() *schema.Resource {
 			},
 			"microsoft_teams_webhook_url": {
 				Type:      schema.TypeString,
-				Sensitive: true,
 				Optional:  true,
+				Computed:  true,
+				Sensitive: true,
 			},
 			"user_name": {
 				Type:      schema.TypeString,
-				Sensitive: true,
 				Optional:  true,
+				Computed:  true,
+				Sensitive: true,
 			},
 			"password": {
 				Type:      schema.TypeString,
-				Sensitive: true,
 				Optional:  true,
+				Computed:  true,
+				Sensitive: true,
 			},
 			"service_discovery": {
 				Type:      schema.TypeString,
-				Sensitive: true,
 				Optional:  true,
+				Computed:  true,
+				Sensitive: true,
 			},
 			"scheme": {
 				Type:     schema.TypeString,
+				Computed: true,
 				Optional: true,
 			},
 			"enabled": {
 				Type:     schema.TypeBool,
+				Computed: true,
 				Optional: true,
 			},
 		},
