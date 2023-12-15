@@ -176,21 +176,8 @@ func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.Resou
 }
 
 func resourceMongoDBAtlasX509AuthDBUserDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	ids := conversion.DecodeStateID(d.Id())
-	currentCertificate := ids["current_certificate"]
-	projectID := ids["project_id"]
-
-	if currentCertificate == "" {
-		_, err := conn.X509AuthDBUsers.DisableCustomerX509(ctx, projectID)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorCustomerX509AuthDBUsersDelete, projectID, err))
-		}
-	}
-
+	// We don't do anything because X.509 certificates can not be deleted or disassociated from a user
 	d.SetId("")
-
 	return nil
 }
 
