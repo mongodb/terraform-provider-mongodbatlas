@@ -3,14 +3,14 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: stream instance"
 sidebar_current: "docs-mongodbatlas-resource-stream-instance"
 description: |-
-Provides a Stream Instance resource.
+    Provides a Stream Instance resource.
 ---
 
 # Resource: mongodbatlas_stream_instance
 
 `mongodbatlas_stream_instance` provides a Stream Instance resource. The resource lets you create, edit, and delete stream instances in a project.
 
--> **NOTE:** Atlas Streams is currently in Preview, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA=true` to use this resource. To learn more about stream processing and existing limitations, see the [Atlas Stream Processing Documentation](https://www.mongodb.com/docs/atlas/atlas-sp/overview/#atlas-stream-processing-overview).
+-> **NOTE:** Atlas Streams is currently in preview, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA=true` to use this resource. To learn more about stream processing and existing limitations, see the [Atlas Stream Processing Documentation](https://www.mongodb.com/docs/atlas/atlas-sp/overview/#atlas-stream-processing-overview).
 
 ## Example Usage
 
@@ -50,4 +50,5 @@ You can import stream instance resource using the project ID and instance name, 
 $ terraform import mongodbatlas_stream_instance.test 650972848269185c55f40ca1-InstanceName
 ```
 
-To learn more, see: [MongoDB Atlas API - Stream Instance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/createStreamInstance) Documentation.
+To learn more, see: [MongoDB Atlas API - Stream Instance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/createStreamInstance) Documentation. 
+The [Terraform Provider Examples Section](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/atlas-streams/README.md) also contains details on the overall support for Atlas Streams in Terraform.

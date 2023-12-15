@@ -3,14 +3,14 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: stream instance"
 sidebar_current: "docs-mongodbatlas-datasource-stream-instance"
 description: |-
-Describes a Stream Instance.
+    Describes a Stream Instance.
 ---
 
 # Data Source: mongodbatlas_stream_instance
 
 `mongodbatlas_stream_instance` describes a stream instance.
 
--> **NOTE:** Atlas Streams is currently in Preview, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA=true` to use this data source. To learn more about stream processing and existing limitations, see the [Atlas Stream Processing Documentation](https://www.mongodb.com/docs/atlas/atlas-sp/overview/#atlas-stream-processing-overview).
+-> **NOTE:** Atlas Streams is currently in preview, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA=true` to use this data source. To learn more about stream processing and existing limitations, see the [Atlas Stream Processing Documentation](https://www.mongodb.com/docs/atlas/atlas-sp/overview/#atlas-stream-processing-overview).
 
 ## Example Usage
 
