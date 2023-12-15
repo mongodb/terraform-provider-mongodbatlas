@@ -17,6 +17,8 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
+-> **NOTE:** Before provider version 1.12.0, Self-managed X.509 Authentication was disabled for the project when this resource was deleted.
+
 ## Example Usages
 
 ### Example Usage: Generate an Atlas-managed X.509 certificate for a MongoDB user
