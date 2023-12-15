@@ -104,7 +104,7 @@ func newTfAdvClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *m
 	clusterModel.BiConnectorConfig, d = types.ListValueFrom(ctx, TfBiConnectorConfigType, NewTfBiConnectorConfigModel(apiResp.BiConnector))
 	diags.Append(d...)
 
-	clusterModel.ConnectionStrings, d = types.ListValueFrom(ctx, tfConnectionStringType, newTfConnectionStringsModel(ctx, apiResp.ConnectionStrings))
+	clusterModel.ConnectionStrings, d = types.ListValueFrom(ctx, tfConnectionStringType, NewTfConnectionStringsModel(ctx, apiResp.ConnectionStrings))
 	diags.Append(d...)
 
 	clusterModel.Labels, d = types.SetValueFrom(ctx, TfLabelType, RemoveDefaultLabel(NewTfLabelsModel(apiResp.Labels)))

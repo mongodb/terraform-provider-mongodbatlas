@@ -149,7 +149,7 @@ func newTfAdvClustersDSModel(ctx context.Context, conn *mongodbatlas.Client, api
 	clusterModel.BiConnectorConfig, d = types.ListValueFrom(ctx, TfBiConnectorConfigType, NewTfBiConnectorConfigModel(apiResp.BiConnector))
 	diags.Append(d...)
 
-	clusterModel.ConnectionStrings, d = types.ListValueFrom(ctx, tfConnectionStringType, newTfConnectionStringsModel(ctx, apiResp.ConnectionStrings))
+	clusterModel.ConnectionStrings, d = types.ListValueFrom(ctx, tfConnectionStringType, NewTfConnectionStringsModel(ctx, apiResp.ConnectionStrings))
 	diags.Append(d...)
 
 	clusterModel.Labels, d = types.SetValueFrom(ctx, TfLabelType, NewTfLabelsModel(apiResp.Labels))
