@@ -62,6 +62,7 @@ func Resource() *schema.Resource {
 			"iam_assumed_role_arn": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"role_id": {
 				Type:     schema.TypeString,
@@ -275,6 +276,7 @@ func resourceMongoDBAtlasCloudProviderAccessV0() *schema.Resource {
 			"iam_assumed_role_arn": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"role_id": {
 				Type:     schema.TypeString,

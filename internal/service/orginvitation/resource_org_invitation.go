@@ -50,8 +50,10 @@ func Resource() *schema.Resource {
 				Computed: true,
 			},
 			"teams_ids": {
-				Type:     schema.TypeSet,
-				Optional: true,
+				Type:       schema.TypeSet,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

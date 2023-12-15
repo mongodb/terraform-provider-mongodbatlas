@@ -42,7 +42,7 @@ var (
 	projectStateNameDiff = project.TfProjectRSModel{
 		Name: diffName,
 	}
-	dummyProjectID = "projectId"
+	dummyProjectID = "6575af27f93c7a6a4b50b239"
 )
 
 func TestGetProjectPropsFromAPI(t *testing.T) {
@@ -410,6 +410,59 @@ func TestUpdateProjectTeams(t *testing.T) {
 			testObject.On("UpdateTeamRoles", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ProjectResponse{Err: nil})
 
 			err := project.UpdateProjectTeams(context.Background(), testObject, &testCases[i].projectState, &testCases[i].projectPlan)
+
+			if (err != nil) != tc.expectedError {
+				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
+			}
+		})
+	}
+}
+
+func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
+	testCases := []struct {
+		name          string
+		mockResponses ProjectResponse
+		expectedError bool
+	}{
+		{
+			name: "Error not from the API",
+			mockResponses: ProjectResponse{
+				clusterReponse: &admin.PaginatedAdvancedClusterDescription{},
+				Err:            errors.New("Non-API error"),
+			},
+			expectedError: true,
+		},
+		{
+			name: "Error from the API",
+			mockResponses: ProjectResponse{
+				clusterReponse: &admin.PaginatedAdvancedClusterDescription{},
+				Err:            &admin.GenericOpenAPIError{},
+			},
+			expectedError: true,
+		},
+		{
+			name: "Successful API call",
+			mockResponses: ProjectResponse{
+				clusterReponse: &admin.PaginatedAdvancedClusterDescription{
+					TotalCount: conversion.IntPtr(2),
+					Results: []admin.AdvancedClusterDescription{
+						{StateName: conversion.StringPtr("IDLE")},
+						{StateName: conversion.StringPtr("DELETING")},
+					},
+				},
+				Err: nil,
+			},
+			expectedError: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			testObject := new(MockProjectService)
+
+			testObject.On("ListClusters", mock.Anything, dummyProjectID).Return(tc.mockResponses)
+
+			_, _, err := project.ResourceProjectDependentsDeletingRefreshFunc(context.Background(), dummyProjectID, testObject)()
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -901,10 +954,17 @@ func (a *MockProjectService) AddAllTeamsToProject(ctx context.Context, groupID s
 	return response.ProjectTeamResp, response.HTTPResponse, response.Err
 }
 
+func (a *MockProjectService) ListClusters(ctx context.Context, groupID string) (*admin.PaginatedAdvancedClusterDescription, *http.Response, error) {
+	args := a.Called(ctx, groupID)
+	var response = args.Get(0).(ProjectResponse)
+	return response.clusterReponse, response.HTTPResponse, response.Err
+}
+
 type ProjectResponse struct {
 	ProjectResp                *admin.Group
 	ProjectTeamResp            *admin.PaginatedTeamRole
 	GroupSettingsResponse      *admin.GroupSettings
+	clusterReponse             *admin.PaginatedAdvancedClusterDescription
 	HTTPResponse               *http.Response
 	Err                        error
 	LimitResponse              admin.DataFederationLimit

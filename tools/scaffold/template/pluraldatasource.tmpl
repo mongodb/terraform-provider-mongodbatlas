@@ -1,0 +1,67 @@
+package {{.NameLowerNoSpaces}}
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
+)
+
+var _ datasource.DataSource = &{{.NameCamelCase}}sDS{}
+var _ datasource.DataSourceWithConfigure = &{{.NameCamelCase}}sDS{}
+
+func PluralDataSource() datasource.DataSource {
+	return &{{.NameCamelCase}}sDS{
+		DSCommon: config.DSCommon{
+			DataSourceName: fmt.Sprintf("%ss", {{.NameCamelCase}}Name),
+		},
+	}
+}
+
+type {{.NameCamelCase}}sDS struct {
+	config.DSCommon
+}
+
+type TF{{.NamePascalCase}}sDSModel struct {
+	ID           types.String `tfsdk:"id"`
+	// TODO: add attribute definitions
+	Results      []TF{{.NamePascalCase}}DSModel `tfsdk:"results"`
+	PageNum      types.Int64 `tfsdk:"page_num"`
+	ItemsPerPage types.Int64 `tfsdk:"items_per_page"`
+	TotalCount   types.Int64 `tfsdk:"total_count"`
+}
+
+func (d *{{.NameCamelCase}}sDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = dsschema.PaginatedDSSchema(
+		map[string]schema.Attribute{}, // TODO: define arguments of the data source
+		map[string]schema.Attribute{}, // TODO: define attributes of the result elements, schema from singular data source can be reused
+        )
+}
+
+func (d *{{.NameCamelCase}}sDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var {{.NameCamelCase}}sConfig TF{{.NamePascalCase}}sDSModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &{{.NameCamelCase}}sConfig)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// TODO: make get request to obtain list of results
+
+	// connV2 := r.Client.AtlasV2
+	//if err != nil {
+	//	resp.Diagnostics.AddError("error fetching results", err.Error())
+	//	return
+	//}
+
+	// TODO: process response into new terraform state
+	new{{.NamePascalCase}}sModel, diags := NewTF{{.NamePascalCase}}s(ctx, apiResp)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, new{{.NamePascalCase}}sModel)...)
+}
