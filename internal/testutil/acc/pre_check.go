@@ -164,16 +164,6 @@ func PreCheckRegularCredsAreEmpty(tb testing.TB) {
 	}
 }
 
-func PreCheckSearchIndex(tb testing.TB) {
-	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
-		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
-		os.Getenv("MONGODB_ATLAS_ORG_ID") == "" ||
-		os.Getenv("MONGODB_ATLAS_PROJECT_ID") == "" {
-		tb.Fatal("`MONGODB_ATLAS_PUBLIC_KEY`, `MONGODB_ATLAS_PRIVATE_KEY`,  `MONGODB_ATLAS_ORG_ID`, and `MONGODB_ATLAS_PROJECT_ID` must be set for acceptance testing")
-	}
-}
-
 func PreCheckSTSAssumeRole(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("AWS_REGION") == "" {

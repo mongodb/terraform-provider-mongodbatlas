@@ -10,13 +10,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - name: Update files
         run:  make tools update-atlas-sdk
       - name: Verify Changed files
-        uses: tj-actions/verify-changed-files@7b7a3b8db9077729f56bd82fced85f4b0ee67bcd
+        uses: tj-actions/verify-changed-files@5eff60fda839b96c3e34d8239dffb116c900582c
         id: verify-changed-files
       - name: Create PR
         uses: peter-evans/create-pull-request@v5
