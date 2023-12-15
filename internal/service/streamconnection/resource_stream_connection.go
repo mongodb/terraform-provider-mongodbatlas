@@ -32,7 +32,7 @@ type streamConnectionRS struct {
 	config.RSCommon
 }
 
-type TFStreamConnectionRSModel struct {
+type TFStreamConnectionModel struct {
 	ID               types.String `tfsdk:"id"`
 	ProjectID        types.String `tfsdk:"project_id"`
 	InstanceName     types.String `tfsdk:"instance_name"`
@@ -142,7 +142,7 @@ func (r *streamConnectionRS) Schema(ctx context.Context, req resource.SchemaRequ
 }
 
 func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var streamConnectionPlan TFStreamConnectionRSModel
+	var streamConnectionPlan TFStreamConnectionModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &streamConnectionPlan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -162,7 +162,7 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, &streamConnectionPlan, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionPlan.Authentication, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -171,7 +171,7 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 }
 
 func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var streamConnectionState TFStreamConnectionRSModel
+	var streamConnectionState TFStreamConnectionModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &streamConnectionState)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -187,7 +187,7 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, &streamConnectionState, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionState.Authentication, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -196,7 +196,7 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 }
 
 func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var streamConnectionPlan TFStreamConnectionRSModel
+	var streamConnectionPlan TFStreamConnectionModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &streamConnectionPlan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -217,7 +217,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, &streamConnectionPlan, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionPlan.Authentication, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -226,7 +226,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 }
 
 func (r *streamConnectionRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var streamConnectionState *TFStreamConnectionRSModel
+	var streamConnectionState *TFStreamConnectionModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &streamConnectionState)...)
 	if resp.Diagnostics.HasError() {
 		return

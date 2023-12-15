@@ -31,11 +31,11 @@ func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: kafkaStreamConnectionConfig(orgID, projectName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false),
-				Check:  kafkaStreamConnectionAttributeChecks(resourceName, orgID, projectName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false),
+				Check:  kafkaStreamConnectionAttributeChecks(resourceName, orgID, projectName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false, true),
 			},
 			{
 				Config: kafkaStreamConnectionConfig(orgID, projectName, instanceName, "user2", "otherpassword", "localhost:9093", "latest", false),
-				Check:  kafkaStreamConnectionAttributeChecks(resourceName, orgID, projectName, instanceName, "user2", "otherpassword", "localhost:9093", "latest", false),
+				Check:  kafkaStreamConnectionAttributeChecks(resourceName, orgID, projectName, instanceName, "user2", "otherpassword", "localhost:9093", "latest", false, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -62,7 +62,7 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: kafkaStreamConnectionConfig(orgID, projectName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true),
-				Check:  kafkaStreamConnectionAttributeChecks(resourceName, orgID, projectName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true),
+				Check:  kafkaStreamConnectionAttributeChecks(resourceName, orgID, projectName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -138,7 +138,8 @@ func kafkaStreamConnectionConfig(orgID, projectName, instanceName, username, pas
 	`, projectAndStreamInstanceConfig, username, password, bootstrapServers, configValue, securityConfig)
 }
 
-func kafkaStreamConnectionAttributeChecks(resourceName, orgID, projectName, instanceName, username, password, bootstrapServers, configValue string, usesSSL bool) resource.TestCheckFunc {
+func kafkaStreamConnectionAttributeChecks(
+	resourceName, orgID, projectName, instanceName, username, password, bootstrapServers, configValue string, usesSSL, checkPassword bool) resource.TestCheckFunc {
 	resourceChecks := []resource.TestCheckFunc{
 		checkStreamConnectionExists(),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -147,9 +148,11 @@ func kafkaStreamConnectionAttributeChecks(resourceName, orgID, projectName, inst
 		resource.TestCheckResourceAttr(resourceName, "type", "Kafka"),
 		resource.TestCheckResourceAttr(resourceName, "authentication.mechanism", "PLAIN"),
 		resource.TestCheckResourceAttr(resourceName, "authentication.username", username),
-		resource.TestCheckResourceAttr(resourceName, "authentication.password", password),
 		resource.TestCheckResourceAttr(resourceName, "bootstrap_servers", bootstrapServers),
 		resource.TestCheckResourceAttr(resourceName, "config.auto.offset.reset", configValue),
+	}
+	if checkPassword {
+		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "authentication.password", password))
 	}
 	if !usesSSL {
 		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "security.protocol", "PLAINTEXT"))

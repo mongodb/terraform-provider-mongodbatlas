@@ -7,11 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
-func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionRSModel) (*admin.StreamsConnection, diag.Diagnostics) {
+func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) (*admin.StreamsConnection, diag.Diagnostics) {
 	streamConnection := admin.StreamsConnection{
 		Name:             plan.ConnectionName.ValueStringPointer(),
 		Type:             plan.Type.ValueStringPointer(),
@@ -51,19 +52,19 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionRSModel
 	return &streamConnection, nil
 }
 
-func NewTFStreamConnection(ctx context.Context, config *TFStreamConnectionRSModel, apiResp *admin.StreamsConnection) (*TFStreamConnectionRSModel, diag.Diagnostics) {
-	id := fmt.Sprintf("%s-%s-%s", config.InstanceName.ValueString(), config.ProjectID.ValueString(), conversion.SafeString(apiResp.Name))
-	connectionModel := TFStreamConnectionRSModel{
-		ID:               types.StringValue(id),
-		ProjectID:        config.ProjectID,
-		InstanceName:     config.InstanceName,
+func NewTFStreamConnection(ctx context.Context, projID, instanceName string, currAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionModel, diag.Diagnostics) {
+	rID := fmt.Sprintf("%s-%s-%s", instanceName, projID, conversion.SafeString(apiResp.Name))
+	connectionModel := TFStreamConnectionModel{
+		ID:               types.StringValue(rID),
+		ProjectID:        types.StringValue(projID),
+		InstanceName:     types.StringValue(instanceName),
 		ConnectionName:   types.StringPointerValue(apiResp.Name),
 		Type:             types.StringPointerValue(apiResp.Type),
 		ClusterName:      types.StringPointerValue(apiResp.ClusterName),
 		BootstrapServers: types.StringPointerValue(apiResp.BootstrapServers),
 	}
 
-	authModel, diags := newTFConnectionAuthenticationModel(ctx, &config.Authentication, apiResp.Authentication)
+	authModel, diags := newTFConnectionAuthenticationModel(ctx, currAuthConfig, apiResp.Authentication)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -100,7 +101,7 @@ func newTFConnectionAuthenticationModel(ctx context.Context, currAuthConfig *typ
 			Username:  types.StringPointerValue(authResp.Username),
 		}
 
-		if !currAuthConfig.IsNull() { // if config is available (create & update of resource) password value is set in new state
+		if currAuthConfig != nil && !currAuthConfig.IsNull() { // if config is available (create & update of resource) password value is set in new state
 			configAuthModel := &TFConnectionAuthenticationModel{}
 			if diags := currAuthConfig.As(ctx, configAuthModel, basetypes.ObjectAsOptions{}); diags.HasError() {
 				return nil, diags
@@ -116,4 +117,28 @@ func newTFConnectionAuthenticationModel(ctx context.Context, currAuthConfig *typ
 	}
 	nullValue := types.ObjectNull(ConnectionAuthenticationObjectType.AttrTypes)
 	return &nullValue, nil
+}
+
+func NewTFStreamConnections(ctx context.Context,
+	streamConnectionsConfig *TFStreamConnectionsDSModel,
+	paginatedResult *admin.PaginatedApiStreamsConnection) (*TFStreamConnectionsDSModel, diag.Diagnostics) {
+	results := make([]TFStreamConnectionModel, len(paginatedResult.Results))
+	for i := range paginatedResult.Results {
+		projectID := streamConnectionsConfig.ProjectID.ValueString()
+		instanceName := streamConnectionsConfig.InstanceName.ValueString()
+		connectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, nil, &paginatedResult.Results[i])
+		if diags.HasError() {
+			return nil, diags
+		}
+		results[i] = *connectionModel
+	}
+	return &TFStreamConnectionsDSModel{
+		ID:           types.StringValue(id.UniqueId()),
+		ProjectID:    streamConnectionsConfig.ProjectID,
+		InstanceName: streamConnectionsConfig.InstanceName,
+		Results:      results,
+		PageNum:      streamConnectionsConfig.PageNum,
+		ItemsPerPage: streamConnectionsConfig.ItemsPerPage,
+		TotalCount:   types.Int64PointerValue(conversion.IntPtrToInt64Ptr(paginatedResult.TotalCount)),
+	}, nil
 }
