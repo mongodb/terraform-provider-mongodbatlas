@@ -53,3 +53,23 @@ resource "mongodbatlas_stream_connection" "example-kafka-ssl" {
     protocol                  = "SSL"
   }
 }
+
+data "mongodbatlas_stream_connection" "example-kafka-ssl" {
+  project_id      = var.project_id
+  instance_name   = mongodbatlas_stream_instance.example.instance_name
+  connection_name = mongodbatlas_stream_connection.example-kafka-ssl.connection_name
+}
+
+data "mongodbatlas_stream_connections" "example" {
+  project_id    = var.project_id
+  instance_name = mongodbatlas_stream_instance.example.instance_name
+}
+
+# example making use of data sources
+output "stream_connection_bootstrap_servers" {
+  value = data.mongodbatlas_stream_connection.example-kafka-ssl.bootstrap_servers
+}
+
+output "stream_connection_total_count" {
+  value = data.mongodbatlas_stream_connections.example.total_count
+}
