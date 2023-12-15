@@ -3,7 +3,7 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: search deployment"
 sidebar_current: "docs-mongodbatlas-datasource-search-deployment"
 description: |-
-Describes a Search Deployment.
+    Describes a Search Deployment.
 ---
 
 # Data Source: mongodbatlas_search_deployment

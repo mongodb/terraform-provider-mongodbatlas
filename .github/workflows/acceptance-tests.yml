@@ -68,6 +68,7 @@ jobs:
             - 'internal/service/searchdeployment/*.go'
           stream:
             - 'internal/service/streaminstance/*.go'
+            - 'internal/service/streamconnection/*.go'
           generic:
             - 'internal/service/backupcompliancepolicy/*.go'
             - 'internal/service/auditing/*.go'
@@ -528,7 +529,6 @@ jobs:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
-          MONGODB_ATLAS_PROJECT_ID: ${{ vars.MONGODB_ATLAS_ACCTEST_SEARCH_INDEX_PROJECT_ID_CLOUD_DEV }}
           TEST_REGEX: "^TestAccSearchIndex"
         run: make testacc
   

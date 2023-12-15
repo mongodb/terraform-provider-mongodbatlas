@@ -33,6 +33,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
@@ -435,6 +436,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 	}
 	betaResources := []func() resource.Resource{
 		streaminstance.Resource,
+		streamconnection.Resource,
 	}
 	if ProviderEnableBeta {
 		resources = append(resources, betaResources...)
