@@ -3,14 +3,14 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: stream connection"
 sidebar_current: "docs-mongodbatlas-datasource-stream-connection"
 description: |-
-    Describes a Stream Connection.
+    Describes an Atlas Stream Processing connection.
 ---
 
 # Data Source: mongodbatlas_stream_connection
 
 `mongodbatlas_stream_connection` describes a stream connection.
 
--> **NOTE:** Atlas Streams is currently in Preview, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA=true` to use this data source. To learn more about stream processing and existing limitations, see the [Atlas Stream Processing Documentation](https://www.mongodb.com/docs/atlas/atlas-sp/overview/#atlas-stream-processing-overview).
+-> **NOTE:** Atlas Stream Processing is currently in preview, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA=true` to use this data source. To learn more about stream processing and existing limitations, see the [Atlas Stream Processing Documentation](https://www.mongodb.com/docs/atlas/atlas-sp/overview/#atlas-stream-processing-overview).
 
 ## Example Usage
 
@@ -36,7 +36,7 @@ If `type` is of value `Cluster` the following additional attributes are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
 
 If `type` is of value `Kafka` the following additional attributes are defined:
-* `authentication` - User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode. See [authentication](#authentication).
+* `authentication` - User credentials required to connect to a Kafka cluster. Includes the authentication type, as well as the parameters for that authentication mode. See [authentication](#authentication).
 * `bootstrap_servers` - Comma separated list of server addresses.
 * `config` - A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
 * `security` - Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use. See [security](#security).
@@ -54,4 +54,4 @@ If `type` is of value `Kafka` the following additional attributes are defined:
 
 
 To learn more, see: [MongoDB Atlas API - Stream Connection](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/getStreamConnection) Documentation.
-The [Terraform Provider Examples Section](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/atlas-streams/README.md) also contains details on the overall support for Atlas Streams in Terraform.
+The [Terraform Provider Examples Section](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/atlas-streams/README.md) also contains details on the overall support for Atlas Streams Processing in Terraform.

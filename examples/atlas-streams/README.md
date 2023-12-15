@@ -7,7 +7,7 @@ Atlas Stream Processing is composed of multiple components, and users can levera
 - `mongodbatlas_stream_instance`: Enables creating, modifying, and deleting Stream Instances. as part of this resource, a computed `hostnames` attribute is available for connecting to the created instance.
 - `mongodbatlas_stream_connection`: Enables creating, modifying, and deleting Stream Instance Connections, which serve as data sources and sinks for your instance.
 
-**NOTE**: To leverage these resources you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA=true` as this functionality is currently in preview.  Also see [Limitations](https://www.mongodb.com/docs/atlas/atlas-sp/limitations/#std-label-atlas-sp-limitations) of Atlas Streams during this preview period.
+**NOTE**: To leverage these resources you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA=true` as this functionality is currently in preview.  Also see [Limitations](https://www.mongodb.com/docs/atlas/atlas-sp/limitations/#std-label-atlas-sp-limitations) of Atlas Streams Processing during this preview period.
 
 ### Managing Stream Processors
 
