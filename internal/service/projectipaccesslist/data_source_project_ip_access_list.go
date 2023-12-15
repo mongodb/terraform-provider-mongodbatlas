@@ -11,10 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
 const (
@@ -36,7 +34,7 @@ func DataSource() datasource.DataSource {
 var _ datasource.DataSource = &projectIPAccessListDS{}
 var _ datasource.DataSourceWithConfigure = &projectIPAccessListDS{}
 
-type tfProjectIPAccessListDSModel struct {
+type TfProjectIPAccessListDSModel struct {
 	ID               types.String `tfsdk:"id"`
 	ProjectID        types.String `tfsdk:"project_id"`
 	CIDRBlock        types.String `tfsdk:"cidr_block"`
@@ -94,7 +92,7 @@ func (d *projectIPAccessListDS) Schema(ctx context.Context, req datasource.Schem
 }
 
 func (d *projectIPAccessListDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var databaseDSUserConfig *tfProjectIPAccessListDSModel
+	var databaseDSUserConfig *TfProjectIPAccessListDSModel
 	var err error
 	resp.Diagnostics.Append(req.Config.Get(ctx, &databaseDSUserConfig)...)
 	if resp.Diagnostics.HasError() {
@@ -121,7 +119,7 @@ func (d *projectIPAccessListDS) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	accessListEntry, diagnostic := newTFProjectIPAccessListDSModel(ctx, accessList)
+	accessListEntry, diagnostic := NewTfProjectIPAccessListDSModel(ctx, accessList)
 	resp.Diagnostics.Append(diagnostic...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -131,29 +129,4 @@ func (d *projectIPAccessListDS) Read(ctx context.Context, req datasource.ReadReq
 	if resp.Diagnostics.HasError() {
 		return
 	}
-}
-
-func newTFProjectIPAccessListDSModel(ctx context.Context, accessList *admin.NetworkPermissionEntry) (*tfProjectIPAccessListDSModel, diag.Diagnostics) {
-	databaseUserModel := &tfProjectIPAccessListDSModel{
-		ProjectID:        types.StringValue(accessList.GetGroupId()),
-		Comment:          types.StringValue(accessList.GetComment()),
-		CIDRBlock:        types.StringValue(accessList.GetCidrBlock()),
-		IPAddress:        types.StringValue(accessList.GetIpAddress()),
-		AWSSecurityGroup: types.StringValue(accessList.GetAwsSecurityGroup()),
-	}
-
-	entry := accessList.GetCidrBlock()
-	if accessList.GetIpAddress() != "" {
-		entry = accessList.GetIpAddress()
-	} else if accessList.GetAwsSecurityGroup() != "" {
-		entry = accessList.GetAwsSecurityGroup()
-	}
-
-	id := conversion.EncodeStateID(map[string]string{
-		"entry":      entry,
-		"project_id": accessList.GetGroupId(),
-	})
-
-	databaseUserModel.ID = types.StringValue(id)
-	return databaseUserModel, nil
 }

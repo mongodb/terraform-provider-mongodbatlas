@@ -34,7 +34,7 @@ const (
 	projectIPAccessListRetry       = 2 * time.Minute
 )
 
-type tfProjectIPAccessListModel struct {
+type TfProjectIPAccessListModel struct {
 	ID               types.String   `tfsdk:"id"`
 	ProjectID        types.String   `tfsdk:"project_id"`
 	CIDRBlock        types.String   `tfsdk:"cidr_block"`
@@ -130,7 +130,7 @@ func (r *projectIPAccessListRS) Schema(ctx context.Context, req resource.SchemaR
 }
 
 func (r *projectIPAccessListRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var projectIPAccessListModel *tfProjectIPAccessListModel
+	var projectIPAccessListModel *TfProjectIPAccessListModel
 
 	diags := req.Plan.Get(ctx, &projectIPAccessListModel)
 	resp.Diagnostics.Append(diags...)
@@ -149,7 +149,7 @@ func (r *projectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 		Pending: []string{"pending"},
 		Target:  []string{"created", "failed"},
 		Refresh: func() (any, string, error) {
-			_, _, err := connV2.ProjectIPAccessListApi.CreateProjectIpAccessList(ctx, projectID, newMongoDBProjectIPAccessList(projectIPAccessListModel)).Execute()
+			_, _, err := connV2.ProjectIPAccessListApi.CreateProjectIpAccessList(ctx, projectID, NewMongoDBProjectIPAccessList(projectIPAccessListModel)).Execute()
 			if err != nil {
 				if strings.Contains(err.Error(), "Unexpected error") ||
 					strings.Contains(err.Error(), "UNEXPECTED_ERROR") ||
@@ -200,50 +200,15 @@ func (r *projectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	projectIPAccessListNewModel := newTFProjectIPAccessListModel(projectIPAccessListModel, entry)
+	projectIPAccessListNewModel := NewTfProjectIPAccessListModel(projectIPAccessListModel, entry)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &projectIPAccessListNewModel)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 }
 
-func newTFProjectIPAccessListModel(projectIPAccessListModel *tfProjectIPAccessListModel, projectIPAccessList *admin.NetworkPermissionEntry) *tfProjectIPAccessListModel {
-	entry := projectIPAccessList.GetIpAddress()
-	if projectIPAccessList.GetCidrBlock() != "" {
-		entry = projectIPAccessList.GetCidrBlock()
-	} else if projectIPAccessList.GetAwsSecurityGroup() != "" {
-		entry = projectIPAccessList.GetAwsSecurityGroup()
-	}
-
-	id := conversion.EncodeStateID(map[string]string{
-		"entry":      entry,
-		"project_id": projectIPAccessList.GetGroupId(),
-	})
-
-	return &tfProjectIPAccessListModel{
-		ID:               types.StringValue(id),
-		ProjectID:        types.StringValue(projectIPAccessList.GetGroupId()),
-		CIDRBlock:        types.StringValue(projectIPAccessList.GetCidrBlock()),
-		IPAddress:        types.StringValue(projectIPAccessList.GetIpAddress()),
-		AWSSecurityGroup: types.StringValue(projectIPAccessList.GetAwsSecurityGroup()),
-		Comment:          types.StringValue(projectIPAccessList.GetComment()),
-		Timeouts:         projectIPAccessListModel.Timeouts,
-	}
-}
-
-func newMongoDBProjectIPAccessList(projectIPAccessListModel *tfProjectIPAccessListModel) *[]admin.NetworkPermissionEntry {
-	return &[]admin.NetworkPermissionEntry{
-		{
-			AwsSecurityGroup: conversion.StringPtr(projectIPAccessListModel.AWSSecurityGroup.ValueString()),
-			CidrBlock:        conversion.StringPtr(projectIPAccessListModel.CIDRBlock.ValueString()),
-			IpAddress:        conversion.StringPtr(projectIPAccessListModel.IPAddress.ValueString()),
-			Comment:          conversion.StringPtr(projectIPAccessListModel.Comment.ValueString()),
-		},
-	}
-}
-
 func (r *projectIPAccessListRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var projectIPAccessListModelState *tfProjectIPAccessListModel
+	var projectIPAccessListModelState *TfProjectIPAccessListModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &projectIPAccessListModelState)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -281,7 +246,7 @@ func (r *projectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 			return nil
 		}
 
-		projectIPAccessListNewModel := newTFProjectIPAccessListModel(projectIPAccessListModelState, accessList)
+		projectIPAccessListNewModel := NewTfProjectIPAccessListModel(projectIPAccessListModelState, accessList)
 		resp.Diagnostics.Append(resp.State.Set(ctx, &projectIPAccessListNewModel)...)
 		return nil
 	})
@@ -292,7 +257,7 @@ func (r *projectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 }
 
 func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var projectIPAccessListModelState *tfProjectIPAccessListModel
+	var projectIPAccessListModelState *TfProjectIPAccessListModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &projectIPAccessListModelState)...)
 	if resp.Diagnostics.HasError() {
