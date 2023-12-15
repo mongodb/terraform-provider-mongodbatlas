@@ -3,7 +3,7 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: stream instance"
 sidebar_current: "docs-mongodbatlas-resource-stream-instance"
 description: |-
-Provides a Stream Instance resource.
+    Provides a Stream Instance resource.
 ---
 
 # Resource: mongodbatlas_stream_instance

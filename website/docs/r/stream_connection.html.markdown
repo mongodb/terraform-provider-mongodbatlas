@@ -3,7 +3,7 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: stream connection"
 sidebar_current: "docs-mongodbatlas-resource-stream-connection"
 description: |-
-Provides a Stream Connection resource.
+    Provides a Stream Connection resource.
 ---
 
 # Resource: mongodbatlas_stream_connection
