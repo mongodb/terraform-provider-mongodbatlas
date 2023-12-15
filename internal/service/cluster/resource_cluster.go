@@ -144,7 +144,7 @@ func Resource() *schema.Resource {
 			"cloud_backup": {
 				Type:          schema.TypeBool,
 				Optional:      true,
-				Default:       false,
+				Computed:      true,
 				ConflictsWith: []string{"backup_enabled"},
 			},
 			"provider_instance_size_name": {
