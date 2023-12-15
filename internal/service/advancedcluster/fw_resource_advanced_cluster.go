@@ -392,11 +392,11 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 									},
 								},
 								Blocks: map[string]schema.Block{
-									"analytics_auto_scaling": advancedClusterRSRegionConfigAutoScalingSpecsBlock(),
-									"auto_scaling":           advancedClusterRSRegionConfigAutoScalingSpecsBlock(),
-									"analytics_specs":        advancedClusterRSRegionConfigSpecsBlock(),
-									"electable_specs":        advancedClusterRSRegionConfigSpecsBlock(),
-									"read_only_specs":        advancedClusterRSRegionConfigSpecsBlock(),
+									"analytics_auto_scaling": advClusterRSRegionConfigAutoScalingSpecsBlock(),
+									"auto_scaling":           advClusterRSRegionConfigAutoScalingSpecsBlock(),
+									"analytics_specs":        advClusterRSRegionConfigSpecsBlock(),
+									"electable_specs":        advClusterRSRegionConfigSpecsBlock(),
+									"read_only_specs":        advClusterRSRegionConfigSpecsBlock(),
 								},
 							},
 							Validators: []validator.List{
@@ -500,7 +500,7 @@ func advClusterRSConnectionStringSchemaAttr() schema.ListNestedAttribute {
 	}
 }
 
-func advancedClusterRSRegionConfigSpecsBlock() schema.ListNestedBlock {
+func advClusterRSRegionConfigSpecsBlock() schema.ListNestedBlock {
 	return schema.ListNestedBlock{
 		NestedObject: schema.NestedBlockObject{
 			Attributes: map[string]schema.Attribute{
@@ -529,7 +529,7 @@ func advancedClusterRSRegionConfigSpecsBlock() schema.ListNestedBlock {
 	}
 }
 
-func advancedClusterRSRegionConfigAutoScalingSpecsBlock() schema.ListNestedBlock {
+func advClusterRSRegionConfigAutoScalingSpecsBlock() schema.ListNestedBlock {
 	return schema.ListNestedBlock{
 		NestedObject: schema.NestedBlockObject{
 			Attributes: map[string]schema.Attribute{
@@ -651,11 +651,15 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 		request.VersionReleaseSystem = v.ValueString()
 	}
 
-	cluster, _, err := conn.AdvancedClusters.Create(ctx, projectID, request)
+	// TODO undo
+	// cluster, _, err := conn.AdvancedClusters.Create(ctx, projectID, request)
+	cluster, _, err := conn.AdvancedClusters.Get(ctx, projectID, plan.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to CREATE cluster. Error during create in Atlas", fmt.Sprintf(errorClusterAdvancedCreate, err))
 		return
 	}
+	// TODO remove
+	// cluster.ConnectionStrings = nil
 
 	timeout, diags := plan.Timeouts.Create(ctx, defaultTimeout)
 	resp.Diagnostics.Append(diags...)
@@ -705,7 +709,7 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 
 	// TODO read from Atlas before writing to state
 	// during READ, mongodb_major_version should match what is in the config
-	newClusterModel, diags := newTfAdvClusterRSModel(ctx, conn, cluster, &plan)
+	newClusterModel, diags := newTfAdvClusterRSModel(ctx, conn, cluster, &plan, false)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -774,7 +778,7 @@ func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *m
 
 	advancedConfiguration, err := NewTfAdvancedConfigurationModelDSFromAtlas(ctx, conn, projectID, name)
 	if err != nil {
-		diags.AddError("An error occured when getting advanced_configuration from Atlas", err.Error())
+		diags.AddError("An error occurred when getting advanced_configuration from Atlas", err.Error())
 		return nil, diags
 	}
 	clusterModel.AdvancedConfiguration, diags = types.ListValueFrom(ctx, tfAdvancedConfigurationType, advancedConfiguration)
@@ -782,7 +786,7 @@ func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *m
 		return nil, diags
 	}
 
-	if !isImport {
+	if v := state.Timeouts; !v.IsNull() { // import
 		clusterModel.Timeouts = state.Timeouts
 	}
 

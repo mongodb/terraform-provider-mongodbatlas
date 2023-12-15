@@ -337,11 +337,11 @@ func fw_ResourceV0() schema.Schema {
 									},
 								},
 								Blocks: map[string]schema.Block{
-									"analytics_auto_scaling": advancedClusterRSRegionConfigAutoScalingSpecsBlock(),
-									"auto_scaling":           advancedClusterRSRegionConfigAutoScalingSpecsBlock(),
-									"analytics_specs":        advancedClusterRSRegionConfigSpecsBlock(),
-									"electable_specs":        advancedClusterRSRegionConfigSpecsBlock(),
-									"read_only_specs":        advancedClusterRSRegionConfigSpecsBlock(),
+									"analytics_auto_scaling": advClusterRSRegionConfigAutoScalingSpecsBlock(),
+									"auto_scaling":           advClusterRSRegionConfigAutoScalingSpecsBlock(),
+									"analytics_specs":        advClusterRSRegionConfigSpecsBlock(),
+									"electable_specs":        advClusterRSRegionConfigSpecsBlock(),
+									"read_only_specs":        advClusterRSRegionConfigSpecsBlock(),
 								},
 							},
 							Validators: []validator.List{
