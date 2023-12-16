@@ -23,9 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -210,10 +208,10 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 						"default_read_concern": schema.StringAttribute{
 							Optional: true,
 							Computed: true,
-							PlanModifiers: []planmodifier.String{
-								planmodifiers.UseNullForUnknownString(),
-								// stringplanmodifier.UseStateForUnknown(),
-							},
+							// PlanModifiers: []planmodifier.String{
+							// 	planmodifiers.UseNullForUnknownString(),
+							// 	// stringplanmodifier.UseStateForUnknown(),
+							// },
 						},
 						"default_write_concern": schema.StringAttribute{
 							Optional: true,
@@ -226,34 +224,34 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 						"fail_index_key_too_long": schema.BoolAttribute{
 							Optional: true,
 							Computed: true,
-							PlanModifiers: []planmodifier.Bool{
-								planmodifiers.UseNullForUnknownBool(),
-								// boolplanmodifier.UseStateForUnknown(),
-							},
+							// PlanModifiers: []planmodifier.Bool{
+							// 	planmodifiers.UseNullForUnknownBool(),
+							// 	// boolplanmodifier.UseStateForUnknown(),
+							// },
 						},
 						"javascript_enabled": schema.BoolAttribute{
 							Optional: true,
 							Computed: true,
-							PlanModifiers: []planmodifier.Bool{
-								planmodifiers.UseNullForUnknownBool(),
-								// boolplanmodifier.UseStateForUnknown(),
-							},
+							// PlanModifiers: []planmodifier.Bool{
+							// 	planmodifiers.UseNullForUnknownBool(),
+							// 	// boolplanmodifier.UseStateForUnknown(),
+							// },
 						},
 						"minimum_enabled_tls_protocol": schema.StringAttribute{
 							Optional: true,
 							Computed: true,
-							PlanModifiers: []planmodifier.String{
-								planmodifiers.UseNullForUnknownString(),
-								// stringplanmodifier.UseStateForUnknown(),
-							},
+							// PlanModifiers: []planmodifier.String{
+							// 	planmodifiers.UseNullForUnknownString(),
+							// 	// stringplanmodifier.UseStateForUnknown(),
+							// },
 						},
 						"no_table_scan": schema.BoolAttribute{
 							Optional: true,
 							Computed: true,
-							PlanModifiers: []planmodifier.Bool{
-								planmodifiers.UseNullForUnknownBool(),
-								boolplanmodifier.UseStateForUnknown(),
-							},
+							// PlanModifiers: []planmodifier.Bool{
+							// 	planmodifiers.UseNullForUnknownBool(),
+							// 	boolplanmodifier.UseStateForUnknown(),
+							// },
 						},
 						"oplog_min_retention_hours": schema.Int64Attribute{
 							Optional: true,
@@ -261,44 +259,44 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 						"oplog_size_mb": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
-							PlanModifiers: []planmodifier.Int64{
-								planmodifiers.UseNullForUnknownInt64(),
-								// int64planmodifier.UseStateForUnknown(),
-							},
+							// PlanModifiers: []planmodifier.Int64{
+							// 	planmodifiers.UseNullForUnknownInt64(),
+							// 	// int64planmodifier.UseStateForUnknown(),
+							// },
 						},
 						"sample_refresh_interval_bi_connector": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
-							PlanModifiers: []planmodifier.Int64{
-								planmodifiers.UseNullForUnknownInt64(),
-								// int64planmodifier.UseStateForUnknown(),
-							},
+							// PlanModifiers: []planmodifier.Int64{
+							// 	planmodifiers.UseNullForUnknownInt64(),
+							// 	// int64planmodifier.UseStateForUnknown(),
+							// },
 						},
 						"sample_size_bi_connector": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
-							PlanModifiers: []planmodifier.Int64{
-								planmodifiers.UseNullForUnknownInt64(),
-								// int64planmodifier.UseStateForUnknown(),
-							},
+							// PlanModifiers: []planmodifier.Int64{
+							// 	planmodifiers.UseNullForUnknownInt64(),
+							// 	// int64planmodifier.UseStateForUnknown(),
+							// },
 						},
 						"transaction_lifetime_limit_seconds": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
-							PlanModifiers: []planmodifier.Int64{
-								planmodifiers.UseNullForUnknownInt64(),
-								// int64planmodifier.UseStateForUnknown(),
-							},
+							// PlanModifiers: []planmodifier.Int64{
+							// 	planmodifiers.UseNullForUnknownInt64(),
+							// 	// int64planmodifier.UseStateForUnknown(),
+							// },
 						},
 					},
 				},
 				Validators: []validator.List{
 					listvalidator.SizeAtMost(1),
 				},
-				PlanModifiers: []planmodifier.List{
-					// planmodifiers.UseNullForUnknownInt64(),
-					listplanmodifier.UseStateForUnknown(),
-				},
+				// PlanModifiers: []planmodifier.List{
+				// 	// planmodifiers.UseNullForUnknownInt64(),
+				// 	listplanmodifier.UseStateForUnknown(),
+				// },
 			},
 			"bi_connector_config": schema.ListNestedBlock{
 				NestedObject: schema.NestedBlockObject{
@@ -306,28 +304,28 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 						"enabled": schema.BoolAttribute{
 							Optional: true,
 							Computed: true,
-							PlanModifiers: []planmodifier.Bool{
-								// planmodifiers.UseNullForUnknownBool(),
-								boolplanmodifier.UseStateForUnknown(),
-							},
+							// PlanModifiers: []planmodifier.Bool{
+							// 	// planmodifiers.UseNullForUnknownBool(),
+							// 	boolplanmodifier.UseStateForUnknown(),
+							// },
 						},
 						"read_preference": schema.StringAttribute{
 							Optional: true,
 							Computed: true,
-							PlanModifiers: []planmodifier.String{
-								// planmodifiers.UseNullForUnknownString(),
-								stringplanmodifier.UseStateForUnknown(),
-							},
+							// PlanModifiers: []planmodifier.String{
+							// 	// planmodifiers.UseNullForUnknownString(),
+							// 	stringplanmodifier.UseStateForUnknown(),
+							// },
 						},
 					},
 				},
 				Validators: []validator.List{
 					listvalidator.SizeAtMost(1),
 				},
-				PlanModifiers: []planmodifier.List{
-					// planmodifiers.UseNullForUnknownInt64(),
-					listplanmodifier.UseStateForUnknown(),
-				},
+				// PlanModifiers: []planmodifier.List{
+				//
+				// 	listplanmodifier.UseStateForUnknown(),
+				// },
 			},
 			"labels": schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
@@ -348,17 +346,17 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 						"container_id": schema.MapAttribute{
 							ElementType: types.StringType,
 							Computed:    true,
-							PlanModifiers: []planmodifier.Map{
-								// planmodifiers.UseNullForUnknownBool(),
-								mapplanmodifier.UseStateForUnknown(),
-							},
+							// PlanModifiers: []planmodifier.Map{
+							// 	// planmodifiers.UseNullForUnknownBool(),
+							// 	mapplanmodifier.UseStateForUnknown(),
+							// },
 						},
 						"id": schema.StringAttribute{
 							Computed: true,
-							PlanModifiers: []planmodifier.String{
-								// planmodifiers.UseNullForUnknownBool(),
-								stringplanmodifier.UseStateForUnknown(),
-							},
+							// PlanModifiers: []planmodifier.String{
+							// 	// planmodifiers.UseNullForUnknownBool(),
+							// 	stringplanmodifier.UseStateForUnknown(),
+							// },
 						},
 						"num_shards": schema.Int64Attribute{
 							Optional: true,
@@ -420,10 +418,10 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 						},
 					},
 				},
-				PlanModifiers: []planmodifier.Set{
-					// planmodifiers.UseNullForUnknownInt64(),
-					setplanmodifier.UseStateForUnknown(),
-				},
+				// PlanModifiers: []planmodifier.Set{
+				// 	// planmodifiers.UseNullForUnknownInt64(),
+				// 	setplanmodifier.UseStateForUnknown(),
+				// },
 			},
 		},
 		Version: 1,
