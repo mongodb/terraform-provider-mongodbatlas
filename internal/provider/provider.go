@@ -437,7 +437,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		alertconfiguration.Resource,
 		projectipaccesslist.Resource,
 		searchdeployment.Resource,
-		advancedcluster.Fw_Resource,
+		advancedcluster.FwResource,
 	}
 	betaResources := []func() resource.Resource{
 		streaminstance.Resource,

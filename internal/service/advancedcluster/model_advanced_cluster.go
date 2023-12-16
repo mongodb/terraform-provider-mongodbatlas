@@ -289,6 +289,7 @@ func NewTfTagsModel(tags *[]*matlas.Tag) []*TfTagModel {
 
 func NewTfLabelsModel(labels []matlas.Label) []TfLabelModel {
 	out := make([]TfLabelModel, len(labels))
+
 	for i, v := range labels {
 		out[i] = TfLabelModel{
 			Key:   conversion.StringNullIfEmpty(v.Key),

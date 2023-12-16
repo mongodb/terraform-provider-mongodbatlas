@@ -69,7 +69,7 @@ func (*advancedClusterRS) UpgradeState(context.Context) map[int64]resource.State
 }
 
 // TODO rename to Resource() after deleting old resource
-func Fw_Resource() resource.Resource {
+func FwResource() resource.Resource {
 	return &advancedClusterRS{
 		RSCommon: config.RSCommon{
 			ResourceName: AdvancedClusterResourceName,
@@ -702,7 +702,7 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 
 		_, _, err = updateAdvancedCluster(ctx, conn, request, projectID, cluster.Name, timeout)
 		if err != nil {
-			resp.Diagnostics.AddError("Error during cluster CREATE. An error occured attempting to pause cluster in Atlas", fmt.Sprintf(errorClusterAdvancedCreate, err))
+			resp.Diagnostics.AddError("Error during cluster CREATE. An error occurred attempting to pause cluster in Atlas", fmt.Sprintf(errorClusterAdvancedCreate, err))
 			return
 		}
 	}
@@ -762,9 +762,15 @@ func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *m
 	diags.Append(d...)
 
 	clusterModel.Labels, d = types.SetValueFrom(ctx, TfLabelType, RemoveDefaultLabel(NewTfLabelsModel(cluster.Labels)))
+	if len(clusterModel.Labels.Elements()) == 0 {
+		clusterModel.Labels, d = types.SetValueFrom(ctx, TfLabelType, []TfLabelModel{})
+	}
 	diags.Append(d...)
 
 	clusterModel.Tags, d = types.SetValueFrom(ctx, TfTagType, NewTfTagsModel(&cluster.Tags))
+	if len(clusterModel.Tags.Elements()) == 0 {
+		clusterModel.Tags, d = types.SetValueFrom(ctx, TfTagType, []TfTagModel{})
+	}
 	diags.Append(d...)
 
 	replicationSpecs, diags := newTfReplicationSpecsRSModel_1(ctx, conn, cluster.ReplicationSpecs, state.ReplicationSpecs, projectID)
@@ -786,9 +792,9 @@ func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *m
 		return nil, diags
 	}
 
-	if v := state.Timeouts; !v.IsNull() { // import
-		clusterModel.Timeouts = state.Timeouts
-	}
+	// if v := state.Timeouts; !v.IsNull() { // import
+	clusterModel.Timeouts = state.Timeouts
+	// }
 
 	return &clusterModel, diags
 }
@@ -846,9 +852,8 @@ func newTfReplicationSpecsRSModel_1(ctx context.Context, conn *matlas.Client,
 	projectID string) ([]tfReplicationSpecRSModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var configSpecs []tfReplicationSpecRSModel
-	// var tfList []*tfReplicationSpecRSModel
 
-	if !configSpecsList.IsNull() { //create return to state - filter by config, read/tf plan - filter by config, update - filter by config, import - return everything from API
+	if !configSpecsList.IsNull() { // create return to state - filter by config, read/tf plan - filter by config, update - filter by config, import - return everything from API
 		configSpecsList.ElementsAs(ctx, &configSpecs, true)
 	}
 
@@ -879,7 +884,7 @@ func newTfReplicationSpecsRSModel_1(ctx context.Context, conn *matlas.Client,
 				continue
 			}
 
-			if !doesAdvancedReplicationSpecMatchAPI_1(tfMapObject, apiObjects[j]) {
+			if !doesAdvancedReplicationSpecMatchAPI_1(&tfMapObject, apiObjects[j]) {
 				continue
 			}
 
@@ -894,15 +899,12 @@ func newTfReplicationSpecsRSModel_1(ctx context.Context, conn *matlas.Client,
 		}
 	}
 
-	for i, tfo := range tfList {
+	for i := range tfList {
+		tfo := tfList[i]
 		var tfMapObject *tfReplicationSpecRSModel
 		if !reflect.DeepEqual(tfo, (tfReplicationSpecRSModel{})) {
 			continue
 		}
-
-		// if tfo != (tfReplicationSpecRSModel{}) {
-		// 	continue
-		// }
 
 		if len(configSpecs) > i {
 			tfMapObject = &configSpecs[i]
@@ -920,7 +922,6 @@ func newTfReplicationSpecsRSModel_1(ctx context.Context, conn *matlas.Client,
 	}
 
 	return tfList, nil
-
 }
 
 func flattenAdvancedReplicationSpec_1(ctx context.Context, apiObject *matlas.AdvancedReplicationSpec, configSpec *tfReplicationSpecRSModel,
@@ -974,14 +975,11 @@ func flattenAdvancedReplicationSpecRegionConfigs_1(ctx context.Context, apiObjec
 	var configRegionConfigs []*tfRegionsConfigModel
 	containerIDsMap := map[string]attr.Value{}
 
-	// var tfList []*tfReplicationSpecRSModel
-
-	if !configRegionConfigsList.IsNull() { //create return to state - filter by config, read/tf plan - filter by config, update - filter by config, import - return everything from API
+	if !configRegionConfigsList.IsNull() { // create return to state - filter by config, read/tf plan - filter by config, update - filter by config, import - return everything from API
 		configRegionConfigsList.ElementsAs(ctx, &configRegionConfigs, true)
 	}
 
 	var tfList []tfRegionsConfigModel
-	// containerIds := make(map[string]string)
 
 	for i, apiObject := range apiObjects {
 		if apiObject == nil {
@@ -1027,6 +1025,7 @@ func flattenAdvancedReplicationSpecRegionConfigs_1(ctx context.Context, apiObjec
 // api to terrafiorm state
 func flattenAdvancedReplicationSpecRegionConfig_1(ctx context.Context, apiObject *matlas.AdvancedRegionConfig, configRegionConfig *tfRegionsConfigModel) (*tfRegionsConfigModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
+	var d diag.Diagnostics
 
 	if apiObject == nil {
 		return nil, diags
@@ -1034,41 +1033,48 @@ func flattenAdvancedReplicationSpecRegionConfig_1(ctx context.Context, apiObject
 
 	tfMap := tfRegionsConfigModel{}
 	if configRegionConfig != nil {
-		// if v, ok := configRegionConfig["analytics_specs"]; ok && len(v.([]any)) > 0 {
-		// 	tfMap["analytics_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.AnalyticsSpecs, apiObject.ProviderName, tfMapObject["analytics_specs"].([]any))
-		// }
 		if v := configRegionConfig.AnalyticsSpecs; !v.IsNull() && len(v.Elements()) > 0 {
-			tfMap.AnalyticsSpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.AnalyticsSpecs, apiObject.ProviderName, configRegionConfig.AnalyticsSpecs)
+			tfMap.AnalyticsSpecs, d = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.AnalyticsSpecs, apiObject.ProviderName, configRegionConfig.AnalyticsSpecs)
 		} else {
-			tfMap.AnalyticsSpecs, diags = types.ListValueFrom(ctx, tfRegionsConfigSpecType, []tfRegionsConfigSpecsModel{})
+			tfMap.AnalyticsSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, []tfRegionsConfigSpecsModel{})
 		}
+		diags.Append(d...)
 		if v := configRegionConfig.ElectableSpecs; !v.IsNull() && len(v.Elements()) > 0 {
-			tfMap.ElectableSpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.ElectableSpecs, apiObject.ProviderName, configRegionConfig.ElectableSpecs)
+			tfMap.ElectableSpecs, d = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.ElectableSpecs, apiObject.ProviderName, configRegionConfig.ElectableSpecs)
 		} else {
-			tfMap.ElectableSpecs, diags = types.ListValueFrom(ctx, tfRegionsConfigSpecType, []tfRegionsConfigSpecsModel{})
+			tfMap.ElectableSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, []tfRegionsConfigSpecsModel{})
 		}
+		diags.Append(d...)
 		if v := configRegionConfig.ReadOnlySpecs; !v.IsNull() && len(v.Elements()) > 0 {
-			tfMap.ReadOnlySpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.ReadOnlySpecs, apiObject.ProviderName, configRegionConfig.ReadOnlySpecs)
+			tfMap.ReadOnlySpecs, d = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.ReadOnlySpecs, apiObject.ProviderName, configRegionConfig.ReadOnlySpecs)
 		} else {
-			tfMap.ReadOnlySpecs, diags = types.ListValueFrom(ctx, tfRegionsConfigSpecType, []tfRegionsConfigSpecsModel{})
+			tfMap.ReadOnlySpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, []tfRegionsConfigSpecsModel{})
 		}
+		diags.Append(d...)
 		if v := configRegionConfig.AutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
-			tfMap.AutoScaling, diags = flattenAdvancedReplicationSpecAutoScaling_1(ctx, apiObject.AutoScaling)
+			tfMap.AutoScaling, d = flattenAdvancedReplicationSpecAutoScaling_1(ctx, apiObject.AutoScaling)
 		} else {
-			tfMap.AutoScaling, diags = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, []tfRegionsConfigAutoScalingSpecsModel{})
+			tfMap.AutoScaling, d = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, []tfRegionsConfigAutoScalingSpecsModel{})
 		}
+		diags.Append(d...)
 		if v := configRegionConfig.AnalyticsAutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
-			tfMap.AnalyticsAutoScaling, diags = flattenAdvancedReplicationSpecAutoScaling_1(ctx, apiObject.AnalyticsAutoScaling)
+			tfMap.AnalyticsAutoScaling, d = flattenAdvancedReplicationSpecAutoScaling_1(ctx, apiObject.AnalyticsAutoScaling)
 		} else {
-			tfMap.AnalyticsAutoScaling, diags = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, []tfRegionsConfigAutoScalingSpecsModel{})
+			tfMap.AnalyticsAutoScaling, d = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, []tfRegionsConfigAutoScalingSpecsModel{})
 		}
+		diags.Append(d...)
 	} else {
 		nilSpecList := types.ListNull(tfRegionsConfigSpecType)
-		tfMap.AnalyticsSpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.AnalyticsSpecs, apiObject.ProviderName, nilSpecList)
-		tfMap.ElectableSpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.ElectableSpecs, apiObject.ProviderName, nilSpecList)
-		tfMap.ReadOnlySpecs, diags = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.ReadOnlySpecs, apiObject.ProviderName, nilSpecList)
-		tfMap.AutoScaling, diags = flattenAdvancedReplicationSpecAutoScaling_1(ctx, apiObject.AutoScaling)
-		tfMap.AnalyticsAutoScaling, diags = flattenAdvancedReplicationSpecAutoScaling_1(ctx, apiObject.AnalyticsAutoScaling)
+		tfMap.AnalyticsSpecs, d = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.AnalyticsSpecs, apiObject.ProviderName, nilSpecList)
+		diags.Append(d...)
+		tfMap.ElectableSpecs, d = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.ElectableSpecs, apiObject.ProviderName, nilSpecList)
+		diags.Append(d...)
+		tfMap.ReadOnlySpecs, d = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.ReadOnlySpecs, apiObject.ProviderName, nilSpecList)
+		diags.Append(d...)
+		tfMap.AutoScaling, d = flattenAdvancedReplicationSpecAutoScaling_1(ctx, apiObject.AutoScaling)
+		diags.Append(d...)
+		tfMap.AnalyticsAutoScaling, d = flattenAdvancedReplicationSpecAutoScaling_1(ctx, apiObject.AnalyticsAutoScaling)
+		diags.Append(d...)
 	}
 
 	tfMap.RegionName = types.StringValue(apiObject.RegionName)
@@ -1089,7 +1095,7 @@ func flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx context.Context, apiOb
 
 	var configRegionConfigSpecs []*tfRegionsConfigSpecsModel
 
-	if !tfMapObjects.IsNull() { //create return to state - filter by config, read/tf plan - filter by config, update - filter by config, import - return everything from API
+	if !tfMapObjects.IsNull() { // create return to state - filter by config, read/tf plan - filter by config, update - filter by config, import - return everything from API
 		tfMapObjects.ElementsAs(ctx, &configRegionConfigSpecs, true)
 	}
 
@@ -1104,12 +1110,12 @@ func flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx context.Context, apiOb
 			if cast.ToInt64(apiObject.DiskIOPS) > 0 {
 				tfMap.DiskIOPS = types.Int64PointerValue(apiObject.DiskIOPS)
 			}
-			// if v := tfMapObject.EBSVolumeType; !v.IsNull() && v.ValueString() != "" {
-			// 	tfMap.EBSVolumeType = types.StringValue(apiObject.EbsVolumeType)
-			// }
 			if v := tfMapObject.EBSVolumeType; !v.IsNull() && v.ValueString() != "" {
-				tfMap.EBSVolumeType = types.StringValue("")
+				tfMap.EBSVolumeType = types.StringValue(apiObject.EbsVolumeType)
 			}
+			// if v := tfMapObject.EBSVolumeType; !v.IsNull() && v.ValueString() != "" {
+			// 	tfMap.EBSVolumeType = types.StringValue("")
+			// }
 		}
 		if v := tfMapObject.NodeCount; !v.IsNull() {
 			tfMap.NodeCount = types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiObject.NodeCount))
@@ -1155,7 +1161,7 @@ func flattenAdvancedReplicationSpecAutoScaling_1(ctx context.Context, apiObject 
 	return types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, tfList)
 }
 
-func doesAdvancedReplicationSpecMatchAPI_1(tfObject tfReplicationSpecRSModel, apiObject *matlas.AdvancedReplicationSpec) bool {
+func doesAdvancedReplicationSpecMatchAPI_1(tfObject *tfReplicationSpecRSModel, apiObject *matlas.AdvancedReplicationSpec) bool {
 	return tfObject.ID.ValueString() == apiObject.ID || (tfObject.ID.IsNull() && tfObject.ZoneName.ValueString() == apiObject.ZoneName)
 }
 
@@ -1188,83 +1194,140 @@ func newTfReplicationSpecsRSModel(ctx context.Context, conn *matlas.Client, repl
 }
 
 func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	// conn := r.Client.Atlas
-	// var state, plan tfAdvancedClusterRSModel
+	conn := r.Client.Atlas
+	var state, plan tfAdvancedClusterRSModel
 
-	// resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	// if resp.Diagnostics.HasError() {
-	// 	return
-	// }
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	// resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	// if resp.Diagnostics.HasError() {
-	// 	return
-	// }
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	// ids := conversion.DecodeStateID(state.ID.ValueString())
-	// projectID := ids["project_id"]
-	// clusterName := ids["cluster_name"]
+	ids := conversion.DecodeStateID(state.ID.ValueString())
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
 
-	// cluster := new(matlas.AdvancedCluster)
-	// clusterChangeDetect := new(matlas.AdvancedCluster)
+	cluster := new(matlas.AdvancedCluster)
+	clusterChangeDetect := new(matlas.AdvancedCluster)
 
-	// if !plan.BackupEnabled.Equal(state.BackupEnabled) {
-	// 	cluster.BackupEnabled = plan.BackupEnabled.ValueBoolPointer()
-	// }
-	// // TODO BiConnector
+	if !plan.BackupEnabled.Equal(state.BackupEnabled) {
+		cluster.BackupEnabled = plan.BackupEnabled.ValueBoolPointer()
+	}
+	// TODO BiConnector
+	if !reflect.DeepEqual(plan.BiConnectorConfig, state.BiConnectorConfig) {
+		cluster.BiConnector = newBiConnectorConfig(ctx, plan.BiConnectorConfig)
+	}
 
-	// if !plan.ClusterType.Equal(state.ClusterType) {
-	// 	cluster.ClusterType = plan.ClusterType.ValueString()
-	// }
-	// if !plan.BackupEnabled.Equal(state.BackupEnabled) {
-	// 	cluster.BackupEnabled = plan.BackupEnabled.ValueBoolPointer()
-	// }
-	// if !plan.DiskSizeGb.Equal(state.DiskSizeGb) {
-	// 	cluster.DiskSizeGB = plan.DiskSizeGb.ValueFloat64Pointer()
-	// }
-	// if !plan.EncryptionAtRestProvider.Equal(state.EncryptionAtRestProvider) {
-	// 	cluster.EncryptionAtRestProvider = plan.EncryptionAtRestProvider.ValueString()
-	// }
+	if !plan.ClusterType.Equal(state.ClusterType) {
+		cluster.ClusterType = plan.ClusterType.ValueString()
+	}
+	if !plan.BackupEnabled.Equal(state.BackupEnabled) {
+		cluster.BackupEnabled = plan.BackupEnabled.ValueBoolPointer()
+	}
+	if !plan.DiskSizeGb.Equal(state.DiskSizeGb) {
+		cluster.DiskSizeGB = plan.DiskSizeGb.ValueFloat64Pointer()
+	}
+	if !plan.EncryptionAtRestProvider.Equal(state.EncryptionAtRestProvider) {
+		cluster.EncryptionAtRestProvider = plan.EncryptionAtRestProvider.ValueString()
+	}
 
 	// TODO Labels
+	if !reflect.DeepEqual(plan.Labels, state.Labels) {
+		if ContainsLabelOrKey(newLabels(ctx, plan.Labels), defaultLabel) {
+			resp.Diagnostics.AddError("Unable to UPDATE cluster. An error occurred when updating labels.", "you should not set `Infrastructure Tool` label, it is used for internal purposes")
+			return
+		}
+		cluster.Labels = newLabels(ctx, plan.Labels)
+	}
 	// TODO tags
+	if !reflect.DeepEqual(plan.Tags, state.Tags) {
+		cluster.Tags = newTags(ctx, plan.Tags)
+	}
 
-	// if !plan.MongoDBMajorVersion.Equal(state.MongoDBMajorVersion) {
-	// 	cluster.MongoDBMajorVersion = plan.MongoDBMajorVersion.ValueString()
-	// }
-	// if !plan.PitEnabled.Equal(state.PitEnabled) {
-	// 	cluster.PitEnabled = plan.PitEnabled.ValueBoolPointer()
-	// }
+	if !plan.MongoDBMajorVersion.Equal(state.MongoDBMajorVersion) {
+		cluster.MongoDBMajorVersion = plan.MongoDBMajorVersion.ValueString()
+	}
+	if !plan.PitEnabled.Equal(state.PitEnabled) {
+		cluster.PitEnabled = plan.PitEnabled.ValueBoolPointer()
+	}
 	// // TODO ReplicationSpecs
+	if !reflect.DeepEqual(plan.ReplicationSpecs, state.ReplicationSpecs) {
+		cluster.ReplicationSpecs = newReplicationSpecs(ctx, plan.ReplicationSpecs)
+	}
 
-	// if !plan.RootCertType.Equal(state.RootCertType) {
-	// 	cluster.RootCertType = plan.RootCertType.ValueString()
-	// }
-	// if !plan.TerminationProtectionEnabled.Equal(state.TerminationProtectionEnabled) {
-	// 	cluster.TerminationProtectionEnabled = plan.TerminationProtectionEnabled.ValueBoolPointer()
-	// }
-	// if !plan.AcceptDataRisksAndForceReplicaSetReconfig.Equal(state.AcceptDataRisksAndForceReplicaSetReconfig) {
-	// 	cluster.AcceptDataRisksAndForceReplicaSetReconfig = plan.AcceptDataRisksAndForceReplicaSetReconfig.ValueString()
-	// }
-	// if !plan.Paused.Equal(state.Paused) {
-	// 	cluster.Paused = plan.Paused.ValueBoolPointer()
-	// }
+	if !plan.RootCertType.Equal(state.RootCertType) {
+		cluster.RootCertType = plan.RootCertType.ValueString()
+	}
+	if !plan.TerminationProtectionEnabled.Equal(state.TerminationProtectionEnabled) {
+		cluster.TerminationProtectionEnabled = plan.TerminationProtectionEnabled.ValueBoolPointer()
+	}
+	if !plan.AcceptDataRisksAndForceReplicaSetReconfig.Equal(state.AcceptDataRisksAndForceReplicaSetReconfig) {
+		cluster.AcceptDataRisksAndForceReplicaSetReconfig = plan.AcceptDataRisksAndForceReplicaSetReconfig.ValueString()
+	}
+	if !plan.Paused.Equal(state.Paused) {
+		cluster.Paused = plan.Paused.ValueBoolPointer()
+	}
 
-	// timeout, diags := plan.Timeouts.Update(ctx, defaultTimeout)
+	timeout, diags := plan.Timeouts.Update(ctx, defaultTimeout)
 
 	// TODO advanced_configuration
+	if !reflect.DeepEqual(plan.AdvancedConfiguration, state.AdvancedConfiguration) {
+		ac := plan.AdvancedConfiguration
+		if len(ac.Elements()) > 0 {
+			advancedConfReq := newAdvancedConfiguration(ctx, ac)
+			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
+				_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
+				if err != nil {
+					resp.Diagnostics.AddError("Unable to UPDATE cluster. An error occurred when updating advanced_configuration.", err.Error())
+					return
+				}
+			}
+		}
+	}
 
 	// TODO cluster change detect
+	// Has changes
+	if !reflect.DeepEqual(cluster, clusterChangeDetect) {
+		err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
+			_, resp, err := updateAdvancedCluster(ctx, conn, cluster, projectID, clusterName, timeout)
+			if err != nil {
+				if resp == nil || resp.StatusCode == 400 {
+					return retry.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+				}
+				return retry.RetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+			}
+			return nil
+		})
+		if err != nil {
+			resp.Diagnostics.AddError("Unable to UPDATE cluster. An error occurred when updating cluster in Atlas.", err.Error())
+			return
+		}
+	}
 
 	// TODO paused
+	if plan.Paused.ValueBool() {
+		clusterRequest := &matlas.AdvancedCluster{
+			Paused: pointy.Bool(true),
+		}
 
-	// resp.Diagnostics.Append(diags...)
-	// if resp.Diagnostics.HasError() {
-	// 	return
-	// }
+		_, _, err := updateAdvancedCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
+		if err != nil {
+			resp.Diagnostics.AddError("Unable to UPDATE cluster. An error occurred when attempting to pause cluster in Atlas.", err.Error())
+			return
+		}
+	}
+
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// save updated data into terraform state
-	// resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *advancedClusterRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -1288,7 +1351,7 @@ func (r *advancedClusterRS) Delete(ctx context.Context, req resource.DeleteReque
 
 	_, err := conn.AdvancedClusters.Delete(ctx, projectID, clusterName, options)
 	if err != nil {
-		resp.Diagnostics.AddError("Unable to DELETE cluster. An error occured when deleting cluster in Atlas", fmt.Sprintf(errorClusterAdvancedDelete, clusterName, err))
+		resp.Diagnostics.AddError("Unable to DELETE cluster. An error occurred when deleting cluster in Atlas", fmt.Sprintf(errorClusterAdvancedDelete, clusterName, err))
 		return
 	}
 
@@ -1312,7 +1375,7 @@ func (r *advancedClusterRS) Delete(ctx context.Context, req resource.DeleteReque
 	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Unable to DELETE cluster. An error occured when deleting cluster in Atlas", fmt.Sprintf(errorClusterAdvancedDelete, clusterName, err))
+		resp.Diagnostics.AddError("Unable to DELETE cluster. An error occurred when deleting cluster in Atlas", fmt.Sprintf(errorClusterAdvancedDelete, clusterName, err))
 		return
 	}
 }
@@ -1328,7 +1391,8 @@ func (r *advancedClusterRS) ImportState(ctx context.Context, req resource.Import
 
 	u, _, err := conn.AdvancedClusters.Get(ctx, *projectID, *name)
 	if err != nil {
-		resp.Diagnostics.AddError("Unable to IMPORT cluster. An error occurred when getting cluster details from Atlas.", fmt.Sprintf("couldn't import cluster %s in project %s, error: %s", *name, *projectID, err))
+		resp.Diagnostics.AddError("Unable to IMPORT cluster. An error occurred when getting cluster details from Atlas.",
+			fmt.Sprintf("couldn't import cluster %s in project %s, error: %s", *name, *projectID, err))
 		return
 	}
 	id := conversion.EncodeStateID(map[string]string{
@@ -1469,9 +1533,8 @@ func newBiConnectorConfig(ctx context.Context, tfList basetypes.ListValue) *matl
 	// 	return nil
 	// }
 	tfBiConnector := tfArr[0]
-	var biConnector matlas.BiConnector
 
-	biConnector = matlas.BiConnector{
+	biConnector := matlas.BiConnector{
 		Enabled:        tfBiConnector.Enabled.ValueBoolPointer(),
 		ReadPreference: tfBiConnector.ReadPreference.ValueString(),
 	}
@@ -1493,8 +1556,8 @@ func newReplicationSpecs(ctx context.Context, tfList basetypes.ListValue) []*mat
 
 	var repSpecs []*matlas.AdvancedReplicationSpec
 
-	for _, tfRepSpec := range tfRepSpecs {
-		rs := newReplicationSpec(ctx, &tfRepSpec)
+	for i := range tfRepSpecs {
+		rs := newReplicationSpec(ctx, &tfRepSpecs[i])
 		repSpecs = append(repSpecs, rs)
 	}
 	return repSpecs
@@ -1526,8 +1589,8 @@ func newRegionConfigs(ctx context.Context, tfList basetypes.ListValue) []*matlas
 
 	var regionConfigs []*matlas.AdvancedRegionConfig
 
-	for _, tfRegionConfig := range tfRegionConfigs {
-		rc := newRegionConfig(ctx, &tfRegionConfig)
+	for i := range tfRegionConfigs {
+		rc := newRegionConfig(ctx, &tfRegionConfigs[i])
 
 		regionConfigs = append(regionConfigs, rc)
 	}
