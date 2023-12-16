@@ -241,6 +241,7 @@ func Resource() *schema.Resource {
 						"frequency_type": {
 							Type:     schema.TypeString,
 							Computed: true,
+							Optional: true,
 						},
 						"frequency_interval": {
 							Type:     schema.TypeInt,
@@ -302,7 +303,6 @@ func Resource() *schema.Resource {
 			},
 			"next_snapshot": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 		},
