@@ -100,10 +100,11 @@ func Resource() *schema.Resource {
 				},
 			},
 			"export": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				Computed: true,
+				Type:       schema.TypeList,
+				MaxItems:   1,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"export_bucket_id": {
@@ -120,9 +121,11 @@ func Resource() *schema.Resource {
 				},
 			},
 			"policy_item_hourly": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Optional: true,
+				Type:       schema.TypeList,
+				MaxItems:   1,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -149,9 +152,11 @@ func Resource() *schema.Resource {
 				},
 			},
 			"policy_item_daily": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Optional: true,
+				Type:       schema.TypeList,
+				MaxItems:   1,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -178,8 +183,10 @@ func Resource() *schema.Resource {
 				},
 			},
 			"policy_item_weekly": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -206,8 +213,10 @@ func Resource() *schema.Resource {
 				},
 			},
 			"policy_item_monthly": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -275,6 +284,7 @@ func Resource() *schema.Resource {
 			},
 			"next_snapshot": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 		},
