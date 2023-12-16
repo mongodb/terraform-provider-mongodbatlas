@@ -131,22 +131,27 @@ func Resource() *schema.Resource {
 						"id": {
 							Type:     schema.TypeString,
 							Computed: true,
+							Optional: true,
 						},
 						"frequency_type": {
 							Type:     schema.TypeString,
 							Computed: true,
+							Optional: true,
 						},
 						"frequency_interval": {
 							Type:     schema.TypeInt,
 							Required: true,
+							Optional: true,
 						},
 						"retention_value": {
 							Type:     schema.TypeInt,
 							Required: true,
+							Optional: true,
 						},
 						"retention_unit": {
 							Type:     schema.TypeString,
 							Required: true,
+							Optional: true,
 						},
 					},
 				},
@@ -162,22 +167,27 @@ func Resource() *schema.Resource {
 						"id": {
 							Type:     schema.TypeString,
 							Computed: true,
+							Optional: true,
 						},
 						"frequency_type": {
 							Type:     schema.TypeString,
 							Computed: true,
+							Optional: true,
 						},
 						"frequency_interval": {
 							Type:     schema.TypeInt,
 							Required: true,
+							Optional: true,
 						},
 						"retention_unit": {
 							Type:     schema.TypeString,
 							Required: true,
+							Optional: true,
 						},
 						"retention_value": {
 							Type:     schema.TypeInt,
 							Required: true,
+							Optional: true,
 						},
 					},
 				},
@@ -192,22 +202,27 @@ func Resource() *schema.Resource {
 						"id": {
 							Type:     schema.TypeString,
 							Computed: true,
+							Optional: true,
 						},
 						"frequency_type": {
 							Type:     schema.TypeString,
 							Computed: true,
+							Optional: true,
 						},
 						"frequency_interval": {
 							Type:     schema.TypeInt,
 							Required: true,
+							Optional: true,
 						},
 						"retention_unit": {
 							Type:     schema.TypeString,
 							Required: true,
+							Optional: true,
 						},
 						"retention_value": {
 							Type:     schema.TypeInt,
 							Required: true,
+							Optional: true,
 						},
 					},
 				},
