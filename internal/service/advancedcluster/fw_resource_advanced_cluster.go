@@ -216,10 +216,10 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 						"default_write_concern": schema.StringAttribute{
 							Optional: true,
 							Computed: true,
-							PlanModifiers: []planmodifier.String{
-								planmodifiers.UseNullForUnknownString(),
-								// stringplanmodifier.UseStateForUnknown(),
-							},
+							// PlanModifiers: []planmodifier.String{
+							// 	planmodifiers.UseNullForUnknownString(),
+							// 	// stringplanmodifier.UseStateForUnknown(),
+							// },
 						},
 						"fail_index_key_too_long": schema.BoolAttribute{
 							Optional: true,
@@ -843,6 +843,224 @@ func (r *advancedClusterRS) Read(ctx context.Context, req resource.ReadRequest, 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newClusterModel)...)
 }
 
+func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	conn := r.Client.Atlas
+	var state, plan tfAdvancedClusterRSModel
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	ids := conversion.DecodeStateID(state.ID.ValueString())
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+
+	cluster := new(matlas.AdvancedCluster)
+	clusterChangeDetect := new(matlas.AdvancedCluster)
+
+	if !plan.BackupEnabled.Equal(state.BackupEnabled) {
+		cluster.BackupEnabled = plan.BackupEnabled.ValueBoolPointer()
+	}
+	// TODO BiConnector
+	if !reflect.DeepEqual(plan.BiConnectorConfig, state.BiConnectorConfig) {
+		cluster.BiConnector = newBiConnectorConfig(ctx, plan.BiConnectorConfig)
+	}
+
+	if !plan.ClusterType.Equal(state.ClusterType) {
+		cluster.ClusterType = plan.ClusterType.ValueString()
+	}
+	if !plan.BackupEnabled.Equal(state.BackupEnabled) {
+		cluster.BackupEnabled = plan.BackupEnabled.ValueBoolPointer()
+	}
+	if !plan.DiskSizeGb.Equal(state.DiskSizeGb) {
+		cluster.DiskSizeGB = plan.DiskSizeGb.ValueFloat64Pointer()
+	}
+	if !plan.EncryptionAtRestProvider.Equal(state.EncryptionAtRestProvider) {
+		cluster.EncryptionAtRestProvider = plan.EncryptionAtRestProvider.ValueString()
+	}
+
+	// TODO Labels
+	if !reflect.DeepEqual(plan.Labels, state.Labels) {
+		if ContainsLabelOrKey(newLabels(ctx, plan.Labels), defaultLabel) {
+			resp.Diagnostics.AddError("Unable to UPDATE cluster. An error occurred when updating labels.", "you should not set `Infrastructure Tool` label, it is used for internal purposes")
+			return
+		}
+		cluster.Labels = newLabels(ctx, plan.Labels)
+	}
+	// TODO tags
+	if !reflect.DeepEqual(plan.Tags, state.Tags) {
+		cluster.Tags = newTags(ctx, plan.Tags)
+	}
+
+	if !plan.MongoDBMajorVersion.Equal(state.MongoDBMajorVersion) {
+		cluster.MongoDBMajorVersion = plan.MongoDBMajorVersion.ValueString()
+	}
+	if !plan.PitEnabled.Equal(state.PitEnabled) {
+		cluster.PitEnabled = plan.PitEnabled.ValueBoolPointer()
+	}
+	// // TODO ReplicationSpecs
+	if !reflect.DeepEqual(plan.ReplicationSpecs, state.ReplicationSpecs) {
+		cluster.ReplicationSpecs = newReplicationSpecs(ctx, plan.ReplicationSpecs)
+	}
+
+	if !plan.RootCertType.Equal(state.RootCertType) {
+		cluster.RootCertType = plan.RootCertType.ValueString()
+	}
+	if !plan.TerminationProtectionEnabled.Equal(state.TerminationProtectionEnabled) {
+		cluster.TerminationProtectionEnabled = plan.TerminationProtectionEnabled.ValueBoolPointer()
+	}
+	if !plan.AcceptDataRisksAndForceReplicaSetReconfig.Equal(state.AcceptDataRisksAndForceReplicaSetReconfig) {
+		cluster.AcceptDataRisksAndForceReplicaSetReconfig = plan.AcceptDataRisksAndForceReplicaSetReconfig.ValueString()
+	}
+	if !plan.Paused.Equal(state.Paused) {
+		cluster.Paused = plan.Paused.ValueBoolPointer()
+	}
+
+	timeout, diags := plan.Timeouts.Update(ctx, defaultTimeout)
+
+	// TODO advanced_configuration
+	if !reflect.DeepEqual(plan.AdvancedConfiguration, state.AdvancedConfiguration) {
+		ac := plan.AdvancedConfiguration
+		if len(ac.Elements()) > 0 {
+			advancedConfReq := newAdvancedConfiguration(ctx, ac)
+			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
+				_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
+				if err != nil {
+					resp.Diagnostics.AddError("Unable to UPDATE cluster. An error occurred when updating advanced_configuration.", err.Error())
+					return
+				}
+			}
+		}
+	}
+
+	// TODO cluster change detect
+	// Has changes
+	if !reflect.DeepEqual(cluster, clusterChangeDetect) {
+		err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
+			_, resp, err := updateAdvancedCluster(ctx, conn, cluster, projectID, clusterName, timeout)
+			if err != nil {
+				if resp == nil || resp.StatusCode == 400 {
+					return retry.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+				}
+				return retry.RetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+			}
+			return nil
+		})
+		if err != nil {
+			resp.Diagnostics.AddError("Unable to UPDATE cluster. An error occurred when updating cluster in Atlas.", err.Error())
+			return
+		}
+	}
+
+	// TODO paused
+	if plan.Paused.ValueBool() {
+		clusterRequest := &matlas.AdvancedCluster{
+			Paused: pointy.Bool(true),
+		}
+
+		_, _, err := updateAdvancedCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
+		if err != nil {
+			resp.Diagnostics.AddError("Unable to UPDATE cluster. An error occurred when attempting to pause cluster in Atlas.", err.Error())
+			return
+		}
+	}
+
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// save updated data into terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+}
+
+func (r *advancedClusterRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	conn := r.Client.Atlas
+	var state tfAdvancedClusterRSModel
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	ids := conversion.DecodeStateID(state.ID.ValueString())
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+
+	var options *matlas.DeleteAdvanceClusterOptions
+	if v := state.RetainBackupsEnabled; !v.IsNull() {
+		options = &matlas.DeleteAdvanceClusterOptions{
+			RetainBackups: v.ValueBoolPointer(),
+		}
+	}
+
+	_, err := conn.AdvancedClusters.Delete(ctx, projectID, clusterName, options)
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to DELETE cluster. An error occurred when deleting cluster in Atlas", fmt.Sprintf(errorClusterAdvancedDelete, clusterName, err))
+		return
+	}
+
+	timeout, diags := state.Timeouts.Delete(ctx, defaultTimeout)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	log.Println("[INFO] Waiting for MongoDB ClusterAdvanced to be destroyed")
+
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
+		Target:     []string{"DELETED"},
+		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, clusterName, projectID, conn),
+		Timeout:    timeout,
+		MinTimeout: 30 * time.Second,
+		Delay:      1 * time.Minute, // Wait 30 secs before starting
+	}
+
+	// Wait, catching any errors
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to DELETE cluster. An error occurred when deleting cluster in Atlas", fmt.Sprintf(errorClusterAdvancedDelete, clusterName, err))
+		return
+	}
+}
+
+func (r *advancedClusterRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	conn := r.Client.Atlas
+
+	projectID, name, err := splitSClusterAdvancedImportID(req.ID)
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to IMPORT cluster. An error occurred when attempting to read resource ID", err.Error())
+		return
+	}
+
+	u, _, err := conn.AdvancedClusters.Get(ctx, *projectID, *name)
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to IMPORT cluster. An error occurred when getting cluster details from Atlas.",
+			fmt.Sprintf("couldn't import cluster %s in project %s, error: %s", *name, *projectID, err))
+		return
+	}
+	id := conversion.EncodeStateID(map[string]string{
+		"cluster_id":   u.ID,
+		"project_id":   u.GroupID,
+		"cluster_name": u.Name,
+	})
+	state := tfAdvancedClusterRSModel{
+		ID: types.StringValue(id),
+	}
+
+	diags := resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+}
+
 // api to tf state:
 func newTfReplicationSpecsRSModel_1(ctx context.Context, conn *matlas.Client,
 	rawAPIObjects []*matlas.AdvancedReplicationSpec,
@@ -1189,224 +1407,6 @@ func newTfReplicationSpecsRSModel(ctx context.Context, conn *matlas.Client, repl
 		res[i] = tfRepSpec
 	}
 	return res, diags
-}
-
-func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	conn := r.Client.Atlas
-	var state, plan tfAdvancedClusterRSModel
-
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	ids := conversion.DecodeStateID(state.ID.ValueString())
-	projectID := ids["project_id"]
-	clusterName := ids["cluster_name"]
-
-	cluster := new(matlas.AdvancedCluster)
-	clusterChangeDetect := new(matlas.AdvancedCluster)
-
-	if !plan.BackupEnabled.Equal(state.BackupEnabled) {
-		cluster.BackupEnabled = plan.BackupEnabled.ValueBoolPointer()
-	}
-	// TODO BiConnector
-	if !reflect.DeepEqual(plan.BiConnectorConfig, state.BiConnectorConfig) {
-		cluster.BiConnector = newBiConnectorConfig(ctx, plan.BiConnectorConfig)
-	}
-
-	if !plan.ClusterType.Equal(state.ClusterType) {
-		cluster.ClusterType = plan.ClusterType.ValueString()
-	}
-	if !plan.BackupEnabled.Equal(state.BackupEnabled) {
-		cluster.BackupEnabled = plan.BackupEnabled.ValueBoolPointer()
-	}
-	if !plan.DiskSizeGb.Equal(state.DiskSizeGb) {
-		cluster.DiskSizeGB = plan.DiskSizeGb.ValueFloat64Pointer()
-	}
-	if !plan.EncryptionAtRestProvider.Equal(state.EncryptionAtRestProvider) {
-		cluster.EncryptionAtRestProvider = plan.EncryptionAtRestProvider.ValueString()
-	}
-
-	// TODO Labels
-	if !reflect.DeepEqual(plan.Labels, state.Labels) {
-		if ContainsLabelOrKey(newLabels(ctx, plan.Labels), defaultLabel) {
-			resp.Diagnostics.AddError("Unable to UPDATE cluster. An error occurred when updating labels.", "you should not set `Infrastructure Tool` label, it is used for internal purposes")
-			return
-		}
-		cluster.Labels = newLabels(ctx, plan.Labels)
-	}
-	// TODO tags
-	if !reflect.DeepEqual(plan.Tags, state.Tags) {
-		cluster.Tags = newTags(ctx, plan.Tags)
-	}
-
-	if !plan.MongoDBMajorVersion.Equal(state.MongoDBMajorVersion) {
-		cluster.MongoDBMajorVersion = plan.MongoDBMajorVersion.ValueString()
-	}
-	if !plan.PitEnabled.Equal(state.PitEnabled) {
-		cluster.PitEnabled = plan.PitEnabled.ValueBoolPointer()
-	}
-	// // TODO ReplicationSpecs
-	if !reflect.DeepEqual(plan.ReplicationSpecs, state.ReplicationSpecs) {
-		cluster.ReplicationSpecs = newReplicationSpecs(ctx, plan.ReplicationSpecs)
-	}
-
-	if !plan.RootCertType.Equal(state.RootCertType) {
-		cluster.RootCertType = plan.RootCertType.ValueString()
-	}
-	if !plan.TerminationProtectionEnabled.Equal(state.TerminationProtectionEnabled) {
-		cluster.TerminationProtectionEnabled = plan.TerminationProtectionEnabled.ValueBoolPointer()
-	}
-	if !plan.AcceptDataRisksAndForceReplicaSetReconfig.Equal(state.AcceptDataRisksAndForceReplicaSetReconfig) {
-		cluster.AcceptDataRisksAndForceReplicaSetReconfig = plan.AcceptDataRisksAndForceReplicaSetReconfig.ValueString()
-	}
-	if !plan.Paused.Equal(state.Paused) {
-		cluster.Paused = plan.Paused.ValueBoolPointer()
-	}
-
-	timeout, diags := plan.Timeouts.Update(ctx, defaultTimeout)
-
-	// TODO advanced_configuration
-	if !reflect.DeepEqual(plan.AdvancedConfiguration, state.AdvancedConfiguration) {
-		ac := plan.AdvancedConfiguration
-		if len(ac.Elements()) > 0 {
-			advancedConfReq := newAdvancedConfiguration(ctx, ac)
-			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
-				_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
-				if err != nil {
-					resp.Diagnostics.AddError("Unable to UPDATE cluster. An error occurred when updating advanced_configuration.", err.Error())
-					return
-				}
-			}
-		}
-	}
-
-	// TODO cluster change detect
-	// Has changes
-	if !reflect.DeepEqual(cluster, clusterChangeDetect) {
-		err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-			_, resp, err := updateAdvancedCluster(ctx, conn, cluster, projectID, clusterName, timeout)
-			if err != nil {
-				if resp == nil || resp.StatusCode == 400 {
-					return retry.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
-				}
-				return retry.RetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
-			}
-			return nil
-		})
-		if err != nil {
-			resp.Diagnostics.AddError("Unable to UPDATE cluster. An error occurred when updating cluster in Atlas.", err.Error())
-			return
-		}
-	}
-
-	// TODO paused
-	if plan.Paused.ValueBool() {
-		clusterRequest := &matlas.AdvancedCluster{
-			Paused: pointy.Bool(true),
-		}
-
-		_, _, err := updateAdvancedCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
-		if err != nil {
-			resp.Diagnostics.AddError("Unable to UPDATE cluster. An error occurred when attempting to pause cluster in Atlas.", err.Error())
-			return
-		}
-	}
-
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// save updated data into terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-}
-
-func (r *advancedClusterRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	conn := r.Client.Atlas
-	var state tfAdvancedClusterRSModel
-
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	ids := conversion.DecodeStateID(state.ID.ValueString())
-	projectID := ids["project_id"]
-	clusterName := ids["cluster_name"]
-
-	var options *matlas.DeleteAdvanceClusterOptions
-	if v := state.RetainBackupsEnabled; !v.IsNull() {
-		options = &matlas.DeleteAdvanceClusterOptions{
-			RetainBackups: v.ValueBoolPointer(),
-		}
-	}
-
-	_, err := conn.AdvancedClusters.Delete(ctx, projectID, clusterName, options)
-	if err != nil {
-		resp.Diagnostics.AddError("Unable to DELETE cluster. An error occurred when deleting cluster in Atlas", fmt.Sprintf(errorClusterAdvancedDelete, clusterName, err))
-		return
-	}
-
-	timeout, diags := state.Timeouts.Delete(ctx, defaultTimeout)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	log.Println("[INFO] Waiting for MongoDB ClusterAdvanced to be destroyed")
-
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
-		Target:     []string{"DELETED"},
-		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, clusterName, projectID, conn),
-		Timeout:    timeout,
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute, // Wait 30 secs before starting
-	}
-
-	// Wait, catching any errors
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Unable to DELETE cluster. An error occurred when deleting cluster in Atlas", fmt.Sprintf(errorClusterAdvancedDelete, clusterName, err))
-		return
-	}
-}
-
-func (r *advancedClusterRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	conn := r.Client.Atlas
-
-	projectID, name, err := splitSClusterAdvancedImportID(req.ID)
-	if err != nil {
-		resp.Diagnostics.AddError("Unable to IMPORT cluster. An error occurred when attempting to read resource ID", err.Error())
-		return
-	}
-
-	u, _, err := conn.AdvancedClusters.Get(ctx, *projectID, *name)
-	if err != nil {
-		resp.Diagnostics.AddError("Unable to IMPORT cluster. An error occurred when getting cluster details from Atlas.",
-			fmt.Sprintf("couldn't import cluster %s in project %s, error: %s", *name, *projectID, err))
-		return
-	}
-	id := conversion.EncodeStateID(map[string]string{
-		"cluster_id":   u.ID,
-		"project_id":   u.GroupID,
-		"cluster_name": u.Name,
-	})
-	state := tfAdvancedClusterRSModel{
-		ID: types.StringValue(id),
-	}
-	diags := resp.State.Set(ctx, &state)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 }
 
 func newAdvancedConfiguration(ctx context.Context, tfList basetypes.ListValue) *matlas.ProcessArgs {
