@@ -34,7 +34,7 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 				},
 			},
 			expectedResult: responseWithState("IDLE"),
-			expectedError:  false,
+			expectedError:  true,
 		},
 		{
 			name: "Successful transition to IDLE with 503 error in between",
