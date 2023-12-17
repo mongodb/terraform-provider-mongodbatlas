@@ -1,4 +1,5 @@
 # MongoDB Atlas Provider
+[![Go Report Card](https://goreportcard.com/badge/github.com/mongodb/terraform-provider-mongodbatlas)](https://goreportcard.com/badge/github.com/mongodb/terraform-provider-mongodbatlas)
 [![Code Health](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/code-health.yml/badge.svg)](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/code-health.yml)
 [![Acceptance Tests](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/acceptance-tests.yml/badge.svg)](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/acceptance-tests.yml)
 
