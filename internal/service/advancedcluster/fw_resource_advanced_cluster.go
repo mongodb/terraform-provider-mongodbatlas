@@ -201,8 +201,7 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 				},
 			},
 			"accept_data_risks_and_force_replica_set_reconfig": schema.StringAttribute{
-				Optional: true,
-				// Computed:    true,
+				Optional:    true,
 				Description: "Submit this field alongside your topology reconfiguration to request a new regional outage resistant topology",
 			},
 		},
@@ -214,46 +213,42 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.String{
-								planmodifiers.UseNullForUnknownString(),
-								// stringplanmodifier.UseStateForUnknown(),
+								stringplanmodifier.UseStateForUnknown(),
 							},
 						},
 						"default_write_concern": schema.StringAttribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.String{
-								planmodifiers.UseNullForUnknownString(),
-								// stringplanmodifier.UseStateForUnknown(),
+								stringplanmodifier.UseStateForUnknown(),
 							},
 						},
 						"fail_index_key_too_long": schema.BoolAttribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Bool{
-								planmodifiers.UseNullForUnknownBool(),
-								// boolplanmodifier.UseStateForUnknown(),
+								boolplanmodifier.UseStateForUnknown(),
 							},
 						},
 						"javascript_enabled": schema.BoolAttribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Bool{
-								planmodifiers.UseNullForUnknownBool(),
-								// boolplanmodifier.UseStateForUnknown(),
+								boolplanmodifier.UseStateForUnknown(),
 							},
 						},
 						"minimum_enabled_tls_protocol": schema.StringAttribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(), // can not use UseNullForUnknownString() planmodifier as API returns a value if null
+								stringplanmodifier.UseStateForUnknown(),
 							},
 						},
 						"no_table_scan": schema.BoolAttribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Bool{
-								boolplanmodifier.UseStateForUnknown(), // can not use UseNullForUnknownString() planmodifier as API returns a value if null
+								boolplanmodifier.UseStateForUnknown(),
 							},
 						},
 						"oplog_min_retention_hours": schema.Int64Attribute{
@@ -263,32 +258,28 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Int64{
-								planmodifiers.UseNullForUnknownInt64(),
-								// int64planmodifier.UseStateForUnknown(),
+								int64planmodifier.UseStateForUnknown(),
 							},
 						},
 						"sample_refresh_interval_bi_connector": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Int64{
-								planmodifiers.UseNullForUnknownInt64(),
-								// int64planmodifier.UseStateForUnknown(),
+								int64planmodifier.UseStateForUnknown(),
 							},
 						},
 						"sample_size_bi_connector": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Int64{
-								planmodifiers.UseNullForUnknownInt64(),
-								// int64planmodifier.UseStateForUnknown(),
+								int64planmodifier.UseStateForUnknown(),
 							},
 						},
 						"transaction_lifetime_limit_seconds": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Int64{
-								planmodifiers.UseNullForUnknownInt64(),
-								// int64planmodifier.UseStateForUnknown(),
+								int64planmodifier.UseStateForUnknown(),
 							},
 						},
 					},
@@ -369,8 +360,7 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 								int64validator.Between(1, 50),
 							},
 							PlanModifiers: []planmodifier.Int64{
-								planmodifiers.UseNullForUnknownInt64(),
-								// int64planmodifier.UseStateForUnknown(),
+								int64planmodifier.UseStateForUnknown(),
 							},
 						},
 						"zone_name": schema.StringAttribute{
@@ -521,7 +511,7 @@ func advClusterRSRegionConfigSpecsBlock() schema.ListNestedBlock {
 					Optional: true,
 					Computed: true,
 					PlanModifiers: []planmodifier.Int64{
-						int64planmodifier.UseStateForUnknown(), // can not use UseNullForUnknownString() planmodifier as API returns a value if null
+						int64planmodifier.UseStateForUnknown(),
 					},
 				},
 				"ebs_volume_type": schema.StringAttribute{
@@ -556,32 +546,28 @@ func advClusterRSRegionConfigAutoScalingSpecsBlock() schema.ListNestedBlock {
 					Optional: true,
 					Computed: true,
 					PlanModifiers: []planmodifier.String{
-						// stringplanmodifier.UseStateForUnknown(),
-						planmodifiers.UseNullForUnknownString(),
+						stringplanmodifier.UseStateForUnknown(),
 					},
 				},
 				"compute_min_instance_size": schema.StringAttribute{
 					Optional: true,
 					Computed: true,
 					PlanModifiers: []planmodifier.String{
-						// stringplanmodifier.UseStateForUnknown(),
-						planmodifiers.UseNullForUnknownString(),
+						stringplanmodifier.UseStateForUnknown(),
 					},
 				},
 				"compute_scale_down_enabled": schema.BoolAttribute{
 					Optional: true,
 					Computed: true,
 					PlanModifiers: []planmodifier.Bool{
-						// boolplanmodifier.UseStateForUnknown(),
-						planmodifiers.UseNullForUnknownBool(),
+						boolplanmodifier.UseStateForUnknown(),
 					},
 				},
 				"disk_gb_enabled": schema.BoolAttribute{
 					Optional: true,
 					Computed: true,
 					PlanModifiers: []planmodifier.Bool{
-						// boolplanmodifier.UseStateForUnknown(),
-						planmodifiers.UseNullForUnknownBool(),
+						boolplanmodifier.UseStateForUnknown(),
 					},
 				},
 			},
