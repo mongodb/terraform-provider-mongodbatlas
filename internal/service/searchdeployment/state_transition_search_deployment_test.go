@@ -19,6 +19,9 @@ var (
 	updating = "UPDATING"
 	idle     = "IDLE"
 	unknown  = ""
+	sc400    = conversion.IntPtr(400)
+	sc500    = conversion.IntPtr(500)
+	sc503    = conversion.IntPtr(503)
 )
 
 type testCase struct {
@@ -33,12 +36,8 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 		{
 			name: "Successful transition to IDLE",
 			mockResponses: []response{
-				{
-					state: &updating,
-				},
-				{
-					state: &idle,
-				},
+				{state: &updating},
+				{state: &idle},
 			},
 			expectedState: &idle,
 			expectedError: false,
@@ -46,17 +45,9 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 		{
 			name: "Successful transition to IDLE with 503 error in between",
 			mockResponses: []response{
-				{
-					state: &updating,
-				},
-				{
-					state:      nil,
-					statusCode: conversion.IntPtr(503),
-					Err:        errors.New("Service Unavailable"),
-				},
-				{
-					state: &idle,
-				},
+				{state: &updating},
+				{statusCode: sc503, Err: errors.New("Service Unavailable")},
+				{state: &idle},
 			},
 			expectedState: &idle,
 			expectedError: false,
@@ -64,12 +55,8 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 		{
 			name: "Error when transitioning to an unknown state",
 			mockResponses: []response{
-				{
-					state: &updating,
-				},
-				{
-					state: &unknown,
-				},
+				{state: &updating},
+				{state: &unknown},
 			},
 			expectedState: nil,
 			expectedError: true,
@@ -77,11 +64,7 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 		{
 			name: "Error when API responds with error",
 			mockResponses: []response{
-				{
-					state:      nil,
-					statusCode: conversion.IntPtr(500),
-					Err:        errors.New("Internal server error"),
-				},
+				{statusCode: sc500, Err: errors.New("Internal server error")},
 			},
 			expectedState: nil,
 			expectedError: true,
@@ -108,37 +91,23 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 		{
 			name: "Regular transition to DELETED",
 			mockResponses: []response{
-				{
-					state: &updating,
-				},
-				{
-					state:      nil,
-					statusCode: conversion.IntPtr(400),
-					Err:        errors.New(searchdeployment.SearchDeploymentDoesNotExistsError),
-				},
+				{state: &updating},
+				{statusCode: sc400, Err: errors.New(searchdeployment.SearchDeploymentDoesNotExistsError)},
 			},
 			expectedError: false,
 		},
 		{
 			name: "Error when API responds with error",
 			mockResponses: []response{
-				{
-					state:      nil,
-					statusCode: conversion.IntPtr(500),
-					Err:        errors.New("Internal server error"),
-				},
+				{statusCode: sc500, Err: errors.New("Internal server error")},
 			},
 			expectedError: true,
 		},
 		{
 			name: "Failed delete when responding with unknown state",
 			mockResponses: []response{
-				{
-					state: &updating,
-				},
-				{
-					state: &unknown,
-				},
+				{state: &updating},
+				{state: &unknown},
 			},
 			expectedError: true,
 		},
