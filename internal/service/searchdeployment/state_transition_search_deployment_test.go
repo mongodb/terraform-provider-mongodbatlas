@@ -5,12 +5,12 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"reflect"
 	"testing"
 	"time"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
+	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
@@ -88,14 +88,8 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 			}
 
 			resp, err := searchdeployment.WaitSearchNodeStateTransition(context.Background(), dummyProjectID, "Cluster0", &mockService, testTimeoutConfig)
-
-			if (err != nil) != tc.expectedError {
-				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
-			}
-
-			if !reflect.DeepEqual(tc.expectedResult, resp) {
-				t.Errorf("Case %s: Response did not match expected output", tc.name)
-			}
+			assert.Equal(t, tc.expectedError, err != nil)
+			assert.Equal(t, tc.expectedResult, resp)
 		})
 	}
 }
@@ -149,9 +143,7 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 
 			err := searchdeployment.WaitSearchNodeDelete(context.Background(), dummyProjectID, clusterName, &mockService, testTimeoutConfig)
 
-			if (err != nil) != tc.expectedError {
-				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
-			}
+			assert.Equal(t, tc.expectedError, err != nil)
 		})
 	}
 }
