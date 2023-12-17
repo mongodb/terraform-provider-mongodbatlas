@@ -1,7 +1,7 @@
 # MongoDB Atlas Provider
 [![Code Health](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/code-health.yml/badge.svg)](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/code-health.yml)
 [![Acceptance Tests](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/acceptance-tests.yml/badge.svg)](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/acceptance-tests.yml)
-[![Coverage status](https://codecov.io/github/lantoli/terraform-provider-mongodbatlas/coverage.svg?branch=main)](https://codecov.io/github/lantoli/terraform-provider-mongodbatlas?branch=main)
+[![codecov](https://codecov.io/github/lantoli/terraform-provider-mongodbatlas/graph/badge.svg?token=C1NoFCuUQg)](https://codecov.io/github/lantoli/terraform-provider-mongodbatlas)
 [![GoDoc](https://godoc.org/github.com/mongodb/terraform-provider-mongodbatlas?status.svg)](https://godoc.org/github.com/mongodb/terraform-provider-mongodbatlas)
 [![Go Report Card](https://goreportcard.com/badge/github.com/mongodb/terraform-provider-mongodbatlas)](https://goreportcard.com/report/github.com/mongodb/terraform-provider-mongodbatlas)
 
