@@ -22,7 +22,7 @@ jobs:
     - name: Install tools for mocks and linter
       run: make tools
     - name: Mock generation
-      run: make mockery
+      run: mockery
     - name: Check for uncommited files
       run: |
         export FILES=$(git ls-files -o -m --directory --exclude-standard --no-empty-directory)
