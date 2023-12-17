@@ -1,0 +1,10 @@
+with-expecter: false
+dir: internal/testutil/mocksvc
+outpkg: mocksvc
+filename: "{{ .InterfaceName | snakecase }}.go"
+mockname: "{{.InterfaceName}}"
+
+packages:
+  ? github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment
+  : interfaces:
+      DeploymentService:
