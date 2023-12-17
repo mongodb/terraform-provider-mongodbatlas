@@ -65,7 +65,7 @@ lint-fix:
 .PHONY: lint
 lint:
 	@echo "==> Checking source code against linters..."
-	golangci-lint run
+	golangci-lint run --timeout 10m
 
 .PHONY: tools
 tools:  ## Install dev tools
