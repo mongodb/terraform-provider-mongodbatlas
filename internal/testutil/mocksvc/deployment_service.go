@@ -17,8 +17,6 @@ type DeploymentService struct {
 	mock.Mock
 }
 
-// change to trigger a difference
-
 // GetAtlasSearchDeployment provides a mock function with given fields: ctx, groupID, clusterName
 func (_m *DeploymentService) GetAtlasSearchDeployment(ctx context.Context, groupID string, clusterName string) (*admin.ApiSearchDeploymentResponse, *http.Response, error) {
 	ret := _m.Called(ctx, groupID, clusterName)
