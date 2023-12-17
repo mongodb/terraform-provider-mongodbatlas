@@ -46,7 +46,7 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 			name: "Successful transition to IDLE with 503 error in between",
 			mockResponses: []response{
 				{state: &updating},
-				{statusCode: sc503, Err: errors.New("Service Unavailable")},
+				{statusCode: sc503, err: errors.New("Service Unavailable")},
 				{state: &idle},
 			},
 			expectedState: &idle,
@@ -64,7 +64,7 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 		{
 			name: "Error when API responds with error",
 			mockResponses: []response{
-				{statusCode: sc500, Err: errors.New("Internal server error")},
+				{statusCode: sc500, err: errors.New("Internal server error")},
 			},
 			expectedState: nil,
 			expectedError: true,
@@ -92,14 +92,14 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 			name: "Regular transition to DELETED",
 			mockResponses: []response{
 				{state: &updating},
-				{statusCode: sc400, Err: errors.New(searchdeployment.SearchDeploymentDoesNotExistsError)},
+				{statusCode: sc400, err: errors.New(searchdeployment.SearchDeploymentDoesNotExistsError)},
 			},
 			expectedError: false,
 		},
 		{
 			name: "Error when API responds with error",
 			mockResponses: []response{
-				{statusCode: sc500, Err: errors.New("Internal server error")},
+				{statusCode: sc500, err: errors.New("Internal server error")},
 			},
 			expectedError: true,
 		},
@@ -153,7 +153,7 @@ func responseWithState(state *string) *admin.ApiSearchDeploymentResponse {
 type response struct {
 	state      *string
 	statusCode *int
-	Err        error
+	err        error
 }
 
 func (r *response) get() []interface{} {
@@ -161,5 +161,5 @@ func (r *response) get() []interface{} {
 	if r.statusCode != nil {
 		httpResp = &http.Response{StatusCode: *r.statusCode}
 	}
-	return []interface{}{responseWithState(r.state), httpResp, r.Err}
+	return []interface{}{responseWithState(r.state), httpResp, r.err}
 }
