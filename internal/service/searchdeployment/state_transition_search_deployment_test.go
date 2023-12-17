@@ -14,11 +14,17 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
+var (
+	updating = "UPDATING"
+	idle     = "IDLE"
+	unknown  = ""
+)
+
 type stateTransitionTestCase struct {
-	expectedResult *admin.ApiSearchDeploymentResponse
-	name           string
-	mockResponses  []SearchDeploymentResponse
-	expectedError  bool
+	expectedState *string
+	name          string
+	mockResponses []SearchDeploymentResponse
+	expectedError bool
 }
 
 func TestSearchDeploymentStateTransition(t *testing.T) {
@@ -27,57 +33,57 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 			name: "Successful transition to IDLE",
 			mockResponses: []SearchDeploymentResponse{
 				{
-					DeploymentResp: responseWithState("UPDATING"),
+					state: &updating,
 				},
 				{
-					DeploymentResp: responseWithState("IDLE"),
+					state: &idle,
 				},
 			},
-			expectedResult: responseWithState("IDLE"),
-			expectedError:  false,
+			expectedState: &idle,
+			expectedError: false,
 		},
 		{
 			name: "Successful transition to IDLE with 503 error in between",
 			mockResponses: []SearchDeploymentResponse{
 				{
-					DeploymentResp: responseWithState("UPDATING"),
+					state: &updating,
 				},
 				{
-					DeploymentResp: nil,
-					HTTPResponse:   &http.Response{StatusCode: 503},
-					Err:            errors.New("Service Unavailable"),
+					state:        nil,
+					HTTPResponse: &http.Response{StatusCode: 503},
+					Err:          errors.New("Service Unavailable"),
 				},
 				{
-					DeploymentResp: responseWithState("IDLE"),
+					state: &idle,
 				},
 			},
-			expectedResult: responseWithState("IDLE"),
-			expectedError:  false,
+			expectedState: &idle,
+			expectedError: false,
 		},
 		{
 			name: "Error when transitioning to an unknown state",
 			mockResponses: []SearchDeploymentResponse{
 				{
-					DeploymentResp: responseWithState("UPDATING"),
+					state: &updating,
 				},
 				{
-					DeploymentResp: responseWithState(""),
+					state: &unknown,
 				},
 			},
-			expectedResult: nil,
-			expectedError:  true,
+			expectedState: nil,
+			expectedError: true,
 		},
 		{
 			name: "Error when API responds with error",
 			mockResponses: []SearchDeploymentResponse{
 				{
-					DeploymentResp: nil,
-					HTTPResponse:   &http.Response{StatusCode: 500},
-					Err:            errors.New("Internal server error"),
+					state:        nil,
+					HTTPResponse: &http.Response{StatusCode: 500},
+					Err:          errors.New("Internal server error"),
 				},
 			},
-			expectedResult: nil,
-			expectedError:  true,
+			expectedState: nil,
+			expectedError: true,
 		},
 	}
 
@@ -86,11 +92,11 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 			svc := mocksvc.NewDeploymentService(t)
 			ctx := context.Background()
 			for _, resp := range tc.mockResponses {
-				svc.On("GetAtlasSearchDeployment", ctx, dummyProjectID, clusterName).Return(resp.DeploymentResp, resp.HTTPResponse, resp.Err).Once()
+				svc.On("GetAtlasSearchDeployment", ctx, dummyProjectID, clusterName).Return(responseWithState(resp.state), resp.HTTPResponse, resp.Err).Once()
 			}
 			resp, err := searchdeployment.WaitSearchNodeStateTransition(ctx, dummyProjectID, "Cluster0", svc, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
-			assert.Equal(t, tc.expectedResult, resp)
+			assert.Equal(t, responseWithState(tc.expectedState), resp)
 			svc.AssertExpectations(t)
 		})
 	}
@@ -102,12 +108,12 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 			name: "Regular transition to DELETED",
 			mockResponses: []SearchDeploymentResponse{
 				{
-					DeploymentResp: responseWithState("UPDATING"),
+					state: &updating,
 				},
 				{
-					DeploymentResp: nil,
-					HTTPResponse:   &http.Response{StatusCode: 400},
-					Err:            errors.New(searchdeployment.SearchDeploymentDoesNotExistsError),
+					state:        nil,
+					HTTPResponse: &http.Response{StatusCode: 400},
+					Err:          errors.New(searchdeployment.SearchDeploymentDoesNotExistsError),
 				},
 			},
 			expectedError: false,
@@ -116,9 +122,9 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 			name: "Error when API responds with error",
 			mockResponses: []SearchDeploymentResponse{
 				{
-					DeploymentResp: nil,
-					HTTPResponse:   &http.Response{StatusCode: 500},
-					Err:            errors.New("Internal server error"),
+					state:        nil,
+					HTTPResponse: &http.Response{StatusCode: 500},
+					Err:          errors.New("Internal server error"),
 				},
 			},
 			expectedError: true,
@@ -127,10 +133,10 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 			name: "Failed delete when responding with unknown state",
 			mockResponses: []SearchDeploymentResponse{
 				{
-					DeploymentResp: responseWithState("UPDATING"),
+					state: &updating,
 				},
 				{
-					DeploymentResp: responseWithState(""),
+					state: &unknown,
 				},
 			},
 			expectedError: true,
@@ -142,7 +148,7 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 			svc := mocksvc.NewDeploymentService(t)
 			ctx := context.Background()
 			for _, resp := range tc.mockResponses {
-				svc.On("GetAtlasSearchDeployment", ctx, dummyProjectID, clusterName).Return(resp.DeploymentResp, resp.HTTPResponse, resp.Err).Once()
+				svc.On("GetAtlasSearchDeployment", ctx, dummyProjectID, clusterName).Return(responseWithState(resp.state), resp.HTTPResponse, resp.Err).Once()
 			}
 			err := searchdeployment.WaitSearchNodeDelete(ctx, dummyProjectID, clusterName, svc, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
@@ -157,7 +163,10 @@ var testTimeoutConfig = retrystrategy.TimeConfig{
 	Delay:      0,
 }
 
-func responseWithState(state string) *admin.ApiSearchDeploymentResponse {
+func responseWithState(state *string) *admin.ApiSearchDeploymentResponse {
+	if state == nil {
+		return nil
+	}
 	return &admin.ApiSearchDeploymentResponse{
 		GroupId: admin.PtrString(dummyProjectID),
 		Id:      admin.PtrString(dummyDeploymentID),
@@ -167,12 +176,12 @@ func responseWithState(state string) *admin.ApiSearchDeploymentResponse {
 				NodeCount:    nodeCount,
 			},
 		},
-		StateName: admin.PtrString(state),
+		StateName: state,
 	}
 }
 
 type SearchDeploymentResponse struct {
-	DeploymentResp *admin.ApiSearchDeploymentResponse
-	HTTPResponse   *http.Response
-	Err            error
+	state        *string
+	HTTPResponse *http.Response
+	Err          error
 }
