@@ -1,4 +1,5 @@
 with-expecter: false
+disable-version-string: true
 dir: internal/testutil/mocksvc
 outpkg: mocksvc
 filename: "{{ .InterfaceName | snakecase }}.go"
