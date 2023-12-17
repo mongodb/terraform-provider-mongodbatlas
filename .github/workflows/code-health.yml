@@ -19,8 +19,10 @@ jobs:
     - uses: actions/setup-go@v5
       with:
         go-version-file: 'go.mod'
+    - name: Install tools for mocks and linter
+      run: make tools
     - name: Mock generation
-      run: make tools && mockery
+      run: make mockery
     - name: Check for uncommited files
       run: |
         export FILES=$(git ls-files -o -m --directory --exclude-standard --no-empty-directory)
@@ -34,6 +36,8 @@ jobs:
         fi
     - name: Build
       run: make build
+    - name: Linter
+      run: make lint
   unit-test:
     needs: build
     runs-on: ubuntu-latest
@@ -64,19 +68,6 @@ jobs:
         with:
           recreate: true
           path: code-coverage-results.md
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: 'go.mod'
-          cache: false # see https://github.com/golangci/golangci-lint-action/issues/807
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3.7.0
-        with:
-          version: v1.55.0
-          args: --timeout 10m
   website-lint:
     runs-on: ubuntu-latest
     steps:
@@ -93,11 +84,11 @@ jobs:
       - name: Run ShellCheck
         uses: bewuethr/shellcheck-action@v2
   call-acceptance-tests-workflow:
-    needs: [build, lint, shellcheck, unit-test, website-lint]
+    needs: [build, shellcheck, unit-test, website-lint]
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
   call-migration-tests-workflow:
-    needs: [build, lint, shellcheck, unit-test, website-lint]
+    needs: [build, shellcheck, unit-test, website-lint]
     secrets: inherit
     uses: ./.github/workflows/migration-tests.yml
 
