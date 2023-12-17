@@ -83,15 +83,15 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			sut := mocksvc.NewDeploymentService(t)
+			svc := mocksvc.NewDeploymentService(t)
 			ctx := context.Background()
 			for _, resp := range tc.mockResponses {
-				sut.On("GetAtlasSearchDeployment", ctx, dummyProjectID, clusterName).Return(resp.DeploymentResp, resp.HTTPResponse, resp.Err).Once()
+				svc.On("GetAtlasSearchDeployment", ctx, dummyProjectID, clusterName).Return(resp.DeploymentResp, resp.HTTPResponse, resp.Err).Once()
 			}
-			resp, err := searchdeployment.WaitSearchNodeStateTransition(ctx, dummyProjectID, "Cluster0", sut, testTimeoutConfig)
+			resp, err := searchdeployment.WaitSearchNodeStateTransition(ctx, dummyProjectID, "Cluster0", svc, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
 			assert.Equal(t, tc.expectedResult, resp)
-			sut.AssertExpectations(t)
+			svc.AssertExpectations(t)
 		})
 	}
 }
@@ -139,14 +139,14 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			sut := mocksvc.NewDeploymentService(t)
+			svc := mocksvc.NewDeploymentService(t)
 			ctx := context.Background()
 			for _, resp := range tc.mockResponses {
-				sut.On("GetAtlasSearchDeployment", ctx, dummyProjectID, clusterName).Return(resp.DeploymentResp, resp.HTTPResponse, resp.Err).Once()
+				svc.On("GetAtlasSearchDeployment", ctx, dummyProjectID, clusterName).Return(resp.DeploymentResp, resp.HTTPResponse, resp.Err).Once()
 			}
-			err := searchdeployment.WaitSearchNodeDelete(ctx, dummyProjectID, clusterName, sut, testTimeoutConfig)
+			err := searchdeployment.WaitSearchNodeDelete(ctx, dummyProjectID, clusterName, svc, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
-			sut.AssertExpectations(t)
+			svc.AssertExpectations(t)
 		})
 	}
 }
