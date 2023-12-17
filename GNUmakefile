@@ -1,4 +1,4 @@
-TEST?=$$(go list ./... | grep -v /integrationtesting)
+TEST?=$$(go list ./... | grep -v '/integrationtesting\|/internal/testutil')
 ACCTEST_TIMEOUT?=300m
 PARALLEL_GO_TEST?=20
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
