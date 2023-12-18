@@ -12,7 +12,7 @@ body:
         **If you have an active MongoDB Atlas Support contract**, the best way for us to assist you with the Terraform MongoDB Atlas Provider is through a support ticket.
 
         **Please note:** In order for us to provide the best experience in supporting our customers, we kindly ask to make sure that all the following sections are correctly filled with all the required information. 
-        Our support will prioritise issues that contain all the required information that follows the [one-click reproducible issues principle](../../README.md).
+        Our support will prioritise issues that contain all the required information that follows the [one-click reproducible issues principle](../../README.md#one-click-reproducible-issues-principle).
   
 
   - type: input
