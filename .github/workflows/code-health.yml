@@ -31,7 +31,7 @@ jobs:
           echo "Detected files that need to be committed:"
           echo "$FILES" | sed -e "s/^/  /"
           echo ""
-          echo "Try running: mockery"
+          echo "Mock skeletons are not up-to-date, you may have forgotten to run mockery before committing your changes."
           exit 1
         fi
     - name: Build
