@@ -456,6 +456,7 @@ jobs:
         with:
           terraform_version: ${{ env.terraform_version }}
           terraform_wrapper: false  
+      - run: terraform --version 
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV_NETWORK }}
