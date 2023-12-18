@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: "0 0 * * *" # workflow runs every day at midnight UTC
   
+concurrency:
+  group: '${{ github.workflow }}'
+  cancel-in-progress: false
+    
 jobs:
 
   clean-before:
