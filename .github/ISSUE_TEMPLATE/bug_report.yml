@@ -14,7 +14,14 @@ body:
         **Please note:** In order for us to provide the best experience in supporting our customers, we kindly ask to make sure that all the following sections are correctly filled with all the required information. 
         Our support will prioritise issues that contain all the required information that follows the [one-click reproducible issues principle](../../README.md#one-click-reproducible-issues-principle).
   
-
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the bug you encountered. If the issue has been reported add a reaction, i.e. +1, to the issue.
+      options:
+        - label: I have searched the existing issues
+          required: true
+  
   - type: input
     id: provider_version
     attributes:
