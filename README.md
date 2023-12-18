@@ -61,10 +61,25 @@ See [Troubleshooting](website/docs/troubleshooting.html.markdown).
 ## Developing the Provider
 See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-## Autoclose stale issues and PRs
+## Issues
 
-- After 7 days of no activity (no comments or commits on an issue/PR) we automatically tag it as "stale" and add a message: ```This issue/PR has gone 7 days without any activity and meets the project's definition of "stale". This will be auto-closed if there is no new activity over the next 7 days. If the issue is still relevant and active, you can simply comment with a "bump" to keep it open, or add the label "not_stale". Thanks for keeping our repository healthy!```
-- After 7 more days of no activity we automatically close the issue/PR.
+### Autoclose stale issues and PRs
+- After 5 days of no activity (no comments or commits on an issue/PR) we automatically tag it as "stale" and add a message: ```This issue/PR has gone 7 days without any activity and meets the project's definition of "stale". This will be auto-closed if there is no new activity over the next 7 days. If the issue is still relevant and active, you can simply comment with a "bump" to keep it open, or add the label "not_stale". Thanks for keeping our repository healthy!```
+- After 5 more days of no activity we automatically close the issue/PR.
+
+### One-click reproducible issues principle
+Our support will prioritise issues that contain all the required information that follows the following principles:
+
+* We should be able to make no changes to your provided script and **successfully run a local execution reproducing the issue**.
+  * This means that you should kindly **provide all the required instructions**. This includes but not limited to:
+    * Terraform Atlas provider version used to reproduce the issue
+    * Terraform version used to reproduce the issue
+  * Configurations that **cannot be properly executed will be de-prioritised** in favour of the ones that succeed.
+* Before opening an issue, you have to try to specifically isolate it to **Terraform MongoDB Atlas** provider by **removing as many dependencies** as possible. If the issue only happens with other dependencies, then:
+  * If other terraform providers are required, please make sure you also include those. _Same "one-click reproducible issue" principle applies_.
+  * If external components are required to replicate it, please make sure you also provides instructions on those parts.
+* Please confirm if the platform being used is Terraform OSS, Terraform Cloud, or Terraform Enterprise deployment
+
 
 ## Thanks
 

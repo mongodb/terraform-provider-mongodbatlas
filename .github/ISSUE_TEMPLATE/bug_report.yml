@@ -1,0 +1,101 @@
+name: Bug Report [Recommended Template]
+description: Something unexpected happen? Report an error, crash, or an incorrect behavior here.
+title: "[Bug]: <your-title>"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for opening an issue. **These GitHub issues** are only for community reporting and assistance; as such, we don't have a guaranteed SLA.
+        
+        **If your issue relates to Terraform itself**, please open it in the [Terraform repository](https://github.com/hashicorp/terraform/issues).
+
+        **If you have an active MongoDB Atlas Support contract**, the best way for us to assist you with the Terraform MongoDB Atlas Provider is through a support ticket.
+
+        **Please note:** In order for us to provide the best experience in supporting our customers, we kindly ask to make sure that all the following sections are correctly filled with all the required information. 
+        Our support will prioritise issues that contain all the required information that follows the [one-click reproducible issues principle](../../README.md).
+  
+
+  - type: input
+    id: provider_version
+    attributes:
+      label: Provider Version
+      description: What provider version are you running?
+      placeholder: "Example: v1.13.1"
+    validations:
+      required: true
+
+  - type: input
+    id: tf_version
+    attributes:
+      label: Terraform Version
+      description: What Terraform version are you running?
+      placeholder: "Example: v1.6.6"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: download
+    attributes:
+      label: Terraform Edition
+      options:
+        - Terraform Open Source (OSS)
+        - Terraform Enterprise
+        - Terraform Cloud
+      default: 0
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_behaviour
+    attributes:
+      label: Current Behavior
+      description: A concise description of what you're experiencing.
+    validations:
+      required: true
+ 
+  - type: textarea
+    id: tf_config
+    attributes:
+      label: Terraform configuration to reproduce the issue
+      description: Please copy and paste your Terraform configuration. This will be automatically formatted into code, so no need for backticks.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Steps To Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. In this environment...
+        2. With this config...
+        3. Run '...'
+        4. See error...
+    validations:
+      required: true
+  
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Additional logs that can help us investigating the issue
+      render: hcl
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://example.com)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
+
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the bug you encountered. If the issue has been reported add a reaction, i.e. +1, to the issue.
+      options:
+        - label: I have searched the existing issues
+          required: true
