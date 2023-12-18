@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
@@ -204,6 +203,10 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 				Optional:    true,
 				Description: "Submit this field alongside your topology reconfiguration to request a new regional outage resistant topology",
 			},
+
+			"replication_specs_output":      advClusterRSReplicationSpecsSchemaAttr(),
+			"bi_connector_config_output":    ClusterRSBiConnectorConfigListAttr(),
+			"advanced_configuration_output": ClusterRSAdvancedConfigurationListAttr(),
 		},
 		Blocks: map[string]schema.Block{
 			"advanced_configuration": schema.ListNestedBlock{
@@ -223,34 +226,34 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 						},
 						"javascript_enabled": schema.BoolAttribute{
 							Optional: true,
-							Computed: true,
-							PlanModifiers: []planmodifier.Bool{
-								boolplanmodifier.UseStateForUnknown(),
-							},
+							// Computed: true,
+							// PlanModifiers: []planmodifier.Bool{
+							// 	boolplanmodifier.UseStateForUnknown(),
+							// },
 						},
 						"minimum_enabled_tls_protocol": schema.StringAttribute{
 							Optional: true,
-							Computed: true,
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
-							},
+							// Computed: true,
+							// PlanModifiers: []planmodifier.String{
+							// 	stringplanmodifier.UseStateForUnknown(),
+							// },
 						},
 						"no_table_scan": schema.BoolAttribute{
 							Optional: true,
-							Computed: true,
-							PlanModifiers: []planmodifier.Bool{
-								boolplanmodifier.UseStateForUnknown(),
-							},
+							// Computed: true,
+							// PlanModifiers: []planmodifier.Bool{
+							// 	boolplanmodifier.UseStateForUnknown(),
+							// },
 						},
 						"oplog_min_retention_hours": schema.Int64Attribute{
 							Optional: true,
 						},
 						"oplog_size_mb": schema.Int64Attribute{
 							Optional: true,
-							Computed: true,
-							PlanModifiers: []planmodifier.Int64{
-								int64planmodifier.UseStateForUnknown(),
-							},
+							// Computed: true,
+							// PlanModifiers: []planmodifier.Int64{
+							// 	int64planmodifier.UseStateForUnknown(),
+							// },
 						},
 						"sample_refresh_interval_bi_connector": schema.Int64Attribute{
 							Optional: true,
@@ -279,17 +282,17 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 					Attributes: map[string]schema.Attribute{
 						"enabled": schema.BoolAttribute{
 							Optional: true,
-							Computed: true,
-							PlanModifiers: []planmodifier.Bool{
-								boolplanmodifier.UseStateForUnknown(),
-							},
+							// Computed: true,
+							// PlanModifiers: []planmodifier.Bool{
+							// 	boolplanmodifier.UseStateForUnknown(),
+							// },
 						},
 						"read_preference": schema.StringAttribute{
 							Optional: true,
-							Computed: true,
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
-							},
+							// Computed: true,
+							// PlanModifiers: []planmodifier.String{
+							// 	stringplanmodifier.UseStateForUnknown(),
+							// },
 						},
 					},
 					// POC - block plan modifiers
@@ -420,6 +423,121 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 		Delete: true,
 	})
 	response.Schema = s
+}
+
+func ClusterRSAdvancedConfigurationListAttr() schema.ListNestedAttribute {
+	return schema.ListNestedAttribute{
+		Computed: true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"default_read_concern": schema.StringAttribute{
+					Computed: true,
+				},
+				"default_write_concern": schema.StringAttribute{
+					Computed: true,
+				},
+				"fail_index_key_too_long": schema.BoolAttribute{
+					Computed: true,
+				},
+				"javascript_enabled": schema.BoolAttribute{
+					Computed: true,
+				},
+				"minimum_enabled_tls_protocol": schema.StringAttribute{
+					Computed: true,
+				},
+				"no_table_scan": schema.BoolAttribute{
+					Computed: true,
+				},
+				"oplog_size_mb": schema.Int64Attribute{
+					Computed: true,
+				},
+				"sample_size_bi_connector": schema.Int64Attribute{
+					Computed: true,
+				},
+				"sample_refresh_interval_bi_connector": schema.Int64Attribute{
+					Computed: true,
+				},
+				"oplog_min_retention_hours": schema.Int64Attribute{
+					Computed: true,
+				},
+				"transaction_lifetime_limit_seconds": schema.Int64Attribute{
+					Computed: true,
+				},
+			},
+		},
+		PlanModifiers: []planmodifier.List{
+			listplanmodifier.UseStateForUnknown(),
+		},
+	}
+}
+
+func ClusterRSBiConnectorConfigListAttr() schema.ListNestedAttribute {
+	return schema.ListNestedAttribute{
+		Computed: true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"enabled": schema.BoolAttribute{
+					Computed: true,
+				},
+				"read_preference": schema.StringAttribute{
+					Computed: true,
+				},
+			},
+		},
+		PlanModifiers: []planmodifier.List{
+			listplanmodifier.UseStateForUnknown(),
+		},
+	}
+}
+
+func advClusterRSReplicationSpecsSchemaAttr() schema.ListNestedAttribute {
+	return schema.ListNestedAttribute{
+		Computed: true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"id": schema.StringAttribute{
+					Computed: true,
+				},
+				"num_shards": schema.Int64Attribute{
+					Computed: true,
+				},
+				"container_id": schema.MapAttribute{
+					ElementType: types.StringType,
+					Computed:    true,
+				},
+				"zone_name": schema.StringAttribute{
+					Computed: true,
+				},
+				"region_configs": schema.ListNestedAttribute{
+					Computed: true,
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: map[string]schema.Attribute{
+							"analytics_specs":        advancedClusterRegionConfigSpecsAttr(),
+							"auto_scaling":           advancedClusterRegionConfigAutoScalingSpecsAttr(),
+							"analytics_auto_scaling": advancedClusterRegionConfigAutoScalingSpecsAttr(),
+							"backing_provider_name": schema.StringAttribute{
+								Computed: true,
+							},
+							"electable_specs": advancedClusterRegionConfigSpecsAttr(),
+							"priority": schema.Int64Attribute{
+								Computed: true,
+							},
+							"provider_name": schema.StringAttribute{
+								Computed: true,
+							},
+							"read_only_specs": advancedClusterRegionConfigSpecsAttr(),
+							"region_name": schema.StringAttribute{
+								Computed: true,
+							},
+						},
+					},
+				},
+			},
+		},
+		PlanModifiers: []planmodifier.List{
+			listplanmodifier.UseStateForUnknown(),
+		},
+	}
 }
 
 func advClusterRSConnectionStringSchemaAttr() schema.ListNestedAttribute {
@@ -722,7 +840,7 @@ func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *m
 		"cluster_name": name,
 	}))
 
-	clusterModel.BiConnectorConfig, d = types.ListValueFrom(ctx, TfBiConnectorConfigType, NewTfBiConnectorConfigModel(cluster.BiConnector))
+	clusterModel.BiConnectorConfigOutput, d = types.ListValueFrom(ctx, TfBiConnectorConfigType, NewTfBiConnectorConfigModel(cluster.BiConnector))
 	diags.Append(d...)
 
 	clusterModel.ConnectionStrings, d = types.ListValueFrom(ctx, tfConnectionStringType, newTfConnectionStringsModel(ctx, cluster.ConnectionStrings))
@@ -746,7 +864,7 @@ func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *m
 	if diags.HasError() {
 		return nil, diags
 	}
-	clusterModel.ReplicationSpecs, diags = types.ListValueFrom(ctx, tfReplicationSpecRSType, replicationSpecs)
+	clusterModel.ReplicationSpecsOutput, diags = types.ListValueFrom(ctx, tfReplicationSpecRSType, replicationSpecs)
 	diags.Append(d...)
 
 	advancedConfiguration, err := NewTfAdvancedConfigurationModelDSFromAtlas(ctx, conn, projectID, name)
@@ -754,7 +872,7 @@ func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *m
 		diags.AddError("An error occurred when getting advanced_configuration from Atlas", err.Error())
 		return nil, diags
 	}
-	clusterModel.AdvancedConfiguration, diags = types.ListValueFrom(ctx, tfAdvancedConfigurationType, advancedConfiguration)
+	clusterModel.AdvancedConfigurationOutput, diags = types.ListValueFrom(ctx, tfAdvancedConfigurationType, advancedConfiguration)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -809,10 +927,15 @@ func (r *advancedClusterRS) Read(ctx context.Context, req resource.ReadRequest, 
 
 		if state.BiConnectorConfig.IsNull() {
 			newClusterModel.BiConnectorConfig = types.ListNull(TfBiConnectorConfigType)
+		} else {
+			newClusterModel.BiConnectorConfig = state.BiConnectorConfig
 		}
 		if state.AdvancedConfiguration.IsNull() {
 			newClusterModel.AdvancedConfiguration = types.ListNull(tfAdvancedConfigurationType)
+		} else {
+			newClusterModel.AdvancedConfiguration = state.AdvancedConfiguration
 		}
+
 		newClusterModel.ReplicationSpecs = state.ReplicationSpecs
 	}
 
@@ -1810,6 +1933,10 @@ type tfAdvancedClusterRSModel struct {
 	BiConnectorConfig     types.List `tfsdk:"bi_connector_config"`
 	ConnectionStrings     types.List `tfsdk:"connection_strings"`
 	AdvancedConfiguration types.List `tfsdk:"advanced_configuration"`
+
+	ReplicationSpecsOutput      types.List `tfsdk:"replication_specs_output"`
+	BiConnectorConfigOutput     types.List `tfsdk:"bi_connector_config_output"`
+	AdvancedConfigurationOutput types.List `tfsdk:"advanced_configuration_output"`
 
 	Timeouts timeouts.Value `tfsdk:"timeouts"`
 }
