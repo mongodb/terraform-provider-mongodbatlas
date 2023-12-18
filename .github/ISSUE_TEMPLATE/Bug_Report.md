@@ -1,5 +1,5 @@
 ---
-name: Bug report
+name: Bug report [Deprecated]
 about: Something unexpected happen? Report an error, crash, or an incorrect behavior here.
 
 ---
