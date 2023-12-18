@@ -145,9 +145,8 @@ issues:
       text: "^hugeParam: req is heavy"
 
 run:
+  timeout: 10m
   tests: true
   build-tags:
     - integration
-  skip-dirs:
-    - internal/mocks
   modules-download-mode: readonly
