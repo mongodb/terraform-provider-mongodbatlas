@@ -176,7 +176,8 @@ func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.Resou
 }
 
 func resourceMongoDBAtlasX509AuthDBUserDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// We don't do anything because X.509 certificates can not be deleted or disassociated from a user
+	// We don't do anything because X.509 certificates can not be deleted or disassociated from a user.
+	// More info: https://jira.mongodb.org/browse/HELP-53363
 	d.SetId("")
 	return nil
 }
