@@ -55,7 +55,7 @@
 - test: Unit test `encryption_at_rest` resource [\#1750](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1750) ([oarbusi](https://github.com/oarbusi))
 - chore: Bump github.com/aws/aws-sdk-go from 1.48.13 to 1.49.1 [\#1744](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1744) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore: New scaffold command for creating resources/data sources [\#1739](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1739) ([AgustinBettati](https://github.com/AgustinBettati))
-- test: Add unit test to `database_user`` resource [\#1738](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1738) ([oarbusi](https://github.com/oarbusi))
+- test: Add unit test to `database_user` resource [\#1738](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1738) ([oarbusi](https://github.com/oarbusi))
 - chore: Lint error [\#1734](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1734) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - doc: CLOUDP-215923: Removes sunset resources from documentation [\#1732](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1732) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - chore: Define atlas stream functionality under beta flag environment variable [\#1726](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1726) ([AgustinBettati](https://github.com/AgustinBettati))
