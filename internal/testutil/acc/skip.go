@@ -16,6 +16,7 @@ func SkipTest(tb testing.TB) {
 // SkipIfTFAccNotDefined is added to acceptance tests were you do not want any preparation code executed if the resulting steps will not run.
 // Keep in mind that if TF_ACC is empty, go still runs acceptance tests but terraform-plugin-testing does not execute the resulting steps.
 func SkipIfTFAccNotDefined(tb testing.TB) {
+	tb.Helper()
 	if strings.EqualFold(os.Getenv("TF_ACC"), "") {
 		tb.Skip()
 	}
