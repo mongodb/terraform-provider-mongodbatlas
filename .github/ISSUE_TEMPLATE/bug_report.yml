@@ -72,7 +72,7 @@ body:
   - type: textarea
     attributes:
       label: Steps To Reproduce
-      description: Steps to reproduce the behavior.
+      description: Steps to reproduce the behaviour.
       placeholder: |
         1. In this environment...
         2. With this config...
@@ -85,7 +85,7 @@ body:
     id: logs
     attributes:
       label: Logs
-      description: Additional logs that can help us investigating the issue
+      description: Additional logs that can help us investigate the issue
       render: hcl
     validations:
       required: false
@@ -99,10 +99,3 @@ body:
         - label: I agree to follow this project's Code of Conduct
           required: true
 
-  - type: checkboxes
-    attributes:
-      label: Is there an existing issue for this?
-      description: Please search to see if an issue already exists for the bug you encountered. If the issue has been reported add a reaction, i.e. +1, to the issue.
-      options:
-        - label: I have searched the existing issues
-          required: true
