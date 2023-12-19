@@ -237,7 +237,7 @@ func ConfigDatabaseUserWithAWSIAMType(projectName, orgID, roleName, username, ke
 	`, projectName, orgID, roleName, username, keyLabel, valueLabel)
 }
 
-func ConfigDatabaseUserWithScopes(username, password, roleName, projectId, clusterName, clusterTerraformStr string, scopesArr []*admin.UserScope) string {
+func ConfigDatabaseUserWithScopes(username, password, roleName, projectID, clusterName, clusterTerraformStr string, scopesArr []*admin.UserScope) string {
 	var scopes string
 
 	for _, scope := range scopesArr {
@@ -270,7 +270,7 @@ func ConfigDatabaseUserWithScopes(username, password, roleName, projectId, clust
 			%s
 
 		}
-	`, username, password, projectId, roleName, scopes)
+	`, username, password, projectID, roleName, scopes)
 }
 
 func ConfigDatabaseUserWithLDAPAuthType(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
