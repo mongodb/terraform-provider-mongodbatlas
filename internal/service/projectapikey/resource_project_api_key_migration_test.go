@@ -20,11 +20,8 @@ func TestAccMigrationConfigRSProjectAPIKey_RemovingOptionalRootProjectID(t *test
 		roleName     = "GROUP_OWNER"
 	)
 
-	// this is the latest version where root project id was required
-	mig.SkipIfProviderVersionGreaterThan(t, "1.13.1")
-
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasic(t) },
+		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
