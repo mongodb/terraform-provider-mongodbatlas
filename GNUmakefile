@@ -77,7 +77,6 @@ tools:  ## Install dev tools
 	go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest
 	go install github.com/vektra/mockery/v2@$(MOCKERY_VERSION)
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
-	@echo "==> Note for asdf users: you may want to run: asdf reshim golang"
 
 .PHONY: check
 check: test lint
