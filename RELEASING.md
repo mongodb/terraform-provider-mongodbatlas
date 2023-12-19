@@ -42,7 +42,7 @@ We use a tool called [github changelog generator](https://github.com/github-chan
  
 #### Define the Upgrade Guide
 
-**Note**: Only applies if the right most version digit is 0.
+**Note**: Only applies if the right most version digit is 0 (considered a major or minor version in [semantic versioning](https://semver.org/)).
 
 - Create a new doc in /website/docs/guides/X.Y.0-upgrade-guide.html. This will contain a summary of the most significant features and breaking changes. Additional information that can be helpful to users can be defined here.
 

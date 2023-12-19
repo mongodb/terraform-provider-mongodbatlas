@@ -6,78 +6,78 @@
 
 **Breaking changes:**
 
-- fix!: replaces .String\(\) method with internal method .TimeToString\(\) to align formating with Atlas API. [\#1699](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1699) ([marcosuma](https://github.com/marcosuma))
+- fix!: Replaces .String\(\) method with internal method .TimeToString\(\) to align formatting with the Atlas API. [\#1699](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1699) ([marcosuma](https://github.com/marcosuma))
    - Fixes date fields that were not compliant to the ISO 8601 timestamp format in UTC, in line with the documentation.
-- feat!: new required attributes `authorized_user_first_name` and `authorized_user_last_name` in `mongodbatlas_backup_compliance_policy` resource. [\#1655](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1655) ([marcosuma](https://github.com/marcosuma))
+- feat!: New required attributes `authorized_user_first_name` and `authorized_user_last_name` in `mongodbatlas_backup_compliance_policy` resource. [\#1655](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1655) ([marcosuma](https://github.com/marcosuma))
    - Adds first and last name in `mongodbatlas_backup_compliance_policy` resource to reflect recent changes in the Atlas API.
 
 **Enhancements**
 
-- feat: new `mongodbatlas_stream_instance` resource [\#1685](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1685) ([AgustinBettati](https://github.com/AgustinBettati))
-- feat: new `mongodbatlas_stream_instance` and `mongodbatlas_stream_instances` data sources [\#1689](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1689) [\#1701](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1701) ([AgustinBettati](https://github.com/AgustinBettati))
-- feat: new `mongodbatlas_stream_connection` resource [\#1736](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1736) ([AgustinBettati](https://github.com/AgustinBettati))
-- feat: new `mongodbatlas_stream_connection` and `mongodbatlas_stream_connections` data sources [\#1757](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1757) ([AgustinBettati](https://github.com/AgustinBettati))
+- feat: New `mongodbatlas_stream_instance` resource [\#1685](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1685) ([AgustinBettati](https://github.com/AgustinBettati))
+- feat: New `mongodbatlas_stream_instance` and `mongodbatlas_stream_instances` data sources [\#1689](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1689) [\#1701](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1701) ([AgustinBettati](https://github.com/AgustinBettati))
+- feat: New `mongodbatlas_stream_connection` resource [\#1736](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1736) ([AgustinBettati](https://github.com/AgustinBettati))
+- feat: New `mongodbatlas_stream_connection` and `mongodbatlas_stream_connections` data sources [\#1757](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1757) ([AgustinBettati](https://github.com/AgustinBettati))
 
 **Bug Fixes**
 
 - fix: Doesn't disable X.509 in the project when `mongodbatlas_x509_authentication_database_user` resource is deleted [\#1760](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1760) ([lantoli](https://github.com/lantoli))
-- fix: adjust root `project_id` attribute in `mongdbatlas_project_api_key` resource to optional [\#1664](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1664) ([AgustinBettati](https://github.com/AgustinBettati))
-- fix: define `project_assignment` block in `mongodbatlas_project_api_key` as required to avoid plugin crash [\#1663](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1663) ([AgustinBettati](https://github.com/AgustinBettati))
+- fix: Converts root `project_id` attribute to optional in `mongdbatlas_project_api_key` resource [\#1664](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1664) ([AgustinBettati](https://github.com/AgustinBettati))
+- fix: Defines `project_assignment` block in `mongodbatlas_project_api_key` as required to avoid plugin crash [\#1663](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1663) ([AgustinBettati](https://github.com/AgustinBettati))
 - fix: Fixes cluster update when adding replication specs [\#1755](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1755) ([lantoli](https://github.com/lantoli))
-- fix: Provider crash when an invalid role name is specified to `mongodbatlas_project_api_key` [\#1720](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1720) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- fix: project delete function uses correct string representation of id [\#1733](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1733) ([oarbusi](https://github.com/oarbusi))
+- fix: Provider crashes when an invalid role name is specified to `mongodbatlas_project_api_key` [\#1720](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1720) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- fix: Fixes string representation of id for project delete function [\#1733](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1733) ([oarbusi](https://github.com/oarbusi))
 
 **Bug Fixes for HashiCorp Terraform Version 1.0.8**
 
-- fix: Fixes `mongodbatlas_cloud_provider_access`, `mongodbatlas_org_invitation`, `mongodbatlas_project_api_key`, `mongodbatlas_third_party_integration` in older TF versions [\#1748](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1748) ([lantoli](https://github.com/lantoli))
-- fix: Fixes `mongodbatlas_network_container`, `mongodbatlas_private_endpoint_regional_mode` in older TF versions [\#1741](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1741) ([lantoli](https://github.com/lantoli))
-- fix: Fixes `mongodbatlas_serverless_instance` in older TF versions [\#1740](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1740) ([lantoli](https://github.com/lantoli))
-- fix: Fixes some tests in search_index test group in older TF versions [\#1758](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1758) ([lantoli](https://github.com/lantoli))
+- fix: Fixes `mongodbatlas_cloud_provider_access`, `mongodbatlas_org_invitation`, `mongodbatlas_project_api_key`, `mongodbatlas_third_party_integration` in older Terraform versions [\#1748](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1748) ([lantoli](https://github.com/lantoli))
+- fix: Fixes `mongodbatlas_network_container`, `mongodbatlas_private_endpoint_regional_mode` in older Terraform versions [\#1741](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1741) ([lantoli](https://github.com/lantoli))
+- fix: Fixes `mongodbatlas_serverless_instance` in older Terraform versions [\#1740](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1740) ([lantoli](https://github.com/lantoli))
+- fix: Fixes some tests in `search_index` test group in older Terraform versions [\#1758](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1758) ([lantoli](https://github.com/lantoli))
 
 **Deprecations and Removals**
 
-- deprecate: optional root `project_id` attribute in `mongdbatlas_project_api_key` is deprecated [\#1665](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1665) ([AgustinBettati](https://github.com/AgustinBettati))
+- deprecate: Deprecates optional root `project_id` attribute in `mongdbatlas_project_api_key` [\#1665](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1665) ([AgustinBettati](https://github.com/AgustinBettati))
 
 **Closed Issues**
 
 - `mongodbatlas_alert_configuration` failing to be created on apply due to `METRIC_TYPE_UNSUPPORTED` for `DISK_PARTITION` alerts 400 error [\#1716](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1716)
 - Provider produced inconsistent result after apply [\#1707](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1707)
--  Error: Provider produced inconsistent final plan for `mongodbatlas_privatelink_endpoint_service` [\#1690](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1690)
+- Error: Provider produced inconsistent final plan for `mongodbatlas_privatelink_endpoint_service` [\#1690](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1690)
 - Provider not working with Secret Manager [\#1683](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1683)
 - In the `mongodbatlas_advanced_cluster` ressource, forbidden characters for the  values of the tags are allowed by the provider and fail on apply. [\#1668](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1668)
 
 **Internal Improvements**
 
-- test: unit test for `project_ip_access_list` resource [\#1756](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1756) ([oarbusi](https://github.com/oarbusi))
+- test: Unit test for `project_ip_access_list` resource [\#1756](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1756) ([oarbusi](https://github.com/oarbusi))
 - chore: CLOUDP-215162: Update Jira GitHub Action to update Ticket status based on the issue [\#1754](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1754) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- chore: migrate `project_ip_access_list` to new SDK [\#1753](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1753) ([oarbusi](https://github.com/oarbusi))
-- chore: fix examples job by defining beta flag [\#1751](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1751) ([AgustinBettati](https://github.com/AgustinBettati))
-- test: unit test `encryption_at_rest` resource [\#1750](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1750) ([oarbusi](https://github.com/oarbusi))
+- chore: Migrate `project_ip_access_list` to new SDK [\#1753](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1753) ([oarbusi](https://github.com/oarbusi))
+- chore: Fix examples job by defining beta flag [\#1751](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1751) ([AgustinBettati](https://github.com/AgustinBettati))
+- test: Unit test `encryption_at_rest` resource [\#1750](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1750) ([oarbusi](https://github.com/oarbusi))
 - chore: Bump github.com/aws/aws-sdk-go from 1.48.13 to 1.49.1 [\#1744](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1744) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore: new scaffold command for creating resources/data sources [\#1739](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1739) ([AgustinBettati](https://github.com/AgustinBettati))
-- test: add unit test to `database_user`` resource [\#1738](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1738) ([oarbusi](https://github.com/oarbusi))
-- chore: lint error [\#1734](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1734) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- chore: New scaffold command for creating resources/data sources [\#1739](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1739) ([AgustinBettati](https://github.com/AgustinBettati))
+- test: Add unit test to `database_user`` resource [\#1738](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1738) ([oarbusi](https://github.com/oarbusi))
+- chore: Lint error [\#1734](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1734) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - doc: CLOUDP-215923: Removes sunset resources from documentation [\#1732](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1732) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- chore: define atlas stream functionality under beta flag environment variable [\#1726](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1726) ([AgustinBettati](https://github.com/AgustinBettati))
+- chore: Define atlas stream functionality under beta flag environment variable [\#1726](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1726) ([AgustinBettati](https://github.com/AgustinBettati))
 - chore: `migrate encryption_at_rest` resource to new SDK [\#1725](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1725) ([oarbusi](https://github.com/oarbusi))
-- chore: migrate database user resource to new SDK [\#1723](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1723) ([oarbusi](https://github.com/oarbusi))
+- chore: Migrate database user resource to new SDK [\#1723](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1723) ([oarbusi](https://github.com/oarbusi))
 - doc: CLOUDP-216288 - Update the warning message in the cluster resource to mention a bug on the container ids [\#1719](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1719) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- chore: Uses official CLI GH action in TF clean-up workflow [\#1718](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1718) ([lantoli](https://github.com/lantoli))
-- chore: change region used in online archive process region to one supported in cloud dev [\#1703](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1703) ([AgustinBettati](https://github.com/AgustinBettati))
+- chore: Uses official CLI GH action in Terraform clean-up workflow [\#1718](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1718) ([lantoli](https://github.com/lantoli))
+- chore: Change region used in online archive process region to one supported in cloud dev [\#1703](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1703) ([AgustinBettati](https://github.com/AgustinBettati))
 - chore: CLOUDP-215192 - Update Automation That Creates Github Issues To Create CLOUDP rather than INTMDB [\#1696](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1696) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - test: Adds unit test to project resource [\#1694](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1694) ([oarbusi](https://github.com/oarbusi))
 - chore: Create Test Suite workflow [\#1687](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1687) ([lantoli](https://github.com/lantoli))
-- chore: project resource migration to new sdk [\#1686](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1686) ([oarbusi](https://github.com/oarbusi))
-- refactor: remove redundancy in creation functions for resources/data sources separated in packages [\#1682](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1682) ([AgustinBettati](https://github.com/AgustinBettati))
-- refactor: adjust `project_api_key` to new file structure [\#1676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1676) ([AgustinBettati](https://github.com/AgustinBettati))
-- chore: remove references of legacy mongodbatlas package in make file [\#1675](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1675) ([AgustinBettati](https://github.com/AgustinBettati))
+- chore: Project resource migration to new sdk [\#1686](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1686) ([oarbusi](https://github.com/oarbusi))
+- refactor: Remove redundancy in creation functions for resources/data sources separated in packages [\#1682](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1682) ([AgustinBettati](https://github.com/AgustinBettati))
+- refactor: Adjust `project_api_key` to new file structure [\#1676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1676) ([AgustinBettati](https://github.com/AgustinBettati))
+- chore: Remove references of legacy mongodbatlas package in make file [\#1675](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1675) ([AgustinBettati](https://github.com/AgustinBettati))
 - chore: Updates Atlas Go SDK [\#1674](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1674) ([github-actions[bot]](https://github.com/apps/github-actions))
 - chore: Increases project list limit for clean-up Github action [\#1673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1673) ([lantoli](https://github.com/lantoli))
 - test: Adds unit test to `alert_configuration` [\#1670](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1670) ([oarbusi](https://github.com/oarbusi))
-- chore: adjust CI change detection file paths after file restructure [\#1667](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1667) ([AgustinBettati](https://github.com/AgustinBettati))
+- chore: Adjust CI change detection file paths after file restructure [\#1667](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1667) ([AgustinBettati](https://github.com/AgustinBettati))
 - doc: Updates contributing file with code and test best practices [\#1666](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1666) ([lantoli](https://github.com/lantoli))
 - chore: Adds a website make goal to preview doc changes [\#1662](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1662) ([lantoli](https://github.com/lantoli))
-- test: including unit testing for search deployments state transition logic and model conversions [\#1653](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1653) ([AgustinBettati](https://github.com/AgustinBettati))
+- test: Includes unit testing for search deployments state transition logic and model conversions [\#1653](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1653) ([AgustinBettati](https://github.com/AgustinBettati))
 - feat: Migrates some resources to new file structure [\#1705](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1705) [\#1704](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1704) [\#1702](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1702) [\#1700](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1700) ([lantoli](https://github.com/lantoli))
 - feat: Cleans up before and after Test Suite so they don't interfere [\#1695](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1695) ([lantoli](https://github.com/lantoli))
 - feat: Runs Migration tests for different provider versions [\#1691](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1691) ([lantoli](https://github.com/lantoli))
