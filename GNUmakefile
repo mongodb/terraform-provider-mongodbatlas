@@ -14,6 +14,7 @@ VERSION=$(GITTAG:v%=%)
 LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
 
 GOLANGCI_VERSION=v1.55.0
+MOCKERY_VERSION=v2.38.0
 
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
 export SHELL := env PATH=$(PATH) /bin/bash
@@ -74,6 +75,7 @@ tools:  ## Install dev tools
 	go install github.com/terraform-linters/tflint@v0.49.0
 	go install github.com/rhysd/actionlint/cmd/actionlint@latest
 	go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest
+	go install github.com/vektra/mockery/v2@$(MOCKERY_VERSION)
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
 
 .PHONY: check
