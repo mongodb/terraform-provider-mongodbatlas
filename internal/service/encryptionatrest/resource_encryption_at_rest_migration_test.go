@@ -212,11 +212,11 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) 
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheck(t); acc.PreCheckAwsEnv(t) },
+		PreCheck:     func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: mig.ExternalProvidersWithAWS(),
+				ExternalProviders: acc.ExternalProvidersWithAWS("1.11.0"),
 				Config:            testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID, &awsKms),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
