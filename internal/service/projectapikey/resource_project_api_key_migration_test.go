@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 func TestAccMigrationConfigRSProjectAPIKey_RemovingOptionalRootProjectID(t *testing.T) {
@@ -19,18 +20,16 @@ func TestAccMigrationConfigRSProjectAPIKey_RemovingOptionalRootProjectID(t *test
 		roleName     = "GROUP_OWNER"
 	)
 
+	// this is the latest version where root project id was required
+	mig.SkipIfProviderVersionGreaterThan(t, "1.13.1")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: "1.13.1", // fixed version as this is the last version where root project id was required.
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName, true),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName, true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
