@@ -217,7 +217,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotCreate(ctx context.Context, d *schem
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING"},
 		Target:     []string{"IDLE"},
-		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, d.Get("cluster_name").(string), d.Get("project_id").(string), conn),
+		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, d.Get("cluster_name").(string), d.Get("project_id").(string), advancedcluster.ServiceFromClient(conn)),
 		Timeout:    10 * time.Minute,
 		MinTimeout: 10 * time.Second,
 		Delay:      3 * time.Minute,

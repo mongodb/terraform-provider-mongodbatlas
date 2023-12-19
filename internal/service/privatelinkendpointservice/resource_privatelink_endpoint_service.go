@@ -192,7 +192,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d
 	clusterConf := &retry.StateChangeConf{
 		Pending:    []string{"REPEATING", "PENDING"},
 		Target:     []string{"IDLE", "DELETED"},
-		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, conn),
+		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, advancedcluster.ServiceFromClient(conn)),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 5 * time.Second,
 		Delay:      5 * time.Minute,
@@ -316,7 +316,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d
 		clusterConf := &retry.StateChangeConf{
 			Pending:    []string{"REPEATING", "PENDING"},
 			Target:     []string{"IDLE", "DELETED"},
-			Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, conn),
+			Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, advancedcluster.ServiceFromClient(conn)),
 			Timeout:    d.Timeout(schema.TimeoutDelete),
 			MinTimeout: 5 * time.Second,
 			Delay:      5 * time.Minute,
