@@ -59,7 +59,7 @@ func fw_ResourceV0() schema.Schema {
 			"cluster_type": schema.StringAttribute{
 				Required: true,
 			},
-			"connection_strings": advClusterRSConnectionStringSchemaAttr(),
+			"connection_strings": advClusterRSConnectionStringSchemaAttrComputed(),
 			"create_date": schema.StringAttribute{
 				Computed: true,
 				// PlanModifiers: []planmodifier.String{
@@ -337,11 +337,11 @@ func fw_ResourceV0() schema.Schema {
 									},
 								},
 								Blocks: map[string]schema.Block{
-									"analytics_auto_scaling": advClusterRSRegionConfigAutoScalingSpecsBlock(),
-									"auto_scaling":           advClusterRSRegionConfigAutoScalingSpecsBlock(),
-									"analytics_specs":        advClusterRSRegionConfigSpecsBlock(),
-									"electable_specs":        advClusterRSRegionConfigSpecsBlock(),
-									"read_only_specs":        advClusterRSRegionConfigSpecsBlock(),
+									// "analytics_auto_scaling": advClusterRSRegionConfigAutoScalingSpecsBlock(),
+									// "auto_scaling":           advClusterRSRegionConfigAutoScalingSpecsBlock(),
+									// "analytics_specs":        advClusterRSRegionConfigSpecsBlock(),
+									// "electable_specs":        advClusterRSRegionConfigSpecsBlock(),
+									// "read_only_specs":        advClusterRSRegionConfigSpecsBlock(),
 								},
 							},
 							Validators: []validator.List{
