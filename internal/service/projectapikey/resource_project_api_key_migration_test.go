@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 func TestAccMigrationConfigRSProjectAPIKey_RemovingOptionalRootProjectID(t *testing.T) {
@@ -21,11 +20,11 @@ func TestAccMigrationConfigRSProjectAPIKey_RemovingOptionalRootProjectID(t *test
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t) },
+		PreCheck:     func() { acc.PreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: mig.ExternalProviders(),
+				ExternalProviders: acc.ExternalProviders("1.13.1"), // fixed version as this is the last version where root project id was required.
 				Config:            testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName, true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
