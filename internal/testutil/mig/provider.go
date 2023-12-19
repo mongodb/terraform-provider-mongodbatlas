@@ -14,19 +14,6 @@ func IsProviderVersionAtLeast(minVersion string) bool {
 	return errProvider == nil && errMin == nil && vProvider.GreaterThanOrEqual(vMin)
 }
 
-func isProviderVersionGreaterThan(minVersion string) bool {
-	vProvider, errProvider := version.NewVersion(versionConstraint())
-	vMin, errMin := version.NewVersion(minVersion)
-	return errProvider == nil && errMin == nil && vProvider.GreaterThan(vMin)
-}
-
-func SkipIfProviderVersionGreaterThan(tb testing.TB, maxVersion string) {
-	tb.Helper()
-	if isProviderVersionGreaterThan(maxVersion) {
-		tb.Skipf("skipping test for provider version %s, maxVersion : %s", versionConstraint(), maxVersion)
-	}
-}
-
 func ExternalProviders() map[string]resource.ExternalProvider {
 	return map[string]resource.ExternalProvider{
 		"mongodbatlas": *providerAtlas(),

@@ -216,18 +216,8 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) 
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
-						Source:            "mongodb/mongodbatlas",
-					},
-					"aws": {
-						VersionConstraint: "5.1.0",
-						Source:            "hashicorp/aws",
-					},
-				},
-
-				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID, &awsKms),
+				ExternalProviders: mig.ExternalProvidersWithAWS(),
+				Config:            testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID, &awsKms),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
