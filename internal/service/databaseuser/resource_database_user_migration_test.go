@@ -297,7 +297,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ClusterTerraformStr,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
 					[]*admin.UserScope{
 						{
 							Name: "test-acc-nurk4llu2z",
@@ -315,7 +315,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ClusterTerraformStr,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
 					[]*admin.UserScope{
 						{
 							Name: "test-acc-nurk4llu2z",
@@ -348,7 +348,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopesAndEmpty(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ClusterTerraformStr,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
 					[]*admin.UserScope{},
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -361,7 +361,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopesAndEmpty(t *testing.T) {
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ClusterTerraformStr,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
 					[]*admin.UserScope{},
 				),
 				ConfigPlanChecks: resource.ConfigPlanChecks{

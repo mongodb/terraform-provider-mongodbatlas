@@ -351,7 +351,7 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ClusterTerraformStr,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
 					[]*admin.UserScope{
 						{
 							Name: "test-acc-nurk4llu2z",
@@ -374,7 +374,7 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ClusterTerraformStr,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
 					[]*admin.UserScope{
 						{
 							Name: "test-acc-nurk4llu2z",
@@ -412,7 +412,7 @@ func TestAccConfigRSDatabaseUser_withScopesAndEmpty(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ClusterTerraformStr,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
 					[]*admin.UserScope{
 						{
 							Name: "test-acc-nurk4llu2z",
@@ -435,7 +435,7 @@ func TestAccConfigRSDatabaseUser_withScopesAndEmpty(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ClusterTerraformStr,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
 					[]*admin.UserScope{},
 				),
 				Check: resource.ComposeTestCheckFunc(
