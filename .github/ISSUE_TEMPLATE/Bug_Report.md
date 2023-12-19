@@ -1,5 +1,5 @@
 ---
-name: Bug report
+name: Bug report [Deprecated]
 about: Something unexpected happen? Report an error, crash, or an incorrect behavior here.
 
 ---
@@ -14,19 +14,8 @@ Thank you for opening an issue. **These GitHub issues** are only for community r
 
 **Please note:** In order for us to provide the best experience in supporting our customers, we kindly ask to make sure that all the following sections are correctly filled with all the required information. Our support will **prioritise** issues that contain **all the required** information that follows the **"one-click reproducible issues" principle** (see below).
 
-**Please also note:** We try to keep the Terraform MongoDB Atlas Provider issue tracker **reserved for bug reports**. Please ensure you **check open and closed issues first** to ensure your issue hasn't already been reported (if it has been reported add a reaction, i.e. +1, to the issue).
-
-### "One-click reproducible issues" principle
-
-* We should be able to make no changes to your provided script and **successfully run a local execution reproducing the issue**.
-  * This means that you should kindly **provide all the required instructions**. This includes but not limited to:
-    * Terraform Atlas provider version used to reproduce the issue
-    * Terraform version used to reproduce the issue
-  * Configurations that **cannot be properly executed will be de-prioritised** in favour of the ones that succeed.
-* Before opening an issue, you have to try to specifically isolate it to **Terraform MongoDB Atlas** provider by **removing as many dependencies** as possible. If the issue only happens with other dependencies, then:
-  * If other terraform providers are required, please make sure you also include those. _Same "one-click reproducible issue" principle applies_.
-  * If external components are required to replicate it, please make sure you also provides instructions on those parts.
-* Please confirm if the platform being used is Terraform OSS, Terraform Cloud, or Terraform Enterprise deployment
+**Please note:** In order for us to provide the best experience in supporting our customers, we kindly ask to make sure that all the following sections are correctly filled with all the required information. 
+Our support will prioritise issues that contain all the required information that follows the [one-click reproducible issues principle](../../README.md#one-click-reproducible-issues-principle).
 
 
 ### Terraform CLI and Terraform MongoDB Atlas Provider Version
