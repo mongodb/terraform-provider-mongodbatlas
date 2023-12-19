@@ -64,7 +64,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md).
 ## Issues
 
 ### Autoclose stale issues and PRs
-- After 5 days of no activity (no comments or commits on an issue/PR) we automatically tag it as "stale" and add a message: ```This issue/PR has gone 7 days without any activity and meets the project's definition of "stale". This will be auto-closed if there is no new activity over the next 7 days. If the issue is still relevant and active, you can simply comment with a "bump" to keep it open, or add the label "not_stale". Thanks for keeping our repository healthy!```
+- After 5 days of no activity (no comments or commits on an issue/PR) we automatically tag it as "stale" and add a message: ```This issue/PR has gone 5 days without any activity and meets the project's definition of "stale". This will be auto-closed if there is no new activity over the next 5 days. If the issue is still relevant and active, you can simply comment with a "bump" to keep it open, or add the label "not_stale". Thanks for keeping our repository healthy!```
 - After 5 more days of no activity we automatically close the issue/PR.
 
 ### One-click reproducible issues principle
