@@ -11,7 +11,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
@@ -35,7 +34,7 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
 		CheckDestroy:             testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		ExternalProviders:        mig.ExternalProvidersOnlyAWS(),
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(
@@ -73,7 +72,7 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_import(t *testing.T) {
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
 		CheckDestroy:             testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		ExternalProviders:        mig.ExternalProvidersOnlyAWS(),
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(

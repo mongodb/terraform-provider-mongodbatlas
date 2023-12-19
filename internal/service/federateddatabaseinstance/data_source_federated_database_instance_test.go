@@ -13,7 +13,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
@@ -31,7 +30,7 @@ func TestAccDataSourceFederatedDatabaseInstance_basic(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders:        mig.ExternalProvidersOnlyAWS(),
+				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasFederatedDatabaseInstanceConfigDataSourceFirstSteps(name, projectName, orgID),
 				Check: resource.ComposeTestCheckFunc(
@@ -67,7 +66,7 @@ func TestAccDataSourceFederatedDatabaseInstance_S3Bucket(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders:        mig.ExternalProvidersOnlyAWS(),
+				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasFederatedDatabaseInstanceDataSourceConfigS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, region),
 				Check: resource.ComposeTestCheckFunc(

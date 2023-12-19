@@ -45,7 +45,7 @@ func TestAccMigrationNetworkRSPrivateLinkEndpointService_Complete(t *testing.T) 
 				),
 			},
 			{
-				ExternalProviders:        mig.ExternalProvidersOnlyAWS(),
+				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(
 					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, resourceSuffix,

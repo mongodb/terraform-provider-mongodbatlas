@@ -19,7 +19,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 	"github.com/mwielbut/pointy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -310,7 +309,7 @@ func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
-		ExternalProviders:        mig.ExternalProvidersOnlyAWS(),
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{

@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 func TestAccDataSourceFederatedDatabaseInstances_basic(t *testing.T) {
@@ -30,7 +29,7 @@ func TestAccDataSourceFederatedDatabaseInstances_basic(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders:        mig.ExternalProvidersOnlyAWS(),
+				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasFederatedDatabaseInstancesDataSourceConfig(policyName, roleName, projectName, orgID, firstName, secondName, testS3Bucket, region),
 				Check: resource.ComposeTestCheckFunc(

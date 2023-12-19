@@ -85,7 +85,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_WithRole_basicAWS(t *testing.T) {
 				Config:            testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.GetRegion(), accessKeyID, secretKey, projectID, policyName, roleName, false, &awsKms),
 			},
 			{
-				ExternalProviders:        mig.ExternalProvidersOnlyAWS(),
+				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.GetRegion(), accessKeyID, secretKey, projectID, policyName, roleName, false, &awsKms),
 				Check: resource.ComposeTestCheckFunc(

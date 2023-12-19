@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 func IsProviderVersionAtLeast(minVersion string) bool {
@@ -15,36 +16,11 @@ func IsProviderVersionAtLeast(minVersion string) bool {
 }
 
 func ExternalProviders() map[string]resource.ExternalProvider {
-	return map[string]resource.ExternalProvider{
-		"mongodbatlas": *providerAtlas(),
-	}
-}
-
-func ExternalProvidersOnlyAWS() map[string]resource.ExternalProvider {
-	return map[string]resource.ExternalProvider{
-		"aws": *providerAWS(),
-	}
+	return acc.ExternalProviders(versionConstraint())
 }
 
 func ExternalProvidersWithAWS() map[string]resource.ExternalProvider {
-	return map[string]resource.ExternalProvider{
-		"mongodbatlas": *providerAtlas(),
-		"aws":          *providerAWS(),
-	}
-}
-
-func providerAtlas() *resource.ExternalProvider {
-	return &resource.ExternalProvider{
-		VersionConstraint: versionConstraint(),
-		Source:            "mongodb/mongodbatlas",
-	}
-}
-
-func providerAWS() *resource.ExternalProvider {
-	return &resource.ExternalProvider{
-		VersionConstraint: "5.1.0",
-		Source:            "hashicorp/aws",
-	}
+	return acc.ExternalProvidersWithAWS(versionConstraint())
 }
 
 func checkLastVersion(tb testing.TB) {
