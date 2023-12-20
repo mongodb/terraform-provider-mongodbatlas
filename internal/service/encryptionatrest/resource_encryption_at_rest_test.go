@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"testing"
 
@@ -19,6 +18,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mocksvc"
 	"github.com/mwielbut/pointy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -528,10 +528,6 @@ func TestHandleAzureKeyVaultConfigDefaults(t *testing.T) {
 	}
 }
 
-type MockEarService struct {
-	mock.Mock
-}
-
 func TestResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(t *testing.T) {
 	var projectID = "projectID"
 	testCases := []struct {
@@ -561,13 +557,9 @@ func TestResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			testObject := new(MockEarService)
+			testObject := mocksvc.NewEarService(t)
 
-			mockedResponse := EarResponse{
-				encryptionAtRestResponse: tc.mockResponse,
-				Err:                      tc.mockError,
-			}
-			testObject.On("UpdateEncryptionAtRest", mock.Anything, mock.Anything, mock.Anything).Return(mockedResponse)
+			testObject.On("UpdateEncryptionAtRest", mock.Anything, mock.Anything, mock.Anything).Return(tc.mockResponse, nil, tc.mockError)
 
 			response, strategy, err := encryptionatrest.ResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(context.Background(), projectID, testObject, &admin.EncryptionAtRest{})()
 
@@ -693,16 +685,4 @@ func testAccCheckMongoDBAtlasEncryptionAtRestImportStateIDFunc(resourceName stri
 
 		return rs.Primary.ID, nil
 	}
-}
-
-func (a *MockEarService) UpdateEncryptionAtRest(ctx context.Context, groupID string, encryptionAtRest *admin.EncryptionAtRest) (*admin.EncryptionAtRest, *http.Response, error) {
-	args := a.Called(ctx, groupID)
-	var response = args.Get(0).(EarResponse)
-	return response.encryptionAtRestResponse, response.HTTPResponse, response.Err
-}
-
-type EarResponse struct {
-	encryptionAtRestResponse *admin.EncryptionAtRest
-	HTTPResponse             *http.Response
-	Err                      error
 }
