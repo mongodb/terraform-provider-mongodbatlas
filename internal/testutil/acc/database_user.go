@@ -237,7 +237,7 @@ func ConfigDatabaseUserWithAWSIAMType(projectName, orgID, roleName, username, ke
 	`, projectName, orgID, roleName, username, keyLabel, valueLabel)
 }
 
-func ConfigDatabaseUserWithScopes(username, password, projectName, orgID, roleName, clusterName string, scopesArr []*admin.UserScope) string {
+func ConfigDatabaseUserWithScopes(username, password, roleName, projectID, clusterName, clusterTerraformStr string, scopesArr []*admin.UserScope) string {
 	var scopes string
 
 	for _, scope := range scopesArr {
@@ -249,33 +249,17 @@ func ConfigDatabaseUserWithScopes(username, password, projectName, orgID, roleNa
 
 		scopes += fmt.Sprintf(`
 			scopes {
-				name = "${mongodbatlas_cluster.my_cluster.name}"
+				name = "%s"
 				%s
 			}
-		`, scopeType)
+		`, clusterName, scopeType)
 	}
 
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
-		}
-
-		resource "mongodbatlas_cluster" "my_cluster" {
-			project_id   = "${mongodbatlas_project.test.id}"
-			name         = "%s"
-			
-			// Provider Settings "block"
-			provider_name               = "AWS"
-			provider_region_name        = "US_EAST_2"
-			provider_instance_size_name = "M10"
-			cloud_backup                = true //enable cloud provider snapshots
-		}
-
+	return clusterTerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_database_user" "test" {
 			username           = "%s"
 			password           = "%s"
-			project_id         = "${mongodbatlas_project.test.id}"
+			project_id         = %s
 			auth_database_name = "admin"
 
 			roles {
@@ -286,7 +270,7 @@ func ConfigDatabaseUserWithScopes(username, password, projectName, orgID, roleNa
 			%s
 
 		}
-	`, projectName, orgID, clusterName, username, password, roleName, scopes)
+	`, username, password, projectID, roleName, scopes)
 }
 
 func ConfigDatabaseUserWithLDAPAuthType(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
