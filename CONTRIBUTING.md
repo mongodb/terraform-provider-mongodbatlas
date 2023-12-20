@@ -63,7 +63,8 @@ For more explained information about plugin override check [Development Override
 - A repo maintainer will review the your pull request, and may either request additional changes or merge the pull request.
 
 #### PR Title Format
-We use [*Conventional Commits*](https://www.conventionalcommits.org/), enforcing the subject of the title to start with a uppercase character:
+
+A third person point of view is used when describing the changes made. Additionally, we use [*Conventional Commits*](https://www.conventionalcommits.org/) enforcing the subject of the title to start with a uppercase character:
 - `fix: Description of the PR`: a commit of the type fix patches a bug in your codebase (this correlates with PATCH in Semantic Versioning).
 - `chore: Description of the PR`: the commit includes a technical or preventative maintenance task that is necessary for managing the product or the repository, but it is not tied to any specific feature or user story (this correlates with PATCH in Semantic Versioning).
 - `doc: Description of the PR`: The commit adds, updates, or revises documentation that is stored in the repository (this correlates with PATCH in Semantic Versioning).
