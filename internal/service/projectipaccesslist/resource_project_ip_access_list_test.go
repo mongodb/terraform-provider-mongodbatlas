@@ -95,7 +95,7 @@ func TestAccProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 
 func TestAccProjectRSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_access_list.test"
-	projectName := acctest.RandomWithPrefix("test-acc")
+	projectName := acctest.RandomWithPrefix("test-acc-project-aws")
 	vpcID := os.Getenv("AWS_VPC_ID")
 	vpcCIDRBlock := os.Getenv("AWS_VPC_CIDR_BLOCK")
 	awsAccountID := os.Getenv("AWS_ACCOUNT_ID")
