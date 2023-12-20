@@ -308,13 +308,8 @@ func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
-		ExternalProviders: map[string]resource.ExternalProvider{
-			"aws": {
-				VersionConstraint: "5.1.0",
-				Source:            "hashicorp/aws",
-			},
-		},
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
