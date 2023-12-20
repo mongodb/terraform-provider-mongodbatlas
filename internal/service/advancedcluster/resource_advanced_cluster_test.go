@@ -1429,6 +1429,52 @@ func TestFlattenAdvancedReplicationSpecRegionConfigSpec(t *testing.T) {
 	}
 }
 
+func TestFlattenAdvancedReplicationSpecAutoScaling(t *testing.T) {
+	testCases := []struct {
+		name           string
+		apiObject      *matlas.AdvancedAutoScaling
+		expectedResult []map[string]any
+	}{
+		{
+			name:           "API object nil",
+			apiObject:      nil,
+			expectedResult: nil,
+		},
+		{
+			name:           "Compute and DiskGB nil",
+			apiObject:      &matlas.AdvancedAutoScaling{},
+			expectedResult: []map[string]any{{}},
+		},
+		{
+			name: "Compute and DiskGB not nil",
+			apiObject: &matlas.AdvancedAutoScaling{
+				DiskGB: &matlas.DiskGB{Enabled: &enabled},
+				Compute: &matlas.Compute{
+					Enabled:          &enabled,
+					ScaleDownEnabled: &scaleDownEnabled,
+					MinInstanceSize:  minInstanceSize,
+					MaxInstanceSize:  maxInstanceSize,
+				},
+			},
+			expectedResult: []map[string]any{
+				{
+					"disk_gb_enabled":            &enabled,
+					"compute_enabled":            &enabled,
+					"compute_scale_down_enabled": &scaleDownEnabled,
+					"compute_min_instance_size":  minInstanceSize,
+					"compute_max_instance_size":  maxInstanceSize,
+				},
+			},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel := advancedcluster.FlattenAdvancedReplicationSpecAutoScaling(tc.apiObject)
+			assert.Equal(t, tc.expectedResult, resultModel)
+		})
+	}
+}
+
 func ToAnySlice(m []map[string]any) []any {
 	result := make([]any, len(m))
 	for i, v := range m {

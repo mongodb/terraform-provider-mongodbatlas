@@ -1116,17 +1116,17 @@ func flattenAdvancedReplicationSpecRegionConfig(apiObject *matlas.AdvancedRegion
 			tfMap["read_only_specs"] = FlattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ReadOnlySpecs, apiObject.ProviderName, tfMapObject["read_only_specs"].([]any))
 		}
 		if v, ok := tfMapObject["auto_scaling"]; ok && len(v.([]any)) > 0 {
-			tfMap["auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AutoScaling)
+			tfMap["auto_scaling"] = FlattenAdvancedReplicationSpecAutoScaling(apiObject.AutoScaling)
 		}
 		if v, ok := tfMapObject["analytics_auto_scaling"]; ok && len(v.([]any)) > 0 {
-			tfMap["analytics_auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AnalyticsAutoScaling)
+			tfMap["analytics_auto_scaling"] = FlattenAdvancedReplicationSpecAutoScaling(apiObject.AnalyticsAutoScaling)
 		}
 	} else {
 		tfMap["analytics_specs"] = FlattenAdvancedReplicationSpecRegionConfigSpec(apiObject.AnalyticsSpecs, apiObject.ProviderName, nil)
 		tfMap["electable_specs"] = FlattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ElectableSpecs, apiObject.ProviderName, nil)
 		tfMap["read_only_specs"] = FlattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ReadOnlySpecs, apiObject.ProviderName, nil)
-		tfMap["auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AutoScaling)
-		tfMap["analytics_auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AnalyticsAutoScaling)
+		tfMap["auto_scaling"] = FlattenAdvancedReplicationSpecAutoScaling(apiObject.AutoScaling)
+		tfMap["analytics_auto_scaling"] = FlattenAdvancedReplicationSpecAutoScaling(apiObject.AnalyticsAutoScaling)
 	}
 
 	tfMap["region_name"] = apiObject.RegionName
@@ -1211,7 +1211,7 @@ func FlattenAdvancedReplicationSpecRegionConfigSpec(apiObject *matlas.Specs, pro
 	return tfList
 }
 
-func flattenAdvancedReplicationSpecAutoScaling(apiObject *matlas.AdvancedAutoScaling) []map[string]any {
+func FlattenAdvancedReplicationSpecAutoScaling(apiObject *matlas.AdvancedAutoScaling) []map[string]any {
 	if apiObject == nil {
 		return nil
 	}
