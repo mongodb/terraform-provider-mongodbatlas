@@ -426,7 +426,7 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
 		Target:     []string{"IDLE"},
-		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
+		Refresh:    ResourceClusterAdvancedRefreshFunc(ctx, d.Get("name").(string), projectID, ServiceFromClient(conn)),
 		Timeout:    timeout,
 		MinTimeout: 1 * time.Minute,
 		Delay:      3 * time.Minute,
@@ -778,7 +778,7 @@ func resourceMongoDBAtlasAdvancedClusterDelete(ctx context.Context, d *schema.Re
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
 		Target:     []string{"DELETED"},
-		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, clusterName, projectID, conn),
+		Refresh:    ResourceClusterAdvancedRefreshFunc(ctx, clusterName, projectID, ServiceFromClient(conn)),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute, // Wait 30 secs before starting
@@ -1234,9 +1234,9 @@ func FlattenAdvancedReplicationSpecAutoScaling(apiObject *matlas.AdvancedAutoSca
 	return tfList
 }
 
-func resourceClusterAdvancedRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
+func ResourceClusterAdvancedRefreshFunc(ctx context.Context, name, projectID string, client ClusterService) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		c, resp, err := client.AdvancedClusters.Get(ctx, projectID, name)
+		c, resp, err := client.GetAdvancedCluster(ctx, projectID, name)
 
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
@@ -1318,7 +1318,7 @@ func updateAdvancedCluster(
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
-		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, name, projectID, conn),
+		Refresh:    ResourceClusterAdvancedRefreshFunc(ctx, name, projectID, ServiceFromClient(conn)),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,

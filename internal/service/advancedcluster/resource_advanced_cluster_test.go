@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"regexp"
 	"testing"
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mwielbut/pointy"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -1471,6 +1473,104 @@ func TestFlattenAdvancedReplicationSpecAutoScaling(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := advancedcluster.FlattenAdvancedReplicationSpecAutoScaling(tc.apiObject)
 			assert.Equal(t, tc.expectedResult, resultModel)
+		})
+	}
+}
+
+func TestResourceClusterAdvancedRefreshFunc(t *testing.T) {
+	testCases := []struct {
+		mockCluster    *matlas.AdvancedCluster
+		mockResponse   *matlas.Response
+		expectedResult Result
+		mockError      error
+		name           string
+		expectedError  bool
+	}{
+		{
+			name:          "Error in the API call: reset by peer",
+			mockError:     matlas.NewArgError("error", "reset by peer"),
+			expectedError: false,
+			expectedResult: Result{
+				response: nil,
+				state:    "REPEATING",
+				error:    nil,
+			},
+		},
+		{
+			name:          "Generic error in the API call",
+			mockError:     genericError,
+			expectedError: true,
+			expectedResult: Result{
+				response: nil,
+				state:    "",
+				error:    genericError,
+			},
+		},
+		{
+			name:          "Error in the API call: HTTP 404",
+			mockError:     genericError,
+			mockResponse:  &matlas.Response{Response: &http.Response{StatusCode: 404}, Links: nil, Raw: nil},
+			expectedError: false,
+			expectedResult: Result{
+				response: "",
+				state:    "DELETED",
+				error:    nil,
+			},
+		},
+		{
+			name:          "Error in the API call: HTTP 503",
+			mockError:     genericError,
+			mockResponse:  &matlas.Response{Response: &http.Response{StatusCode: 503}, Links: nil, Raw: nil},
+			expectedError: false,
+			expectedResult: Result{
+				response: "",
+				state:    "PENDING",
+				error:    nil,
+			},
+		},
+		{
+			name:          "Error in the API call: Neither HTTP 503 or 404",
+			mockError:     genericError,
+			mockResponse:  &matlas.Response{Response: &http.Response{StatusCode: 400}, Links: nil, Raw: nil},
+			expectedError: true,
+			expectedResult: Result{
+				response: nil,
+				state:    "",
+				error:    genericError,
+			},
+		},
+		{
+			name:          "Successful",
+			mockCluster:   &matlas.AdvancedCluster{StateName: "stateName"},
+			mockResponse:  &matlas.Response{Response: &http.Response{StatusCode: 200}, Links: nil, Raw: nil},
+			expectedError: false,
+			expectedResult: Result{
+				response: &matlas.AdvancedCluster{StateName: "stateName"},
+				state:    "stateName",
+				error:    nil,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			testObject := new(MockClusterService)
+
+			response := ClusterResponse{
+				advancedCluster: tc.mockCluster,
+				response:        tc.mockResponse,
+				error:           tc.mockError,
+			}
+			testObject.On("GetAdvancedCluster", mock.Anything, mock.Anything, mock.Anything).Return(response)
+
+			result, stateName, err := advancedcluster.ResourceClusterAdvancedRefreshFunc(context.Background(), dummyClusterName, dummyProjectID, testObject)()
+			if (err != nil) != tc.expectedError {
+				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
+			}
+
+			assert.Equal(t, tc.expectedResult.error, err)
+			assert.Equal(t, tc.expectedResult.response, result)
+			assert.Equal(t, tc.expectedResult.state, stateName)
 		})
 	}
 }
