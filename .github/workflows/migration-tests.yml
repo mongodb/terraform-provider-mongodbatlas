@@ -22,7 +22,7 @@ on:
         type: string
         required: false
       provider_version:
-        description: 'MongoDB Atlas Provider version to use, empty for latest'     
+        description: 'MongoDB Atlas Provider version for running migration tests, empty for latest'     
         type: string
         required: false
 
