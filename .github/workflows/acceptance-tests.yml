@@ -1,4 +1,5 @@
 name: 'Acceptance Tests'
+run-name: 'Acceptance Tests ${{ inputs.atlas_cloud_env }} ${{ inputs.test_group }}'
 
 on:
   workflow_dispatch:
@@ -7,6 +8,10 @@ on:
         description: 'Terraform version to use, e.g. 1.5.6, empty for latest'     
         type: string
         required: false
+      atlas_cloud_env:
+          description: 'Atlas cloud environment used, can be either `dev` or `qa`. Defaults to using `dev`'     
+          type: string
+          required: false
       test_group:
         description: 'Test group to run, e.g. advanced_cluster, empty for all'
         type: string
@@ -15,6 +20,10 @@ on:
     inputs:
       terraform_version:
         description: 'Terraform version to use, empty for latest'     
+        type: string
+        required: false
+      atlas_cloud_env:
+        description: 'Atlas cloud environment used, can be either `dev` or `qa`. Defaults to using `dev`'     
         type: string
         required: false
 
@@ -358,12 +367,12 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
-          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
-          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
-          MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
-          MONGODB_ATLAS_TEAMS_IDS: ${{ vars.MONGODB_ATLAS_TEAMS_IDS }}
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ inputs.atlas-cloud_env == 'qa' && secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_QA || secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ inputs.atlas-cloud_env == 'qa' && secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_QA || secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_ORG_ID: ${{ inputs.atlas-cloud_env == 'qa' && vars.MONGODB_ATLAS_ORG_ID_CLOUD_QA || vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
+          MONGODB_ATLAS_BASE_URL: ${{ inputs.atlas-cloud_env == 'qa' && vars.MONGODB_ATLAS_BASE_URL_QA || vars.MONGODB_ATLAS_BASE_URL }}
+          MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.atlas-cloud_env == 'qa' && vars.MONGODB_ATLAS_PROJECT_OWNER_ID_QA || vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
+          MONGODB_ATLAS_TEAMS_IDS: ${{ inputs.atlas-cloud_env == 'qa' && vars.MONGODB_ATLAS_TEAMS_IDS_QA || vars.MONGODB_ATLAS_TEAMS_IDS }}
           TEST_REGEX: "^TestAccProject"
         run: make testacc
   serverless:
