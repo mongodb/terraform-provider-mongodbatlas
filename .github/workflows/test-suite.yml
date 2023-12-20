@@ -2,6 +2,13 @@ name: 'Test Suite'
 
 on:
   workflow_dispatch:
+    inputs:
+      terraform_matrix:
+        description: 'Terraform version matrix (JSON array)'
+        default: '["1.6.x", "1.5.x", "1.4.x", "1.3.x", "1.2.x"]'
+      provider_matrix:
+        description: 'MongoDB Atlas Provider version matrix for running migration tests (JSON array)'
+        default: '[""]' # "" for latest version
 
   schedule:
     - cron: "0 0 * * *" # workflow runs every day at midnight UTC
