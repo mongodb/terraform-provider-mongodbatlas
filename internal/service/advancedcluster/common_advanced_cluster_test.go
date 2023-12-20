@@ -12,6 +12,19 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
+var (
+	dummyClusterName = "clusterName"
+	dummyProjectID   = "projectId"
+	genericError     = matlas.NewArgError("error", "generic")
+	advancedClusters = []*matlas.AdvancedCluster{{StateName: "NOT IDLE"}}
+)
+
+type Result struct {
+	response any
+	error    error
+	state    string
+}
+
 func TestRemoveLabel(t *testing.T) {
 	toRemove := matlas.Label{Key: "To Remove", Value: "To remove value"}
 
@@ -57,19 +70,6 @@ func TestContainsLabelOrKey(t *testing.T) {
 		result := advancedcluster.ContainsLabelOrKey(labelsList, l)
 		assert.Equal(t, expected[i], result)
 	}
-}
-
-var (
-	dummyClusterName = "clusterName"
-	dummyProjectID   = "projectId"
-	genericError     = matlas.NewArgError("error", "generic")
-	advancedClusters = []*matlas.AdvancedCluster{{StateName: "NOT IDLE"}}
-)
-
-type Result struct {
-	response any
-	error    error
-	state    string
 }
 
 func TestResourceClusterRefreshFunc(t *testing.T) {
@@ -275,6 +275,132 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 			assert.Equal(t, tc.expectedResult.error, err)
 			assert.Equal(t, tc.expectedResult.response, result)
 			assert.Equal(t, tc.expectedResult.state, stateName)
+		})
+	}
+}
+
+func TestFlattenLabels(t *testing.T) {
+	testCases := []struct {
+		name           string
+		labels         []matlas.Label
+		expectedResult []map[string]any
+	}{
+		{
+			name:           "empty",
+			labels:         []matlas.Label{},
+			expectedResult: []map[string]any{},
+		},
+		{
+			name: "not empty",
+			labels: []matlas.Label{
+				{
+					Key:   "key",
+					Value: "value",
+				},
+			},
+			expectedResult: []map[string]any{
+				{
+					"key":   "key",
+					"value": "value",
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := advancedcluster.FlattenLabels(tc.labels)
+
+			assert.Equal(t, len(tc.expectedResult), len(result))
+			assert.Equal(t, tc.expectedResult, result)
+		})
+	}
+}
+
+func TestFlattenTags(t *testing.T) {
+	testCases := []struct {
+		name           string
+		tags           *[]*matlas.Tag
+		expectedResult []map[string]any
+	}{
+		{
+			name:           "empty",
+			tags:           &[]*matlas.Tag{},
+			expectedResult: []map[string]any{},
+		},
+		{
+			name: "not empty",
+			tags: &[]*matlas.Tag{
+				{
+					Key:   "key",
+					Value: "value",
+				},
+			},
+			expectedResult: []map[string]any{
+				{
+					"key":   "key",
+					"value": "value",
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := advancedcluster.FlattenTags(tc.tags)
+
+			assert.Equal(t, len(tc.expectedResult), len(result))
+			assert.Equal(t, tc.expectedResult, result)
+		})
+	}
+}
+
+func TestFlattenConnectionStrings(t *testing.T) {
+	testCases := []struct {
+		name              string
+		connectionStrings *matlas.ConnectionStrings
+		expectedResult    []map[string]any
+	}{
+		{
+			name:              "empty",
+			connectionStrings: &matlas.ConnectionStrings{},
+			expectedResult: []map[string]any{
+				{
+					"standard":         "",
+					"standard_srv":     "",
+					"private":          "",
+					"private_srv":      "",
+					"private_endpoint": []map[string]any{},
+				},
+			},
+		},
+		{
+			name: "not empty",
+			connectionStrings: &matlas.ConnectionStrings{
+				Standard:    "Standard",
+				StandardSrv: "StandardSrv",
+				Private:     "Private",
+				PrivateSrv:  "PrivateSrv",
+			},
+
+			expectedResult: []map[string]any{
+				{
+					"standard":         "Standard",
+					"standard_srv":     "StandardSrv",
+					"private":          "Private",
+					"private_srv":      "PrivateSrv",
+					"private_endpoint": []map[string]any{},
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := advancedcluster.FlattenConnectionStrings(tc.connectionStrings)
+
+			assert.Equal(t, len(tc.expectedResult), len(result))
+			assert.Equal(t, tc.expectedResult, result)
 		})
 	}
 }
