@@ -14,9 +14,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mwielbut/pointy"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -1347,4 +1349,90 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 
 	`, orgID, projectName, name, *p.Compute.Enabled, *p.DiskGBEnabled, p.Compute.MaxInstanceSize)
+}
+
+func TestFlattenAdvancedReplicationSpecRegionConfigSpec(t *testing.T) {
+	testCases := []struct {
+		name           string
+		apiObject      *matlas.Specs
+		providerName   string
+		tfMapObjects   []map[string]any
+		expectedResult []map[string]any
+	}{
+		{
+			name:           "API object empty",
+			expectedResult: nil,
+		},
+		{
+			name: "tfMapObjects is empty",
+			apiObject: &matlas.Specs{
+				DiskIOPS:      &diskIOPS,
+				EbsVolumeType: ebsVolumeType,
+				NodeCount:     &nodeCount,
+				InstanceSize:  instanceSize,
+			},
+			expectedResult: []map[string]any{
+				{
+					"disk_iops":       &diskIOPS,
+					"ebs_volume_type": ebsVolumeType,
+					"node_count":      &nodeCount,
+					"instance_size":   instanceSize,
+				},
+			},
+		},
+		{
+			name:         "Provider is AWS and values in tfMapObject exist",
+			providerName: "AWS",
+			apiObject: &matlas.Specs{
+				DiskIOPS:      &diskIOPS,
+				EbsVolumeType: ebsVolumeType,
+				NodeCount:     &nodeCount,
+				InstanceSize:  instanceSize,
+			},
+			tfMapObjects: []map[string]any{
+				{
+					"ebs_volume_type": ebsVolumeType,
+					"node_count":      &nodeCount,
+					"instance_size":   instanceSize,
+				},
+			},
+			expectedResult: []map[string]any{
+				{
+					"disk_iops":       &diskIOPS,
+					"ebs_volume_type": ebsVolumeType,
+					"node_count":      &nodeCount,
+					"instance_size":   instanceSize,
+				},
+			},
+		},
+		{
+			name: "Provider is not AWS and only AWS specific values in tfMapObject exists",
+			apiObject: &matlas.Specs{
+				DiskIOPS:      &diskIOPS,
+				EbsVolumeType: ebsVolumeType,
+				NodeCount:     &nodeCount,
+				InstanceSize:  instanceSize,
+			},
+			tfMapObjects: []map[string]any{
+				{
+					"ebs_volume_type": instanceSize,
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel := advancedcluster.FlattenAdvancedReplicationSpecRegionConfigSpec(tc.apiObject, tc.providerName, ToAnySlice(tc.tfMapObjects))
+			assert.Equal(t, tc.expectedResult, resultModel)
+		})
+	}
+}
+
+func ToAnySlice(m []map[string]any) []any {
+	result := make([]any, len(m))
+	for i, v := range m {
+		result[i] = v
+	}
+	return result
 }
