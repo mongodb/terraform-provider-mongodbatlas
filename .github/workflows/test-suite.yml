@@ -17,8 +17,8 @@ jobs:
       schedule_provider_matrix: '[""]' # "" for latest version    
     runs-on: ubuntu-latest
     outputs:
-      terraform_matrix: ${{ vars.schedule_terraform_matrix }}
-      provider_matrix: ${{ vars.schedule_provider_matrix }}
+      terraform_matrix: ${{ inputs.terraform_matrix || vars.schedule_terraform_matrix }}
+      provider_matrix: ${{ inputs.provider_matrix || vars.schedule_provider_matrix }}
     steps:
       - if: false
         run: echo jobs need steps
