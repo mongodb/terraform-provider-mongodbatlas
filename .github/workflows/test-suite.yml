@@ -8,7 +8,7 @@ on:
         default: '["1.6.x", "1.5.x", "1.4.x", "1.3.x", "1.2.x"]'
       provider_matrix:
         description: 'MongoDB Atlas Provider version matrix for running migration tests (JSON array)'
-        default: '["", "1.12.3"]' # "" for latest version
+        default: '[""]' # "" for latest version
 
   schedule:
     - cron: "0 0 * * *" # workflow runs every day at midnight UTC
@@ -21,7 +21,7 @@ jobs:
   versions:
     env:
       schedule_terraform_matrix: '["1.6.x", "1.0.8"]'
-      schedule_provider_matrix: '["", "1.12.3]' # "" for latest version    
+      schedule_provider_matrix: '[""]' # "" for latest version    
     runs-on: ubuntu-latest
     outputs:
       terraform_matrix: ${{ inputs.terraform_matrix || vars.schedule_terraform_matrix }}
