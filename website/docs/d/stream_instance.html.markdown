@@ -3,14 +3,14 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: stream instance"
 sidebar_current: "docs-mongodbatlas-datasource-stream-instance"
 description: |-
-Describes a Stream Instance.
+    Describes a Stream Instance.
 ---
 
 # Data Source: mongodbatlas_stream_instance
 
 `mongodbatlas_stream_instance` describes a stream instance.
 
--> **NOTE:** Atlas Streams is currently in Preview, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA=true` to use this data source. To learn more about stream processing and existing limitations, see the [Atlas Stream Processing Documentation](https://www.mongodb.com/docs/atlas/atlas-sp/overview/#atlas-stream-processing-overview).
+-> **NOTE:** Atlas Stream Processing is currently in preview, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA=true` to use this data source. To learn more about stream processing and existing limitations, see the [Atlas Stream Processing Documentation](https://www.mongodb.com/docs/atlas/atlas-sp/overview/#atlas-stream-processing-overview).
 
 ## Example Usage
 
@@ -38,3 +38,4 @@ data "mongodbatlas_stream_instance" "example" {
 * `region` - Name of the cloud provider region hosting Atlas Stream Processing. The [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/createStreamInstance) describes the valid values.
 
 To learn more, see: [MongoDB Atlas API - Stream Instance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/createStreamInstance) Documentation.
+The [Terraform Provider Examples Section](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/atlas-streams/README.md) also contains details on the overall support for Atlas Streams Processing in Terraform.
