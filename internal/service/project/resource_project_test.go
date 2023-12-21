@@ -95,7 +95,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			testObject := mocksvc.NewGroupProjectService(t)
-			testObject.On("ListProjectTeams", mock.Anything, mock.Anything).Return(tc.teamRoleReponse.ProjectTeamResp, tc.teamRoleReponse.HTTPResponse, tc.teamRoleReponse.Err).Maybe()
+			testObject.On("ListProjectTeams", mock.Anything, mock.Anything).Return(tc.teamRoleReponse.ProjectTeamResp, tc.teamRoleReponse.HTTPResponse, tc.teamRoleReponse.Err)
 			testObject.On("ListProjectLimits", mock.Anything, mock.Anything).Return(tc.limitResponse.LimitsResponse, tc.limitResponse.HTTPResponse, tc.limitResponse.Err).Maybe()
 			testObject.On("GetProjectSettings", mock.Anything, mock.Anything).Return(tc.groupResponse.GroupSettingsResponse, tc.groupResponse.HTTPResponse, tc.groupResponse.Err).Maybe()
 
