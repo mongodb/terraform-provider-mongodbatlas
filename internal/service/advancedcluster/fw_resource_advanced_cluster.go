@@ -216,21 +216,21 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.String{
-								planmodifiers.UseNullForUnknownString(),
+								stringplanmodifier.UseStateForUnknown(),
 							},
 						},
 						"default_write_concern": schema.StringAttribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.String{
-								planmodifiers.UseNullForUnknownString(),
+								stringplanmodifier.UseStateForUnknown(),
 							},
 						},
 						"fail_index_key_too_long": schema.BoolAttribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Bool{
-								planmodifiers.UseNullForUnknownBool(),
+								boolplanmodifier.UseStateForUnknown(),
 							},
 						},
 						"javascript_enabled": schema.BoolAttribute{
@@ -257,35 +257,32 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 						"oplog_min_retention_hours": schema.Int64Attribute{
 							Optional: true,
 							PlanModifiers: []planmodifier.Int64{
-								planmodifiers.UseNullForUnknownInt64(),
+								int64planmodifier.UseStateForUnknown(),
 							},
 						},
 						"oplog_size_mb": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Int64{
-								planmodifiers.UseNullForUnknownInt64(),
-							},
+								int64planmodifier.UseStateForUnknown()},
 						},
 						"sample_refresh_interval_bi_connector": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Int64{
-								planmodifiers.UseNullForUnknownInt64(),
-							},
+								int64planmodifier.UseStateForUnknown()},
 						},
 						"sample_size_bi_connector": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Int64{
-								planmodifiers.UseNullForUnknownInt64(),
-							},
+								int64planmodifier.UseStateForUnknown()},
 						},
 						"transaction_lifetime_limit_seconds": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Int64{
-								planmodifiers.UseNullForUnknownInt64(),
+								int64planmodifier.UseStateForUnknown(),
 							},
 						},
 					},
@@ -369,8 +366,7 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 										Optional: true,
 										Computed: true,
 										PlanModifiers: []planmodifier.String{
-											planmodifiers.UseNullForUnknownString(),
-											// stringplanmodifier.UseStateForUnknown(),
+											stringplanmodifier.UseStateForUnknown(),
 										},
 									},
 									"priority": schema.Int64Attribute{
@@ -544,86 +540,6 @@ func defaultAdvancedConfiguration(ctx context.Context) types.List {
 	return list
 }
 
-func defaultBiConnectorConfig(ctx context.Context) types.List {
-	res := []TfBiConnectorConfigModel{
-		{
-			ReadPreference: types.StringNull(),
-			Enabled:        types.BoolNull(),
-		},
-	}
-	list, _ := types.ListValueFrom(ctx, TfBiConnectorConfigType, res)
-	return list
-}
-
-func ClusterRSBiConnectorConfigListAttrComputed() schema.ListNestedAttribute {
-	return schema.ListNestedAttribute{
-		Computed: true,
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: map[string]schema.Attribute{
-				"enabled": schema.BoolAttribute{
-					Computed: true,
-				},
-				"read_preference": schema.StringAttribute{
-					Computed: true,
-				},
-			},
-		},
-		PlanModifiers: []planmodifier.List{
-			listplanmodifier.UseStateForUnknown(),
-		},
-	}
-}
-
-func advClusterRSReplicationSpecsSchemaAttrComputed() schema.ListNestedAttribute {
-	return schema.ListNestedAttribute{
-		Computed: true,
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: map[string]schema.Attribute{
-				"id": schema.StringAttribute{
-					Computed: true,
-				},
-				"num_shards": schema.Int64Attribute{
-					Computed: true,
-				},
-				"container_id": schema.MapAttribute{
-					ElementType: types.StringType,
-					Computed:    true,
-				},
-				"zone_name": schema.StringAttribute{
-					Computed: true,
-				},
-				"region_configs": schema.ListNestedAttribute{
-					Computed: true,
-					NestedObject: schema.NestedAttributeObject{
-						Attributes: map[string]schema.Attribute{
-							"analytics_specs":        advancedClusterRegionConfigSpecsAttr(),
-							"auto_scaling":           advancedClusterRegionConfigAutoScalingSpecsAttr(),
-							"analytics_auto_scaling": advancedClusterRegionConfigAutoScalingSpecsAttr(),
-							"backing_provider_name": schema.StringAttribute{
-								Computed: true,
-							},
-							"electable_specs": advancedClusterRegionConfigSpecsAttr(),
-							"priority": schema.Int64Attribute{
-								Computed: true,
-							},
-							"provider_name": schema.StringAttribute{
-								Computed: true,
-							},
-							"read_only_specs": advancedClusterRegionConfigSpecsAttr(),
-							"region_name": schema.StringAttribute{
-								Computed: true,
-							},
-						},
-					},
-				},
-			},
-		},
-		PlanModifiers: []planmodifier.List{
-			listplanmodifier.UseStateForUnknown(),
-		},
-	}
-}
-
 func advClusterRSConnectionStringSchemaAttrComputed() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Computed: true,
@@ -694,7 +610,6 @@ func advClusterRSRegionConfigSpecsBlock() schema.ListNestedAttribute {
 					Optional: true,
 					Computed: true,
 					PlanModifiers: []planmodifier.Int64{
-						// planmodifiers.UseNullForUnknownInt64(),
 						int64planmodifier.UseStateForUnknown(),
 					},
 				},
@@ -712,7 +627,6 @@ func advClusterRSRegionConfigSpecsBlock() schema.ListNestedAttribute {
 					Optional: true,
 					Computed: true,
 					PlanModifiers: []planmodifier.Int64{
-						// planmodifiers.UseNullForUnknownInt64(),
 						int64planmodifier.UseStateForUnknown(),
 					},
 				},
