@@ -73,7 +73,7 @@ func TestAccConfigDSAtlasUsers_ByTeamID(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		username       = os.Getenv("MONGODB_ATLAS_USERNAME_CLOUD_DEV")
+		username       = os.Getenv("MONGODB_ATLAS_USERNAME")
 		teamName       = acctest.RandomWithPrefix("team-name")
 	)
 
@@ -105,7 +105,7 @@ func TestAccConfigDSAtlasUsers_UsingPagination(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		username       = os.Getenv("MONGODB_ATLAS_USERNAME_CLOUD_DEV")
+		username       = os.Getenv("MONGODB_ATLAS_USERNAME")
 		teamName       = acctest.RandomWithPrefix("team-name")
 		pageNum        = 2
 		itemsPerPage   = 1

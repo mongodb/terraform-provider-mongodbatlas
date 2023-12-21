@@ -39,7 +39,7 @@ func TestAccConfigDSAtlasUser_ByUsername(t *testing.T) {
 	acc.SkipIfTFAccNotDefined(t)
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_user.test"
-		username       = os.Getenv("MONGODB_ATLAS_USERNAME_CLOUD_DEV")
+		username       = os.Getenv("MONGODB_ATLAS_USERNAME")
 		user           = fetchUserByUsername(t, username)
 	)
 	resource.Test(t, resource.TestCase{ // does not run in parallel to avoid changes in fetched user during execution

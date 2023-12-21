@@ -15,7 +15,7 @@ func TestAccConfigDSTeam_basic(t *testing.T) {
 		dataSourceName = "data.mongodbatlas_teams.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		name           = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-		username       = os.Getenv("MONGODB_ATLAS_USERNAME_CLOUD_DEV")
+		username       = os.Getenv("MONGODB_ATLAS_USERNAME")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -41,7 +41,7 @@ func TestAccConfigDSTeamByName_basic(t *testing.T) {
 		dataSourceName = "data.mongodbatlas_teams.test2"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		name           = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-		username       = os.Getenv("MONGODB_ATLAS_USERNAME_CLOUD_DEV")
+		username       = os.Getenv("MONGODB_ATLAS_USERNAME")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
