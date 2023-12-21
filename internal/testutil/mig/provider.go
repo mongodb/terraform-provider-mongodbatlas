@@ -12,7 +12,7 @@ import (
 func SkipIfVersionBelow(t *testing.T, minVersion string) {
 	t.Helper()
 	if !IsProviderVersionAtLeast(minVersion) {
-		t.Skip()
+		t.Skipf("Skipping because version %s below %s", versionConstraint(), minVersion)
 	}
 }
 
