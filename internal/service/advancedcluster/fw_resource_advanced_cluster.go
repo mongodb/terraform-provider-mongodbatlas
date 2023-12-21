@@ -787,8 +787,6 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	// newClusterModel.MongoDBMajorVersion = tfConfig.MongoDBMajorVersion
-
 	// set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newClusterModel)...)
 }
@@ -861,9 +859,7 @@ func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *m
 		return nil, diags
 	}
 
-	// if v := state.Timeouts; !v.IsNull() { // import
 	clusterModel.Timeouts = state.Timeouts
-	// }
 
 	return &clusterModel, diags
 }
@@ -908,19 +904,6 @@ func (r *advancedClusterRS) Read(ctx context.Context, req resource.ReadRequest, 
 
 	if !isImport {
 		newClusterModel.MongoDBMajorVersion = state.MongoDBMajorVersion
-
-		// if state.BiConnectorConfig.IsNull() {
-		// 	newClusterModel.BiConnectorConfig = types.ListNull(TfBiConnectorConfigType)
-		// } else {
-		// 	newClusterModel.BiConnectorConfig = state.BiConnectorConfig
-		// }
-		// if state.AdvancedConfiguration.IsNull() {
-		// 	newClusterModel.AdvancedConfiguration = types.ListNull(tfAdvancedConfigurationType)
-		// } else {
-		// 	newClusterModel.AdvancedConfiguration = state.AdvancedConfiguration
-		// }
-
-		// newClusterModel.ReplicationSpecs = state.ReplicationSpecs
 	}
 
 	// save updated data into terraform state
@@ -984,7 +967,6 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	// req.Plan.GetAttribute(ctx, path.Root("mongo_db_major_version"), &newClusterModel.MongoDBMajorVersion)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newClusterModel)...)
 }
@@ -1097,8 +1079,6 @@ func updateCluster(ctx context.Context, conn *matlas.Client, state, plan *tfAdva
 	if !plan.Paused.Equal(state.Paused) {
 		cluster.Paused = plan.Paused.ValueBoolPointer()
 	}
-
-	// timeout, diags := plan.Timeouts.Update(ctx, defaultTimeout)
 
 	if !reflect.DeepEqual(plan.AdvancedConfiguration, state.AdvancedConfiguration) {
 		ac := plan.AdvancedConfiguration
