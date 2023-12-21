@@ -94,12 +94,12 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			testObject := mocksvc.NewGroupProjectService(t)
-			testObject.On("ListProjectTeams", mock.Anything, mock.Anything).Return(tc.teamRoleReponse.ProjectTeamResp, tc.teamRoleReponse.HTTPResponse, tc.teamRoleReponse.Err)
-			testObject.On("ListProjectLimits", mock.Anything, mock.Anything).Return(tc.limitResponse.LimitsResponse, tc.limitResponse.HTTPResponse, tc.limitResponse.Err).Maybe()
-			testObject.On("GetProjectSettings", mock.Anything, mock.Anything).Return(tc.groupResponse.GroupSettingsResponse, tc.groupResponse.HTTPResponse, tc.groupResponse.Err).Maybe()
+			svc := mocksvc.NewGroupProjectService(t)
+			svc.On("ListProjectTeams", mock.Anything, mock.Anything).Return(tc.teamRoleReponse.ProjectTeamResp, tc.teamRoleReponse.HTTPResponse, tc.teamRoleReponse.Err)
+			svc.On("ListProjectLimits", mock.Anything, mock.Anything).Return(tc.limitResponse.LimitsResponse, tc.limitResponse.HTTPResponse, tc.limitResponse.Err).Maybe()
+			svc.On("GetProjectSettings", mock.Anything, mock.Anything).Return(tc.groupResponse.GroupSettingsResponse, tc.groupResponse.HTTPResponse, tc.groupResponse.Err).Maybe()
 
-			_, _, _, err := project.GetProjectPropsFromAPI(context.Background(), testObject, dummyProjectID)
+			_, _, _, err := project.GetProjectPropsFromAPI(context.Background(), svc, dummyProjectID)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -196,11 +196,11 @@ func TestUpdateProject(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			testObject := mocksvc.NewGroupProjectService(t)
+			svc := mocksvc.NewGroupProjectService(t)
 
-			testObject.On("UpdateProject", mock.Anything, mock.Anything, mock.Anything).Return(tc.mockResponses.ProjectResp, tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
+			svc.On("UpdateProject", mock.Anything, mock.Anything, mock.Anything).Return(tc.mockResponses.ProjectResp, tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
 
-			err := project.UpdateProject(context.Background(), testObject, &testCases[i].projectState, &testCases[i].projectPlan)
+			err := project.UpdateProject(context.Background(), svc, &testCases[i].projectState, &testCases[i].projectPlan)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -301,12 +301,12 @@ func TestUpdateProjectLimits(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			testObject := mocksvc.NewGroupProjectService(t)
+			svc := mocksvc.NewGroupProjectService(t)
 
-			testObject.On("DeleteProjectLimit", mock.Anything, mock.Anything, mock.Anything).Return(tc.mockResponses.DeleteProjectLimitResponse, tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
-			testObject.On("SetProjectLimit", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, nil, nil).Maybe()
+			svc.On("DeleteProjectLimit", mock.Anything, mock.Anything, mock.Anything).Return(tc.mockResponses.DeleteProjectLimitResponse, tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
+			svc.On("SetProjectLimit", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, nil, nil).Maybe()
 
-			err := project.UpdateProjectLimits(context.Background(), testObject, &testCases[i].projectState, &testCases[i].projectPlan)
+			err := project.UpdateProjectLimits(context.Background(), svc, &testCases[i].projectState, &testCases[i].projectPlan)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -392,13 +392,13 @@ func TestUpdateProjectTeams(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			testObject := mocksvc.NewGroupProjectService(t)
+			svc := mocksvc.NewGroupProjectService(t)
 
-			testObject.On("AddAllTeamsToProject", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil, nil).Maybe()
-			testObject.On("RemoveProjectTeam", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil, nil).Maybe()
-			testObject.On("UpdateTeamRoles", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, nil, nil).Maybe()
+			svc.On("AddAllTeamsToProject", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil, nil).Maybe()
+			svc.On("RemoveProjectTeam", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil, nil).Maybe()
+			svc.On("UpdateTeamRoles", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, nil, nil).Maybe()
 
-			err := project.UpdateProjectTeams(context.Background(), testObject, &testCases[i].projectState, &testCases[i].projectPlan)
+			err := project.UpdateProjectTeams(context.Background(), svc, &testCases[i].projectState, &testCases[i].projectPlan)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -447,11 +447,11 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			testObject := mocksvc.NewGroupProjectService(t)
+			svc := mocksvc.NewGroupProjectService(t)
 
-			testObject.On("ListClusters", mock.Anything, dummyProjectID).Return(tc.mockResponses.clusterReponse, tc.mockResponses.HTTPResponse, tc.mockResponses.Err)
+			svc.On("ListClusters", mock.Anything, dummyProjectID).Return(tc.mockResponses.clusterReponse, tc.mockResponses.HTTPResponse, tc.mockResponses.Err)
 
-			_, _, err := project.ResourceProjectDependentsDeletingRefreshFunc(context.Background(), dummyProjectID, testObject)()
+			_, _, err := project.ResourceProjectDependentsDeletingRefreshFunc(context.Background(), dummyProjectID, svc)()
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
