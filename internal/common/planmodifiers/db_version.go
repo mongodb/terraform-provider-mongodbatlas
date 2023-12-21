@@ -35,7 +35,7 @@ func (m dbVersionModifier) MarkdownDescription(_ context.Context) string {
 // PlanModifyInt64 implements the plan modification logic.
 func (m dbVersionModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	// if there is a known planned value AND user has this defined in the config, then plan should always show formatted version
-	if !req.PlanValue.IsUnknown() && !req.ConfigValue.IsNull() {
+	if !req.ConfigValue.IsNull() {
 		resp.PlanValue = types.StringValue(utility.FormatMongoDBMajorVersion(req.PlanValue.ValueString()))
 		return
 	}
