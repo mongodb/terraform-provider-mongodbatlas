@@ -260,9 +260,6 @@ func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 						},
 						"datadog_region": schema.StringAttribute{
 							Optional: true,
-							Validators: []validator.String{
-								stringvalidator.OneOf("US", "EU"),
-							},
 						},
 						"delay_min": schema.Int64Attribute{
 							Optional: true,
