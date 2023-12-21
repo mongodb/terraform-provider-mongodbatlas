@@ -9,10 +9,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func SkipIfVersionBelow(t *testing.T, minVersion string) {
-	t.Helper()
+func SkipIfVersionBelow(tb testing.TB, minVersion string) {
+	tb.Helper()
 	if !IsProviderVersionAtLeast(minVersion) {
-		t.Skipf("Skipping because version %s below %s", versionConstraint(), minVersion)
+		tb.Skipf("Skipping because version %s below %s", versionConstraint(), minVersion)
 	}
 }
 
