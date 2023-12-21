@@ -420,8 +420,6 @@ jobs:
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV_NETWORK }}
           MONGODB_ATLAS_PROJECT_ID: ${{ vars.MONGODB_ATLAS_PROJECT_ID_CLOUD_DEV_NETWORK }}
           MONGODB_ATLAS_BASE_URL: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_BASE_URL_QA || vars.MONGODB_ATLAS_BASE_URL }}
-          MONGODB_ATLAS_ENABLE_BETA: ${{ vars.MONGODB_ATLAS_ENABLE_BETA }}
-          MONGODB_ATLAS_ENDPOINT_ID: ${{ vars.MONGODB_ATLAS_AWS_ENDPOINT_ID_NETWORK }} 
           AWS_REGION: ${{ vars.AWS_REGION }}
           TEST_REGEX: "^TestAccNetwork"
         run: make testacc
