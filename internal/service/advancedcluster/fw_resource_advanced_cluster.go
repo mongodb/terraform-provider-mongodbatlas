@@ -1222,7 +1222,7 @@ func resetDefaultsReplicationSpecs(ctx context.Context, repSpecs basetypes.ListV
 		repSpecs.ElementsAs(ctx, &configSpecs, true)
 	}
 
-	for i, _ := range configSpecs {
+	for i := range configSpecs {
 		repSpec := &configSpecs[i]
 		if repSpec.ZoneName.IsNull() {
 			repSpec.ZoneName = types.StringValue("ZoneName managed by Terraform")
