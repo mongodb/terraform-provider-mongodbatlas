@@ -717,8 +717,7 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// TODO undo
-	// cluster, _, err := conn.AdvancedClusters.Create(ctx, projectID, request)
-	cluster, _, err := conn.AdvancedClusters.Get(ctx, projectID, plan.Name.ValueString())
+	cluster, _, err := conn.AdvancedClusters.Create(ctx, projectID, request)
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to CREATE cluster. Error during create in Atlas", fmt.Sprintf(errorClusterAdvancedCreate, err))
 		return
