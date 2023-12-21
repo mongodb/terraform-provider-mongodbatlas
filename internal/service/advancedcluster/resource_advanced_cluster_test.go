@@ -41,13 +41,68 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 				Config: testAccMongoDBAtlasAdvancedClusterConfigTenant(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccClusterAdvancedClusterTestCheckFuncsBasicTenant(&cluster, resourceName, dataSourceName, dataSourceClustersName, rName)...,
+				// resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.provider_name", "TENANT")...,
 				),
 			},
 			{
 				Config: testAccMongoDBAtlasAdvancedClusterConfigTenant(orgID, projectName, rNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					testAccClusterAdvancedClusterTestCheckFuncsBasicTenant(&cluster, resourceName, dataSourceName, dataSourceClustersName, rNameUpdated)...,
+				// resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.provider_name", "AWS")...,
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: acc.ImportStateClusterIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccClusterAdvancedCluster_TenantUpgrade(t *testing.T) {
+	var (
+		cluster                matlas.AdvancedCluster
+		resourceName           = "mongodbatlas_advanced_cluster.test"
+		dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
+		dataSourceClustersName = "data.mongodbatlas_advanced_clusters.test"
+		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName            = acctest.RandomWithPrefix("test-acc")
+		rName                  = acctest.RandomWithPrefix("test-acc")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyTeamAdvancedCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigTenant(orgID, projectName, rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccClusterAdvancedClusterTestCheckFuncsBasicTenant(&cluster, resourceName, dataSourceName, dataSourceClustersName, rName)...,
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigTenantUpgrade(orgID, projectName, rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+					resource.TestCheckResourceAttr(resourceName, "termination_protection_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "cluster_type", "REPLICASET"),
+					resource.TestCheckResourceAttr(resourceName, "backup_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_at_rest_provider", "NONE"),
+					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
+					resource.TestCheckResourceAttr(resourceName, "version_release_system", "LTS"),
+					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
+					resource.TestCheckResourceAttrSet(resourceName, "disk_size_gb"),
+					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.read_preference", "secondary")),
 			},
 			{
 				ResourceName:      resourceName,
@@ -811,7 +866,6 @@ func testAccClusterAdvancedClusterTestCheckFuncsBasicTenant(cluster *matlas.Adva
 		resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 		resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 		resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.0.priority"),
-		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.provider_name", "TENANT"),
 		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.region_name", "US_EAST_1"),
 		resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.0.electable_specs.#"),
 		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", "M5"),
@@ -942,6 +996,40 @@ resource "mongodbatlas_advanced_cluster" "test" {
       }]
       provider_name         = "TENANT"
       backing_provider_name = "AWS"
+      region_name           = "US_EAST_1"
+      priority              = 7
+    }]
+  }]
+}
+
+data "mongodbatlas_advanced_cluster" "test" {
+	project_id = mongodbatlas_advanced_cluster.test.project_id
+	name 	     = mongodbatlas_advanced_cluster.test.name
+}
+
+data "mongodbatlas_advanced_clusters" "test" {
+	project_id = mongodbatlas_advanced_cluster.test.project_id
+}
+	`, orgID, projectName, name)
+}
+
+func testAccMongoDBAtlasAdvancedClusterConfigTenantUpgrade(orgID, projectName, name string) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_project" "cluster_project" {
+	name   = %[2]q
+	org_id = %[1]q
+}
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id   = mongodbatlas_project.cluster_project.id
+  name         = %[3]q
+  cluster_type = "REPLICASET"
+
+  replication_specs = [{
+    region_configs = [{
+      electable_specs = [{
+        instance_size = "M10"
+      }]
+      provider_name         = "AWS"
       region_name           = "US_EAST_1"
       priority              = 7
     }]
