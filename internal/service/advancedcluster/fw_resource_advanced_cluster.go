@@ -49,6 +49,8 @@ import (
 const (
 	errorInvalidCreateValues = "Invalid values. Unable to CREATE advanced_cluster"
 	defaultTimeout           = (3 * time.Hour)
+	defaultInt               = -1
+	defaultString            = ""
 )
 
 var _ resource.ResourceWithConfigure = &advancedClusterRS{}
@@ -692,14 +694,14 @@ func advClusterRSRegionConfigSpecsBlock() schema.ListNestedAttribute {
 					Optional: true,
 					Computed: true,
 					PlanModifiers: []planmodifier.Int64{
-						planmodifiers.UseNullForUnknownInt64(),
-						// int64planmodifier.UseStateForUnknown(),
+						// planmodifiers.UseNullForUnknownInt64(),
+						int64planmodifier.UseStateForUnknown(),
 					},
 				},
 				"ebs_volume_type": schema.StringAttribute{
 					Optional: true,
+					Computed: true,
 					PlanModifiers: []planmodifier.String{
-						// planmodifiers.UseNullForUnknownString(),
 						stringplanmodifier.UseStateForUnknown(),
 					},
 				},
@@ -1352,12 +1354,13 @@ func (r *advancedClusterRS) ImportState(ctx context.Context, req resource.Import
 		"project_id":   u.GroupID,
 		"cluster_name": u.Name,
 	})
-	state := tfAdvancedClusterRSModel{
-		ID: types.StringValue(id),
-	}
+	// state := tfAdvancedClusterRSModel{
+	// 	ID: types.StringValue(id),
+	// }
 
-	diags := resp.State.Set(ctx, &state)
-	resp.Diagnostics.Append(diags...)
+	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(id))
+	// diags := resp.State.Set(ctx, &state)
+	// resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -1597,7 +1600,7 @@ func flattenAdvancedReplicationSpecRegionConfig_1(ctx context.Context, apiObject
 
 	tfMap.RegionName = types.StringValue(apiObject.RegionName)
 	tfMap.ProviderName = types.StringValue(apiObject.ProviderName)
-	tfMap.BackingProviderName = conversion.StringNullIfEmpty(apiObject.BackingProviderName)
+	tfMap.BackingProviderName = types.StringValue(apiObject.BackingProviderName)
 	tfMap.Priority = types.Int64Value(cast.ToInt64(apiObject.Priority))
 
 	return &tfMap, diags
@@ -1641,12 +1644,30 @@ func flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx context.Context, apiOb
 			tfMap.InstanceSize = types.StringValue(apiObject.InstanceSize)
 		}
 
+		if tfMap.DiskIOPS.IsNull() {
+			tfMap.DiskIOPS = types.Int64Value(defaultInt)
+		}
+		if tfMap.NodeCount.IsNull() {
+			tfMap.NodeCount = types.Int64Value(defaultInt)
+		}
+		if tfMap.EBSVolumeType.IsNull() {
+			tfMap.EBSVolumeType = types.StringValue(defaultString)
+		}
 		tfList = append(tfList, tfMap)
 	} else {
 		tfMap.DiskIOPS = types.Int64PointerValue(apiObject.DiskIOPS)
 		tfMap.EBSVolumeType = types.StringValue(apiObject.EbsVolumeType)
 		tfMap.NodeCount = types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiObject.NodeCount))
 		tfMap.InstanceSize = types.StringValue(apiObject.InstanceSize)
+		if tfMap.DiskIOPS.IsNull() {
+			tfMap.DiskIOPS = types.Int64Value(defaultInt)
+		}
+		if tfMap.NodeCount.IsNull() {
+			tfMap.NodeCount = types.Int64Value(defaultInt)
+		}
+		if tfMap.EBSVolumeType.IsNull() {
+			tfMap.EBSVolumeType = types.StringValue(defaultString)
+		}
 		tfList = append(tfList, tfMap)
 	}
 
@@ -1670,8 +1691,8 @@ func flattenAdvancedReplicationSpecAutoScaling_1(ctx context.Context, apiObject 
 	if apiObject.Compute != nil {
 		tfMap.ComputeEnabled = types.BoolPointerValue(apiObject.Compute.Enabled)
 		tfMap.ComputeScaleDownEnabled = types.BoolPointerValue(apiObject.Compute.ScaleDownEnabled)
-		tfMap.ComputeMinInstanceSize = types.StringValue(apiObject.Compute.MinInstanceSize)
-		tfMap.ComputeMaxInstanceSize = types.StringValue(apiObject.Compute.MaxInstanceSize)
+		tfMap.ComputeMinInstanceSize = conversion.StringNullIfEmpty(apiObject.Compute.MinInstanceSize)
+		tfMap.ComputeMaxInstanceSize = conversion.StringNullIfEmpty(apiObject.Compute.MaxInstanceSize)
 	}
 
 	tfList = append(tfList, tfMap)
@@ -1917,7 +1938,7 @@ func newRegionConfig(ctx context.Context, tfRegionConfig *tfRegionsConfigModel) 
 	if v := tfRegionConfig.AnalyticsAutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
 		apiObject.AnalyticsAutoScaling = newRegionConfigAutoScalingSpec(ctx, v)
 	}
-	if v := tfRegionConfig.BackingProviderName; !v.IsNull() {
+	if v := tfRegionConfig.BackingProviderName; !v.IsNull() && v.ValueString() != defaultString {
 		apiObject.BackingProviderName = v.ValueString()
 	}
 
@@ -1977,10 +1998,10 @@ func newRegionConfigSpec(ctx context.Context, tfList basetypes.ListValue, provid
 	apiObject := &matlas.Specs{}
 
 	if providerName == "AWS" {
-		if v := spec.DiskIOPS; !v.IsUnknown() && v.ValueInt64() > 0 {
+		if v := spec.DiskIOPS; !v.IsNull() && v.ValueInt64() > 0 {
 			apiObject.DiskIOPS = v.ValueInt64Pointer()
 		}
-		if v := spec.EBSVolumeType; !v.IsNull() {
+		if v := spec.EBSVolumeType; !v.IsNull() && v.ValueString() != defaultString {
 			apiObject.EbsVolumeType = v.ValueString()
 		}
 	}
@@ -1988,7 +2009,7 @@ func newRegionConfigSpec(ctx context.Context, tfList basetypes.ListValue, provid
 	if v := spec.InstanceSize; !v.IsNull() {
 		apiObject.InstanceSize = v.ValueString()
 	}
-	if v := spec.NodeCount; !v.IsNull() {
+	if v := spec.NodeCount; !v.IsNull() && v.ValueInt64() > 0 {
 		apiObject.NodeCount = conversion.Int64PtrToIntPtr(v.ValueInt64Pointer())
 	}
 	return apiObject
