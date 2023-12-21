@@ -21,6 +21,10 @@ on:
         description: 'Terraform version to use, empty for latest'     
         type: string
         required: false
+      ref:
+        description: 'The branch, tag or SHA where tests will run, e.g. v1.14.0, empty for default branch'
+        type: string
+        required: false  
 
 env:
   terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
