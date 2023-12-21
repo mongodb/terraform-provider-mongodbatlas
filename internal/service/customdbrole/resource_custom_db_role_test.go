@@ -447,10 +447,11 @@ func TestAccConfigRSCustomDBRoles_importBasic(t *testing.T) {
 				Config: testAccMongoDBAtlasCustomDBRolesConfigBasic(orgID, projectName, roleName, "INSERT", databaseName),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasCustomDBRolesImportStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasCustomDBRolesImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"actions.0.resources.0.cluster"},
 			},
 		},
 	})

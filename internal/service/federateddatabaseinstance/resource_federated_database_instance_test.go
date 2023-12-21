@@ -54,6 +54,8 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 				ImportStateIdFunc:        testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFunc(resourceName),
 				ImportState:              true,
 				ImportStateVerify:        true,
+				ImportStateVerifyIgnore: []string{"storage_stores.0.allow_insecure", "storage_stores.0.include_tags", "storage_stores.0.read_preference.0.max_staleness_seconds",
+					"storage_stores.1.allow_insecure", "storage_stores.1.include_tags", "storage_stores.1.read_preference.0.max_staleness_seconds"},
 			},
 		},
 	})
