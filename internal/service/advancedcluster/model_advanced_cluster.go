@@ -187,18 +187,32 @@ var tfRegionsConfigAutoScalingSpecType = types.ObjectType{AttrTypes: map[string]
 }}
 
 func newTfConnectionStringsModel(ctx context.Context, connString *matlas.ConnectionStrings) []*tfConnectionStringModel {
-	res := []*tfConnectionStringModel{}
+	// res := []*tfConnectionStringModel{}
 
-	if connString != nil {
-		res = append(res, &tfConnectionStringModel{
+	// if connString != nil {
+	// 	res = append(res, &tfConnectionStringModel{
+	// 		Standard:        conversion.StringNullIfEmpty(connString.Standard),
+	// 		StandardSrv:     conversion.StringNullIfEmpty(connString.StandardSrv),
+	// 		Private:         conversion.StringNullIfEmpty(connString.Private),
+	// 		PrivateSrv:      conversion.StringNullIfEmpty(connString.PrivateSrv),
+	// 		PrivateEndpoint: NewTfPrivateEndpointModel(ctx, connString.PrivateEndpoint),
+	// 	})
+	// }
+	// return res
+
+	if connString == nil {
+		return []*tfConnectionStringModel{}
+	}
+
+	return []*tfConnectionStringModel{
+		{
 			Standard:        conversion.StringNullIfEmpty(connString.Standard),
 			StandardSrv:     conversion.StringNullIfEmpty(connString.StandardSrv),
 			Private:         conversion.StringNullIfEmpty(connString.Private),
 			PrivateSrv:      conversion.StringNullIfEmpty(connString.PrivateSrv),
 			PrivateEndpoint: NewTfPrivateEndpointModel(ctx, connString.PrivateEndpoint),
-		})
+		},
 	}
-	return res
 }
 
 func newTfRegionConfig(ctx context.Context, conn *matlas.Client, apiObject *matlas.AdvancedRegionConfig, projectID string) (tfRegionsConfigModel, diag.Diagnostics) {

@@ -25,11 +25,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -43,7 +43,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/planmodifiers"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/utility"
+	util "github.com/mongodb/terraform-provider-mongodbatlas/internal/common/utility"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -83,7 +83,10 @@ func FwResource() resource.Resource {
 	}
 }
 
-func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
+func (r *advancedClusterRS) Schema(ctx context.Context,
+	req resource.SchemaRequest,
+	res *resource.SchemaResponse) {
+
 	s := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -220,6 +223,9 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 						},
 					},
 				},
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByDateWithReplacement, "September 2024", "tags"),
 			},
 			"tags": schema.SetNestedAttribute{
@@ -233,6 +239,9 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 							Required: true,
 						},
 					},
+				},
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"advanced_configuration": schema.ListNestedAttribute{
@@ -364,9 +373,9 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 				},
 			},
 			"replication_specs": schema.ListNestedAttribute{
-				// Optional: true,
-				// Computed: true,
-				Required: true,
+				Optional: true,
+				Computed: true,
+				// Required: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
@@ -396,9 +405,9 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 							Default:  stringdefault.StaticString("ZoneName managed by Terraform"),
 						},
 						"region_configs": schema.ListNestedAttribute{
-							// Optional: true,
-							// Computed: true,
-							Required: true,
+							Optional: true,
+							Computed: true,
+							// Required: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"backing_provider_name": schema.StringAttribute{ // optional-only
@@ -425,9 +434,9 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 									"read_only_specs":        advClusterRSRegionConfigSpecsSchema(),
 								},
 							},
-							// Validators: []validator.List{
-							// 	listvalidator.IsRequired(),
-							// },
+							Validators: []validator.List{
+								listvalidator.IsRequired(),
+							},
 							PlanModifiers: []planmodifier.List{
 								listplanmodifier.UseStateForUnknown(),
 							},
@@ -456,7 +465,7 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 		Update: true,
 		Delete: true,
 	})
-	response.Schema = s
+	res.Schema = s
 }
 
 func ClusterRSAdvancedConfigurationListAttrComputed() schema.ListNestedAttribute {
@@ -499,43 +508,43 @@ func ClusterRSAdvancedConfigurationListAttrComputed() schema.ListNestedAttribute
 				},
 			},
 		},
-		Default: listdefault.StaticValue(defaultAdvancedConfiguration(context.Background())),
+		// Default: listdefault.StaticValue(defaultAdvancedConfiguration(context.Background())),
 		PlanModifiers: []planmodifier.List{
 			listplanmodifier.UseStateForUnknown(),
 		},
 	}
 }
 
-func defaultAdvancedConfiguration(ctx context.Context) types.List {
-	res := []TfAdvancedConfigurationModel{
-		{
-			DefaultReadConcern:               types.StringNull(),
-			DefaultWriteConcern:              types.StringNull(),
-			FailIndexKeyTooLong:              types.BoolNull(),
-			JavascriptEnabled:                types.BoolNull(),
-			MinimumEnabledTLSProtocol:        types.StringNull(),
-			NoTableScan:                      types.BoolNull(),
-			OplogSizeMB:                      types.Int64Null(),
-			OplogMinRetentionHours:           types.Int64Null(),
-			SampleSizeBiConnector:            types.Int64Null(),
-			SampleRefreshIntervalBiConnector: types.Int64Null(),
-			TransactionLifetimeLimitSeconds:  types.Int64Null(),
-		},
-	}
-	list, _ := types.ListValueFrom(ctx, tfAdvancedConfigurationType, res)
-	return list
-}
+// func defaultAdvancedConfiguration(ctx context.Context) types.List {
+// 	res := []TfAdvancedConfigurationModel{
+// 		{
+// 			DefaultReadConcern:               types.StringNull(),
+// 			DefaultWriteConcern:              types.StringNull(),
+// 			FailIndexKeyTooLong:              types.BoolNull(),
+// 			JavascriptEnabled:                types.BoolNull(),
+// 			MinimumEnabledTLSProtocol:        types.StringNull(),
+// 			NoTableScan:                      types.BoolNull(),
+// 			OplogSizeMB:                      types.Int64Null(),
+// 			OplogMinRetentionHours:           types.Int64Null(),
+// 			SampleSizeBiConnector:            types.Int64Null(),
+// 			SampleRefreshIntervalBiConnector: types.Int64Null(),
+// 			TransactionLifetimeLimitSeconds:  types.Int64Null(),
+// 		},
+// 	}
+// 	list, _ := types.ListValueFrom(ctx, tfAdvancedConfigurationType, res)
+// 	return list
+// }
 
-func defaultBiConnectorConfig(ctx context.Context) types.List {
-	res := []TfBiConnectorConfigModel{
-		{
-			ReadPreference: types.StringNull(),
-			Enabled:        types.BoolNull(),
-		},
-	}
-	list, _ := types.ListValueFrom(ctx, TfBiConnectorConfigType, res)
-	return list
-}
+// func defaultBiConnectorConfig(ctx context.Context) types.List {
+// 	res := []TfBiConnectorConfigModel{
+// 		{
+// 			ReadPreference: types.StringNull(),
+// 			Enabled:        types.BoolNull(),
+// 		},
+// 	}
+// 	list, _ := types.ListValueFrom(ctx, TfBiConnectorConfigType, res)
+// 	return list
+// }
 
 func ClusterRSBiConnectorConfigListAttrComputed() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
@@ -556,55 +565,55 @@ func ClusterRSBiConnectorConfigListAttrComputed() schema.ListNestedAttribute {
 	}
 }
 
-func advClusterRSReplicationSpecsSchemaAttrComputed() schema.ListNestedAttribute {
-	return schema.ListNestedAttribute{
-		Computed: true,
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: map[string]schema.Attribute{
-				"id": schema.StringAttribute{
-					Computed: true,
-				},
-				"num_shards": schema.Int64Attribute{
-					Computed: true,
-				},
-				"container_id": schema.MapAttribute{
-					ElementType: types.StringType,
-					Computed:    true,
-				},
-				"zone_name": schema.StringAttribute{
-					Computed: true,
-				},
-				"region_configs": schema.ListNestedAttribute{
-					Computed: true,
-					NestedObject: schema.NestedAttributeObject{
-						Attributes: map[string]schema.Attribute{
-							"analytics_specs":        advancedClusterRegionConfigSpecsAttr(),
-							"auto_scaling":           advancedClusterRegionConfigAutoScalingSpecsAttr(),
-							"analytics_auto_scaling": advancedClusterRegionConfigAutoScalingSpecsAttr(),
-							"backing_provider_name": schema.StringAttribute{
-								Computed: true,
-							},
-							"electable_specs": advancedClusterRegionConfigSpecsAttr(),
-							"priority": schema.Int64Attribute{
-								Computed: true,
-							},
-							"provider_name": schema.StringAttribute{
-								Computed: true,
-							},
-							"read_only_specs": advancedClusterRegionConfigSpecsAttr(),
-							"region_name": schema.StringAttribute{
-								Computed: true,
-							},
-						},
-					},
-				},
-			},
-		},
-		PlanModifiers: []planmodifier.List{
-			listplanmodifier.UseStateForUnknown(),
-		},
-	}
-}
+// func advClusterRSReplicationSpecsSchemaAttrComputed() schema.ListNestedAttribute {
+// 	return schema.ListNestedAttribute{
+// 		Computed: true,
+// 		NestedObject: schema.NestedAttributeObject{
+// 			Attributes: map[string]schema.Attribute{
+// 				"id": schema.StringAttribute{
+// 					Computed: true,
+// 				},
+// 				"num_shards": schema.Int64Attribute{
+// 					Computed: true,
+// 				},
+// 				"container_id": schema.MapAttribute{
+// 					ElementType: types.StringType,
+// 					Computed:    true,
+// 				},
+// 				"zone_name": schema.StringAttribute{
+// 					Computed: true,
+// 				},
+// 				"region_configs": schema.ListNestedAttribute{
+// 					Computed: true,
+// 					NestedObject: schema.NestedAttributeObject{
+// 						Attributes: map[string]schema.Attribute{
+// 							"analytics_specs":        advancedClusterRegionConfigSpecsAttr(),
+// 							"auto_scaling":           advancedClusterRegionConfigAutoScalingSpecsAttr(),
+// 							"analytics_auto_scaling": advancedClusterRegionConfigAutoScalingSpecsAttr(),
+// 							"backing_provider_name": schema.StringAttribute{
+// 								Computed: true,
+// 							},
+// 							"electable_specs": advancedClusterRegionConfigSpecsAttr(),
+// 							"priority": schema.Int64Attribute{
+// 								Computed: true,
+// 							},
+// 							"provider_name": schema.StringAttribute{
+// 								Computed: true,
+// 							},
+// 							"read_only_specs": advancedClusterRegionConfigSpecsAttr(),
+// 							"region_name": schema.StringAttribute{
+// 								Computed: true,
+// 							},
+// 						},
+// 					},
+// 				},
+// 			},
+// 		},
+// 		PlanModifiers: []planmodifier.List{
+// 			listplanmodifier.UseStateForUnknown(),
+// 		},
+// 	}
+// }
 
 func advClusterRSConnectionStringSchemaAttrComputed() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
@@ -680,23 +689,23 @@ func advClusterRSRegionConfigSpecsSchema() schema.ListNestedAttribute {
 						int64planmodifier.UseStateForUnknown(),
 					},
 				},
-				"ebs_volume_type": schema.StringAttribute{ // optional-only
+				"ebs_volume_type": schema.StringAttribute{
 					Optional: true,
-					// Computed: true,
-					// PlanModifiers: []planmodifier.String{
-					// 	// planmodifiers.UseNullForUnknownString(),
-					// 	stringplanmodifier.UseStateForUnknown(),
-					// },
+					Computed: true, // updated to O/C
+					PlanModifiers: []planmodifier.String{
+						// planmodifiers.UseNullForUnknownString(),
+						stringplanmodifier.UseStateForUnknown(),
+					},
 				},
 				"instance_size": schema.StringAttribute{
 					Required: true,
 				},
 				"node_count": schema.Int64Attribute{ // optional-only
 					Optional: true,
-					// PlanModifiers: []planmodifier.Int64{
-					// 	// planmodifiers.UseNullForUnknownInt64(),
-					// 	int64planmodifier.UseStateForUnknown(),
-					// },
+					PlanModifiers: []planmodifier.Int64{
+						// planmodifiers.UseNullForUnknownInt64(),
+						int64planmodifier.UseStateForUnknown(),
+					},
 				},
 			},
 		},
@@ -766,14 +775,14 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 	}
 	// We need to validate the oplog_size_mb attr of the advanced configuration option to show the error
 	// before that the cluster is created
-	var advConfig *matlas.ProcessArgs
-	if v := plan.AdvancedConfiguration; !v.IsNull() {
-		advConfig = newAdvancedConfiguration(ctx, v)
-		if advConfig != nil && advConfig.OplogSizeMB != nil && *advConfig.OplogSizeMB <= 0 {
-			resp.Diagnostics.AddError(errorInvalidCreateValues, "`advanced_configuration.oplog_size_mb` cannot be <= 0")
-			return
-		}
+	// var advConfig *matlas.ProcessArgs
+	// if v := plan.AdvancedConfiguration; !util.IsListPresent(v) {
+	advConfig := newAdvancedConfiguration(ctx, plan.AdvancedConfiguration)
+	if advConfig != nil && advConfig.OplogSizeMB != nil && *advConfig.OplogSizeMB <= 0 {
+		resp.Diagnostics.AddError(errorInvalidCreateValues, "`advanced_configuration.oplog_size_mb` cannot be <= 0")
+		return
 	}
+	// }
 	if v := plan.Labels; !v.IsNull() && ContainsLabelOrKey(newLabels(ctx, v), DefaultLabel) {
 		resp.Diagnostics.AddError(errorInvalidCreateValues, "please do not set `Infrastructure Tool` label, it is used for internal purposes")
 		return
@@ -811,7 +820,8 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 	// }
 
 	if v := plan.MongoDBMajorVersion; !v.IsUnknown() {
-		request.MongoDBMajorVersion = utility.FormatMongoDBMajorVersion(v.ValueString())
+		// request.MongoDBMajorVersion = util.FormatMongoDBMajorVersion(v.ValueString())
+		request.MongoDBMajorVersion = v.ValueString()
 	}
 
 	if v := plan.PitEnabled; !v.IsUnknown() {
@@ -830,7 +840,7 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 	cluster, _, err := conn.AdvancedClusters.Create(ctx, projectID, request)
 	// cluster, _, err := conn.AdvancedClusters.Get(ctx, projectID, plan.Name.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Unable to CREATE cluster. Error during create in Atlas", fmt.Sprintf(errorClusterAdvancedCreate, err))
+		resp.Diagnostics.AddError("Unable to CREATE cluster. Error during create in Atlas", err.Error())
 		return
 	}
 
@@ -852,7 +862,7 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Unable to CREATE cluster. Error during create in Atlas", fmt.Sprintf(errorClusterAdvancedCreate, err))
+		resp.Diagnostics.AddError("Unable to CREATE cluster. Error during create in Atlas", err.Error())
 		return
 	}
 
@@ -864,7 +874,8 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 	if advConfig != nil {
 		_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, cluster.Name, advConfig)
 		if err != nil {
-			resp.Diagnostics.AddError("Error during cluster CREATE", fmt.Sprintf(errorAdvancedClusterAdvancedConfUpdate, cluster.Name, err))
+			resp.Diagnostics.AddError("Unable to set cluster advanced_configuration during CREATE.", err.Error())
+			return
 		}
 	}
 
@@ -876,7 +887,7 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 
 		_, _, err = updateAdvancedCluster(ctx, conn, request, projectID, cluster.Name, timeout)
 		if err != nil {
-			resp.Diagnostics.AddError("Error during cluster CREATE. An error occurred attempting to pause cluster in Atlas", fmt.Sprintf(errorClusterAdvancedCreate, err))
+			resp.Diagnostics.AddError("Unable to CREATE cluster. An error occurred while attempting to pause cluster in Atlas", err.Error())
 			return
 		}
 	}
@@ -887,17 +898,17 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("error during cluster READ from Atlas", fmt.Sprintf(errorClusterAdvancedRead, cluster.Name, err.Error()))
+		resp.Diagnostics.AddError("An error occurred while retrieving cluster details from Atlas.", err.Error())
 		return
 	}
-	// during READ, mongodb_major_version should match what is in the config
+
 	newClusterModel, diags := newTfAdvClusterRSModel(ctx, conn, cluster, &plan, false)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
 
-	newClusterModel.MongoDBMajorVersion = tfConfig.MongoDBMajorVersion
+	// newClusterModel.MongoDBMajorVersion = tfConfig.MongoDBMajorVersion
 
 	// set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newClusterModel)...)
@@ -906,7 +917,7 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 // create - plan
 // update -
 // read - state
-func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *matlas.AdvancedCluster, state *tfAdvancedClusterRSModel, isImport bool) (*tfAdvancedClusterRSModel, diag.Diagnostics) {
+func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *matlas.AdvancedCluster, currModel *tfAdvancedClusterRSModel, isImport bool) (*tfAdvancedClusterRSModel, diag.Diagnostics) {
 	var d, diags diag.Diagnostics
 	projectID := cluster.GroupID
 	name := cluster.Name
@@ -928,7 +939,8 @@ func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *m
 		TerminationProtectionEnabled: types.BoolPointerValue(cluster.TerminationProtectionEnabled),
 		VersionReleaseSystem:         types.StringValue(cluster.VersionReleaseSystem),
 		AcceptDataRisksAndForceReplicaSetReconfig: conversion.StringNullIfEmpty(cluster.AcceptDataRisksAndForceReplicaSetReconfig),
-		ProjectID: types.StringValue(projectID),
+		ProjectID:            types.StringValue(projectID),
+		RetainBackupsEnabled: currModel.RetainBackupsEnabled,
 	}
 
 	clusterModel.ID = types.StringValue(conversion.EncodeStateID(map[string]string{
@@ -937,6 +949,7 @@ func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *m
 		"cluster_name": name,
 	}))
 
+	// TODO refactor all list functions to return types.List/types.Set except replication_specs (set in data source)
 	clusterModel.BiConnectorConfig, d = types.ListValueFrom(ctx, TfBiConnectorConfigType, NewTfBiConnectorConfigModel(cluster.BiConnector))
 	diags.Append(d...)
 
@@ -944,18 +957,18 @@ func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *m
 	diags.Append(d...)
 
 	clusterModel.Labels, d = types.SetValueFrom(ctx, TfLabelType, RemoveDefaultLabel(NewTfLabelsModel(cluster.Labels)))
-	if len(clusterModel.Labels.Elements()) == 0 {
-		clusterModel.Labels, d = types.SetValueFrom(ctx, TfLabelType, []TfLabelModel{})
-	}
+	// if len(clusterModel.Labels.Elements()) == 0 {
+	// 	clusterModel.Labels, d = types.SetValueFrom(ctx, TfLabelType, []TfLabelModel{})
+	// }
 	diags.Append(d...)
 
 	clusterModel.Tags, d = types.SetValueFrom(ctx, TfTagType, NewTfTagsModel(&cluster.Tags))
-	if len(clusterModel.Tags.Elements()) == 0 {
-		clusterModel.Tags, d = types.SetValueFrom(ctx, TfTagType, []TfTagModel{})
-	}
+	// if len(clusterModel.Tags.Elements()) == 0 {
+	// 	clusterModel.Tags, d = types.SetValueFrom(ctx, TfTagType, []TfTagModel{})
+	// }
 	diags.Append(d...)
 
-	replicationSpecs, diags := newTfReplicationSpecsRSModel_1(ctx, conn, cluster.ReplicationSpecs, state.ReplicationSpecs, projectID)
+	replicationSpecs, diags := newTfReplicationSpecsRSModel_1(ctx, conn, cluster.ReplicationSpecs, currModel.ReplicationSpecs, projectID)
 	diags.Append(d...)
 
 	if diags.HasError() {
@@ -975,7 +988,7 @@ func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *m
 	}
 
 	// if v := state.Timeouts; !v.IsNull() { // import
-	clusterModel.Timeouts = state.Timeouts
+	clusterModel.Timeouts = currModel.Timeouts
 	// }
 
 	return &clusterModel, diags
@@ -1019,22 +1032,22 @@ func (r *advancedClusterRS) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	if !isImport {
-		newClusterModel.MongoDBMajorVersion = state.MongoDBMajorVersion
+	// if !isImport {
+	// 	newClusterModel.MongoDBMajorVersion = state.MongoDBMajorVersion
 
-		// if state.BiConnectorConfig.IsNull() {
-		// 	newClusterModel.BiConnectorConfig = types.ListNull(TfBiConnectorConfigType)
-		// } else {
-		// 	newClusterModel.BiConnectorConfig = state.BiConnectorConfig
-		// }
-		// if state.AdvancedConfiguration.IsNull() {
-		// 	newClusterModel.AdvancedConfiguration = types.ListNull(tfAdvancedConfigurationType)
-		// } else {
-		// 	newClusterModel.AdvancedConfiguration = state.AdvancedConfiguration
-		// }
+	// if state.BiConnectorConfig.IsNull() {
+	// 	newClusterModel.BiConnectorConfig = types.ListNull(TfBiConnectorConfigType)
+	// } else {
+	// 	newClusterModel.BiConnectorConfig = state.BiConnectorConfig
+	// }
+	// if state.AdvancedConfiguration.IsNull() {
+	// 	newClusterModel.AdvancedConfiguration = types.ListNull(tfAdvancedConfigurationType)
+	// } else {
+	// 	newClusterModel.AdvancedConfiguration = state.AdvancedConfiguration
+	// }
 
-		// newClusterModel.ReplicationSpecs = state.ReplicationSpecs
-	}
+	// newClusterModel.ReplicationSpecs = state.ReplicationSpecs
+	// }
 
 	// save updated data into terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newClusterModel)...)
@@ -1042,7 +1055,7 @@ func (r *advancedClusterRS) Read(ctx context.Context, req resource.ReadRequest, 
 
 func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	conn := r.Client.Atlas
-	var state, plan, config tfAdvancedClusterRSModel
+	var state, plan, tfconfig tfAdvancedClusterRSModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -1054,7 +1067,7 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &tfconfig)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -1098,7 +1111,7 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	if !plan.MongoDBMajorVersion.Equal(state.MongoDBMajorVersion) {
-		cluster.MongoDBMajorVersion = utility.FormatMongoDBMajorVersion(plan.MongoDBMajorVersion.ValueString())
+		cluster.MongoDBMajorVersion = util.FormatMongoDBMajorVersion(plan.MongoDBMajorVersion.ValueString())
 	}
 	if !plan.PitEnabled.Equal(state.PitEnabled) {
 		cluster.PitEnabled = plan.PitEnabled.ValueBoolPointer()
@@ -1414,22 +1427,22 @@ func flattenAdvancedReplicationSpec_1(ctx context.Context, apiObject *matlas.Adv
 		if diags.HasError() {
 			return nil, diags
 		}
-		l, diags := types.ListValueFrom(ctx, tfRegionsConfigType, object)
+		list, diags := types.ListValueFrom(ctx, tfRegionsConfigType, object)
 		if diags.HasError() {
 			return nil, diags
 		}
-		tfMap.RegionsConfigs = l
+		tfMap.RegionsConfigs = list
 		tfMap.ContainerID = containerIds
 	} else {
 		object, containerIds, diags := flattenAdvancedReplicationSpecRegionConfigs_1(ctx, apiObject.RegionConfigs, types.ListNull(tfRegionsConfigType), conn, projectID)
 		if diags.HasError() {
 			return nil, diags
 		}
-		l, diags := types.ListValueFrom(ctx, tfRegionsConfigType, object)
+		list, diags := types.ListValueFrom(ctx, tfRegionsConfigType, object)
 		if diags.HasError() {
 			return nil, diags
 		}
-		tfMap.RegionsConfigs = l
+		tfMap.RegionsConfigs = list
 		tfMap.ContainerID = containerIds
 	}
 	tfMap.ZoneName = types.StringValue(apiObject.ZoneName)
@@ -1464,14 +1477,14 @@ func flattenAdvancedReplicationSpecRegionConfigs_1(ctx context.Context, apiObjec
 			tfMapObject := configRegionConfigs[i]
 			rc, diags := flattenAdvancedReplicationSpecRegionConfig_1(ctx, apiObject, tfMapObject)
 			if diags.HasError() {
-				break
+				return nil, types.MapNull(types.StringType), diags
 			}
 
 			tfList = append(tfList, *rc)
 		} else {
 			rc, diags := flattenAdvancedReplicationSpecRegionConfig_1(ctx, apiObject, nil)
 			if diags.HasError() {
-				break
+				return nil, types.MapNull(types.StringType), diags
 			}
 
 			tfList = append(tfList, *rc)
@@ -1507,31 +1520,31 @@ func flattenAdvancedReplicationSpecRegionConfig_1(ctx context.Context, apiObject
 
 	tfMap := tfRegionsConfigModel{}
 	if configRegionConfig != nil {
-		if v := configRegionConfig.AnalyticsSpecs; !v.IsNull() && len(v.Elements()) > 0 {
+		if v := configRegionConfig.AnalyticsSpecs; !util.IsListPresent(v) {
 			tfMap.AnalyticsSpecs, d = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.AnalyticsSpecs, apiObject.ProviderName, configRegionConfig.AnalyticsSpecs)
 		} else {
 			tfMap.AnalyticsSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, []tfRegionsConfigSpecsModel{})
 		}
 		diags.Append(d...)
-		if v := configRegionConfig.ElectableSpecs; !v.IsNull() && len(v.Elements()) > 0 {
+		if v := configRegionConfig.ElectableSpecs; !util.IsListPresent(v) {
 			tfMap.ElectableSpecs, d = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.ElectableSpecs, apiObject.ProviderName, configRegionConfig.ElectableSpecs)
 		} else {
 			tfMap.ElectableSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, []tfRegionsConfigSpecsModel{})
 		}
 		diags.Append(d...)
-		if v := configRegionConfig.ReadOnlySpecs; !v.IsNull() && len(v.Elements()) > 0 {
+		if v := configRegionConfig.ReadOnlySpecs; !util.IsListPresent(v) {
 			tfMap.ReadOnlySpecs, d = flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx, apiObject.ReadOnlySpecs, apiObject.ProviderName, configRegionConfig.ReadOnlySpecs)
 		} else {
 			tfMap.ReadOnlySpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, []tfRegionsConfigSpecsModel{})
 		}
 		diags.Append(d...)
-		if v := configRegionConfig.AutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
+		if v := configRegionConfig.AutoScaling; !util.IsListPresent(v) {
 			tfMap.AutoScaling, d = flattenAdvancedReplicationSpecAutoScaling_1(ctx, apiObject.AutoScaling)
 		} else {
 			tfMap.AutoScaling, d = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, []tfRegionsConfigAutoScalingSpecsModel{})
 		}
 		diags.Append(d...)
-		if v := configRegionConfig.AnalyticsAutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
+		if v := configRegionConfig.AnalyticsAutoScaling; !util.IsListPresent(v) {
 			tfMap.AnalyticsAutoScaling, d = flattenAdvancedReplicationSpecAutoScaling_1(ctx, apiObject.AnalyticsAutoScaling)
 		} else {
 			tfMap.AnalyticsAutoScaling, d = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, []tfRegionsConfigAutoScalingSpecsModel{})
@@ -1577,6 +1590,9 @@ func flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx context.Context, apiOb
 		tfMapObjects.ElementsAs(ctx, &configRegionConfigSpecs, true)
 	}
 
+	// TODO
+	// tfList := make([]tfRegionsConfigSpecsModel, 0)
+	// and then remove else condition in calling function
 	var tfList []tfRegionsConfigSpecsModel
 
 	tfMap := tfRegionsConfigSpecsModel{}
@@ -1587,11 +1603,12 @@ func flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx context.Context, apiOb
 		if providerName == "AWS" { // TODO add validation that provider is AWS only then these can be set in Creat/Update but we need to set during read
 			if cast.ToInt64(apiObject.DiskIOPS) > 0 {
 				tfMap.DiskIOPS = types.Int64PointerValue(apiObject.DiskIOPS)
-				// } else {
-				// 	tfMap.DiskIOPS = types.Int64Null()
+			} else {
+				tfMap.DiskIOPS = types.Int64Null()
 			}
-			//  if v := tfMapObject.EBSVolumeType; !v.IsNull() && v.ValueString() != "" {
-			tfMap.EBSVolumeType = conversion.StringNullIfEmpty(apiObject.EbsVolumeType)
+			if v := tfMapObject.EBSVolumeType; !v.IsNull() && v.ValueString() != "" {
+				tfMap.EBSVolumeType = types.StringValue(apiObject.EbsVolumeType)
+			}
 		}
 		if v := tfMapObject.NodeCount; !v.IsNull() {
 			tfMap.NodeCount = types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiObject.NodeCount))
@@ -1607,6 +1624,8 @@ func flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx context.Context, apiOb
 		if providerName == "AWS" {
 			tfMap.DiskIOPS = types.Int64PointerValue(apiObject.DiskIOPS)
 			tfMap.EBSVolumeType = conversion.StringNullIfEmpty(apiObject.EbsVolumeType)
+			// tfMap.EBSVolumeType = types.StringValue(apiObject.EbsVolumeType)
+
 		}
 
 		tfMap.NodeCount = types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiObject.NodeCount))
@@ -1637,8 +1656,10 @@ func flattenAdvancedReplicationSpecAutoScaling_1(ctx context.Context, apiObject 
 	if apiObject.Compute != nil {
 		tfMap.ComputeEnabled = types.BoolPointerValue(apiObject.Compute.Enabled)
 		tfMap.ComputeScaleDownEnabled = types.BoolPointerValue(apiObject.Compute.ScaleDownEnabled)
-		tfMap.ComputeMinInstanceSize = conversion.StringNullIfEmpty(apiObject.Compute.MinInstanceSize)
-		tfMap.ComputeMaxInstanceSize = conversion.StringNullIfEmpty(apiObject.Compute.MaxInstanceSize)
+		// tfMap.ComputeMinInstanceSize = conversion.StringNullIfEmpty(apiObject.Compute.MinInstanceSize)
+		// tfMap.ComputeMaxInstanceSize = conversion.StringNullIfEmpty(apiObject.Compute.MaxInstanceSize)
+		tfMap.ComputeMinInstanceSize = types.StringValue(apiObject.Compute.MinInstanceSize)
+		tfMap.ComputeMaxInstanceSize = types.StringValue(apiObject.Compute.MaxInstanceSize)
 	}
 
 	tfList = append(tfList, tfMap)
@@ -1679,7 +1700,7 @@ func newTfReplicationSpecsRSModel(ctx context.Context, conn *matlas.Client, repl
 }
 
 func newAdvancedConfiguration(ctx context.Context, tfList basetypes.ListValue) *matlas.ProcessArgs {
-	if tfList.IsNull() || len(tfList.Elements()) == 0 {
+	if !util.IsListPresent(tfList) {
 		return nil
 	}
 
@@ -1752,7 +1773,7 @@ func newAdvancedConfiguration(ctx context.Context, tfList basetypes.ListValue) *
 }
 
 func newTags(ctx context.Context, tfSet basetypes.SetValue) []*matlas.Tag {
-	if tfSet.IsNull() || len(tfSet.Elements()) == 0 {
+	if !util.IsSetPresent(tfSet) {
 		return nil
 	}
 	var tfArr []TfTagModel
@@ -1769,7 +1790,7 @@ func newTags(ctx context.Context, tfSet basetypes.SetValue) []*matlas.Tag {
 }
 
 func newLabels(ctx context.Context, tfSet basetypes.SetValue) []matlas.Label {
-	if tfSet.IsNull() || len(tfSet.Elements()) == 0 {
+	if !util.IsSetPresent(tfSet) {
 		return nil
 	}
 
@@ -1789,16 +1810,13 @@ func newLabels(ctx context.Context, tfSet basetypes.SetValue) []matlas.Label {
 }
 
 func newBiConnectorConfig(ctx context.Context, tfList basetypes.ListValue) *matlas.BiConnector {
-	if tfList.IsNull() || len(tfList.Elements()) == 0 {
+	if !util.IsListPresent(tfList) {
 		return nil
 	}
 
 	var tfArr []TfBiConnectorConfigModel
 	tfList.ElementsAs(ctx, &tfArr, true)
 
-	// if len(tfArr) < 0 {
-	// 	return nil
-	// }
 	tfBiConnector := tfArr[0]
 
 	biConnector := matlas.BiConnector{
@@ -1810,7 +1828,7 @@ func newBiConnectorConfig(ctx context.Context, tfList basetypes.ListValue) *matl
 }
 
 func newReplicationSpecs(ctx context.Context, tfList basetypes.ListValue) []*matlas.AdvancedReplicationSpec {
-	if tfList.IsNull() || len(tfList.Elements()) == 0 {
+	if !util.IsListPresent(tfList) {
 		return nil
 	}
 
@@ -1869,19 +1887,19 @@ func newRegionConfig(ctx context.Context, tfRegionConfig *tfRegionsConfigModel) 
 		RegionName:   tfRegionConfig.RegionName.ValueString(),
 	}
 
-	if v := tfRegionConfig.AnalyticsSpecs; !v.IsNull() && len(v.Elements()) > 0 {
+	if v := tfRegionConfig.AnalyticsSpecs; util.IsListPresent(v) {
 		apiObject.AnalyticsSpecs = newRegionConfigSpec(ctx, v, providerName)
 	}
-	if v := tfRegionConfig.ElectableSpecs; !v.IsNull() && len(v.Elements()) > 0 {
+	if v := tfRegionConfig.ElectableSpecs; util.IsListPresent(v) {
 		apiObject.ElectableSpecs = newRegionConfigSpec(ctx, v, providerName)
 	}
-	if v := tfRegionConfig.ReadOnlySpecs; !v.IsNull() && len(v.Elements()) > 0 {
+	if v := tfRegionConfig.ReadOnlySpecs; util.IsListPresent(v) {
 		apiObject.ReadOnlySpecs = newRegionConfigSpec(ctx, v, providerName)
 	}
-	if v := tfRegionConfig.AutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
+	if v := tfRegionConfig.AutoScaling; util.IsListPresent(v) {
 		apiObject.AutoScaling = newRegionConfigAutoScalingSpec(ctx, v)
 	}
-	if v := tfRegionConfig.AnalyticsAutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
+	if v := tfRegionConfig.AnalyticsAutoScaling; util.IsListPresent(v) {
 		apiObject.AnalyticsAutoScaling = newRegionConfigAutoScalingSpec(ctx, v)
 	}
 	if v := tfRegionConfig.BackingProviderName; !v.IsNull() && v.ValueString() != "" {
@@ -1933,7 +1951,7 @@ func newRegionConfigAutoScalingSpec(ctx context.Context, tfList basetypes.ListVa
 }
 
 func newRegionConfigSpec(ctx context.Context, tfList basetypes.ListValue, providerName string) *matlas.Specs {
-	if tfList.IsNull() || len(tfList.Elements()) == 0 {
+	if !util.IsListPresent(tfList) {
 		return nil
 	}
 
