@@ -187,32 +187,18 @@ var tfRegionsConfigAutoScalingSpecType = types.ObjectType{AttrTypes: map[string]
 }}
 
 func newTfConnectionStringsModel(ctx context.Context, connString *matlas.ConnectionStrings) []*tfConnectionStringModel {
-	// res := []*tfConnectionStringModel{}
+	res := []*tfConnectionStringModel{}
 
-	// if connString != nil {
-	// 	res = append(res, &tfConnectionStringModel{
-	// 		Standard:        conversion.StringNullIfEmpty(connString.Standard),
-	// 		StandardSrv:     conversion.StringNullIfEmpty(connString.StandardSrv),
-	// 		Private:         conversion.StringNullIfEmpty(connString.Private),
-	// 		PrivateSrv:      conversion.StringNullIfEmpty(connString.PrivateSrv),
-	// 		PrivateEndpoint: NewTfPrivateEndpointModel(ctx, connString.PrivateEndpoint),
-	// 	})
-	// }
-	// return res
-
-	if connString == nil {
-		return []*tfConnectionStringModel{}
-	}
-
-	return []*tfConnectionStringModel{
-		{
+	if connString != nil {
+		res = append(res, &tfConnectionStringModel{
 			Standard:        conversion.StringNullIfEmpty(connString.Standard),
 			StandardSrv:     conversion.StringNullIfEmpty(connString.StandardSrv),
 			Private:         conversion.StringNullIfEmpty(connString.Private),
 			PrivateSrv:      conversion.StringNullIfEmpty(connString.PrivateSrv),
 			PrivateEndpoint: NewTfPrivateEndpointModel(ctx, connString.PrivateEndpoint),
-		},
+		})
 	}
+	return res
 }
 
 func newTfRegionConfig(ctx context.Context, conn *matlas.Client, apiObject *matlas.AdvancedRegionConfig, projectID string) (tfRegionsConfigModel, diag.Diagnostics) {
@@ -230,11 +216,11 @@ func newTfRegionConfig(ctx context.Context, conn *matlas.Client, apiObject *matl
 		Priority:            types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiObject.Priority)),
 	}
 
-	tfRegionsConfig.AnalyticsSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.AnalyticsSpecs, apiObject.ProviderName))
+	tfRegionsConfig.AnalyticsSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.AnalyticsSpecs))
 	diags.Append(d...)
-	tfRegionsConfig.ElectableSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.ElectableSpecs, apiObject.ProviderName))
+	tfRegionsConfig.ElectableSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.ElectableSpecs))
 	diags.Append(d...)
-	tfRegionsConfig.ReadOnlySpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.ReadOnlySpecs, apiObject.ProviderName))
+	tfRegionsConfig.ReadOnlySpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.ReadOnlySpecs))
 	diags.Append(d...)
 	tfRegionsConfig.AnalyticsAutoScaling, d = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, newTfRegionsConfigAutoScalingSpecsModel(apiObject.AnalyticsAutoScaling))
 	diags.Append(d...)
@@ -244,20 +230,16 @@ func newTfRegionConfig(ctx context.Context, conn *matlas.Client, apiObject *matl
 	return tfRegionsConfig, diags
 }
 
-func newTfRegionsConfigSpecsModel(apiSpecs *matlas.Specs, providerName string) []*tfRegionsConfigSpecsModel {
+func newTfRegionsConfigSpecsModel(apiSpecs *matlas.Specs) []*tfRegionsConfigSpecsModel {
 	res := make([]*tfRegionsConfigSpecsModel, 0)
 
 	if apiSpecs != nil {
-		tmp := &tfRegionsConfigSpecsModel{
-			// DiskIOPS:      types.Int64PointerValue(apiSpecs.DiskIOPS),
-			// InstanceSize:  conversion.StringNullIfEmpty(apiSpecs.InstanceSize),
+		res = append(res, &tfRegionsConfigSpecsModel{
+			DiskIOPS:      types.Int64PointerValue(apiSpecs.DiskIOPS),
+			InstanceSize:  conversion.StringNullIfEmpty(apiSpecs.InstanceSize),
 			NodeCount:     types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiSpecs.NodeCount)),
 			EBSVolumeType: conversion.StringNullIfEmpty(apiSpecs.EbsVolumeType),
-		}
-		if providerName == "AWS" {
-			tmp.DiskIOPS = types.Int64PointerValue(apiSpecs.DiskIOPS)
-			tmp.EBSVolumeType = conversion.StringNullIfEmpty(apiSpecs.InstanceSize)
-		}
+		})
 	}
 
 	return res
