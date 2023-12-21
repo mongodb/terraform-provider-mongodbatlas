@@ -9,6 +9,13 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+func SkipIfVersionBelow(t *testing.T, minVersion string) {
+	t.Helper()
+	if !IsProviderVersionAtLeast(minVersion) {
+		t.Skip()
+	}
+}
+
 func IsProviderVersionAtLeast(minVersion string) bool {
 	vProvider, errProvider := version.NewVersion(versionConstraint())
 	vMin, errMin := version.NewVersion(minVersion)
