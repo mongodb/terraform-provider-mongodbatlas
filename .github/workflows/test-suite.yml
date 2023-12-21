@@ -34,8 +34,16 @@ jobs:
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
 
+  acc-tests-latest-published:
+    needs: clean-before
+    if: ${{ github.event_name == 'schedule' && !cancelled() }}
+    secrets: inherit
+    uses: ./.github/workflows/acceptance-tests.yml
+    with:
+      ref: 'v1.14.0'
+
   mig-tests:
-    needs: [clean-before, versions]
+    needs: [acc-tests-latest-published, versions]
     if: ${{ !cancelled() }}
     strategy:
       max-parallel: 1
