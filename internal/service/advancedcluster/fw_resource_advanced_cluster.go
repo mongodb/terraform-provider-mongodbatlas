@@ -775,8 +775,8 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// TODO undo
-	cluster, _, err := conn.AdvancedClusters.Create(ctx, projectID, request)
-	// cluster, _, err := conn.AdvancedClusters.Get(ctx, projectID, plan.Name.ValueString())
+	// cluster, _, err := conn.AdvancedClusters.Create(ctx, projectID, request)
+	cluster, _, err := conn.AdvancedClusters.Get(ctx, projectID, plan.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to CREATE cluster. Error during create in Atlas", fmt.Sprintf(errorClusterAdvancedCreate, err))
 		return
@@ -845,7 +845,7 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	newClusterModel.MongoDBMajorVersion = tfConfig.MongoDBMajorVersion
+	// newClusterModel.MongoDBMajorVersion = tfConfig.MongoDBMajorVersion
 
 	// set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newClusterModel)...)
@@ -1011,13 +1011,89 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
+	timeout, diags := plan.Timeouts.Update(ctx, defaultTimeout)
+
+	if upgradeRequest := getUpgradeRequest_Fw(ctx, state, plan); upgradeRequest != nil {
+
+		_, _, err := UpgradeCluster(ctx, conn, upgradeRequest, projectID, clusterName, timeout)
+
+		if err != nil {
+			resp.Diagnostics.AddError("Unable to UPDATE cluster. An error occurred while upgrading cluster.", err.Error())
+			return
+		}
+	} else {
+		resp.Diagnostics.Append(updateCluster(ctx, conn, &state, &plan, timeout)...)
+	}
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// READ
+	cluster, response, err := conn.AdvancedClusters.Get(ctx, projectID, clusterName)
+	if err != nil {
+		if response != nil && response.StatusCode == http.StatusNotFound {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.AddError("error during cluster READ from Atlas", fmt.Sprintf(errorClusterAdvancedRead, clusterName, err.Error()))
+		return
+	}
+
+	log.Printf("[DEBUG] GET ClusterAdvanced %+v", cluster)
+	newClusterModel, diags := newTfAdvClusterRSModel(ctx, conn, cluster, &plan, false)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	// req.Plan.GetAttribute(ctx, path.Root("mongo_db_major_version"), &newClusterModel.MongoDBMajorVersion)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newClusterModel)...)
+}
+
+func getUpgradeRequest_Fw(ctx context.Context, state, plan tfAdvancedClusterRSModel) *matlas.Cluster {
+	if reflect.DeepEqual(plan.ReplicationSpecs, state.ReplicationSpecs) {
+		return nil
+	}
+
+	currentSpecs := newReplicationSpecs(ctx, state.ReplicationSpecs)
+	updatedSpecs := newReplicationSpecs(ctx, plan.ReplicationSpecs)
+
+	if len(currentSpecs) != 1 || len(updatedSpecs) != 1 || len(currentSpecs[0].RegionConfigs) != 1 || len(updatedSpecs[0].RegionConfigs) != 1 {
+		return nil
+	}
+
+	currentRegion := currentSpecs[0].RegionConfigs[0]
+	updatedRegion := updatedSpecs[0].RegionConfigs[0]
+	currentSize := currentRegion.ElectableSpecs.InstanceSize
+
+	if currentRegion.ElectableSpecs.InstanceSize == updatedRegion.ElectableSpecs.InstanceSize || !IsSharedTier(currentSize) {
+		return nil
+	}
+
+	return &matlas.Cluster{
+		ProviderSettings: &matlas.ProviderSettings{
+			ProviderName:     updatedRegion.ProviderName,
+			InstanceSizeName: updatedRegion.ElectableSpecs.InstanceSize,
+			RegionName:       updatedRegion.RegionName,
+		},
+	}
+}
+
+func updateCluster(ctx context.Context, conn *matlas.Client, state *tfAdvancedClusterRSModel, plan *tfAdvancedClusterRSModel, timeout time.Duration) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	ids := conversion.DecodeStateID(state.ID.ValueString())
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+
 	cluster := new(matlas.AdvancedCluster)
 	clusterChangeDetect := new(matlas.AdvancedCluster)
 
 	if !plan.BackupEnabled.Equal(state.BackupEnabled) {
 		cluster.BackupEnabled = plan.BackupEnabled.ValueBoolPointer()
 	}
-	// TODO BiConnector
+
 	if !reflect.DeepEqual(plan.BiConnectorConfig, state.BiConnectorConfig) {
 		cluster.BiConnector = newBiConnectorConfig(ctx, plan.BiConnectorConfig)
 	}
@@ -1035,15 +1111,14 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 		cluster.EncryptionAtRestProvider = plan.EncryptionAtRestProvider.ValueString()
 	}
 
-	// TODO Labels
 	if !reflect.DeepEqual(plan.Labels, state.Labels) {
 		if ContainsLabelOrKey(newLabels(ctx, plan.Labels), defaultLabel) {
-			resp.Diagnostics.AddError("Unable to UPDATE cluster. An error occurred when updating labels.", "you should not set `Infrastructure Tool` label, it is used for internal purposes")
-			return
+			diags.AddError("Unable to UPDATE cluster. An error occurred when updating labels.", "you should not set `Infrastructure Tool` label, it is used for internal purposes")
+			return diags
 		}
 		cluster.Labels = newLabels(ctx, plan.Labels)
 	}
-	// TODO tags
+
 	if !reflect.DeepEqual(plan.Tags, state.Tags) {
 		cluster.Tags = newTags(ctx, plan.Tags)
 	}
@@ -1054,7 +1129,7 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 	if !plan.PitEnabled.Equal(state.PitEnabled) {
 		cluster.PitEnabled = plan.PitEnabled.ValueBoolPointer()
 	}
-	// // TODO ReplicationSpecs
+
 	var tfRepSpecsPlan, tfRepSpecsState []tfReplicationSpecRSModel
 
 	if !reflect.DeepEqual(plan.ReplicationSpecs, state.ReplicationSpecs) {
@@ -1091,9 +1166,8 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 		cluster.Paused = plan.Paused.ValueBoolPointer()
 	}
 
-	timeout, diags := plan.Timeouts.Update(ctx, defaultTimeout)
+	// timeout, diags := plan.Timeouts.Update(ctx, defaultTimeout)
 
-	// TODO advanced_configuration
 	if !reflect.DeepEqual(plan.AdvancedConfiguration, state.AdvancedConfiguration) {
 		ac := plan.AdvancedConfiguration
 		if len(ac.Elements()) > 0 {
@@ -1101,14 +1175,13 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
 				_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
 				if err != nil {
-					resp.Diagnostics.AddError("Unable to UPDATE cluster. An error occurred when updating advanced_configuration.", err.Error())
-					return
+					diags.AddError("Unable to UPDATE cluster. An error occurred when updating advanced_configuration.", err.Error())
+					return diags
 				}
 			}
 		}
 	}
 
-	// TODO cluster change detect
 	// Has changes
 	if !reflect.DeepEqual(cluster, clusterChangeDetect) {
 		err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
@@ -1122,12 +1195,11 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 			return nil
 		})
 		if err != nil {
-			resp.Diagnostics.AddError("Unable to UPDATE cluster. An error occurred when updating cluster in Atlas.", err.Error())
-			return
+			diags.AddError("Unable to UPDATE cluster. An error occurred when updating cluster in Atlas.", err.Error())
+			return diags
 		}
 	}
 
-	// TODO paused
 	if plan.Paused.ValueBool() {
 		clusterRequest := &matlas.AdvancedCluster{
 			Paused: pointy.Bool(true),
@@ -1135,49 +1207,12 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 
 		_, _, err := updateAdvancedCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
 		if err != nil {
-			resp.Diagnostics.AddError("Unable to UPDATE cluster. An error occurred when attempting to pause cluster in Atlas.", err.Error())
-			return
+			diags.AddError("Unable to UPDATE cluster. An error occurred when attempting to pause cluster in Atlas.", err.Error())
+			return diags
 		}
 	}
 
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	cluster, response, err := conn.AdvancedClusters.Get(ctx, projectID, clusterName)
-	if err != nil {
-		if response != nil && response.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError("error during cluster READ from Atlas", fmt.Sprintf(errorClusterAdvancedRead, clusterName, err.Error()))
-		return
-	}
-
-	log.Printf("[DEBUG] GET ClusterAdvanced %+v", cluster)
-	newClusterModel, diags := newTfAdvClusterRSModel(ctx, conn, cluster, &plan, false)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-
-	// req.Config.GetAttribute(ctx, path.Root("mongo_db_major_version"), &newClusterModel.MongoDBMajorVersion)
-
-	// newClusterModel.BiConnectorConfig = config.BiConnectorConfig
-	// newClusterModel.AdvancedConfiguration = config.AdvancedConfiguration
-
-	// newClusterModel.ReplicationSpecs = resetDefaultsReplicationSpecs(ctx, config.ReplicationSpecs)
-
-	req.Plan.GetAttribute(ctx, path.Root("mongo_db_major_version"), &newClusterModel.MongoDBMajorVersion)
-
-	// newClusterModel.BiConnectorConfig = plan.BiConnectorConfig
-	// newClusterModel.AdvancedConfiguration = plan.AdvancedConfiguration
-
-	// newClusterModel.ReplicationSpecs = resetDefaultsReplicationSpecs(ctx, plan.ReplicationSpecs)
-
-	// save updated data into terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &newClusterModel)...)
+	return diags
 }
 
 func resetDefaultsReplicationSpecs(ctx context.Context, repSpecs basetypes.ListValue) types.List {
@@ -1872,23 +1907,23 @@ func newRegionConfigAutoScalingSpec(ctx context.Context, tfList basetypes.ListVa
 	diskGB := &matlas.DiskGB{}
 	compute := &matlas.Compute{}
 
-	if v := spec.DiskGBEnabled; !v.IsNull() {
+	if v := spec.DiskGBEnabled; !v.IsUnknown() {
 		diskGB.Enabled = v.ValueBoolPointer()
 	}
-	if v := spec.ComputeEnabled; !v.IsNull() {
+	if v := spec.ComputeEnabled; !v.IsUnknown() {
 		compute.Enabled = v.ValueBoolPointer()
 	}
-	if v := spec.ComputeScaleDownEnabled; !v.IsNull() {
+	if v := spec.ComputeScaleDownEnabled; !v.IsUnknown() {
 		compute.ScaleDownEnabled = v.ValueBoolPointer()
 	}
-	if v := spec.ComputeMinInstanceSize; !v.IsNull() {
+	if v := spec.ComputeMinInstanceSize; !v.IsUnknown() {
 		value := compute.ScaleDownEnabled
 		if *value {
 			compute.MinInstanceSize = v.ValueString()
 		}
 	}
-	if v := spec.ComputeMaxInstanceSize; !v.IsNull() {
-		value := compute.ScaleDownEnabled
+	if v := spec.ComputeMaxInstanceSize; !v.IsUnknown() {
+		value := compute.Enabled
 		if *value {
 			compute.MaxInstanceSize = v.ValueString()
 		}
