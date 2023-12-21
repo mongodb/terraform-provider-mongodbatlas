@@ -935,17 +935,17 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name         = %[3]q
   cluster_type = "REPLICASET"
 
-  replication_specs {
-    region_configs {
-      electable_specs {
+  replication_specs = [{
+    region_configs = [{
+      electable_specs = [{
         instance_size = "M5"
-      }
+      }]
       provider_name         = "TENANT"
       backing_provider_name = "AWS"
       region_name           = "US_EAST_1"
       priority              = 7
-    }
-  }
+    }]
+  }]
 }
 
 data "mongodbatlas_advanced_cluster" "test" {
@@ -981,21 +981,21 @@ func testAccMongoDBAtlasAdvancedClusterConfigWithTags(orgID, projectName, name s
 			name         = %[3]q
 			cluster_type = "REPLICASET"
 
-			replication_specs {
-				region_configs {
-					electable_specs {
+			replication_specs = [{
+				region_configs = [{
+					electable_specs = [{
 						instance_size = "M10"
 						node_count    = 3
-					}
-					analytics_specs {
+					}]
+					analytics_specs = [{
 						instance_size = "M10"
 						node_count    = 1
-					}
+					}]
 					provider_name = "AWS"
 					priority      = 7
 					region_name   = "US_EAST_1"
-				}
-			}
+				}]
+			}]
 
 			%[4]s
 		}
@@ -1023,21 +1023,21 @@ resource "mongodbatlas_advanced_cluster" "test" {
   cluster_type = "REPLICASET"
   retain_backups_enabled = "true"
 
-  replication_specs {
-    region_configs {
-      electable_specs {
+  replication_specs = [{
+    region_configs = [{
+      electable_specs = [{
         instance_size = "M10"
         node_count    = 3
-      }
-      analytics_specs {
+      }]
+      analytics_specs = [{
         instance_size = "M10"
         node_count    = 1
-      }
+      }]
       provider_name = "AWS"
       priority      = 7
       region_name   = "US_EAST_1"
-    }
-  }
+    }]
+  }]
 }
 data "mongodbatlas_advanced_cluster" "test" {
 	project_id = mongodbatlas_advanced_cluster.test.project_id
@@ -1054,36 +1054,36 @@ resource "mongodbatlas_project" "cluster_project" {
 	org_id = %[1]q
 }
 resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = mongodbatlas_project.cluster_project.id
-  name         = %[3]q
-  cluster_type = "REPLICASET"
-  retain_backups_enabled = false
-
-  replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-    }
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 2
-      }
-      provider_name = "GCP"
-      priority      = 6
-      region_name   = "NORTH_AMERICA_NORTHEAST_1"
-    }
+	project_id   = mongodbatlas_project.cluster_project.id
+	name         = %[3]q
+	cluster_type = "REPLICASET"
+	retain_backups_enabled = false
+  
+	replication_specs = [{
+	  region_configs = [{
+		electable_specs = [{
+		  instance_size = "M10"
+		  node_count    = 3
+		}]
+		analytics_specs = [{
+		  instance_size = "M10"
+		  node_count    = 1
+		}]
+		provider_name = "AWS"
+		priority      = 7
+		region_name   = "US_EAST_1"
+	  },
+	  {
+		electable_specs = [{
+		  instance_size = "M10"
+		  node_count    = 2
+		}]
+		provider_name = "GCP"
+		priority      = 6
+		region_name   = "NORTH_AMERICA_NORTHEAST_1"
+	  }]
+	}]
   }
-}
 
 data "mongodbatlas_advanced_cluster" "test" {
 	project_id = mongodbatlas_advanced_cluster.test.project_id
@@ -1103,36 +1103,36 @@ resource "mongodbatlas_project" "cluster_project" {
 	org_id = %[1]q
 }	
 resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = mongodbatlas_project.cluster_project.id
-  name         = %[3]q
-  cluster_type = "SHARDED"
-
-  replication_specs {
-    num_shards = 1
-    region_configs {
-      electable_specs {
-        instance_size = "M30"
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M30"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-    }
-    region_configs {
-      electable_specs {
-        instance_size = "M30"
-        node_count    = 2
-      }
-      provider_name = "AZURE"
-      priority      = 6
-      region_name   = "US_EAST_2"
-    }
+	project_id   = mongodbatlas_project.cluster_project.id
+	name         = %[3]q
+	cluster_type = "SHARDED"
+  
+	replication_specs = [{
+	  num_shards = 1
+	  region_configs = [{
+		electable_specs = [{
+		  instance_size = "M30"
+		  node_count    = 3
+		}]
+		analytics_specs = [{
+		  instance_size = "M30"
+		  node_count    = 1
+		}]
+		provider_name = "AWS"
+		priority      = 7
+		region_name   = "US_EAST_1"
+	  },
+	  {
+		electable_specs = [{
+		  instance_size = "M30"
+		  node_count    = 2
+		}]
+		provider_name = "AZURE"
+		priority      = 6
+		region_name   = "US_EAST_2"
+	  }]
+	}]
   }
-}
 	`, orgID, projectName, name)
 }
 
@@ -1174,37 +1174,37 @@ resource "mongodbatlas_project" "cluster_project" {
 	org_id = %[1]q
 }	
 resource "mongodbatlas_advanced_cluster" "test" {
-  project_id             = mongodbatlas_project.cluster_project.id
-  name                   = %[3]q
-  cluster_type           = "REPLICASET"
-
-   replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-    }
+	project_id             = mongodbatlas_project.cluster_project.id
+	name                   = %[3]q
+	cluster_type           = "REPLICASET"
+  
+	 replication_specs = [{
+	  region_configs  = [{
+		electable_specs = [{
+		  instance_size = "M10"
+		  node_count    = 3
+		}]
+		analytics_specs = [{
+		  instance_size = "M10"
+		  node_count    = 1
+		}]
+		provider_name = "AWS"
+		priority      = 7
+		region_name   = "US_EAST_1"
+	  }]
+	}]
+  
+	advanced_configuration  = [{
+	  fail_index_key_too_long              = %[4]t
+	  javascript_enabled                   = %[5]t
+	  minimum_enabled_tls_protocol         = %[6]q
+	  no_table_scan                        = %[7]t
+	  oplog_size_mb                        = %[8]d
+	  sample_size_bi_connector			 = %[9]d
+	  sample_refresh_interval_bi_connector = %[10]d
+	  transaction_lifetime_limit_seconds   = %[11]d
+	}]
   }
-
-  advanced_configuration  {
-    fail_index_key_too_long              = %[4]t
-    javascript_enabled                   = %[5]t
-    minimum_enabled_tls_protocol         = %[6]q
-    no_table_scan                        = %[7]t
-    oplog_size_mb                        = %[8]d
-    sample_size_bi_connector			 = %[9]d
-    sample_refresh_interval_bi_connector = %[10]d
-	transaction_lifetime_limit_seconds   = %[11]d
-  }
-}
 data "mongodbatlas_advanced_cluster" "test" {
 	project_id = mongodbatlas_advanced_cluster.test.project_id
 	name 	     = mongodbatlas_advanced_cluster.test.name
@@ -1226,37 +1226,37 @@ resource "mongodbatlas_project" "cluster_project" {
 	org_id = %[1]q
 }	
 resource "mongodbatlas_advanced_cluster" "test" {
-  project_id             = mongodbatlas_project.cluster_project.id
-  name                   = %[3]q
-  cluster_type           = "REPLICASET"
-
-   replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-    }
+	project_id             = mongodbatlas_project.cluster_project.id
+	name                   = %[3]q
+	cluster_type           = "REPLICASET"
+  
+	 replication_specs = [{
+	  region_configs = [{
+		electable_specs = [{
+		  instance_size = "M10"
+		  node_count    = 3
+		}]
+		analytics_specs = [{
+		  instance_size = "M10"
+		  node_count    = 1
+		}]
+		provider_name = "AWS"
+		priority      = 7
+		region_name   = "US_EAST_1"
+	  }]
+	}]
+  
+	advanced_configuration  = [{
+	  javascript_enabled                   = %[4]t
+	  minimum_enabled_tls_protocol         = %[5]q
+	  no_table_scan                        = %[6]t
+	  oplog_size_mb                        = %[7]d
+	  sample_size_bi_connector			 = %[8]d
+	  sample_refresh_interval_bi_connector = %[9]d
+	  default_read_concern                 = %[10]q
+	  default_write_concern                = %[11]q
+	}]
   }
-
-  advanced_configuration  {
-    javascript_enabled                   = %[4]t
-    minimum_enabled_tls_protocol         = %[5]q
-    no_table_scan                        = %[6]t
-    oplog_size_mb                        = %[7]d
-    sample_size_bi_connector			 = %[8]d
-    sample_refresh_interval_bi_connector = %[9]d
-    default_read_concern                 = %[10]q
-    default_write_concern                = %[11]q
-  }
-}
 
 data "mongodbatlas_advanced_cluster" "test" {
 	project_id = mongodbatlas_advanced_cluster.test.project_id
@@ -1278,33 +1278,31 @@ resource "mongodbatlas_project" "cluster_project" {
 	org_id = %[1]q
 }	
 resource "mongodbatlas_advanced_cluster" "test" {
-  project_id             = mongodbatlas_project.cluster_project.id
-  name                   = %[3]q
-  cluster_type           = "REPLICASET"
-
-   replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-	  auto_scaling {
-        compute_enabled = %[4]t
-        disk_gb_enabled = %[5]t
-		compute_max_instance_size = %[6]q
-	  }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-    }
+	project_id             = mongodbatlas_project.cluster_project.id
+	name                   = %[3]q
+	cluster_type           = "REPLICASET"
+  
+	 replication_specs = [{
+	  region_configs = [{
+		electable_specs = [{
+		  instance_size = "M10"
+		  node_count    = 3
+		}]
+		analytics_specs = [{
+		  instance_size = "M10"
+		  node_count    = 1
+		}]
+		  auto_scaling = [{
+		  compute_enabled = %[4]t
+		  disk_gb_enabled = %[5]t
+			  compute_max_instance_size = %[6]q
+		  }]
+		provider_name = "AWS"
+		priority      = 7
+		region_name   = "US_EAST_1"
+	  }]
+	}]
   }
-
-
-}
 
 	`, orgID, projectName, name, *p.Compute.Enabled, *p.DiskGBEnabled, p.Compute.MaxInstanceSize)
 }
@@ -1318,33 +1316,31 @@ resource "mongodbatlas_project" "cluster_project" {
 }
 
 resource "mongodbatlas_advanced_cluster" "test" {
-  project_id             = mongodbatlas_project.cluster_project.id
-  name                   = %[3]q
-  cluster_type           = "REPLICASET"
-
-   replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-	  analytics_auto_scaling {
-        compute_enabled = %[4]t
-        disk_gb_enabled = %[5]t
-		compute_max_instance_size = %[6]q
-	  }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-    }
+	project_id             = mongodbatlas_project.cluster_project.id
+	name                   = %[3]q
+	cluster_type           = "REPLICASET"
+  
+	 replication_specs = [{
+	  region_configs = [{
+		electable_specs = [{
+		  instance_size = "M10"
+		  node_count    = 3
+		}]
+		analytics_specs = [{
+		  instance_size = "M10"
+		  node_count    = 1
+		}]
+		analytics_auto_scaling = [{
+		  compute_enabled = %[4]t
+		  disk_gb_enabled = %[5]t
+		  compute_max_instance_size = %[6]q
+		}]
+		provider_name = "AWS"
+		priority      = 7
+		region_name   = "US_EAST_1"
+	  }]
+	}]
   }
-
-
-}
 
 	`, orgID, projectName, name, *p.Compute.Enabled, *p.DiskGBEnabled, p.Compute.MaxInstanceSize)
 }
