@@ -36,7 +36,6 @@ jobs:
 
   acc-tests-latest-published:
     needs: clean-before
-    if: ${{ github.event_name == 'schedule' && !cancelled() }}
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
