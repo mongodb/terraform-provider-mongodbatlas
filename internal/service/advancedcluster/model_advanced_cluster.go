@@ -216,11 +216,11 @@ func newTfRegionConfig(ctx context.Context, conn *matlas.Client, apiObject *matl
 		Priority:            types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiObject.Priority)),
 	}
 
-	tfRegionsConfig.AnalyticsSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.AnalyticsSpecs))
+	tfRegionsConfig.AnalyticsSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.AnalyticsSpecs, apiObject.ProviderName))
 	diags.Append(d...)
-	tfRegionsConfig.ElectableSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.ElectableSpecs))
+	tfRegionsConfig.ElectableSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.ElectableSpecs, apiObject.ProviderName))
 	diags.Append(d...)
-	tfRegionsConfig.ReadOnlySpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.ReadOnlySpecs))
+	tfRegionsConfig.ReadOnlySpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.ReadOnlySpecs, apiObject.ProviderName))
 	diags.Append(d...)
 	tfRegionsConfig.AnalyticsAutoScaling, d = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, newTfRegionsConfigAutoScalingSpecsModel(apiObject.AnalyticsAutoScaling))
 	diags.Append(d...)
@@ -230,16 +230,20 @@ func newTfRegionConfig(ctx context.Context, conn *matlas.Client, apiObject *matl
 	return tfRegionsConfig, diags
 }
 
-func newTfRegionsConfigSpecsModel(apiSpecs *matlas.Specs) []*tfRegionsConfigSpecsModel {
+func newTfRegionsConfigSpecsModel(apiSpecs *matlas.Specs, providerName string) []*tfRegionsConfigSpecsModel {
 	res := make([]*tfRegionsConfigSpecsModel, 0)
 
 	if apiSpecs != nil {
-		res = append(res, &tfRegionsConfigSpecsModel{
-			DiskIOPS:      types.Int64PointerValue(apiSpecs.DiskIOPS),
-			InstanceSize:  conversion.StringNullIfEmpty(apiSpecs.InstanceSize),
+		tmp := &tfRegionsConfigSpecsModel{
+			// DiskIOPS:      types.Int64PointerValue(apiSpecs.DiskIOPS),
+			// InstanceSize:  conversion.StringNullIfEmpty(apiSpecs.InstanceSize),
 			NodeCount:     types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiSpecs.NodeCount)),
 			EBSVolumeType: conversion.StringNullIfEmpty(apiSpecs.EbsVolumeType),
-		})
+		}
+		if providerName == "AWS" {
+			tmp.DiskIOPS = types.Int64PointerValue(apiSpecs.DiskIOPS)
+			tmp.EBSVolumeType = conversion.StringNullIfEmpty(apiSpecs.InstanceSize)
+		}
 	}
 
 	return res

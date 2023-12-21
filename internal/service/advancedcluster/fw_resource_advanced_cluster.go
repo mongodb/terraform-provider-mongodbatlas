@@ -255,35 +255,35 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 						"oplog_min_retention_hours": schema.Int64Attribute{
 							Optional: true,
 							PlanModifiers: []planmodifier.Int64{
-								planmodifiers.UseNullForUnknownInt64(),
+								int64planmodifier.UseStateForUnknown(),
 							},
 						},
 						"oplog_size_mb": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Int64{
-								planmodifiers.UseNullForUnknownInt64(),
+								int64planmodifier.UseStateForUnknown(),
 							},
 						},
 						"sample_refresh_interval_bi_connector": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Int64{
-								planmodifiers.UseNullForUnknownInt64(),
+								int64planmodifier.UseStateForUnknown(),
 							},
 						},
 						"sample_size_bi_connector": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Int64{
-								planmodifiers.UseNullForUnknownInt64(),
+								int64planmodifier.UseStateForUnknown(),
 							},
 						},
 						"transaction_lifetime_limit_seconds": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Int64{
-								planmodifiers.UseNullForUnknownInt64(),
+								int64planmodifier.UseStateForUnknown(),
 							},
 						},
 					},
@@ -367,8 +367,8 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 										Optional: true,
 										Computed: true,
 										PlanModifiers: []planmodifier.String{
-											planmodifiers.UseNullForUnknownString(),
-											// stringplanmodifier.UseStateForUnknown(),
+											// planmodifiers.UseNullForUnknownString(),
+											stringplanmodifier.UseStateForUnknown(),
 										},
 									},
 									"priority": schema.Int64Attribute{
@@ -665,12 +665,13 @@ func advClusterRSRegionConfigSpecsBlock() schema.ListNestedAttribute {
 					Optional: true,
 					Computed: true,
 					PlanModifiers: []planmodifier.Int64{
-						planmodifiers.UseNullForUnknownInt64(),
-						// int64planmodifier.UseStateForUnknown(),
+						// planmodifiers.UseNullForUnknownInt64(),
+						int64planmodifier.UseStateForUnknown(),
 					},
 				},
 				"ebs_volume_type": schema.StringAttribute{
 					Optional: true,
+					Computed: true,
 					PlanModifiers: []planmodifier.String{
 						// planmodifiers.UseNullForUnknownString(),
 						stringplanmodifier.UseStateForUnknown(),
@@ -815,7 +816,6 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 		request.VersionReleaseSystem = v.ValueString()
 	}
 
-	// TODO undo
 	cluster, _, err := conn.AdvancedClusters.Create(ctx, projectID, request)
 	// cluster, _, err := conn.AdvancedClusters.Get(ctx, projectID, plan.Name.ValueString())
 	if err != nil {
@@ -1058,7 +1058,6 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 	if !plan.BackupEnabled.Equal(state.BackupEnabled) {
 		cluster.BackupEnabled = plan.BackupEnabled.ValueBoolPointer()
 	}
-	// TODO BiConnector
 	if !reflect.DeepEqual(plan.BiConnectorConfig, state.BiConnectorConfig) {
 		cluster.BiConnector = newBiConnectorConfig(ctx, plan.BiConnectorConfig)
 	}
@@ -1076,7 +1075,6 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 		cluster.EncryptionAtRestProvider = plan.EncryptionAtRestProvider.ValueString()
 	}
 
-	// TODO Labels
 	if !reflect.DeepEqual(plan.Labels, state.Labels) {
 		if ContainsLabelOrKey(newLabels(ctx, plan.Labels), defaultLabel) {
 			resp.Diagnostics.AddError("Unable to UPDATE cluster. An error occurred when updating labels.", "you should not set `Infrastructure Tool` label, it is used for internal purposes")
@@ -1084,7 +1082,6 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 		}
 		cluster.Labels = newLabels(ctx, plan.Labels)
 	}
-	// TODO tags
 	if !reflect.DeepEqual(plan.Tags, state.Tags) {
 		cluster.Tags = newTags(ctx, plan.Tags)
 	}
@@ -1095,7 +1092,6 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 	if !plan.PitEnabled.Equal(state.PitEnabled) {
 		cluster.PitEnabled = plan.PitEnabled.ValueBoolPointer()
 	}
-	// // TODO ReplicationSpecs
 	var tfRepSpecsPlan, tfRepSpecsState []tfReplicationSpecRSModel
 
 	if !reflect.DeepEqual(plan.ReplicationSpecs, state.ReplicationSpecs) {
@@ -1114,7 +1110,6 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 					log.Println(fmt.Sprintf("state: %s", tfRegionConfigsState))
 				}
 			}
-
 		}
 		cluster.ReplicationSpecs = newReplicationSpecs(ctx, plan.ReplicationSpecs)
 	}
@@ -1134,7 +1129,6 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 
 	timeout, diags := plan.Timeouts.Update(ctx, defaultTimeout)
 
-	// TODO advanced_configuration
 	if !reflect.DeepEqual(plan.AdvancedConfiguration, state.AdvancedConfiguration) {
 		ac := plan.AdvancedConfiguration
 		if len(ac.Elements()) > 0 {
@@ -1149,7 +1143,6 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 		}
 	}
 
-	// TODO cluster change detect
 	// Has changes
 	if !reflect.DeepEqual(cluster, clusterChangeDetect) {
 		err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
@@ -1168,7 +1161,6 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 		}
 	}
 
-	// TODO paused
 	if plan.Paused.ValueBool() {
 		clusterRequest := &matlas.AdvancedCluster{
 			Paused: pointy.Bool(true),
@@ -1309,12 +1301,8 @@ func (r *advancedClusterRS) ImportState(ctx context.Context, req resource.Import
 		"project_id":   u.GroupID,
 		"cluster_name": u.Name,
 	})
-	state := tfAdvancedClusterRSModel{
-		ID: types.StringValue(id),
-	}
 
-	diags := resp.State.Set(ctx, &state)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -1557,6 +1545,10 @@ func flattenAdvancedReplicationSpecRegionConfig_1(ctx context.Context, apiObject
 	tfMap.BackingProviderName = conversion.StringNullIfEmpty(apiObject.BackingProviderName)
 	tfMap.Priority = types.Int64Value(cast.ToInt64(apiObject.Priority))
 
+	if tfMap.BackingProviderName.IsNull() {
+		tfMap.BackingProviderName = types.StringValue("")
+	}
+
 	return &tfMap, diags
 }
 
@@ -1581,15 +1573,15 @@ func flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx context.Context, apiOb
 	if len(configRegionConfigSpecs) > 0 {
 		tfMapObject := configRegionConfigSpecs[0]
 
-		if providerName == "AWS" {
+		if providerName == "AWS" { // TODO add validation that provider is AWS only then these can be set in Creat/Update but we need to set during read
 			if cast.ToInt64(apiObject.DiskIOPS) > 0 {
 				tfMap.DiskIOPS = types.Int64PointerValue(apiObject.DiskIOPS)
-			} else {
-				tfMap.DiskIOPS = types.Int64Null()
+				// } else {
+				// 	tfMap.DiskIOPS = types.Int64Null()
 			}
-			if v := tfMapObject.EBSVolumeType; !v.IsNull() && v.ValueString() != "" {
-				tfMap.EBSVolumeType = types.StringValue(apiObject.EbsVolumeType)
-			}
+			//  if v := tfMapObject.EBSVolumeType; !v.IsNull() && v.ValueString() != "" {
+			tfMap.EBSVolumeType = conversion.StringNullIfEmpty(apiObject.EbsVolumeType)
+			//  }
 			// if v := tfMapObject.EBSVolumeType; !v.IsNull() && v.ValueString() != "" {
 			// 	tfMap.EBSVolumeType = types.StringValue("")
 			// }
@@ -1599,13 +1591,22 @@ func flattenAdvancedReplicationSpecRegionConfigSpec_1(ctx context.Context, apiOb
 		}
 		if v := tfMapObject.InstanceSize; !v.IsNull() && v.ValueString() != "" {
 			tfMap.InstanceSize = types.StringValue(apiObject.InstanceSize)
-			tfList = append(tfList, tfMap)
 		}
+		if tfMap.DiskIOPS.IsNull() {
+			tfMap.DiskIOPS = types.Int64Value(-1)
+		}
+		tfList = append(tfList, tfMap)
 	} else {
-		tfMap.DiskIOPS = types.Int64PointerValue(apiObject.DiskIOPS)
-		tfMap.EBSVolumeType = types.StringValue(apiObject.EbsVolumeType)
+		if providerName == "AWS" {
+			tfMap.DiskIOPS = types.Int64PointerValue(apiObject.DiskIOPS)
+			tfMap.EBSVolumeType = conversion.StringNullIfEmpty(apiObject.EbsVolumeType)
+		}
+
 		tfMap.NodeCount = types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiObject.NodeCount))
 		tfMap.InstanceSize = types.StringValue(apiObject.InstanceSize)
+		if tfMap.DiskIOPS.IsNull() {
+			tfMap.DiskIOPS = types.Int64Value(-1)
+		}
 		tfList = append(tfList, tfMap)
 	}
 
@@ -1629,8 +1630,8 @@ func flattenAdvancedReplicationSpecAutoScaling_1(ctx context.Context, apiObject 
 	if apiObject.Compute != nil {
 		tfMap.ComputeEnabled = types.BoolPointerValue(apiObject.Compute.Enabled)
 		tfMap.ComputeScaleDownEnabled = types.BoolPointerValue(apiObject.Compute.ScaleDownEnabled)
-		tfMap.ComputeMinInstanceSize = types.StringValue(apiObject.Compute.MinInstanceSize)
-		tfMap.ComputeMaxInstanceSize = types.StringValue(apiObject.Compute.MaxInstanceSize)
+		tfMap.ComputeMinInstanceSize = conversion.StringNullIfEmpty(apiObject.Compute.MinInstanceSize)
+		tfMap.ComputeMaxInstanceSize = conversion.StringNullIfEmpty(apiObject.Compute.MaxInstanceSize)
 	}
 
 	tfList = append(tfList, tfMap)
@@ -1876,7 +1877,7 @@ func newRegionConfig(ctx context.Context, tfRegionConfig *tfRegionsConfigModel) 
 	if v := tfRegionConfig.AnalyticsAutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
 		apiObject.AnalyticsAutoScaling = newRegionConfigAutoScalingSpec(ctx, v)
 	}
-	if v := tfRegionConfig.BackingProviderName; !v.IsNull() {
+	if v := tfRegionConfig.BackingProviderName; !v.IsNull() && v.ValueString() != "" {
 		apiObject.BackingProviderName = v.ValueString()
 	}
 
@@ -1936,7 +1937,7 @@ func newRegionConfigSpec(ctx context.Context, tfList basetypes.ListValue, provid
 	apiObject := &matlas.Specs{}
 
 	if providerName == "AWS" {
-		if v := spec.DiskIOPS; !v.IsUnknown() && v.ValueInt64() > 0 {
+		if v := spec.DiskIOPS; !v.IsNull() && v.ValueInt64() != -1 && !v.IsUnknown() && v.ValueInt64() > 0 {
 			apiObject.DiskIOPS = v.ValueInt64Pointer()
 		}
 		if v := spec.EBSVolumeType; !v.IsNull() {
