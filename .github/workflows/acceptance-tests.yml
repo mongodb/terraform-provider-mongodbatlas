@@ -480,9 +480,9 @@ jobs:
           MONGODB_ATLAS_BASE_URL: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_BASE_URL_QA || vars.MONGODB_ATLAS_BASE_URL }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_PROJECT_OWNER_ID_QA || vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
           MONGODB_ATLAS_USERNAME: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_USERNAME_CLOUD_QA || vars.MONGODB_ATLAS_USERNAME_CLOUD_DEV }}
-          AZURE_ATLAS_APP_ID: ${{vars.AZURE_ATLAS_APP_ID}}
-          AZURE_SERVICE_PRINCIPAL_ID: ${{vars.AZURE_SERVICE_PRINCIPAL_ID}}
-          AZURE_TENANT_ID: ${{vars.AZURE_TENANT_ID}}
+          AZURE_ATLAS_APP_ID: ${{ inputs.atlas_cloud_env == 'qa' && vars.AZURE_ATLAS_APP_ID_QA || vars.AZURE_ATLAS_APP_ID }}
+          AZURE_SERVICE_PRINCIPAL_ID: ${{ inputs.atlas_cloud_env == 'qa' && vars.AZURE_SERVICE_PRINCIPAL_ID_QA || vars.AZURE_SERVICE_PRINCIPAL_ID }}
+          AZURE_TENANT_ID: ${{ inputs.atlas_cloud_env == 'qa' && vars.AZURE_TENANT_ID_QA || vars.AZURE_TENANT_ID }}
           TEST_REGEX: "^TestAccConfig"
         run: make testacc
 
