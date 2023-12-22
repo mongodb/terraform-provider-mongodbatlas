@@ -806,7 +806,8 @@ func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *m
 		TerminationProtectionEnabled: types.BoolPointerValue(cluster.TerminationProtectionEnabled),
 		VersionReleaseSystem:         types.StringValue(cluster.VersionReleaseSystem),
 		AcceptDataRisksAndForceReplicaSetReconfig: conversion.StringNullIfEmpty(cluster.AcceptDataRisksAndForceReplicaSetReconfig),
-		ProjectID: types.StringValue(projectID),
+		ProjectID:            types.StringValue(projectID),
+		RetainBackupsEnabled: state.RetainBackupsEnabled,
 	}
 
 	clusterModel.ID = types.StringValue(conversion.EncodeStateID(map[string]string{
@@ -1479,9 +1480,9 @@ func newTfRegionsConfigSpec(ctx context.Context, apiObject *matlas.Specs, provid
 		if tfMap.NodeCount.IsNull() {
 			tfMap.NodeCount = types.Int64Value(defaultInt)
 		}
-		if tfMap.EBSVolumeType.IsNull() {
-			tfMap.EBSVolumeType = types.StringValue(defaultString)
-		}
+		// if tfMap.EBSVolumeType.IsNull() {
+		// 	tfMap.EBSVolumeType = types.StringValue(defaultString)
+		// }
 		tfList = append(tfList, tfMap)
 	} else {
 		tfMap.DiskIOPS = types.Int64PointerValue(apiObject.DiskIOPS)
@@ -1519,8 +1520,8 @@ func newTfRegionsConfigAutoScalingSpecs(ctx context.Context, apiObject *matlas.A
 	if apiObject.Compute != nil {
 		tfMap.ComputeEnabled = types.BoolPointerValue(apiObject.Compute.Enabled)
 		tfMap.ComputeScaleDownEnabled = types.BoolPointerValue(apiObject.Compute.ScaleDownEnabled)
-		tfMap.ComputeMinInstanceSize = conversion.StringNullIfEmpty(apiObject.Compute.MinInstanceSize)
-		tfMap.ComputeMaxInstanceSize = conversion.StringNullIfEmpty(apiObject.Compute.MaxInstanceSize)
+		tfMap.ComputeMinInstanceSize = types.StringValue(apiObject.Compute.MinInstanceSize)
+		tfMap.ComputeMaxInstanceSize = types.StringValue(apiObject.Compute.MaxInstanceSize)
 	}
 
 	tfList = append(tfList, tfMap)
