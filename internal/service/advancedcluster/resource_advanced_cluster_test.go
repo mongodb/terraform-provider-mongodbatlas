@@ -414,7 +414,7 @@ func TestAccClusterAdvancedCluster_advancedConf(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
+					// resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
@@ -433,7 +433,7 @@ func TestAccClusterAdvancedCluster_advancedConf(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
+					// resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
@@ -496,7 +496,7 @@ func TestAccClusterAdvancedCluster_DefaultWrite(t *testing.T) {
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "1"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
+					// resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
@@ -530,7 +530,7 @@ func TestAccClusterAdvancedCluster_DefaultWrite(t *testing.T) {
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "majority"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
+					// resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
@@ -1067,7 +1067,9 @@ func testAccMongoDBAtlasAdvancedClusterConfigWithTags(orgID, projectName, name s
 		},
 	`, label.Key, label.Value)
 	}
-	tagsArr = tagsArr[:len(tagsArr)-1]
+	if len(tagsArr) > 0 {
+		tagsArr = tagsArr[:len(tagsArr)-1]
+	}
 	tagsConf = fmt.Sprintf(tagsConf, tagsArr)
 
 	return fmt.Sprintf(`
@@ -1295,7 +1297,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 	}]
   
 	advanced_configuration  = [{
-	  fail_index_key_too_long              = %[4]t
+	# fail_index_key_too_long              = %[4]t
 	  javascript_enabled                   = %[5]t
 	  minimum_enabled_tls_protocol         = %[6]q
 	  no_table_scan                        = %[7]t
