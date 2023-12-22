@@ -21,8 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -43,7 +41,7 @@ import (
 const (
 	errorInvalidCreateValues = "Invalid values. Unable to CREATE advanced_cluster"
 	defaultTimeout           = (3 * time.Hour)
-	defaultInt               = -1
+	defaultInt               = 0
 	defaultString            = ""
 	defaultZoneName          = "ZoneName managed by Terraform"
 )
@@ -150,9 +148,9 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 			},
 			"name": schema.StringAttribute{
 				Required: true,
-				// PlanModifiers: []planmodifier.String{
-				// 	stringplanmodifier.RequiresReplace(),
-				// },
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"paused": schema.BoolAttribute{
 				Optional: true,
@@ -328,9 +326,10 @@ func advClusterRSConnectionStringSchemaComputed() schema.ListNestedAttribute {
 				},
 			},
 		},
-		PlanModifiers: []planmodifier.List{
-			listplanmodifier.UseStateForUnknown(),
-		},
+		// remove
+		// PlanModifiers: []planmodifier.List{
+		// 	listplanmodifier.UseStateForUnknown(),
+		// },
 	}
 }
 
@@ -363,9 +362,9 @@ func advClusterRSBiConnectorConfigSchema() schema.ListNestedAttribute {
 		Validators: []validator.List{
 			listvalidator.SizeAtMost(1),
 		},
-		PlanModifiers: []planmodifier.List{
-			listplanmodifier.UseStateForUnknown(),
-		},
+		// PlanModifiers: []planmodifier.List{
+		// 	listplanmodifier.UseStateForUnknown(),
+		// },
 	}
 }
 
@@ -456,9 +455,10 @@ func advClusterRSAdvancedConfigurationSchema() schema.ListNestedAttribute {
 		Validators: []validator.List{
 			listvalidator.SizeAtMost(1),
 		},
-		PlanModifiers: []planmodifier.List{
-			listplanmodifier.UseStateForUnknown(),
-		},
+		// remove
+		// PlanModifiers: []planmodifier.List{
+		// 	listplanmodifier.UseStateForUnknown(),
+		// },
 	}
 }
 
@@ -471,9 +471,15 @@ func advClusterRSReplicationSpecsSchema() schema.ListNestedAttribute {
 				"container_id": schema.MapAttribute{
 					ElementType: types.StringType,
 					Computed:    true,
+					// PlanModifiers: []planmodifier.Map{
+					// 	mapplanmodifier.UseStateForUnknown(),
+					// },
 				},
 				"id": schema.StringAttribute{
 					Computed: true,
+					// PlanModifiers: []planmodifier.String{
+					// 	stringplanmodifier.UseStateForUnknown(),
+					// },
 				},
 				"num_shards": schema.Int64Attribute{
 					Optional: true,
@@ -487,6 +493,9 @@ func advClusterRSReplicationSpecsSchema() schema.ListNestedAttribute {
 					Optional: true,
 					Computed: true,
 					// Default:  stringdefault.StaticString("ZoneName managed by Terraform"),
+					// PlanModifiers: []planmodifier.String{
+					// 	stringplanmodifier.UseStateForUnknown(),
+					// },
 				},
 				"region_configs": schema.ListNestedAttribute{
 					Optional: true,
@@ -496,9 +505,9 @@ func advClusterRSReplicationSpecsSchema() schema.ListNestedAttribute {
 							"backing_provider_name": schema.StringAttribute{
 								Optional: true,
 								Computed: true,
-								// PlanModifiers: []planmodifier.String{
-								// 	stringplanmodifier.UseStateForUnknown(),
-								// },
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.UseStateForUnknown(),
+								},
 							},
 							"priority": schema.Int64Attribute{
 								Required: true,
@@ -519,21 +528,21 @@ func advClusterRSReplicationSpecsSchema() schema.ListNestedAttribute {
 					Validators: []validator.List{
 						listvalidator.IsRequired(),
 					},
-					PlanModifiers: []planmodifier.List{
-						listplanmodifier.UseStateForUnknown(),
-					},
+					// PlanModifiers: []planmodifier.List{
+					// 	listplanmodifier.UseStateForUnknown(),
+					// },
 				},
 			},
-			PlanModifiers: []planmodifier.Object{
-				objectplanmodifier.UseStateForUnknown(),
-			},
+			// PlanModifiers: []planmodifier.Object{
+			// 	objectplanmodifier.UseStateForUnknown(),
+			// },
 		},
 		Validators: []validator.List{
 			listvalidator.IsRequired(),
 		},
-		PlanModifiers: []planmodifier.List{
-			listplanmodifier.UseStateForUnknown(),
-		},
+		// PlanModifiers: []planmodifier.List{
+		// 	listplanmodifier.UseStateForUnknown(),
+		// },
 	}
 }
 
@@ -572,9 +581,9 @@ func advClusterRSRegionConfigSpecsBlock() schema.ListNestedAttribute {
 		Validators: []validator.List{
 			listvalidator.SizeAtMost(1),
 		},
-		PlanModifiers: []planmodifier.List{
-			listplanmodifier.UseStateForUnknown(),
-		},
+		// PlanModifiers: []planmodifier.List{
+		// 	listplanmodifier.UseStateForUnknown(),
+		// },
 	}
 }
 
@@ -582,9 +591,9 @@ func advClusterRSRegionConfigAutoScalingSpecsBlock() schema.ListNestedAttribute 
 	return schema.ListNestedAttribute{
 		Optional: true,
 		Computed: true,
-		PlanModifiers: []planmodifier.List{
-			listplanmodifier.UseStateForUnknown(),
-		},
+		// PlanModifiers: []planmodifier.List{
+		// 	listplanmodifier.UseStateForUnknown(),
+		// },
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
 				"compute_enabled": schema.BoolAttribute{
@@ -958,13 +967,13 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	log.Printf("[DEBUG] GET ClusterAdvanced %+v", cluster)
-	newClusterModel, diags := newTfAdvClusterRSModel(ctx, conn, cluster, &plan, false)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
+	// newClusterModel, diags := newTfAdvClusterRSModel(ctx, conn, cluster, &plan, false)
+	// if diags.HasError() {
+	// 	resp.Diagnostics.Append(diags...)
+	// 	return
+	// }
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &newClusterModel)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func TPFgetUpgradeRequest(ctx context.Context, state, plan *tfAdvancedClusterRSModel) *matlas.Cluster {
@@ -1463,9 +1472,13 @@ func newTfRegionsConfigSpec(ctx context.Context, apiObject *matlas.Specs, provid
 			} else {
 				tfMap.DiskIOPS = types.Int64Null()
 			}
-			if v := tfMapObject.EBSVolumeType; !v.IsNull() && v.ValueString() != "" {
+			// if v := tfMapObject.EBSVolumeType; !v.IsNull() && v.ValueString() != "" {
+			// 	tfMap.EBSVolumeType = types.StringValue(apiObject.EbsVolumeType)
+			// }
+			if v := tfMapObject.EBSVolumeType; !v.IsNull() {
 				tfMap.EBSVolumeType = types.StringValue(apiObject.EbsVolumeType)
 			}
+
 		}
 		if v := tfMapObject.NodeCount; !v.IsNull() {
 			tfMap.NodeCount = types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiObject.NodeCount))
@@ -1474,30 +1487,30 @@ func newTfRegionsConfigSpec(ctx context.Context, apiObject *matlas.Specs, provid
 			tfMap.InstanceSize = types.StringValue(apiObject.InstanceSize)
 		}
 
-		if tfMap.DiskIOPS.IsNull() {
-			tfMap.DiskIOPS = types.Int64Value(defaultInt)
-		}
-		if tfMap.NodeCount.IsNull() {
-			tfMap.NodeCount = types.Int64Value(defaultInt)
-		}
-		if tfMap.EBSVolumeType.IsNull() {
-			tfMap.EBSVolumeType = types.StringValue(defaultString)
-		}
+		// if tfMap.DiskIOPS.IsNull() {
+		// 	tfMap.DiskIOPS = types.Int64Value(defaultInt)
+		// }
+		// if tfMap.NodeCount.IsNull() {
+		// 	tfMap.NodeCount = types.Int64Value(defaultInt)
+		// }
+		// if tfMap.EBSVolumeType.IsNull() {
+		// 	tfMap.EBSVolumeType = types.StringValue(defaultString)
+		// }
 		tfList = append(tfList, tfMap)
 	} else {
 		tfMap.DiskIOPS = types.Int64PointerValue(apiObject.DiskIOPS)
 		tfMap.EBSVolumeType = types.StringValue(apiObject.EbsVolumeType)
 		tfMap.NodeCount = types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiObject.NodeCount))
 		tfMap.InstanceSize = types.StringValue(apiObject.InstanceSize)
-		if tfMap.DiskIOPS.IsNull() {
-			tfMap.DiskIOPS = types.Int64Value(defaultInt)
-		}
-		if tfMap.NodeCount.IsNull() {
-			tfMap.NodeCount = types.Int64Value(defaultInt)
-		}
-		if tfMap.EBSVolumeType.IsNull() {
-			tfMap.EBSVolumeType = types.StringValue(defaultString)
-		}
+		// if tfMap.DiskIOPS.IsNull() {
+		// 	tfMap.DiskIOPS = types.Int64Value(defaultInt)
+		// }
+		// if tfMap.NodeCount.IsNull() {
+		// 	tfMap.NodeCount = types.Int64Value(defaultInt)
+		// }
+		// if tfMap.EBSVolumeType.IsNull() {
+		// 	tfMap.EBSVolumeType = types.StringValue(defaultString)
+		// }
 		tfList = append(tfList, tfMap)
 	}
 
