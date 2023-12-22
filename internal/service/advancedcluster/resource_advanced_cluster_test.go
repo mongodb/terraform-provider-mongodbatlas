@@ -1067,10 +1067,13 @@ func testAccMongoDBAtlasAdvancedClusterConfigWithTags(orgID, projectName, name s
 		},
 	`, label.Key, label.Value)
 	}
-	if len(tagsArr) > 0 {
+
+	if len(tags) > 0 {
 		tagsArr = tagsArr[:len(tagsArr)-1]
+		tagsConf = fmt.Sprintf(tagsConf, tagsArr)
+	} else {
+		tagsConf = ""
 	}
-	tagsConf = fmt.Sprintf(tagsConf, tagsArr)
 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {

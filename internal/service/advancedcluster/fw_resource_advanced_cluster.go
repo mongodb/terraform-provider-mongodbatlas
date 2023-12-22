@@ -505,9 +505,9 @@ func advClusterRSReplicationSpecsSchema() schema.ListNestedAttribute {
 							"backing_provider_name": schema.StringAttribute{
 								Optional: true,
 								Computed: true,
-								PlanModifiers: []planmodifier.String{
-									stringplanmodifier.UseStateForUnknown(),
-								},
+								// PlanModifiers: []planmodifier.String{
+								// 	stringplanmodifier.UseStateForUnknown(),
+								// },
 							},
 							"priority": schema.Int64Attribute{
 								Required: true,
@@ -967,13 +967,13 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	log.Printf("[DEBUG] GET ClusterAdvanced %+v", cluster)
-	// newClusterModel, diags := newTfAdvClusterRSModel(ctx, conn, cluster, &plan, false)
-	// if diags.HasError() {
-	// 	resp.Diagnostics.Append(diags...)
-	// 	return
-	// }
+	newClusterModel, diags := newTfAdvClusterRSModel(ctx, conn, cluster, &plan, false)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newClusterModel)...)
 }
 
 func TPFgetUpgradeRequest(ctx context.Context, state, plan *tfAdvancedClusterRSModel) *matlas.Cluster {
