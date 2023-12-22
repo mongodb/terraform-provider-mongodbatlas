@@ -1480,9 +1480,9 @@ func newTfRegionsConfigSpec(ctx context.Context, apiObject *matlas.Specs, provid
 		if tfMap.NodeCount.IsNull() {
 			tfMap.NodeCount = types.Int64Value(defaultInt)
 		}
-		// if tfMap.EBSVolumeType.IsNull() {
-		// 	tfMap.EBSVolumeType = types.StringValue(defaultString)
-		// }
+		if tfMap.EBSVolumeType.IsNull() {
+			tfMap.EBSVolumeType = types.StringValue(defaultString)
+		}
 		tfList = append(tfList, tfMap)
 	} else {
 		tfMap.DiskIOPS = types.Int64PointerValue(apiObject.DiskIOPS)
