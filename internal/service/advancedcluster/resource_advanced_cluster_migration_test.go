@@ -92,7 +92,8 @@ func TestAccMigrationAdvancedClusterRS_singleAWSProviderUpdate(t *testing.T) {
 				PlanOnly: true,
 			},
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
