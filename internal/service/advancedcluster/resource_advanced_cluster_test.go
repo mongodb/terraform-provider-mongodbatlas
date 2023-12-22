@@ -1236,21 +1236,21 @@ resource "mongodbatlas_advanced_cluster" "test" {
   cluster_type = "REPLICASET"
   paused       = %[4]t
 
-  replication_specs {
-    region_configs {
-      electable_specs {
+  replication_specs = [{
+    region_configs = [{
+      electable_specs = [{
         instance_size = %[5]q
         node_count    = 3
-      }
-      analytics_specs {
+      }]
+      analytics_specs = [{
         instance_size = "M10"
         node_count    = 1
-      }
+      }]
       provider_name = "AWS"
       priority      = 7
       region_name   = "US_EAST_1"
-    }
-  }
+    }]
+  }]
 }
 	`, orgID, projectName, name, paused, instanceSize)
 }
