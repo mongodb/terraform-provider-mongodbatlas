@@ -8,7 +8,7 @@ on:
         type: string
         required: false
       provider_version:
-        description: 'MongoDB Atlas Provider version to use, e.g. 1.13.1, empty for latest'     
+        description: 'Previous MongoDB Atlas Provider version to use, e.g. 1.14.0, empty for latest'     
         type: string
         required: false
       test_group:
@@ -22,7 +22,7 @@ on:
         type: string
         required: false
       provider_version:
-        description: 'MongoDB Atlas Provider version for running migration tests, empty for latest'     
+        description: 'Previous MongoDB Atlas Provider version to use, e.g. 1.14.0, empty for latest'     
         type: string
         required: false
 
