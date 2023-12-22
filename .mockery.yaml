@@ -8,6 +8,8 @@ mockname: "{{.InterfaceName}}"
 packages:
   ? github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment
   ? github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest
+  ? github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project
   : interfaces:
       DeploymentService:
       EarService:
+      GroupProjectService:
