@@ -245,6 +245,7 @@ func newTfRegionsConfigSpecsModel(apiSpecs *matlas.Specs, providerName string) [
 			tmp.DiskIOPS = types.Int64PointerValue(apiSpecs.DiskIOPS)
 			tmp.EBSVolumeType = conversion.StringNullIfEmpty(apiSpecs.InstanceSize)
 		}
+		res = append(res, tmp)
 	}
 
 	return res

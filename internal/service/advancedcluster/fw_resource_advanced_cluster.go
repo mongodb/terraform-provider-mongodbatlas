@@ -975,7 +975,7 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 
 	log.Printf("[DEBUG] GET ClusterAdvanced %+v", cluster)
 	newClusterModel, diags := newTfAdvClusterRSModel(ctx, conn, cluster, &plan, false)
-	newClusterModel.RetainBackupsEnabled = state.RetainBackupsEnabled
+	// newClusterModel.RetainBackupsEnabled = state.RetainBackupsEnabled
 
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)

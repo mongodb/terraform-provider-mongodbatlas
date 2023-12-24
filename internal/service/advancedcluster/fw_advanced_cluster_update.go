@@ -294,6 +294,9 @@ func updateCluster(ctx context.Context, conn *matlas.Client, state, plan *tfAdva
 	if isUpdatedBool(plan.Paused, state.Paused) {
 		cluster.Paused = plan.Paused.ValueBoolPointer()
 	}
+	// if isUpdatedBool(plan.RetainBackupsEnabled, state.RetainBackupsEnabled) {
+	// 	cluster.RetainBackupsEnabled = plan.RetainBackupsEnabled.ValueBoolPointer()
+	// }
 
 	if updated, newPlan, d := biConnectorConfigIfUpdated(ctx, plan.BiConnectorConfig, state.BiConnectorConfig); !d.HasError() && updated {
 		cluster.BiConnector = newPlan
