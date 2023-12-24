@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -99,9 +100,33 @@ func TestAccMigrationAdvancedClusterRS_singleAWSProviderUpdate(t *testing.T) {
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					// resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "cluster_type", "REPLICASET"),
+					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.read_preference", "secondary"),
+
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.container_id.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.zone_name", advancedcluster.DefaultZoneName),
+
+					resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", "M10"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.node_count", "3"),
+					resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.instance_size", "M10"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.node_count", "1"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.priority", "7"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.provider_name", "AWS"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.region_name", "US_EAST_1"),
+
+					resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.instance_size", "M10"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.node_count", "2"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.priority", "6"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.provider_name", "GCP"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.region_name", "NORTH_AMERICA_NORTHEAST_1"),
 				),
 			},
 			{
@@ -139,9 +164,33 @@ func TestAccMigrationAdvancedClusterRS_multiCloud(t *testing.T) {
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "cluster_type", "REPLICASET"),
+					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.read_preference", "secondary"),
+
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.container_id.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.zone_name", advancedcluster.DefaultZoneName),
+
+					resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", "M10"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.node_count", "3"),
+					resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.instance_size", "M10"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.node_count", "1"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.priority", "7"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.provider_name", "AWS"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.region_name", "US_EAST_1"),
+
+					resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.instance_size", "M10"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.node_count", "2"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.priority", "6"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.provider_name", "GCP"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.region_name", "NORTH_AMERICA_NORTHEAST_1"),
 				),
 			},
 			{
@@ -205,6 +254,10 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name         = %[3]q
   cluster_type = "REPLICASET"
   retain_backups_enabled = false
+
+  bi_connector_config {
+	enabled = true
+  }
 
   replication_specs {
     region_configs {

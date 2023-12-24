@@ -41,9 +41,9 @@ import (
 const (
 	errorInvalidCreateValues = "Invalid values. Unable to CREATE advanced_cluster"
 	defaultTimeout           = (3 * time.Hour)
-	defaultInt               = 0
-	defaultString            = ""
-	defaultZoneName          = "ZoneName managed by Terraform"
+	// defaultInt               = 0
+	defaultString   = ""
+	DefaultZoneName = "ZoneName managed by Terraform"
 )
 
 var _ resource.ResourceWithConfigure = &advancedClusterRS{}
@@ -783,7 +783,7 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// during READ, mongodb_major_version should match what is in the config
-	newClusterModel, diags := newTfAdvClusterRSModel(ctx, conn, cluster, &plan, false)
+	newClusterModel, diags := newTfAdvClusterRSModel(ctx, conn, cluster, &plan, true)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -793,7 +793,7 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newClusterModel)...)
 }
 
-func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *matlas.AdvancedCluster, state *tfAdvancedClusterRSModel, isImport bool) (*tfAdvancedClusterRSModel, diag.Diagnostics) {
+func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *matlas.AdvancedCluster, state *tfAdvancedClusterRSModel, isCreate bool) (*tfAdvancedClusterRSModel, diag.Diagnostics) {
 	var d, diags diag.Diagnostics
 	projectID := cluster.GroupID
 	name := cluster.Name
@@ -845,13 +845,20 @@ func newTfAdvClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *m
 	}
 	diags.Append(d...)
 
-	replicationSpecs, diags := newTfReplicationSpecsRS(ctx, conn, cluster.ReplicationSpecs, state.ReplicationSpecs, projectID)
-	diags.Append(d...)
+	// var repSpecs []tfReplicationSpecRSModel
+	// if isCreate{
+	// 	repSpecs, d = newTfReplicationSpecsRS(ctx, conn, cluster.ReplicationSpecs, types.ListNull(tfReplicationSpecRSType), projectID)
 
+	// }else{
+	// 	repSpecs, d = newTfReplicationSpecsRS(ctx, conn, cluster.ReplicationSpecs, state.ReplicationSpecs, projectID)
+
+	// }
+	repSpecs, d := newTfReplicationSpecsRS(ctx, conn, cluster.ReplicationSpecs, state.ReplicationSpecs, projectID)
+	diags.Append(d...)
 	if diags.HasError() {
 		return nil, diags
 	}
-	clusterModel.ReplicationSpecs, diags = types.ListValueFrom(ctx, tfReplicationSpecRSType, replicationSpecs)
+	clusterModel.ReplicationSpecs, diags = types.ListValueFrom(ctx, tfReplicationSpecRSType, repSpecs)
 	diags.Append(d...)
 
 	advancedConfiguration, err := NewTfAdvancedConfigurationModelDSFromAtlas(ctx, conn, projectID, name)
@@ -1558,11 +1565,11 @@ func newReplicationSpec(ctx context.Context, tfRepSpec *tfReplicationSpecRSModel
 
 	zoneName := tfRepSpec.ZoneName.ValueString()
 	if !conversion.IsStringPresent(&zoneName) {
-		zoneName = defaultZoneName
+		zoneName = DefaultZoneName
 	}
 	res := &matlas.AdvancedReplicationSpec{
 		NumShards:     int(tfRepSpec.NumShards.ValueInt64()),
-		ZoneName:      tfRepSpec.ZoneName.ValueString(),
+		ZoneName:      zoneName,
 		RegionConfigs: newRegionConfigs(ctx, tfRepSpec.RegionsConfigs),
 	}
 

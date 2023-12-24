@@ -88,48 +88,40 @@ func TPFgetUpgradeRequest(ctx context.Context, state, plan *tfAdvancedClusterRSM
 func biConnectorConfigIfUpdated(ctx context.Context, planVal, stateVal types.List) (bool, *matlas.BiConnector, diag.Diagnostics) {
 	var d diag.Diagnostics
 
-	// if planConfig.IsUnknown() && !stateConfig.IsUnknown() { // TODO see how API handles removed case if we send empty obj or object with null values - removed
-	// 	return true, newBiConnectorConfig(ctx, planConfig), d
-	// }
-
-	// if !planVal.IsUnknown() && !stateVal.IsUnknown() { // check if updated/added
 	var planConfig, stateConfig []TfBiConnectorConfigModel
-
 	planVal.ElementsAs(ctx, planConfig, false)
 	stateVal.ElementsAs(ctx, stateConfig, false)
 
-	updated, d := hasBiConnectorConfigUpdated(planConfig, stateConfig)
-	if d.HasError() || !updated {
-		return false, nil, d
+	if !planVal.IsUnknown() && !stateVal.IsUnknown() {
+		if updated, d := hasBiConnectorConfigUpdated(planConfig, stateConfig); d.HasError() || !updated {
+			return false, nil, d
+		}
+
+		// if certain attributes in the plan are unknown, we fetch those from the state to create complete object to send to the request
+		// while only using plan values for the updated/user configured attributes
+		if planConfig[0].Enabled.IsUnknown() {
+			planConfig[0].Enabled = stateConfig[0].Enabled
+		}
+		if planConfig[0].ReadPreference.IsUnknown() {
+			planConfig[0].ReadPreference = stateConfig[0].ReadPreference
+		}
+
+		updatedPlan, d := types.ListValueFrom(ctx, TfBiConnectorConfigType, planConfig)
+		if d.HasError() {
+			return false, nil, d
+		}
+
+		return true, newBiConnectorConfig(ctx, updatedPlan), d
 	}
 
-	// if removed
-	if len(planConfig) == 0 && len(stateConfig) == 1 {
-		return true, &matlas.BiConnector{}, d
-	}
-
-	// if certain attributes in the plan are unknown, we fetch those from the state to create complete object to send to the request
-	// while only using plan values for the updated/user configured attributes
-	if planConfig[0].Enabled.IsUnknown() {
-		planConfig[0].Enabled = stateConfig[0].Enabled
-	}
-	if planConfig[0].ReadPreference.IsUnknown() {
-		planConfig[0].ReadPreference = stateConfig[0].ReadPreference
-	}
-
-	updatedPlan, d := types.ListValueFrom(ctx, TfBiConnectorConfigType, planConfig)
-	if d.HasError() {
-		return false, nil, d
-	}
-
-	return true, newBiConnectorConfig(ctx, updatedPlan), d
+	return false, nil, d
 }
 
 func hasBiConnectorConfigUpdated(planConfig, stateConfig []TfBiConnectorConfigModel) (bool, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	if len(planConfig) != len(stateConfig) {
-		return true, diags
+	if len(planConfig) < 1 || len(stateConfig) < 1 {
+		return false, diags
 	}
 
 	pc := planConfig[0]
@@ -149,69 +141,74 @@ func advancedConfigIfUpdated(ctx context.Context, planVal, stateVal types.List) 
 	var d diag.Diagnostics
 
 	var planConfig, stateConfig []TfAdvancedConfigurationModel
-
 	planVal.ElementsAs(ctx, planConfig, false)
 	stateVal.ElementsAs(ctx, stateConfig, false)
 
-	updated, d := hasAdvancedConfigUpdated(planConfig, stateConfig)
-	if d.HasError() || !updated {
-		return false, nil, d
-	}
+	// updated, d := hasAdvancedConfigUpdated(planConfig, stateConfig)
+	// if d.HasError() || !updated {
+	// 	return false, nil, d
+	// }
 
 	// if removed
-	if len(planConfig) == 0 && len(stateConfig) == 1 {
-		return true, &matlas.ProcessArgs{}, d
-	}
+	// if len(planConfig) == 0 && len(stateConfig) == 1 {
+	// 	return true, &matlas.ProcessArgs{}, d
+	// }
 
-	// if certain attributes in the plan are unknown, we fetch those from the state to create complete object to send to the request
-	// while only using plan values for the updated/user configured attributes
-	if planConfig[0].DefaultReadConcern.IsUnknown() {
-		planConfig[0].DefaultReadConcern = stateConfig[0].DefaultReadConcern
-	}
-	if planConfig[0].DefaultWriteConcern.IsUnknown() {
-		planConfig[0].DefaultWriteConcern = stateConfig[0].DefaultWriteConcern
-	}
-	if planConfig[0].FailIndexKeyTooLong.IsUnknown() {
-		planConfig[0].FailIndexKeyTooLong = stateConfig[0].FailIndexKeyTooLong
-	}
-	if planConfig[0].JavascriptEnabled.IsUnknown() {
-		planConfig[0].JavascriptEnabled = stateConfig[0].JavascriptEnabled
-	}
-	if planConfig[0].MinimumEnabledTLSProtocol.IsUnknown() {
-		planConfig[0].MinimumEnabledTLSProtocol = stateConfig[0].MinimumEnabledTLSProtocol
-	}
-	if planConfig[0].NoTableScan.IsUnknown() {
-		planConfig[0].NoTableScan = stateConfig[0].NoTableScan
-	}
-	if planConfig[0].SampleSizeBiConnector.IsUnknown() {
-		planConfig[0].SampleSizeBiConnector = stateConfig[0].SampleSizeBiConnector
-	}
-	if planConfig[0].SampleRefreshIntervalBiConnector.IsUnknown() {
-		planConfig[0].SampleRefreshIntervalBiConnector = stateConfig[0].SampleRefreshIntervalBiConnector
-	}
-	if planConfig[0].OplogSizeMB.IsUnknown() {
-		planConfig[0].OplogSizeMB = stateConfig[0].OplogSizeMB
-	}
-	if planConfig[0].OplogMinRetentionHours.IsNull() {
-		planConfig[0].OplogMinRetentionHours = stateConfig[0].OplogMinRetentionHours
-	}
-	if planConfig[0].TransactionLifetimeLimitSeconds.IsUnknown() {
-		planConfig[0].TransactionLifetimeLimitSeconds = stateConfig[0].TransactionLifetimeLimitSeconds
-	}
+	if !planVal.IsUnknown() && !stateVal.IsUnknown() {
+		if updated, d := hasAdvancedConfigUpdated(planConfig, stateConfig); d.HasError() || !updated {
+			return false, nil, d
+		}
+		// if certain attributes in the plan are unknown, we fetch those from the state to create complete object to send to the request
+		// while only using plan values for the updated/user configured attributes
+		if planConfig[0].DefaultReadConcern.IsUnknown() {
+			planConfig[0].DefaultReadConcern = stateConfig[0].DefaultReadConcern
+		}
+		if planConfig[0].DefaultWriteConcern.IsUnknown() {
+			planConfig[0].DefaultWriteConcern = stateConfig[0].DefaultWriteConcern
+		}
+		if planConfig[0].FailIndexKeyTooLong.IsUnknown() {
+			planConfig[0].FailIndexKeyTooLong = stateConfig[0].FailIndexKeyTooLong
+		}
+		if planConfig[0].JavascriptEnabled.IsUnknown() {
+			planConfig[0].JavascriptEnabled = stateConfig[0].JavascriptEnabled
+		}
+		if planConfig[0].MinimumEnabledTLSProtocol.IsUnknown() {
+			planConfig[0].MinimumEnabledTLSProtocol = stateConfig[0].MinimumEnabledTLSProtocol
+		}
+		if planConfig[0].NoTableScan.IsUnknown() {
+			planConfig[0].NoTableScan = stateConfig[0].NoTableScan
+		}
+		if planConfig[0].SampleSizeBiConnector.IsUnknown() {
+			planConfig[0].SampleSizeBiConnector = stateConfig[0].SampleSizeBiConnector
+		}
+		if planConfig[0].SampleRefreshIntervalBiConnector.IsUnknown() {
+			planConfig[0].SampleRefreshIntervalBiConnector = stateConfig[0].SampleRefreshIntervalBiConnector
+		}
+		if planConfig[0].OplogSizeMB.IsUnknown() {
+			planConfig[0].OplogSizeMB = stateConfig[0].OplogSizeMB
+		}
+		if planConfig[0].OplogMinRetentionHours.IsNull() {
+			planConfig[0].OplogMinRetentionHours = stateConfig[0].OplogMinRetentionHours
+		}
+		if planConfig[0].TransactionLifetimeLimitSeconds.IsUnknown() {
+			planConfig[0].TransactionLifetimeLimitSeconds = stateConfig[0].TransactionLifetimeLimitSeconds
+		}
 
-	updatedPlan, d := types.ListValueFrom(ctx, tfAdvancedConfigurationType, planConfig)
-	if d.HasError() {
-		return true, nil, d
-	}
+		updatedPlan, d := types.ListValueFrom(ctx, tfAdvancedConfigurationType, planConfig)
+		if d.HasError() {
+			return true, nil, d
+		}
 
-	return true, newAdvancedConfiguration(ctx, updatedPlan), d
+		return true, newAdvancedConfiguration(ctx, updatedPlan), d
+	}
+	return false, nil, d
 }
 
 func hasAdvancedConfigUpdated(planConfig, stateConfig []TfAdvancedConfigurationModel) (bool, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	if len(planConfig) != len(stateConfig) {
-		return true, diags
+	if len(planConfig) < 1 || len(stateConfig) < 1 {
+		return false, diags
 	}
 
 	pc := planConfig[0]
@@ -515,7 +512,7 @@ func hasReplicationSpecUpdated(ctx context.Context, planRepSpec, stateRepSpec *t
 		hasUpdated = hasUpdated || planRepSpec.ZoneName.Equal(stateRepSpec.ZoneName)
 
 		// if user has NOT defined zone_name in config, we set it to defaultZoneName during create so we check against that:
-	} else if planRepSpec.ZoneName.IsUnknown() && stateRepSpec.ZoneName.ValueString() != defaultZoneName {
+	} else if planRepSpec.ZoneName.IsUnknown() && stateRepSpec.ZoneName.ValueString() != DefaultZoneName {
 		return true, diags
 	}
 
