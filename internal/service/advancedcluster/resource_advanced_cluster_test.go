@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strconv"
 	"testing"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -17,8 +18,17 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
+
+func flattenTestCheckFuncs(slices ...[]resource.TestCheckFunc) []resource.TestCheckFunc {
+	var flattened []resource.TestCheckFunc
+	for _, slice := range slices {
+		flattened = append(flattened, slice...)
+	}
+	return flattened
+}
 
 func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 	var (
@@ -30,6 +40,9 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 		projectName            = acctest.RandomWithPrefix("test-acc")
 		rName                  = acctest.RandomWithPrefix("test-acc")
 		rNameUpdated           = acctest.RandomWithPrefix("test-acc")
+		// checkFuncs = flattenTestCheckFuncs(testAccClusterAdvancedClusterTestCheckFuncsBasicTenant(&cluster, resourceName, dataSourceName, dataSourceClustersName, rName),
+		// resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.provider_name", "TENANT"))
+
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -41,7 +54,6 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 				Config: testAccMongoDBAtlasAdvancedClusterConfigTenant(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccClusterAdvancedClusterTestCheckFuncsBasicTenant(&cluster, resourceName, dataSourceName, dataSourceClustersName, rName)...,
-				// resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.provider_name", "TENANT")...,
 				),
 			},
 			{
@@ -52,10 +64,11 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: acc.ImportStateClusterIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       acc.ImportStateClusterIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"replication_specs"},
 			},
 		},
 	})
@@ -121,9 +134,49 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 		resourceName   = "mongodbatlas_advanced_cluster.test"
 		dataSourceName = fmt.Sprintf("data.%s", resourceName)
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acctest.RandomWithPrefix("test-acc")
-		rName          = acctest.RandomWithPrefix("test-acc")
+		// projectName       = acctest.RandomWithPrefix("test-acc")
+		// rName             = acctest.RandomWithPrefix("test-acc")
+		testRepSpecs      = []*matlas.AdvancedReplicationSpec{}
+		testRegionConfigs = []*matlas.AdvancedRegionConfig{}
 	)
+
+	testRegionConfigs = append(testRegionConfigs, &matlas.AdvancedRegionConfig{
+		ElectableSpecs: &matlas.Specs{
+			NodeCount:    pointy.Int(3),
+			InstanceSize: "M10",
+		},
+		AnalyticsSpecs: &matlas.Specs{
+			NodeCount:    pointy.Int(1),
+			InstanceSize: "M10",
+		},
+		ProviderName: "AWS",
+		RegionName:   "US_EAST_1",
+		Priority:     pointy.Int(7),
+	})
+	testRegionConfigs = append(testRegionConfigs, &matlas.AdvancedRegionConfig{
+		ElectableSpecs: &matlas.Specs{
+			NodeCount:    pointy.Int(2),
+			InstanceSize: "M10",
+		},
+		ProviderName: "GCP",
+		RegionName:   "NORTH_AMERICA_NORTHEAST_1",
+		Priority:     pointy.Int(6),
+	})
+	testRepSpecs = append(testRepSpecs, &matlas.AdvancedReplicationSpec{
+		// NumShards:     1,
+		ZoneName:      advancedcluster.DefaultZoneName,
+		RegionConfigs: testRegionConfigs,
+	})
+	testObj := matlas.AdvancedCluster{
+		GroupID:     acctest.RandomWithPrefix("test-acc"),
+		Name:        acctest.RandomWithPrefix("test-acc"),
+		ClusterType: "REPLICASET",
+		BiConnector: &matlas.BiConnector{
+			Enabled:        pointy.Bool(false),
+			ReadPreference: "secondary",
+		},
+		ReplicationSpecs: testRepSpecs,
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -131,29 +184,72 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProvider(orgID, projectName, rName),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProvider(orgID, testObj.GroupID, testObj.Name, &testObj),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, testObj.Name),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", testObj.Name),
+					resource.TestCheckResourceAttr(resourceName, "cluster_type", testObj.ClusterType),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.enabled", strconv.FormatBool(*testObj.BiConnector.Enabled)),
+					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.read_preference", testObj.BiConnector.ReadPreference),
+
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+
 					resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", testObj.ReplicationSpecs[0].RegionConfigs[0].ElectableSpecs.InstanceSize),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.node_count",
+						strconv.Itoa(*testObj.ReplicationSpecs[0].RegionConfigs[0].ElectableSpecs.NodeCount)),
+					resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.instance_size", testObj.ReplicationSpecs[0].RegionConfigs[0].AnalyticsSpecs.InstanceSize),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.node_count",
+						strconv.Itoa(*testObj.ReplicationSpecs[0].RegionConfigs[0].AnalyticsSpecs.NodeCount)),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.priority", strconv.Itoa(*testRegionConfigs[0].Priority)),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.provider_name", testRegionConfigs[0].ProviderName),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.region_name", testRegionConfigs[0].RegionName),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.zone_name", testRepSpecs[0].ZoneName),
+
 					resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, testObj.GroupID, testObj.Name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, testObj.Name),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "name", testObj.Name),
+					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.enabled", strconv.FormatBool(*testObj.BiConnector.Enabled)),
+					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.read_preference", testObj.BiConnector.ReadPreference),
+
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.zone_name", testRepSpecs[0].ZoneName),
+
+					resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", testObj.ReplicationSpecs[0].RegionConfigs[0].ElectableSpecs.InstanceSize),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.node_count",
+						strconv.Itoa(*testObj.ReplicationSpecs[0].RegionConfigs[0].ElectableSpecs.NodeCount)),
+					resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.instance_size", testObj.ReplicationSpecs[0].RegionConfigs[0].AnalyticsSpecs.InstanceSize),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.node_count",
+						strconv.Itoa(*testObj.ReplicationSpecs[0].RegionConfigs[0].AnalyticsSpecs.NodeCount)),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.priority", strconv.Itoa(*testRegionConfigs[0].Priority)),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.provider_name", testRegionConfigs[0].ProviderName),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.region_name", testRegionConfigs[0].RegionName),
+
+					resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.instance_size", testObj.ReplicationSpecs[0].RegionConfigs[1].ElectableSpecs.InstanceSize),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.node_count",
+						strconv.Itoa(*testObj.ReplicationSpecs[0].RegionConfigs[1].ElectableSpecs.NodeCount)),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.priority", strconv.Itoa(*testRegionConfigs[1].Priority)),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.provider_name", testRegionConfigs[1].ProviderName),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.region_name", testRegionConfigs[1].RegionName),
 				),
 			},
 			{
@@ -1126,22 +1222,22 @@ resource "mongodbatlas_project" "cluster_project" {
 resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = mongodbatlas_project.cluster_project.id
   name         = %[3]q
-  cluster_type = "REPLICASET"
+  cluster_type =  %[4]q
   retain_backups_enabled = "true"
 
   replication_specs = [{
     region_configs = [{
       electable_specs = [{
-        instance_size = "M10"
-        node_count    = 3
+        instance_size = %[5]q
+        node_count    = %[6]q
       }]
       analytics_specs = [{
-        instance_size = "M10"
-        node_count    = 1
+        instance_size = %[7]q
+        node_count    = %[8]q
       }]
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
+      provider_name = %[9]q
+      priority      = %[10]q
+      region_name   = %[11]q
     }]
   }]
 }
@@ -1150,7 +1246,7 @@ data "mongodbatlas_advanced_cluster" "test" {
 	name 	     = mongodbatlas_advanced_cluster.test.name
 }
 
-	`, orgID, projectName, name)
+	`, orgID, testObj.GroupID, testObj.Name, testObj.ClusterType)
 }
 
 func testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, name string) string {
