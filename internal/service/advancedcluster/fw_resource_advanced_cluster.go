@@ -908,7 +908,7 @@ func (r *advancedClusterRS) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	if !isImport {
-		newClusterModel.MongoDBMajorVersion = state.MongoDBMajorVersion
+		// newClusterModel.MongoDBMajorVersion = state.MongoDBMajorVersion
 	}
 
 	// save updated data into terraform state
@@ -968,6 +968,8 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 
 	log.Printf("[DEBUG] GET ClusterAdvanced %+v", cluster)
 	newClusterModel, diags := newTfAdvClusterRSModel(ctx, conn, cluster, &plan, false)
+	newClusterModel.RetainBackupsEnabled = state.RetainBackupsEnabled
+
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -1005,6 +1007,161 @@ func TPFgetUpgradeRequest(ctx context.Context, state, plan *tfAdvancedClusterRSM
 	}
 }
 
+// 1. for O/C attributes plan values will be unknown unless
+// they are in the config or have been updated
+// 2. Optional attributes if not configured will be unknown in the plan
+// 3. Required or attributes with default values will be known in the plan
+// 4. Computed attributes will be unknown in the plan, and can't be updated by us anyway, so we don't need to check for them
+func isUpdatedStr(p, s types.String) bool {
+	if !p.IsUnknown() && !p.IsNull() && !s.IsUnknown() && !s.IsNull() {
+		return p.ValueString() != s.ValueString()
+	}
+	return false
+}
+
+func isUpdatedOptionalStr(p, s types.String) bool {
+	isPlanValPresent := !p.IsUnknown() && !p.IsNull()
+	isStateValPresent := !s.IsUnknown() && !s.IsNull()
+
+	if (isPlanValPresent && !isStateValPresent) || (!isPlanValPresent && isStateValPresent) {
+		if isPlanValPresent && isStateValPresent {
+			return p.ValueString() != s.ValueString()
+		}
+		return true
+	}
+	return false
+}
+
+// func isUpdatedInt64(p, s types.Int64) bool {
+// 	if !p.IsUnknown() && !p.IsNull() && !s.IsUnknown() && !s.IsNull() {
+// 		return p.ValueInt64() != s.ValueInt64()
+// 	}
+// 	return false
+// }
+
+func isUpdatedBool(p, s types.Bool) bool {
+	if !p.IsUnknown() && !p.IsNull() && !s.IsUnknown() && !s.IsNull() {
+		return p.ValueBool() != s.ValueBool()
+	}
+	return false
+}
+
+func isUpdatedFloat(p, s types.Float64) bool {
+	if !p.IsUnknown() && !p.IsNull() && !s.IsUnknown() {
+		return p.ValueFloat64() != s.ValueFloat64()
+	}
+	return false
+}
+
+func isReplicationSpecUpdated(planSpecs, stateSpecs types.List) bool {
+	if planSpecs.IsUnknown() {
+		return false
+	}
+	var updated bool
+	if !planSpecs.IsUnknown() && !planSpecs.IsNull() && !stateSpecs.IsUnknown() {
+	}
+	return updated
+}
+
+func biConnectorConfigIfUpdated(ctx context.Context, planVal, stateVal types.List) (bool, *matlas.BiConnector, diag.Diagnostics) {
+	var d diag.Diagnostics
+
+	// if planConfig.IsUnknown() && !stateConfig.IsUnknown() { // TODO see how API handles removed case if we send empty obj or object with null values - removed
+	// 	return true, newBiConnectorConfig(ctx, planConfig), d
+	// }
+
+	if !planVal.IsUnknown() && !stateVal.IsUnknown() { // check if updated/added
+		var planConfig, stateConfig []TfBiConnectorConfigModel
+
+		planVal.ElementsAs(ctx, planConfig, false)
+		stateVal.ElementsAs(ctx, stateConfig, false)
+
+		if !reflect.DeepEqual(planConfig, stateConfig) {
+			// if certain attributes in the plan are unknown, we fetch those from the state to create complete object to send to the request
+			// while only using plan values for the updated/user configured attributes
+			if planConfig[0].Enabled.IsUnknown() {
+				planConfig[0].Enabled = stateConfig[0].Enabled
+			}
+			if planConfig[0].ReadPreference.IsUnknown() {
+				planConfig[0].ReadPreference = stateConfig[0].ReadPreference
+			}
+
+			updatedPlan, d := types.ListValueFrom(ctx, TfBiConnectorConfigType, planConfig)
+			if d.HasError() {
+				return true, nil, d
+			}
+
+			return true, newBiConnectorConfig(ctx, updatedPlan), d
+		}
+		return false, nil, d
+	}
+
+	return false, nil, d
+}
+
+func advancedConfigIfUpdated(ctx context.Context, planVal, stateVal types.List) (bool, *matlas.ProcessArgs, diag.Diagnostics) {
+	var d diag.Diagnostics
+
+	// if planConfig.IsUnknown() && !stateConfig.IsUnknown() { // if removed
+	// 	return true, newAdvancedConfiguration(ctx, planConfig, true), d
+	// }
+
+	if !planVal.IsUnknown() && !stateVal.IsUnknown() { // if updated/added
+		var planConfig, stateConfig []TfAdvancedConfigurationModel
+
+		planVal.ElementsAs(ctx, planConfig, false)
+		stateVal.ElementsAs(ctx, stateConfig, false)
+
+		if !reflect.DeepEqual(planConfig, stateConfig) {
+			// if certain attributes in the plan are unknown, we fetch those from the state to create complete object to send to the request
+			// while only using plan values for the updated/user configured attributes
+			if planConfig[0].DefaultReadConcern.IsUnknown() {
+				planConfig[0].DefaultReadConcern = stateConfig[0].DefaultReadConcern
+			}
+			if planConfig[0].DefaultWriteConcern.IsUnknown() {
+				planConfig[0].DefaultWriteConcern = stateConfig[0].DefaultWriteConcern
+			}
+			if planConfig[0].FailIndexKeyTooLong.IsUnknown() {
+				planConfig[0].FailIndexKeyTooLong = stateConfig[0].FailIndexKeyTooLong
+			}
+			if planConfig[0].JavascriptEnabled.IsUnknown() {
+				planConfig[0].JavascriptEnabled = stateConfig[0].JavascriptEnabled
+			}
+			if planConfig[0].MinimumEnabledTLSProtocol.IsUnknown() {
+				planConfig[0].MinimumEnabledTLSProtocol = stateConfig[0].MinimumEnabledTLSProtocol
+			}
+			if planConfig[0].NoTableScan.IsUnknown() {
+				planConfig[0].NoTableScan = stateConfig[0].NoTableScan
+			}
+			if planConfig[0].SampleSizeBiConnector.IsUnknown() {
+				planConfig[0].SampleSizeBiConnector = stateConfig[0].SampleSizeBiConnector
+			}
+			if planConfig[0].SampleRefreshIntervalBiConnector.IsUnknown() {
+				planConfig[0].SampleRefreshIntervalBiConnector = stateConfig[0].SampleRefreshIntervalBiConnector
+			}
+			if planConfig[0].OplogSizeMB.IsUnknown() {
+				planConfig[0].OplogSizeMB = stateConfig[0].OplogSizeMB
+			}
+			if planConfig[0].OplogMinRetentionHours.IsUnknown() {
+				planConfig[0].OplogMinRetentionHours = stateConfig[0].OplogMinRetentionHours
+			}
+			if planConfig[0].TransactionLifetimeLimitSeconds.IsUnknown() {
+				planConfig[0].TransactionLifetimeLimitSeconds = stateConfig[0].TransactionLifetimeLimitSeconds
+			}
+
+			updatedPlan, d := types.ListValueFrom(ctx, tfAdvancedConfigurationType, planConfig)
+			if d.HasError() {
+				return true, nil, d
+			}
+
+			return true, newAdvancedConfiguration(ctx, updatedPlan), d
+		}
+		return false, nil, d
+	}
+
+	return false, nil, d
+}
+
 func updateCluster(ctx context.Context, conn *matlas.Client, state, plan *tfAdvancedClusterRSModel, timeout time.Duration) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -1015,27 +1172,46 @@ func updateCluster(ctx context.Context, conn *matlas.Client, state, plan *tfAdva
 	cluster := new(matlas.AdvancedCluster)
 	clusterChangeDetect := new(matlas.AdvancedCluster)
 
-	if !plan.BackupEnabled.Equal(state.BackupEnabled) {
+	if isUpdatedBool(plan.BackupEnabled, state.BackupEnabled) {
 		cluster.BackupEnabled = plan.BackupEnabled.ValueBoolPointer()
 	}
-
-	if !reflect.DeepEqual(plan.BiConnectorConfig, state.BiConnectorConfig) {
-		cluster.BiConnector = newBiConnectorConfig(ctx, plan.BiConnectorConfig)
-	}
-
-	if !plan.ClusterType.Equal(state.ClusterType) {
+	if isUpdatedStr(plan.ClusterType, state.ClusterType) {
 		cluster.ClusterType = plan.ClusterType.ValueString()
 	}
-	if !plan.BackupEnabled.Equal(state.BackupEnabled) {
-		cluster.BackupEnabled = plan.BackupEnabled.ValueBoolPointer()
-	}
-	if !plan.DiskSizeGb.Equal(state.DiskSizeGb) {
+	if isUpdatedFloat(plan.DiskSizeGb, state.DiskSizeGb) {
 		cluster.DiskSizeGB = plan.DiskSizeGb.ValueFloat64Pointer()
 	}
-	if !plan.EncryptionAtRestProvider.Equal(state.EncryptionAtRestProvider) {
+	if isUpdatedStr(plan.EncryptionAtRestProvider, state.EncryptionAtRestProvider) {
 		cluster.EncryptionAtRestProvider = plan.EncryptionAtRestProvider.ValueString()
 	}
 
+	// TODO
+	if !plan.MongoDBMajorVersion.Equal(state.MongoDBMajorVersion) {
+		cluster.MongoDBMajorVersion = utility.FormatMongoDBMajorVersion(plan.MongoDBMajorVersion.ValueString())
+	}
+
+	if isUpdatedBool(plan.PitEnabled, state.PitEnabled) {
+		cluster.PitEnabled = plan.PitEnabled.ValueBoolPointer()
+	}
+
+	if isUpdatedStr(plan.RootCertType, state.RootCertType) {
+		cluster.RootCertType = plan.RootCertType.ValueString()
+	}
+	if isUpdatedBool(plan.TerminationProtectionEnabled, state.TerminationProtectionEnabled) {
+		cluster.TerminationProtectionEnabled = plan.TerminationProtectionEnabled.ValueBoolPointer()
+	}
+	if isUpdatedOptionalStr(plan.AcceptDataRisksAndForceReplicaSetReconfig, state.AcceptDataRisksAndForceReplicaSetReconfig) {
+		cluster.AcceptDataRisksAndForceReplicaSetReconfig = plan.AcceptDataRisksAndForceReplicaSetReconfig.ValueString()
+	}
+	if isUpdatedBool(plan.Paused, state.Paused) {
+		cluster.Paused = plan.Paused.ValueBoolPointer()
+	}
+
+	if updated, newPlan, d := biConnectorConfigIfUpdated(ctx, plan.BiConnectorConfig, state.BiConnectorConfig); !d.HasError() && updated {
+		cluster.BiConnector = newPlan
+	}
+
+	// Labels is optional so state/plan will either be null or known
 	if !reflect.DeepEqual(plan.Labels, state.Labels) {
 		if ContainsLabelOrKey(newLabels(ctx, plan.Labels), defaultLabel) {
 			diags.AddError("Unable to UPDATE cluster. An error occurred when updating labels.", "you should not set `Infrastructure Tool` label, it is used for internal purposes")
@@ -1044,59 +1220,44 @@ func updateCluster(ctx context.Context, conn *matlas.Client, state, plan *tfAdva
 		cluster.Labels = newLabels(ctx, plan.Labels)
 	}
 
+	// Labels is optional so state/plan will either be null or known
 	if !reflect.DeepEqual(plan.Tags, state.Tags) {
 		cluster.Tags = newTags(ctx, plan.Tags)
 	}
 
-	if !plan.MongoDBMajorVersion.Equal(state.MongoDBMajorVersion) {
-		cluster.MongoDBMajorVersion = utility.FormatMongoDBMajorVersion(plan.MongoDBMajorVersion.ValueString())
-	}
-	if !plan.PitEnabled.Equal(state.PitEnabled) {
-		cluster.PitEnabled = plan.PitEnabled.ValueBoolPointer()
+	if updated, newPlan, d := replicationSpecsIfUpdated(ctx, plan.ReplicationSpecs, state.ReplicationSpecs); !d.HasError() && updated {
+		cluster.ReplicationSpecs = newPlan
 	}
 
-	var tfRepSpecsPlan, tfRepSpecsState []tfReplicationSpecRSModel
+	// var tfRepSpecsPlan, tfRepSpecsState []tfReplicationSpecRSModel
+	// if isReplicationSpecUpdated(plan.ReplicationSpecs, state.ReplicationSpecs) {
+	// 	// TODO remove:
+	// 	plan.ReplicationSpecs.ElementsAs(ctx, &tfRepSpecsPlan, true)
+	// 	state.ReplicationSpecs.ElementsAs(ctx, &tfRepSpecsState, true)
 
-	if !reflect.DeepEqual(plan.ReplicationSpecs, state.ReplicationSpecs) {
-		// TODO remove:
-		plan.ReplicationSpecs.ElementsAs(ctx, &tfRepSpecsPlan, true)
-		state.ReplicationSpecs.ElementsAs(ctx, &tfRepSpecsState, true)
+	// 	if !reflect.DeepEqual(tfRepSpecsPlan, tfRepSpecsState) {
+	// 		if !reflect.DeepEqual(tfRepSpecsPlan[0].RegionsConfigs, tfRepSpecsState[0].RegionsConfigs) {
+	// 			var tfRegionConfigsPlan, tfRegionConfigsState []tfRegionsConfigModel
+	// 			tfRepSpecsPlan[0].RegionsConfigs.ElementsAs(ctx, &tfRegionConfigsPlan, true)
+	// 			tfRepSpecsState[0].RegionsConfigs.ElementsAs(ctx, &tfRegionConfigsState, true)
+	// 		}
+	// 	}
+	// 	cluster.ReplicationSpecs = newReplicationSpecs(ctx, plan.ReplicationSpecs)
+	// }
 
-		if !reflect.DeepEqual(tfRepSpecsPlan, tfRepSpecsState) {
-			if !reflect.DeepEqual(tfRepSpecsPlan[0].RegionsConfigs, tfRepSpecsState[0].RegionsConfigs) {
-				var tfRegionConfigsPlan, tfRegionConfigsState []tfRegionsConfigModel
-				tfRepSpecsPlan[0].RegionsConfigs.ElementsAs(ctx, &tfRegionConfigsPlan, true)
-				tfRepSpecsState[0].RegionsConfigs.ElementsAs(ctx, &tfRegionConfigsState, true)
-			}
+	// TODO add comment in PR:
+	// This logic has been updated from SDKv2 implementation where if the user removes advanced_confgiuration block
+	// we would not call Update API, instead, now we send empty request object with all null values so API can reset defaults whereever applicable
+	// and return those.
+	if updated, newPlan, d := advancedConfigIfUpdated(ctx, plan.AdvancedConfiguration, state.AdvancedConfiguration); !d.HasError() && updated {
+		// advancedConfReq := newAdvancedConfiguration(ctx, ac)
+		// if !reflect.DeepEqual(newPlan, matlas.ProcessArgs{}) { // TODO check if required, see comment inside update func
+		_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, newPlan)
+		if err != nil {
+			diags.AddError("Unable to UPDATE cluster. An error occurred when updating advanced_configuration.", err.Error())
+			return diags
 		}
-		cluster.ReplicationSpecs = newReplicationSpecs(ctx, plan.ReplicationSpecs)
-	}
-
-	if !plan.RootCertType.Equal(state.RootCertType) {
-		cluster.RootCertType = plan.RootCertType.ValueString()
-	}
-	if !plan.TerminationProtectionEnabled.Equal(state.TerminationProtectionEnabled) {
-		cluster.TerminationProtectionEnabled = plan.TerminationProtectionEnabled.ValueBoolPointer()
-	}
-	if !plan.AcceptDataRisksAndForceReplicaSetReconfig.Equal(state.AcceptDataRisksAndForceReplicaSetReconfig) {
-		cluster.AcceptDataRisksAndForceReplicaSetReconfig = plan.AcceptDataRisksAndForceReplicaSetReconfig.ValueString()
-	}
-	if !plan.Paused.Equal(state.Paused) {
-		cluster.Paused = plan.Paused.ValueBoolPointer()
-	}
-
-	if !reflect.DeepEqual(plan.AdvancedConfiguration, state.AdvancedConfiguration) {
-		ac := plan.AdvancedConfiguration
-		if len(ac.Elements()) > 0 {
-			advancedConfReq := newAdvancedConfiguration(ctx, ac)
-			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
-				_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
-				if err != nil {
-					diags.AddError("Unable to UPDATE cluster. An error occurred when updating advanced_configuration.", err.Error())
-					return diags
-				}
-			}
-		}
+		// }
 	}
 
 	// Has changes
@@ -1440,7 +1601,7 @@ func newTfRegionsConfig(ctx context.Context, apiObject *matlas.AdvancedRegionCon
 
 	tfMap.RegionName = types.StringValue(apiObject.RegionName)
 	tfMap.ProviderName = types.StringValue(apiObject.ProviderName)
-	tfMap.BackingProviderName = types.StringValue(apiObject.BackingProviderName)
+	tfMap.BackingProviderName = conversion.StringNullIfEmpty(apiObject.BackingProviderName)
 	tfMap.Priority = types.Int64Value(cast.ToInt64(apiObject.Priority))
 
 	return &tfMap, diags
@@ -1547,9 +1708,17 @@ func TPFdoesAdvancedReplicationSpecMatchAPI(tfObject *tfReplicationSpecRSModel, 
 }
 
 func newAdvancedConfiguration(ctx context.Context, tfList basetypes.ListValue) *matlas.ProcessArgs {
+	res := &matlas.ProcessArgs{}
+
 	if tfList.IsNull() || len(tfList.Elements()) == 0 {
+		// if isUpdate {
+		// 	return res
+		// }
 		return nil
 	}
+	// else if isUpdate && (tfList.IsNull() || len(tfList.Elements()) == 0) { // if during update user removed the advanced_configuration block
+	// 	return &matlas.ProcessArgs{}
+	// }
 
 	var tfAdvancedConfigArr []TfAdvancedConfigurationModel
 	tfList.ElementsAs(ctx, &tfAdvancedConfigArr, true)
@@ -1558,8 +1727,6 @@ func newAdvancedConfiguration(ctx context.Context, tfList basetypes.ListValue) *
 		return nil
 	}
 	tfModel := tfAdvancedConfigArr[0]
-
-	res := &matlas.ProcessArgs{}
 
 	if v := tfModel.DefaultReadConcern; !v.IsUnknown() {
 		res.DefaultReadConcern = v.ValueString()
@@ -1657,6 +1824,14 @@ func newLabels(ctx context.Context, tfSet basetypes.SetValue) []matlas.Label {
 }
 
 func newBiConnectorConfig(ctx context.Context, tfList basetypes.ListValue) *matlas.BiConnector {
+	// res := matlas.BiConnector{}
+	if tfList.IsNull() || len(tfList.Elements()) == 0 {
+		// if isUpdate {
+		// 	return &res
+		// }
+		return nil
+	}
+
 	if tfList.IsNull() || len(tfList.Elements()) == 0 {
 		return nil
 	}
@@ -1700,11 +1875,16 @@ func newReplicationSpec(ctx context.Context, tfRepSpec *tfReplicationSpecRSModel
 	if !conversion.IsStringPresent(&zoneName) {
 		zoneName = defaultZoneName
 	}
-	return &matlas.AdvancedReplicationSpec{
+	res := &matlas.AdvancedReplicationSpec{
 		NumShards:     int(tfRepSpec.NumShards.ValueInt64()),
 		ZoneName:      tfRepSpec.ZoneName.ValueString(),
 		RegionConfigs: newRegionConfigs(ctx, tfRepSpec.RegionsConfigs),
 	}
+
+	if v := tfRepSpec.ID; !v.IsUnknown() {
+		res.ID = v.ValueString()
+	}
+	return res
 }
 
 func newRegionConfigs(ctx context.Context, tfList basetypes.ListValue) []*matlas.AdvancedRegionConfig {
