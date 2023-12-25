@@ -304,7 +304,7 @@ func updateCluster(ctx context.Context, conn *matlas.Client, state, plan *tfAdva
 
 	// Labels is optional so state/plan will either be null or known
 	if !reflect.DeepEqual(plan.Labels, state.Labels) {
-		if ContainsLabelOrKey(newLabels(ctx, plan.Labels), defaultLabel) {
+		if ContainsLabelOrKey(newLabels(ctx, plan.Labels), DefaultLabel) {
 			diags.AddError("Unable to UPDATE cluster. An error occurred when updating labels.", "you should not set `Infrastructure Tool` label, it is used for internal purposes")
 			return diags
 		}
@@ -491,7 +491,7 @@ func hasReplicationSpecsUpdated(ctx context.Context, planVal, stateVal types.Lis
 	}
 
 	if len(planRepSpecs) != len(stateRepSpecs) {
-		return false, diags
+		return true, diags
 	}
 
 	for i := range planRepSpecs {
@@ -508,11 +508,11 @@ func hasReplicationSpecUpdated(ctx context.Context, planRepSpec, stateRepSpec *t
 	var diags diag.Diagnostics
 
 	if !planRepSpec.NumShards.IsUnknown() {
-		hasUpdated = planRepSpec.NumShards.Equal(stateRepSpec.NumShards)
+		hasUpdated = !planRepSpec.NumShards.Equal(stateRepSpec.NumShards)
 	}
 
 	if !planRepSpec.ZoneName.IsUnknown() { // if user has defined zone_name in config
-		hasUpdated = hasUpdated || planRepSpec.ZoneName.Equal(stateRepSpec.ZoneName)
+		hasUpdated = hasUpdated || !planRepSpec.ZoneName.Equal(stateRepSpec.ZoneName)
 
 		// if user has NOT defined zone_name in config, we set it to defaultZoneName during create so we check against that:
 	} else if planRepSpec.ZoneName.IsUnknown() && stateRepSpec.ZoneName.ValueString() != DefaultZoneName {
@@ -572,6 +572,7 @@ func hasRegionConfigUpdated(ctx context.Context, planRegionConfig, stateRegionCo
 	if updated, d := hasRegionConfigSpecUpdated(ctx, planRegionConfig.ElectableSpecs, stateRegionConfig.ElectableSpecs); d.HasError() || updated {
 		return updated, append(diags, d...)
 	}
+	// failing here,, readonly spec can be nul in state, so how to check if updated
 	if updated, d := hasRegionConfigSpecUpdated(ctx, planRegionConfig.ReadOnlySpecs, stateRegionConfig.ReadOnlySpecs); d.HasError() || updated {
 		return updated, append(diags, d...)
 	}
@@ -586,9 +587,13 @@ func hasRegionConfigUpdated(ctx context.Context, planRegionConfig, stateRegionCo
 }
 
 func hasRegionConfigAutoScalingSpecUpdated(ctx context.Context, planVal, stateVal types.List) (bool, diag.Diagnostics) {
-	var planSpecs, stateSpecs []tfRegionsConfigAutoScalingSpecsModel
 	var diags diag.Diagnostics
 
+	if planVal.IsUnknown() || stateVal.IsNull() {
+		return false, diags
+	}
+
+	var planSpecs, stateSpecs []tfRegionsConfigAutoScalingSpecsModel
 	if d := planVal.ElementsAs(ctx, &planSpecs, false); diags.HasError() {
 		return true, append(diags, d...)
 	}
@@ -615,9 +620,13 @@ func hasRegionConfigAutoScalingSpecUpdated(ctx context.Context, planVal, stateVa
 }
 
 func hasRegionConfigSpecUpdated(ctx context.Context, planVal, stateVal types.List) (bool, diag.Diagnostics) {
-	var planSpecs, stateSpecs []tfRegionsConfigSpecsModel
 	var diags diag.Diagnostics
 
+	if planVal.IsUnknown() || stateVal.IsNull() {
+		return false, diags
+	}
+
+	var planSpecs, stateSpecs []tfRegionsConfigSpecsModel
 	if d := planVal.ElementsAs(ctx, &planSpecs, false); diags.HasError() {
 		return true, append(diags, d...)
 	}
@@ -638,13 +647,13 @@ func hasRegionConfigSpecUpdated(ctx context.Context, planVal, stateVal types.Lis
 		hasUpdated = v.Equal(ss.DiskIOPS)
 	}
 	if v := ps.EBSVolumeType; !v.IsUnknown() {
-		hasUpdated = hasUpdated || v.Equal(ss.EBSVolumeType)
+		hasUpdated = hasUpdated || !v.Equal(ss.EBSVolumeType)
 	}
 	if v := ps.InstanceSize; !v.IsUnknown() {
-		hasUpdated = hasUpdated || v.Equal(ss.InstanceSize)
+		hasUpdated = hasUpdated || !v.Equal(ss.InstanceSize)
 	}
 	if v := ps.NodeCount; !v.IsUnknown() {
-		hasUpdated = hasUpdated || v.Equal(ss.NodeCount)
+		hasUpdated = hasUpdated || !v.Equal(ss.NodeCount)
 	}
 
 	return hasUpdated, diags
