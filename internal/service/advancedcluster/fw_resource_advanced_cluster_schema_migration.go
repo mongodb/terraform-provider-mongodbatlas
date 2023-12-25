@@ -47,7 +47,7 @@ func TPFResourceV0() schema.Schema {
 			"cluster_type": schema.StringAttribute{
 				Required: true,
 			},
-			"connection_strings": advClusterRSConnectionStringSchemaComputed(),
+			"connection_strings": advancedClusterRSConnectionStringSchemaComputed(),
 			"create_date": schema.StringAttribute{
 				Computed: true,
 			},
@@ -97,9 +97,9 @@ func TPFResourceV0() schema.Schema {
 					stringvalidator.OneOf("LTS", "CONTINUOUS"),
 				},
 			},
-			"advanced_configuration": advClusterRSAdvancedConfigurationSchema(),
-			"bi_connector_config":    advClusterRSBiConnectorConfigSchema(),
-			"replication_specs":      advClusterRSReplicationSpecsSchemaV0(),
+			"advanced_configuration": advancedClusterRSAdvancedConfigurationSchema(),
+			"bi_connector_config":    advancedClusterRSBiConnectorConfigSchema(),
+			"replication_specs":      advancedClusterRSReplicationSpecsSchemaV0(),
 		},
 		Blocks: map[string]schema.Block{
 			"labels": schema.SetNestedBlock{
@@ -129,7 +129,7 @@ func TPFResourceV0() schema.Schema {
 	return s
 }
 
-func advClusterRSReplicationSpecsSchemaV0() schema.SetNestedAttribute {
+func advancedClusterRSReplicationSpecsSchemaV0() schema.SetNestedAttribute {
 	return schema.SetNestedAttribute{
 		Optional: true,
 		Computed: true,
@@ -182,11 +182,11 @@ func advClusterRSReplicationSpecsSchemaV0() schema.SetNestedAttribute {
 							"region_name": schema.StringAttribute{
 								Required: true,
 							},
-							"analytics_auto_scaling": advClusterRSRegionConfigAutoScalingSpecsBlock(),
-							"auto_scaling":           advClusterRSRegionConfigAutoScalingSpecsBlock(),
-							"analytics_specs":        advClusterRSRegionConfigSpecsBlock(),
-							"electable_specs":        advClusterRSRegionConfigSpecsBlock(),
-							"read_only_specs":        advClusterRSRegionConfigSpecsBlock(),
+							"analytics_auto_scaling": advancedClusterRSRegionConfigAutoScalingSpecsBlock(),
+							"auto_scaling":           advancedClusterRSRegionConfigAutoScalingSpecsBlock(),
+							"analytics_specs":        advancedClusterRSRegionConfigSpecsBlock(),
+							"electable_specs":        advancedClusterRSRegionConfigSpecsBlock(),
+							"read_only_specs":        advancedClusterRSRegionConfigSpecsBlock(),
 						},
 					},
 					Validators: []validator.Set{
@@ -201,7 +201,7 @@ func advClusterRSReplicationSpecsSchemaV0() schema.SetNestedAttribute {
 	}
 }
 
-func upgradeAdvClusterResourceStateV0toV1(ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
+func upgradeAdvancedClusterResourceStateV0toV1(ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
 	var clusterV0 tfAdvancedClusterRSModelV0
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &clusterV0)...)
