@@ -198,7 +198,7 @@ Notifications to send when an alert condition is detected.
 * `api_token` - Slack API token. Required for the SLACK notifications type. If the token later becomes invalid, Atlas sends an email to the project owner and eventually removes the token.
 * `channel_name` - Slack channel name. Required for the SLACK notifications type.
 * `datadog_api_key` - Datadog API Key. Found in the Datadog dashboard. Required for the DATADOG notifications type.
-* `datadog_region` - Region that indicates which API URL to use. Accepted regions are: `US`, `EU`. The default Datadog region is US.
+* `datadog_region` - Region that indicates which API URL to use. See the `datadogRegion` field in the `notifications` request parameter of [MongoDB API Alert Configuration documentation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Alert-Configurations/operation/createAlertConfiguration) for more details. The default Datadog region is US.
 * `delay_min` - Number of minutes to wait after an alert condition is detected before sending out the first notification.
 * `email_address` - Email address to which alert notifications are sent. Required for the EMAIL notifications type.
 * `email_enabled` - Flag indicating email notifications should be sent. Atlas returns this value if `type_name` is set  to `ORG`, `GROUP`, or `USER`.

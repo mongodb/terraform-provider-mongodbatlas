@@ -1436,13 +1436,8 @@ func TestAccClusterRSCluster_withDefaultBiConnectorAndAdvancedConfiguration_main
 		CheckDestroy: acc.CheckClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: cfg,
+				ExternalProviders: acc.ExternalProviders("1.11.0"),
+				Config:            cfg,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),

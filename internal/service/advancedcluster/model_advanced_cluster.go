@@ -236,10 +236,8 @@ func newTfRegionsConfigSpecsModel(apiSpecs *matlas.Specs, providerName string) [
 
 	if apiSpecs != nil {
 		tmp := &tfRegionsConfigSpecsModel{
-			// DiskIOPS:      types.Int64PointerValue(apiSpecs.DiskIOPS),
-			// InstanceSize:  conversion.StringNullIfEmpty(apiSpecs.InstanceSize),
-			NodeCount:     types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiSpecs.NodeCount)),
-			EBSVolumeType: conversion.StringNullIfEmpty(apiSpecs.EbsVolumeType),
+			InstanceSize: conversion.StringNullIfEmpty(apiSpecs.InstanceSize),
+			NodeCount:    types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiSpecs.NodeCount)),
 		}
 		if providerName == "AWS" {
 			tmp.DiskIOPS = types.Int64PointerValue(apiSpecs.DiskIOPS)
@@ -280,7 +278,7 @@ func NewTfBiConnectorConfigModel(biConnector *matlas.BiConnector) []*TfBiConnect
 	}
 }
 
-func NewTfTagsModel(tags *[]*matlas.Tag) []*TfTagModel {
+func newTfTagsModel(tags *[]*matlas.Tag) []*TfTagModel {
 	res := make([]*TfTagModel, len(*tags))
 
 	for i, v := range *tags {
@@ -293,7 +291,7 @@ func NewTfTagsModel(tags *[]*matlas.Tag) []*TfTagModel {
 	return res
 }
 
-func NewTfLabelsModel(labels []matlas.Label) []TfLabelModel {
+func newTfLabelsModel(labels []matlas.Label) []TfLabelModel {
 	out := make([]TfLabelModel, len(labels))
 
 	for i, v := range labels {
@@ -306,7 +304,7 @@ func NewTfLabelsModel(labels []matlas.Label) []TfLabelModel {
 	return out
 }
 
-func NewTfAdvancedConfigurationModel(p *matlas.ProcessArgs) []*TfAdvancedConfigurationModel {
+func newTfAdvancedConfigurationModel(p *matlas.ProcessArgs) []*TfAdvancedConfigurationModel {
 	res := []*TfAdvancedConfigurationModel{
 		{
 			DefaultReadConcern:               conversion.StringNullIfEmpty(p.DefaultReadConcern),

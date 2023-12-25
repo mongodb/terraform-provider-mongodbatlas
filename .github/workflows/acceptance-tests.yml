@@ -4,19 +4,27 @@ on:
   workflow_dispatch:
     inputs:
       terraform_version:
-        description: 'Terraform version to use, e.g. 1.5.6, empty for latest'     
+        description: 'Terraform version to use, e.g. 1.6.x, empty for latest'     
         type: string
         required: false
       test_group:
         description: 'Test group to run, e.g. advanced_cluster, empty for all'
         type: string
         required: false
+      ref:
+        description: 'The branch, tag or SHA where tests will run, e.g. v1.14.0, empty for default branch'
+        type: string
+        required: false  
   workflow_call: # workflow runs after Test Suite or code-health
     inputs:
       terraform_version:
-        description: 'Terraform version to use, empty for latest'     
+        description: 'Terraform version to use, e.g. 1.6.x, empty for latest'     
         type: string
         required: false
+      ref:
+        description: 'The branch, tag or SHA where tests will run, e.g. v1.14.0, empty for default branch'
+        type: string
+        required: false  
 
 env:
   terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
@@ -124,10 +132,10 @@ jobs:
     if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || inputs.test_group == 'cluster_outage_simulation' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
@@ -148,10 +156,10 @@ jobs:
     if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
@@ -172,10 +180,10 @@ jobs:
     if: ${{ needs.change-detection.outputs.cluster == 'true' || inputs.test_group == 'cluster' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
@@ -196,10 +204,10 @@ jobs:
     if: ${{ needs.change-detection.outputs.search_deployment == 'true' || inputs.test_group == 'search_deployment' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
@@ -220,10 +228,10 @@ jobs:
     if: ${{ needs.change-detection.outputs.stream == 'true' || inputs.test_group == 'stream' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
@@ -245,10 +253,10 @@ jobs:
     if: ${{ needs.change-detection.outputs.generic == 'true' || inputs.test_group == 'generic' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
@@ -272,10 +280,10 @@ jobs:
     if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || inputs.test_group == 'backup_online_archive' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
@@ -297,10 +305,10 @@ jobs:
     if: ${{ needs.change-detection.outputs.backup_snapshots == 'true' || inputs.test_group == 'backup_snapshots' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
@@ -322,10 +330,10 @@ jobs:
     if: ${{ needs.change-detection.outputs.backup_schedule == 'true' || inputs.test_group == 'backup_schedule' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
@@ -346,10 +354,10 @@ jobs:
     if: ${{ needs.change-detection.outputs.project == 'true' || inputs.test_group == 'project' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
@@ -364,6 +372,15 @@ jobs:
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
           MONGODB_ATLAS_TEAMS_IDS: ${{ vars.MONGODB_ATLAS_TEAMS_IDS }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          AWS_SECURITY_GROUP_1: ${{ vars.AWS_SECURITY_GROUP_1 }}
+          AWS_SECURITY_GROUP_2: ${{ vars.AWS_SECURITY_GROUP_2 }}
+          AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
+          AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
+
           TEST_REGEX: "^TestAccProject"
         run: make testacc
   serverless:
@@ -371,10 +388,10 @@ jobs:
     if: ${{ needs.change-detection.outputs.serverless == 'true' || inputs.test_group == 'serverless' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
@@ -394,10 +411,10 @@ jobs:
     if: ${{ needs.change-detection.outputs.network == 'true' || inputs.test_group == 'network' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
@@ -422,10 +439,10 @@ jobs:
     if: ${{ needs.change-detection.outputs.federation == 'true' || inputs.test_group == 'federation' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
@@ -446,10 +463,10 @@ jobs:
     if: ${{ needs.change-detection.outputs.config == 'true' || inputs.test_group == 'config' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
@@ -475,10 +492,10 @@ jobs:
     if: ${{ needs.change-detection.outputs.assume_role == 'true' || inputs.test_group == 'assume_role' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
@@ -513,10 +530,10 @@ jobs:
     if: ${{ needs.change-detection.outputs.search_index == 'true' || inputs.test_group == 'search_index' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3

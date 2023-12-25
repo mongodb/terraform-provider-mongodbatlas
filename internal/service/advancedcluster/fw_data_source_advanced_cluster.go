@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/spf13/cast"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -61,11 +62,11 @@ func (d *advancedClusterDS) Read(ctx context.Context, req datasource.ReadRequest
 			resp.Diagnostics.AddError("cluster not found in Atlas", fmt.Sprintf(errorClusterAdvancedRead, clusterName, err))
 			return
 		}
-		resp.Diagnostics.AddError("error in getting cluster details from Atlas", fmt.Sprintf(errorClusterAdvancedRead, clusterName, err))
+		resp.Diagnostics.AddError("An error occurred while getting cluster details from Atlas", fmt.Sprintf(errorClusterAdvancedRead, clusterName, err))
 		return
 	}
 
-	newClusterState, diags := newTfAdvClusterDSModel(ctx, conn, cluster)
+	newClusterState, diags := newTfAdvancedClusterDSModel(ctx, conn, cluster)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -77,7 +78,7 @@ func (d *advancedClusterDS) Read(ctx context.Context, req datasource.ReadRequest
 	}
 }
 
-func newTfAdvClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *matlas.AdvancedCluster) (*tfAdvancedClusterDSModel, diag.Diagnostics) {
+func newTfAdvancedClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *matlas.AdvancedCluster) (*tfAdvancedClusterDSModel, diag.Diagnostics) {
 	var err error
 	projectID := apiResp.GroupID
 	var diags diag.Diagnostics
@@ -107,10 +108,10 @@ func newTfAdvClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *m
 	clusterModel.ConnectionStrings, d = types.ListValueFrom(ctx, tfConnectionStringType, newTfConnectionStringsModel(ctx, apiResp.ConnectionStrings))
 	diags.Append(d...)
 
-	clusterModel.Labels, d = types.SetValueFrom(ctx, TfLabelType, RemoveDefaultLabel(NewTfLabelsModel(apiResp.Labels)))
+	clusterModel.Labels, d = types.SetValueFrom(ctx, TfLabelType, newTfLabelsModel(apiResp.Labels))
 	diags.Append(d...)
 
-	clusterModel.Tags, d = types.SetValueFrom(ctx, TfTagType, NewTfTagsModel(&apiResp.Tags))
+	clusterModel.Tags, d = types.SetValueFrom(ctx, TfTagType, newTfTagsModel(&apiResp.Tags))
 	diags.Append(d...)
 
 	replicationSpecs, d := newTfReplicationSpecsDSModel(ctx, conn, apiResp.ReplicationSpecs, projectID)
@@ -121,9 +122,9 @@ func newTfAdvClusterDSModel(ctx context.Context, conn *matlas.Client, apiResp *m
 	}
 	clusterModel.ReplicationSpecs, diags = types.SetValueFrom(ctx, tfReplicationSpecType, replicationSpecs)
 
-	advancedConfiguration, err := NewTfAdvancedConfigurationModelDSFromAtlas(ctx, conn, projectID, apiResp.Name)
+	advancedConfiguration, err := newTfAdvancedConfigurationModelDSFromAtlas(ctx, conn, projectID, apiResp.Name)
 	if err != nil {
-		diags.AddError("error when getting advanced_configuration from Atlas", err.Error())
+		diags.AddError("An error occurred while getting advanced_configuration from Atlas", err.Error())
 		return nil, diags
 	}
 	clusterModel.AdvancedConfiguration, diags = types.ListValueFrom(ctx, tfAdvancedConfigurationType, advancedConfiguration)
@@ -178,7 +179,7 @@ func getTfRegionConfigsAndContainerIDs(ctx context.Context, conn *matlas.Client,
 			containers, _, err := conn.Containers.List(ctx, projectID,
 				&matlas.ContainersListOptions{ProviderName: apiObject.ProviderName})
 			if err != nil {
-				diags.AddError("error when getting Containers list from Atlas", err.Error())
+				diags.AddError("An error occurred while getting Containers list from Atlas", err.Error())
 				return nil, types.MapNull(types.StringType), diags
 			}
 			if result := getAdvancedClusterContainerID(containers, apiObject); result != "" {
@@ -202,15 +203,15 @@ func advancedClusterDSAttributes() map[string]schema.Attribute {
 		"project_id": schema.StringAttribute{
 			Required: true,
 		},
-		"advanced_configuration": ClusterDSAdvancedConfigurationListAttr(),
+		"advanced_configuration": advancedConfigDSSchema(),
 		"backup_enabled": schema.BoolAttribute{
 			Computed: true,
 		},
-		"bi_connector_config": ClusterDSBiConnectorConfigListAttr(),
+		"bi_connector_config": biConnectorConfigDSSchema(),
 		"cluster_type": schema.StringAttribute{
 			Computed: true,
 		},
-		"connection_strings": advClusterDSConnectionStringSchemaAttr(),
+		"connection_strings": connectionStringDSSchema(),
 		"create_date": schema.StringAttribute{
 			Computed: true,
 		},
@@ -220,8 +221,8 @@ func advancedClusterDSAttributes() map[string]schema.Attribute {
 		"encryption_at_rest_provider": schema.StringAttribute{
 			Computed: true,
 		},
-		"labels": ClusterDSLabelsSetAttr(),
-		"tags":   ClusterDSTagsSetAttr(),
+		"labels": labelsDSSchema(),
+		"tags":   tagsDSSchema(),
 		"mongo_db_major_version": schema.StringAttribute{
 			Computed: true,
 		},
@@ -238,7 +239,7 @@ func advancedClusterDSAttributes() map[string]schema.Attribute {
 			Optional: true,
 			Computed: true,
 		},
-		"replication_specs": advClusterDSReplicationSpecsSchemaAttr(),
+		"replication_specs": replicationSpecsDSSchema(),
 		"root_cert_type": schema.StringAttribute{
 			Computed: true,
 		},
@@ -254,7 +255,7 @@ func advancedClusterDSAttributes() map[string]schema.Attribute {
 	}
 }
 
-func advClusterDSConnectionStringSchemaAttr() schema.ListNestedAttribute {
+func connectionStringDSSchema() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Computed: true,
 		NestedObject: schema.NestedAttributeObject{
@@ -311,7 +312,7 @@ func advClusterDSConnectionStringSchemaAttr() schema.ListNestedAttribute {
 	}
 }
 
-func advClusterDSReplicationSpecsSchemaAttr() schema.SetNestedAttribute {
+func replicationSpecsDSSchema() schema.SetNestedAttribute {
 	return schema.SetNestedAttribute{
 		Computed: true,
 		NestedObject: schema.NestedAttributeObject{
@@ -333,20 +334,20 @@ func advClusterDSReplicationSpecsSchemaAttr() schema.SetNestedAttribute {
 					Computed: true,
 					NestedObject: schema.NestedAttributeObject{
 						Attributes: map[string]schema.Attribute{
-							"analytics_specs":        advancedClusterRegionConfigSpecsAttr(),
-							"auto_scaling":           advancedClusterRegionConfigAutoScalingSpecsAttr(),
-							"analytics_auto_scaling": advancedClusterRegionConfigAutoScalingSpecsAttr(),
+							"analytics_specs":        regionConfigSpecsDSSchema(),
+							"auto_scaling":           regionConfigAutoScalingSpecsDSSchema(),
+							"analytics_auto_scaling": regionConfigAutoScalingSpecsDSSchema(),
 							"backing_provider_name": schema.StringAttribute{
 								Computed: true,
 							},
-							"electable_specs": advancedClusterRegionConfigSpecsAttr(),
+							"electable_specs": regionConfigSpecsDSSchema(),
 							"priority": schema.Int64Attribute{
 								Computed: true,
 							},
 							"provider_name": schema.StringAttribute{
 								Computed: true,
 							},
-							"read_only_specs": advancedClusterRegionConfigSpecsAttr(),
+							"read_only_specs": regionConfigSpecsDSSchema(),
 							"region_name": schema.StringAttribute{
 								Computed: true,
 							},
@@ -358,7 +359,7 @@ func advClusterDSReplicationSpecsSchemaAttr() schema.SetNestedAttribute {
 	}
 }
 
-func advancedClusterRegionConfigAutoScalingSpecsAttr() schema.ListNestedAttribute {
+func regionConfigAutoScalingSpecsDSSchema() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Computed: true,
 		NestedObject: schema.NestedAttributeObject{
@@ -383,7 +384,7 @@ func advancedClusterRegionConfigAutoScalingSpecsAttr() schema.ListNestedAttribut
 	}
 }
 
-func advancedClusterRegionConfigSpecsAttr() schema.ListNestedAttribute {
+func regionConfigSpecsDSSchema() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Computed: true,
 		NestedObject: schema.NestedAttributeObject{
@@ -404,6 +405,108 @@ func advancedClusterRegionConfigSpecsAttr() schema.ListNestedAttribute {
 			},
 		},
 	}
+}
+
+func advancedConfigDSSchema() schema.ListNestedAttribute {
+	return schema.ListNestedAttribute{
+		Computed: true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"default_read_concern": schema.StringAttribute{
+					Computed: true,
+				},
+				"default_write_concern": schema.StringAttribute{
+					Computed: true,
+				},
+				"fail_index_key_too_long": schema.BoolAttribute{
+					Computed: true,
+				},
+				"javascript_enabled": schema.BoolAttribute{
+					Computed: true,
+				},
+				"minimum_enabled_tls_protocol": schema.StringAttribute{
+					Computed: true,
+				},
+				"no_table_scan": schema.BoolAttribute{
+					Computed: true,
+				},
+				"oplog_size_mb": schema.Int64Attribute{
+					Computed: true,
+				},
+				"sample_size_bi_connector": schema.Int64Attribute{
+					Computed: true,
+				},
+				"sample_refresh_interval_bi_connector": schema.Int64Attribute{
+					Computed: true,
+				},
+				"oplog_min_retention_hours": schema.Int64Attribute{
+					Computed: true,
+				},
+				"transaction_lifetime_limit_seconds": schema.Int64Attribute{
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func biConnectorConfigDSSchema() schema.ListNestedAttribute {
+	return schema.ListNestedAttribute{
+		Computed: true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"enabled": schema.BoolAttribute{
+					Computed: true,
+				},
+				"read_preference": schema.StringAttribute{
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func labelsDSSchema() schema.SetNestedAttribute {
+	return schema.SetNestedAttribute{
+		Computed:           true,
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByDateWithReplacement, "September 2024", "tags"),
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"key": schema.StringAttribute{
+					Computed: true,
+				},
+				"value": schema.StringAttribute{
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func tagsDSSchema() schema.SetNestedAttribute {
+	return schema.SetNestedAttribute{
+		Computed: true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"key": schema.StringAttribute{
+					Computed: true,
+				},
+				"value": schema.StringAttribute{
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func newTfAdvancedConfigurationModelDSFromAtlas(ctx context.Context, conn *matlas.Client, projectID, clusterName string) ([]*TfAdvancedConfigurationModel, error) {
+	processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, projectID, clusterName)
+	if err != nil {
+		return nil, err
+	}
+
+	advConfigModel := newTfAdvancedConfigurationModel(processArgs)
+	return advConfigModel, err
 }
 
 type tfAdvancedClusterDSModel struct {
