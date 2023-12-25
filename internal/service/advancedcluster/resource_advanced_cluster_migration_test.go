@@ -117,7 +117,7 @@ func TestAccMigrationAdvancedClusterRS_singleAWSProviderToMultiCloud(t *testing.
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            testAccAdvancedClusterConfigSingleProviderBlocks(orgID, projectName, rName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -147,7 +147,7 @@ func TestAccMigrationAdvancedClusterRS_singleAWSProviderToMultiCloud(t *testing.
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testFuncsForMultiCloudConfig(&cluster, resourceName, dataSourceName, dataSourceClustersName, rName)...,
 				),
 			},
@@ -171,13 +171,13 @@ func TestAccMigrationAdvancedClusterRS_multiCloud(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            testAccAdvancedClusterConfigMultiCloudBlocks(orgID, projectName, rName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_type", "REPLICASET"),
-					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.read_preference", "secondary"),
@@ -446,7 +446,7 @@ func TestAccMigrationClusterAdvancedCluster_advancedConf(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            testAccAdvancedClusterConfigAdvancedConfBlocks(orgID, projectName, rName, processArgs),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
@@ -476,7 +476,7 @@ func TestAccMigrationClusterAdvancedCluster_advancedConf(t *testing.T) {
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccAdvancedClusterConfigAdvancedConf(orgID, projectName, rName, processArgs),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
@@ -494,7 +494,7 @@ func TestAccMigrationClusterAdvancedCluster_advancedConf(t *testing.T) {
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccAdvancedClusterConfigAdvancedConfNoOplogHrs(orgID, projectName, rNameUpdated, processArgsUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckAdvancedClusterAttributes(&cluster, rNameUpdated),
 
@@ -546,7 +546,7 @@ func TestAccMigrationClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t 
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            testAccAdvancedClusterConfigReplicationSpecsAutoScalingBlocks(orgID, projectName, rName, autoScaling),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
@@ -568,7 +568,7 @@ func TestAccMigrationClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t 
 			},
 			{
 				Config: testAccAdvancedClusterConfigReplicationSpecsAutoScaling(orgID, projectName, rName, autoScaling),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
@@ -580,7 +580,7 @@ func TestAccMigrationClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t 
 			},
 			{
 				Config: testAccAdvancedClusterConfigReplicationSpecsAutoScaling(orgID, projectName, rNameUpdated, autoScalingUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckAdvancedClusterAttributes(&cluster, rNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
@@ -620,7 +620,7 @@ func TestAccMigrationClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoS
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            testAccAdvancedClusterConfigReplicationSpecsAnalyticsAutoScalingBlocks(orgID, projectName, rName, autoScaling),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
@@ -642,7 +642,7 @@ func TestAccMigrationClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoS
 			},
 			{
 				Config: testAccAdvancedClusterConfigReplicationSpecsAnalyticsAutoScaling(orgID, projectName, rName, autoScaling),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
@@ -654,7 +654,7 @@ func TestAccMigrationClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoS
 			},
 			{
 				Config: testAccAdvancedClusterConfigReplicationSpecsAnalyticsAutoScaling(orgID, projectName, rNameUpdated, autoScalingUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckAdvancedClusterAttributes(&cluster, rNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
