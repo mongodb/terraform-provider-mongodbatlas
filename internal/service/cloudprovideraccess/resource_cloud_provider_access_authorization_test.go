@@ -20,13 +20,8 @@ func TestAccConfigRSCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { acc.PreCheck(t) },
-		ExternalProviders: map[string]resource.ExternalProvider{
-			"aws": {
-				VersionConstraint: "5.1.0",
-				Source:            "hashicorp/aws",
-			},
-		},
+		PreCheck:                 func() { acc.PreCheck(t) },
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		// same as regular cloud provider access resource
 		CheckDestroy: testAccCheckMongoDBAtlasProviderAccessDestroy,

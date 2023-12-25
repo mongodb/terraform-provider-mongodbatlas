@@ -94,48 +94,44 @@ func TestAccProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 }
 
 func TestAccProjectRSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
-	acc.SkipTestExtCred(t)
 	resourceName := "mongodbatlas_project_ip_access_list.test"
+	projectName := acctest.RandomWithPrefix("test-acc-project-aws")
 	vpcID := os.Getenv("AWS_VPC_ID")
 	vpcCIDRBlock := os.Getenv("AWS_VPC_CIDR_BLOCK")
 	awsAccountID := os.Getenv("AWS_ACCOUNT_ID")
 	awsRegion := os.Getenv("AWS_REGION")
 	providerName := "AWS"
 
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	awsSGroup := "sg-0026348ec11780bd1"
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	awsSGroup := os.Getenv("AWS_SECURITY_GROUP_1")
 	comment := fmt.Sprintf("TestAcc for awsSecurityGroup (%s)", awsSGroup)
 
-	updatedAWSSgroup := "sg-0026348ec11780bd2"
+	updatedAWSSgroup := os.Getenv("AWS_SECURITY_GROUP_2")
 	updatedComment := fmt.Sprintf("TestAcc for awsSecurityGroup updated (%s)", updatedAWSSgroup)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectIPAccessListWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
+				Config: acc.ConfigProjectIPAccessListWithAWSSecurityGroup(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "aws_security_group"),
 					resource.TestCheckResourceAttrSet(resourceName, "comment"),
 
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "aws_security_group", awsSGroup),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
 				),
 			},
 			{
-				Config: acc.ConfigProjectIPAccessListWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, updatedAWSSgroup, updatedComment),
+				Config: acc.ConfigProjectIPAccessListWithAWSSecurityGroup(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, updatedAWSSgroup, updatedComment),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "aws_security_group"),
 					resource.TestCheckResourceAttrSet(resourceName, "comment"),
 
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "aws_security_group", updatedAWSSgroup),
 					resource.TestCheckResourceAttr(resourceName, "comment", updatedComment),
 				),

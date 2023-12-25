@@ -342,8 +342,7 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 		username     = acctest.RandomWithPrefix("test-acc-user-")
 		password     = acctest.RandomWithPrefix("test-acc-pass-")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		clusterName  = acctest.RandomWithPrefix("test-acc-cluster")
+		clusterInfo  = acc.GetClusterInfo(orgID)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -352,7 +351,7 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
 					[]*admin.UserScope{
 						{
 							Name: "test-acc-nurk4llu2z",
@@ -375,7 +374,7 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
 					[]*admin.UserScope{
 						{
 							Name: "test-acc-nurk4llu2z",
@@ -404,8 +403,7 @@ func TestAccConfigRSDatabaseUser_withScopesAndEmpty(t *testing.T) {
 		username     = acctest.RandomWithPrefix("test-acc-user-")
 		password     = acctest.RandomWithPrefix("test-acc-pass-")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		clusterName  = acctest.RandomWithPrefix("test-acc-cluster")
+		clusterInfo  = acc.GetClusterInfo(orgID)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -414,7 +412,7 @@ func TestAccConfigRSDatabaseUser_withScopesAndEmpty(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
 					[]*admin.UserScope{
 						{
 							Name: "test-acc-nurk4llu2z",
@@ -437,7 +435,7 @@ func TestAccConfigRSDatabaseUser_withScopesAndEmpty(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
 					[]*admin.UserScope{},
 				),
 				Check: resource.ComposeTestCheckFunc(
