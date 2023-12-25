@@ -89,8 +89,8 @@ func biConnectorConfigIfUpdated(ctx context.Context, planVal, stateVal types.Lis
 	var d diag.Diagnostics
 
 	var planConfig, stateConfig []TfBiConnectorConfigModel
-	planVal.ElementsAs(ctx, planConfig, false)
-	stateVal.ElementsAs(ctx, stateConfig, false)
+	planVal.ElementsAs(ctx, &planConfig, true)
+	stateVal.ElementsAs(ctx, &stateConfig, true)
 
 	if !planVal.IsUnknown() && !stateVal.IsUnknown() {
 		if updated, d := hasBiConnectorConfigUpdated(planConfig, stateConfig); d.HasError() || !updated {
@@ -141,8 +141,8 @@ func advancedConfigIfUpdated(ctx context.Context, planVal, stateVal types.List) 
 	var d diag.Diagnostics
 
 	var planConfig, stateConfig []TfAdvancedConfigurationModel
-	planVal.ElementsAs(ctx, planConfig, false)
-	stateVal.ElementsAs(ctx, stateConfig, false)
+	planVal.ElementsAs(ctx, &planConfig, true)
+	stateVal.ElementsAs(ctx, &stateConfig, true)
 
 	// updated, d := hasAdvancedConfigUpdated(planConfig, stateConfig)
 	// if d.HasError() || !updated {
@@ -291,7 +291,7 @@ func updateCluster(ctx context.Context, conn *matlas.Client, state, plan *tfAdva
 	if isUpdatedOptionalStr(plan.AcceptDataRisksAndForceReplicaSetReconfig, state.AcceptDataRisksAndForceReplicaSetReconfig) {
 		cluster.AcceptDataRisksAndForceReplicaSetReconfig = plan.AcceptDataRisksAndForceReplicaSetReconfig.ValueString()
 	}
-	if isUpdatedBool(plan.Paused, state.Paused) {
+	if isUpdatedBool(plan.Paused, state.Paused) && !plan.Paused.ValueBool() {
 		cluster.Paused = plan.Paused.ValueBoolPointer()
 	}
 	// if isUpdatedBool(plan.RetainBackupsEnabled, state.RetainBackupsEnabled) {
@@ -415,15 +415,15 @@ func getUpdatedReplicationSpecs(ctx context.Context, planVal, stateVal types.Lis
 	var res []*matlas.AdvancedReplicationSpec
 
 	var planRepSpecs, stateRepSpecs []tfReplicationSpecRSModel
-	if diags = planVal.ElementsAs(ctx, planRepSpecs, false); diags.HasError() {
+	if diags = planVal.ElementsAs(ctx, &planRepSpecs, false); diags.HasError() {
 		return nil, diags
 	}
-	if diags = stateVal.ElementsAs(ctx, stateRepSpecs, false); diags.HasError() {
+	if diags = stateVal.ElementsAs(ctx, &stateRepSpecs, false); diags.HasError() {
 		return nil, diags
 	}
 
 	var i int
-	for i = range planRepSpecs {
+	for i = 0; i < len(planRepSpecs); i++ {
 		if i < len(stateRepSpecs) { // if rep_specs removed from config, we don't take them in API object list
 			ss := stateRepSpecs[i]
 			ps := planRepSpecs[i]
@@ -483,10 +483,10 @@ func hasReplicationSpecsUpdated(ctx context.Context, planVal, stateVal types.Lis
 	var diags diag.Diagnostics
 
 	var planRepSpecs, stateRepSpecs []tfReplicationSpecRSModel
-	if diags = planVal.ElementsAs(ctx, planRepSpecs, false); diags.HasError() {
+	if diags = planVal.ElementsAs(ctx, &planRepSpecs, true); diags.HasError() {
 		return false, diags
 	}
-	if diags = stateVal.ElementsAs(ctx, stateRepSpecs, false); diags.HasError() {
+	if diags = stateVal.ElementsAs(ctx, &stateRepSpecs, true); diags.HasError() {
 		return false, diags
 	}
 
@@ -531,8 +531,8 @@ func hasRegionConfigsUpdated(ctx context.Context, planVal, stateVal types.List) 
 	var diags diag.Diagnostics
 
 	var planRegionConfigs, stateRegionConfigs []tfRegionsConfigModel
-	planVal.ElementsAs(ctx, planRegionConfigs, false)
-	stateVal.ElementsAs(ctx, stateRegionConfigs, false)
+	planVal.ElementsAs(ctx, &planRegionConfigs, false)
+	stateVal.ElementsAs(ctx, &stateRegionConfigs, false)
 
 	if len(planRegionConfigs) != len(stateRegionConfigs) {
 		return true, diags
