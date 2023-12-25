@@ -209,18 +209,19 @@ func newTfRegionConfig(ctx context.Context, conn *matlas.Client, apiObject *matl
 		return tfRegionsConfigModel{}, diags
 	}
 
+	providerName := apiObject.ProviderName
 	tfRegionsConfig := tfRegionsConfigModel{
 		BackingProviderName: conversion.StringNullIfEmpty(apiObject.BackingProviderName),
-		ProviderName:        conversion.StringNullIfEmpty(apiObject.ProviderName),
+		ProviderName:        conversion.StringNullIfEmpty(providerName),
 		RegionName:          conversion.StringNullIfEmpty(apiObject.RegionName),
 		Priority:            types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiObject.Priority)),
 	}
 
-	tfRegionsConfig.AnalyticsSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.AnalyticsSpecs))
+	tfRegionsConfig.AnalyticsSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.AnalyticsSpecs, providerName))
 	diags.Append(d...)
-	tfRegionsConfig.ElectableSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.ElectableSpecs))
+	tfRegionsConfig.ElectableSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.ElectableSpecs, providerName))
 	diags.Append(d...)
-	tfRegionsConfig.ReadOnlySpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.ReadOnlySpecs))
+	tfRegionsConfig.ReadOnlySpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, newTfRegionsConfigSpecsModel(apiObject.ReadOnlySpecs, providerName))
 	diags.Append(d...)
 	tfRegionsConfig.AnalyticsAutoScaling, d = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, newTfRegionsConfigAutoScalingSpecsModel(apiObject.AnalyticsAutoScaling))
 	diags.Append(d...)
@@ -230,16 +231,19 @@ func newTfRegionConfig(ctx context.Context, conn *matlas.Client, apiObject *matl
 	return tfRegionsConfig, diags
 }
 
-func newTfRegionsConfigSpecsModel(apiSpecs *matlas.Specs) []*tfRegionsConfigSpecsModel {
+func newTfRegionsConfigSpecsModel(apiSpecs *matlas.Specs, providerName string) []*tfRegionsConfigSpecsModel {
 	res := make([]*tfRegionsConfigSpecsModel, 0)
 
 	if apiSpecs != nil {
-		res = append(res, &tfRegionsConfigSpecsModel{
-			DiskIOPS:      types.Int64PointerValue(apiSpecs.DiskIOPS),
-			InstanceSize:  conversion.StringNullIfEmpty(apiSpecs.InstanceSize),
-			NodeCount:     types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiSpecs.NodeCount)),
-			EBSVolumeType: conversion.StringNullIfEmpty(apiSpecs.EbsVolumeType),
-		})
+		tmp := &tfRegionsConfigSpecsModel{
+			InstanceSize: conversion.StringNullIfEmpty(apiSpecs.InstanceSize),
+			NodeCount:    types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiSpecs.NodeCount)),
+		}
+		if providerName == "AWS" {
+			tmp.DiskIOPS = types.Int64PointerValue(apiSpecs.DiskIOPS)
+			tmp.EBSVolumeType = conversion.StringNullIfEmpty(apiSpecs.InstanceSize)
+		}
+		res = append(res, tmp)
 	}
 
 	return res
@@ -274,7 +278,7 @@ func NewTfBiConnectorConfigModel(biConnector *matlas.BiConnector) []*TfBiConnect
 	}
 }
 
-func NewTfTagsModel(tags *[]*matlas.Tag) []*TfTagModel {
+func newTfTagsModel(tags *[]*matlas.Tag) []*TfTagModel {
 	res := make([]*TfTagModel, len(*tags))
 
 	for i, v := range *tags {
@@ -287,8 +291,9 @@ func NewTfTagsModel(tags *[]*matlas.Tag) []*TfTagModel {
 	return res
 }
 
-func NewTfLabelsModel(labels []matlas.Label) []TfLabelModel {
+func newTfLabelsModel(labels []matlas.Label) []TfLabelModel {
 	out := make([]TfLabelModel, len(labels))
+
 	for i, v := range labels {
 		out[i] = TfLabelModel{
 			Key:   conversion.StringNullIfEmpty(v.Key),
@@ -299,7 +304,7 @@ func NewTfLabelsModel(labels []matlas.Label) []TfLabelModel {
 	return out
 }
 
-func NewTfAdvancedConfigurationModel(p *matlas.ProcessArgs) []*TfAdvancedConfigurationModel {
+func newTfAdvancedConfigurationModel(p *matlas.ProcessArgs) []*TfAdvancedConfigurationModel {
 	res := []*TfAdvancedConfigurationModel{
 		{
 			DefaultReadConcern:               conversion.StringNullIfEmpty(p.DefaultReadConcern),

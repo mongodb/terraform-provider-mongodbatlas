@@ -73,7 +73,7 @@ func (d *advancedClustersDS) Read(ctx context.Context, req datasource.ReadReques
 			resp.Diagnostics.AddError("advanced_clusters not found in Atlas", fmt.Sprintf("error reading advanced_clusters list for project(%s): %s", projectID, err))
 			return
 		}
-		resp.Diagnostics.AddError("error in getting advanced_clusters from Atlas", fmt.Sprintf("error reading advanced_clusters list for project(%s): %s", projectID, err))
+		resp.Diagnostics.AddError("An error occurred while getting advanced_clusters from Atlas", fmt.Sprintf("error reading advanced_clusters list for project(%s): %s", projectID, err))
 		return
 	}
 
@@ -91,18 +91,18 @@ func (d *advancedClustersDS) Read(ctx context.Context, req datasource.ReadReques
 }
 
 func newTfAdvancedClustersDSModel(ctx context.Context, conn *mongodbatlas.Client, clusters *mongodbatlas.AdvancedClustersResponse, projectID string) (tfAdvancedClustersDSModel, diag.Diagnostics) {
-	tfAdvClustersModel := tfAdvancedClustersDSModel{
+	tfAdvancedClustersModel := tfAdvancedClustersDSModel{
 		ID:        types.StringValue(id.UniqueId()),
 		ProjectID: conversion.StringNullIfEmpty(projectID),
 	}
 
 	res, diags := newTfAdvancedClustersDSModelResults(ctx, conn, clusters, projectID)
 	if diags.HasError() {
-		return tfAdvClustersModel, diags
+		return tfAdvancedClustersModel, diags
 	}
 
-	tfAdvClustersModel.Results = res
-	return tfAdvClustersModel, nil
+	tfAdvancedClustersModel.Results = res
+	return tfAdvancedClustersModel, nil
 }
 
 func newTfAdvancedClustersDSModelResults(ctx context.Context, conn *mongodbatlas.Client,
@@ -112,68 +112,14 @@ func newTfAdvancedClustersDSModelResults(ctx context.Context, conn *mongodbatlas
 	results := make([]*tfAdvancedClusterDSModel, 0)
 
 	for i := range apiResp.Results {
-		tfAdvCluster, diags := newTfAdvClustersDSModel(ctx, conn, apiResp.Results[i])
+		tfAdvancedCluster, diags := newTfAdvancedClusterDSModel(ctx, conn, apiResp.Results[i])
 		if diags.HasError() {
 			return nil, diags
 		}
 
-		results = append(results, tfAdvCluster)
+		results = append(results, tfAdvancedCluster)
 	}
 	return results, diags
-}
-
-func newTfAdvClustersDSModel(ctx context.Context, conn *mongodbatlas.Client, apiResp *mongodbatlas.AdvancedCluster) (*tfAdvancedClusterDSModel, diag.Diagnostics) {
-	var err error
-	projectID := apiResp.GroupID
-	var diags diag.Diagnostics
-	var d diag.Diagnostics
-
-	clusterModel := tfAdvancedClusterDSModel{
-		ID:                           conversion.StringNullIfEmpty(apiResp.ID),
-		BackupEnabled:                types.BoolPointerValue(apiResp.BackupEnabled),
-		ClusterType:                  conversion.StringNullIfEmpty(apiResp.ClusterType),
-		CreateDate:                   conversion.StringNullIfEmpty(apiResp.CreateDate),
-		DiskSizeGb:                   types.Float64PointerValue(apiResp.DiskSizeGB),
-		EncryptionAtRestProvider:     conversion.StringNullIfEmpty(apiResp.EncryptionAtRestProvider),
-		MongoDBMajorVersion:          conversion.StringNullIfEmpty(apiResp.MongoDBMajorVersion),
-		MongoDBVersion:               conversion.StringNullIfEmpty(apiResp.MongoDBVersion),
-		Name:                         conversion.StringNullIfEmpty(apiResp.Name),
-		Paused:                       types.BoolPointerValue(apiResp.Paused),
-		PitEnabled:                   types.BoolPointerValue(apiResp.PitEnabled),
-		RootCertType:                 conversion.StringNullIfEmpty(apiResp.RootCertType),
-		StateName:                    conversion.StringNullIfEmpty(apiResp.StateName),
-		TerminationProtectionEnabled: types.BoolPointerValue(apiResp.TerminationProtectionEnabled),
-		VersionReleaseSystem:         conversion.StringNullIfEmpty(apiResp.VersionReleaseSystem),
-		ProjectID:                    conversion.StringNullIfEmpty(projectID),
-	}
-	clusterModel.BiConnectorConfig, d = types.ListValueFrom(ctx, TfBiConnectorConfigType, NewTfBiConnectorConfigModel(apiResp.BiConnector))
-	diags.Append(d...)
-
-	clusterModel.ConnectionStrings, d = types.ListValueFrom(ctx, tfConnectionStringType, newTfConnectionStringsModel(ctx, apiResp.ConnectionStrings))
-	diags.Append(d...)
-
-	clusterModel.Labels, d = types.SetValueFrom(ctx, TfLabelType, NewTfLabelsModel(apiResp.Labels))
-	diags.Append(d...)
-
-	clusterModel.Tags, d = types.SetValueFrom(ctx, TfTagType, NewTfTagsModel(&apiResp.Tags))
-	diags.Append(d...)
-
-	replicationSpecs, d := newTfReplicationSpecsDSModel(ctx, conn, apiResp.ReplicationSpecs, projectID)
-	diags.Append(d...)
-
-	if diags.HasError() {
-		return nil, diags
-	}
-	clusterModel.ReplicationSpecs, diags = types.SetValueFrom(ctx, tfReplicationSpecType, replicationSpecs)
-
-	advancedConfiguration, err := NewTfAdvancedConfigurationModelDSFromAtlas(ctx, conn, projectID, apiResp.Name)
-	if err != nil {
-		diags.AddError("error when getting advanced_configuration from Atlas", err.Error())
-		return nil, diags
-	}
-	clusterModel.AdvancedConfiguration, diags = types.ListValueFrom(ctx, tfAdvancedConfigurationType, advancedConfiguration)
-
-	return &clusterModel, nil
 }
 
 type tfAdvancedClustersDSModel struct {

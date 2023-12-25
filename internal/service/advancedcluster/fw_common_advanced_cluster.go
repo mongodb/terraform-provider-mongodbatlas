@@ -124,6 +124,6 @@ func NewTfAdvancedConfigurationModelDSFromAtlas(ctx context.Context, conn *matla
 		return nil, err
 	}
 
-	advConfigModel := NewTfAdvancedConfigurationModel(processArgs)
+	advConfigModel := newTfAdvancedConfigurationModel(processArgs)
 	return advConfigModel, err
 }
