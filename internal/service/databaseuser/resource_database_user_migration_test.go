@@ -289,8 +289,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 		username     = acctest.RandomWithPrefix("test-acc-user-")
 		password     = acctest.RandomWithPrefix("test-acc-pass-")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		clusterName  = acctest.RandomWithPrefix("test-acc-cluster")
+		clusterInfo  = acc.GetClusterInfo(orgID)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -298,7 +297,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
 					[]*admin.UserScope{
 						{
 							Name: "test-acc-nurk4llu2z",
@@ -316,7 +315,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
 					[]*admin.UserScope{
 						{
 							Name: "test-acc-nurk4llu2z",
@@ -341,8 +340,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopesAndEmpty(t *testing.T) {
 		username     = acctest.RandomWithPrefix("test-acc-user-")
 		password     = acctest.RandomWithPrefix("test-acc-pass-")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		clusterName  = acctest.RandomWithPrefix("test-acc-cluster")
+		clusterInfo  = acc.GetClusterInfo(orgID)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -350,7 +348,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopesAndEmpty(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
 					[]*admin.UserScope{},
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -363,7 +361,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopesAndEmpty(t *testing.T) {
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
 					[]*admin.UserScope{},
 				),
 				ConfigPlanChecks: resource.ConfigPlanChecks{

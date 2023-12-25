@@ -34,12 +34,7 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
 		CheckDestroy:             testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		ExternalProviders: map[string]resource.ExternalProvider{
-			"aws": {
-				VersionConstraint: "5.1.0",
-				Source:            "hashicorp/aws",
-			},
-		},
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(
@@ -77,12 +72,7 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_import(t *testing.T) {
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
 		CheckDestroy:             testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		ExternalProviders: map[string]resource.ExternalProvider{
-			"aws": {
-				VersionConstraint: "5.1.0",
-				Source:            "hashicorp/aws",
-			},
-		},
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(

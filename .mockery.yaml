@@ -1,0 +1,15 @@
+with-expecter: false
+disable-version-string: true
+dir: internal/testutil/mocksvc
+outpkg: mocksvc
+filename: "{{ .InterfaceName | snakecase }}.go"
+mockname: "{{.InterfaceName}}"
+
+packages:
+  ? github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment
+  ? github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest
+  ? github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project
+  : interfaces:
+      DeploymentService:
+      EarService:
+      GroupProjectService:
