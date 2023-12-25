@@ -8,11 +8,13 @@ import (
 	"strings"
 	"testing"
 
+	"go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -195,7 +197,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(project
 		c, _, _ := conn.Clusters.Get(context.Background(), projectID, clusterName)
 
 		fmt.Printf("testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate %#v \n", rs.Primary.Attributes)
-		fmt.Printf("cluster.ConnectionStrings %#v \n", advancedcluster.FlattenConnectionStrings(c.ConnectionStrings))
+		fmt.Printf("cluster.ConnectionStrings %#v \n", flattenConnectionStrings(c.ConnectionStrings))
 
 		if rsPrivateEndpointCount != len(c.ConnectionStrings.PrivateEndpoint) {
 			return fmt.Errorf("Cluster PrivateEndpoint count does not match resource")
@@ -313,4 +315,44 @@ func testAccMongoDBAtlasPrivateLinkEndpointServiceConfigUnmanagedAWS(awsAccessKe
 			}
 		  }
 	`, awsAccessKey, awsSecretKey, projectID, providerName, region, serviceResourceName)
+}
+
+func flattenConnectionStrings(connectionStrings *mongodbatlas.ConnectionStrings) []map[string]any {
+	connections := make([]map[string]any, 0)
+
+	connections = append(connections, map[string]any{
+		"standard":         connectionStrings.Standard,
+		"standard_srv":     connectionStrings.StandardSrv,
+		"private":          connectionStrings.Private,
+		"private_srv":      connectionStrings.PrivateSrv,
+		"private_endpoint": flattenPrivateEndpoint(connectionStrings.PrivateEndpoint),
+	})
+
+	return connections
+}
+
+func flattenPrivateEndpoint(privateEndpoints []mongodbatlas.PrivateEndpoint) []map[string]any {
+	endpoints := make([]map[string]any, 0)
+	for _, endpoint := range privateEndpoints {
+		endpoints = append(endpoints, map[string]any{
+			"connection_string":                     endpoint.ConnectionString,
+			"srv_connection_string":                 endpoint.SRVConnectionString,
+			"srv_shard_optimized_connection_string": endpoint.SRVShardOptimizedConnectionString,
+			"endpoints":                             flattenEndpoints(endpoint.Endpoints),
+			"type":                                  endpoint.Type,
+		})
+	}
+	return endpoints
+}
+
+func flattenEndpoints(listEndpoints []mongodbatlas.Endpoint) []map[string]any {
+	endpoints := make([]map[string]any, 0)
+	for _, endpoint := range listEndpoints {
+		endpoints = append(endpoints, map[string]any{
+			"region":        endpoint.Region,
+			"provider_name": endpoint.ProviderName,
+			"endpoint_id":   endpoint.EndpointID,
+		})
+	}
+	return endpoints
 }

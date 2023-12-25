@@ -9,14 +9,16 @@ import (
 	"strings"
 	"time"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mwielbut/pointy"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"github.com/mwielbut/pointy"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -54,7 +56,7 @@ func resourceMongoDBAtlasServerlessInstanceUpdate(ctx context.Context, d *schema
 		}
 
 		if d.HasChange("tags") {
-			tags := advancedcluster.ExpandTagSliceFromSetSchema(d)
+			tags := expandTagSliceFromSetSchema(d)
 			ServerlessUpdateRequestParams.Tag = &tags
 		}
 
@@ -161,7 +163,7 @@ func returnServerlessInstanceSchema() map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 		},
-		"tags": &advancedcluster.RSTagsSchema,
+		"tags": &RSTagsSchema,
 	}
 }
 
@@ -300,7 +302,7 @@ func resourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.R
 		return diag.Errorf(errorServerlessInstanceSetting, "continuous_backup_enabled", d.Id(), err)
 	}
 
-	if err := d.Set("tags", advancedcluster.FlattenTags(serverlessInstance.Tags)); err != nil {
+	if err := d.Set("tags", flattenTags(serverlessInstance.Tags)); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "tags", d.Id(), err)
 	}
 
@@ -332,7 +334,7 @@ func resourceMongoDBAtlasServerlessInstanceCreate(ctx context.Context, d *schema
 	}
 
 	if _, ok := d.GetOk("tags"); ok {
-		tagsSlice := advancedcluster.ExpandTagSliceFromSetSchema(d)
+		tagsSlice := expandTagSliceFromSetSchema(d)
 		serverlessInstanceRequest.Tag = &tagsSlice
 	}
 
@@ -427,4 +429,17 @@ func splitServerlessInstanceImportID(id string) (projectID, instanceName *string
 	instanceName = &parts[2]
 
 	return
+}
+
+func expandTagSliceFromSetSchema(d *schema.ResourceData) []*matlas.Tag {
+	list := d.Get("tags").(*schema.Set)
+	res := make([]*matlas.Tag, list.Len())
+	for i, val := range list.List() {
+		v := val.(map[string]any)
+		res[i] = &matlas.Tag{
+			Key:   v["key"].(string),
+			Value: v["value"].(string),
+		}
+	}
+	return res
 }

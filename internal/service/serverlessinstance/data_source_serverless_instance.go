@@ -3,11 +3,49 @@ package serverlessinstance
 import (
 	"context"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+)
+
+var (
+	DSTagsSchema = schema.Schema{
+		Type:     schema.TypeSet,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"key": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"value": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+	RSTagsSchema = schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"key": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"value": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+			},
+		},
+	}
 )
 
 func DataSource() *schema.Resource {
@@ -82,7 +120,7 @@ func dataSourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema
 	if err := d.Set("continuous_backup_enabled", serverlessInstance.ServerlessBackupOptions.ServerlessContinuousBackupEnabled); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "continuous_backup_enabled", d.Id(), err)
 	}
-	if err := d.Set("tags", advancedcluster.FlattenTags(serverlessInstance.Tags)); err != nil {
+	if err := d.Set("tags", flattenTags(serverlessInstance.Tags)); err != nil {
 		return diag.Errorf(advancedcluster.ErrorClusterAdvancedSetting, "tags", d.Id(), err)
 	}
 
@@ -169,6 +207,20 @@ func returnServerlessInstanceDSSchema() map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 		},
-		"tags": &advancedcluster.DSTagsSchema,
+		"tags": &DSTagsSchema,
 	}
+}
+
+func flattenTags(l *[]*matlas.Tag) []map[string]any {
+	if l == nil {
+		return []map[string]any{}
+	}
+	tags := make([]map[string]any, len(*l))
+	for i, v := range *l {
+		tags[i] = map[string]any{
+			"key":   v.Key,
+			"value": v.Value,
+		}
+	}
+	return tags
 }

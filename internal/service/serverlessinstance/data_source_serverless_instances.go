@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/ldapverify"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -107,7 +106,7 @@ func flattenServerlessInstances(serverlessInstances []*matlas.Cluster) []map[str
 			"state_name":                              serverlessInstances[i].StateName,
 			"termination_protection_enabled":          serverlessInstances[i].TerminationProtectionEnabled,
 			"continuous_backup_enabled":               serverlessInstances[i].ServerlessBackupOptions.ServerlessContinuousBackupEnabled,
-			"tags":                                    advancedcluster.FlattenTags(serverlessInstances[i].Tags),
+			"tags":                                    flattenTags(serverlessInstances[i].Tags),
 		}
 	}
 
