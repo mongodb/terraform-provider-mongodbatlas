@@ -3,7 +3,9 @@ package advancedcluster
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -11,16 +13,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-	"github.com/mwielbut/pointy"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/utility"
 )
 
 func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	conn := r.Client.Atlas
-	var plan, tfConfig tfAdvancedClusterRSModel
+	var plan tfAdvancedClusterRSModel
 
-	if diags := processCreateConfig(ctx, req, &plan, &tfConfig, resp); diags.HasError() {
+	if diags := processCreateConfig(ctx, req, &plan, resp); diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
@@ -29,7 +30,6 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 
 	request := clusterCreateRequest(ctx, &plan)
 	cluster, _, err := conn.AdvancedClusters.Create(ctx, projectID, request)
-	// cluster, _, err := conn.AdvancedClusters.Get(ctx, projectID, plan.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to CREATE cluster. Error during create in Atlas", fmt.Sprintf(errorClusterAdvancedCreate, err))
 		return
@@ -45,24 +45,18 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	// update the advanced configuration for it now that the cluster has created correctly
+	// update the advanced configuration now that the cluster has created successfully
 	if v := plan.AdvancedConfiguration; !v.IsUnknown() {
 		advancedConfig := newAdvancedConfiguration(ctx, v)
 		if _, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, cluster.Name, advancedConfig); err != nil {
 			resp.Diagnostics.AddError("Error during cluster CREATE", fmt.Sprintf(errorAdvancedClusterAdvancedConfUpdate, cluster.Name, err))
+			return
 		}
 	}
 
-	// pause cluster if required
-	if v := plan.Paused.ValueBool(); v {
-		request = &matlas.AdvancedCluster{
-			Paused: pointy.Bool(v),
-		}
-
-		if _, _, err := updateAdvancedCluster(ctx, conn, request, projectID, cluster.Name, timeout); err != nil {
-			resp.Diagnostics.AddError("Error during cluster CREATE. An error occurred attempting to pause cluster in Atlas", fmt.Sprintf(errorClusterAdvancedCreate, err))
-			return
-		}
+	if err := pauseClusterIfRequired(ctx, conn, &plan, timeout); err != nil {
+		resp.Diagnostics.AddError("Unable to UPDATE cluster. An error occurred when attempting to pause cluster in Atlas.", err.Error())
+		return
 	}
 
 	cluster, response, err := conn.AdvancedClusters.Get(ctx, projectID, cluster.Name)
@@ -86,16 +80,10 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 
 func processCreateConfig(ctx context.Context, req resource.CreateRequest,
 	plan *tfAdvancedClusterRSModel,
-	tfConfig *tfAdvancedClusterRSModel,
 	resp *resource.CreateResponse) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	diags.Append(req.Plan.Get(ctx, plan)...)
-	if diags.HasError() {
-		return diags
-	}
-
-	diags.Append(req.Config.Get(ctx, tfConfig)...)
 	if diags.HasError() {
 		return diags
 	}
@@ -152,8 +140,15 @@ func validateCreateConfig(ctx context.Context, plan *tfAdvancedClusterRSModel) e
 		return fmt.Errorf("accept_data_risks_and_force_replica_set_reconfig can not be set in creation, only in update")
 	}
 
+	if err := validateTfConfig(ctx, plan); err != nil {
+		return fmt.Errorf("invalid Create Configuration: %s", err.Error())
+	}
+	return nil
+}
+
+func validateTfConfig(ctx context.Context, plan *tfAdvancedClusterRSModel) error {
 	var advancedConfig *matlas.ProcessArgs
-	if v := plan.AdvancedConfiguration; !v.IsNull() {
+	if v := plan.AdvancedConfiguration; !v.IsUnknown() {
 		advancedConfig = newAdvancedConfiguration(ctx, v)
 		if advancedConfig != nil && advancedConfig.OplogSizeMB != nil && *advancedConfig.OplogSizeMB <= 0 {
 			return fmt.Errorf("`advanced_configuration.oplog_size_mb` cannot be <= 0")
@@ -172,9 +167,39 @@ func waitClusterCreate(ctx context.Context, conn *matlas.Client, timeout time.Du
 		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, clusterName, projectID, conn),
 		Timeout:    timeout,
 		MinTimeout: 1 * time.Minute,
-		// Delay:      1 * time.Minute, // TODO chage back to 3
+		Delay:      3 * time.Minute,
 	}
 
 	_, err := stateConf.WaitForStateContext(ctx)
 	return err
+}
+
+func resourceClusterAdvancedRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
+	return func() (any, string, error) {
+		c, resp, err := client.AdvancedClusters.Get(ctx, projectID, name)
+
+		if err != nil && strings.Contains(err.Error(), "reset by peer") {
+			return nil, "REPEATING", nil
+		}
+
+		if err != nil && c == nil && resp == nil {
+			return nil, "", err
+		}
+
+		if err != nil {
+			if resp.StatusCode == 404 {
+				return "", "DELETED", nil
+			}
+			if resp.StatusCode == 503 {
+				return "", "PENDING", nil
+			}
+			return nil, "", err
+		}
+
+		if c.StateName != "" {
+			log.Printf("[DEBUG] status for MongoDB cluster: %s: %s", name, c.StateName)
+		}
+
+		return c, c.StateName, nil
+	}
 }

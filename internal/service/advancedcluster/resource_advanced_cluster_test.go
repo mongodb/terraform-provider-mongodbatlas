@@ -819,7 +819,7 @@ func TestAccClusterAdvancedCluster_withLabels(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "2"),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "labels.*", acc.ClusterTagsMap1),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "labels.*", acc.ClusterTagsMap2),
-					resource.TestCheckResourceAttr(dataSourceName, "labels.#", "2"), // check if data source returnes all labels including default
+					resource.TestCheckResourceAttr(dataSourceName, "labels.#", "2"),
 					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "labels.*", acc.ClusterTagsMap1),
 					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "labels.*", acc.ClusterTagsMap2),
 					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.labels.#", "2"),
@@ -965,7 +965,6 @@ func testFuncsForMultiCloudConfig(cluster *matlas.AdvancedCluster, resourceName,
 		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.connection_strings.#"),
 		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.connection_strings.0.standard_srv"),
 		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.connection_strings.0.standard"),
-		// resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.labels.#", "1"),
 		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
 		resource.TestCheckTypeSetElemNestedAttrs(
 			dataSourceClustersName,

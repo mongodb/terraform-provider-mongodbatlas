@@ -9,8 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 func (r *advancedClusterRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -35,9 +33,7 @@ func (r *advancedClusterRS) Delete(ctx context.Context, req resource.DeleteReque
 }
 
 func deleteCluster(ctx context.Context, conn *matlas.Client, state *tfAdvancedClusterRSModel, timeout time.Duration) error {
-	ids := conversion.DecodeStateID(state.ID.ValueString())
-	projectID := ids["project_id"]
-	clusterName := ids["cluster_name"]
+	projectID, clusterName := decodeClusterID(state.ID.ValueString())
 
 	var options *matlas.DeleteAdvanceClusterOptions
 	if v := state.RetainBackupsEnabled; !v.IsNull() {

@@ -2,13 +2,8 @@ package advancedcluster
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"log"
-	"net/http"
 	"reflect"
-	"regexp"
-	"strings"
 	"time"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -20,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
@@ -28,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -504,66 +497,6 @@ func advancedClusterRSRegionConfigAutoScalingSpecsSchema() schema.ListNestedAttr
 	}
 }
 
-func (r *advancedClusterRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	conn := r.Client.Atlas
-
-	var state tfAdvancedClusterRSModel
-
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	ids := conversion.DecodeStateID(state.ID.ValueString())
-	projectID := ids["project_id"]
-	clusterName := ids["cluster_name"]
-
-	cluster, response, err := conn.AdvancedClusters.Get(ctx, projectID, clusterName)
-	if err != nil {
-		if response != nil && response.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError("Unable to READ cluster. An error occurred when getting cluster details from Atlas", err.Error())
-		return
-	}
-
-	newClusterModel, diags := newTfAdvancedClusterRSModel(ctx, conn, cluster, &state)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &newClusterModel)...)
-}
-
-func (r *advancedClusterRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	conn := r.Client.Atlas
-
-	projectID, name, err := splitSClusterAdvancedImportID(req.ID)
-	if err != nil {
-		resp.Diagnostics.AddError("Unable to IMPORT cluster. An error occurred when attempting to read resource ID", err.Error())
-		return
-	}
-
-	u, _, err := conn.AdvancedClusters.Get(ctx, *projectID, *name)
-	if err != nil {
-		resp.Diagnostics.AddError("Unable to IMPORT cluster. An error occurred when getting cluster details from Atlas.",
-			fmt.Sprintf("couldn't import cluster %s in project %s, error: %s", *name, *projectID, err))
-		return
-	}
-	id := conversion.EncodeStateID(map[string]string{
-		"cluster_id":   u.ID,
-		"project_id":   u.GroupID,
-		"cluster_name": u.Name,
-	})
-
-	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(id))
-	if resp.Diagnostics.HasError() {
-		return
-	}
-}
-
 // TODO UpgradeState implements resource.ResourceWithUpgradeState.
 func (*advancedClusterRS) UpgradeState(context.Context) map[int64]resource.StateUpgrader {
 	schemaV0 := TPFResourceV0()
@@ -576,86 +509,6 @@ func (*advancedClusterRS) UpgradeState(context.Context) map[int64]resource.State
 	}
 }
 
-func resourceClusterAdvancedRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
-	return func() (any, string, error) {
-		c, resp, err := client.AdvancedClusters.Get(ctx, projectID, name)
-
-		if err != nil && strings.Contains(err.Error(), "reset by peer") {
-			return nil, "REPEATING", nil
-		}
-
-		if err != nil && c == nil && resp == nil {
-			return nil, "", err
-		}
-
-		if err != nil {
-			if resp.StatusCode == 404 {
-				return "", "DELETED", nil
-			}
-			if resp.StatusCode == 503 {
-				return "", "PENDING", nil
-			}
-			return nil, "", err
-		}
-
-		if c.StateName != "" {
-			log.Printf("[DEBUG] status for MongoDB cluster: %s: %s", name, c.StateName)
-		}
-
-		return c, c.StateName, nil
-	}
-}
-
-func splitSClusterAdvancedImportID(id string) (projectID, clusterName *string, err error) {
-	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)$`)
-	parts := re.FindStringSubmatch(id)
-
-	if len(parts) != 3 {
-		err = errors.New("import format error: to import a advanced cluster, use the format {project_id}-{name}")
-		return
-	}
-
-	projectID = &parts[1]
-	clusterName = &parts[2]
-
-	return
-}
-
-func getAdvancedClusterContainerID(containers []matlas.Container, cluster *matlas.AdvancedRegionConfig) string {
-	if len(containers) != 0 {
-		for i := range containers {
-			if cluster.ProviderName == "GCP" {
-				return containers[i].ID
-			}
-
-			if containers[i].ProviderName == cluster.ProviderName &&
-				containers[i].Region == cluster.RegionName || // For Azure
-				containers[i].RegionName == cluster.RegionName { // For AWS
-				return containers[i].ID
-			}
-		}
-	}
-
-	return ""
-}
-
-func doesAdvancedReplicationSpecMatchAPI(tfObject *tfReplicationSpecRSModel, apiObject *matlas.AdvancedReplicationSpec) bool {
-	return tfObject.ID.ValueString() == apiObject.ID || (tfObject.ID.IsNull() && tfObject.ZoneName.ValueString() == apiObject.ZoneName)
-}
-
-func removeDefaultLabel(labels []TfLabelModel) []TfLabelModel {
-	result := make([]TfLabelModel, 0)
-
-	for _, item := range labels {
-		if item.Key.ValueString() == DefaultLabel.Key && item.Value.ValueString() == DefaultLabel.Value {
-			continue
-		}
-		result = append(result, item)
-	}
-
-	return result
-}
-
 func newTfReplicationSpecsRSModel(ctx context.Context, conn *matlas.Client,
 	rawAPIObjects []*matlas.AdvancedReplicationSpec,
 	configSpecsList types.List,
@@ -663,7 +516,7 @@ func newTfReplicationSpecsRSModel(ctx context.Context, conn *matlas.Client,
 	var diags diag.Diagnostics
 	var configSpecs []tfReplicationSpecRSModel
 
-	if !configSpecsList.IsNull() { // create return to state - filter by config, read/tf plan - filter by config, update - filter by config, import - return everything from API
+	if !configSpecsList.IsNull() {
 		configSpecsList.ElementsAs(ctx, &configSpecs, true)
 	}
 
@@ -774,26 +627,16 @@ func newTfAdvancedClusterRSModel(ctx context.Context, conn *matlas.Client, clust
 
 	clusterModel.Labels, d = types.SetValueFrom(ctx, TfLabelType, removeDefaultLabel(newTfLabelsModel(cluster.Labels)))
 	if len(clusterModel.Labels.Elements()) == 0 {
-		// clusterModel.Labels, d = types.SetValueFrom(ctx, TfLabelType, []TfLabelModel{})
 		clusterModel.Labels = types.SetNull(TfLabelType)
 	}
 	diags.Append(d...)
 
 	clusterModel.Tags, d = types.SetValueFrom(ctx, TfTagType, newTfTagsModel(&cluster.Tags))
 	if len(clusterModel.Tags.Elements()) == 0 {
-		// clusterModel.Tags, d = types.SetValueFrom(ctx, TfTagType, []TfTagModel{})
 		clusterModel.Tags = types.SetNull(TfTagType)
 	}
 	diags.Append(d...)
 
-	// var repSpecs []tfReplicationSpecRSModel
-	// if isCreate{
-	// 	repSpecs, d = newTfReplicationSpecsRS(ctx, conn, cluster.ReplicationSpecs, types.ListNull(tfReplicationSpecRSType), projectID)
-
-	// }else{
-	// 	repSpecs, d = newTfReplicationSpecsRS(ctx, conn, cluster.ReplicationSpecs, state.ReplicationSpecs, projectID)
-
-	// }
 	repSpecs, d := newTfReplicationSpecsRSModel(ctx, conn, cluster.ReplicationSpecs, state.ReplicationSpecs, projectID)
 	diags.Append(d...)
 	if diags.HasError() {

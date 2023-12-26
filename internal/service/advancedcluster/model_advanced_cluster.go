@@ -396,11 +396,7 @@ func newLabels(ctx context.Context, tfSet basetypes.SetValue) []matlas.Label {
 }
 
 func newBiConnectorConfig(ctx context.Context, tfList basetypes.ListValue) *matlas.BiConnector {
-	// res := matlas.BiConnector{}
 	if tfList.IsNull() || len(tfList.Elements()) == 0 {
-		// if isUpdate {
-		// 	return &res
-		// }
 		return nil
 	}
 
@@ -586,14 +582,8 @@ func newAdvancedConfiguration(ctx context.Context, tfList basetypes.ListValue) *
 	res := &matlas.ProcessArgs{}
 
 	if tfList.IsNull() || len(tfList.Elements()) == 0 {
-		// if isUpdate {
-		// 	return res
-		// }
 		return nil
 	}
-	// else if isUpdate && (tfList.IsNull() || len(tfList.Elements()) == 0) { // if during update user removed the advanced_configuration block
-	// 	return &matlas.ProcessArgs{}
-	// }
 
 	var tfAdvancedConfigArr []TfAdvancedConfigurationModel
 	tfList.ElementsAs(ctx, &tfAdvancedConfigArr, true)
@@ -711,7 +701,7 @@ func newTfRegionsConfigsRSModel(ctx context.Context, apiObjects []*matlas.Advanc
 	var configRegionConfigs []*tfRegionsConfigModel
 	containerIDsMap := map[string]attr.Value{}
 
-	if !configRegionConfigsList.IsNull() { // create return to state - filter by config, read/tf plan - filter by config, update - filter by config, import - return everything from API
+	if !configRegionConfigsList.IsNull() {
 		configRegionConfigsList.ElementsAs(ctx, &configRegionConfigs, true)
 	}
 
@@ -771,35 +761,30 @@ func newTfRegionsConfigRSModel(ctx context.Context, apiObject *matlas.AdvancedRe
 		if v := configRegionConfig.AnalyticsSpecs; !v.IsNull() && len(v.Elements()) > 0 {
 			tfMap.AnalyticsSpecs, d = newTfRegionsConfigSpecRSModel(ctx, apiObject.AnalyticsSpecs, apiObject.ProviderName, configRegionConfig.AnalyticsSpecs)
 		} else {
-			//  tfMap.AnalyticsSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, []tfRegionsConfigSpecsModel{})
 			tfMap.AnalyticsSpecs = types.ListNull(tfRegionsConfigSpecType)
 		}
 		diags.Append(d...)
 		if v := configRegionConfig.ElectableSpecs; !v.IsNull() && len(v.Elements()) > 0 {
 			tfMap.ElectableSpecs, d = newTfRegionsConfigSpecRSModel(ctx, apiObject.ElectableSpecs, apiObject.ProviderName, configRegionConfig.ElectableSpecs)
 		} else {
-			// tfMap.ElectableSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, []tfRegionsConfigSpecsModel{})
 			tfMap.ElectableSpecs = types.ListNull(tfRegionsConfigSpecType)
 		}
 		diags.Append(d...)
 		if v := configRegionConfig.ReadOnlySpecs; !v.IsNull() && len(v.Elements()) > 0 {
 			tfMap.ReadOnlySpecs, d = newTfRegionsConfigSpecRSModel(ctx, apiObject.ReadOnlySpecs, apiObject.ProviderName, configRegionConfig.ReadOnlySpecs)
 		} else {
-			// tfMap.ReadOnlySpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, []tfRegionsConfigSpecsModel{})
 			tfMap.ReadOnlySpecs = types.ListNull(tfRegionsConfigSpecType)
 		}
 		diags.Append(d...)
 		if v := configRegionConfig.AutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
 			tfMap.AutoScaling, d = newTfRegionsConfigAutoScalingSpecsRSModel(ctx, apiObject.AutoScaling)
 		} else {
-			// tfMap.AutoScaling, d = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, []tfRegionsConfigAutoScalingSpecsModel{})
 			tfMap.AutoScaling = types.ListNull(tfRegionsConfigAutoScalingSpecType)
 		}
 		diags.Append(d...)
 		if v := configRegionConfig.AnalyticsAutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
 			tfMap.AnalyticsAutoScaling, d = newTfRegionsConfigAutoScalingSpecsRSModel(ctx, apiObject.AnalyticsAutoScaling)
 		} else {
-			// tfMap.AnalyticsAutoScaling, d = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, []tfRegionsConfigAutoScalingSpecsModel{})
 			tfMap.AnalyticsAutoScaling = types.ListNull(tfRegionsConfigAutoScalingSpecType)
 		}
 		diags.Append(d...)
@@ -834,7 +819,7 @@ func newTfRegionsConfigSpecRSModel(ctx context.Context, apiObject *matlas.Specs,
 
 	var configRegionConfigSpecs []*tfRegionsConfigSpecsModel
 
-	if !tfMapObjects.IsNull() { // create return to state - filter by config, read/tf plan - filter by config, update - filter by config, import - return everything from API
+	if !tfMapObjects.IsNull() {
 		tfMapObjects.ElementsAs(ctx, &configRegionConfigSpecs, true)
 	}
 
@@ -851,9 +836,6 @@ func newTfRegionsConfigSpecRSModel(ctx context.Context, apiObject *matlas.Specs,
 			} else {
 				tfMap.DiskIOPS = types.Int64Null()
 			}
-			// if v := tfMapObject.EBSVolumeType; !v.IsNull() && v.ValueString() != "" {
-			// 	tfMap.EBSVolumeType = types.StringValue(apiObject.EbsVolumeType)
-			// }
 			if v := tfMapObject.EBSVolumeType; !v.IsNull() {
 				tfMap.EBSVolumeType = types.StringValue(apiObject.EbsVolumeType)
 			}
@@ -865,30 +847,13 @@ func newTfRegionsConfigSpecRSModel(ctx context.Context, apiObject *matlas.Specs,
 			tfMap.InstanceSize = types.StringValue(apiObject.InstanceSize)
 		}
 
-		// if tfMap.DiskIOPS.IsNull() {
-		// 	tfMap.DiskIOPS = types.Int64Value(defaultInt)
-		// }
-		// if tfMap.NodeCount.IsNull() {
-		// 	tfMap.NodeCount = types.Int64Value(defaultInt)
-		// }
-		// if tfMap.EBSVolumeType.IsNull() {
-		// 	tfMap.EBSVolumeType = types.StringValue(defaultString)
-		// }
 		tfList = append(tfList, tfMap)
 	} else {
 		tfMap.DiskIOPS = types.Int64PointerValue(apiObject.DiskIOPS)
 		tfMap.EBSVolumeType = types.StringValue(apiObject.EbsVolumeType)
 		tfMap.NodeCount = types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiObject.NodeCount))
 		tfMap.InstanceSize = types.StringValue(apiObject.InstanceSize)
-		// if tfMap.DiskIOPS.IsNull() {
-		// 	tfMap.DiskIOPS = types.Int64Value(defaultInt)
-		// }
-		// if tfMap.NodeCount.IsNull() {
-		// 	tfMap.NodeCount = types.Int64Value(defaultInt)
-		// }
-		// if tfMap.EBSVolumeType.IsNull() {
-		// 	tfMap.EBSVolumeType = types.StringValue(defaultString)
-		// }
+
 		tfList = append(tfList, tfMap)
 	}
 
