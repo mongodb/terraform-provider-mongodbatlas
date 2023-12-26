@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customtypes"
 )
 
 func TPFResourceV0() schema.Schema {
@@ -220,28 +219,28 @@ func upgradeAdvancedClusterResourceStateV0toV1(ctx context.Context, req resource
 }
 
 type tfAdvancedClusterRSModelV0 struct {
-	DiskSizeGb                   types.Float64                    `tfsdk:"disk_size_gb"`
-	Labels                       types.Set                        `tfsdk:"labels"`
-	AdvancedConfiguration        types.List                       `tfsdk:"advanced_configuration"`
-	ConnectionStrings            types.List                       `tfsdk:"connection_strings"`
-	BiConnector                  types.List                       `tfsdk:"bi_connector"`
-	ReplicationSpecs             types.Set                        `tfsdk:"replication_specs"`
-	ID                           types.String                     `tfsdk:"id"`
-	EncryptionAtRestProvider     types.String                     `tfsdk:"encryption_at_rest_provider"`
-	MongoDBVersion               types.String                     `tfsdk:"mongo_db_version"`
-	Name                         types.String                     `tfsdk:"name"`
-	Timeouts                     timeouts.Value                   `tfsdk:"timeouts"`
-	ClusterID                    types.String                     `tfsdk:"cluster_id"`
-	ProjectID                    types.String                     `tfsdk:"project_id"`
-	ClusterType                  types.String                     `tfsdk:"cluster_type"`
-	RootCertType                 types.String                     `tfsdk:"root_cert_type"`
-	StateName                    types.String                     `tfsdk:"state_name"`
-	CreateDate                   types.String                     `tfsdk:"create_date"`
-	VersionReleaseSystem         types.String                     `tfsdk:"version_release_system"`
-	MongoDBMajorVersion          customtypes.DBVersionStringValue `tfsdk:"mongo_db_major_version"`
-	BackupEnabled                types.Bool                       `tfsdk:"backup_enabled"`
-	TerminationProtectionEnabled types.Bool                       `tfsdk:"termination_protection_enabled"`
-	RetainBackupsEnabled         types.Bool                       `tfsdk:"retain_backups_enabled"`
-	PitEnabled                   types.Bool                       `tfsdk:"pit_enabled"`
-	Paused                       types.Bool                       `tfsdk:"paused"`
+	DiskSizeGb                   types.Float64  `tfsdk:"disk_size_gb"`
+	Labels                       types.Set      `tfsdk:"labels"`
+	AdvancedConfiguration        types.List     `tfsdk:"advanced_configuration"`
+	ConnectionStrings            types.List     `tfsdk:"connection_strings"`
+	BiConnector                  types.List     `tfsdk:"bi_connector"`
+	ReplicationSpecs             types.Set      `tfsdk:"replication_specs"`
+	ID                           types.String   `tfsdk:"id"`
+	EncryptionAtRestProvider     types.String   `tfsdk:"encryption_at_rest_provider"`
+	MongoDBVersion               types.String   `tfsdk:"mongo_db_version"`
+	Name                         types.String   `tfsdk:"name"`
+	Timeouts                     timeouts.Value `tfsdk:"timeouts"`
+	ClusterID                    types.String   `tfsdk:"cluster_id"`
+	ProjectID                    types.String   `tfsdk:"project_id"`
+	ClusterType                  types.String   `tfsdk:"cluster_type"`
+	RootCertType                 types.String   `tfsdk:"root_cert_type"`
+	StateName                    types.String   `tfsdk:"state_name"`
+	CreateDate                   types.String   `tfsdk:"create_date"`
+	VersionReleaseSystem         types.String   `tfsdk:"version_release_system"`
+	MongoDBMajorVersion          types.String   `tfsdk:"mongo_db_major_version"`
+	BackupEnabled                types.Bool     `tfsdk:"backup_enabled"`
+	TerminationProtectionEnabled types.Bool     `tfsdk:"termination_protection_enabled"`
+	RetainBackupsEnabled         types.Bool     `tfsdk:"retain_backups_enabled"`
+	PitEnabled                   types.Bool     `tfsdk:"pit_enabled"`
+	Paused                       types.Bool     `tfsdk:"paused"`
 }
