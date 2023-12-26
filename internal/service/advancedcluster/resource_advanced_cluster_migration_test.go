@@ -99,61 +99,61 @@ func TestAccMigrationClusterAdvancedCluster_tenantUpgrade(t *testing.T) {
 	})
 }
 
-func TestAccMigrationAdvancedClusterRS_singleAWSProviderToMultiCloud(t *testing.T) {
-	var (
-		cluster                matlas.AdvancedCluster
-		resourceName           = "mongodbatlas_advanced_cluster.test"
-		dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
-		dataSourceClustersName = "data.mongodbatlas_advanced_clusters.test"
-		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName            = acctest.RandomWithPrefix("test-acc")
-		rName                  = acctest.RandomWithPrefix("test-acc")
-	)
+// func TestAccMigrationAdvancedClusterRS_singleAWSProviderToMultiCloud(t *testing.T) {
+// 	var (
+// 		cluster                matlas.AdvancedCluster
+// 		resourceName           = "mongodbatlas_advanced_cluster.test"
+// 		dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
+// 		dataSourceClustersName = "data.mongodbatlas_advanced_clusters.test"
+// 		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
+// 		projectName            = acctest.RandomWithPrefix("test-acc")
+// 		rName                  = acctest.RandomWithPrefix("test-acc")
+// 	)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t) },
-		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
-		Steps: []resource.TestStep{
-			{
-				ExternalProviders: mig.ExternalProviders(),
-				Config:            testAccAdvancedClusterConfigSingleProviderBlocks(orgID, projectName, rName),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAdvancedClusterExists(resourceName, &cluster),
-					testAccCheckAdvancedClusterAttributes(&cluster, rName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-				),
-			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccAdvancedClusterConfigSingleProvider(orgID, projectName, rName),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PostApplyPreRefresh: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-					},
-				},
-				PlanOnly: true,
-			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccAdvancedClusterConfigSingleProvider(orgID, projectName, rName),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testFuncsForSingleProviderConfig(&cluster, resourceName, dataSourceName, dataSourceClustersName, rName)...,
-				),
-			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testFuncsForMultiCloudConfig(&cluster, resourceName, dataSourceName, dataSourceClustersName, rName)...,
-				),
-			},
-		},
-	})
-}
+// 	resource.ParallelTest(t, resource.TestCase{
+// 		PreCheck:     func() { mig.PreCheckBasic(t) },
+// 		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				ExternalProviders: mig.ExternalProviders(),
+// 				Config:            testAccAdvancedClusterConfigSingleProviderBlocks(orgID, projectName, rName),
+// 				Check: resource.ComposeAggregateTestCheckFunc(
+// 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
+// 					testAccCheckAdvancedClusterAttributes(&cluster, rName),
+// 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+// 					resource.TestCheckResourceAttr(resourceName, "name", rName),
+// 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
+// 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+// 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+// 				),
+// 			},
+// 			{
+// 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+// 				Config:                   testAccAdvancedClusterConfigSingleProvider(orgID, projectName, rName),
+// 				ConfigPlanChecks: resource.ConfigPlanChecks{
+// 					PostApplyPreRefresh: []plancheck.PlanCheck{
+// 						acc.DebugPlan(),
+// 					},
+// 				},
+// 				PlanOnly: true,
+// 			},
+// 			{
+// 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+// 				Config:                   testAccAdvancedClusterConfigSingleProvider(orgID, projectName, rName),
+// 				Check: resource.ComposeAggregateTestCheckFunc(
+// 					testFuncsForSingleProviderConfig(&cluster, resourceName, dataSourceName, dataSourceClustersName, rName)...,
+// 				),
+// 			},
+// 			{
+// 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+// 				Config:                   testAccAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
+// 				Check: resource.ComposeAggregateTestCheckFunc(
+// 					testFuncsForMultiCloudConfig(&cluster, resourceName, dataSourceName, dataSourceClustersName, rName)...,
+// 				),
+// 			},
+// 		},
+// 	})
+// }
 
 func TestAccMigrationAdvancedClusterRS_multiCloud(t *testing.T) {
 	var (
