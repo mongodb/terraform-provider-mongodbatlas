@@ -18,8 +18,43 @@ import (
 	"github.com/mwielbut/pointy"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/utility"
 )
+
+func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	conn := r.Client.Atlas
+	var state, plan tfAdvancedClusterRSModel
+
+	if diags := processUpdateConfig(ctx, req, resp, &plan, &state); diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
+	projectID, clusterName := decodeClusterID(state.ID.ValueString())
+
+	if diags := updateOrUpgradeCluster(ctx, conn, &state, &plan, projectID, clusterName); diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
+	cluster, response, err := conn.AdvancedClusters.Get(ctx, projectID, clusterName)
+	if err != nil {
+		if response != nil && response.StatusCode == http.StatusNotFound {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.AddError("error during cluster READ from Atlas", fmt.Sprintf(errorClusterAdvancedRead, clusterName, err.Error()))
+		return
+	}
+
+	log.Printf("[DEBUG] GET ClusterAdvanced %+v", cluster)
+	newClusterModel, diags := newTfAdvancedClusterRSModel(ctx, conn, cluster, &plan)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newClusterModel)...)
+}
 
 func processUpdateConfig(ctx context.Context, req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
@@ -63,42 +98,6 @@ func updateOrUpgradeCluster(ctx context.Context, conn *matlas.Client, state, pla
 func decodeClusterID(id string) (projectID, clusterName string) {
 	ids := conversion.DecodeStateID(id)
 	return ids["project_id"], ids["cluster_name"]
-}
-
-func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	conn := r.Client.Atlas
-	var state, plan tfAdvancedClusterRSModel
-
-	if diags := processUpdateConfig(ctx, req, resp, &plan, &state); diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-
-	projectID, clusterName := decodeClusterID(state.ID.ValueString())
-
-	if diags := updateOrUpgradeCluster(ctx, conn, &state, &plan, projectID, clusterName); diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-
-	cluster, response, err := conn.AdvancedClusters.Get(ctx, projectID, clusterName)
-	if err != nil {
-		if response != nil && response.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError("error during cluster READ from Atlas", fmt.Sprintf(errorClusterAdvancedRead, clusterName, err.Error()))
-		return
-	}
-
-	log.Printf("[DEBUG] GET ClusterAdvanced %+v", cluster)
-	newClusterModel, diags := newTfAdvancedClusterRSModel(ctx, conn, cluster, &plan)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &newClusterModel)...)
 }
 
 func getUpgradeRequest(ctx context.Context, state, plan *tfAdvancedClusterRSModel) *matlas.Cluster {
@@ -204,9 +203,8 @@ func handleClusterUpdate(ctx context.Context, conn *matlas.Client, state, plan *
 	if hasStringUpdated(plan.EncryptionAtRestProvider, state.EncryptionAtRestProvider) {
 		cluster.EncryptionAtRestProvider = plan.EncryptionAtRestProvider.ValueString()
 	}
-	// TODO: remove db version logic
-	if !plan.MongoDBMajorVersion.Equal(state.MongoDBMajorVersion) {
-		cluster.MongoDBMajorVersion = utility.FormatMongoDBMajorVersion(plan.MongoDBMajorVersion.ValueString())
+	if hasStringUpdated(plan.MongoDBMajorVersion, state.MongoDBMajorVersion) {
+		cluster.MongoDBMajorVersion = plan.MongoDBMajorVersion.ValueString()
 	}
 	if hasBoolUpdated(plan.PitEnabled, state.PitEnabled) {
 		cluster.PitEnabled = plan.PitEnabled.ValueBoolPointer()

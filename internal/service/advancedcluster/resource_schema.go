@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"regexp"
 	"time"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -25,8 +26,6 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customtypes"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/planmodifiers"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -60,32 +59,32 @@ func Resource() resource.Resource {
 }
 
 type tfAdvancedClusterRSModel struct {
-	DiskSizeGb                                types.Float64                    `tfsdk:"disk_size_gb"`
-	Labels                                    types.Set                        `tfsdk:"labels"`
-	AdvancedConfiguration                     types.List                       `tfsdk:"advanced_configuration"`
-	ConnectionStrings                         types.List                       `tfsdk:"connection_strings"`
-	BiConnectorConfig                         types.List                       `tfsdk:"bi_connector_config"`
-	ReplicationSpecs                          types.List                       `tfsdk:"replication_specs"`
-	Tags                                      types.Set                        `tfsdk:"tags"`
-	ProjectID                                 types.String                     `tfsdk:"project_id"`
-	RootCertType                              types.String                     `tfsdk:"root_cert_type"`
-	Name                                      types.String                     `tfsdk:"name"`
-	Timeouts                                  timeouts.Value                   `tfsdk:"timeouts"`
-	ClusterID                                 types.String                     `tfsdk:"cluster_id"`
-	MongoDBVersion                            types.String                     `tfsdk:"mongo_db_version"`
-	ClusterType                               types.String                     `tfsdk:"cluster_type"`
-	EncryptionAtRestProvider                  types.String                     `tfsdk:"encryption_at_rest_provider"`
-	StateName                                 types.String                     `tfsdk:"state_name"`
-	CreateDate                                types.String                     `tfsdk:"create_date"`
-	VersionReleaseSystem                      types.String                     `tfsdk:"version_release_system"`
-	AcceptDataRisksAndForceReplicaSetReconfig types.String                     `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
-	MongoDBMajorVersion                       customtypes.DBVersionStringValue `tfsdk:"mongo_db_major_version"`
-	ID                                        types.String                     `tfsdk:"id"`
-	BackupEnabled                             types.Bool                       `tfsdk:"backup_enabled"`
-	TerminationProtectionEnabled              types.Bool                       `tfsdk:"termination_protection_enabled"`
-	RetainBackupsEnabled                      types.Bool                       `tfsdk:"retain_backups_enabled"`
-	PitEnabled                                types.Bool                       `tfsdk:"pit_enabled"`
-	Paused                                    types.Bool                       `tfsdk:"paused"`
+	DiskSizeGb                                types.Float64  `tfsdk:"disk_size_gb"`
+	Labels                                    types.Set      `tfsdk:"labels"`
+	AdvancedConfiguration                     types.List     `tfsdk:"advanced_configuration"`
+	ConnectionStrings                         types.List     `tfsdk:"connection_strings"`
+	BiConnectorConfig                         types.List     `tfsdk:"bi_connector_config"`
+	ReplicationSpecs                          types.List     `tfsdk:"replication_specs"`
+	Tags                                      types.Set      `tfsdk:"tags"`
+	ProjectID                                 types.String   `tfsdk:"project_id"`
+	RootCertType                              types.String   `tfsdk:"root_cert_type"`
+	Name                                      types.String   `tfsdk:"name"`
+	Timeouts                                  timeouts.Value `tfsdk:"timeouts"`
+	ClusterID                                 types.String   `tfsdk:"cluster_id"`
+	MongoDBVersion                            types.String   `tfsdk:"mongo_db_version"`
+	ClusterType                               types.String   `tfsdk:"cluster_type"`
+	EncryptionAtRestProvider                  types.String   `tfsdk:"encryption_at_rest_provider"`
+	StateName                                 types.String   `tfsdk:"state_name"`
+	CreateDate                                types.String   `tfsdk:"create_date"`
+	VersionReleaseSystem                      types.String   `tfsdk:"version_release_system"`
+	AcceptDataRisksAndForceReplicaSetReconfig types.String   `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
+	MongoDBMajorVersion                       types.String   `tfsdk:"mongo_db_major_version"`
+	ID                                        types.String   `tfsdk:"id"`
+	BackupEnabled                             types.Bool     `tfsdk:"backup_enabled"`
+	TerminationProtectionEnabled              types.Bool     `tfsdk:"termination_protection_enabled"`
+	RetainBackupsEnabled                      types.Bool     `tfsdk:"retain_backups_enabled"`
+	PitEnabled                                types.Bool     `tfsdk:"pit_enabled"`
+	Paused                                    types.Bool     `tfsdk:"paused"`
 }
 
 type tfReplicationSpecRSModel struct {
@@ -143,13 +142,11 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 				Optional: true,
 				Computed: true,
 			},
-			// https://developer.hashicorp.com/terraform/plugin/framework/migrating/resources/crud#planned-value-does-not-match-config-value
 			"mongo_db_major_version": schema.StringAttribute{
-				CustomType: customtypes.DBVersionStringType{},
-				Optional:   true,
-				Computed:   true,
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.DBVersion(),
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(regexp.MustCompile(`^\d\.\d$`), "mongo_db_major_version should be in the format MAJOR.MINOR, for example '6.0'"),
 				},
 			},
 			"mongo_db_version": schema.StringAttribute{
@@ -599,7 +596,7 @@ func newTfAdvancedClusterRSModel(ctx context.Context, conn *matlas.Client, clust
 		CreateDate:                   types.StringValue(cluster.CreateDate),
 		DiskSizeGb:                   types.Float64PointerValue(cluster.DiskSizeGB),
 		EncryptionAtRestProvider:     types.StringValue(cluster.EncryptionAtRestProvider),
-		MongoDBMajorVersion:          customtypes.DBVersionStringValue{StringValue: types.StringValue(cluster.MongoDBMajorVersion)},
+		MongoDBMajorVersion:          types.StringValue(cluster.MongoDBMajorVersion),
 		MongoDBVersion:               types.StringValue(cluster.MongoDBVersion),
 		Name:                         types.StringValue(name),
 		Paused:                       types.BoolPointerValue(cluster.Paused),
