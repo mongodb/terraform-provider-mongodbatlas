@@ -773,7 +773,6 @@ func newTfRegionsConfigRSModel(ctx context.Context, apiObject *matlas.AdvancedRe
 		} else {
 			//  tfMap.AnalyticsSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, []tfRegionsConfigSpecsModel{})
 			tfMap.AnalyticsSpecs = types.ListNull(tfRegionsConfigSpecType)
-
 		}
 		diags.Append(d...)
 		if v := configRegionConfig.ElectableSpecs; !v.IsNull() && len(v.Elements()) > 0 {
@@ -781,7 +780,6 @@ func newTfRegionsConfigRSModel(ctx context.Context, apiObject *matlas.AdvancedRe
 		} else {
 			// tfMap.ElectableSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, []tfRegionsConfigSpecsModel{})
 			tfMap.ElectableSpecs = types.ListNull(tfRegionsConfigSpecType)
-
 		}
 		diags.Append(d...)
 		if v := configRegionConfig.ReadOnlySpecs; !v.IsNull() && len(v.Elements()) > 0 {
@@ -789,7 +787,6 @@ func newTfRegionsConfigRSModel(ctx context.Context, apiObject *matlas.AdvancedRe
 		} else {
 			// tfMap.ReadOnlySpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, []tfRegionsConfigSpecsModel{})
 			tfMap.ReadOnlySpecs = types.ListNull(tfRegionsConfigSpecType)
-
 		}
 		diags.Append(d...)
 		if v := configRegionConfig.AutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
@@ -797,7 +794,6 @@ func newTfRegionsConfigRSModel(ctx context.Context, apiObject *matlas.AdvancedRe
 		} else {
 			// tfMap.AutoScaling, d = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, []tfRegionsConfigAutoScalingSpecsModel{})
 			tfMap.AutoScaling = types.ListNull(tfRegionsConfigAutoScalingSpecType)
-
 		}
 		diags.Append(d...)
 		if v := configRegionConfig.AnalyticsAutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
@@ -805,7 +801,6 @@ func newTfRegionsConfigRSModel(ctx context.Context, apiObject *matlas.AdvancedRe
 		} else {
 			// tfMap.AnalyticsAutoScaling, d = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, []tfRegionsConfigAutoScalingSpecsModel{})
 			tfMap.AnalyticsAutoScaling = types.ListNull(tfRegionsConfigAutoScalingSpecType)
-
 		}
 		diags.Append(d...)
 	} else {
@@ -862,7 +857,6 @@ func newTfRegionsConfigSpecRSModel(ctx context.Context, apiObject *matlas.Specs,
 			if v := tfMapObject.EBSVolumeType; !v.IsNull() {
 				tfMap.EBSVolumeType = types.StringValue(apiObject.EbsVolumeType)
 			}
-
 		}
 		if v := tfMapObject.NodeCount; !v.IsNull() {
 			tfMap.NodeCount = types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiObject.NodeCount))

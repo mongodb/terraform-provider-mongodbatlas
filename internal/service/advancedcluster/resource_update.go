@@ -159,7 +159,7 @@ func updateCluster(ctx context.Context, conn *matlas.Client, state, plan *tfAdva
 		cluster.EncryptionAtRestProvider = plan.EncryptionAtRestProvider.ValueString()
 	}
 
-	// TODO
+	// TODO: remove db version logic
 	if !plan.MongoDBMajorVersion.Equal(state.MongoDBMajorVersion) {
 		cluster.MongoDBMajorVersion = utility.FormatMongoDBMajorVersion(plan.MongoDBMajorVersion.ValueString())
 	}
@@ -224,7 +224,7 @@ func updateCluster(ctx context.Context, conn *matlas.Client, state, plan *tfAdva
 
 	// TODO add comment in PR:
 	// This logic has been updated from SDKv2 implementation where if the user removes advanced_confgiuration block
-	// we would not call Update API, instead, now we send empty request object with all null values so API can reset defaults whereever applicable
+	// we would not call Update API, instead, now we send empty request object with all null values so API can reset defaults wherever applicable
 	// and return those.
 	if updated, newPlan, d := advancedConfigIfUpdated(ctx, plan.AdvancedConfiguration, state.AdvancedConfiguration); !d.HasError() && updated {
 		// advancedConfReq := newAdvancedConfiguration(ctx, ac)

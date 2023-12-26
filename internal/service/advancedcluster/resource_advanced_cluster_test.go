@@ -270,7 +270,6 @@ func TestAccClusterAdvancedCluster_geoSharded(t *testing.T) {
 		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName            = acctest.RandomWithPrefix("test-acc")
 		rName                  = acctest.RandomWithPrefix("test-acc")
-		// rNameUpdated           = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -281,17 +280,12 @@ func TestAccClusterAdvancedCluster_geoSharded(t *testing.T) {
 			{
 				Config: testAccAdvancedClusterConfigGeoSharded(orgID, projectName, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					// testAccCheckAdvancedClusterExists(resourceName, &cluster),
-					// testAccCheckAdvancedClusterAttributes(&cluster, rName),
-
 					testFuncsForGeoshardedConfig(&cluster, resourceName, dataSourceName, dataSourceClustersName, rName, false)...,
 				),
 			},
 			{
 				Config: testAccAdvancedClusterConfigGeoShardedUpdated(orgID, projectName, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					// testAccCheckAdvancedClusterExists(resourceName, &cluster),
-					// testAccCheckAdvancedClusterAttributes(&cluster, rName),
 					testFuncsForGeoshardedConfig(&cluster, resourceName, dataSourceName, dataSourceClustersName, rName, true)...,
 				),
 			},
@@ -431,9 +425,6 @@ func TestAccClusterAdvancedCluster_advancedConf(t *testing.T) {
 		rName                  = acctest.RandomWithPrefix("test-acc")
 		rNameUpdated           = acctest.RandomWithPrefix("test-acc")
 		processArgs            = &matlas.ProcessArgs{
-			// DefaultReadConcern:  "available",
-			// DefaultWriteConcern: "1",
-			// FailIndexKeyTooLong:              pointy.Bool(false),
 			JavascriptEnabled:                pointy.Bool(true),
 			MinimumEnabledTLSProtocol:        "TLS1_1",
 			NoTableScan:                      pointy.Bool(false),
@@ -444,14 +435,10 @@ func TestAccClusterAdvancedCluster_advancedConf(t *testing.T) {
 			TransactionLifetimeLimitSeconds:  pointy.Int64(300),
 		}
 		processArgsUpdated = &matlas.ProcessArgs{
-			// DefaultReadConcern:  "available",
-			// DefaultWriteConcern: "0",
-			// FailIndexKeyTooLong:              pointy.Bool(false),
-			JavascriptEnabled:         pointy.Bool(true),
-			MinimumEnabledTLSProtocol: "TLS1_2",
-			NoTableScan:               pointy.Bool(false),
-			OplogSizeMB:               pointy.Int64(1000),
-			// OplogMinRetentionHours:           pointy.Float64(0.0),
+			JavascriptEnabled:                pointy.Bool(true),
+			MinimumEnabledTLSProtocol:        "TLS1_2",
+			NoTableScan:                      pointy.Bool(false),
+			OplogSizeMB:                      pointy.Int64(1000),
 			SampleRefreshIntervalBIConnector: pointy.Int64(310),
 			SampleSizeBIConnector:            pointy.Int64(110),
 			TransactionLifetimeLimitSeconds:  pointy.Int64(300),
@@ -472,8 +459,6 @@ func TestAccClusterAdvancedCluster_advancedConf(t *testing.T) {
 					resource.TestCheckNoResourceAttr(resourceName, "advanced_configuration.0.default_read_concern"),
 					resource.TestCheckNoResourceAttr(resourceName, "advanced_configuration.0.default_write_concern"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_min_retention_hours", "2"),
-					// resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
-					// resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
@@ -498,8 +483,6 @@ func TestAccClusterAdvancedCluster_advancedConf(t *testing.T) {
 					resource.TestCheckNoResourceAttr(resourceName, "advanced_configuration.0.oplog_min_retention_hours"),
 					resource.TestCheckNoResourceAttr(resourceName, "advanced_configuration.0.default_read_concern"),
 					resource.TestCheckNoResourceAttr(resourceName, "advanced_configuration.0.default_write_concern"),
-					// resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
-					// resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
@@ -691,7 +674,6 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.disk_gb_enabled", "true"),
-					// resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_max_instance_size"),
 					testAccCheckAdvancedClusterAnalyticsScaling(&cluster, *autoScaling.Compute.Enabled),
 				),
 			},
@@ -931,7 +913,6 @@ func testFuncsForMultiCloudConfig(cluster *matlas.AdvancedCluster, resourceName,
 		resource.TestCheckResourceAttrSet(dataSourceName, "connection_strings.#"),
 		resource.TestCheckResourceAttrSet(dataSourceName, "connection_strings.0.standard_srv"),
 		resource.TestCheckResourceAttrSet(dataSourceName, "connection_strings.0.standard"),
-		// resource.TestCheckResourceAttrSet(dataSourceName, "labels.#"),
 		resource.TestCheckResourceAttrSet(dataSourceName, "replication_specs.#"),
 
 		resource.TestCheckTypeSetElemNestedAttrs(
@@ -1676,14 +1657,6 @@ func testFuncsForGeoshardedConfig(cluster *matlas.AdvancedCluster, resourceName,
 	res := []resource.TestCheckFunc{
 		testAccCheckAdvancedClusterExists(resourceName, cluster),
 		testAccCheckAdvancedClusterAttributes(cluster, rName),
-
-		// resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.priority", "6"),
-		// resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.provider_name", "AZURE"),
-		// resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.region_name", "US_EAST_2"),
-		// resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.instance_size", "M30"),
-		// resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.node_count", "2"),
-		// resource.TestCheckNoResourceAttr(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops"),
-		// resource.TestCheckNoResourceAttr(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.ebs_volume_type"),
 	}
 
 	res = append(res, testFuncsGeoshardedGeneric(resourceName, rName)...)
@@ -1737,7 +1710,6 @@ func testFuncsDSGeoshardedGeneric(sourceName, rName string) []resource.TestCheck
 			sourceName,
 			"replication_specs.*",
 			map[string]string{
-				// "container_id.%": "2",
 				"zone_name": "zone n1",
 			},
 		),
@@ -1745,44 +1717,9 @@ func testFuncsDSGeoshardedGeneric(sourceName, rName string) []resource.TestCheck
 			sourceName,
 			"replication_specs.*",
 			map[string]string{
-				// "container_id.%": "1",
-				// "zone_name":  advancedcluster.DefaultZoneName,
 				"num_shards": "2",
 			},
 		),
-
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.0.priority", "7"),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.0.provider_name", "AWS"),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.0.region_name", "US_EAST_1"),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.0.analytics_specs.0.instance_size", "M10"),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.0.analytics_specs.0.node_count", "1"),
-		// resource.TestCheckResourceAttrWith(sourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", "M10"),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.0.electable_specs.0.node_count", "3"),
-		// resource.TestCheckResourceAttrWith(sourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.1.priority", "6"),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.1.provider_name", "GCP"),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.1.region_name", "US_EAST_4"),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.1.electable_specs.0.instance_size", "M10"),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.1.electable_specs.0.node_count", "2"),
-		// resource.TestCheckNoResourceAttr(sourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops"),
-		// resource.TestCheckNoResourceAttr(sourceName, "replication_specs.0.region_configs.1.electable_specs.0.ebs_volume_type"),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.1.analytics_specs.0.instance_size", "M10"),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.1.analytics_specs.0.node_count", "1"),
-		// resource.TestCheckNoResourceAttr(sourceName, "replication_specs.0.region_configs.1.analytics_specs.0.disk_iops"),
-		// resource.TestCheckNoResourceAttr(sourceName, "replication_specs.0.region_configs.1.analytics_specs.0.ebs_volume_type"),
-
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.1.region_configs.0.priority", "7"),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.1.region_configs.0.provider_name", "AWS"),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.1.region_configs.0.region_name", "EU_WEST_1"),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.1.region_configs.0.electable_specs.0.instance_size", "M10"),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.1.region_configs.0.electable_specs.0.node_count", "3"),
-		// resource.TestCheckResourceAttrWith(sourceName, "replication_specs.1.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		// resource.TestCheckResourceAttrSet(sourceName, "replication_specs.1.region_configs.0.electable_specs.0.ebs_volume_type"),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.1.region_configs.0.analytics_specs.0.instance_size", "M10"),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.1.region_configs.0.analytics_specs.0.node_count", "1"),
-		// resource.TestCheckResourceAttrWith(sourceName, "replication_specs.1.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
-		// resource.TestCheckResourceAttrSet(sourceName, "replication_specs.1.region_configs.0.analytics_specs.0.ebs_volume_type"),
 	}
 }
 
@@ -1807,7 +1744,6 @@ func testFuncsGeoshardedGeneric(sourceName, rName string) []resource.TestCheckFu
 		resource.TestCheckResourceAttrSet(sourceName, "connection_strings.0.standard"),
 		resource.TestCheckResourceAttrSet(sourceName, "replication_specs.#"),
 		resource.TestCheckResourceAttrSet(sourceName, "replication_specs.0.region_configs.#"),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.0.container_id.%", "2"),
 		resource.TestCheckResourceAttr(sourceName, "replication_specs.0.zone_name", "zone n1"),
 		resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.0.priority", "7"),
 		resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.0.provider_name", "AWS"),
@@ -1831,7 +1767,6 @@ func testFuncsGeoshardedGeneric(sourceName, rName string) []resource.TestCheckFu
 		resource.TestCheckNoResourceAttr(sourceName, "replication_specs.0.region_configs.1.analytics_specs.0.ebs_volume_type"),
 
 		resource.TestCheckResourceAttrSet(sourceName, "replication_specs.1.region_configs.#"),
-		// resource.TestCheckResourceAttr(sourceName, "replication_specs.1.zone_name", advancedcluster.DefaultZoneName),
 		resource.TestCheckResourceAttr(sourceName, "replication_specs.1.num_shards", "2"),
 		resource.TestCheckResourceAttr(sourceName, "replication_specs.1.region_configs.0.priority", "7"),
 		resource.TestCheckResourceAttr(sourceName, "replication_specs.1.region_configs.0.provider_name", "AWS"),
