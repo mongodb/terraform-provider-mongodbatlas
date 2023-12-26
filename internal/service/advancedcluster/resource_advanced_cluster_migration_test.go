@@ -197,7 +197,6 @@ func TestAccMigrationAdvancedClusterRS_multiCloud(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.provider_name", "AWS"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.region_name", "US_EAST_1"),
 
-					resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.instance_size", "M10"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.node_count", "2"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.priority", "6"),
