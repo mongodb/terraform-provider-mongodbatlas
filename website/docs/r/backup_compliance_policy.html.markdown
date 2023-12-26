@@ -17,6 +17,15 @@ When enabled, the Backup Compliance Policy will be applied as the minimum backup
 
 -> **NOTE:** With Backup Compliance Policy enabled, cluster backups are retained after a cluster is deleted and backups can be used normally until retention expiration. When the Backup Compliance Policy is not enabled, Atlas deletes the cluster's associated backup snapshots when a cluster is terminated. By default, a Backup Compliance Policy is not enabled. For more details see [Back Up, Restore, and Archive Data](https://www.mongodb.com/docs/atlas/backup-restore-cluster/). 
 
+-> **NOTE:** If encountering errors when deleting an Atlas Cluster which has an associated `mongodbatlas_cloud_backup_schedule` resource. We suggest the following: 
+* `mongodbatlas_cloud_backup_schedule` fails during delete because an existing backup compliancy policy is enabled. This error is expected.
+We first suggest disabling `mongodbatlas_backup_compliancy_policy` resource which  requires contacting MongoDB Support and completing an extensive verification process.
+* Second, if this is not possible, we suggest changing the order in which terraform deletes the resource. This might not always be possible since the `mongodbatlas_cloud_backup_schedule` resource is referencing attributes from the `mongodbatlas_advanced_cluster` or `mongodbatlas_cluster resource` and therefor has to delete the backup schedule before deleting the cluster resource. This dependency must be defined as stated in the `mongodbatlas_cloud_backup_schedule` in the [documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_backup_schedule).
+* Third, another alternative is to modify the `mongodbatlas_cloud_backup_schedule` resource by replacing all the references to the `mongodbatlas_advanced_cluster` or `mongodbatlas_cluster` resource with the underlying values. This would enable deleting the cluster resource first, but requires obtaining values from the state to do the appropriate replacements.
+* Lastly, as a final resort taking into account the limitations, we recondmend:
+   * Remove the `mongodbatlas_cloud_backup_schedule` resource from the state using `terraform state rm mongodbatlas_cloud_backup_schedule.backup_retention_policy`
+   * Remove the `mongodbatlas_cloud_backup_schedule` and `mongodbatlas_advanced_cluster` or `mongodbatlas_cluster` resource for the terraform configuration script and apply changes. Now only the cluster delete operation is called and runs successfully.
+     
 ## Example Usage
 
 ```terraform
