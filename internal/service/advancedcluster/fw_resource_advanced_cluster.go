@@ -28,16 +28,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-	"github.com/mwielbut/pointy"
-	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/planmodifiers"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/utility"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -62,25 +58,58 @@ type advancedClusterRS struct {
 	config.RSCommon
 }
 
-// UpgradeState implements resource.ResourceWithUpgradeState.
-func (*advancedClusterRS) UpgradeState(context.Context) map[int64]resource.StateUpgrader {
-	schemaV0 := TPFResourceV0()
-
-	return map[int64]resource.StateUpgrader{
-		0: {
-			PriorSchema:   &schemaV0,
-			StateUpgrader: upgradeAdvancedClusterResourceStateV0toV1,
-		},
-	}
-}
-
-// TODO rename to Resource() after deleting old resource
-func TPFResource() resource.Resource {
+func Resource() resource.Resource {
 	return &advancedClusterRS{
 		RSCommon: config.RSCommon{
 			ResourceName: AdvancedClusterResourceName,
 		},
 	}
+}
+
+type tfAdvancedClusterRSModel struct {
+	DiskSizeGb                                types.Float64                    `tfsdk:"disk_size_gb"`
+	Labels                                    types.Set                        `tfsdk:"labels"`
+	AdvancedConfiguration                     types.List                       `tfsdk:"advanced_configuration"`
+	ConnectionStrings                         types.List                       `tfsdk:"connection_strings"`
+	BiConnectorConfig                         types.List                       `tfsdk:"bi_connector_config"`
+	ReplicationSpecs                          types.List                       `tfsdk:"replication_specs"`
+	Tags                                      types.Set                        `tfsdk:"tags"`
+	ProjectID                                 types.String                     `tfsdk:"project_id"`
+	RootCertType                              types.String                     `tfsdk:"root_cert_type"`
+	Name                                      types.String                     `tfsdk:"name"`
+	Timeouts                                  timeouts.Value                   `tfsdk:"timeouts"`
+	ClusterID                                 types.String                     `tfsdk:"cluster_id"`
+	MongoDBVersion                            types.String                     `tfsdk:"mongo_db_version"`
+	ClusterType                               types.String                     `tfsdk:"cluster_type"`
+	EncryptionAtRestProvider                  types.String                     `tfsdk:"encryption_at_rest_provider"`
+	StateName                                 types.String                     `tfsdk:"state_name"`
+	CreateDate                                types.String                     `tfsdk:"create_date"`
+	VersionReleaseSystem                      types.String                     `tfsdk:"version_release_system"`
+	AcceptDataRisksAndForceReplicaSetReconfig types.String                     `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
+	MongoDBMajorVersion                       customtypes.DBVersionStringValue `tfsdk:"mongo_db_major_version"`
+	ID                                        types.String                     `tfsdk:"id"`
+	BackupEnabled                             types.Bool                       `tfsdk:"backup_enabled"`
+	TerminationProtectionEnabled              types.Bool                       `tfsdk:"termination_protection_enabled"`
+	RetainBackupsEnabled                      types.Bool                       `tfsdk:"retain_backups_enabled"`
+	PitEnabled                                types.Bool                       `tfsdk:"pit_enabled"`
+	Paused                                    types.Bool                       `tfsdk:"paused"`
+}
+
+type tfReplicationSpecRSModel struct {
+	RegionsConfigs types.List   `tfsdk:"region_configs"`
+	ContainerID    types.Map    `tfsdk:"container_id"`
+	ID             types.String `tfsdk:"id"`
+	ZoneName       types.String `tfsdk:"zone_name"`
+	NumShards      types.Int64  `tfsdk:"num_shards"`
+}
+
+var tfReplicationSpecRSType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"id":             types.StringType,
+	"zone_name":      types.StringType,
+	"num_shards":     types.Int64Type,
+	"container_id":   types.MapType{ElemType: types.StringType},
+	"region_configs": types.ListType{ElemType: tfRegionsConfigType},
+},
 }
 
 func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
@@ -268,10 +297,6 @@ func advancedClusterRSConnectionStringSchemaComputed() schema.ListNestedAttribut
 				},
 			},
 		},
-		// remove
-		// PlanModifiers: []planmodifier.List{
-		// 	listplanmodifier.UseStateForUnknown(),
-		// },
 	}
 }
 
@@ -397,11 +422,11 @@ func advancedClusterRSReplicationSpecsSchema() schema.ListNestedAttribute {
 							"region_name": schema.StringAttribute{
 								Required: true,
 							},
-							"analytics_auto_scaling": advancedClusterRSRegionConfigAutoScalingSpecsBlock(),
-							"auto_scaling":           advancedClusterRSRegionConfigAutoScalingSpecsBlock(),
-							"analytics_specs":        advancedClusterRSRegionConfigSpecsBlock(),
-							"electable_specs":        advancedClusterRSRegionConfigSpecsBlock(),
-							"read_only_specs":        advancedClusterRSRegionConfigSpecsBlock(),
+							"analytics_auto_scaling": advancedClusterRSRegionConfigAutoScalingSpecsSchema(),
+							"auto_scaling":           advancedClusterRSRegionConfigAutoScalingSpecsSchema(),
+							"analytics_specs":        advancedClusterRSRegionConfigSpecsSchema(),
+							"electable_specs":        advancedClusterRSRegionConfigSpecsSchema(),
+							"read_only_specs":        advancedClusterRSRegionConfigSpecsSchema(),
 						},
 					},
 					Validators: []validator.List{
@@ -416,7 +441,7 @@ func advancedClusterRSReplicationSpecsSchema() schema.ListNestedAttribute {
 	}
 }
 
-func advancedClusterRSRegionConfigSpecsBlock() schema.ListNestedAttribute {
+func advancedClusterRSRegionConfigSpecsSchema() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Optional: true,
 		Computed: true,
@@ -445,7 +470,7 @@ func advancedClusterRSRegionConfigSpecsBlock() schema.ListNestedAttribute {
 	}
 }
 
-func advancedClusterRSRegionConfigAutoScalingSpecsBlock() schema.ListNestedAttribute {
+func advancedClusterRSRegionConfigAutoScalingSpecsSchema() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Optional: true,
 		Computed: true,
@@ -479,256 +504,14 @@ func advancedClusterRSRegionConfigAutoScalingSpecsBlock() schema.ListNestedAttri
 	}
 }
 
-func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	conn := r.Client.Atlas
-	var plan, tfConfig tfAdvancedClusterRSModel
-
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	resp.Diagnostics.Append(req.Config.Get(ctx, &tfConfig)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// ------validations
-	if plan.AcceptDataRisksAndForceReplicaSetReconfig.ValueString() != "" {
-		resp.Diagnostics.AddError(errorInvalidCreateValues, "accept_data_risks_and_force_replica_set_reconfig can not be set in creation, only in update")
-		return
-	}
-	// We need to validate the oplog_size_mb attr of the advanced configuration option to show the error
-	// before that the cluster is created
-	var advancedConfig *matlas.ProcessArgs
-	if v := plan.AdvancedConfiguration; !v.IsNull() {
-		advancedConfig = newAdvancedConfiguration(ctx, v)
-		if advancedConfig != nil && advancedConfig.OplogSizeMB != nil && *advancedConfig.OplogSizeMB <= 0 {
-			resp.Diagnostics.AddError(errorInvalidCreateValues, "`advanced_configuration.oplog_size_mb` cannot be <= 0")
-			return
-		}
-	}
-	if v := plan.Labels; !v.IsNull() && ContainsLabelOrKey(newLabels(ctx, v), DefaultLabel) {
-		resp.Diagnostics.AddError(errorInvalidCreateValues, "you should not set `Infrastructure Tool` label, it is used for internal purposes")
-		return
-	}
-	// ------validations end
-
-	projectID := plan.ProjectID.ValueString()
-
-	request := &matlas.AdvancedCluster{
-		Name:             plan.Name.ValueString(),
-		ClusterType:      plan.ClusterType.ValueString(),
-		ReplicationSpecs: newReplicationSpecs(ctx, plan.ReplicationSpecs),
-	}
-
-	if v := plan.BackupEnabled; !v.IsUnknown() {
-		request.BackupEnabled = v.ValueBoolPointer()
-	}
-
-	if v := plan.BiConnectorConfig; !v.IsUnknown() {
-		request.BiConnector = newBiConnectorConfig(ctx, plan.BiConnectorConfig)
-	}
-
-	if v := plan.DiskSizeGb; !v.IsUnknown() {
-		request.DiskSizeGB = v.ValueFloat64Pointer()
-	}
-
-	if v := plan.EncryptionAtRestProvider; !v.IsUnknown() {
-		request.EncryptionAtRestProvider = v.ValueString()
-	}
-
-	request.Labels = append(newLabels(ctx, plan.Labels), DefaultLabel)
-
-	request.Tags = newTags(ctx, plan.Tags)
-
-	if v := plan.MongoDBMajorVersion; !v.IsUnknown() {
-		request.MongoDBMajorVersion = utility.FormatMongoDBMajorVersion(v.ValueString())
-	}
-
-	if v := plan.PitEnabled; !v.IsUnknown() {
-		request.PitEnabled = v.ValueBoolPointer()
-	}
-	if v := plan.RootCertType; !v.IsUnknown() {
-		request.RootCertType = v.ValueString()
-	}
-	if v := plan.TerminationProtectionEnabled; !v.IsUnknown() {
-		request.TerminationProtectionEnabled = v.ValueBoolPointer()
-	}
-	if v := plan.VersionReleaseSystem; !v.IsUnknown() {
-		request.VersionReleaseSystem = v.ValueString()
-	}
-
-	// TODO undo
-	cluster, _, err := conn.AdvancedClusters.Create(ctx, projectID, request)
-	// cluster, _, err := conn.AdvancedClusters.Get(ctx, projectID, plan.Name.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Unable to CREATE cluster. Error during create in Atlas", fmt.Sprintf(errorClusterAdvancedCreate, err))
-		return
-	}
-
-	timeout, diags := plan.Timeouts.Create(ctx, defaultTimeout)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
-		Target:     []string{"IDLE"},
-		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, cluster.Name, projectID, conn),
-		Timeout:    timeout,
-		MinTimeout: 1 * time.Minute,
-		Delay:      3 * time.Minute,
-	}
-
-	// Wait, catching any errors
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Unable to CREATE cluster. Error during create in Atlas", fmt.Sprintf(errorClusterAdvancedCreate, err))
-		return
-	}
-
-	/*
-		So far, the cluster has created correctly, so we need to set up
-		the advanced configuration option to attach it
-	*/
-	if advancedConfig != nil {
-		_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, cluster.Name, advancedConfig)
-		if err != nil {
-			resp.Diagnostics.AddError("Error during cluster CREATE", fmt.Sprintf(errorAdvancedClusterAdvancedConfUpdate, cluster.Name, err))
-		}
-	}
-
-	// To pause a cluster
-	if v := plan.Paused.ValueBool(); v {
-		request = &matlas.AdvancedCluster{
-			Paused: pointy.Bool(v),
-		}
-
-		_, _, err = updateAdvancedCluster(ctx, conn, request, projectID, cluster.Name, timeout)
-		if err != nil {
-			resp.Diagnostics.AddError("Error during cluster CREATE. An error occurred attempting to pause cluster in Atlas", fmt.Sprintf(errorClusterAdvancedCreate, err))
-			return
-		}
-	}
-
-	cluster, response, err := conn.AdvancedClusters.Get(ctx, projectID, cluster.Name)
-	if err != nil {
-		if response != nil && response.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError("error during cluster READ from Atlas", fmt.Sprintf(errorClusterAdvancedRead, cluster.Name, err.Error()))
-		return
-	}
-
-	newClusterModel, diags := newTfAdvancedClusterRSModel(ctx, conn, cluster, &plan, true)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-
-	// set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, &newClusterModel)...)
-}
-
-func newTfAdvancedClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *matlas.AdvancedCluster, state *tfAdvancedClusterRSModel, isCreate bool) (*tfAdvancedClusterRSModel, diag.Diagnostics) {
-	var d, diags diag.Diagnostics
-	projectID := cluster.GroupID
-	name := cluster.Name
-
-	clusterModel := tfAdvancedClusterRSModel{
-		ClusterID:                    types.StringValue(cluster.ID),
-		BackupEnabled:                types.BoolPointerValue(cluster.BackupEnabled),
-		ClusterType:                  types.StringValue(cluster.ClusterType),
-		CreateDate:                   types.StringValue(cluster.CreateDate),
-		DiskSizeGb:                   types.Float64PointerValue(cluster.DiskSizeGB),
-		EncryptionAtRestProvider:     types.StringValue(cluster.EncryptionAtRestProvider),
-		MongoDBMajorVersion:          customtypes.DBVersionStringValue{StringValue: types.StringValue(cluster.MongoDBMajorVersion)},
-		MongoDBVersion:               types.StringValue(cluster.MongoDBVersion),
-		Name:                         types.StringValue(name),
-		Paused:                       types.BoolPointerValue(cluster.Paused),
-		PitEnabled:                   types.BoolPointerValue(cluster.PitEnabled),
-		RootCertType:                 types.StringValue(cluster.RootCertType),
-		StateName:                    types.StringValue(cluster.StateName),
-		TerminationProtectionEnabled: types.BoolPointerValue(cluster.TerminationProtectionEnabled),
-		VersionReleaseSystem:         types.StringValue(cluster.VersionReleaseSystem),
-		AcceptDataRisksAndForceReplicaSetReconfig: conversion.StringNullIfEmpty(cluster.AcceptDataRisksAndForceReplicaSetReconfig),
-		ProjectID:            types.StringValue(projectID),
-		RetainBackupsEnabled: state.RetainBackupsEnabled,
-	}
-
-	clusterModel.ID = types.StringValue(conversion.EncodeStateID(map[string]string{
-		"cluster_id":   cluster.ID,
-		"project_id":   projectID,
-		"cluster_name": name,
-	}))
-
-	clusterModel.BiConnectorConfig, d = types.ListValueFrom(ctx, TfBiConnectorConfigType, NewTfBiConnectorConfigModel(cluster.BiConnector))
-	diags.Append(d...)
-
-	clusterModel.ConnectionStrings, d = types.ListValueFrom(ctx, tfConnectionStringType, newTfConnectionStringsModel(ctx, cluster.ConnectionStrings))
-	diags.Append(d...)
-
-	clusterModel.Labels, d = types.SetValueFrom(ctx, TfLabelType, removeDefaultLabel(newTfLabelsModel(cluster.Labels)))
-	if len(clusterModel.Labels.Elements()) == 0 {
-		// clusterModel.Labels, d = types.SetValueFrom(ctx, TfLabelType, []TfLabelModel{})
-		clusterModel.Labels = types.SetNull(TfLabelType)
-	}
-	diags.Append(d...)
-
-	clusterModel.Tags, d = types.SetValueFrom(ctx, TfTagType, newTfTagsModel(&cluster.Tags))
-	if len(clusterModel.Tags.Elements()) == 0 {
-		// clusterModel.Tags, d = types.SetValueFrom(ctx, TfTagType, []TfTagModel{})
-		clusterModel.Tags = types.SetNull(TfTagType)
-	}
-	diags.Append(d...)
-
-	// var repSpecs []tfReplicationSpecRSModel
-	// if isCreate{
-	// 	repSpecs, d = newTfReplicationSpecsRS(ctx, conn, cluster.ReplicationSpecs, types.ListNull(tfReplicationSpecRSType), projectID)
-
-	// }else{
-	// 	repSpecs, d = newTfReplicationSpecsRS(ctx, conn, cluster.ReplicationSpecs, state.ReplicationSpecs, projectID)
-
-	// }
-	repSpecs, d := newTfReplicationSpecsRS(ctx, conn, cluster.ReplicationSpecs, state.ReplicationSpecs, projectID)
-	diags.Append(d...)
-	if diags.HasError() {
-		return nil, diags
-	}
-	clusterModel.ReplicationSpecs, diags = types.ListValueFrom(ctx, tfReplicationSpecRSType, repSpecs)
-	diags.Append(d...)
-
-	advancedConfiguration, err := newTfAdvancedConfigurationModelDSFromAtlas(ctx, conn, projectID, name)
-	if err != nil {
-		diags.AddError("An error occurred when getting advanced_configuration from Atlas", err.Error())
-		return nil, diags
-	}
-	clusterModel.AdvancedConfiguration, diags = types.ListValueFrom(ctx, tfAdvancedConfigurationType, advancedConfiguration)
-	if diags.HasError() {
-		return nil, diags
-	}
-
-	clusterModel.Timeouts = state.Timeouts
-
-	return &clusterModel, diags
-}
-
 func (r *advancedClusterRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	conn := r.Client.Atlas
 
-	var isImport bool
 	var state tfAdvancedClusterRSModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-
-	// Use the ID only with the IMPORT operation
-	if state.ID.ValueString() != "" && (state.ClusterID.ValueString() == "") {
-		isImport = true
 	}
 
 	ids := conversion.DecodeStateID(state.ID.ValueString())
@@ -741,137 +524,17 @@ func (r *advancedClusterRS) Read(ctx context.Context, req resource.ReadRequest, 
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("error during cluster READ from Atlas", fmt.Sprintf(errorClusterAdvancedRead, clusterName, err.Error()))
+		resp.Diagnostics.AddError("Unable to READ cluster. An error occurred when getting cluster details from Atlas", err.Error())
 		return
 	}
 
-	log.Printf("[DEBUG] GET ClusterAdvanced %+v", cluster)
-
-	newClusterModel, diags := newTfAdvancedClusterRSModel(ctx, conn, cluster, &state, isImport)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-
-	if !isImport {
-		// newClusterModel.MongoDBMajorVersion = state.MongoDBMajorVersion
-	}
-
-	// save updated data into terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &newClusterModel)...)
-}
-
-func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	conn := r.Client.Atlas
-	var state, plan, tfconfig tfAdvancedClusterRSModel
-
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(req.Config.Get(ctx, &tfconfig)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	ids := conversion.DecodeStateID(state.ID.ValueString())
-	projectID := ids["project_id"]
-	clusterName := ids["cluster_name"]
-
-	timeout, _ := plan.Timeouts.Update(ctx, defaultTimeout)
-
-	if upgradeRequest := TPFgetUpgradeRequest(ctx, &state, &plan); upgradeRequest != nil {
-		_, _, err := UpgradeCluster(ctx, conn, upgradeRequest, projectID, clusterName, timeout)
-
-		if err != nil {
-			resp.Diagnostics.AddError("Unable to UPDATE cluster. An error occurred while upgrading cluster.", err.Error())
-			return
-		}
-	} else {
-		resp.Diagnostics.Append(updateCluster(ctx, conn, &state, &plan, timeout)...)
-	}
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// READ
-	cluster, response, err := conn.AdvancedClusters.Get(ctx, projectID, clusterName)
-	if err != nil {
-		if response != nil && response.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError("error during cluster READ from Atlas", fmt.Sprintf(errorClusterAdvancedRead, clusterName, err.Error()))
-		return
-	}
-
-	log.Printf("[DEBUG] GET ClusterAdvanced %+v", cluster)
-	newClusterModel, diags := newTfAdvancedClusterRSModel(ctx, conn, cluster, &plan, false)
-	// newClusterModel.RetainBackupsEnabled = state.RetainBackupsEnabled
-
+	newClusterModel, diags := newTfAdvancedClusterRSModel(ctx, conn, cluster, &state)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newClusterModel)...)
-}
-
-func (r *advancedClusterRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	conn := r.Client.Atlas
-	var state tfAdvancedClusterRSModel
-
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	ids := conversion.DecodeStateID(state.ID.ValueString())
-	projectID := ids["project_id"]
-	clusterName := ids["cluster_name"]
-
-	var options *matlas.DeleteAdvanceClusterOptions
-	if v := state.RetainBackupsEnabled; !v.IsNull() {
-		options = &matlas.DeleteAdvanceClusterOptions{
-			RetainBackups: v.ValueBoolPointer(),
-		}
-	}
-
-	_, err := conn.AdvancedClusters.Delete(ctx, projectID, clusterName, options)
-	if err != nil {
-		resp.Diagnostics.AddError("Unable to DELETE cluster. An error occurred when deleting cluster in Atlas", fmt.Sprintf(errorClusterAdvancedDelete, clusterName, err))
-		return
-	}
-
-	timeout, diags := state.Timeouts.Delete(ctx, defaultTimeout)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	log.Println("[INFO] Waiting for MongoDB ClusterAdvanced to be destroyed")
-
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
-		Target:     []string{"DELETED"},
-		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, clusterName, projectID, conn),
-		Timeout:    timeout,
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute, // Wait 30 secs before starting
-	}
-
-	// Wait, catching any errors
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Unable to DELETE cluster. An error occurred when deleting cluster in Atlas", fmt.Sprintf(errorClusterAdvancedDelete, clusterName, err))
-		return
-	}
 }
 
 func (r *advancedClusterRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -898,6 +561,18 @@ func (r *advancedClusterRS) ImportState(ctx context.Context, req resource.Import
 	resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(id))
 	if resp.Diagnostics.HasError() {
 		return
+	}
+}
+
+// TODO UpgradeState implements resource.ResourceWithUpgradeState.
+func (*advancedClusterRS) UpgradeState(context.Context) map[int64]resource.StateUpgrader {
+	schemaV0 := TPFResourceV0()
+
+	return map[int64]resource.StateUpgrader{
+		0: {
+			PriorSchema:   &schemaV0,
+			StateUpgrader: upgradeAdvancedClusterResourceStateV0toV1,
+		},
 	}
 }
 
@@ -964,7 +639,24 @@ func getAdvancedClusterContainerID(containers []matlas.Container, cluster *matla
 	return ""
 }
 
-func newTfReplicationSpecsRS(ctx context.Context, conn *matlas.Client,
+func doesAdvancedReplicationSpecMatchAPI(tfObject *tfReplicationSpecRSModel, apiObject *matlas.AdvancedReplicationSpec) bool {
+	return tfObject.ID.ValueString() == apiObject.ID || (tfObject.ID.IsNull() && tfObject.ZoneName.ValueString() == apiObject.ZoneName)
+}
+
+func removeDefaultLabel(labels []TfLabelModel) []TfLabelModel {
+	result := make([]TfLabelModel, 0)
+
+	for _, item := range labels {
+		if item.Key.ValueString() == DefaultLabel.Key && item.Value.ValueString() == DefaultLabel.Value {
+			continue
+		}
+		result = append(result, item)
+	}
+
+	return result
+}
+
+func newTfReplicationSpecsRSModel(ctx context.Context, conn *matlas.Client,
 	rawAPIObjects []*matlas.AdvancedReplicationSpec,
 	configSpecsList types.List,
 	projectID string) ([]tfReplicationSpecRSModel, diag.Diagnostics) {
@@ -1002,11 +694,11 @@ func newTfReplicationSpecsRS(ctx context.Context, conn *matlas.Client,
 				continue
 			}
 
-			if !TPFdoesAdvancedReplicationSpecMatchAPI(&tfMapObject, apiObjects[j]) {
+			if !doesAdvancedReplicationSpecMatchAPI(&tfMapObject, apiObjects[j]) {
 				continue
 			}
 
-			advancedReplicationSpec, diags := newTfReplicationSpecRS(ctx, apiObjects[j], &tfMapObject, conn, projectID)
+			advancedReplicationSpec, diags := newTfReplicationSpecRSModel(ctx, apiObjects[j], &tfMapObject, conn, projectID)
 			if diags.HasError() {
 				return nil, diags
 			}
@@ -1029,7 +721,7 @@ func newTfReplicationSpecsRS(ctx context.Context, conn *matlas.Client,
 		}
 
 		j := slices.IndexFunc(wasAPIObjectUsed, func(isUsed bool) bool { return !isUsed })
-		advancedReplicationSpec, diags := newTfReplicationSpecRS(ctx, apiObjects[j], tfMapObject, conn, projectID)
+		advancedReplicationSpec, diags := newTfReplicationSpecRSModel(ctx, apiObjects[j], tfMapObject, conn, projectID)
 
 		if diags.HasError() {
 			return nil, diags
@@ -1042,658 +734,85 @@ func newTfReplicationSpecsRS(ctx context.Context, conn *matlas.Client,
 	return tfList, nil
 }
 
-func newTfReplicationSpecRS(ctx context.Context, apiObject *matlas.AdvancedReplicationSpec, configSpec *tfReplicationSpecRSModel,
-	conn *matlas.Client, projectID string) (*tfReplicationSpecRSModel, diag.Diagnostics) {
-	var diags diag.Diagnostics
+func newTfAdvancedClusterRSModel(ctx context.Context, conn *matlas.Client, cluster *matlas.AdvancedCluster, state *tfAdvancedClusterRSModel) (*tfAdvancedClusterRSModel, diag.Diagnostics) {
+	var d, diags diag.Diagnostics
+	projectID := cluster.GroupID
+	name := cluster.Name
 
-	if apiObject == nil {
-		return nil, diags
+	clusterModel := tfAdvancedClusterRSModel{
+		ClusterID:                    types.StringValue(cluster.ID),
+		BackupEnabled:                types.BoolPointerValue(cluster.BackupEnabled),
+		ClusterType:                  types.StringValue(cluster.ClusterType),
+		CreateDate:                   types.StringValue(cluster.CreateDate),
+		DiskSizeGb:                   types.Float64PointerValue(cluster.DiskSizeGB),
+		EncryptionAtRestProvider:     types.StringValue(cluster.EncryptionAtRestProvider),
+		MongoDBMajorVersion:          customtypes.DBVersionStringValue{StringValue: types.StringValue(cluster.MongoDBMajorVersion)},
+		MongoDBVersion:               types.StringValue(cluster.MongoDBVersion),
+		Name:                         types.StringValue(name),
+		Paused:                       types.BoolPointerValue(cluster.Paused),
+		PitEnabled:                   types.BoolPointerValue(cluster.PitEnabled),
+		RootCertType:                 types.StringValue(cluster.RootCertType),
+		StateName:                    types.StringValue(cluster.StateName),
+		TerminationProtectionEnabled: types.BoolPointerValue(cluster.TerminationProtectionEnabled),
+		VersionReleaseSystem:         types.StringValue(cluster.VersionReleaseSystem),
+		AcceptDataRisksAndForceReplicaSetReconfig: conversion.StringNullIfEmpty(cluster.AcceptDataRisksAndForceReplicaSetReconfig),
+		ProjectID:            types.StringValue(projectID),
+		RetainBackupsEnabled: state.RetainBackupsEnabled,
 	}
 
-	tfMap := tfReplicationSpecRSModel{}
-	tfMap.NumShards = types.Int64Value(cast.ToInt64(apiObject.NumShards))
-	tfMap.ID = types.StringValue(apiObject.ID)
-	if configSpec != nil {
-		object, containerIds, diags := newTfRegionsConfigs(ctx, apiObject.RegionConfigs, configSpec.RegionsConfigs, conn, projectID)
-		if diags.HasError() {
-			return nil, diags
-		}
-		l, diags := types.ListValueFrom(ctx, tfRegionsConfigType, object)
-		if diags.HasError() {
-			return nil, diags
-		}
-		tfMap.RegionsConfigs = l
-		tfMap.ContainerID = containerIds
-	} else {
-		object, containerIds, diags := newTfRegionsConfigs(ctx, apiObject.RegionConfigs, types.ListNull(tfRegionsConfigType), conn, projectID)
-		if diags.HasError() {
-			return nil, diags
-		}
-		l, diags := types.ListValueFrom(ctx, tfRegionsConfigType, object)
-		if diags.HasError() {
-			return nil, diags
-		}
-		tfMap.RegionsConfigs = l
-		tfMap.ContainerID = containerIds
+	clusterModel.ID = types.StringValue(conversion.EncodeStateID(map[string]string{
+		"cluster_id":   cluster.ID,
+		"project_id":   projectID,
+		"cluster_name": name,
+	}))
+
+	clusterModel.BiConnectorConfig, d = types.ListValueFrom(ctx, TfBiConnectorConfigType, newTfBiConnectorConfigModel(cluster.BiConnector))
+	diags.Append(d...)
+
+	clusterModel.ConnectionStrings, d = types.ListValueFrom(ctx, tfConnectionStringType, newTfConnectionStringsModel(ctx, cluster.ConnectionStrings))
+	diags.Append(d...)
+
+	clusterModel.Labels, d = types.SetValueFrom(ctx, TfLabelType, removeDefaultLabel(newTfLabelsModel(cluster.Labels)))
+	if len(clusterModel.Labels.Elements()) == 0 {
+		// clusterModel.Labels, d = types.SetValueFrom(ctx, TfLabelType, []TfLabelModel{})
+		clusterModel.Labels = types.SetNull(TfLabelType)
 	}
-	tfMap.ZoneName = types.StringValue(apiObject.ZoneName)
+	diags.Append(d...)
 
-	return &tfMap, diags
-}
-
-func newTfRegionsConfigs(ctx context.Context, apiObjects []*matlas.AdvancedRegionConfig, configRegionConfigsList types.List,
-	conn *matlas.Client, projectID string) (tfResult []tfRegionsConfigModel, containersIDs types.Map, diags1 diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	if len(apiObjects) == 0 {
-		return nil, types.MapNull(types.StringType), diags
+	clusterModel.Tags, d = types.SetValueFrom(ctx, TfTagType, newTfTagsModel(&cluster.Tags))
+	if len(clusterModel.Tags.Elements()) == 0 {
+		// clusterModel.Tags, d = types.SetValueFrom(ctx, TfTagType, []TfTagModel{})
+		clusterModel.Tags = types.SetNull(TfTagType)
 	}
+	diags.Append(d...)
 
-	var configRegionConfigs []*tfRegionsConfigModel
-	containerIDsMap := map[string]attr.Value{}
+	// var repSpecs []tfReplicationSpecRSModel
+	// if isCreate{
+	// 	repSpecs, d = newTfReplicationSpecsRS(ctx, conn, cluster.ReplicationSpecs, types.ListNull(tfReplicationSpecRSType), projectID)
 
-	if !configRegionConfigsList.IsNull() { // create return to state - filter by config, read/tf plan - filter by config, update - filter by config, import - return everything from API
-		configRegionConfigsList.ElementsAs(ctx, &configRegionConfigs, true)
-	}
+	// }else{
+	// 	repSpecs, d = newTfReplicationSpecsRS(ctx, conn, cluster.ReplicationSpecs, state.ReplicationSpecs, projectID)
 
-	var tfList []tfRegionsConfigModel
-
-	for i, apiObject := range apiObjects {
-		if apiObject == nil {
-			continue
-		}
-
-		if len(configRegionConfigs) > i {
-			tfMapObject := configRegionConfigs[i]
-			rc, diags := newTfRegionsConfig(ctx, apiObject, tfMapObject)
-			if diags.HasError() {
-				break
-			}
-
-			tfList = append(tfList, *rc)
-		} else {
-			rc, diags := newTfRegionsConfig(ctx, apiObject, nil)
-			if diags.HasError() {
-				break
-			}
-
-			tfList = append(tfList, *rc)
-		}
-
-		if apiObject.ProviderName != "TENANT" {
-			containers, _, err := conn.Containers.List(ctx, projectID,
-				&matlas.ContainersListOptions{ProviderName: apiObject.ProviderName})
-			if err != nil {
-				diags.AddError("error when getting containers list from Atlas", err.Error())
-				return nil, types.MapNull(types.StringType), diags
-			}
-			if result := getAdvancedClusterContainerID(containers, apiObject); result != "" {
-				// Will print as "providerName:regionName" = "containerId" in terraform show
-				key := fmt.Sprintf("%s:%s", apiObject.ProviderName, apiObject.RegionName)
-				containerIDsMap[key] = types.StringValue(result)
-			}
-		}
-	}
-	tfContainersIDsMap, _ := types.MapValue(types.StringType, containerIDsMap)
-
-	return tfList, tfContainersIDsMap, diags
-}
-
-func newTfRegionsConfig(ctx context.Context, apiObject *matlas.AdvancedRegionConfig, configRegionConfig *tfRegionsConfigModel) (*tfRegionsConfigModel, diag.Diagnostics) {
-	var diags diag.Diagnostics
-	var d diag.Diagnostics
-
-	if apiObject == nil {
-		return nil, diags
-	}
-
-	tfMap := tfRegionsConfigModel{}
-	if configRegionConfig != nil {
-		if v := configRegionConfig.AnalyticsSpecs; !v.IsNull() && len(v.Elements()) > 0 {
-			tfMap.AnalyticsSpecs, d = newTfRegionsConfigSpec(ctx, apiObject.AnalyticsSpecs, apiObject.ProviderName, configRegionConfig.AnalyticsSpecs)
-		} else {
-			//  tfMap.AnalyticsSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, []tfRegionsConfigSpecsModel{})
-			tfMap.AnalyticsSpecs = types.ListNull(tfRegionsConfigSpecType)
-
-		}
-		diags.Append(d...)
-		if v := configRegionConfig.ElectableSpecs; !v.IsNull() && len(v.Elements()) > 0 {
-			tfMap.ElectableSpecs, d = newTfRegionsConfigSpec(ctx, apiObject.ElectableSpecs, apiObject.ProviderName, configRegionConfig.ElectableSpecs)
-		} else {
-			// tfMap.ElectableSpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, []tfRegionsConfigSpecsModel{})
-			tfMap.ElectableSpecs = types.ListNull(tfRegionsConfigSpecType)
-
-		}
-		diags.Append(d...)
-		if v := configRegionConfig.ReadOnlySpecs; !v.IsNull() && len(v.Elements()) > 0 {
-			tfMap.ReadOnlySpecs, d = newTfRegionsConfigSpec(ctx, apiObject.ReadOnlySpecs, apiObject.ProviderName, configRegionConfig.ReadOnlySpecs)
-		} else {
-			// tfMap.ReadOnlySpecs, d = types.ListValueFrom(ctx, tfRegionsConfigSpecType, []tfRegionsConfigSpecsModel{})
-			tfMap.ReadOnlySpecs = types.ListNull(tfRegionsConfigSpecType)
-
-		}
-		diags.Append(d...)
-		if v := configRegionConfig.AutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
-			tfMap.AutoScaling, d = newTfRegionsConfigAutoScalingSpecs(ctx, apiObject.AutoScaling)
-		} else {
-			// tfMap.AutoScaling, d = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, []tfRegionsConfigAutoScalingSpecsModel{})
-			tfMap.AutoScaling = types.ListNull(tfRegionsConfigAutoScalingSpecType)
-
-		}
-		diags.Append(d...)
-		if v := configRegionConfig.AnalyticsAutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
-			tfMap.AnalyticsAutoScaling, d = newTfRegionsConfigAutoScalingSpecs(ctx, apiObject.AnalyticsAutoScaling)
-		} else {
-			// tfMap.AnalyticsAutoScaling, d = types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, []tfRegionsConfigAutoScalingSpecsModel{})
-			tfMap.AnalyticsAutoScaling = types.ListNull(tfRegionsConfigAutoScalingSpecType)
-
-		}
-		diags.Append(d...)
-	} else {
-		nilSpecList := types.ListNull(tfRegionsConfigSpecType)
-		tfMap.AnalyticsSpecs, d = newTfRegionsConfigSpec(ctx, apiObject.AnalyticsSpecs, apiObject.ProviderName, nilSpecList)
-		diags.Append(d...)
-		tfMap.ElectableSpecs, d = newTfRegionsConfigSpec(ctx, apiObject.ElectableSpecs, apiObject.ProviderName, nilSpecList)
-		diags.Append(d...)
-		tfMap.ReadOnlySpecs, d = newTfRegionsConfigSpec(ctx, apiObject.ReadOnlySpecs, apiObject.ProviderName, nilSpecList)
-		diags.Append(d...)
-		tfMap.AutoScaling, d = newTfRegionsConfigAutoScalingSpecs(ctx, apiObject.AutoScaling)
-		diags.Append(d...)
-		tfMap.AnalyticsAutoScaling, d = newTfRegionsConfigAutoScalingSpecs(ctx, apiObject.AnalyticsAutoScaling)
-		diags.Append(d...)
-	}
-
-	tfMap.RegionName = types.StringValue(apiObject.RegionName)
-	tfMap.ProviderName = types.StringValue(apiObject.ProviderName)
-	tfMap.BackingProviderName = conversion.StringNullIfEmpty(apiObject.BackingProviderName)
-	tfMap.Priority = types.Int64Value(cast.ToInt64(apiObject.Priority))
-
-	return &tfMap, diags
-}
-
-func newTfRegionsConfigSpec(ctx context.Context, apiObject *matlas.Specs, providerName string, tfMapObjects types.List) (types.List, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	if apiObject == nil {
-		return types.ListNull(tfRegionsConfigSpecType), diags
-	}
-
-	var configRegionConfigSpecs []*tfRegionsConfigSpecsModel
-
-	if !tfMapObjects.IsNull() { // create return to state - filter by config, read/tf plan - filter by config, update - filter by config, import - return everything from API
-		tfMapObjects.ElementsAs(ctx, &configRegionConfigSpecs, true)
-	}
-
-	var tfList []tfRegionsConfigSpecsModel
-
-	tfMap := tfRegionsConfigSpecsModel{}
-
-	if len(configRegionConfigSpecs) > 0 {
-		tfMapObject := configRegionConfigSpecs[0]
-
-		if providerName == "AWS" {
-			if cast.ToInt64(apiObject.DiskIOPS) > 0 {
-				tfMap.DiskIOPS = types.Int64PointerValue(apiObject.DiskIOPS)
-			} else {
-				tfMap.DiskIOPS = types.Int64Null()
-			}
-			// if v := tfMapObject.EBSVolumeType; !v.IsNull() && v.ValueString() != "" {
-			// 	tfMap.EBSVolumeType = types.StringValue(apiObject.EbsVolumeType)
-			// }
-			if v := tfMapObject.EBSVolumeType; !v.IsNull() {
-				tfMap.EBSVolumeType = types.StringValue(apiObject.EbsVolumeType)
-			}
-
-		}
-		if v := tfMapObject.NodeCount; !v.IsNull() {
-			tfMap.NodeCount = types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiObject.NodeCount))
-		}
-		if v := tfMapObject.InstanceSize; !v.IsNull() && v.ValueString() != "" {
-			tfMap.InstanceSize = types.StringValue(apiObject.InstanceSize)
-		}
-
-		// if tfMap.DiskIOPS.IsNull() {
-		// 	tfMap.DiskIOPS = types.Int64Value(defaultInt)
-		// }
-		// if tfMap.NodeCount.IsNull() {
-		// 	tfMap.NodeCount = types.Int64Value(defaultInt)
-		// }
-		// if tfMap.EBSVolumeType.IsNull() {
-		// 	tfMap.EBSVolumeType = types.StringValue(defaultString)
-		// }
-		tfList = append(tfList, tfMap)
-	} else {
-		tfMap.DiskIOPS = types.Int64PointerValue(apiObject.DiskIOPS)
-		tfMap.EBSVolumeType = types.StringValue(apiObject.EbsVolumeType)
-		tfMap.NodeCount = types.Int64PointerValue(conversion.IntPtrToInt64Ptr(apiObject.NodeCount))
-		tfMap.InstanceSize = types.StringValue(apiObject.InstanceSize)
-		// if tfMap.DiskIOPS.IsNull() {
-		// 	tfMap.DiskIOPS = types.Int64Value(defaultInt)
-		// }
-		// if tfMap.NodeCount.IsNull() {
-		// 	tfMap.NodeCount = types.Int64Value(defaultInt)
-		// }
-		// if tfMap.EBSVolumeType.IsNull() {
-		// 	tfMap.EBSVolumeType = types.StringValue(defaultString)
-		// }
-		tfList = append(tfList, tfMap)
-	}
-
-	return types.ListValueFrom(ctx, tfRegionsConfigSpecType, tfList)
-}
-
-func newTfRegionsConfigAutoScalingSpecs(ctx context.Context, apiObject *matlas.AdvancedAutoScaling) (types.List, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	if apiObject == nil {
-		return types.ListNull(tfRegionsConfigAutoScalingSpecType), diags
-	}
-
-	var tfList []tfRegionsConfigAutoScalingSpecsModel
-
-	tfMap := tfRegionsConfigAutoScalingSpecsModel{}
-	if apiObject.DiskGB != nil {
-		tfMap.DiskGBEnabled = types.BoolPointerValue(apiObject.DiskGB.Enabled)
-	}
-	if apiObject.Compute != nil {
-		tfMap.ComputeEnabled = types.BoolPointerValue(apiObject.Compute.Enabled)
-		tfMap.ComputeScaleDownEnabled = types.BoolPointerValue(apiObject.Compute.ScaleDownEnabled)
-		tfMap.ComputeMinInstanceSize = types.StringValue(apiObject.Compute.MinInstanceSize)
-		tfMap.ComputeMaxInstanceSize = types.StringValue(apiObject.Compute.MaxInstanceSize)
-	}
-
-	tfList = append(tfList, tfMap)
-
-	return types.ListValueFrom(ctx, tfRegionsConfigAutoScalingSpecType, tfList)
-}
-
-func TPFdoesAdvancedReplicationSpecMatchAPI(tfObject *tfReplicationSpecRSModel, apiObject *matlas.AdvancedReplicationSpec) bool {
-	return tfObject.ID.ValueString() == apiObject.ID || (tfObject.ID.IsNull() && tfObject.ZoneName.ValueString() == apiObject.ZoneName)
-}
-
-func newAdvancedConfiguration(ctx context.Context, tfList basetypes.ListValue) *matlas.ProcessArgs {
-	res := &matlas.ProcessArgs{}
-
-	if tfList.IsNull() || len(tfList.Elements()) == 0 {
-		// if isUpdate {
-		// 	return res
-		// }
-		return nil
-	}
-	// else if isUpdate && (tfList.IsNull() || len(tfList.Elements()) == 0) { // if during update user removed the advanced_configuration block
-	// 	return &matlas.ProcessArgs{}
 	// }
-
-	var tfAdvancedConfigArr []TfAdvancedConfigurationModel
-	tfList.ElementsAs(ctx, &tfAdvancedConfigArr, true)
-
-	if len(tfAdvancedConfigArr) == 0 {
-		return nil
+	repSpecs, d := newTfReplicationSpecsRSModel(ctx, conn, cluster.ReplicationSpecs, state.ReplicationSpecs, projectID)
+	diags.Append(d...)
+	if diags.HasError() {
+		return nil, diags
 	}
-	tfModel := tfAdvancedConfigArr[0]
+	clusterModel.ReplicationSpecs, diags = types.ListValueFrom(ctx, tfReplicationSpecRSType, repSpecs)
+	diags.Append(d...)
 
-	if v := tfModel.DefaultReadConcern; !v.IsUnknown() {
-		res.DefaultReadConcern = v.ValueString()
-	}
-	if v := tfModel.DefaultWriteConcern; !v.IsUnknown() {
-		res.DefaultWriteConcern = v.ValueString()
-	}
-
-	if v := tfModel.FailIndexKeyTooLong; !v.IsUnknown() {
-		res.FailIndexKeyTooLong = v.ValueBoolPointer()
-	}
-
-	if v := tfModel.JavascriptEnabled; !v.IsUnknown() {
-		res.JavascriptEnabled = v.ValueBoolPointer()
-	}
-
-	if v := tfModel.MinimumEnabledTLSProtocol; !v.IsUnknown() {
-		res.MinimumEnabledTLSProtocol = v.ValueString()
-	}
-
-	if v := tfModel.NoTableScan; !v.IsUnknown() {
-		res.NoTableScan = v.ValueBoolPointer()
-	}
-
-	if v := tfModel.SampleSizeBiConnector; !v.IsUnknown() {
-		res.SampleSizeBIConnector = v.ValueInt64Pointer()
-	}
-
-	if v := tfModel.SampleRefreshIntervalBiConnector; !v.IsUnknown() {
-		res.SampleRefreshIntervalBIConnector = v.ValueInt64Pointer()
-	}
-
-	if v := tfModel.OplogSizeMB; !v.IsUnknown() {
-		if sizeMB := v.ValueInt64(); sizeMB != 0 {
-			res.OplogSizeMB = v.ValueInt64Pointer()
-		} else {
-			log.Printf(ErrorClusterSetting, `oplog_size_mb`, "", cast.ToString(sizeMB))
-		}
-	}
-
-	if v := tfModel.OplogMinRetentionHours; !v.IsNull() {
-		if minRetentionHours := v.ValueInt64(); minRetentionHours >= 0 {
-			res.OplogMinRetentionHours = pointy.Float64(cast.ToFloat64(v.ValueInt64()))
-		} else {
-			log.Printf(ErrorClusterSetting, `oplog_min_retention_hours`, "", cast.ToString(minRetentionHours))
-		}
-	}
-
-	if v := tfModel.TransactionLifetimeLimitSeconds; !v.IsUnknown() {
-		if transactionLimitSeconds := v.ValueInt64(); transactionLimitSeconds > 0 {
-			res.TransactionLifetimeLimitSeconds = v.ValueInt64Pointer()
-		} else {
-			log.Printf(ErrorClusterSetting, `transaction_lifetime_limit_seconds`, "", cast.ToString(transactionLimitSeconds))
-		}
-	}
-
-	return res
-}
-
-func newTags(ctx context.Context, tfSet basetypes.SetValue) []*matlas.Tag {
-	if tfSet.IsNull() || len(tfSet.Elements()) == 0 {
-		return nil
-	}
-	var tfArr []TfTagModel
-	tfSet.ElementsAs(ctx, &tfArr, true)
-
-	res := make([]*matlas.Tag, len(tfArr))
-	for i, v := range tfArr {
-		res[i] = &matlas.Tag{
-			Key:   v.Key.ValueString(),
-			Value: v.Value.ValueString(),
-		}
-	}
-	return res
-}
-
-func newLabels(ctx context.Context, tfSet basetypes.SetValue) []matlas.Label {
-	if tfSet.IsNull() || len(tfSet.Elements()) == 0 {
-		return nil
-	}
-
-	var tfArr []TfLabelModel
-	tfSet.ElementsAs(ctx, &tfArr, true)
-
-	res := make([]matlas.Label, len(tfArr))
-
-	for i, v := range tfArr {
-		res[i] = matlas.Label{
-			Key:   v.Key.ValueString(),
-			Value: v.Value.ValueString(),
-		}
-	}
-
-	return res
-}
-
-func newBiConnectorConfig(ctx context.Context, tfList basetypes.ListValue) *matlas.BiConnector {
-	// res := matlas.BiConnector{}
-	if tfList.IsNull() || len(tfList.Elements()) == 0 {
-		// if isUpdate {
-		// 	return &res
-		// }
-		return nil
-	}
-
-	if tfList.IsNull() || len(tfList.Elements()) == 0 {
-		return nil
-	}
-
-	var tfArr []TfBiConnectorConfigModel
-	tfList.ElementsAs(ctx, &tfArr, true)
-
-	tfBiConnector := tfArr[0]
-
-	biConnector := matlas.BiConnector{
-		Enabled:        tfBiConnector.Enabled.ValueBoolPointer(),
-		ReadPreference: tfBiConnector.ReadPreference.ValueString(),
-	}
-
-	return &biConnector
-}
-
-func newReplicationSpecs(ctx context.Context, tfList basetypes.ListValue) []*matlas.AdvancedReplicationSpec {
-	if tfList.IsNull() || len(tfList.Elements()) == 0 {
-		return nil
-	}
-
-	var tfRepSpecs []tfReplicationSpecRSModel
-	tfList.ElementsAs(ctx, &tfRepSpecs, true)
-
-	var repSpecs []*matlas.AdvancedReplicationSpec
-
-	for i := range tfRepSpecs {
-		rs := newReplicationSpec(ctx, &tfRepSpecs[i])
-		repSpecs = append(repSpecs, rs)
-	}
-	return repSpecs
-}
-
-func newReplicationSpec(ctx context.Context, tfRepSpec *tfReplicationSpecRSModel) *matlas.AdvancedReplicationSpec {
-	if tfRepSpec == nil {
-		return nil
-	}
-
-	zoneName := tfRepSpec.ZoneName.ValueString()
-	if !conversion.IsStringPresent(&zoneName) {
-		zoneName = DefaultZoneName
-	}
-	res := &matlas.AdvancedReplicationSpec{
-		NumShards:     int(tfRepSpec.NumShards.ValueInt64()),
-		ZoneName:      zoneName,
-		RegionConfigs: newRegionConfigs(ctx, tfRepSpec.RegionsConfigs),
-	}
-
-	if v := tfRepSpec.ID; !v.IsUnknown() {
-		res.ID = v.ValueString()
-	}
-	return res
-}
-
-func newRegionConfigs(ctx context.Context, tfList basetypes.ListValue) []*matlas.AdvancedRegionConfig {
-	if tfList.IsNull() || len(tfList.Elements()) == 0 {
-		return nil
-	}
-
-	var tfRegionConfigs []tfRegionsConfigModel
-	tfList.ElementsAs(ctx, &tfRegionConfigs, true)
-
-	var regionConfigs []*matlas.AdvancedRegionConfig
-
-	for i := range tfRegionConfigs {
-		rc := newRegionConfig(ctx, &tfRegionConfigs[i])
-
-		regionConfigs = append(regionConfigs, rc)
-	}
-
-	return regionConfigs
-}
-
-func newRegionConfig(ctx context.Context, tfRegionConfig *tfRegionsConfigModel) *matlas.AdvancedRegionConfig {
-	if tfRegionConfig == nil {
-		return nil
-	}
-
-	providerName := tfRegionConfig.ProviderName.ValueString()
-	apiObject := &matlas.AdvancedRegionConfig{
-		Priority:     conversion.Int64PtrToIntPtr(tfRegionConfig.Priority.ValueInt64Pointer()),
-		ProviderName: providerName,
-		RegionName:   tfRegionConfig.RegionName.ValueString(),
-	}
-
-	if v := tfRegionConfig.AnalyticsSpecs; !v.IsNull() && len(v.Elements()) > 0 {
-		apiObject.AnalyticsSpecs = newRegionConfigSpec(ctx, v, providerName)
-	}
-	if v := tfRegionConfig.ElectableSpecs; !v.IsNull() && len(v.Elements()) > 0 {
-		apiObject.ElectableSpecs = newRegionConfigSpec(ctx, v, providerName)
-	}
-	if v := tfRegionConfig.ReadOnlySpecs; !v.IsNull() && len(v.Elements()) > 0 {
-		apiObject.ReadOnlySpecs = newRegionConfigSpec(ctx, v, providerName)
-	}
-	if v := tfRegionConfig.AutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
-		apiObject.AutoScaling = newRegionConfigAutoScalingSpec(ctx, v)
-	}
-	if v := tfRegionConfig.AnalyticsAutoScaling; !v.IsNull() && len(v.Elements()) > 0 {
-		apiObject.AnalyticsAutoScaling = newRegionConfigAutoScalingSpec(ctx, v)
-	}
-	if v := tfRegionConfig.BackingProviderName; !v.IsNull() && v.ValueString() != defaultString {
-		apiObject.BackingProviderName = v.ValueString()
-	}
-
-	return apiObject
-}
-
-func newRegionConfigAutoScalingSpec(ctx context.Context, tfList basetypes.ListValue) *matlas.AdvancedAutoScaling {
-	if tfList.IsNull() || len(tfList.Elements()) == 0 {
-		return nil
-	}
-
-	var specs []tfRegionsConfigAutoScalingSpecsModel
-	tfList.ElementsAs(ctx, &specs, true)
-
-	spec := specs[0]
-	advancedAutoScaling := &matlas.AdvancedAutoScaling{}
-	diskGB := &matlas.DiskGB{}
-	compute := &matlas.Compute{}
-
-	if v := spec.DiskGBEnabled; !v.IsUnknown() {
-		diskGB.Enabled = v.ValueBoolPointer()
-	}
-	if v := spec.ComputeEnabled; !v.IsUnknown() {
-		compute.Enabled = v.ValueBoolPointer()
-	}
-	if v := spec.ComputeScaleDownEnabled; !v.IsUnknown() {
-		compute.ScaleDownEnabled = v.ValueBoolPointer()
-	}
-	if v := spec.ComputeMinInstanceSize; !v.IsUnknown() {
-		value := compute.ScaleDownEnabled
-		if *value {
-			compute.MinInstanceSize = v.ValueString()
-		}
-	}
-	if v := spec.ComputeMaxInstanceSize; !v.IsUnknown() {
-		value := compute.Enabled
-		if *value {
-			compute.MaxInstanceSize = v.ValueString()
-		}
-	}
-
-	advancedAutoScaling.DiskGB = diskGB
-	advancedAutoScaling.Compute = compute
-
-	return advancedAutoScaling
-}
-
-func newRegionConfigSpec(ctx context.Context, tfList basetypes.ListValue, providerName string) *matlas.Specs {
-	if tfList.IsNull() || len(tfList.Elements()) == 0 {
-		return nil
-	}
-
-	var specs []tfRegionsConfigSpecsModel
-	tfList.ElementsAs(ctx, &specs, true)
-
-	spec := specs[0]
-	apiObject := &matlas.Specs{}
-
-	if providerName == "AWS" {
-		if v := spec.DiskIOPS; !v.IsNull() && v.ValueInt64() > 0 {
-			apiObject.DiskIOPS = v.ValueInt64Pointer()
-		}
-		if v := spec.EBSVolumeType; !v.IsNull() && v.ValueString() != defaultString {
-			apiObject.EbsVolumeType = v.ValueString()
-		}
-	}
-
-	if v := spec.InstanceSize; !v.IsNull() {
-		apiObject.InstanceSize = v.ValueString()
-	}
-	if v := spec.NodeCount; !v.IsNull() && v.ValueInt64() > 0 {
-		apiObject.NodeCount = conversion.Int64PtrToIntPtr(v.ValueInt64Pointer())
-	}
-	return apiObject
-}
-
-func updateAdvancedCluster(ctx context.Context, conn *matlas.Client, request *matlas.AdvancedCluster, projectID, name string, timeout time.Duration,
-) (*matlas.AdvancedCluster, *matlas.Response, error) {
-	cluster, resp, err := conn.AdvancedClusters.Update(ctx, projectID, name, request)
+	advancedConfiguration, err := newTfAdvancedConfigurationModelDSFromAtlas(ctx, conn, projectID, name)
 	if err != nil {
-		return nil, nil, err
+		diags.AddError("An error occurred when getting advanced_configuration from Atlas", err.Error())
+		return nil, diags
+	}
+	clusterModel.AdvancedConfiguration, diags = types.ListValueFrom(ctx, tfAdvancedConfigurationType, advancedConfiguration)
+	if diags.HasError() {
+		return nil, diags
 	}
 
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
-		Target:     []string{"IDLE"},
-		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, name, projectID, conn),
-		Timeout:    timeout,
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute,
-	}
+	clusterModel.Timeouts = state.Timeouts
 
-	// Wait, catching any errors
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return cluster, resp, nil
-}
-
-func removeDefaultLabel(labels []TfLabelModel) []TfLabelModel {
-	result := make([]TfLabelModel, 0)
-
-	for _, item := range labels {
-		if item.Key.ValueString() == DefaultLabel.Key && item.Value.ValueString() == DefaultLabel.Value {
-			continue
-		}
-		result = append(result, item)
-	}
-
-	return result
-}
-
-type tfAdvancedClusterRSModel struct {
-	DiskSizeGb                                types.Float64                    `tfsdk:"disk_size_gb"`
-	Labels                                    types.Set                        `tfsdk:"labels"`
-	AdvancedConfiguration                     types.List                       `tfsdk:"advanced_configuration"`
-	ConnectionStrings                         types.List                       `tfsdk:"connection_strings"`
-	BiConnectorConfig                         types.List                       `tfsdk:"bi_connector_config"`
-	ReplicationSpecs                          types.List                       `tfsdk:"replication_specs"`
-	Tags                                      types.Set                        `tfsdk:"tags"`
-	ProjectID                                 types.String                     `tfsdk:"project_id"`
-	RootCertType                              types.String                     `tfsdk:"root_cert_type"`
-	Name                                      types.String                     `tfsdk:"name"`
-	Timeouts                                  timeouts.Value                   `tfsdk:"timeouts"`
-	ClusterID                                 types.String                     `tfsdk:"cluster_id"`
-	MongoDBVersion                            types.String                     `tfsdk:"mongo_db_version"`
-	ClusterType                               types.String                     `tfsdk:"cluster_type"`
-	EncryptionAtRestProvider                  types.String                     `tfsdk:"encryption_at_rest_provider"`
-	StateName                                 types.String                     `tfsdk:"state_name"`
-	CreateDate                                types.String                     `tfsdk:"create_date"`
-	VersionReleaseSystem                      types.String                     `tfsdk:"version_release_system"`
-	AcceptDataRisksAndForceReplicaSetReconfig types.String                     `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
-	MongoDBMajorVersion                       customtypes.DBVersionStringValue `tfsdk:"mongo_db_major_version"`
-	ID                                        types.String                     `tfsdk:"id"`
-	BackupEnabled                             types.Bool                       `tfsdk:"backup_enabled"`
-	TerminationProtectionEnabled              types.Bool                       `tfsdk:"termination_protection_enabled"`
-	RetainBackupsEnabled                      types.Bool                       `tfsdk:"retain_backups_enabled"`
-	PitEnabled                                types.Bool                       `tfsdk:"pit_enabled"`
-	Paused                                    types.Bool                       `tfsdk:"paused"`
-}
-
-type tfReplicationSpecRSModel struct {
-	RegionsConfigs types.List   `tfsdk:"region_configs"`
-	ContainerID    types.Map    `tfsdk:"container_id"`
-	ID             types.String `tfsdk:"id"`
-	ZoneName       types.String `tfsdk:"zone_name"`
-	NumShards      types.Int64  `tfsdk:"num_shards"`
-}
-
-var tfReplicationSpecRSType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"id":             types.StringType,
-	"zone_name":      types.StringType,
-	"num_shards":     types.Int64Type,
-	"container_id":   types.MapType{ElemType: types.StringType},
-	"region_configs": types.ListType{ElemType: tfRegionsConfigType},
-},
+	return &clusterModel, diags
 }

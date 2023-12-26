@@ -5,7 +5,6 @@ import (
 	"log"
 	"reflect"
 	"strings"
-	"time"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
@@ -33,32 +32,6 @@ func ContainsLabelOrKey(list []matlas.Label, item matlas.Label) bool {
 
 func IsSharedTier(instanceSize string) bool {
 	return instanceSize == "M0" || instanceSize == "M2" || instanceSize == "M5"
-}
-
-func UpgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cluster, projectID, name string, timeout time.Duration) (*matlas.Cluster, *matlas.Response, error) {
-	request.Name = name
-
-	cluster, resp, err := conn.Clusters.Upgrade(ctx, projectID, request)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
-		Target:     []string{"IDLE"},
-		Refresh:    ResourceClusterRefreshFunc(ctx, name, projectID, conn),
-		Timeout:    timeout,
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute,
-	}
-
-	// Wait, catching any errors
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return cluster, resp, nil
 }
 
 func RemoveLabel(list []matlas.Label, item matlas.Label) []matlas.Label {

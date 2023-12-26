@@ -102,13 +102,13 @@ func newTfAdvancedClusterDSModel(ctx context.Context, conn *matlas.Client, apiRe
 		VersionReleaseSystem:         conversion.StringNullIfEmpty(apiResp.VersionReleaseSystem),
 		ProjectID:                    conversion.StringNullIfEmpty(projectID),
 	}
-	clusterModel.BiConnectorConfig, d = types.ListValueFrom(ctx, TfBiConnectorConfigType, NewTfBiConnectorConfigModel(apiResp.BiConnector))
+	clusterModel.BiConnectorConfig, d = types.ListValueFrom(ctx, TfBiConnectorConfigType, newTfBiConnectorConfigModel(apiResp.BiConnector))
 	diags.Append(d...)
 
 	clusterModel.ConnectionStrings, d = types.ListValueFrom(ctx, tfConnectionStringType, newTfConnectionStringsModel(ctx, apiResp.ConnectionStrings))
 	diags.Append(d...)
 
-	clusterModel.Labels, d = types.SetValueFrom(ctx, TfLabelType, newTfLabelsModel(apiResp.Labels))
+	clusterModel.Labels, d = types.SetValueFrom(ctx, TfLabelType, removeDefaultLabel(newTfLabelsModel(apiResp.Labels)))
 	diags.Append(d...)
 
 	clusterModel.Tags, d = types.SetValueFrom(ctx, TfTagType, newTfTagsModel(&apiResp.Tags))
@@ -120,7 +120,7 @@ func newTfAdvancedClusterDSModel(ctx context.Context, conn *matlas.Client, apiRe
 	if diags.HasError() {
 		return nil, diags
 	}
-	clusterModel.ReplicationSpecs, diags = types.SetValueFrom(ctx, tfReplicationSpecType, replicationSpecs)
+	clusterModel.ReplicationSpecs, diags = types.SetValueFrom(ctx, tfReplicationSpecDSType, replicationSpecs)
 
 	advancedConfiguration, err := newTfAdvancedConfigurationModelDSFromAtlas(ctx, conn, projectID, apiResp.Name)
 	if err != nil {
@@ -135,12 +135,12 @@ func newTfAdvancedClusterDSModel(ctx context.Context, conn *matlas.Client, apiRe
 	return &clusterModel, nil
 }
 
-func newTfReplicationSpecsDSModel(ctx context.Context, conn *matlas.Client, replicationSpecs []*matlas.AdvancedReplicationSpec, projectID string) ([]*tfReplicationSpecModel, diag.Diagnostics) {
-	res := make([]*tfReplicationSpecModel, len(replicationSpecs))
+func newTfReplicationSpecsDSModel(ctx context.Context, conn *matlas.Client, replicationSpecs []*matlas.AdvancedReplicationSpec, projectID string) ([]*tfReplicationSpecDSModel, diag.Diagnostics) {
+	res := make([]*tfReplicationSpecDSModel, len(replicationSpecs))
 	var diags diag.Diagnostics
 
 	for i, rSpec := range replicationSpecs {
-		tfRepSpec := &tfReplicationSpecModel{
+		tfRepSpec := &tfReplicationSpecDSModel{
 			ID:        conversion.StringNullIfEmpty(rSpec.ID),
 			NumShards: types.Int64Value(cast.ToInt64(rSpec.NumShards)),
 			ZoneName:  conversion.StringNullIfEmpty(rSpec.ZoneName),

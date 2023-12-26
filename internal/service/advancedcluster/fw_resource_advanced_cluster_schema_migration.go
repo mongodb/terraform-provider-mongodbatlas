@@ -182,11 +182,11 @@ func advancedClusterRSReplicationSpecsSchemaV0() schema.SetNestedAttribute {
 							"region_name": schema.StringAttribute{
 								Required: true,
 							},
-							"analytics_auto_scaling": advancedClusterRSRegionConfigAutoScalingSpecsBlock(),
-							"auto_scaling":           advancedClusterRSRegionConfigAutoScalingSpecsBlock(),
-							"analytics_specs":        advancedClusterRSRegionConfigSpecsBlock(),
-							"electable_specs":        advancedClusterRSRegionConfigSpecsBlock(),
-							"read_only_specs":        advancedClusterRSRegionConfigSpecsBlock(),
+							"analytics_auto_scaling": advancedClusterRSRegionConfigAutoScalingSpecsSchema(),
+							"auto_scaling":           advancedClusterRSRegionConfigAutoScalingSpecsSchema(),
+							"analytics_specs":        advancedClusterRSRegionConfigSpecsSchema(),
+							"electable_specs":        advancedClusterRSRegionConfigSpecsSchema(),
+							"read_only_specs":        advancedClusterRSRegionConfigSpecsSchema(),
 						},
 					},
 					Validators: []validator.Set{
