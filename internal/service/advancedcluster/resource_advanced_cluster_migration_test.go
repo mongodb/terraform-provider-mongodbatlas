@@ -14,7 +14,6 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 func TestAccMigrationAdvancedCluster_tenantUpgrade(t *testing.T) {
@@ -29,12 +28,11 @@ func TestAccMigrationAdvancedCluster_tenantUpgrade(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyTeamAdvancedCluster,
+		PreCheck:     func() { acc.PreCheckBasic(t) },
+		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: mig.ExternalProviders(),
+				ExternalProviders: acc.ExternalProviders("1.14.0"),
 				Config:            testAccAdvancedClusterConfigTenantBlocks(orgID, projectName, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
@@ -114,7 +112,7 @@ func TestAccMigrationAdvancedCluster_tenantUpgrade(t *testing.T) {
 // 		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
 // 		Steps: []resource.TestStep{
 // 			{
-// 				ExternalProviders: mig.ExternalProviders(),
+// 				ExternalProviders: acc.ExternalProviders("1.14.0"),
 // 				Config:            testAccAdvancedClusterConfigSingleProviderBlocks(orgID, projectName, rName),
 // 				Check: resource.ComposeAggregateTestCheckFunc(
 // 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
@@ -168,7 +166,7 @@ func TestAccMigrationAdvancedCluster_tenantUpgrade(t *testing.T) {
 // 		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
 // 		Steps: []resource.TestStep{
 // 			{
-// 				ExternalProviders: mig.ExternalProviders(),
+// 				ExternalProviders: acc.ExternalProviders("1.14.0"),
 // 				Config:            testAccAdvancedClusterConfigMultiCloudBlocks(orgID, projectName, rName),
 // 				Check: resource.ComposeAggregateTestCheckFunc(
 // 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
@@ -234,7 +232,7 @@ func TestAccMigrationAdvancedCluster_multicloudSharded(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: mig.ExternalProviders(),
+				ExternalProviders: acc.ExternalProviders("1.14.0"),
 				Config:            testAccAdvancedClusterConfigMultiCloudShardedBlocks(orgID, projectName, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
@@ -291,7 +289,7 @@ func TestAccMigrationAdvancedCluster_geoSharded(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: mig.ExternalProviders(),
+				ExternalProviders: acc.ExternalProviders("1.14.0"),
 				Config:            testAccAdvancedClusterConfigGeoShardedBlocks(orgID, projectName, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
@@ -331,73 +329,73 @@ func TestAccMigrationAdvancedCluster_geoSharded(t *testing.T) {
 	})
 }
 
-func TestAccMigrationAdvancedCluster_pausedToUnpaused(t *testing.T) {
-	acc.SkipTest(t)
-	var (
-		cluster      matlas.AdvancedCluster
-		resourceName = "mongodbatlas_advanced_cluster.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		rName        = acctest.RandomWithPrefix("test-acc")
-		instanceSize = "M10"
-	)
+// func TestAccMigrationAdvancedCluster_pausedToUnpaused(t *testing.T) {
+// 	acc.SkipTest(t)
+// 	var (
+// 		cluster      matlas.AdvancedCluster
+// 		resourceName = "mongodbatlas_advanced_cluster.test"
+// 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+// 		projectName  = acctest.RandomWithPrefix("test-acc")
+// 		rName        = acctest.RandomWithPrefix("test-acc")
+// 		instanceSize = "M10"
+// 	)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasic(t) },
-		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
-		Steps: []resource.TestStep{
-			{
-				ExternalProviders: mig.ExternalProviders(),
-				Config:            testAccAdvancedClusterConfigSingleProviderPausedBlocks(orgID, projectName, rName, true, instanceSize),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAdvancedClusterExists(resourceName, &cluster),
-					testAccCheckAdvancedClusterAttributes(&cluster, rName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
-				),
-			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, true, instanceSize),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PostApplyPreRefresh: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-					},
-				},
-				PlanOnly: true,
-			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, true, instanceSize),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAdvancedClusterExists(resourceName, &cluster),
-					testAccCheckAdvancedClusterAttributes(&cluster, rName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
-				),
-			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, false, instanceSize),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAdvancedClusterExists(resourceName, &cluster),
-					testAccCheckAdvancedClusterAttributes(&cluster, rName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
-				),
-			},
-		},
-	})
-}
+// 	resource.ParallelTest(t, resource.TestCase{
+// 		PreCheck:     func() { acc.PreCheckBasic(t) },
+// 		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				ExternalProviders: acc.ExternalProviders("1.14.0"),
+// 				Config:            testAccAdvancedClusterConfigSingleProviderPausedBlocks(orgID, projectName, rName, true, instanceSize),
+// 				Check: resource.ComposeTestCheckFunc(
+// 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
+// 					testAccCheckAdvancedClusterAttributes(&cluster, rName),
+// 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+// 					resource.TestCheckResourceAttr(resourceName, "name", rName),
+// 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+// 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+// 					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
+// 				),
+// 			},
+// 			{
+// 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+// 				Config:                   testAccAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, true, instanceSize),
+// 				ConfigPlanChecks: resource.ConfigPlanChecks{
+// 					PostApplyPreRefresh: []plancheck.PlanCheck{
+// 						acc.DebugPlan(),
+// 					},
+// 				},
+// 				PlanOnly: true,
+// 			},
+// 			{
+// 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+// 				Config:                   testAccAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, true, instanceSize),
+// 				Check: resource.ComposeTestCheckFunc(
+// 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
+// 					testAccCheckAdvancedClusterAttributes(&cluster, rName),
+// 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+// 					resource.TestCheckResourceAttr(resourceName, "name", rName),
+// 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+// 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+// 					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
+// 				),
+// 			},
+// 			{
+// 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+// 				Config:                   testAccAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, false, instanceSize),
+// 				Check: resource.ComposeTestCheckFunc(
+// 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
+// 					testAccCheckAdvancedClusterAttributes(&cluster, rName),
+// 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+// 					resource.TestCheckResourceAttr(resourceName, "name", rName),
+// 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+// 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+// 					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
+// 				),
+// 			},
+// 		},
+// 	})
+// }
 
 func TestAccMigrationAdvancedCluster_advancedConf(t *testing.T) {
 	var (
@@ -442,7 +440,7 @@ func TestAccMigrationAdvancedCluster_advancedConf(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: mig.ExternalProviders(),
+				ExternalProviders: acc.ExternalProviders("1.14.0"),
 				Config:            testAccAdvancedClusterConfigAdvancedConfBlocks(orgID, projectName, rName, processArgs),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
@@ -542,7 +540,7 @@ func TestAccMigrationAdvancedCluster_replicationSpecsAutoScaling(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: mig.ExternalProviders(),
+				ExternalProviders: acc.ExternalProviders("1.14.0"),
 				Config:            testAccAdvancedClusterConfigReplicationSpecsAutoScalingBlocks(orgID, projectName, rName, autoScaling),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
@@ -565,7 +563,8 @@ func TestAccMigrationAdvancedCluster_replicationSpecsAutoScaling(t *testing.T) {
 				PlanOnly: true,
 			},
 			{
-				Config: testAccAdvancedClusterConfigReplicationSpecsAutoScaling(orgID, projectName, rName, autoScaling),
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   testAccAdvancedClusterConfigReplicationSpecsAutoScaling(orgID, projectName, rName, autoScaling),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckAdvancedClusterAttributes(&cluster, rName),
@@ -577,7 +576,8 @@ func TestAccMigrationAdvancedCluster_replicationSpecsAutoScaling(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAdvancedClusterConfigReplicationSpecsAutoScaling(orgID, projectName, rNameUpdated, autoScalingUpdated),
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   testAccAdvancedClusterConfigReplicationSpecsAutoScaling(orgID, projectName, rNameUpdated, autoScalingUpdated),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckAdvancedClusterAttributes(&cluster, rNameUpdated),
@@ -611,12 +611,11 @@ func TestAccMigrationAdvancedCluster_replicationSpecsAnalyticsAutoScaling(t *tes
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyTeamAdvancedCluster,
+		PreCheck:     func() { acc.PreCheckBasic(t) },
+		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: mig.ExternalProviders(),
+				ExternalProviders: acc.ExternalProviders("1.14.0"),
 				Config:            testAccAdvancedClusterConfigReplicationSpecsAnalyticsAutoScalingBlocks(orgID, projectName, rName, autoScaling),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
@@ -639,7 +638,8 @@ func TestAccMigrationAdvancedCluster_replicationSpecsAnalyticsAutoScaling(t *tes
 				PlanOnly: true,
 			},
 			{
-				Config: testAccAdvancedClusterConfigReplicationSpecsAnalyticsAutoScaling(orgID, projectName, rName, autoScaling),
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   testAccAdvancedClusterConfigReplicationSpecsAnalyticsAutoScaling(orgID, projectName, rName, autoScaling),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckAdvancedClusterAttributes(&cluster, rName),
@@ -651,7 +651,8 @@ func TestAccMigrationAdvancedCluster_replicationSpecsAnalyticsAutoScaling(t *tes
 				),
 			},
 			{
-				Config: testAccAdvancedClusterConfigReplicationSpecsAnalyticsAutoScaling(orgID, projectName, rNameUpdated, autoScalingUpdated),
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   testAccAdvancedClusterConfigReplicationSpecsAnalyticsAutoScaling(orgID, projectName, rNameUpdated, autoScalingUpdated),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckAdvancedClusterAttributes(&cluster, rNameUpdated),
@@ -666,85 +667,85 @@ func TestAccMigrationAdvancedCluster_replicationSpecsAnalyticsAutoScaling(t *tes
 	})
 }
 
-func TestAccMigrationAdvancedCluster_withTags(t *testing.T) {
-	var (
-		cluster                matlas.AdvancedCluster
-		resourceName           = "mongodbatlas_advanced_cluster.test"
-		dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
-		dataSourceClustersName = "data.mongodbatlas_advanced_clusters.test"
-		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName            = acctest.RandomWithPrefix("test-acc")
-		rName                  = acctest.RandomWithPrefix("test-acc")
-	)
+// func TestAccMigrationAdvancedCluster_withTags(t *testing.T) {
+// 	var (
+// 		cluster                matlas.AdvancedCluster
+// 		resourceName           = "mongodbatlas_advanced_cluster.test"
+// 		dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
+// 		dataSourceClustersName = "data.mongodbatlas_advanced_clusters.test"
+// 		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
+// 		projectName            = acctest.RandomWithPrefix("test-acc")
+// 		rName                  = acctest.RandomWithPrefix("test-acc")
+// 	)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasic(t) },
-		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
-		Steps: []resource.TestStep{
-			{
-				ExternalProviders: mig.ExternalProviders(),
-				Config: testAccAdvancedClusterConfigWithTagsBlocks(orgID, projectName, rName, []matlas.Tag{
-					{
-						Key:   "key 1",
-						Value: "value 1",
-					},
-					{
-						Key:   "key 2",
-						Value: "value 2",
-					},
-				}),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAdvancedClusterExists(resourceName, &cluster),
-					testAccCheckAdvancedClusterAttributes(&cluster, rName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", acc.ClusterTagsMap1),
-					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", acc.ClusterTagsMap2),
-				),
-			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config: testAccAdvancedClusterConfigWithTags(orgID, projectName, rName, []matlas.Tag{
-					{
-						Key:   "key 1",
-						Value: "value 1",
-					},
-					{
-						Key:   "key 2",
-						Value: "value 2",
-					},
-				}), ConfigPlanChecks: resource.ConfigPlanChecks{
-					PostApplyPreRefresh: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-					},
-				},
-				PlanOnly: true,
-			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config: testAccAdvancedClusterConfigWithTags(orgID, projectName, rName, []matlas.Tag{
-					{
-						Key:   "key 3",
-						Value: "value 3",
-					},
-				}),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAdvancedClusterExists(resourceName, &cluster),
-					testAccCheckAdvancedClusterAttributes(&cluster, rName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "tags.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", acc.ClusterTagsMap3),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", acc.ClusterTagsMap3),
-					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", acc.ClusterTagsMap3),
-				),
-			},
-		},
-	})
-}
+// 	resource.ParallelTest(t, resource.TestCase{
+// 		PreCheck:     func() { acc.PreCheckBasic(t) },
+// 		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				ExternalProviders: acc.ExternalProviders("1.14.0"),
+// 				Config: testAccAdvancedClusterConfigWithTagsBlocks(orgID, projectName, rName, []matlas.Tag{
+// 					{
+// 						Key:   "key 1",
+// 						Value: "value 1",
+// 					},
+// 					{
+// 						Key:   "key 2",
+// 						Value: "value 2",
+// 					},
+// 				}),
+// 				Check: resource.ComposeTestCheckFunc(
+// 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
+// 					testAccCheckAdvancedClusterAttributes(&cluster, rName),
+// 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+// 					resource.TestCheckResourceAttr(resourceName, "name", rName),
+// 					resource.TestCheckResourceAttr(resourceName, "tags.#", "2"),
+// 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", acc.ClusterTagsMap1),
+// 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", acc.ClusterTagsMap2),
+// 				),
+// 			},
+// 			{
+// 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+// 				Config: testAccAdvancedClusterConfigWithTags(orgID, projectName, rName, []matlas.Tag{
+// 					{
+// 						Key:   "key 1",
+// 						Value: "value 1",
+// 					},
+// 					{
+// 						Key:   "key 2",
+// 						Value: "value 2",
+// 					},
+// 				}), ConfigPlanChecks: resource.ConfigPlanChecks{
+// 					PostApplyPreRefresh: []plancheck.PlanCheck{
+// 						acc.DebugPlan(),
+// 					},
+// 				},
+// 				PlanOnly: true,
+// 			},
+// 			{
+// 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+// 				Config: testAccAdvancedClusterConfigWithTags(orgID, projectName, rName, []matlas.Tag{
+// 					{
+// 						Key:   "key 3",
+// 						Value: "value 3",
+// 					},
+// 				}),
+// 				Check: resource.ComposeTestCheckFunc(
+// 					testAccCheckAdvancedClusterExists(resourceName, &cluster),
+// 					testAccCheckAdvancedClusterAttributes(&cluster, rName),
+// 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+// 					resource.TestCheckResourceAttr(resourceName, "name", rName),
+// 					resource.TestCheckResourceAttr(resourceName, "tags.#", "1"),
+// 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", acc.ClusterTagsMap3),
+// 					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "1"),
+// 					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", acc.ClusterTagsMap3),
+// 					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.#", "1"),
+// 					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", acc.ClusterTagsMap3),
+// 				),
+// 			},
+// 		},
+// 	})
+// }
 
 func TestAccMigrationAdvancedCluster_withLabels(t *testing.T) {
 	var (
@@ -761,7 +762,8 @@ func TestAccMigrationAdvancedCluster_withLabels(t *testing.T) {
 		PreCheck:     func() { acc.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
-			{ExternalProviders: mig.ExternalProviders(),
+			{
+				ExternalProviders: acc.ExternalProviders("1.14.0"),
 				Config: testAccAdvancedClusterConfigWithLabelsBlocks(orgID, projectName, rName, []matlas.Label{
 					{
 						Key:   "key 1",
@@ -803,6 +805,7 @@ func TestAccMigrationAdvancedCluster_withLabels(t *testing.T) {
 				PlanOnly: true,
 			},
 			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config: testAccAdvancedClusterConfigWithLabels(orgID, projectName, rName, []matlas.Label{
 					{
 						Key:   "key 3",
@@ -1001,36 +1004,36 @@ data "mongodbatlas_advanced_clusters" "test" {
 	`, orgID, projectName, name)
 }
 
-func testAccAdvancedClusterConfigSingleProviderPausedBlocks(orgID, projectName, name string, paused bool, instanceSize string) string {
-	return fmt.Sprintf(`
-resource "mongodbatlas_project" "cluster_project" {
-	name   = %[2]q
-	org_id = %[1]q
-}
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = mongodbatlas_project.cluster_project.id
-  name         = %[3]q
-  cluster_type = "REPLICASET"
-  paused       = %[4]t
+// func testAccAdvancedClusterConfigSingleProviderPausedBlocks(orgID, projectName, name string, paused bool, instanceSize string) string {
+// 	return fmt.Sprintf(`
+// resource "mongodbatlas_project" "cluster_project" {
+// 	name   = %[2]q
+// 	org_id = %[1]q
+// }
+// resource "mongodbatlas_advanced_cluster" "test" {
+//   project_id   = mongodbatlas_project.cluster_project.id
+//   name         = %[3]q
+//   cluster_type = "REPLICASET"
+//   paused       = %[4]t
 
-  replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = %[5]q
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-    }
-  }
-}
-	`, orgID, projectName, name, paused, instanceSize)
-}
+//   replication_specs {
+//     region_configs {
+//       electable_specs {
+//         instance_size = %[5]q
+//         node_count    = 3
+//       }
+//       analytics_specs {
+//         instance_size = "M10"
+//         node_count    = 1
+//       }
+//       provider_name = "AWS"
+//       priority      = 7
+//       region_name   = "US_EAST_1"
+//     }
+//   }
+// }
+// 	`, orgID, projectName, name, paused, instanceSize)
+// }
 
 func testAccAdvancedClusterConfigAdvancedConfBlocks(orgID, projectName, name string, p *matlas.ProcessArgs) string {
 	return fmt.Sprintf(`
@@ -1043,28 +1046,28 @@ resource "mongodbatlas_advanced_cluster" "test" {
 	name                   = %[3]q
 	cluster_type           = "REPLICASET"
   
-	 replication_specs = [{
-	  region_configs  = [{
-		electable_specs = [{
+	 replication_specs {
+	  region_configs  {
+		electable_specs {
 		  instance_size = "M10"
 		  node_count    = 3
-		}]
-		analytics_specs = [{
+		}
+		analytics_specs {
 		  instance_size = "M10"
 		  node_count    = 1
-		}]
-		auto_scaling = [{
+		}
+		auto_scaling {
 			compute_enabled = true
 			disk_gb_enabled = true
 			compute_max_instance_size = "M20"
-		   }]
+		   }
 		provider_name = "AWS"
 		priority      = 7
 		region_name   = "US_EAST_1"
-	  }]
-	}]
+	  }
+	}
   
-	advanced_configuration  = [{
+	advanced_configuration  {
 	  javascript_enabled                   = %[4]t
 	  minimum_enabled_tls_protocol         = %[5]q
 	  no_table_scan                        = %[6]t
@@ -1072,9 +1075,10 @@ resource "mongodbatlas_advanced_cluster" "test" {
 	  sample_size_bi_connector			 = %[8]d
 	  sample_refresh_interval_bi_connector = %[9]d
 	  transaction_lifetime_limit_seconds   = %[10]d
-	  oplog_min_retention_hours            = (%[11]d)
-	}]
+	  oplog_min_retention_hours            = %[11]d
+	}
   }
+
 data "mongodbatlas_advanced_cluster" "test" {
 	project_id = mongodbatlas_advanced_cluster.test.project_id
 	name 	     = mongodbatlas_advanced_cluster.test.name

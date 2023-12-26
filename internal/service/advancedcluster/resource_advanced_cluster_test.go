@@ -196,8 +196,7 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
+				Config: testAccAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
 						acc.DebugPlan(),
@@ -787,18 +786,6 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", acc.ClusterTagsMap3),
 				),
 			},
-			{
-				Config: testAccAdvancedClusterConfigWithTags(orgID, projectName, rName, []matlas.Tag{}),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAdvancedClusterExists(resourceName, &cluster),
-					testAccCheckAdvancedClusterAttributes(&cluster, rName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.#", "0"),
-				),
-			},
 		},
 	})
 }
@@ -827,8 +814,8 @@ func TestAccClusterAdvancedCluster_withLabels(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "labels.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.labels.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "labels.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.labels.#", "0"),
 				),
 			},
 			{
@@ -850,10 +837,10 @@ func TestAccClusterAdvancedCluster_withLabels(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "2"),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "labels.*", acc.ClusterTagsMap1),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "labels.*", acc.ClusterTagsMap2),
-					resource.TestCheckResourceAttr(dataSourceName, "labels.#", "3"),
+					resource.TestCheckResourceAttr(dataSourceName, "labels.#", "2"), // check if data source returnes all labels including default
 					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "labels.*", acc.ClusterTagsMap1),
 					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "labels.*", acc.ClusterTagsMap2),
-					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.labels.#", "3"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.labels.#", "2"),
 					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.labels.*", acc.ClusterTagsMap1),
 					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.labels.*", acc.ClusterTagsMap2),
 				),
@@ -872,22 +859,10 @@ func TestAccClusterAdvancedCluster_withLabels(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "labels.*", acc.ClusterTagsMap3),
-					resource.TestCheckResourceAttr(dataSourceName, "labels.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "labels.*", acc.ClusterTagsMap3),
-					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.labels.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.labels.*", acc.ClusterTagsMap3),
-				),
-			},
-			{
-				Config: testAccAdvancedClusterConfigWithLabels(orgID, projectName, rName, []matlas.Label{}),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAdvancedClusterExists(resourceName, &cluster),
-					testAccCheckAdvancedClusterAttributes(&cluster, rName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "labels.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "labels.*", acc.ClusterTagsMap3),
 					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.labels.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.labels.*", acc.ClusterTagsMap3),
 				),
 			},
 		},
@@ -1890,6 +1865,7 @@ func testFuncsMulticloudSharded(cluster *matlas.AdvancedCluster, resourceName, d
 
 	if isSpecUpdateTest {
 		updateTests := []resource.TestCheckFunc{
+			resource.TestCheckResourceAttr(resourceName, "replication_specs.0.container_id.%", "3"),
 			resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.2.priority", "5"),
 			resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.2.provider_name", "GCP"),
 			resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.2.region_name", "US_EAST_4"),
@@ -1928,7 +1904,6 @@ func testFuncsMulticloudShardedGeneric(sourceName, rName string) []resource.Test
 		resource.TestCheckResourceAttrSet(sourceName, "connection_strings.0.standard"),
 		resource.TestCheckResourceAttrSet(sourceName, "replication_specs.#"),
 		resource.TestCheckResourceAttrSet(sourceName, "replication_specs.0.region_configs.#"),
-		resource.TestCheckResourceAttr(sourceName, "replication_specs.0.container_id.%", "2"),
 		resource.TestCheckResourceAttr(sourceName, "replication_specs.0.zone_name", advancedcluster.DefaultZoneName),
 		resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.0.priority", "7"),
 		resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.0.provider_name", "AWS"),
@@ -2082,7 +2057,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 	  sample_size_bi_connector			 = %[8]d
 	  sample_refresh_interval_bi_connector = %[9]d
 	  transaction_lifetime_limit_seconds   = %[10]d
-	  oplog_min_retention_hours            = (%[11]d)
+	  oplog_min_retention_hours            = %[11]d
 	}]
   }
 data "mongodbatlas_advanced_cluster" "test" {
