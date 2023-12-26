@@ -313,7 +313,7 @@ func TestAccMigrationAdvancedCluster_geoSharded(t *testing.T) {
 					// testAccCheckAdvancedClusterExists(resourceName, &cluster),
 					// testAccCheckAdvancedClusterAttributes(&cluster, rName),
 
-					testFuncsGeosharded(&cluster, resourceName, dataSourceName, dataSourceClustersName, rName, false)...,
+					testFuncsForGeoshardedConfig(&cluster, resourceName, dataSourceName, dataSourceClustersName, rName, false)...,
 				),
 			},
 			{
@@ -322,7 +322,7 @@ func TestAccMigrationAdvancedCluster_geoSharded(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// testAccCheckAdvancedClusterExists(resourceName, &cluster),
 					// testAccCheckAdvancedClusterAttributes(&cluster, rName),
-					testFuncsGeosharded(&cluster, resourceName, dataSourceName, dataSourceClustersName, rName, true)...,
+					testFuncsForGeoshardedConfig(&cluster, resourceName, dataSourceName, dataSourceClustersName, rName, true)...,
 				),
 			},
 		},
@@ -782,7 +782,7 @@ func TestAccMigrationAdvancedCluster_withLabels(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "2"),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "labels.*", acc.ClusterTagsMap1),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "labels.*", acc.ClusterTagsMap2),
-					resource.TestCheckResourceAttr(dataSourceName, "labels.#", "3"),
+					resource.TestCheckResourceAttr(dataSourceName, "labels.#", "2"),
 				),
 			},
 			{
@@ -819,9 +819,9 @@ func TestAccMigrationAdvancedCluster_withLabels(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "labels.*", acc.ClusterTagsMap3),
-					resource.TestCheckResourceAttr(dataSourceName, "labels.#", "2"),
+					resource.TestCheckResourceAttr(dataSourceName, "labels.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "labels.*", acc.ClusterTagsMap3),
-					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.labels.#", "2"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.labels.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.labels.*", acc.ClusterTagsMap3),
 				),
 			},
@@ -1325,21 +1325,21 @@ func testAccAdvancedClusterConfigWithLabelsBlocks(orgID, projectName, name strin
 			name         = %[3]q
 			cluster_type = "REPLICASET"
 
-			replication_specs = [{
-				region_configs = [{
-					electable_specs = [{
+			replication_specs {
+				region_configs {
+					electable_specs {
 						instance_size = "M10"
 						node_count    = 3
-					}]
-					analytics_specs = [{
+					}
+					analytics_specs {
 						instance_size = "M10"
 						node_count    = 1
-					}]
+					}
 					provider_name = "AWS"
 					priority      = 7
 					region_name   = "US_EAST_1"
-				}]
-			}]
+				}
+			}
 
 			%[4]s
 		}
