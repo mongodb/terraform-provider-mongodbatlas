@@ -218,18 +218,14 @@ func (r *advancedClusterRS) Schema(ctx context.Context, request resource.SchemaR
 					},
 				},
 			},
+			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+				Create: true,
+				Update: true,
+				Delete: true,
+			}),
 		},
 		Version: 1,
 	}
-
-	if s.Blocks == nil {
-		s.Blocks = make(map[string]schema.Block)
-	}
-	s.Blocks["timeouts"] = timeouts.Block(ctx, timeouts.Opts{
-		Create: true,
-		Update: true,
-		Delete: true,
-	})
 	response.Schema = s
 }
 
@@ -494,9 +490,8 @@ func advancedClusterRSRegionConfigAutoScalingSpecsSchema() schema.ListNestedAttr
 	}
 }
 
-// TODO UpgradeState implements resource.ResourceWithUpgradeState.
-func (*advancedClusterRS) UpgradeState(context.Context) map[int64]resource.StateUpgrader {
-	schemaV0 := TPFResourceV0()
+func (*advancedClusterRS) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader {
+	schemaV0 := TPFResourceV0(ctx)
 
 	return map[int64]resource.StateUpgrader{
 		0: {
