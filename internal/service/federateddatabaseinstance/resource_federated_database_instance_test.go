@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -21,12 +22,12 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasic(t) },
-		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstSteps(name, projectName, orgID),
+				Config: testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstSteps(name, projectName, orgID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
@@ -37,8 +38,7 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstStepsUpdate(name, projectName, orgID),
+				Config: testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstStepsUpdate(name, projectName, orgID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
@@ -49,13 +49,21 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:             resourceName,
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				ImportStateIdFunc:        testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFunc(resourceName),
-				ImportState:              true,
-				ImportStateVerify:        true,
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{"storage_stores.0.allow_insecure", "storage_stores.0.include_tags", "storage_stores.0.read_preference.0.max_staleness_seconds",
 					"storage_stores.1.allow_insecure", "storage_stores.1.include_tags", "storage_stores.1.read_preference.0.max_staleness_seconds"},
+			},
+			{
+				Config: testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstStepsUpdate(name, projectName, orgID),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						acc.DebugPlan(),
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
 			},
 		},
 	})
