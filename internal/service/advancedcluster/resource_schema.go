@@ -490,17 +490,6 @@ func advancedClusterRSRegionConfigAutoScalingSpecsSchema() schema.ListNestedAttr
 	}
 }
 
-func (*advancedClusterRS) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader {
-	schemaV0 := TPFResourceV0(ctx)
-
-	return map[int64]resource.StateUpgrader{
-		0: {
-			PriorSchema:   &schemaV0,
-			StateUpgrader: upgradeAdvancedClusterResourceStateV0toV1,
-		},
-	}
-}
-
 func newTfReplicationSpecsRSModel(ctx context.Context, conn *matlas.Client,
 	rawAPIObjects []*matlas.AdvancedReplicationSpec,
 	configSpecsList types.List,
