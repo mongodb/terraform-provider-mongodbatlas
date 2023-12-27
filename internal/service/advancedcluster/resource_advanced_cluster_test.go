@@ -860,7 +860,7 @@ func testFuncsForMultiCloudConfig(cluster *matlas.AdvancedCluster, resourceName,
 		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
 		resource.TestCheckResourceAttr(resourceName, "cluster_type", "REPLICASET"),
 		resource.TestCheckResourceAttr(resourceName, "bi_connector_config.#", "1"),
-		resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.enabled", "true"),
+		resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.enabled", "false"),
 		resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.read_preference", "secondary"),
 		resource.TestCheckResourceAttr(resourceName, "termination_protection_enabled", "false"),
 		resource.TestCheckResourceAttr(resourceName, "encryption_at_rest_provider", "NONE"),
@@ -908,7 +908,7 @@ func testFuncsForMultiCloudConfig(cluster *matlas.AdvancedCluster, resourceName,
 		resource.TestCheckResourceAttr(dataSourceName, "pit_enabled", "false"),
 		resource.TestCheckResourceAttr(dataSourceName, "paused", "false"),
 		resource.TestCheckResourceAttrSet(dataSourceName, "disk_size_gb"),
-		resource.TestCheckResourceAttr(dataSourceName, "bi_connector_config.0.enabled", "true"),
+		resource.TestCheckResourceAttr(dataSourceName, "bi_connector_config.0.enabled", "false"),
 		resource.TestCheckResourceAttr(dataSourceName, "bi_connector_config.0.read_preference", "secondary"),
 		resource.TestCheckResourceAttrSet(dataSourceName, "connection_strings.#"),
 		resource.TestCheckResourceAttrSet(dataSourceName, "connection_strings.0.standard_srv"),
@@ -960,7 +960,7 @@ func testFuncsForMultiCloudConfig(cluster *matlas.AdvancedCluster, resourceName,
 		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.pit_enabled", "false"),
 		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.paused", "false"),
 		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.disk_size_gb"),
-		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.bi_connector_config.0.enabled", "true"),
+		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.bi_connector_config.0.enabled", "false"),
 		resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.bi_connector_config.0.read_preference", "secondary"),
 		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.connection_strings.#"),
 		resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.connection_strings.0.standard_srv"),
@@ -1391,7 +1391,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 	retain_backups_enabled = false
 
 	bi_connector_config = [{
-		enabled = true
+		read_preference = "secondary"
 	}]
   
 	replication_specs = [{
