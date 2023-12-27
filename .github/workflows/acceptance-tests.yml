@@ -430,7 +430,14 @@ jobs:
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           MONGODB_ATLAS_ENABLE_BETA: ${{ vars.MONGODB_ATLAS_ENABLE_BETA }}
           MONGODB_ATLAS_ENDPOINT_ID: ${{ vars.MONGODB_ATLAS_AWS_ENDPOINT_ID_NETWORK }} 
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ vars.AWS_REGION }}
+          AWS_SECURITY_GROUP_1: ${{ vars.AWS_SECURITY_GROUP_1 }}
+          AWS_SECURITY_GROUP_2: ${{ vars.AWS_SECURITY_GROUP_2 }}
+          AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
+          AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
           TEST_REGEX: "^TestAccNetwork"
         run: make testacc
 
