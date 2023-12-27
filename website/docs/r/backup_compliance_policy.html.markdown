@@ -24,7 +24,7 @@ We first suggest disabling `mongodbatlas_backup_compliancy_policy` resource whic
 * Third, another alternative is to modify the `mongodbatlas_cloud_backup_schedule` resource by replacing all the references to the `mongodbatlas_advanced_cluster` (or `mongodbatlas_cluster`) resource with the underlying values. This enables you to delete the cluster resource first, but you must obtain values from the state to do the appropriate replacements.
 * Lastly, as a final resort taking into account the limitations, we recommend you to do the following:
    * Remove the `mongodbatlas_cloud_backup_schedule` resource from the state using `terraform state rm mongodbatlas_cloud_backup_schedule.backup_retention_policy`.
-   * Remove the `mongodbatlas_cloud_backup_schedule` and `mongodbatlas_advanced_cluster` or `mongodbatlas_cluster` resource for the terraform configuration script and apply changes. Now only the cluster delete operation is called and runs successfully.
+   * Remove the `mongodbatlas_cloud_backup_schedule` and `mongodbatlas_advanced_cluster` (or `mongodbatlas_cluster`) resource for the terraform configuration script and apply changes. Now only the cluster delete operation is called and runs successfully.
      
 ## Example Usage
 
