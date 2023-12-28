@@ -17,7 +17,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccNetworkRSNetworkPeering_basicAWS(t *testing.T) {
+func TestAccNetworkNetworkPeering_basicAWS(t *testing.T) {
 	var (
 		peer                 matlas.Peer
 		resourceName         = "mongodbatlas_network_peering.test"
