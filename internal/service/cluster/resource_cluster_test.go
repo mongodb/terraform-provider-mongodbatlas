@@ -1450,7 +1450,6 @@ func TestAccClusterRSCluster_withDefaultBiConnectorAndAdvancedConfiguration_main
 				Config:                   cfg,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						acc.DebugPlan(),
 						plancheck.ExpectEmptyPlan(),
 					},
 				},
