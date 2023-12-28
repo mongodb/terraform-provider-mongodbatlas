@@ -113,6 +113,11 @@ func ConfigProjectIPAccessListWithAWSSecurityGroup(orgID, projectName, providerN
 
 			depends_on = ["mongodbatlas_network_peering.test"]
 		}
+
+		data "mongodbatlas_project_ip_access_list" "test" {
+			project_id = mongodbatlas_project_ip_access_list.test.project_id
+			aws_security_group = mongodbatlas_project_ip_access_list.test.aws_security_group
+		}
 	`, orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment)
 }
 
