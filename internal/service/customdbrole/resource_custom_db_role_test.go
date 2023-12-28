@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -447,10 +448,20 @@ func TestAccConfigRSCustomDBRoles_importBasic(t *testing.T) {
 				Config: testAccMongoDBAtlasCustomDBRolesConfigBasic(orgID, projectName, roleName, "INSERT", databaseName),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasCustomDBRolesImportStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasCustomDBRolesImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"actions.0.resources.0.cluster"},
+			},
+			{
+				Config: testAccMongoDBAtlasCustomDBRolesConfigBasic(orgID, projectName, roleName, "INSERT", databaseName),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						acc.DebugPlan(),
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
 			},
 		},
 	})
