@@ -9,7 +9,7 @@ on:
         type: string
         required: false
       atlas_cloud_env:
-          description: 'Atlas cloud environment used, can be either `dev` or `qa`. Defaults to using `dev`'     
+          description: 'Atlas cloud environment used, can be either `dev` or `qa`, empty for `dev`'     
           type: string
           required: false
       test_group:
@@ -31,7 +31,7 @@ on:
         type: string
         required: false
       atlas_cloud_env:
-        description: 'Atlas cloud environment used, can be either `dev` or `qa`. Defaults to using `dev`'     
+        description: 'Atlas cloud environment used, can be either `dev` or `qa`, empty for `dev`'     
         type: string
         required: false
 
