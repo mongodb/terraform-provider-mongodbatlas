@@ -17,26 +17,28 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccNetworkRSNetworkPeering_basicAWS(t *testing.T) {
-	acc.SkipTestExtCred(t)
+func TestAccNetworkNetworkPeering_basicAWS(t *testing.T) {
 	var (
-		peer         matlas.Peer
-		resourceName = "mongodbatlas_network_peering.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		vpcID        = os.Getenv("AWS_VPC_ID")
-		vpcCIDRBlock = os.Getenv("AWS_VPC_CIDR_BLOCK")
-		awsAccountID = os.Getenv("AWS_ACCOUNT_ID")
-		awsRegion    = os.Getenv("AWS_REGION")
-		providerName = "AWS"
+		peer                 matlas.Peer
+		resourceName         = "mongodbatlas_network_peering.test"
+		dataSourceName       = "data.mongodbatlas_network_peering.test"
+		pluralDataSourceName = "data.mongodbatlas_network_peerings.test"
+		orgID                = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		vpcID                = os.Getenv("AWS_VPC_ID")
+		vpcCIDRBlock         = os.Getenv("AWS_VPC_CIDR_BLOCK")
+		awsAccountID         = os.Getenv("AWS_ACCOUNT_ID")
+		awsRegion            = os.Getenv("AWS_REGION")
+		providerName         = "AWS"
+		projectName          = acctest.RandomWithPrefix("test-acc-project-aws")
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPeeringEnvAWS(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPeeringEnvAWS(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyNetworkPeering,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasNetworkPeeringConfigAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion),
+				Config: testAccMongoDBAtlasNetworkPeeringConfigAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName, &peer),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -44,6 +46,17 @@ func TestAccNetworkRSNetworkPeering_basicAWS(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "vpc_id", vpcID),
 					resource.TestCheckResourceAttr(resourceName, "aws_account_id", awsAccountID),
+
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "container_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttr(dataSourceName, "vpc_id", vpcID),
+					resource.TestCheckResourceAttr(dataSourceName, "aws_account_id", awsAccountID),
+
+					resource.TestCheckResourceAttrSet(pluralDataSourceName, "results.#"),
+					resource.TestCheckResourceAttrSet(pluralDataSourceName, "results.0.provider_name"),
+					resource.TestCheckResourceAttrSet(pluralDataSourceName, "results.0.vpc_id"),
+					resource.TestCheckResourceAttrSet(pluralDataSourceName, "results.0.aws_account_id"),
 				),
 			},
 			{
@@ -240,25 +253,38 @@ func testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName string, peer *mat
 	}
 }
 
-func testAccMongoDBAtlasNetworkPeeringConfigAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion string) string {
+func testAccMongoDBAtlasNetworkPeeringConfigAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "my_project" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
 		resource "mongodbatlas_network_container" "test" {
-			project_id   		  = "%[1]s"
+			project_id   		  = mongodbatlas_project.my_project.id
 			atlas_cidr_block  = "192.168.208.0/21"
-			provider_name		  = "%[2]s"
-			region_name			  = "%[6]s"
+			provider_name		  = "%[3]s"
+			region_name			  = "%[7]s"
 		}
 
 		resource "mongodbatlas_network_peering" "test" {
-			accepter_region_name	  = lower(replace("%[6]s", "_", "-"))
-			project_id    			    = "%[1]s"
+			accepter_region_name	  = lower(replace("%[7]s", "_", "-"))
+			project_id    			    = mongodbatlas_project.my_project.id
 			container_id            = mongodbatlas_network_container.test.id
-			provider_name           = "%[2]s"
-			route_table_cidr_block  = "%[5]s"
-			vpc_id					        = "%[3]s"
-			aws_account_id	        = "%[4]s"
+			provider_name           = "%[3]s"
+			route_table_cidr_block  = "%[6]s"
+			vpc_id					        = "%[4]s"
+			aws_account_id	        = "%[5]s"
 		}
-	`, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion)
+
+		data "mongodbatlas_network_peering" "test" {
+			project_id = mongodbatlas_project.my_project.id
+			peering_id = mongodbatlas_network_peering.test.peer_id
+		}
+
+		data "mongodbatlas_network_peerings" "test" {
+			project_id = mongodbatlas_network_peering.test.project_id
+		}
+	`, orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion)
 }
 
 func testAccMongoDBAtlasNetworkPeeringConfigAzure(projectID, providerName, directoryID, subscriptionID, resourceGroupName, vNetName string) string {
