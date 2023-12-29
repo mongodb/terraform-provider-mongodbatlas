@@ -1548,6 +1548,11 @@ resource "mongodbatlas_advanced_cluster" "test" {
 		region_name   = "EU_WEST_1"
 	  }]
 	}]
+
+	lifecycle {
+		# avoid cluster has been auto-scaled to different instance size
+		ignore_changes = [replication_specs[0].region_configs[0].electable_specs[0].instance_size, replication_specs[0].region_configs[0].electable_specs[0].instance_size]
+	  }
   }
 
   data "mongodbatlas_advanced_cluster" "test" {
@@ -1659,7 +1664,7 @@ func testFuncsForGeoshardedConfig(cluster *matlas.AdvancedCluster, resourceName,
 	}
 
 	res = append(res, testFuncsGeoshardedGeneric(resourceName, rName)...)
-	res = append(res, testFuncsDSGeoshardedGeneric(dataSourceName, rName)...)
+	res = append(res, testFuncsDSGeoshardedGeneric(dataSourceName, rName)...) // separate function as the order of returned replication_specs may differ
 
 	if isSpecUpdateTest {
 		updateTests := []resource.TestCheckFunc{
@@ -1747,10 +1752,10 @@ func testFuncsGeoshardedGeneric(sourceName, rName string) []resource.TestCheckFu
 		resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.0.priority", "7"),
 		resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.0.provider_name", "AWS"),
 		resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.0.region_name", "US_EAST_1"),
-		resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.0.analytics_specs.0.instance_size", "M10"),
+		// resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.0.analytics_specs.0.instance_size", "M10"),
 		resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.0.analytics_specs.0.node_count", "1"),
 		resource.TestCheckResourceAttrWith(sourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
-		resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", "M10"),
+		// resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", "M10"),
 		resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.0.electable_specs.0.node_count", "3"),
 		resource.TestCheckResourceAttrWith(sourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
 		resource.TestCheckResourceAttr(sourceName, "replication_specs.0.region_configs.1.priority", "6"),

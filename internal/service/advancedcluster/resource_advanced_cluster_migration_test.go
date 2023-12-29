@@ -1346,6 +1346,11 @@ resource "mongodbatlas_advanced_cluster" "test" {
 		region_name   = "EU_WEST_1"
 	  }
 	}
+
+	lifecycle {
+		# avoid cluster has been auto-scaled to different instance size
+		ignore_changes = [replication_specs[0].region_configs[0].electable_specs[0].instance_size, replication_specs[0].region_configs[0].electable_specs[0].instance_size]
+	  }
   }
 
   data "mongodbatlas_advanced_cluster" "test" {

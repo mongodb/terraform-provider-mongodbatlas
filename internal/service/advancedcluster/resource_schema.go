@@ -397,7 +397,7 @@ func advancedClusterRSReplicationSpecsSchema() schema.ListNestedAttribute {
 						Attributes: map[string]schema.Attribute{
 							"backing_provider_name": schema.StringAttribute{
 								Optional: true,
-								Computed: true,
+								// Computed: true,
 							},
 							"priority": schema.Int64Attribute{
 								Required: true,

@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"reflect"
-	"strings"
 	"time"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -137,50 +136,11 @@ func handleClusterUpgrade(ctx context.Context, conn *matlas.Client, request *mat
 		return nil, nil, err
 	}
 
-	if err := waitClusterUpgrade(ctx, conn, timeout, projectID, cluster.Name); err != nil {
+	if err := waitClusterUpdate(ctx, conn, timeout, projectID, cluster.Name); err != nil {
 		return nil, nil, err
 	}
 
 	return cluster, resp, nil
-}
-
-func waitClusterUpgrade(ctx context.Context, conn *matlas.Client, timeout time.Duration, projectID, clusterName string) error {
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "DELETED"},
-		Target:     []string{"IDLE"},
-		Refresh:    resourceClusterUpgradeRefreshFunc(ctx, clusterName, projectID, conn),
-		Timeout:    timeout,
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute,
-	}
-
-	_, err := stateConf.WaitForStateContext(ctx)
-	return err
-}
-
-func resourceClusterUpgradeRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
-	return func() (any, string, error) {
-		c, resp, err := client.Clusters.Get(ctx, projectID, name)
-
-		if err != nil && strings.Contains(err.Error(), "reset by peer") {
-			return nil, "REPEATING", nil
-		}
-
-		if err != nil && c == nil && resp == nil {
-			return nil, "", err
-		} else if err != nil {
-			if resp.StatusCode == 503 {
-				return "", "PENDING", nil
-			}
-			return nil, "", err
-		}
-
-		if c.StateName != "" {
-			log.Printf("[DEBUG] status for MongoDB cluster: %s: %s", name, c.StateName)
-		}
-
-		return c, c.StateName, nil
-	}
 }
 
 func handleClusterUpdate(ctx context.Context, conn *matlas.Client, state, plan *tfAdvancedClusterRSModel, timeout time.Duration) diag.Diagnostics {
