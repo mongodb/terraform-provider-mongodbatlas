@@ -37,11 +37,11 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T)
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccDataMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PostApplyPreRefresh: []plancheck.PlanCheck{
+					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
+						plancheck.ExpectEmptyPlan(),
 					},
 				},
-				PlanOnly: true,
 			},
 		},
 	})
@@ -72,11 +72,11 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T)
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccDataMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(orgID, projectName, cidrBlock, comment),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PostApplyPreRefresh: []plancheck.PlanCheck{
+					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
+						plancheck.ExpectEmptyPlan(),
 					},
 				},
-				PlanOnly: true,
 			},
 		},
 	})
@@ -115,11 +115,11 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingAWSSecurityGroup(t *tes
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   acc.ConfigProjectIPAccessListWithAWSSecurityGroup(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PostApplyPreRefresh: []plancheck.PlanCheck{
+					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
+						plancheck.ExpectEmptyPlan(),
 					},
 				},
-				PlanOnly: true,
 			},
 		},
 	})

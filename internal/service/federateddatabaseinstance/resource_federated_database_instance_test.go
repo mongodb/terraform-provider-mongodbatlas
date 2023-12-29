@@ -59,7 +59,7 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstStepsUpdate(name, projectName, orgID),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PostApplyPreRefresh: []plancheck.PlanCheck{
+					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
 						plancheck.ExpectEmptyPlan(),
 					},

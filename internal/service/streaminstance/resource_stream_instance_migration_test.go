@@ -34,11 +34,11 @@ func TestAccMigrationStreamRSStreamInstance_basic(t *testing.T) {
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   acc.StreamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PostApplyPreRefresh: []plancheck.PlanCheck{
+					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
+						plancheck.ExpectEmptyPlan(),
 					},
 				},
-				PlanOnly: true,
 			},
 		},
 	})

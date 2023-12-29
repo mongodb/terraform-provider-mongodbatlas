@@ -1449,7 +1449,8 @@ func TestAccClusterRSCluster_withDefaultBiConnectorAndAdvancedConfiguration_main
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   cfg,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PostApplyPreRefresh: []plancheck.PlanCheck{
+					PreApply: []plancheck.PlanCheck{
+						acc.DebugPlan(),
 						plancheck.ExpectEmptyPlan(),
 					},
 				},

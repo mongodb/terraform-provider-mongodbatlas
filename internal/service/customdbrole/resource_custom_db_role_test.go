@@ -457,7 +457,7 @@ func TestAccConfigRSCustomDBRoles_importBasic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasCustomDBRolesConfigBasic(orgID, projectName, roleName, "INSERT", databaseName),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PostApplyPreRefresh: []plancheck.PlanCheck{
+					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
 						plancheck.ExpectEmptyPlan(),
 					},
