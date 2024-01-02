@@ -76,8 +76,6 @@ tools:  ## Install dev tools
 	go install github.com/rhysd/actionlint/cmd/actionlint@latest
 	go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest
 	go install github.com/vektra/mockery/v2@$(MOCKERY_VERSION)
-	go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
-	go install github.com/hashicorp/terraform-plugin-codegen-openapi/cmd/tfplugingen-openapi@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
 
 .PHONY: check
