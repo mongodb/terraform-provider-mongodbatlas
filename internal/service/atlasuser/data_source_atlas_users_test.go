@@ -73,7 +73,7 @@ func TestAccConfigDSAtlasUsers_ByTeamID(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		username       = os.Getenv("MONGODB_ATLAS_USERNAME_CLOUD_DEV")
+		username       = os.Getenv("MONGODB_ATLAS_USERNAME")
 		teamName       = acctest.RandomWithPrefix("team-name")
 	)
 
@@ -105,7 +105,7 @@ func TestAccConfigDSAtlasUsers_UsingPagination(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		username       = os.Getenv("MONGODB_ATLAS_USERNAME_CLOUD_DEV")
+		username       = os.Getenv("MONGODB_ATLAS_USERNAME")
 		teamName       = acctest.RandomWithPrefix("team-name")
 		pageNum        = 2
 		itemsPerPage   = 1
@@ -224,7 +224,7 @@ func dataSourceChecksForUsers(dataSourceName, orgID string, users *admin.Paginat
 		resource.TestCheckResourceAttr(dataSourceName, "total_count", fmt.Sprintf("%d", totalCountValue)),
 	}
 	for i := range users.Results {
-		checks = append(checks, dataSourceChecksForUser(dataSourceName, fmt.Sprintf("results.%d.", i), &users.Results[i], false)...)
+		checks = append(checks, dataSourceChecksForUser(dataSourceName, fmt.Sprintf("results.%d.", i), &users.Results[i])...)
 	}
 
 	return checks

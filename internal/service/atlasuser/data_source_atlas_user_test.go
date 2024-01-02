@@ -28,7 +28,7 @@ func TestAccConfigDSAtlasUser_ByUserID(t *testing.T) {
 			{
 				Config: testAccDSMongoDBAtlasUserByUserID(userID),
 				Check: resource.ComposeTestCheckFunc(
-					dataSourceChecksForUser(dataSourceName, "", user, true)...,
+					dataSourceChecksForUser(dataSourceName, "", user)...,
 				),
 			},
 		},
@@ -39,7 +39,7 @@ func TestAccConfigDSAtlasUser_ByUsername(t *testing.T) {
 	acc.SkipIfTFAccNotDefined(t)
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_user.test"
-		username       = os.Getenv("MONGODB_ATLAS_USERNAME_CLOUD_DEV")
+		username       = os.Getenv("MONGODB_ATLAS_USERNAME")
 		user           = fetchUserByUsername(t, username)
 	)
 	resource.Test(t, resource.TestCase{ // does not run in parallel to avoid changes in fetched user during execution
@@ -49,18 +49,14 @@ func TestAccConfigDSAtlasUser_ByUsername(t *testing.T) {
 			{
 				Config: testAccDSMongoDBAtlasUserByUsername(username),
 				Check: resource.ComposeTestCheckFunc(
-					dataSourceChecksForUser(dataSourceName, "", user, true)...,
+					dataSourceChecksForUser(dataSourceName, "", user)...,
 				),
 			},
 		},
 	})
 }
 
-func dataSourceChecksForUser(dataSourceName, attrPrefix string, user *admin.CloudAppUser, hasToCheckCountRoles bool) []resource.TestCheckFunc {
-	roleCheck := resource.TestCheckResourceAttrSet(dataSourceName, fmt.Sprintf("%sroles.#", attrPrefix))
-	if hasToCheckCountRoles {
-		roleCheck = resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%sroles.#", attrPrefix), fmt.Sprintf("%d", len(user.Roles)))
-	}
+func dataSourceChecksForUser(dataSourceName, attrPrefix string, user *admin.CloudAppUser) []resource.TestCheckFunc {
 	return []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%susername", attrPrefix), user.Username),
 		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%suser_id", attrPrefix), *user.Id),
@@ -72,7 +68,9 @@ func dataSourceChecksForUser(dataSourceName, attrPrefix string, user *admin.Clou
 		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%screated_at", attrPrefix), *conversion.TimePtrToStringPtr(user.CreatedAt)),
 		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%steam_ids.#", attrPrefix), fmt.Sprintf("%d", len(user.TeamIds))),
 		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%slinks.#", attrPrefix), fmt.Sprintf("%d", len(user.Links))),
-		roleCheck,
+		// for assertion of roles the values of `user.Roles` must not be used as it has the risk of flaky executions. CLOUDP-220377
+		resource.TestCheckResourceAttrWith(dataSourceName, fmt.Sprintf("%sroles.#", attrPrefix), acc.IntGreatThan(0)),
+		resource.TestCheckResourceAttrSet(dataSourceName, fmt.Sprintf("%sroles.0.role_name", attrPrefix)),
 	}
 }
 

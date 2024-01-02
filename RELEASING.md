@@ -7,7 +7,8 @@
 ## Steps
 
 ### Make sure that the acceptance tests are successful
-Check [workflows/test-suite.yml](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/test-suite.yml) and see if the latest run of the Test Suite action is successful (it runs every day at 2 AM Dublin Time). If tests are failing, you should investigate the failure before proceeding with the next steps.
+Check [workflows/test-suite.yml](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/test-suite.yml) and see if the latest run of the Test Suite action is successful (it runs every day at midnight UTC time). To complement this check, a manual execution of the Acceptance Test workflow must be run using `qa` ensuring all test groups are successful. 
+If tests are failing, you should investigate the failure before proceeding with the next steps.
 
 ### Pre-release the provider 
 We pre-release the provider to make for testing purpose. **A Pre-release is not published to the Hashicorp Terraform Registry**.
