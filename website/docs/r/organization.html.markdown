@@ -12,6 +12,7 @@ description: |-
 
 ~> **IMPORTANT NOTE:**  When you establish an Atlas organization using this resource, it automatically generates a set of initial public and private Programmatic API Keys. These key values are vital to store because you'll need to use them to grant access to the newly created Atlas organization.
 
+~> **NOTE** Import command is currently not supported for this resource.
 
 ## Example Usage
 
@@ -43,11 +44,5 @@ In addition to all arguments above, the following attributes are exported:
 * `public_key` - Public API key value set for the specified organization API key.
 * `private_key` - Redacted private key returned for this organization API key. This key displays unredacted when first created and is saved within the Terraform state file.
 
-## Import
 
-Organization must be imported using organization ID, e.g.
-
-```
-$ terraform import mongodbatlas_organization.my_org 5d09d6a59ccf6445652a444a
-```
 For more information see: [MongoDB Atlas Admin API Organization](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Organizations/operation/createOrganization)  Documentation for more information.

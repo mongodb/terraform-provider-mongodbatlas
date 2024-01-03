@@ -43,34 +43,6 @@ func TestAccConfigRSOrganization_Basic(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSOrganization_importBasic(t *testing.T) {
-	acc.SkipTestForCI(t)
-	var (
-		resourceName = "mongodbatlas_organization.test"
-		orgOwnerID   = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
-		name         = fmt.Sprintf("test-acc-import-organization-%s", acctest.RandString(5))
-		description  = "test Key for Acceptance tests"
-		roleName     = "ORG_OWNER"
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasOrganizationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMongoDBAtlasOrganizationConfigBasic(orgOwnerID, name, description, roleName),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasOrganizationImportStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: false,
-			},
-		},
-	})
-}
-
 func testAccCheckMongoDBAtlasOrganizationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
@@ -124,17 +96,6 @@ func testAccCheckMongoDBAtlasOrganizationDestroy(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func testAccCheckMongoDBAtlasOrganizationImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return "", fmt.Errorf("not found: %s", resourceName)
-		}
-
-		return rs.Primary.Attributes["org_id"], nil
-	}
 }
 
 func testAccMongoDBAtlasOrganizationConfigBasic(orgOwnerID, name, description, roleNames string) string {
