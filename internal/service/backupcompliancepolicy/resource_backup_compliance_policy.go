@@ -53,11 +53,13 @@ func Resource() *schema.Resource {
 			},
 			"copy_protection_enabled": {
 				Type:     schema.TypeBool,
-				Required: true,
+				Optional: true,
+				Default:  false,
 			},
 			"encryption_at_rest_enabled": {
 				Type:     schema.TypeBool,
-				Required: true,
+				Optional: true,
+				Default:  false,
 			},
 			"restore_window_days": {
 				Type:     schema.TypeInt,
@@ -95,7 +97,8 @@ func Resource() *schema.Resource {
 			},
 			"pit_enabled": {
 				Type:     schema.TypeBool,
-				Required: true,
+				Optional: true,
+				Default:  false,
 			},
 			"state": {
 				Type:     schema.TypeString,
@@ -414,7 +417,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *sc
 
 	backupCompliancePolicyUpdate.AuthorizedEmail = d.Get("authorized_email").(string)
 
-	backupCompliancePolicyUpdate.AuthorizedUserFirstName = d.Get("authorized_user_fist_name").(string)
+	backupCompliancePolicyUpdate.AuthorizedUserFirstName = d.Get("authorized_user_first_name").(string)
 
 	backupCompliancePolicyUpdate.AuthorizedUserLastName = d.Get("authorized_user_last_name").(string)
 
