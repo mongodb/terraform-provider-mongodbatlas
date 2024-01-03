@@ -145,9 +145,9 @@ resource "mongodbatlas_backup_compliance_policy" "backup_policy" {
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
-* `authorized_email` - Email address of a security or legal representative for the Backup Compliance Policy who is authorized to update the Backup Compliance Policy settings.
-* `authorized_user_first_name` - First name of the user who authorized to update the Backup Compliance Policy settings.
-* `authorized_user_last_name` - Last name of the user who authorized to update the Backup Compliance Policy settings.
+* `authorized_email` - (Required) Email address of a security or legal representative for the Backup Compliance Policy who is authorized to update the Backup Compliance Policy settings.
+* `authorized_user_first_name` - (Required) First name of the user who authorized to update the Backup Compliance Policy settings.
+* `authorized_user_last_name` - (Required) Last name of the user who authorized to update the Backup Compliance Policy settings.
 * `copy_protection_enabled` - Flag that indicates whether to enable additional backup copies for the cluster. If unspecified, this value defaults to false.
 * `pit_enabled` - Flag that indicates whether the cluster uses Continuous Cloud Backups with a Backup Compliance Policy. If unspecified, this value defaults to false.
 * `encryption_at_rest_enabled` - Flag that indicates whether Encryption at Rest using Customer Key Management is required for all clusters with a Backup Compliance Policy. If unspecified, this value defaults to false.
