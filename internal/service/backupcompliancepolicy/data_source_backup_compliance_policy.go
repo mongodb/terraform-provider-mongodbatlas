@@ -92,8 +92,7 @@ func DataSource() *schema.Resource {
 			},
 			"policy_item_hourly": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
-				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -106,23 +105,22 @@ func DataSource() *schema.Resource {
 						},
 						"frequency_interval": {
 							Type:     schema.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 						"retention_value": {
 							Type:     schema.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 						"retention_unit": {
 							Type:     schema.TypeString,
-							Required: true,
+							Computed: true,
 						},
 					},
 				},
 			},
 			"policy_item_daily": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
-				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -135,22 +133,22 @@ func DataSource() *schema.Resource {
 						},
 						"frequency_interval": {
 							Type:     schema.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 						"retention_unit": {
 							Type:     schema.TypeString,
-							Required: true,
+							Computed: true,
 						},
 						"retention_value": {
 							Type:     schema.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 					},
 				},
 			},
 			"policy_item_weekly": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -163,22 +161,22 @@ func DataSource() *schema.Resource {
 						},
 						"frequency_interval": {
 							Type:     schema.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 						"retention_unit": {
 							Type:     schema.TypeString,
-							Required: true,
+							Computed: true,
 						},
 						"retention_value": {
 							Type:     schema.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 					},
 				},
 			},
 			"policy_item_monthly": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -191,15 +189,15 @@ func DataSource() *schema.Resource {
 						},
 						"frequency_interval": {
 							Type:     schema.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 						"retention_unit": {
 							Type:     schema.TypeString,
-							Required: true,
+							Computed: true,
 						},
 						"retention_value": {
 							Type:     schema.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 					},
 				},
