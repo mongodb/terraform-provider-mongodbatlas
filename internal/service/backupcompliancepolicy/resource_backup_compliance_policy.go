@@ -52,12 +52,10 @@ func Resource() *schema.Resource {
 				Required: true,
 			},
 			"copy_protection_enabled": {
-				Type:     schema.TypeBool,
-				Required: true,
+				Type: schema.TypeBool,
 			},
 			"encryption_at_rest_enabled": {
-				Type:     schema.TypeBool,
-				Required: true,
+				Type: schema.TypeBool,
 			},
 			"restore_window_days": {
 				Type:     schema.TypeInt,
@@ -94,8 +92,7 @@ func Resource() *schema.Resource {
 				},
 			},
 			"pit_enabled": {
-				Type:     schema.TypeBool,
-				Required: true,
+				Type: schema.TypeBool,
 			},
 			"state": {
 				Type:     schema.TypeString,
