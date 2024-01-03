@@ -28,14 +28,13 @@ resource "mongodbatlas_organization" "test" {
 
 * `name` - (Required) The name of the organization you want to create. (Cannot be changed via this Provider after creation.)
 * `org_owner_id` - (Required) Unique 24-hexadecimal digit string that identifies the Atlas user that you want to assign the Organization Owner role. This user must be a member of the same organization as the calling API key.  This is only required when authenticating with Programmatic API Keys. [MongoDB Atlas Admin API - Get User By Username](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/MongoDB-Cloud-Users/operation/getUserByUsername)
-* `description` - Programmatic API Key description
+* `description` - (Required) Programmatic API Key description
 
 ~> **NOTE:** Creating an organization will return a new API Key pair that can be used to authenticate and manage the new organization  with MongoDB Atlas Terraform modules/blueprints.  You cannot use the newly created API key pair to manage the newly created organization in the same Terraform module/blueprint that the organization is created in.
 
-
 * `role_names` - (Required) List of Organization roles that the Programmatic API key needs to have. Ensure that you provide at least one role and ensure all roles are valid for the Organization.  You must specify an array even if you are only associating a single role with the Programmatic API key. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#organization-roles) describes the roles that you can assign to a Programmatic API key.
- 
-  
+* `federation_settings_id` - (Optional) Unique 24-hexadecimal digit string that identifies the federation to link the newly created organization to. If specified, the proposed Organization Owner of the new organization must have the Organization Owner role in an organization associated with the federation.
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
@@ -43,9 +42,6 @@ In addition to all arguments above, the following attributes are exported:
 * `org_id` - The organization id.
 * `public_key` - Public API key value set for the specified organization API key.
 * `private_key` - Redacted private key returned for this organization API key. This key displays unredacted when first created and is saved within the Terraform state file.
-* `isDeleted` - (computed) Flag that indicates whether this organization has been deleted.
-* `federation_settings_id` - (Optional) Unique 24-hexadecimal digit string that identifies the federation to link the newly created organization to. If specified, the proposed Organization Owner of the new organization must have the Organization Owner role in an organization associated with the federation.
-
 
 ## Import
 
