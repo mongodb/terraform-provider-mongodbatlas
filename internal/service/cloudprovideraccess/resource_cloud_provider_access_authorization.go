@@ -321,3 +321,25 @@ func authorizeRole(ctx context.Context, client *matlas.Client, d *schema.Resourc
 
 	return nil
 }
+
+func featureUsagesSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"feature_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"feature_id": {
+				Type:     schema.TypeMap,
+				Computed: true,
+			},
+		},
+	}
+}
+
+func featureToSchema(feature *matlas.FeatureUsage) map[string]any {
+	return map[string]any{
+		"feature_type": feature.FeatureType,
+		"feature_id":   feature.FeatureID,
+	}
+}

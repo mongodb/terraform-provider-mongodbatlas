@@ -1,13 +1,19 @@
 package cloudprovideraccess_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudprovideraccess"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccConfigRSCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
@@ -146,4 +152,39 @@ func testAccMongoDBAtlasCloudProviderAccessAuthorizationAzure(orgID, projectName
 		}
 	 }
 	`, orgID, projectName, atlasAzureAppID, servicePrincipalID, tenantID)
+}
+
+func testAccCheckMongoDBAtlasProviderAccessDestroy(s *terraform.State) error {
+	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "mongodbatlas_cloud_provider_access" {
+			continue
+		}
+
+		ids := conversion.DecodeStateID(rs.Primary.ID)
+
+		roles, _, err := conn.CloudProviderAccess.ListRoles(context.Background(), ids["project_id"])
+
+		if err != nil {
+			return fmt.Errorf(cloudprovideraccess.ErrorCloudProviderGetRead, err)
+		}
+
+		var targetRole matlas.CloudProviderAccessRole
+
+		// searching in roles
+		for i := range roles.AWSIAMRoles {
+			role := &(roles.AWSIAMRoles[i])
+
+			if role.RoleID == ids["id"] && role.ProviderName == ids["provider_name"] {
+				targetRole = *role
+			}
+		}
+
+		//  Found !!
+		if targetRole.RoleID != "" {
+			return fmt.Errorf("error cloud Provider Access Role (%s) still exists", ids["id"])
+		}
+	}
+
+	return nil
 }
