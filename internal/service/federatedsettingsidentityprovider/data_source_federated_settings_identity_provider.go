@@ -201,7 +201,7 @@ func DataSource() *schema.Resource {
 }
 func dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	federationSettingsID, federationSettingsIDOk := d.GetOk("federation_settings_id")
 
@@ -215,12 +215,12 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Con
 		return diag.FromErr(errors.New("identity_provider_id must be configured"))
 	}
 
-	federatedSettingsIdentityProvider, _, err := conn.FederatedSettings.GetIdentityProvider(ctx, federationSettingsID.(string), idpID.(string))
+	federatedSettingsIdentityProvider, _, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(ctx, federationSettingsID.(string), idpID.(string)).Execute()
 	if err != nil {
 		return diag.Errorf("error getting federatedSettings IdentityProviders assigned (%s): %s", federationSettingsID, err)
 	}
 
-	if err := d.Set("acs_url", federatedSettingsIdentityProvider.AcsURL); err != nil {
+	if err := d.Set("acs_url", federatedSettingsIdentityProvider.AcsUrl); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `acs_url` for federatedSettings IdentityProviders: %s", err))
 	}
 
@@ -228,7 +228,7 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Con
 		return diag.FromErr(fmt.Errorf("error setting `associated_domains` for federatedSettings IdentityProviders: %s", err))
 	}
 
-	if err := d.Set("associated_orgs", flattenAssociatedOrgs(federatedSettingsIdentityProvider.AssociatedOrgs)); err != nil {
+	if err := d.Set("associated_orgs", FlattenAssociatedOrgs(federatedSettingsIdentityProvider.AssociatedOrgs)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `associated_orgs` for federatedSettings IdentityProviders: %s", err))
 	}
 
@@ -236,15 +236,15 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Con
 		return diag.FromErr(fmt.Errorf("error setting `display_name` for federatedSettings IdentityProviders: %s", err))
 	}
 
-	if err := d.Set("issuer_uri", federatedSettingsIdentityProvider.IssuerURI); err != nil {
+	if err := d.Set("issuer_uri", federatedSettingsIdentityProvider.IssuerUri); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `issuer_uri` for federatedSettings IdentityProviders: %s", err))
 	}
 
-	if err := d.Set("okta_idp_id", federatedSettingsIdentityProvider.OktaIdpID); err != nil {
+	if err := d.Set("okta_idp_id", federatedSettingsIdentityProvider.OktaIdpId); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `idp_id` for federatedSettings IdentityProviders: %s", err))
 	}
 
-	if err := d.Set("pem_file_info", flattenPemFileInfo(*federatedSettingsIdentityProvider.PemFileInfo)); err != nil {
+	if err := d.Set("pem_file_info", FlattenPemFileInfo(*federatedSettingsIdentityProvider.PemFileInfo)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `pem_file_info` for federatedSettings IdentityProviders: %s", err))
 	}
 
@@ -260,7 +260,7 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Con
 		return diag.FromErr(fmt.Errorf("error setting `sso_debug_enabled` for federatedSettings IdentityProviders: %s", err))
 	}
 
-	if err := d.Set("sso_url", federatedSettingsIdentityProvider.SsoURL); err != nil {
+	if err := d.Set("sso_url", federatedSettingsIdentityProvider.SsoUrl); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `sso_url` for federatedSettings IdentityProviders: %s", err))
 	}
 
@@ -268,7 +268,7 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Con
 		return diag.FromErr(fmt.Errorf("error setting `status` for federatedSettings IdentityProviders: %s", err))
 	}
 
-	d.SetId(federatedSettingsIdentityProvider.OktaIdpID)
+	d.SetId(federatedSettingsIdentityProvider.OktaIdpId)
 
 	return nil
 }
