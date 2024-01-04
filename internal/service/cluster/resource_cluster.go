@@ -531,7 +531,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
 		Target:     []string{"IDLE"},
-		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
+		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, d.Get("name").(string), projectID, advancedcluster.ServiceFromClient(conn)),
 		Timeout:    timeout,
 		MinTimeout: 1 * time.Minute,
 		Delay:      3 * time.Minute,
@@ -1001,7 +1001,7 @@ func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceDa
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
 		Target:     []string{"DELETED"},
-		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, clusterName, projectID, conn),
+		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, clusterName, projectID, advancedcluster.ServiceFromClient(conn)),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute, // Wait 30 secs before starting
@@ -1375,7 +1375,7 @@ func updateCluster(ctx context.Context, conn *matlas.Client, request *matlas.Clu
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
-		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, name, projectID, conn),
+		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, name, projectID, advancedcluster.ServiceFromClient(conn)),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,

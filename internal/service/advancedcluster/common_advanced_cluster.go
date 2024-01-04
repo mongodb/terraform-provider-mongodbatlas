@@ -129,7 +129,7 @@ func UpgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cl
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
-		Refresh:    ResourceClusterRefreshFunc(ctx, name, projectID, conn),
+		Refresh:    ResourceClusterRefreshFunc(ctx, name, projectID, ServiceFromClient(conn)),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
@@ -144,9 +144,9 @@ func UpgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cl
 	return cluster, resp, nil
 }
 
-func ResourceClusterRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
+func ResourceClusterRefreshFunc(ctx context.Context, name, projectID string, client ClusterService) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		c, resp, err := client.Clusters.Get(ctx, projectID, name)
+		c, resp, err := client.Get(ctx, projectID, name)
 
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
@@ -172,9 +172,9 @@ func ResourceClusterRefreshFunc(ctx context.Context, name, projectID string, cli
 	}
 }
 
-func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) retry.StateRefreshFunc {
+func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, client ClusterService) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		clusters, resp, err := client.AdvancedClusters.List(ctx, projectID, nil)
+		clusters, resp, err := client.List(ctx, projectID, nil)
 
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
