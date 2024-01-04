@@ -1,16 +1,39 @@
-name: release
+name: 'New Release'
+run-name: 'Release ${{ inputs.version_number }}'
+
 on:
-  push:
-    tags:
-      - 'v*'
-jobs: 
-  goreleaser:
+  workflow_dispatch:
+    inputs:
+      version_number:
+        description: 'Version number (e.g., v1.0.0, v1.0.0-pre, v1.0.0-pre1)'
+        required: true
+      skip_tests:
+        description: 'Define value to `true` to explicitly skip QA acceptance tests execution'
+
+jobs:
+    # QA acceptance tests are skipped for pre releases or when explicit input parameter is used
+  run-qa-acceptance-tests:
+    if: inputs.skip_tests != 'true' && !contains(inputs.version_number, 'pre')
+    secrets: inherit
+    uses: ./.github/workflows/acceptance-tests.yml
+    with:
+      atlas_cloud_env: "qa"
+
+  release:
     runs-on: ubuntu-latest
+    needs: [ run-qa-acceptance-tests ]
+    if: ${{ always() && (needs.run-qa-acceptance-tests.result == 'skipped' || needs.run-qa-acceptance-tests.result == 'success') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Unshallow
         run: git fetch --prune --unshallow
+      - name: Create release tag
+        uses: rickstaa/action-create-tag@v1.7.2 # will fail if existing tag is present
+        with:
+          tag: ${{ inputs.version_number }}
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg_passphrase: ${{ secrets.PASSPHRASE }}
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
