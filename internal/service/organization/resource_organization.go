@@ -20,7 +20,7 @@ func Resource() *schema.Resource {
 		ReadContext:   resourceMongoDBAtlasOrganizationRead,
 		UpdateContext: resourceMongoDBAtlasOrganizationUpdate,
 		DeleteContext: resourceMongoDBAtlasOrganizationDelete,
-		Importer:      nil,
+		Importer:      nil, // import is not supported. See CLOUDP-215155
 		Schema: map[string]*schema.Schema{
 			"org_owner_id": {
 				Type:     schema.TypeString,
