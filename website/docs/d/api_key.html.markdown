@@ -33,13 +33,13 @@ data "mongodbatlas_api_key" "test" {
 
 ## Argument Reference
 
-* `org_id` - (Required) The unique ID for the project.
+* `org_id` - (Required) Unique identifier for the organization.
+* `api_key_id` - (Required) Unique identifier for the organization API key.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `org_id` - Unique identifier for the organization whose API keys you want to retrieve. Use the /orgs endpoint to retrieve all organizations to which the authenticated user has access.
 * `description` - Description of this Organization API key.
 * `public_key` - Public key for this Organization API key.
 * `private_key` - Private key for this Organization API key.
