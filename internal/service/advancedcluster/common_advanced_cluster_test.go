@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-test/deep"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mocksvc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -125,14 +126,9 @@ func TestResourceClusterRefreshFunc(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			testObject := new(MockClusterService)
+			testObject := mocksvc.NewClusterService(t)
 
-			response := ClusterResponse{
-				cluster:  tc.mockCluster,
-				response: tc.mockResponse,
-				error:    tc.mockError,
-			}
-			testObject.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(response)
+			testObject.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError)
 
 			result, stateName, err := advancedcluster.ResourceClusterRefreshFunc(context.Background(), dummyClusterName, dummyProjectID, testObject)()
 			if (err != nil) != tc.expectedError {
@@ -234,14 +230,9 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			testObject := new(MockClusterService)
+			testObject := mocksvc.NewClusterService(t)
 
-			response := ClusterResponse{
-				advancedClusterResponse: tc.mockCluster,
-				response:                tc.mockResponse,
-				error:                   tc.mockError,
-			}
-			testObject.On("List", mock.Anything, mock.Anything, mock.Anything).Return(response)
+			testObject.On("List", mock.Anything, mock.Anything, mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError)
 
 			result, stateName, err := advancedcluster.ResourceClusterListAdvancedRefreshFunc(context.Background(), dummyProjectID, testObject)()
 			if (err != nil) != tc.expectedError {
@@ -253,34 +244,4 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 			assert.Equal(t, tc.expectedResult.state, stateName)
 		})
 	}
-}
-
-type MockClusterService struct {
-	mock.Mock
-}
-
-func (a *MockClusterService) Get(ctx context.Context, groupID, clusterName string) (*matlas.Cluster, *matlas.Response, error) {
-	args := a.Called(ctx, groupID)
-	var response = args.Get(0).(ClusterResponse)
-	return response.cluster, response.response, response.error
-}
-
-func (a *MockClusterService) List(ctx context.Context, groupID string, options *matlas.ListOptions) (*matlas.AdvancedClustersResponse, *matlas.Response, error) {
-	args := a.Called(ctx, groupID)
-	var response = args.Get(0).(ClusterResponse)
-	return response.advancedClusterResponse, response.response, response.error
-}
-
-func (a *MockClusterService) GetAdvancedCluster(ctx context.Context, groupID, clusterName string) (*matlas.AdvancedCluster, *matlas.Response, error) {
-	args := a.Called(ctx, groupID)
-	var response = args.Get(0).(ClusterResponse)
-	return response.advancedCluster, response.response, response.error
-}
-
-type ClusterResponse struct {
-	cluster                 *matlas.Cluster
-	advancedCluster         *matlas.AdvancedCluster
-	advancedClusterResponse *matlas.AdvancedClustersResponse
-	response                *matlas.Response
-	error                   error
 }
