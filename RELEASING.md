@@ -7,17 +7,16 @@
 ## Steps
 
 ### Make sure that the acceptance tests are successful
-Check [workflows/test-suite.yml](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/test-suite.yml) and see if the latest run of the Test Suite action is successful (it runs every day at midnight UTC time). To complement this check, a manual execution of the Acceptance Test workflow must be run using `qa` ensuring all test groups are successful. 
-If tests are failing, you should investigate the failure before proceeding with the next steps.
+While QA acceptance tests are run in the release process automatically, it is advised to check [workflows/test-suite.yml](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/test-suite.yml) and see if the latest run of the Test Suite action is successful (it runs every day at midnight UTC time). This can help detect failures before proceeding with the next steps.
 
 ### Pre-release the provider 
 We pre-release the provider to make for testing purpose. **A Pre-release is not published to the Hashicorp Terraform Registry**.
 
-- Create and push the pre-release tag (`vX.Y.Z-pre`) to master
-```bash
-git tag vX.Y.Z-pre
-git push origin vX.Y.Z-pre
-```
+- Using our [Release GitHub Action](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/release.yml) run a new workflow using `master` and the following inputs:
+  - Version number: vX.Y.Z-pre
+  - Skip QA acceptance tests: Should be left empty. Only used in case failing tests have been encountered in QA and the team as agreed the release can still de done.
+
+**Note**: QA acceptance tests step is not run for pre-releases.
 
 - You will see the release in the [GitHub Release page](https://github.com/mongodb/terraform-provider-mongodbatlas/releases) once the [release action](.github/workflows/release.yml) has completed.
 
@@ -48,7 +47,7 @@ We use a tool called [github changelog generator](https://github.com/github-chan
 - Create a new doc in /website/docs/guides/X.Y.0-upgrade-guide.html. This will contain a summary of the most significant features and breaking changes. Additional information that can be helpful to users can be defined here.
 
 ### Release the provider
-- Follow the same steps in the pre-release but provide the final release tag (example `v1.9.0`). This will trigger the release action that will release the provider to the GitHub Release page. Harshicorp has a process in place that will retrieve the latest release from the GitHub repository and add the binaries to the Hashicorp Terraform Registry.
+- Follow the same steps in the pre-release but provide the final release tag (example `v1.9.0`). Harshicorp has a process in place that will retrieve the latest release from the GitHub repository and add the binaries to the Hashicorp Terraform Registry.
 - **CDKTF Update - Only for major release, i.e. the left most version digit increment (see this [comment](https://github.com/cdktf/cdktf-repository-manager/pull/202#issuecomment-1602562201))**: Once the provider has been released, we need to update the provider version in our CDKTF. Raise a PR against [cdktf/cdktf-repository-manager](https://github.com/cdktf/cdktf-repository-manager).
   - Example PR: [#183](https://github.com/cdktf/cdktf-repository-manager/pull/183)
 

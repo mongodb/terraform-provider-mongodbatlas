@@ -8,7 +8,7 @@ on:
         description: 'Version number (e.g., v1.0.0, v1.0.0-pre, v1.0.0-pre1)'
         required: true
       skip_tests:
-        description: 'Define value to `true` to explicitly skip QA acceptance tests execution'
+        description: 'Skip QA acceptance tests, define value to `true` to explicitly skip'
 
 jobs:
     # QA acceptance tests are skipped for pre releases or when explicit input parameter is used
