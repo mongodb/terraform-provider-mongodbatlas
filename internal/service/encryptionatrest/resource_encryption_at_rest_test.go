@@ -7,8 +7,6 @@ import (
 	"os"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
-
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -22,6 +20,7 @@ import (
 	"github.com/mwielbut/pointy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
 const (
@@ -114,8 +113,6 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 
 		awsKms = admin.AWSKMSConfiguration{
 			Enabled:             pointy.Bool(true),
-			AccessKeyID:         conversion.StringPtr(os.Getenv("AWS_ACCESS_KEY_ID")),
-			SecretAccessKey:     conversion.StringPtr(os.Getenv("AWS_SECRET_ACCESS_KEY")),
 			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:              conversion.StringPtr(os.Getenv("AWS_REGION")),
 			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
@@ -123,10 +120,8 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 
 		awsKmsUpdated = admin.AWSKMSConfiguration{
 			Enabled:             pointy.Bool(true),
-			AccessKeyID:         conversion.StringPtr(os.Getenv("AWS_ACCESS_KEY_ID_UPDATED")),
-			SecretAccessKey:     conversion.StringPtr(os.Getenv("AWS_SECRET_ACCESS_KEY_UPDATED")),
-			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID_UPDATED")),
-			Region:              conversion.StringPtr(os.Getenv("AWS_REGION_UPDATED")),
+			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
+			Region:              conversion.StringPtr(os.Getenv("AWS_REGION")),
 			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
 		}
 	)
@@ -144,6 +139,9 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKms.GetRegion()),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.role_id", awsKms.GetRoleId()),
+
+					resource.TestCheckNoResourceAttr(resourceName, "azure_key_vault_config.#"),
+					resource.TestCheckNoResourceAttr(resourceName, "google_cloud_kms_config.#"),
 				),
 			},
 			{
@@ -154,14 +152,16 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKmsUpdated.GetRegion()),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.role_id", awsKmsUpdated.GetRoleId()),
+
+					resource.TestCheckNoResourceAttr(resourceName, "azure_key_vault_config.#"),
+					resource.TestCheckNoResourceAttr(resourceName, "google_cloud_kms_config.#"),
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasEncryptionAtRestImportStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"google_cloud_kms_config", "azure_key_vault_config"},
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasEncryptionAtRestImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -231,7 +231,7 @@ func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				// "azure_key_vault_config.0.secret" is a sensitive value not returned by the API
-				ImportStateVerifyIgnore: []string{"google_cloud_kms_config", "aws_kms_config", "azure_key_vault_config.0.secret"},
+				ImportStateVerifyIgnore: []string{"azure_key_vault_config.0.secret"},
 			},
 		},
 	})
@@ -283,7 +283,7 @@ func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				// "google_cloud_kms_config.0.service_account_key" is a sensitive value not returned by the API
-				ImportStateVerifyIgnore: []string{"aws_kms_config", "azure_key_vault_config", "google_cloud_kms_config.0.service_account_key"},
+				ImportStateVerifyIgnore: []string{"google_cloud_kms_config.0.service_account_key"},
 			},
 		},
 	})
@@ -324,11 +324,10 @@ func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasEncryptionAtRestImportStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"google_cloud_kms_config", "azure_key_vault_config"},
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasEncryptionAtRestImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

@@ -4,8 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
-
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
@@ -13,6 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 	"github.com/mwielbut/pointy"
+	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
 func TestAccMigrationAdvRS_EncryptionAtRest_basicAWS(t *testing.T) {
