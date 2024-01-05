@@ -8,13 +8,11 @@ description: |-
 
 # Resource: Cloud Provider Access Configuration Paths
 
-The Terraform MongoDB Atlas Provider offers two either-or/mutually exclusive paths to perform an authorization for a cloud provider role -
+The Terraform MongoDB Atlas Provider offers the following path to perform an authorization for a cloud provider role -
 
 * A Two Resource path: consisting of `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization`. The first resource, `mongodbatlas_cloud_provider_access_setup`, only generates
 the initial configuration (create, delete operations). The second resource, `mongodbatlas_cloud_provider_access_authorization`, helps to perform the authorization using the role_id of the first resource. This path is helpful in a multi-provider Terraform file, and allows for a single and decoupled apply. See example of this Two Resource path option with AWS Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-cloud-provider-access/aws) and AZURE Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-cloud-provider-access/azure). 
 
-* A Single Resource path: using the `mongodbatlas_cloud_provider_access` that at provision time sets up all the required configuration for a given provider, then with a subsequent update it can perform the authorize of the role. Note this path requires two `terraform apply` commands, once for setup and once for auth. This resource supports only `AWS`.
-**WARNING:** The resource `mongodbatlas_cloud_provider_access` is deprecated and will be removed in version v1.14.0, use the Two Resource path instead.
 
 -> **IMPORTANT** If you want to move from the single resource path to the two resources path see the [migration guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/0.9.1-upgrade-guide#migration-to-cloud-provider-access-setup)
 
@@ -154,68 +152,7 @@ Conditional
 * `feature_usages`   - Atlas features this AWS IAM role is linked to.
 
 
-## mongodbatlas_cloud_provider_access
 
-**WARNING:** The resource `mongodbatlas_cloud_provider_access` is deprecated and will be removed in version v1.14.0, use the Two Resource path instead.
+## Import mongodbatlas_cloud_provider_access_authorization
 
-`mongodbatlas_cloud_provider_access` Allows you to register and authorize AWS IAM roles in Atlas. This is the resource to use for the single resource path described above.
-
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
--> **NOTE:** The update of the argument iam_assumed_role_arn is one step in a procedure to create unified AWS access for Atlas services. For the complete procedure, see [Set Up Unified AWS Access](https://docs.atlas.mongodb.com/security/set-up-unified-aws-access/#set-up-unified-aws-access).
-
-## Example Usage
-
-```terraform
-
-resource "mongodbatlas_cloud_provider_access" "test_role" {
-   project_id = "64259ee860c43338194b0f8e"
-   project_id = "64259ee860c43338194b0f8e"
-   provider_name = "AWS"
-}
-
-```
-
-## Argument Reference
-
-* `project_id` - (Required) The unique ID for the project
-* `provider_name` - (Required) The cloud provider for which to create a new role. Currently only AWS is supported.
-* `iam_assumed_role_arn` - (Optional) - ARN of the IAM Role that Atlas assumes when accessing resources in your AWS account. This value is required after the creation (register of the role) as part of [Set Up Unified AWS Access](https://docs.atlas.mongodb.com/security/set-up-unified-aws-access/#set-up-unified-aws-access).
-
-
-## Attributes Reference
-
-* `id` - Unique identifier used by terraform for internal management.
-* `atlas_assumed_role_external_id` - Unique external ID Atlas uses when assuming the IAM role in your AWS account.
-* `atlas_aws_account_arn`          - ARN associated with the Atlas AWS account used to assume IAM roles in your AWS account.
-* `authorized_date`                - Date on which this role was authorized.
-* `created_date`                   - Date on which this role was created.
-* `feature_usages`                 - Atlas features this AWS IAM role is linked to.
-* `provider_name`                  - Name of the cloud provider. Currently limited to AWS.
-* `role_id`                        - Unique ID of this role.
-
-## Authorize role
-
-Once the resource is created add the field `iam_assumed_role_arn` see [Set Up Unified AWS Access](https://docs.atlas.mongodb.com/security/set-up-unified-aws-access/#set-up-unified-aws-access) , and execute a new `terraform apply` this will create a PATCH request.
-
-```terraform
-
-resource "mongodbatlas_cloud_provider_access" "test_role" {
-   project_id = "<PROJECT-ID>"
-   provider_name = "AWS"
-   iam_assumed_role_arn = "arn:aws:iam::772401394250:role/test-user-role"
-}
-
-```
-
-## Import
-
-The Cloud Provider Access resource can be imported using project ID and the provider name and mongodbatlas role id, in the format `project_id`-`provider_name`-`role_id`, e.g.
-
-```
-$ terraform import mongodbatlas_cloud_provider_access.my_role 1112222b3bf99403840e8934-AWS-5fc17d476f7a33224f5b224e
-```
-
-
-
-See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/cloud-provider-access-create-one-role/) Documentation for more information.
+The Cloud Provider Access Authorization resource cannot be imported.

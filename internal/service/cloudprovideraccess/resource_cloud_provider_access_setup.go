@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -19,6 +20,14 @@ import (
 	-> Creates the the information from the mongodbatlas side
 	-> The delete deletes and deauthorize the role
 */
+
+const (
+	errorCloudProviderAccessCreate   = "error creating cloud provider access %s"
+	errorCloudProviderAccessUpdate   = "error updating cloud provider access %s"
+	errorCloudProviderAccessDelete   = "error deleting cloud provider access %s"
+	errorCloudProviderAccessImporter = "error importing cloud provider access %s"
+	ErrorCloudProviderGetRead        = "error reading cloud provider access %s"
+)
 
 func ResourceSetup() *schema.Resource {
 	return &schema.Resource{
@@ -265,4 +274,19 @@ func resourceMongoDBAtlasCloudProviderAccessSetupImportState(ctx context.Context
 	}
 
 	return []*schema.ResourceData{d}, nil
+}
+
+// format  {project_id}-{provider-name}-{role-id}
+func splitCloudProviderAccessID(id string) (projectID, providerName, roleID string, err error) {
+	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-(.*)$`)
+	parts := re.FindStringSubmatch(id)
+
+	if len(parts) != 4 {
+		err = fmt.Errorf(errorCloudProviderAccessImporter, "format please use {project_id}-{provider-name}-{role-id}")
+		return
+	}
+
+	projectID, providerName, roleID = parts[1], parts[2], parts[3]
+
+	return
 }

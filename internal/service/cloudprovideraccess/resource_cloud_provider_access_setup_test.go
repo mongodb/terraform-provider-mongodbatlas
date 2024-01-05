@@ -1,12 +1,17 @@
 package cloudprovideraccess_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudprovideraccess"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -155,4 +160,62 @@ func testAccMongoDBAtlasCloudProviderAccessSetupAzure(orgID, projectName, atlasA
 		role_id =  mongodbatlas_cloud_provider_access_setup.test.role_id
 	 }
 	`, orgID, projectName, atlasAzureAppID, servicePrincipalID, tenantID)
+}
+
+func testAccCheckMongoDBAtlasProviderAccessExists(resourceName string, targetRole *matlas.CloudProviderAccessRole) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
+
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+
+		if rs.Primary.Attributes["project_id"] == "" {
+			return fmt.Errorf("no ID is set")
+		}
+
+		ids := conversion.DecodeStateID(rs.Primary.ID)
+		providerName := ids["provider_name"]
+		id := ids["id"]
+
+		roles, _, err := conn.CloudProviderAccess.ListRoles(context.Background(), ids["project_id"])
+
+		if err != nil {
+			return fmt.Errorf(cloudprovideraccess.ErrorCloudProviderGetRead, err)
+		}
+
+		if providerName == "AWS" {
+			for i := range roles.AWSIAMRoles {
+				if roles.AWSIAMRoles[i].RoleID == id && roles.AWSIAMRoles[i].ProviderName == providerName {
+					*targetRole = roles.AWSIAMRoles[i]
+					return nil
+				}
+			}
+		}
+
+		if providerName == "AZURE" {
+			for i := range roles.AzureServicePrincipals {
+				if *roles.AzureServicePrincipals[i].AzureID == id && roles.AzureServicePrincipals[i].ProviderName == providerName {
+					*targetRole = roles.AzureServicePrincipals[i]
+					return nil
+				}
+			}
+		}
+
+		return fmt.Errorf("error cloud Provider Access (%s) does not exist", ids["project_id"])
+	}
+}
+
+func testAccCheckMongoDBAtlasCloudProviderAccessImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+
+		ids := conversion.DecodeStateID(rs.Primary.ID)
+
+		return fmt.Sprintf("%s-%s-%s", ids["project_id"], ids["provider_name"], ids["id"]), nil
+	}
 }
