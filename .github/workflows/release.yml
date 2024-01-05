@@ -32,8 +32,6 @@ jobs:
         uses: rickstaa/action-create-tag@v1.7.2 # will fail if existing tag is present
         with:
           tag: ${{ inputs.version_number }}
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg_passphrase: ${{ secrets.PASSPHRASE }}
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
