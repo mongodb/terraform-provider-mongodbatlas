@@ -77,13 +77,13 @@ type mRoleAssignmentV2 []admin.RoleAssignment
 func (ra mRoleAssignmentV2) Len() int      { return len(ra) }
 func (ra mRoleAssignmentV2) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
 func (ra mRoleAssignmentV2) Less(i, j int) bool {
-	compareVal := strings.Compare(*ra[i].OrgId, *ra[j].OrgId)
+	compareVal := strings.Compare(ra[i].GetOrgId(), ra[j].GetOrgId())
 
 	if compareVal != 0 {
 		return compareVal < 0
 	}
 
-	compareVal = strings.Compare(*ra[i].GroupId, *ra[j].GroupId)
+	compareVal = strings.Compare(ra[i].GetGroupId(), ra[j].GetGroupId())
 
 	if compareVal != 0 {
 		return compareVal < 0
