@@ -296,7 +296,9 @@ func (r *encryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest,
 	}
 
 	encryptionAtRestStateNew := NewTfEncryptionAtRestRSModel(ctx, projectID, encryptionResp)
-	if !isImport {
+	if isImport {
+		setEmpyArrayForEmptyBlocksReturnedFromImport(encryptionAtRestStateNew)
+	} else {
 		resetDefaultsFromConfigOrState(ctx, &encryptionAtRestState, encryptionAtRestStateNew, nil)
 	}
 
@@ -473,5 +475,25 @@ func HandleAzureKeyVaultConfigDefaults(ctx context.Context, earRSCurrent, earRSN
 		earRSNew.AzureKeyVaultConfig[0].Secret = earRSConfig.AzureKeyVaultConfig[0].Secret
 	} else {
 		earRSNew.AzureKeyVaultConfig[0].Secret = earRSCurrent.AzureKeyVaultConfig[0].Secret
+	}
+}
+
+// setEmpyArrayForEmptyBlocksReturnedFromImport sets the blocks AwsKmsConfig, GoogleCloudKmsConfig, TfAzureKeyVaultConfigModel
+// to an empty array to avoid unnecessary change detection during plan after migration to Plugin Framework.
+// Why:
+// - the API returns the block AwsKmsConfig{enable=false} when the user does not provide the AWS KMS.
+// - the API returns the block GoogleCloudKmsConfig{enable=false} if the user does not provider Google KMS
+// - the API returns the block TfAzureKeyVaultConfigModel{enable=false} if the user does not provider AZURE KMS
+func setEmpyArrayForEmptyBlocksReturnedFromImport(newStateFromImport *TfEncryptionAtRestRSModel) {
+	if len(newStateFromImport.AwsKmsConfig) == 1 && !newStateFromImport.AwsKmsConfig[0].Enabled.ValueBool() {
+		newStateFromImport.AwsKmsConfig = []TfAwsKmsConfigModel{}
+	}
+
+	if len(newStateFromImport.GoogleCloudKmsConfig) == 1 && !newStateFromImport.GoogleCloudKmsConfig[0].Enabled.ValueBool() {
+		newStateFromImport.GoogleCloudKmsConfig = []TfGcpKmsConfigModel{}
+	}
+
+	if len(newStateFromImport.AzureKeyVaultConfig) == 1 && !newStateFromImport.AzureKeyVaultConfig[0].Enabled.ValueBool() {
+		newStateFromImport.AzureKeyVaultConfig = []TfAzureKeyVaultConfigModel{}
 	}
 }
