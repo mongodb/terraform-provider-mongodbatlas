@@ -9,7 +9,9 @@ packages:
   ? github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment
   ? github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest
   ? github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project
+  ? github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster
   : interfaces:
       DeploymentService:
       EarService:
       GroupProjectService:
+      ClusterService:
