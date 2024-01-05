@@ -19,10 +19,10 @@ jobs:
         run: |
           echo "${{ inputs.version_number }}" | grep -P '^v\d+\.\d+\.\d+(-pre[A-Za-z0-9-]*)?$'  
 
-    # QA acceptance tests are skipped for pre releases or when explicit input parameter is used
+    # QA acceptance tests are skipped when explicit input parameter is used
   run-qa-acceptance-tests:
     needs: [ validate-version-input ]
-    if: needs.validate-version-input.result == 'success' && inputs.skip_tests != 'true' && !contains(inputs.version_number, 'pre')
+    if: needs.validate-version-input.result == 'success' && inputs.skip_tests != 'true'
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
