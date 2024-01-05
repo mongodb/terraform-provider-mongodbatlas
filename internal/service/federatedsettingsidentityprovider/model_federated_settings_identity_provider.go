@@ -185,8 +185,8 @@ func FlattenFederatedSettingsCertificates(certificates []admin.X509Certificate) 
 
 		for i := range certificates {
 			certificatesMap[i] = map[string]any{
-				"not_after":  conversion.TimeToString(*certificates[i].NotAfter),
-				"not_before": conversion.TimeToString(*certificates[i].NotBefore),
+				"not_after":  conversion.TimePtrToStringPtr(certificates[i].NotAfter),
+				"not_before": conversion.TimePtrToStringPtr(certificates[i].NotBefore),
 			}
 		}
 	}
