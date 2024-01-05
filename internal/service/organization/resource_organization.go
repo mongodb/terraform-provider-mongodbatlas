@@ -20,9 +20,7 @@ func Resource() *schema.Resource {
 		ReadContext:   resourceMongoDBAtlasOrganizationRead,
 		UpdateContext: resourceMongoDBAtlasOrganizationUpdate,
 		DeleteContext: resourceMongoDBAtlasOrganizationDelete,
-		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasOrganizationImportState,
-		},
+		Importer:      nil, // import is not supported. See CLOUDP-215155
 		Schema: map[string]*schema.Schema{
 			"org_owner_id": {
 				Type:     schema.TypeString,
@@ -166,30 +164,6 @@ func resourceMongoDBAtlasOrganizationDelete(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf("error Organization: %s", err))
 	}
 	return nil
-}
-
-func resourceMongoDBAtlasOrganizationImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
-	orgID := d.Id()
-
-	r, _, err := conn.Organizations.Get(ctx, orgID)
-	if err != nil {
-		return nil, fmt.Errorf("couldn't import organization %s , error: %s", orgID, err)
-	}
-
-	if err := d.Set("name", r.Name); err != nil {
-		return nil, fmt.Errorf("error setting `name`: %s", err)
-	}
-
-	if err := d.Set("org_id", r.ID); err != nil {
-		return nil, fmt.Errorf("error setting `org_id`: %s", err)
-	}
-
-	d.SetId(conversion.EncodeStateID(map[string]string{
-		"org_id": orgID,
-	}))
-
-	return []*schema.ResourceData{d}, nil
 }
 
 func newCreateOrganizationRequest(d *schema.ResourceData) *matlas.CreateOrganizationRequest {
