@@ -1,4 +1,4 @@
-name: 'Acceptance Tests'
+name: 'Acceptance Tests Execution'
 run-name: 'Acceptance Tests Execution ${{ inputs.test_group }}'
 
 on:
