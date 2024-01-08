@@ -8,15 +8,17 @@ import (
 	"os"
 	"testing"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mwielbut/pointy"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mwielbut/pointy"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccClusterRSCluster_basicAWS_simple(t *testing.T) {
@@ -570,6 +572,18 @@ func TestAccClusterRSCluster_MultiRegion(t *testing.T) {
 					priority        = 7
 					read_only_nodes = 0
 				}`
+	updatedRegionsConfig2 := `regions_config {
+					region_name     = "US_WEST_2"
+					electable_nodes = 3
+					priority        = 6
+					read_only_nodes = 0
+				}
+				regions_config {
+					region_name     = "US_EAST_1"
+					electable_nodes = 3
+					priority        = 7
+					read_only_nodes = 0
+				}`
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -607,6 +621,31 @@ func TestAccClusterRSCluster_MultiRegion(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.regions_config.#", "3"),
 				),
+			},
+			{
+				Config: testAccMongoDBAtlasClusterConfigMultiRegion(orgID, projectName, name, "false", updatedRegionsConfig2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
+					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
+					resource.TestCheckResourceAttr(resourceName, "cluster_type", "REPLICASET"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.regions_config.#", "2"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasClusterConfigMultiRegion(orgID, projectName, name, "false", updatedRegionsConfig2),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						acc.DebugPlan(),
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
 			},
 		},
 	})
