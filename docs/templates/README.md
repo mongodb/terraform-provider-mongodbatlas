@@ -10,8 +10,8 @@ The templates in [TFplugindocs](https://github.com/hashicorp/terraform-plugin-do
  
  - Retrieves the templates in `docs/templates/resources/{resource_name}.html.markdown.tmpl` and `docs/templates/data-sources/{resource_name}.html.markdown.tmpl` for a specific `resource-name`
  - Retrieves the values in `MarkdownDescription` for all the fields in the `resource-name` schema
- - Retrieves the resource examples in `examplas/{resource_name}/main.tf`
- - Generates the documenentation
+ - Retrieves the resource examples in `examples/{resource_name}/main.tf`
+ - Generates the documentation.
 
  
  ### How to generate a new template
