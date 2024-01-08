@@ -1,8 +1,10 @@
 name: 'Acceptance Tests Execution'
 run-name: 'Acceptance Tests Execution ${{ inputs.test_group }}'
 
+# Called by acceptance-tests.yml workflow to run acceptance tests. Input and secret variables are defined by the caller depending if `dev` or `qa` cloud env is used.
+
 on:
-  workflow_call: # called by acceptance-tests.yml workflow making use of correct env variables depending if `dev` or `qa` is used.
+  workflow_call:
     inputs:
       terraform_version:
         description: 'Terraform version to use, e.g. 1.6.x, empty for latest'     
