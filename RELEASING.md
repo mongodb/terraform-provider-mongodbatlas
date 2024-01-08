@@ -14,11 +14,11 @@ We pre-release the provider to make for testing purpose. **A Pre-release is not 
 
 - Using our [Release GitHub Action](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/release.yml) run a new workflow using `master` and the following inputs:
   - Version number: vX.Y.Z-pre
-  - Skip QA acceptance tests: Should be left empty. Only used in case failing tests have been encountered in QA and the team agrees the release can still de done, or execution of QA acceptance tests has already been executed manually with the most recent changes.
-
-**Note**: QA acceptance tests step is not run for pre-releases.
+  - Skip QA acceptance tests: Should be left empty. Only used in case failing tests have been encountered in QA and the team agrees the release can still de done, or successful run of QA acceptance tests has already been done with the most recent changes.
 
 - You will see the release in the [GitHub Release page](https://github.com/mongodb/terraform-provider-mongodbatlas/releases) once the [release action](.github/workflows/release.yml) has completed.
+
+**Note**: If a failure is encountered during the go releaser step you must manually delete the created tag and then retry running the action.
 
 ### Create PR updating Changelog and Upgrade Guide
 
