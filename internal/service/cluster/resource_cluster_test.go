@@ -574,6 +574,7 @@ func TestAccClusterRSCluster_MultiRegion(t *testing.T) {
 				}`
 	updatedRegionsConfig2 := `regions_config {
 					region_name     = "US_WEST_2"
+					electable_nodes = 2
 					priority        = 6
 					read_only_nodes = 0
 				}
