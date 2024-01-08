@@ -794,53 +794,15 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	// If at least one of the provider settings argument has changed, expand all provider settings
-	// if d.HasChange("provider_disk_iops") ||
-	// 	d.HasChange("backing_provider_name") ||
-	// 	d.HasChange("provider_disk_type_name") ||
-	// 	d.HasChange("provider_instance_size_name") ||
-	// 	d.HasChange("provider_name") ||
-	// 	d.HasChange("provider_region_name") ||
-	// 	d.HasChange("provider_volume_type") ||
-	// 	d.HasChange("provider_auto_scaling_compute_min_instance_size") ||
-	// 	d.HasChange("provider_auto_scaling_compute_max_instance_size") {
-	// 	var err error
-	// 	cluster.ProviderSettings, err = expandProviderSetting(d)
-	// 	if err != nil {
-	// 		return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
-	// 	}
-	// }
-
-	changed := false
-
-	if d.HasChange("provider_disk_iops") {
-		changed = true
-	}
-	if d.HasChange("backing_provider_name") {
-		changed = true
-	}
-	if d.HasChange("provider_disk_type_name") {
-		changed = true
-	}
-	if d.HasChange("provider_instance_size_name") {
-		changed = true
-	}
-	if d.HasChange("provider_name") {
-		changed = true
-	}
-	if d.HasChange("provider_region_name") {
-		changed = true
-	}
-	if d.HasChange("provider_volume_type") {
-		changed = true
-	}
-	if d.HasChange("provider_auto_scaling_compute_min_instance_size") {
-		changed = true
-	}
-	if d.HasChange("provider_auto_scaling_compute_max_instance_size") {
-		changed = true
-	}
-
-	if changed {
+	if d.HasChange("provider_disk_iops") ||
+		d.HasChange("backing_provider_name") ||
+		d.HasChange("provider_disk_type_name") ||
+		d.HasChange("provider_instance_size_name") ||
+		d.HasChange("provider_name") ||
+		d.HasChange("provider_region_name") ||
+		d.HasChange("provider_volume_type") ||
+		d.HasChange("provider_auto_scaling_compute_min_instance_size") ||
+		d.HasChange("provider_auto_scaling_compute_max_instance_size") {
 		var err error
 		cluster.ProviderSettings, err = expandProviderSetting(d)
 		if err != nil {
@@ -860,11 +822,6 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	if err != nil {
 		if cluster.ProviderSettings != nil {
 			cluster.ProviderSettings.RegionName = ""
-			// when converting a single region to a multi-region cluster provider_region_name could be in the state from prior create response so we unset
-			// err = d.Set("provider_region_name", "")
-			// if err != nil {
-			// 	return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
-			// }
 		}
 	}
 
