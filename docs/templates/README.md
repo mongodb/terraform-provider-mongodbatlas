@@ -1,4 +1,4 @@
-# Template 
+# Templates 
 This folder contains the template files used by [TFplugindocs](https://github.com/hashicorp/terraform-plugin-docs) to autogenerate our provider documentation.
 
 
