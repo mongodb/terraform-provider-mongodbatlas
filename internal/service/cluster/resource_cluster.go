@@ -986,9 +986,7 @@ func isMultiRegionCluster(repSpecs []matlas.ReplicationSpec) bool {
 	}
 
 	for i := range repSpecs {
-		repSpec := repSpecs[i]
-
-		if len(repSpec.RegionsConfig) > 1 {
+		if len(repSpecs[i].RegionsConfig) > 1 {
 			return true
 		}
 	}
