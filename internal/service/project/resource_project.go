@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -56,6 +57,7 @@ type projectRS struct {
 type TfProjectRSModel struct {
 	Limits                                      types.Set    `tfsdk:"limits"`
 	Teams                                       types.Set    `tfsdk:"teams"`
+	Users                                       types.List   `tfsdk:"users"`
 	RegionUsageRestrictions                     types.String `tfsdk:"region_usage_restrictions"`
 	Name                                        types.String `tfsdk:"name"`
 	OrgID                                       types.String `tfsdk:"org_id"`
@@ -65,7 +67,7 @@ type TfProjectRSModel struct {
 	ClusterCount                                types.Int64  `tfsdk:"cluster_count"`
 	IsDataExplorerEnabled                       types.Bool   `tfsdk:"is_data_explorer_enabled"`
 	IsPerformanceAdvisorEnabled                 types.Bool   `tfsdk:"is_performance_advisor_enabled"`
-	IsRealtimePerformancePanelEnabled           types.Bool   `tfsdk:"is_realtime_performance_panel_enabled"`
+	IsRealtimePerformancePanelEnabled           types.Bool   `tfsdk:"isUsers_realtime_performance_panel_enabled"`
 	IsSchemaAdvisorEnabled                      types.Bool   `tfsdk:"is_schema_advisor_enabled"`
 	IsExtendedStorageSizesEnabled               types.Bool   `tfsdk:"is_extended_storage_sizes_enabled"`
 	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool   `tfsdk:"is_collect_database_specifics_statistics_enabled"`
@@ -85,6 +87,37 @@ type TfLimitModel struct {
 	MaximumLimit types.Int64  `tfsdk:"maximum_limit"`
 }
 
+type TfUserInvitationModel struct {
+	Username types.String `tfsdk:"username"`
+	// TODO
+	// Create, read, update: filter these out to whatever is in config based on if present in
+	// GroupRoleAssignments in API response
+	// Import: every GroupRoleAssignments which has groupID == this projectID
+	ProjectRoles types.Set `tfsdk:"project_roles"`
+
+	ID                types.String `tfsdk:"id"`
+	CreatedAt         types.String `tfsdk:"created_at"`
+	ExpiresAt         types.String `tfsdk:"expires_at"`
+	InviterUsername   types.String `tfsdk:"inviter_username"`
+	OrgName           types.String `tfsdk:"org_name"`
+	OrgID             types.String `tfsdk:"org_id"`
+	TeamIds           types.Set    `tfsdk:"team_ids"`
+	ProjectOrOrgRoles types.Set    `tfsdk:"project_or_org_roles"`
+}
+
+var TfUserInvitationObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"username":      types.StringType,
+	"project_roles": types.SetType{ElemType: types.StringType},
+
+	"id":                   types.StringType,
+	"created_at":           types.StringType,
+	"expires_at":           types.StringType,
+	"inviter_username":     types.StringType,
+	"org_name":             types.StringType,
+	"org_id":               types.StringType,
+	"team_ids":             types.SetType{ElemType: types.StringType},
+	"project_or_org_roles": types.SetType{ElemType: types.StringType},
+}}
 var TfTeamObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"team_id":    types.StringType,
 	"role_names": types.SetType{ElemType: types.StringType},
@@ -227,6 +260,48 @@ func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 					setplanmodifier.UseStateForUnknown(),
 				},
 			},
+			"users": schema.SetNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"username": schema.StringAttribute{
+							Required: true,
+						},
+						"project_roles": schema.SetAttribute{
+							Required:    true,
+							ElementType: types.StringType,
+						},
+						"user_id": schema.StringAttribute{
+							Computed: true,
+						},
+						"invitation_id": schema.StringAttribute{
+							Computed: true,
+						},
+						// "created_at": schema.StringAttribute{
+						// 	Computed: true,
+						// },
+						// "expires_at": schema.StringAttribute{
+						// 	Computed: true,
+						// },
+						// "inviter_username": schema.StringAttribute{
+						// 	Computed: true,
+						// },
+						// "org_name": schema.StringAttribute{
+						// 	Computed: true,
+						// },
+						// "org_id": schema.StringAttribute{
+						// 	Computed: true,
+						// },
+						"team_ids": schema.SetAttribute{
+							Computed:    true,
+							ElementType: types.StringType,
+						},
+						"project_or_org_roles": schema.SetAttribute{
+							Computed:    true,
+							ElementType: types.StringType,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -235,6 +310,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	var projectPlan TfProjectRSModel
 	var teams []TfTeamModel
 	var limits []TfLimitModel
+	var users []TfUserInvitationModel
 
 	connV2 := r.Client.AtlasV2
 
@@ -301,6 +377,29 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		}
 	}
 
+	// add users
+	if len(projectPlan.Users.Elements()) > 0 {
+		_ = projectPlan.Users.ElementsAs(ctx, &users, false)
+
+		for i := range users {
+			userInvite := &admin.GroupInvitationRequest{
+				Username: users[i].Username.ValueStringPointer(),
+				Roles:    conversion.TypesSetToString(ctx, users[i].ProjectRoles),
+			}
+
+			_, _, err := connV2.ProjectsApi.AddUserToProject(ctx, project.GetId(), userInvite).Execute()
+			if err != nil {
+				errd := deleteProject(ctx, r.Client.AtlasV2, project.GetId())
+				if errd != nil {
+					resp.Diagnostics.AddError("error during project deletion when adding users", fmt.Sprintf(errorProjectDelete, project.GetId(), err.Error()))
+					return
+				}
+				resp.Diagnostics.AddError("error adding users to the project", err.Error())
+				return
+			}
+		}
+	}
+
 	// add settings
 	projectSettings, _, err := connV2.ProjectsApi.GetProjectSettings(ctx, *project.Id).Execute()
 	if err != nil {
@@ -354,7 +453,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	// get project props
-	atlasTeams, atlasLimits, atlasProjectSettings, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
+	atlasTeams, atlasLimits, atlasProjectSettings, err := GetProjectPropsFromAtlas(ctx, ServiceFromClient(connV2), projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -400,7 +499,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	// get project props
-	atlasTeams, atlasLimits, atlasProjectSettings, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
+	atlasTeams, atlasLimits, atlasProjectSettings, err := GetProjectPropsFromAtlas(ctx, ServiceFromClient(connV2), projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -410,11 +509,22 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	projectStateNew := NewTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
 	updatePlanFromConfig(projectStateNew, &projectState)
 
+	users, err := getProjectUsersFromAtlas(ctx, ServiceFromClient(connV2), projectID, projectRes.OrgId)
+	if err != nil {
+		resp.Diagnostics.AddError("error when getting project users from Atlas", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
+		return
+	}
+	projectStateNew.Users = users
+
 	// save read data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &projectStateNew)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+func getProjectUsersFromAtlas(ctx context.Context, groupProjectService GroupProjectService, projectID, orgID string) (types.List, error) {
+	panic("unimplemented")
 }
 
 func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -469,7 +579,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	}
 
 	// get project props
-	atlasTeams, atlasLimits, atlasProjectSettings, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
+	atlasTeams, atlasLimits, atlasProjectSettings, err := GetProjectPropsFromAtlas(ctx, ServiceFromClient(connV2), projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -530,7 +640,7 @@ func FilterUserDefinedLimits(allAtlasLimits []admin.DataFederationLimit, tflimit
 	return filteredLimits
 }
 
-func GetProjectPropsFromAPI(ctx context.Context, client GroupProjectService, projectID string) (*admin.PaginatedTeamRole, []admin.DataFederationLimit, *admin.GroupSettings, error) {
+func GetProjectPropsFromAtlas(ctx context.Context, client GroupProjectService, projectID string) (*admin.PaginatedTeamRole, []admin.DataFederationLimit, *admin.GroupSettings, error) {
 	teams, _, err := client.ListProjectTeams(ctx, projectID)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("error getting project's teams assigned (%s): %v", projectID, err.Error())

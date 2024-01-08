@@ -99,7 +99,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			svc.On("ListProjectLimits", mock.Anything, mock.Anything).Return(tc.limitResponse.Limits, tc.limitResponse.HTTPResponse, tc.limitResponse.Err).Maybe()
 			svc.On("GetProjectSettings", mock.Anything, mock.Anything).Return(tc.groupResponse.GroupSettings, tc.groupResponse.HTTPResponse, tc.groupResponse.Err).Maybe()
 
-			_, _, _, err := project.GetProjectPropsFromAPI(context.Background(), svc, dummyProjectID)
+			_, _, _, err := project.GetProjectPropsFromAtlas(context.Background(), svc, dummyProjectID)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)

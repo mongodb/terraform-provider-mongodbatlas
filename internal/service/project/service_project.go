@@ -65,6 +65,30 @@ func (a *GroupProjectServiceFromClient) ListClusters(ctx context.Context, groupI
 	return a.client.ClustersApi.ListClusters(ctx, groupID).Execute()
 }
 
+// users
+func (a *GroupProjectServiceFromClient) AddUserToProject(ctx context.Context, groupID string, groupInvitationRequest *admin.GroupInvitationRequest) (*admin.OrganizationInvitation, *http.Response, error) {
+	return a.client.ProjectsApi.AddUserToProject(ctx, groupID, groupInvitationRequest).Execute()
+}
+func (a *GroupProjectServiceFromClient) UpdateProjectUserRoles(ctx context.Context, groupID, userID string, updateGroupRolesForUser *admin.UpdateGroupRolesForUser) (*admin.UpdateGroupRolesForUser, *http.Response, error) {
+	return a.client.ProjectsApi.UpdateProjectRoles(ctx, groupID, userID, updateGroupRolesForUser).Execute()
+}
+func (a *GroupProjectServiceFromClient) ListProjectUsers(ctx context.Context, groupID string) (*admin.PaginatedAppUser, *http.Response, error) {
+	return a.client.ProjectsApi.ListProjectUsers(ctx, groupID).Execute()
+}
+func (a *GroupProjectServiceFromClient) RemoveProjectUser(ctx context.Context, groupID, userID string) (*http.Response, error) {
+	return a.client.ProjectsApi.RemoveProjectUser(ctx, groupID, userID).Execute()
+}
+
+// org invitations
+func (a *GroupProjectServiceFromClient) GetOrganizationInvitation(ctx context.Context, orgID string, invitationID string) (*admin.OrganizationInvitation, *http.Response, error) {
+	return a.client.OrganizationsApi.GetOrganizationInvitation(ctx, orgID, invitationID).Execute()
+}
+
+// TODO confirm if this is required
+func (a *GroupProjectServiceFromClient) UpdateOrganizationInvitation(ctx context.Context, orgId string, organizationInvitationRequest *admin.OrganizationInvitationRequest) (*admin.OrganizationInvitation, *http.Response, error) {
+	return a.client.OrganizationsApi.UpdateOrganizationInvitation(ctx, orgId, organizationInvitationRequest).Execute()
+}
+
 func ServiceFromClient(client *admin.APIClient) GroupProjectService {
 	return &GroupProjectServiceFromClient{
 		client: client,
