@@ -9,6 +9,8 @@ description: |-
 # Resource: mongodbatlas_project_ip_access_list_key
 
 `mongodbatlas_access_list_api_key` provides an IP Access List entry resource. The access list grants access from IPs, CIDRs or AWS Security Groups (if VPC Peering is enabled) to clusters within the Project.
+    
+-> **Note:** mongodbatlas_project_ip_access_list_key resource can be used to manage all Programmatic API Keys, regardless if they were created at the Organizational level or Project level. 
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
