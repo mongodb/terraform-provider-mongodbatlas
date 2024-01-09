@@ -1,0 +1,26 @@
+---
+layout: "mongodbatlas"
+page_title: "MongoDB Atlas: {{.Name}}"
+subcategory: "docs_{{ .Name }}_{{.Type | lower}}"
+description: |-
+{{ .Description | trimspace | prefixlines "  " }}
+---
+
+# {{.Type}}: {{.Name}}
+
+{{ .Description | trimspace }}
+
+## Example Usages
+
+{{ tffile (printf "examples/{{.Name}}/main.tf")}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+# Import 
+Search node resource can be imported using the project ID and cluster name, in the format `PROJECT_ID-CLUSTER_NAME`, e.g.
+
+```
+$ terraform import mongodbatlas_search_deployment.test 650972848269185c55f40ca1-Cluster0
+```
+
+For more information see: [MongoDB Atlas API - Search Node](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Atlas-Search/operation/createAtlasSearchDeployment) Documentation.
