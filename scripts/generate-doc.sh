@@ -61,7 +61,7 @@ fi
 if [ ! -f "/templates/data-sources/${resource_name}s.html.markdown.tmpl" ]; then
     echo "Warning: we coudn't find the template for the ${resource_name}s data source"
     echo "Please, make sure to include the data source template under templates/data-sources/${resource_name}.html.markdown.tmpl"
-    echo "Skipping this check: We assume that the resource does not have a plural data source.\n"
+    printf "Skipping this check: We assume that the resource does not have a plural data source.\n"
 fi
 
 # tfplugindocs uses this folder to generate the documentations
@@ -90,7 +90,7 @@ fi
 if [ ! -f "/docs/data-sources/${resource_name}s.html.markdown" ]; then
     echo "Warning: We cannot find the documentation file for the data source ${resource_name}s.html.markdown."
     echo "Please, make sure to include the data source template under templates/data-sources/${resource_name}s.html.markdown.tmpl"
-    echo "Skipping this step: We assume that the resource does not have a plural data source.\n"
+    printf "Skipping this step: We assume that the resource does not have a plural data source.\n"
 else
     echo "Moving the generated file ${resource_name}s.html.markdown to the website folder"
     mv "/docs/data-sources/${resource_name}s.html.markdown" "/website/d/${resource_name}s.html.markdown"
