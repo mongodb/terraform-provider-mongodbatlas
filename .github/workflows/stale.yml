@@ -1,5 +1,7 @@
 ---
 name: 'Stale issues and PRs handler'
+
+# Handles stale github issues and pull requests.
 on:
   workflow_dispatch:
   schedule:
