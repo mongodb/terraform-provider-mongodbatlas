@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	admin "go.mongodb.org/atlas-sdk/v20231115002/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -85,6 +85,12 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 	ids := conversion.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
 	oktaIdpID := ids["okta_idp_id"]
+
+	if len(oktaIdpID) == 20 {
+		// use old version of v2 SDK
+		// connOldV2 := meta.(*config.MongoDBClient).OldAtlasV2
+		// federatedSettingsIdentityProvider, resp, err := connOldV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID).Execute()
+	}
 
 	federatedSettingsIdentityProvider, resp, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID).Execute()
 	if err != nil {

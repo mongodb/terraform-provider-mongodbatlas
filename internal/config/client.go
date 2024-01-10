@@ -12,6 +12,7 @@ import (
 	"github.com/mongodb-forks/digest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 	"github.com/spf13/cast"
+	oldAtlasSDK "go.mongodb.org/atlas-sdk/v20231001002/admin"
 	atlasSDK "go.mongodb.org/atlas-sdk/v20231115002/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
@@ -28,9 +29,10 @@ var (
 
 // MongoDBClient contains the mongodbatlas clients and configurations
 type MongoDBClient struct {
-	Atlas   *matlasClient.Client
-	AtlasV2 *atlasSDK.APIClient
-	Config  *Config
+	Atlas      *matlasClient.Client
+	AtlasV2    *atlasSDK.APIClient
+	OldAtlasV2 *oldAtlasSDK.APIClient
+	Config     *Config
 }
 
 // Config contains the configurations needed to use SDKs
@@ -87,11 +89,16 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+	sdkOldV2Client, err := c.newOldSDKV2Client(client)
+	if err != nil {
+		return nil, err
+	}
 
 	clients := &MongoDBClient{
-		Atlas:   atlasClient,
-		AtlasV2: sdkV2Client,
-		Config:  c,
+		Atlas:      atlasClient,
+		AtlasV2:    sdkV2Client,
+		OldAtlasV2: sdkOldV2Client,
+		Config:     c,
 	}
 
 	return clients, nil
@@ -106,6 +113,22 @@ func (c *Config) newSDKV2Client(client *http.Client) (*atlasSDK.APIClient, error
 
 	// Initialize the MongoDB Versioned Atlas Client.
 	sdkv2, err := atlasSDK.NewClient(opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return sdkv2, nil
+}
+
+func (c *Config) newOldSDKV2Client(client *http.Client) (*oldAtlasSDK.APIClient, error) {
+	opts := []oldAtlasSDK.ClientModifier{
+		oldAtlasSDK.UseHTTPClient(client),
+		oldAtlasSDK.UseUserAgent(userAgent),
+		oldAtlasSDK.UseBaseURL(c.BaseURL),
+		oldAtlasSDK.UseDebug(false)}
+
+	// Initialize the MongoDB Versioned Atlas Client.
+	sdkv2, err := oldAtlasSDK.NewClient(opts...)
 	if err != nil {
 		return nil, err
 	}
