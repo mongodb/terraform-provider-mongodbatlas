@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+: ${1?"Name of resource or data source must be provided."}
+
 # URL to download Atlas Admin API Spec
 atlas_admin_api_spec="https://raw.githubusercontent.com/mongodb/atlas-sdk-go/main/openapi/atlas-api-transformed.yaml"
 
