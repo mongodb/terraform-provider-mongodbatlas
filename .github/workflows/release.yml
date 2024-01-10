@@ -1,6 +1,7 @@
 name: 'New Release'
 run-name: 'Release ${{ inputs.version_number }}'
 
+# Used for creating a new release. This workflow will run qa acceptance tests, create a new tag, and generate the release with GoReleaser.
 on:
   workflow_dispatch:
     inputs:

@@ -2,7 +2,6 @@ name: 'Acceptance Tests Execution'
 run-name: 'Acceptance Tests Execution ${{ inputs.test_group }}'
 
 # Called by acceptance-tests.yml workflow to run acceptance tests. Input and secret variables are defined by the caller depending if `dev` or `qa` cloud env is used.
-
 on:
   workflow_call:
     inputs:

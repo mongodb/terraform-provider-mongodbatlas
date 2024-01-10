@@ -1,4 +1,6 @@
 name: Examples Checks
+
+# Runs terraform linting and validation commands when examples are modified. Triggered in pull requests and merged commits to master.
 on:
   push:
     branches:

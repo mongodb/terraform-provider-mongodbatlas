@@ -1,5 +1,6 @@
 name: 'Test Suite'
 
+# Runs acceptance and migrations tests with a set of terraform versions and provider versions (used for migration tests). This worflow is scheduled daily, but can also be run manually.
 on:
   workflow_dispatch:
     inputs:

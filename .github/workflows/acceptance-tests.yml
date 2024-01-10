@@ -1,6 +1,7 @@
 name: 'Acceptance Tests'
 run-name: 'Acceptance Tests ${{ inputs.atlas_cloud_env }} ${{ inputs.test_group }}'
 
+# Used for running acceptance tests, either triggered manually or called by other workflows. 
 on:
   workflow_dispatch:
     inputs:

@@ -1,4 +1,6 @@
 name: Update Atlas Go SDK
+
+# Checks if a new Atlas Go SDK version is available and creates a pull request adjusting version in codebase. Runs once per week and can be triggered manually.
 on:
  schedule:
    - cron: "30 8 * * TUE" # Every Tuesday at 8:30 AM 
