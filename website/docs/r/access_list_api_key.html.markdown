@@ -6,7 +6,7 @@ description: |-
     Creates the access list entries for the specified Atlas Organization API Key. 
 ---
 
-# Resource: mongodbatlas_project_ip_access_list_key
+# Resource: mongodbatlas_access_list_api_key
 
 `mongodbatlas_access_list_api_key` provides an IP Access List entry resource. The access list grants access from IPs, CIDRs or AWS Security Groups (if VPC Peering is enabled) to clusters within the Project.
 
