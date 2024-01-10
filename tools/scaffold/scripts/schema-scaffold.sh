@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+set -euo pipefail
 
 # URL to download Atlas Admin API Spec
 atlas_admin_api_spec="https://raw.githubusercontent.com/mongodb/atlas-sdk-go/main/openapi/atlas-api-transformed.yaml"
@@ -11,7 +11,7 @@ resource_name=$1
 resource_name_lower_case="$(echo "$resource_name" | awk '{print tolower($0)}')"
 resource_name_snake_case="$(echo "$resource_name" | perl -pe 's/([a-z0-9])([A-Z])/$1_\L$2/g')"
 
-cd "./internal/service/$resource_name_lower_case" || exit
+pushd "./internal/service/$resource_name_lower_case" || exit
 
 # Running HashiCorp code generation tools
 
@@ -24,14 +24,11 @@ echo "Generating resource and data source schemas and models"
 tfplugingen-framework generate data-sources --input provider-code-spec.json --output ./ --package "$resource_name_lower_case"
 tfplugingen-framework generate resources --input provider-code-spec.json --output ./ --package "$resource_name_lower_case"
 
-# Delete files that are no longer needed
+
 rm ../../../api-spec.yml
 rm provider-code-spec.json
 
 
-# Renaming generated files
-
-# Function to rename file
 rename_file() {
     local old_name=$1
     local new_name=$2
@@ -50,7 +47,6 @@ rename_file() {
     fi
 }
 
-# Define old and new filenames and call rename function
 rename_file "${resource_name_snake_case}_data_source_gen.go" "data_source_${resource_name_snake_case}_schema.go"
 rename_file "${resource_name_snake_case}s_data_source_gen.go" "data_source_${resource_name_snake_case}s_schema.go"
 rename_file "${resource_name_snake_case}_resource_gen.go" "resource_${resource_name_snake_case}_schema.go"
