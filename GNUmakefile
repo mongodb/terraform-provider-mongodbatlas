@@ -124,5 +124,5 @@ scaffold:
 
 .PHONY: generate-doc
 generate-doc: ## Generate the resource documentation via tfplugindocs
-	./scripts/generate-doc.sh resource_name=$(name)
+	./scripts/generate-doc.sh ${resource_name}
 

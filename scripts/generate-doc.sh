@@ -17,7 +17,7 @@
 #
 # Shell script to generate the Terraform documentation for the resource and data sources.
 #
-# Usage: ./generate-doc.sh resource_name=${resource_name}
+# Usage: ./generate-doc.sh" ${resource_name}
 #   resource_name is the terraform resource name. Example: search_deployment
 #   echo "Examples:"
 #   echo "  search_deployment"
@@ -36,25 +36,10 @@ TF_VERSION="${TF_VERSION:-"1.6.6"}" # TF version to use when running tfplugindoc
 TEMPLATE_FOLDER_PATH="${TEMPLATE_FOLDER_PATH:-"templates"}" # PATH to the templates folder. Default: templates
 
 
-while getopts ":resource_name:" opt; do
-  case $opt in
-    resource_name) resource_name="$OPTARG"
-    ;;
-    \?) echo "Invalid option -$OPTARG" >&2
-        echo "Usage: ./generate-doc.sh resource_name=${resource_name}"
-        echo "resource_name is the terraform resource and data source name."
-        echo "Examples:"
-        echo "  search_deployment"
-        echo "  project"
-        echo "  online_archive"
-        echo "  encryption_at_rest"
-        exit 1
-        ;;
-  esac
-done
-
-if [ -z "${resource_name}" ]; then
-    echo "Usage: ./generate-doc.sh --resource_name ${resource_name}"
+# if [ -z "${resource_name}" ]; then
+if [ $# -eq 0 ]; then
+    echo "Error: Input param not found"
+    echo "Usage: ./generate-doc.sh resource_name"
     echo "resource_name is the terraform resource and data source name."
     echo "Examples:"
     echo "  search_deployment"
@@ -63,6 +48,8 @@ if [ -z "${resource_name}" ]; then
     echo "  encryption_at_rest"
     exit 1
 fi
+
+resource_name="$1"
 
 if [ ! -f "${TEMPLATE_FOLDER_PATH}/resources/${resource_name}.html.markdown.tmpl" ]; then
     echo "Error: we coudn't find the template for the ${resource_name} resource"
