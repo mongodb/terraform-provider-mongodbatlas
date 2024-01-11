@@ -41,12 +41,6 @@ while getopts ":resource_name:" opt; do
     resource_name) resource_name="$OPTARG"
     ;;
     \?) echo "Invalid option -$OPTARG" >&2
-    exit 1
-    ;;
-  esac
-
-  case $OPTARG in
-    -*) echo "Option $opt needs a valid argument"
         echo "Usage: ./generate-doc.sh resource_name=${resource_name}"
         echo "resource_name is the terraform resource and data source name."
         echo "Examples:"
@@ -54,8 +48,8 @@ while getopts ":resource_name:" opt; do
         echo "  project"
         echo "  online_archive"
         echo "  encryption_at_rest"
-    exit 1
-    ;;
+        exit 1
+        ;;
   esac
 done
 
@@ -98,7 +92,7 @@ if [ ! -f "docs/resources/${resource_name}.html.markdown" ]; then
     echo "Please, make sure to include the resource template under templates/resources/${resource_name}.html.markdown.tmpl"
     exit 1
 else
-    printf "\nMoving the generated file ${resource_name}.html.markdown to the website folder"
+    printf "\nMoving the generated file %s.html.markdown to the website folder" "${resource_name}"
     mv "docs/resources/${resource_name}.html.markdown" "website/docs/r/${resource_name}.html.markdown"
 fi
 
@@ -107,7 +101,7 @@ if [ ! -f "docs/data-sources/${resource_name}.html.markdown" ]; then
     echo "Please, make sure to include the data source template under templates/data-sources/${resource_name}.html.markdown.tmpl"
     exit 1
 else
-    printf "\nMoving the generated file ${resource_name}.html.markdown to the website folder"
+    printf "\nMoving the generated file %s.html.markdown to the website folder" "${resource_name}"
     mv "docs/data-sources/${resource_name}.html.markdown" "website/docs/d/${resource_name}.html.markdown"
 fi
 
@@ -116,11 +110,11 @@ if [ ! -f "docs/data-sources/${resource_name}s.html.markdown" ]; then
     echo "Please, make sure to include the data source template under templates/data-sources/${resource_name}s.html.markdown.tmpl"
     printf "Skipping this step: We assume that the resource does not have a plural data source.\n\n"
 else
-    printf "\nMoving the generated file ${resource_name}s.html.markdown to the website folder"
+    printf "\nMoving the generated file %s.html.markdown to the website folder" "${resource_name}s"
     mv "docs/data-sources/${resource_name}s.html.markdown" "/website/docs/d/${resource_name}s.html.markdown"
 fi
 
 # Delete the docs/ folder
 rm -R docs/
 
-printf "\nThe documentation for ${resource_name} has been created.\n"
+printf "\nThe documentation for %s has been created.\n" "${resource_name}"
