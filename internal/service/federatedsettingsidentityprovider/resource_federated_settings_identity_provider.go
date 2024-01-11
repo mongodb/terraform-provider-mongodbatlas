@@ -70,6 +70,10 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -137,6 +141,10 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 		return diag.FromErr(fmt.Errorf("error setting sso url (%s): %s", d.Id(), err))
 	}
 
+	if err := d.Set("id", federatedSettingsIdentityProvider.Id); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting Id (%s): %s", d.Id(), err))
+	}
+
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"federation_settings_id": federationSettingsID,
 		"okta_idp_id":            oktaIdpID,
@@ -189,6 +197,10 @@ func oldSDKRead(federationSettingsID, oktaIdpID string, d *schema.ResourceData, 
 
 	if err := d.Set("sso_url", federatedSettingsIdentityProvider.SsoUrl); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting sso url (%s): %s", d.Id(), err))
+	}
+
+	if err := d.Set("id", federatedSettingsIdentityProvider.Id); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting Id (%s): %s", d.Id(), err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{

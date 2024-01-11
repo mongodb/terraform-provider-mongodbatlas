@@ -15,7 +15,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-// TODO: add ID
 func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead,
