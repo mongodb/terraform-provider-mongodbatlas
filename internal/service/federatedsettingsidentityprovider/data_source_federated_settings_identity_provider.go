@@ -15,6 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
+// TODO: add ID
 func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead,
@@ -201,6 +202,10 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -276,6 +281,10 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Con
 
 	if err := d.Set("status", federatedSettingsIdentityProvider.Status); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `status` for federatedSettings IdentityProviders: %s", err))
+	}
+
+	if err := d.Set("id", federatedSettingsIdentityProvider.Id); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `id` for federatedSettings IdentityProviders: %s", err))
 	}
 
 	d.SetId(federatedSettingsIdentityProvider.OktaIdpId)
