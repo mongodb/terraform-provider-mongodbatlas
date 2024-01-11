@@ -31,8 +31,7 @@ var (
 type MongoDBClient struct {
 	Atlas      *matlasClient.Client
 	AtlasV2    *atlasSDK.APIClient
-	// Needed to avoid sudden breaking changes in federated_settings_identity_provider resource. Will be removed in terraform-provider-1.16.0
-	OldAtlasV2 *oldAtlasSDK.APIClient
+	OldAtlasV2 *oldAtlasSDK.APIClient // Needed to avoid sudden breaking changes in federated_settings_identity_provider resource. Will be removed in terraform-provider-1.16.0
 	Config     *Config
 }
 
