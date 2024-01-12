@@ -6,12 +6,14 @@ import (
 	"log"
 	"net/http"
 
+	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mwielbut/pointy"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mwielbut/pointy"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func Resource() *schema.Resource {
@@ -64,8 +66,8 @@ func Resource() *schema.Resource {
 }
 
 func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
-	organization, resp, err := conn.Organizations.Create(ctx, newCreateOrganizationRequest(d))
+	conn := meta.(*config.MongoDBClient).AtlasV2
+	organization, resp, err := conn.OrganizationsApi.CreateOrganization(ctx, newCreateOrganizationRequest(d)).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -75,24 +77,33 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf("error create Organization: %s", err))
 	}
 
-	if err := d.Set("private_key", organization.APIKey.PrivateKey); err != nil {
+	if err := d.Set("private_key", organization.ApiKey.PrivateKey); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
 	}
 
-	if err := d.Set("public_key", organization.APIKey.PublicKey); err != nil {
+	if err := d.Set("public_key", organization.ApiKey.PublicKey); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 	}
 
-	if err := d.Set("org_id", organization.Organization.ID); err != nil {
+	if err := d.Set("org_id", *organization.Organization.Id); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `org_id`: %s", err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"org_id": organization.Organization.ID,
+		"org_id": *organization.Organization.Id,
 	}))
 
 	return resourceMongoDBAtlasOrganizationRead(ctx, d, meta)
 }
+
+// func validateSchema(d *schema.ResourceData) error {
+// 	if !conversion.IsStringPresent(d.Get("org_owner_id").(*string)) {
+
+// 	}
+// 	if
+
+// 	return nil
+// }
 
 func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
@@ -103,12 +114,12 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 	}
 
 	clients, _ := cfg.NewClient(ctx)
-	conn := clients.(*config.MongoDBClient).Atlas
+	conn := clients.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
-	organization, resp, err := conn.Organizations.Get(ctx, orgID)
+	organization, resp, err := conn.OrganizationsApi.GetOrganization(ctx, orgID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			log.Printf("warning Organization deleted will recreate: %s \n", err.Error())
@@ -118,7 +129,7 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(fmt.Errorf("error reading organization information: %s", err))
 	}
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"org_id": organization.ID,
+		"org_id": *organization.Id,
 	}))
 	return nil
 }
@@ -132,14 +143,14 @@ func resourceMongoDBAtlasOrganizationUpdate(ctx context.Context, d *schema.Resou
 	}
 
 	clients, _ := cfg.NewClient(ctx)
-	conn := clients.(*config.MongoDBClient).Atlas
+	conn := clients.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
-	updateRequest := new(matlas.Organization)
+	updateRequest := new(admin.AtlasOrganization)
 	if d.HasChange("name") {
 		updateRequest.Name = d.Get("name").(string)
-		_, _, err := conn.Organizations.Update(ctx, orgID, updateRequest)
+		_, _, err := conn.OrganizationsApi.RenameOrganization(ctx, orgID, updateRequest).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error updating Organization: %s", err))
 		}
@@ -156,28 +167,29 @@ func resourceMongoDBAtlasOrganizationDelete(ctx context.Context, d *schema.Resou
 	}
 
 	clients, _ := cfg.NewClient(ctx)
-	conn := clients.(*config.MongoDBClient).Atlas
+	conn := clients.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
-	if _, err := conn.Organizations.Delete(ctx, orgID); err != nil {
+	if _, _, err := conn.OrganizationsApi.DeleteOrganization(ctx, orgID).Execute(); err != nil {
 		return diag.FromErr(fmt.Errorf("error Organization: %s", err))
 	}
 	return nil
 }
 
-func newCreateOrganizationRequest(d *schema.ResourceData) *matlas.CreateOrganizationRequest {
-	createRequest := &matlas.CreateOrganizationRequest{
+func newCreateOrganizationRequest(d *schema.ResourceData) *admin.CreateOrganizationRequest {
+	createRequest := &admin.CreateOrganizationRequest{
 		Name:       d.Get("name").(string),
-		OrgOwnerID: pointy.String(d.Get("org_owner_id").(string)),
-		APIKey: &matlas.APIKeyInput{
+		OrgOwnerId: pointy.String(d.Get("org_owner_id").(string)),
+
+		ApiKey: &admin.CreateAtlasOrganizationApiKey{
 			Roles: conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List()),
 			Desc:  d.Get("description").(string),
 		},
 	}
 
 	if federationSettingsID, ok := d.Get("federation_settings_id").(string); ok && federationSettingsID != "" {
-		createRequest.FederationSettingsID = &federationSettingsID
+		createRequest.FederationSettingsId = &federationSettingsID
 	}
 
 	return createRequest
