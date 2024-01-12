@@ -51,7 +51,6 @@ func dataSourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resou
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	orgID := d.Get("org_id").(string)
 
-	// organization, _, err := conn.Organizations.Get(ctx, orgID)
 	organization, _, err := conn.OrganizationsApi.GetOrganization(ctx, orgID).Execute()
 
 	if err != nil {

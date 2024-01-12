@@ -96,15 +96,6 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 	return resourceMongoDBAtlasOrganizationRead(ctx, d, meta)
 }
 
-// func validateSchema(d *schema.ResourceData) error {
-// 	if !conversion.IsStringPresent(d.Get("org_owner_id").(*string)) {
-
-// 	}
-// 	if
-
-// 	return nil
-// }
-
 func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	cfg := config.Config{
