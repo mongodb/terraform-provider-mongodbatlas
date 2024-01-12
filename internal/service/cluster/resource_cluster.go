@@ -818,10 +818,12 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		cluster.ReplicationSpecs = replicationSpecs
 	}
 
-	err = validateProviderRegionName(d.Get("cluster_type").(string), d.Get("provider_region_name").(string), replicationSpecs)
-	if err != nil {
-		if cluster.ProviderSettings != nil {
-			cluster.ProviderSettings.RegionName = ""
+	if v, ok := d.GetOk("provider_region_name"); ok {
+		err = validateProviderRegionName(d.Get("cluster_type").(string), v.(string), replicationSpecs)
+		if err != nil {
+			if cluster.ProviderSettings != nil {
+				cluster.ProviderSettings.RegionName = ""
+			}
 		}
 	}
 

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"testing"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -572,18 +573,6 @@ func TestAccClusterRSCluster_MultiRegion(t *testing.T) {
 					priority        = 7
 					read_only_nodes = 0
 				}`
-	updatedRegionsConfig2 := `regions_config {
-					region_name     = "US_WEST_2"
-					electable_nodes = 2
-					priority        = 6
-					read_only_nodes = 0
-				}
-				regions_config {
-					region_name     = "US_EAST_1"
-					electable_nodes = 3
-					priority        = 7
-					read_only_nodes = 0
-				}`
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -622,8 +611,49 @@ func TestAccClusterRSCluster_MultiRegion(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.regions_config.#", "3"),
 				),
 			},
+		},
+	})
+}
+
+func TestAccClusterRSCluster_ProviderRegionName(t *testing.T) {
+	var (
+		cluster      matlas.Cluster
+		resourceName = "mongodbatlas_cluster.multi_region"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		name         = fmt.Sprintf("test-acc-multi-%s", acctest.RandString(10))
+	)
+
+	updatedRegionsConfig := `regions_config {
+					region_name     = "US_WEST_2"
+					electable_nodes = 3
+					priority        = 6
+					read_only_nodes = 0
+				}
+				regions_config {
+					region_name     = "US_WEST_1"
+					electable_nodes = 1
+					priority        = 5
+					read_only_nodes = 0
+				}
+				regions_config {
+					region_name     = "US_EAST_1"
+					electable_nodes = 3
+					priority        = 7
+					read_only_nodes = 0
+				}`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckClusterDestroy,
+		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasClusterConfigMultiRegion(orgID, projectName, name, "false", updatedRegionsConfig2),
+				Config:      testAccMongoDBAtlasClusterConfigMultiRegionWithProviderRegionNameInvalid(orgID, projectName, name, "false", updatedRegionsConfig),
+				ExpectError: regexp.MustCompile("attribute must be set ONLY for single-region clusters"),
+			},
+			{
+				Config: testAccMongoDBAtlasClusterConfigSingleRegionWithProviderRegionName(orgID, projectName, name, "false"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
@@ -635,11 +665,27 @@ func TestAccClusterRSCluster_MultiRegion(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
 					resource.TestCheckResourceAttr(resourceName, "cluster_type", "REPLICASET"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.regions_config.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.regions_config.#", "1"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasClusterConfigMultiRegion(orgID, projectName, name, "false", updatedRegionsConfig2),
+				Config: testAccMongoDBAtlasClusterConfigMultiRegion(orgID, projectName, name, "false", updatedRegionsConfig),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
+					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
+					resource.TestCheckResourceAttr(resourceName, "cluster_type", "REPLICASET"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.regions_config.#", "3"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasClusterConfigMultiRegion(orgID, projectName, name, "false", updatedRegionsConfig),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
@@ -1895,6 +1941,67 @@ func testAccMongoDBAtlasClusterConfigMultiRegion(orgID, projectName, name, backu
 			}
 		}
 	`, orgID, projectName, name, backupEnabled, regionsConfig)
+}
+
+func testAccMongoDBAtlasClusterConfigMultiRegionWithProviderRegionNameInvalid(orgID, projectName, name, backupEnabled, regionsConfig string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "cluster_project" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
+		resource "mongodbatlas_cluster" "multi_region" {
+			project_id              = mongodbatlas_project.cluster_project.id
+			name                    = %[3]q
+			disk_size_gb            = 100
+			num_shards              = 1
+			cloud_backup            = %[4]s
+			cluster_type            = "REPLICASET"
+
+			// Provider Settings "block"
+			provider_name               = "AWS"
+			provider_instance_size_name = "M10"
+			provider_region_name = "US_EAST_1"
+
+			replication_specs {
+				num_shards = 1
+
+				%[5]s
+			}
+		}
+	`, orgID, projectName, name, backupEnabled, regionsConfig)
+}
+
+func testAccMongoDBAtlasClusterConfigSingleRegionWithProviderRegionName(orgID, projectName, name, backupEnabled string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "cluster_project" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
+		resource "mongodbatlas_cluster" "multi_region" {
+			project_id              = mongodbatlas_project.cluster_project.id
+			name                    = %[3]q
+			disk_size_gb            = 100
+			num_shards              = 1
+			cloud_backup            = %[4]s
+			cluster_type            = "REPLICASET"
+
+			// Provider Settings "block"
+			provider_name               = "AWS"
+			provider_instance_size_name = "M10"
+			provider_region_name = "US_EAST_1"
+
+			replication_specs {
+				num_shards = 1
+
+				regions_config {
+					region_name     = "US_EAST_1"
+					electable_nodes = 3
+					priority        = 7
+					read_only_nodes = 0
+				}
+			}
+		}
+	`, orgID, projectName, name, backupEnabled)
 }
 
 func testAccMongoDBAtlasClusterConfigTenant(orgID, projectName, name, instanceSize, diskSize, majorDBVersion string) string {
