@@ -466,15 +466,6 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.Reso
 		}
 	}
 
-	if dataProcessRegionHasChange {
-		newDataProcessRegion := mapDataProcessRegion(d)
-		if newDataProcessRegion == nil {
-			request.DataProcessRegion = &admin.DataProcessRegion{}
-		} else {
-			request.DataProcessRegion = newDataProcessRegion
-		}
-	}
-
 	if scheduleHasChange {
 		request.Schedule = mapSchedule(d)
 	}
@@ -557,15 +548,6 @@ func fromOnlineArchiveToMap(in *admin.BackupOnlineArchive) map[string]any {
 			"expire_after_days": in.DataExpirationRule.ExpireAfterDays,
 		}
 		schemaVals["data_expiration_rule"] = []any{dataExpirationRule}
-	}
-
-	var dataProcessRegion map[string]any
-	if in.DataProcessRegion != nil && (in.DataProcessRegion.CloudProvider != nil || in.DataProcessRegion.Region != nil) {
-		dataProcessRegion = map[string]any{
-			"cloud_provider": in.DataProcessRegion.CloudProvider,
-			"region":         in.DataProcessRegion.Region,
-		}
-		schemaVals["data_process_region"] = []any{dataProcessRegion}
 	}
 
 	partitionFields := conversion.SlicePtrToSlice(in.PartitionFields)
