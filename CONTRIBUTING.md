@@ -13,6 +13,7 @@ Thanks for your interest in contributing to MongoDB Atlas Terraform Provider, th
 - [Code and Test Best Practices](#code-and-test-best-practices)
   - [Creating New Resource and Data Sources](#creating-new-resources-and-data-sources)
 - [Documentation Best Practices](#documentation-best-practices)
+  - [Creating Resource and Data source Documentation](#creating-resource-and-data-source-documentation)
 - [Discovering New API features](#discovering-new-api-features)
 
 
@@ -323,6 +324,16 @@ This will generate resource/data source files and accompanying test files needed
 ## Documentation Best Practices
 
 - In our documentation, when a resource field allows a maximum of only one item, we do not format that field as an array. Instead, we create a subsection specifically for this field. Within this new subsection, we enumerate all the attributes of the field. Let's illustrate this with an example: [cloud_backup_schedule.html.markdown](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/r/cloud_backup_schedule.html.markdown?plain=1#L207)
+
+### Creating Resource and Data source Documentation
+We autogerate the documentation of our provider resources and data sources via [tfplugindocs](https://github.com/hashicorp/terraform-plugin-docs).
+
+#### How to generate the documentation for a resource
+- Add the resource/data source templates to the [templates](templates) folder. See [README.md](templates/README.md) for more info.
+- Run the Makefile command `generate-doc`
+```bash
+export resource_name=search_deployment && make generate-doc
+```
 
 ## Discovering New API features
 
