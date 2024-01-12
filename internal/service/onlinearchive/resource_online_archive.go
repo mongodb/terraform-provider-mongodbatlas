@@ -15,10 +15,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/mwielbut/pointy"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mwielbut/pointy"
 )
 
 const (
@@ -415,7 +414,7 @@ func mapToArchivePayload(d *schema.ResourceData) oldAdmin.BackupOnlineArchiveCre
 				partitionList = append(partitionList, query)
 			}
 
-			requestInput.PartitionFields = conversion.NonEmptySliceToPtrSlice(partitionList)
+			requestInput.PartitionFields = partitionList
 		}
 	}
 
