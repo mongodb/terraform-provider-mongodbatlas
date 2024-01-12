@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -23,8 +24,9 @@ func PluralDataSource() *schema.Resource {
 				Optional: true,
 			},
 			"include_deleted_orgs": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Deprecated: fmt.Sprintf(constant.DeprecationParamByDate, "January 2025"),
 			},
 			"page_num": {
 				Type:     schema.TypeInt,
