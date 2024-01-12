@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	atlasSDK "go.mongodb.org/atlas-sdk/v20231115003/admin"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
@@ -109,7 +109,7 @@ func dataSourceMongoDBAtlasCloudSharedTierRestoreJobRead(ctx context.Context, d 
 	return nil
 }
 
-func flattenShardTierRestoreJobs(sharedTierJobs []atlasSDK.TenantRestore) []map[string]any {
+func flattenShardTierRestoreJobs(sharedTierJobs []admin.TenantRestore) []map[string]any {
 	if len(sharedTierJobs) == 0 {
 		return nil
 	}

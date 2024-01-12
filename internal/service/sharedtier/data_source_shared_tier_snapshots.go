@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	atlasSDK "go.mongodb.org/atlas-sdk/v20231115003/admin"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
@@ -92,7 +92,7 @@ func dataSourceMongoDBAtlasSharedTierSnapshotsRead(ctx context.Context, d *schem
 	return nil
 }
 
-func flattenSharedTierSnapshots(sharedTierSnapshots []atlasSDK.BackupTenantSnapshot) []map[string]any {
+func flattenSharedTierSnapshots(sharedTierSnapshots []admin.BackupTenantSnapshot) []map[string]any {
 	if len(sharedTierSnapshots) == 0 {
 		return nil
 	}
