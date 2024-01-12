@@ -12,7 +12,7 @@ description: |-
 
 ## Example Usages
 
-{{ tffile (printf "examples/{{.Name}}/main.tf")}}
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
 
 {{ .SchemaMarkdown | trimspace }}
 

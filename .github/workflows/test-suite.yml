@@ -1,5 +1,6 @@
 name: 'Test Suite'
 
+# Runs acceptance and migrations tests with a set of terraform versions and provider versions (used for migration tests). This worflow is scheduled daily, but can also be run manually.
 on:
   workflow_dispatch:
     inputs:
@@ -20,7 +21,7 @@ concurrency:
 jobs:
   versions:
     env:
-      schedule_terraform_matrix: '["1.6.x", "1.0.8"]'
+      schedule_terraform_matrix: '["1.6.x", "1.2.x"]'
       schedule_provider_matrix: '[""]' # "" for latest version    
     runs-on: ubuntu-latest
     outputs:

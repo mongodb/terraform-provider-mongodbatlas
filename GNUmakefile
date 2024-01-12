@@ -53,7 +53,7 @@ fmt:
 	gofmt -s -w .
 
 .PHONY: fmtcheck
-fmtcheck: # Currently required by tf-deploy compile
+fmtcheck: ## Currently required by tf-deploy compile
 	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
 
 .PHONY: lint-fix
@@ -125,4 +125,9 @@ scaffold:
 .PHONY: scaffold-schemas
 scaffold-schemas:
 	@scripts/schema-scaffold.sh $(resource_name)
+
+
+.PHONY: generate-doc
+generate-doc: ## Generate the resource documentation via tfplugindocs
+	./scripts/generate-doc.sh ${resource_name}
 

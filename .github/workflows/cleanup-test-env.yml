@@ -1,5 +1,6 @@
 name: 'Cleanup test env'
 
+# Cleans up our atlas cloud dev and qa organizations used for testing.
 on:
   workflow_dispatch: # workflow can be run manually
   workflow_call: # workflow runs from Test Suite

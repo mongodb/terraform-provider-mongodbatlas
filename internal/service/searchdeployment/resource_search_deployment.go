@@ -6,16 +6,8 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -37,70 +29,8 @@ type searchDeploymentRS struct {
 	config.RSCommon
 }
 
-type TFSearchDeploymentRSModel struct {
-	ID          types.String   `tfsdk:"id"`
-	ClusterName types.String   `tfsdk:"cluster_name"`
-	ProjectID   types.String   `tfsdk:"project_id"`
-	Specs       types.List     `tfsdk:"specs"`
-	StateName   types.String   `tfsdk:"state_name"`
-	Timeouts    timeouts.Value `tfsdk:"timeouts"`
-}
-
-type TFSearchNodeSpecModel struct {
-	InstanceSize types.String `tfsdk:"instance_size"`
-	NodeCount    types.Int64  `tfsdk:"node_count"`
-}
-
-var SpecObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"instance_size": types.StringType,
-	"node_count":    types.Int64Type,
-}}
-
 func (r *searchDeploymentRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-			},
-			"cluster_name": schema.StringAttribute{
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"project_id": schema.StringAttribute{
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"specs": schema.ListNestedAttribute{
-				Validators: []validator.List{
-					listvalidator.SizeAtMost(1),
-					listvalidator.SizeAtLeast(1),
-				},
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"instance_size": schema.StringAttribute{
-							Required: true,
-						},
-						"node_count": schema.Int64Attribute{
-							Required: true,
-						},
-					},
-				},
-				Required: true,
-			},
-			"state_name": schema.StringAttribute{
-				Computed: true,
-			},
-			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
-				Create: true,
-				Update: true,
-				Delete: true,
-			}),
-		},
-	}
+	resp.Schema = ResourceSchema(ctx)
 }
 
 const defaultSearchNodeTimeout time.Duration = 3 * time.Hour

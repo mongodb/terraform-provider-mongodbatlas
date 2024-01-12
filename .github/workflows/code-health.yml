@@ -1,5 +1,6 @@
 name: 'Code Health'
 
+# Set of validations run on each pull request and merged commits to master.
 on:
   push:
     branches:

@@ -1,5 +1,6 @@
 name: 'Migration Tests'
 
+# Used for running migration tests, either triggered manually or called by other workflows.
 on:
   workflow_dispatch:
     inputs:

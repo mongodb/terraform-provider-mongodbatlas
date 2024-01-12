@@ -1,6 +1,7 @@
 ---
   name: Create JIRA ticket for new issues
   
+  # Creates and updates jira tickets that sync with GitHub Issues events.
   on:
     issues:
       types: [opened, reopened, closed]

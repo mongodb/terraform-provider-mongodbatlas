@@ -1,4 +1,6 @@
 name: pull-request-lint
+
+# Run validations over pull request titles while also adding appropriate labels.
 on:
   pull_request:
     types:
