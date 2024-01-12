@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -79,20 +80,22 @@ func PluralDataSource() *schema.Resource {
 
 func dataSourceMongoDBAtlasOrganizationsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	options := &matlas.ListOptions{
 		PageNum:      d.Get("page_num").(int),
 		ItemsPerPage: d.Get("items_per_page").(int),
 	}
 
-	organizationOptions := &matlas.OrganizationsListOptions{
+	organizationOptions := &*admin.ListOrganizationsApiParams{
 		Name:               d.Get("name").(string),
 		IncludeDeletedOrgs: pointy.Bool(d.Get("include_deleted_orgs").(bool)),
 		ListOptions:        *options,
 	}
 
 	organizations, _, err := conn.Organizations.List(ctx, organizationOptions)
+	organizations, _, err := conn.OrganizationsApi.ListOrganizationsWithParams(ctx)
+
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting organization information: %s", err))
 	}
@@ -110,7 +113,7 @@ func dataSourceMongoDBAtlasOrganizationsRead(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func flattenOrganizationLinks(links []*matlas.Link) []map[string]any {
+func flattenOrganizationLinks(links []admin.Link) []map[string]any {
 	linksList := make([]map[string]any, 0)
 
 	for _, link := range links {
