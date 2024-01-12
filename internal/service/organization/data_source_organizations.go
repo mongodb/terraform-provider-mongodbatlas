@@ -82,19 +82,13 @@ func dataSourceMongoDBAtlasOrganizationsRead(ctx context.Context, d *schema.Reso
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
-	options := &matlas.ListOptions{
-		PageNum:      d.Get("page_num").(int),
-		ItemsPerPage: d.Get("items_per_page").(int),
+	organizationOptions := &admin.ListOrganizationsApiParams{
+		PageNum:      pointy.Int(d.Get("page_num").(int)),
+		ItemsPerPage: pointy.Int(d.Get("items_per_page").(int)),
+		Name:         pointy.String(d.Get("name").(string)),
 	}
 
-	organizationOptions := &*admin.ListOrganizationsApiParams{
-		Name:               d.Get("name").(string),
-		IncludeDeletedOrgs: pointy.Bool(d.Get("include_deleted_orgs").(bool)),
-		ListOptions:        *options,
-	}
-
-	organizations, _, err := conn.Organizations.List(ctx, organizationOptions)
-	organizations, _, err := conn.OrganizationsApi.ListOrganizationsWithParams(ctx)
+	organizations, _, err := conn.OrganizationsApi.ListOrganizationsWithParams(ctx, organizationOptions).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting organization information: %s", err))
@@ -127,7 +121,7 @@ func flattenOrganizationLinks(links []admin.Link) []map[string]any {
 	return linksList
 }
 
-func flattenOrganizations(organizations []*matlas.Organization) []map[string]any {
+func flattenOrganizations(organizations []admin.AtlasOrganization) []map[string]any {
 	var results []map[string]any
 
 	if len(organizations) == 0 {
@@ -138,7 +132,7 @@ func flattenOrganizations(organizations []*matlas.Organization) []map[string]any
 
 	for k, organization := range organizations {
 		results[k] = map[string]any{
-			"id":         organization.ID,
+			"id":         organization.Id,
 			"name":       organization.Name,
 			"is_deleted": organization.IsDeleted,
 			"links":      flattenOrganizationLinks(organization.Links),
