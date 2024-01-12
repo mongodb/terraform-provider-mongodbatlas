@@ -53,7 +53,7 @@ fmt:
 	gofmt -s -w .
 
 .PHONY: fmtcheck
-fmtcheck: # Currently required by tf-deploy compile
+fmtcheck: ## Currently required by tf-deploy compile
 	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
 
 .PHONY: lint-fix
@@ -120,4 +120,9 @@ update-atlas-sdk: ## Update the atlas-sdk dependency
 scaffold:
 	@go run ./tools/scaffold/*.go $(name) $(type)
 	@echo "Reminder: configure the new $(type) in provider.go"
+
+
+.PHONY: generate-doc
+generate-doc: ## Generate the resource documentation via tfplugindocs
+	./scripts/generate-doc.sh ${resource_name}
 
