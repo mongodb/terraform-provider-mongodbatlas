@@ -362,7 +362,7 @@ Note: if the resulting file paths already exist the content will be stored in fi
 - In our documentation, when a resource field allows a maximum of only one item, we do not format that field as an array. Instead, we create a subsection specifically for this field. Within this new subsection, we enumerate all the attributes of the field. Let's illustrate this with an example: [cloud_backup_schedule.html.markdown](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/r/cloud_backup_schedule.html.markdown?plain=1#L207)
 
 ### Creating Resource and Data source Documentation
-We autogerate the documentation of our provider resources and data sources via [tfplugindocs](https://github.com/hashicorp/terraform-plugin-docs).
+We autogenerate the documentation of our provider resources and data sources via [tfplugindocs](https://github.com/hashicorp/terraform-plugin-docs).
 
 #### How to generate the documentation for a resource
 - Add the resource/data source templates to the [templates](templates) folder. See [README.md](templates/README.md) for more info.
