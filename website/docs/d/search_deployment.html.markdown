@@ -3,12 +3,12 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: mongodbatlas_search_deployment"
 subcategory: "docs_mongodbatlas_search_deployment_data source"
 description: |-
-  Provides a Search Deployment data source.
+    "Provides a Search Deployment data source."
 ---
 
 # Data Source: mongodbatlas_search_deployment
 
-Provides a Search Deployment data source.
+
 
 ## Example Usages
 ```terraform
@@ -47,8 +47,12 @@ resource "mongodbatlas_search_deployment" "example" {
 }
 
 data "mongodbatlas_search_deployment" "example" {
-  project_id = mongodbatlas_search_deployment.example.project_id
+  project_id   = mongodbatlas_search_deployment.example.project_id
   cluster_name = mongodbatlas_search_deployment.example.cluster_name
+}
+
+output "mongodbatlas_search_deployment_id" {
+  value = data.mongodbatlas_search_deployment.example.id
 }
 ```
 
