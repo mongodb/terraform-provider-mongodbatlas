@@ -150,8 +150,8 @@ func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizati
 		settings, _, err := conn.OrganizationsApi.GetOrganizationSettings(ctx, *organization.Id).Execute()
 		if err != nil {
 			log.Printf("[WARN] Error getting organization settings (organization ID: %s): %s", *organization.Id, err)
-
 		}
+
 		results[k] = map[string]any{
 			"id":                         organization.Id,
 			"name":                       organization.Name,
