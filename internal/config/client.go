@@ -8,15 +8,17 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
-	"github.com/mongodb-forks/digest"
-	"github.com/mongodb/terraform-provider-mongodbatlas/version"
-	"github.com/spf13/cast"
 	oldAtlasSDK "go.mongodb.org/atlas-sdk/v20231001002/admin"
 	atlasSDK "go.mongodb.org/atlas-sdk/v20231115003/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
+	"github.com/mongodb-forks/digest"
+	"github.com/spf13/cast"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
 const (

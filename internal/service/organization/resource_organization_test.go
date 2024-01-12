@@ -85,7 +85,7 @@ func testAccCheckMongoDBAtlasOrganizationExists(resourceName string) resource.Te
 
 		orgs, _, err := conn.OrganizationsApi.ListOrganizations(ctx).Execute()
 		if err == nil {
-			for _, val := range orgs.Results {
+			for _, val := range *orgs.Results {
 				if *val.Id == ids["org_id"] {
 					return nil
 				}
@@ -125,7 +125,7 @@ func testAccCheckMongoDBAtlasOrganizationDestroy(s *terraform.State) error {
 
 		orgs, _, err := conn.OrganizationsApi.ListOrganizations(context.Background()).Execute()
 		if err == nil {
-			for _, val := range orgs.Results {
+			for _, val := range *orgs.Results {
 				if *val.Id == ids["org_id"] {
 					return fmt.Errorf("Organization (%s) still exists", ids["org_id"])
 				}
