@@ -50,7 +50,7 @@ func testAccMongoDBAtlasDataSourceFederatedSettingsIdentityProvidersConfig(feder
 
 func testAccCheckMongoDBAtlasFederatedSettingsIdentityProvidersExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
+		connV2 := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).AtlasV2
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -61,7 +61,7 @@ func testAccCheckMongoDBAtlasFederatedSettingsIdentityProvidersExists(resourceNa
 			return fmt.Errorf("no ID is set")
 		}
 
-		_, _, err := conn.FederatedSettings.ListIdentityProviders(context.Background(), rs.Primary.Attributes["federation_settings_id"], nil)
+		_, _, err := connV2.FederatedAuthenticationApi.ListIdentityProviders(context.Background(), rs.Primary.Attributes["federation_settings_id"]).Execute()
 		if err != nil {
 			return fmt.Errorf("FederatedSettingsIdentityProviders (%s) does not exist", rs.Primary.ID)
 		}

@@ -11,13 +11,13 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115002/admin"
 )
 
 func TestAccFedRSFederatedSettingsIdentityProvider_basic(t *testing.T) {
 	acc.SkipTestExtCred(t)
 	var (
-		federatedSettingsIdentityProvider matlas.FederatedSettingsIdentityProvider
+		federatedSettingsIdentityProvider admin.FederationIdentityProvider
 		resourceName                      = "mongodbatlas_federated_settings_identity_provider.test"
 		federationSettingsID              = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 		idpID                             = os.Getenv("MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID")
@@ -78,9 +78,9 @@ func TestAccFedRSFederatedSettingsIdentityProvider_importBasic(t *testing.T) {
 }
 
 func testAccCheckMongoDBAtlasFederatedSettingsIdentityProviderExists(resourceName string,
-	federatedSettingsIdentityProvider *matlas.FederatedSettingsIdentityProvider, idpID string) resource.TestCheckFunc {
+	federatedSettingsIdentityProvider *admin.FederationIdentityProvider, idpID string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
+		connV2 := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).AtlasV2
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -91,9 +91,9 @@ func testAccCheckMongoDBAtlasFederatedSettingsIdentityProviderExists(resourceNam
 			return fmt.Errorf("no ID is set")
 		}
 
-		response, _, err := conn.FederatedSettings.GetIdentityProvider(context.Background(),
+		response, _, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(),
 			rs.Primary.Attributes["federation_settings_id"],
-			idpID)
+			idpID).Execute()
 		if err == nil {
 			*federatedSettingsIdentityProvider = *response
 			return nil
