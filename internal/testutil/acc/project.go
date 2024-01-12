@@ -72,7 +72,7 @@ func ConfigProject(projectName, orgID string, teams []*admin.TeamRole) string {
 			team_id = "%s"
 			role_names = %s
 		}
-		`, t.GetTeamId(), strings.ReplaceAll(fmt.Sprintf("%+q", t.RoleNames), " ", ","))
+		`, t.GetTeamId(), strings.ReplaceAll(fmt.Sprintf("%+q", *t.RoleNames), " ", ","))
 	}
 
 	return fmt.Sprintf(`
