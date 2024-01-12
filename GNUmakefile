@@ -118,11 +118,11 @@ update-atlas-sdk: ## Update the atlas-sdk dependency
 # details on usage can be found in CONTRIBUTING.md under "Scaffolding initial Code and File Structure"
 .PHONY: scaffold
 scaffold:
-	@go run ./tools/scaffold/*.go $(name) $(type)
+	@go run ./tools/scaffold/*.go $(resource_name) $(type)
 	@echo "Reminder: configure the new $(type) in provider.go"
 
 # details on usage can be found in CONTRIBUTING.md under "Scaffolding Schema and Model Definitions"
 .PHONY: scaffold-schemas
 scaffold-schemas:
-	@scripts/schema-scaffold.sh $(name)
+	@scripts/schema-scaffold.sh $(resource_name)
 
