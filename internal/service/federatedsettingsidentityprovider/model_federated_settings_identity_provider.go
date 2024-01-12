@@ -91,7 +91,7 @@ func (ra mRoleAssignmentV2) Less(i, j int) bool {
 	return *ra[i].Role < *ra[j].Role
 }
 
-func FlattenRoleAssignmentsV2(roleAssignments []admin.RoleAssignment) []map[string]any {
+func FlattenRoleAssignments(roleAssignments []admin.RoleAssignment) []map[string]any {
 	sort.Sort(mRoleAssignmentV2(roleAssignments))
 
 	var roleAssignmentsMap []map[string]any
@@ -153,7 +153,7 @@ func FlattenAuthFederationRoleMapping(roleMappings []admin.AuthFederationRoleMap
 			roleMappingsMap[i] = map[string]any{
 				"external_group_name": roleMappings[i].ExternalGroupName,
 				"id":                  roleMappings[i].Id,
-				"role_assignments":    FlattenRoleAssignmentsV2(roleMappings[i].RoleAssignments),
+				"role_assignments":    FlattenRoleAssignments(roleMappings[i].RoleAssignments),
 			}
 		}
 	}
