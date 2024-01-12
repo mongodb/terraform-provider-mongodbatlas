@@ -9,14 +9,16 @@ import (
 	"strings"
 	"time"
 
+	oldAdmin "go.mongodb.org/atlas-sdk/v20231001002/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mwielbut/pointy"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mwielbut/pointy"
-	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
 const (
@@ -218,13 +220,12 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 }
 
 func resourceMongoDBAtlasOnlineArchiveCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connOldV2 := meta.(*config.MongoDBClient).OldAtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
 	inputRequest := mapToArchivePayload(d)
-	outputRequest, _, err := connV2.OnlineArchiveApi.CreateOnlineArchive(ctx, projectID, clusterName, &inputRequest).Execute()
+	outputRequest, _, err := connOldV2.OnlineArchiveApi.CreateOnlineArchive(ctx, projectID, clusterName, &inputRequest).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorOnlineArchivesCreate, err))
@@ -242,7 +243,7 @@ func resourceMongoDBAtlasOnlineArchiveCreate(ctx context.Context, d *schema.Reso
 		stateConf := &retry.StateChangeConf{
 			Pending:    []string{"PENDING", "ARCHIVING", "PAUSING", "PAUSED", "ORPHANED", "REPEATING"},
 			Target:     []string{"IDLE", "ACTIVE"},
-			Refresh:    resourceOnlineRefreshFunc(ctx, projectID, clusterName, archiveID, connV2),
+			Refresh:    resourceOnlineRefreshFunc(ctx, projectID, clusterName, archiveID, connOldV2),
 			Timeout:    3 * time.Hour,
 			MinTimeout: 1 * time.Minute,
 			Delay:      3 * time.Minute,
@@ -258,7 +259,7 @@ func resourceMongoDBAtlasOnlineArchiveCreate(ctx context.Context, d *schema.Reso
 	return resourceMongoDBAtlasOnlineArchiveRead(ctx, d, meta)
 }
 
-func resourceOnlineRefreshFunc(ctx context.Context, projectID, clusterName, archiveID string, client *admin.APIClient) retry.StateRefreshFunc {
+func resourceOnlineRefreshFunc(ctx context.Context, projectID, clusterName, archiveID string, client *oldAdmin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		c, resp, err := client.OnlineArchiveApi.GetOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
 
@@ -287,14 +288,14 @@ func resourceOnlineRefreshFunc(ctx context.Context, projectID, clusterName, arch
 }
 
 func resourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connOldV2 := meta.(*config.MongoDBClient).OldAtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 
 	archiveID := ids["archive_id"]
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	onlineArchive, resp, err := connV2.OnlineArchiveApi.GetOnlineArchive(context.Background(), projectID, archiveID, clusterName).Execute()
+	onlineArchive, resp, err := connOldV2.OnlineArchiveApi.GetOnlineArchive(context.Background(), projectID, archiveID, clusterName).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -334,7 +335,7 @@ func resourceMongoDBAtlasOnlineArchiveDelete(ctx context.Context, d *schema.Reso
 }
 
 func resourceMongoDBAtlasOnlineArchiveImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connOldV2 := meta.(*config.MongoDBClient).OldAtlasV2
 	parts := strings.Split(d.Id(), "-")
 
 	var projectID, clusterName, archiveID string
@@ -351,7 +352,7 @@ func resourceMongoDBAtlasOnlineArchiveImportState(ctx context.Context, d *schema
 		projectID, clusterName, archiveID = parts[0], parts[1], parts[2]
 	}
 
-	outOnlineArchive, _, err := connV2.OnlineArchiveApi.GetOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
+	outOnlineArchive, _, err := connOldV2.OnlineArchiveApi.GetOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
 
 	if err != nil {
 		return nil, fmt.Errorf("could not import Online Archive %s in project %s, error %s", archiveID, projectID, err.Error())
@@ -378,9 +379,9 @@ func resourceMongoDBAtlasOnlineArchiveImportState(ctx context.Context, d *schema
 	return []*schema.ResourceData{d}, nil
 }
 
-func mapToArchivePayload(d *schema.ResourceData) admin.BackupOnlineArchiveCreate {
+func mapToArchivePayload(d *schema.ResourceData) oldAdmin.BackupOnlineArchiveCreate {
 	// shared input
-	requestInput := admin.BackupOnlineArchiveCreate{
+	requestInput := oldAdmin.BackupOnlineArchiveCreate{
 		DbName:   d.Get("db_name").(string),
 		CollName: d.Get("coll_name").(string),
 	}
@@ -397,17 +398,17 @@ func mapToArchivePayload(d *schema.ResourceData) admin.BackupOnlineArchiveCreate
 		list := partitions.([]any)
 
 		if len(list) > 0 {
-			partitionList := make([]admin.PartitionField, 0, len(list))
+			partitionList := make([]oldAdmin.PartitionField, 0, len(list))
 			for _, partition := range list {
 				item := partition.(map[string]any)
-				query := admin.PartitionField{
+				query := oldAdmin.PartitionField{
 					FieldName: item["field_name"].(string),
 					Order:     item["order"].(int),
 				}
 
 				if dbType, ok := item["field_type"]; ok && dbType != nil {
 					if dbType.(string) != "" {
-						query.FieldType = admin.PtrString(dbType.(string))
+						query.FieldType = oldAdmin.PtrString(dbType.(string))
 					}
 				}
 
@@ -422,7 +423,7 @@ func mapToArchivePayload(d *schema.ResourceData) admin.BackupOnlineArchiveCreate
 }
 
 func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connOldV2 := meta.(*config.MongoDBClient).OldAtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
 
@@ -444,7 +445,7 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.Reso
 		return nil
 	}
 
-	request := admin.BackupOnlineArchive{}
+	request := oldAdmin.BackupOnlineArchive{}
 
 	// reading current value
 	if pausedHasChange {
@@ -460,9 +461,18 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.Reso
 		newExpirationRule := mapDataExpirationRule(d)
 		if newExpirationRule == nil {
 			// expiration rule has been removed from tf config, empty dataExpirationRule object needs to be sent in patch request
-			request.DataExpirationRule = &admin.DataExpirationRule{}
+			request.DataExpirationRule = &oldAdmin.DataExpirationRule{}
 		} else {
 			request.DataExpirationRule = newExpirationRule
+		}
+	}
+
+	if dataProcessRegionHasChange {
+		newDataProcessRegion := mapDataProcessRegion(d)
+		if newDataProcessRegion == nil {
+			request.DataProcessRegion = &oldAdmin.DataProcessRegion{}
+		} else {
+			request.DataProcessRegion = newDataProcessRegion
 		}
 	}
 
@@ -471,10 +481,10 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.Reso
 	}
 
 	if collType := d.Get("collection_type").(string); collectionTypeHasChange && collType != "" {
-		request.CollectionType = admin.PtrString(collType)
+		request.CollectionType = oldAdmin.PtrString(collType)
 	}
 
-	_, _, err := connV2.OnlineArchiveApi.UpdateOnlineArchive(ctx, projectID, atlasID, clusterName, &request).Execute()
+	_, _, err := connOldV2.OnlineArchiveApi.UpdateOnlineArchive(ctx, projectID, atlasID, clusterName, &request).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating Mongo Online Archive id: %s %s", atlasID, err.Error()))
@@ -483,7 +493,7 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.Reso
 	return resourceMongoDBAtlasOnlineArchiveRead(ctx, d, meta)
 }
 
-func fromOnlineArchiveToMap(in *admin.BackupOnlineArchive) map[string]any {
+func fromOnlineArchiveToMap(in *oldAdmin.BackupOnlineArchive) map[string]any {
 	// computed attribute
 	schemaVals := map[string]any{
 		"cluster_name":    in.ClusterName,
@@ -550,7 +560,16 @@ func fromOnlineArchiveToMap(in *admin.BackupOnlineArchive) map[string]any {
 		schemaVals["data_expiration_rule"] = []any{dataExpirationRule}
 	}
 
-	partitionFields := conversion.SlicePtrToSlice(in.PartitionFields)
+	var dataProcessRegion map[string]any
+	if in.DataProcessRegion != nil && (in.DataProcessRegion.CloudProvider != nil || in.DataProcessRegion.Region != nil) {
+		dataProcessRegion = map[string]any{
+			"cloud_provider": in.DataProcessRegion.CloudProvider,
+			"region":         in.DataProcessRegion.Region,
+		}
+		schemaVals["data_process_region"] = []any{dataProcessRegion}
+	}
+
+	partitionFields := in.PartitionFields
 	if len(partitionFields) == 0 {
 		return schemaVals
 	}
@@ -569,10 +588,10 @@ func fromOnlineArchiveToMap(in *admin.BackupOnlineArchive) map[string]any {
 	return schemaVals
 }
 
-func mapDataExpirationRule(d *schema.ResourceData) *admin.DataExpirationRule {
+func mapDataExpirationRule(d *schema.ResourceData) *oldAdmin.DataExpirationRule {
 	if dataExpireRules, ok := d.GetOk("data_expiration_rule"); ok && len(dataExpireRules.([]any)) > 0 {
 		dataExpireRule := dataExpireRules.([]any)[0].(map[string]any)
-		result := admin.DataExpirationRule{}
+		result := oldAdmin.DataExpirationRule{}
 		if expireAfterDays, ok := dataExpireRule["expire_after_days"]; ok {
 			result.ExpireAfterDays = pointy.Int(expireAfterDays.(int))
 		}
@@ -581,10 +600,10 @@ func mapDataExpirationRule(d *schema.ResourceData) *admin.DataExpirationRule {
 	return nil
 }
 
-func mapDataProcessRegion(d *schema.ResourceData) *admin.DataProcessRegion {
+func mapDataProcessRegion(d *schema.ResourceData) *oldAdmin.DataProcessRegion {
 	if dataProcessRegions, ok := d.GetOk("data_process_region"); ok && len(dataProcessRegions.([]any)) > 0 {
 		dataProcessRegion := dataProcessRegions.([]any)[0].(map[string]any)
-		result := admin.DataProcessRegion{}
+		result := oldAdmin.DataProcessRegion{}
 		if cloudProvider, ok := dataProcessRegion["cloud_provider"]; ok {
 			result.CloudProvider = pointy.String(cloudProvider.(string))
 		}
@@ -596,31 +615,31 @@ func mapDataProcessRegion(d *schema.ResourceData) *admin.DataProcessRegion {
 	return nil
 }
 
-func mapCriteria(d *schema.ResourceData) admin.Criteria {
+func mapCriteria(d *schema.ResourceData) oldAdmin.Criteria {
 	criteriaList := d.Get("criteria").([]any)
 
 	criteria := criteriaList[0].(map[string]any)
 
-	criteriaInput := admin.Criteria{
-		Type: admin.PtrString(criteria["type"].(string)),
+	criteriaInput := oldAdmin.Criteria{
+		Type: oldAdmin.PtrString(criteria["type"].(string)),
 	}
 
 	if criteriaInput.Type != nil && *criteriaInput.Type == "DATE" {
 		if dateField := criteria["date_field"].(string); dateField != "" {
-			criteriaInput.DateField = admin.PtrString(dateField)
+			criteriaInput.DateField = oldAdmin.PtrString(dateField)
 		}
 
 		criteriaInput.ExpireAfterDays = pointy.Int(criteria["expire_after_days"].(int))
 
 		// optional
 		if dformat, ok := criteria["date_format"]; ok && dformat.(string) != "" {
-			criteriaInput.DateFormat = admin.PtrString(dformat.(string))
+			criteriaInput.DateFormat = oldAdmin.PtrString(dformat.(string))
 		}
 	}
 
 	if criteriaInput.Type != nil && *criteriaInput.Type == "CUSTOM" {
 		if query := criteria["query"].(string); query != "" {
-			criteriaInput.Query = admin.PtrString(query)
+			criteriaInput.Query = oldAdmin.PtrString(query)
 		}
 	}
 
@@ -628,11 +647,11 @@ func mapCriteria(d *schema.ResourceData) admin.Criteria {
 	return criteriaInput
 }
 
-func mapSchedule(d *schema.ResourceData) *admin.OnlineArchiveSchedule {
+func mapSchedule(d *schema.ResourceData) *oldAdmin.OnlineArchiveSchedule {
 	// scheduleInput := &matlas.OnlineArchiveSchedule{
 
 	// We have to provide schedule.type="DEFAULT" when the schedule block is not provided or removed
-	scheduleInput := &admin.OnlineArchiveSchedule{
+	scheduleInput := &oldAdmin.OnlineArchiveSchedule{
 		Type: scheduleTypeDefault,
 	}
 
@@ -651,7 +670,7 @@ func mapSchedule(d *schema.ResourceData) *admin.OnlineArchiveSchedule {
 	}
 
 	scheduleTFConfig := scheduleTFConfigList[0].(map[string]any)
-	scheduleInput = &admin.OnlineArchiveSchedule{
+	scheduleInput = &oldAdmin.OnlineArchiveSchedule{
 		Type: scheduleTFConfig["type"].(string),
 	}
 
