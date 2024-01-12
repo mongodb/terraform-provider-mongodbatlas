@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"regexp"
 
-	oldAdmin "go.mongodb.org/atlas-sdk/v20231115003/admin"
+	oldAdmin "go.mongodb.org/atlas-sdk/v20231001002/admin"
 	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
