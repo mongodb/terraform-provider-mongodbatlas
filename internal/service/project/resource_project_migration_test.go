@@ -68,11 +68,11 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 			[]*admin.TeamRole{
 				{
 					TeamId:    &teamsIds[0],
-					RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+					RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 				},
 				{
 					TeamId:    &teamsIds[1],
-					RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+					RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 				},
 			})
 	)

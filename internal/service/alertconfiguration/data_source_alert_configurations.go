@@ -143,7 +143,7 @@ func (d *AlertConfigurationsDS) Read(ctx context.Context, req datasource.ReadReq
 	alertConfigurationsConfig.ID = types.StringValue(conversion.EncodeStateID(map[string]string{
 		"project_id": projectID,
 	}))
-	alertConfigurationsConfig.Results = NewTFAlertConfigurationDSModelList(alerts.Results, projectID, alertConfigurationsConfig.OutputType)
+	alertConfigurationsConfig.Results = NewTFAlertConfigurationDSModelList(conversion.SlicePtrToSlice(alerts.Results), projectID, alertConfigurationsConfig.OutputType)
 	if *params.IncludeCount {
 		alertConfigurationsConfig.TotalCount = types.Int64Value(int64(*alerts.TotalCount))
 	}

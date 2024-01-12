@@ -170,9 +170,10 @@ func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 }
 
 func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClient, stateModel *tfProjectsDSModel, projectsRes *admin.PaginatedAtlasGroup) error {
-	results := make([]*TfProjectDSModel, 0, len(projectsRes.Results))
-	for i := range projectsRes.Results {
-		project := projectsRes.Results[i]
+	input := conversion.SlicePtrToSlice(projectsRes.Results)
+	results := make([]*TfProjectDSModel, 0, len(input))
+	for i := range input {
+		project := input[i]
 		atlasTeams, atlasLimits, atlasProjectSettings, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), project.GetId())
 		if err == nil { // if the project is still valid, e.g. could have just been deleted
 			projectModel := NewTFProjectDataSourceModel(ctx, &project, atlasTeams, atlasProjectSettings, atlasLimits)

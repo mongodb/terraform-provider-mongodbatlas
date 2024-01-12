@@ -122,11 +122,12 @@ func newTFConnectionAuthenticationModel(ctx context.Context, currAuthConfig *typ
 func NewTFStreamConnections(ctx context.Context,
 	streamConnectionsConfig *TFStreamConnectionsDSModel,
 	paginatedResult *admin.PaginatedApiStreamsConnection) (*TFStreamConnectionsDSModel, diag.Diagnostics) {
-	results := make([]TFStreamConnectionModel, len(paginatedResult.Results))
-	for i := range paginatedResult.Results {
+	input := conversion.SlicePtrToSlice(paginatedResult.Results)
+	results := make([]TFStreamConnectionModel, len(input))
+	for i := range input {
 		projectID := streamConnectionsConfig.ProjectID.ValueString()
 		instanceName := streamConnectionsConfig.InstanceName.ValueString()
-		connectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, nil, &paginatedResult.Results[i])
+		connectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, nil, &input[i])
 		if diags.HasError() {
 			return nil, diags
 		}

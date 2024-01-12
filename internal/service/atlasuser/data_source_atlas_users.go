@@ -191,7 +191,7 @@ func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 			resp.Diagnostics.AddError("error when getting users from Atlas", fmt.Sprintf(errorUsersRead, "project", projectID, err.Error()))
 			return
 		}
-		users = apiResp.Results
+		users = conversion.SlicePtrToSlice(apiResp.Results)
 		totalCount = *apiResp.TotalCount
 	case !atlasUsersConfig.TeamID.IsNull() && !atlasUsersConfig.OrgID.IsNull():
 		teamID := atlasUsersConfig.TeamID.ValueString()
@@ -205,7 +205,7 @@ func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 			resp.Diagnostics.AddError("error when getting users from Atlas", fmt.Sprintf(errorUsersRead, "team", teamID, err.Error()))
 			return
 		}
-		users = apiResp.Results
+		users = conversion.SlicePtrToSlice(apiResp.Results)
 		totalCount = *apiResp.TotalCount
 	default: // only org_id is defined
 		orgID := atlasUsersConfig.OrgID.ValueString()
@@ -218,7 +218,7 @@ func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 			resp.Diagnostics.AddError("error when getting users from Atlas", fmt.Sprintf(errorUsersRead, "org", orgID, err.Error()))
 			return
 		}
-		users = apiResp.Results
+		users = conversion.SlicePtrToSlice(apiResp.Results)
 		totalCount = *apiResp.TotalCount
 	}
 

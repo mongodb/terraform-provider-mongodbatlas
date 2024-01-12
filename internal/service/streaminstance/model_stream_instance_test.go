@@ -18,7 +18,7 @@ const (
 	instanceName          = "InstanceName"
 )
 
-var hostnames = []string{"atlas-stream.virginia-usa.a.query.mongodb-dev.net"}
+var hostnames = &[]string{"atlas-stream.virginia-usa.a.query.mongodb-dev.net"}
 
 type sdkToTFModelTestCase struct {
 	SDKResp         *admin.StreamsTenant
@@ -90,7 +90,7 @@ func TestStreamInstancesSDKToTFModel(t *testing.T) {
 		{
 			name: "Complete SDK response with configured page options",
 			SDKResp: &admin.PaginatedApiStreamsTenant{
-				Results: []admin.StreamsTenant{
+				Results: &[]admin.StreamsTenant{
 					{
 						Id: admin.PtrString(dummyStreamInstanceID),
 						DataProcessRegion: &admin.StreamsDataProcessRegion{
@@ -128,7 +128,7 @@ func TestStreamInstancesSDKToTFModel(t *testing.T) {
 		{
 			name: "Without defining page options",
 			SDKResp: &admin.PaginatedApiStreamsTenant{
-				Results:    []admin.StreamsTenant{},
+				Results:    &[]admin.StreamsTenant{},
 				TotalCount: admin.PtrInt(0),
 			},
 			providedConfig: &streaminstance.TFStreamInstancesModel{
@@ -246,7 +246,7 @@ func tfRegionObject(t *testing.T, cloudProvider, region string) types.Object {
 	return dataProcessRegion
 }
 
-func tfHostnamesList(t *testing.T, hostnames []string) types.List {
+func tfHostnamesList(t *testing.T, hostnames *[]string) types.List {
 	t.Helper()
 	resultList, diags := types.ListValueFrom(context.Background(), types.StringType, hostnames)
 	if diags.HasError() {

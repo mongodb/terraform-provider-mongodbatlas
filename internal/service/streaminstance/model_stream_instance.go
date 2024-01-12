@@ -63,9 +63,10 @@ func NewTFStreamInstance(ctx context.Context, apiResp *admin.StreamsTenant) (*TF
 }
 
 func NewTFStreamInstances(ctx context.Context, streamInstancesConfig *TFStreamInstancesModel, paginatedResult *admin.PaginatedApiStreamsTenant) (*TFStreamInstancesModel, diag.Diagnostics) {
-	results := make([]TFStreamInstanceModel, len(paginatedResult.Results))
-	for i := range paginatedResult.Results {
-		instance, diags := NewTFStreamInstance(ctx, &paginatedResult.Results[i])
+	input := conversion.SlicePtrToSlice(paginatedResult.Results)
+	results := make([]TFStreamInstanceModel, len(input))
+	for i := range input {
+		instance, diags := NewTFStreamInstance(ctx, &input[i])
 		if diags.HasError() {
 			return nil, diags
 		}

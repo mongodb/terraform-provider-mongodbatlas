@@ -414,7 +414,7 @@ func mapToArchivePayload(d *schema.ResourceData) admin.BackupOnlineArchiveCreate
 				partitionList = append(partitionList, query)
 			}
 
-			requestInput.PartitionFields = partitionList
+			requestInput.PartitionFields = conversion.NonEmptySliceToPtrSlice(partitionList)
 		}
 	}
 
@@ -568,13 +568,12 @@ func fromOnlineArchiveToMap(in *admin.BackupOnlineArchive) map[string]any {
 		schemaVals["data_process_region"] = []any{dataProcessRegion}
 	}
 
-	// partitions fields
-	if len(in.PartitionFields) == 0 {
+	partitionFields := conversion.SlicePtrToSlice(in.PartitionFields)
+	if len(partitionFields) == 0 {
 		return schemaVals
 	}
-
-	partitionFieldsMap := make([]map[string]any, 0, len(in.PartitionFields))
-	for _, field := range in.PartitionFields {
+	partitionFieldsMap := make([]map[string]any, 0, len(partitionFields))
+	for _, field := range partitionFields {
 		fieldMap := map[string]any{
 			"field_name": field.FieldName,
 			"field_type": field.FieldType,

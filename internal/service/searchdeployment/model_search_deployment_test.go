@@ -36,7 +36,7 @@ func TestSearchDeploymentSDKToTFModel(t *testing.T) {
 				Id:        admin.PtrString(dummyDeploymentID),
 				GroupId:   admin.PtrString(dummyProjectID),
 				StateName: admin.PtrString(stateName),
-				Specs: []admin.ApiSearchDeploymentSpec{
+				Specs: &[]admin.ApiSearchDeploymentSpec{
 					{
 						InstanceSize: instanceSize,
 						NodeCount:    nodeCount,
@@ -84,7 +84,7 @@ func TestSearchDeploymentTFModelToSDK(t *testing.T) {
 				Specs:       tfSpecsList(t, instanceSize, nodeCount),
 			},
 			expectedSDKReq: admin.ApiSearchDeploymentRequest{
-				Specs: []admin.ApiSearchDeploymentSpec{
+				Specs: &[]admin.ApiSearchDeploymentSpec{
 					{
 						InstanceSize: instanceSize,
 						NodeCount:    nodeCount,
