@@ -66,14 +66,12 @@ func TestSearchDeploymentSDKToTFModel(t *testing.T) {
 	}
 }
 
-type tfToSDKModelTestCase struct {
-	name           string
-	tfModel        *searchdeployment.TFSearchDeploymentRSModel
-	expectedSDKReq admin.ApiSearchDeploymentRequest
-}
-
 func TestSearchDeploymentTFModelToSDK(t *testing.T) {
-	testCases := []tfToSDKModelTestCase{
+	testCases := []struct {
+		tfModel        *searchdeployment.TFSearchDeploymentRSModel
+		expectedSDKReq admin.ApiSearchDeploymentRequest
+		name           string
+	}{
 		{
 			name: "Complete TF state",
 			tfModel: &searchdeployment.TFSearchDeploymentRSModel{
