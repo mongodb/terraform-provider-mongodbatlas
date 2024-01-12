@@ -467,7 +467,7 @@ func getGracePeriodWarning() diag.Diagnostic {
 	return diag.Diagnostic{
 		Severity: diag.Warning,
 		Summary:  "Warning: deprecated identity provider id",
-		Detail: "Identity provider id value used will be deprecated. Please start using the new value.\n" +
+		Detail: "Identity provider id format defined in resource will be deprecated. Please import the resource with the new format.\n" +
 			" Follow instructions here: https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.15.0-upgrade-guide",
 	}
 }
