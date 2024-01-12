@@ -81,6 +81,10 @@ func Resource() *schema.Resource {
 }
 
 func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	if !isAPIKeyOrgOwner(conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List())) {
+		return diag.FromErr(fmt.Errorf("`role_names` for new API Key must have the ORG_OWNER role to use this resource"))
+	}
+
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	organization, resp, err := conn.OrganizationsApi.CreateOrganization(ctx, newCreateOrganizationRequest(d)).Execute()
 	if err != nil {
@@ -89,12 +93,13 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 			return nil
 		}
 
-		return diag.FromErr(fmt.Errorf("error create Organization: %s", err))
+		return diag.FromErr(fmt.Errorf("error creating Organization: %s", err))
 	}
 
 	orgID := *organization.Organization.Id
 
-	// update settings using new keys for this created org
+	// update settings using new keys for this created organization because
+	// the provider/requesting API keys are not applicable for performing updates/delete for this new organization
 	cfg := config.Config{
 		PublicKey:  *organization.ApiKey.PublicKey,
 		PrivateKey: *organization.ApiKey.PrivateKey,
@@ -108,10 +113,10 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 	if err != nil {
 		if _, _, err := conn.OrganizationsApi.DeleteOrganization(ctx, orgID).Execute(); err != nil {
 			d.SetId("")
-			return diag.FromErr(fmt.Errorf("unable to delete organization because of create failure. An error occurred when updating Organization settings: %s", err))
+			return diag.FromErr(fmt.Errorf("an error occurred when updating Organization settings. Unable to delete organization, there may be dangling resources: %s", err))
 		}
-
-		return diag.FromErr(fmt.Errorf("error create Organization: %s", err))
+		d.SetId("")
+		return diag.FromErr(fmt.Errorf("error setting Organization setings: %s", err))
 	}
 
 	if err := d.Set("private_key", organization.ApiKey.PrivateKey); err != nil {
@@ -122,7 +127,7 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 	}
 
-	if err := d.Set("org_id", *organization.Organization.Id); err != nil {
+	if err := d.Set("org_id", orgID); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `org_id`: %s", err))
 	}
 
@@ -147,7 +152,6 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
-	// organization, resp, err := conn.Organizations.Get(ctx, orgID)
 	organization, resp, err := conn.OrganizationsApi.GetOrganization(ctx, orgID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
@@ -163,6 +167,9 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 	}
 
 	settings, _, err := conn.OrganizationsApi.GetOrganizationSettings(ctx, orgID).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error reading organization settings: %s", err))
+	}
 
 	if err := d.Set("api_access_list_required", settings.ApiAccessListRequired); err != nil {
 		return diag.Errorf("error setting `api_access_list_required` for organization (%s): %s", orgID, err)
@@ -230,23 +237,6 @@ func resourceMongoDBAtlasOrganizationDelete(ctx context.Context, d *schema.Resou
 	return nil
 }
 
-// func newCreateOrganizationRequest(d *schema.ResourceData) *matlas.CreateOrganizationRequest {
-// 	createRequest := &matlas.CreateOrganizationRequest{
-// 		Name:       d.Get("name").(string),
-// 		OrgOwnerID: pointy.String(d.Get("org_owner_id").(string)),
-// 		APIKey: &matlas.APIKeyInput{
-// 			Roles: conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List()),
-// 			Desc:  d.Get("description").(string),
-// 		},
-// 	}
-
-// 	if federationSettingsID, ok := d.Get("federation_settings_id").(string); ok && federationSettingsID != "" {
-// 		createRequest.FederationSettingsID = &federationSettingsID
-// 	}
-
-// 	return createRequest
-// }
-
 func newCreateOrganizationRequest(d *schema.ResourceData) *admin.CreateOrganizationRequest {
 	createRequest := &admin.CreateOrganizationRequest{
 		Name:       d.Get("name").(string),
@@ -271,4 +261,14 @@ func newOrganizationSettings(d *schema.ResourceData) *admin.OrganizationSettings
 		MultiFactorAuthRequired: pointy.Bool(d.Get("multi_factor_auth_required").(bool)),
 		RestrictEmployeeAccess:  pointy.Bool(d.Get("restrict_employee_access").(bool)),
 	}
+}
+
+func isAPIKeyOrgOwner(roles []string) bool {
+	for _, role := range roles {
+		if role == "ORG_OWNER" {
+			return true
+		}
+	}
+
+	return false
 }

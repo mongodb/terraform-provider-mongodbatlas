@@ -52,6 +52,56 @@ func TestAccConfigRSOrganization_Basic(t *testing.T) {
 	})
 }
 
+func TestAccConfigRSOrganization_Settings(t *testing.T) {
+	acc.SkipTestForCI(t)
+	var (
+		resourceName = "mongodbatlas_organization.test"
+		orgOwnerID   = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
+		name         = fmt.Sprintf("test-acc-organization-%s", acctest.RandString(5))
+		description  = "test Key for Acceptance tests"
+		roleName     = "ORG_OWNER"
+
+		settingsConfig = `
+		api_access_list_required = false
+		restrict_employee_access = true`
+		settingsConfigUpdated = `
+		api_access_list_required = false
+		multi_factor_auth_required = true
+		restrict_employee_access = false`
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheck(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasOrganizationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasOrganizationConfigWithSettings(orgOwnerID, name, description, roleName, settingsConfig),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasOrganizationExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "description"),
+					resource.TestCheckResourceAttr(resourceName, "description", description),
+					resource.TestCheckResourceAttr(resourceName, "api_access_list_required", "false"),
+					resource.TestCheckResourceAttr(resourceName, "restrict_employee_access", "true"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasOrganizationConfigWithSettings(orgOwnerID, "org-name-updated", description, roleName, settingsConfigUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasOrganizationExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "description"),
+					resource.TestCheckResourceAttr(resourceName, "description", description),
+					resource.TestCheckResourceAttr(resourceName, "api_access_list_required", "false"),
+					resource.TestCheckResourceAttr(resourceName, "multi_factor_auth_required", "true"),
+					resource.TestCheckResourceAttr(resourceName, "restrict_employee_access", "false"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckMongoDBAtlasOrganizationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -146,4 +196,17 @@ func testAccMongoDBAtlasOrganizationConfigBasic(orgOwnerID, name, description, r
 		role_names = ["%s"]
 	  }
 	`, orgOwnerID, name, description, roleNames)
+}
+
+func testAccMongoDBAtlasOrganizationConfigWithSettings(orgOwnerID, name, description, roleNames, settingsConfig string) string {
+	return fmt.Sprintf(`
+	  resource "mongodbatlas_organization" "test" {
+		org_owner_id = "%s"
+		name = "%s"
+		description = "%s"
+		role_names = ["%s"]
+
+		%s
+	  }
+	`, orgOwnerID, name, description, roleNames, settingsConfig)
 }
