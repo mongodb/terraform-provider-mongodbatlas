@@ -124,5 +124,5 @@ scaffold:
 # details on usage can be found in CONTRIBUTING.md under "Scaffolding Schema and Model Definitions"
 .PHONY: scaffold-schemas
 scaffold-schemas:
-	@tools/scaffold/scripts/schema-scaffold.sh $(name)
+	@scripts/schema-scaffold.sh $(name)
 
