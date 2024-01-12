@@ -365,6 +365,8 @@ Note: if the resulting file paths already exist the content will be stored in fi
 We autogenerate the documentation of our provider resources and data sources via [tfplugindocs](https://github.com/hashicorp/terraform-plugin-docs).
 
 #### How to generate the documentation for a resource
+- Make sure that the resource and data source schemas have defined the fields `MarkdownDescription` and `Description`.
+  - We recommend to use [Scaffolding Schema and Model Definitions](#scaffolding-schema-and-model-definitions) to autogenerate the schema via the Open API specification.
 - Add the resource/data source templates to the [templates](templates) folder. See [README.md](templates/README.md) for more info.
 - Run the Makefile command `generate-doc`
 ```bash
