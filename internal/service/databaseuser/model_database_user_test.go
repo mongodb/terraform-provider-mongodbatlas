@@ -69,9 +69,9 @@ var (
 		OidcAuthType: &oidCAuthType,
 		LdapAuthType: &ldapAuthType,
 		AwsIAMType:   &awsIAMType,
-		Roles:        []admin.DatabaseUserRole{sdkRole},
-		Labels:       []admin.ComponentLabel{sdkLabel},
-		Scopes:       []admin.UserScope{sdkScope},
+		Roles:        &[]admin.DatabaseUserRole{sdkRole},
+		Labels:       &[]admin.ComponentLabel{sdkLabel},
+		Scopes:       &[]admin.UserScope{sdkScope},
 	}
 )
 

@@ -43,7 +43,7 @@ func NewNotificationList(tfNotificationSlice []TfNotificationModel) ([]admin.Ale
 			Username:                 n.Username.ValueStringPointer(),
 			VictorOpsApiKey:          n.VictorOpsAPIKey.ValueStringPointer(),
 			VictorOpsRoutingKey:      n.VictorOpsRoutingKey.ValueStringPointer(),
-			Roles:                    n.Roles,
+			Roles:                    conversion.NonEmptySliceToPtrSlice(n.Roles),
 			MicrosoftTeamsWebhookUrl: n.MicrosoftTeamsWebhookURL.ValueStringPointer(),
 			WebhookSecret:            n.WebhookSecret.ValueStringPointer(),
 			WebhookUrl:               n.WebhookURL.ValueStringPointer(),
@@ -108,8 +108,8 @@ func NewTFAlertConfigurationModel(apiRespConfig *admin.GroupAlertsConfig, currSt
 		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
 		MetricThresholdConfig: NewTFMetricThresholdConfigModel(apiRespConfig.MetricThreshold, currState.MetricThresholdConfig),
 		ThresholdConfig:       NewTFThresholdConfigModel(apiRespConfig.Threshold, currState.ThresholdConfig),
-		Notification:          NewTFNotificationModelList(apiRespConfig.Notifications, currState.Notification),
-		Matcher:               NewTFMatcherModelList(apiRespConfig.Matchers, currState.Matcher),
+		Notification:          NewTFNotificationModelList(conversion.SlicePtrToSlice(apiRespConfig.Notifications), currState.Notification),
+		Matcher:               NewTFMatcherModelList(conversion.SlicePtrToSlice(apiRespConfig.Matchers), currState.Matcher),
 	}
 }
 
@@ -121,7 +121,7 @@ func NewTFNotificationModelList(n []admin.AlertsNotificationRootForGroup, currSt
 			value := n[i]
 			notifications[i] = TfNotificationModel{
 				TeamName:       conversion.StringPtrNullIfEmpty(value.TeamName),
-				Roles:          value.Roles,
+				Roles:          conversion.SlicePtrToSlice(value.Roles),
 				ChannelName:    conversion.StringPtrNullIfEmpty(value.ChannelName),
 				DatadogRegion:  conversion.StringPtrNullIfEmpty(value.DatadogRegion),
 				DelayMin:       types.Int64PointerValue(conversion.IntPtrToInt64Ptr(value.DelayMin)),
@@ -145,7 +145,7 @@ func NewTFNotificationModelList(n []admin.AlertsNotificationRootForGroup, currSt
 		currState := currStateNotifications[i]
 		newState := TfNotificationModel{
 			TeamName: conversion.StringPtrNullIfEmpty(value.TeamName),
-			Roles:    value.Roles,
+			Roles:    conversion.SlicePtrToSlice(value.Roles),
 			// sentive attributes do not use value returned from API
 			APIToken:                 conversion.StringNullIfEmpty(currState.APIToken.ValueString()),
 			DatadogAPIKey:            conversion.StringNullIfEmpty(currState.DatadogAPIKey.ValueString()),
@@ -303,8 +303,8 @@ func NewTfAlertConfigurationDSModel(apiRespConfig *admin.GroupAlertsConfig, proj
 		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
 		MetricThresholdConfig: NewTFMetricThresholdConfigModel(apiRespConfig.MetricThreshold, []TfMetricThresholdConfigModel{}),
 		ThresholdConfig:       NewTFThresholdConfigModel(apiRespConfig.Threshold, []TfThresholdConfigModel{}),
-		Notification:          NewTFNotificationModelList(apiRespConfig.Notifications, []TfNotificationModel{}),
-		Matcher:               NewTFMatcherModelList(apiRespConfig.Matchers, []TfMatcherModel{}),
+		Notification:          NewTFNotificationModelList(conversion.SlicePtrToSlice(apiRespConfig.Notifications), []TfNotificationModel{}),
+		Matcher:               NewTFMatcherModelList(conversion.SlicePtrToSlice(apiRespConfig.Matchers), []TfMatcherModel{}),
 	}
 }
 

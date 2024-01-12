@@ -40,24 +40,24 @@ func NewMongoDBDatabaseUser(ctx context.Context, dbUserModel *TfDatabaseUserMode
 		OidcAuthType: dbUserModel.OIDCAuthType.ValueStringPointer(),
 		LdapAuthType: dbUserModel.LDAPAuthType.ValueStringPointer(),
 		DatabaseName: dbUserModel.AuthDatabaseName.ValueString(),
-		Roles:        NewMongoDBAtlasRoles(rolesModel),
-		Labels:       NewMongoDBAtlasLabels(labelsModel),
-		Scopes:       NewMongoDBAtlasScopes(scopesModel),
+		Roles:        conversion.NonEmptySliceToPtrSlice(NewMongoDBAtlasRoles(rolesModel)),
+		Labels:       conversion.NonEmptySliceToPtrSlice(NewMongoDBAtlasLabels(labelsModel)),
+		Scopes:       conversion.NonEmptySliceToPtrSlice(NewMongoDBAtlasScopes(scopesModel)),
 	}, nil
 }
 
 func NewTfDatabaseUserModel(ctx context.Context, model *TfDatabaseUserModel, dbUser *admin.CloudDatabaseUser) (*TfDatabaseUserModel, diag.Diagnostics) {
-	rolesSet, diagnostic := types.SetValueFrom(ctx, RoleObjectType, NewTFRolesModel(dbUser.Roles))
+	rolesSet, diagnostic := types.SetValueFrom(ctx, RoleObjectType, NewTFRolesModel(conversion.SlicePtrToSlice(dbUser.Roles)))
 	if diagnostic.HasError() {
 		return nil, diagnostic
 	}
 
-	labelsSet, diagnostic := types.SetValueFrom(ctx, LabelObjectType, NewTFLabelsModel(dbUser.Labels))
+	labelsSet, diagnostic := types.SetValueFrom(ctx, LabelObjectType, NewTFLabelsModel(conversion.SlicePtrToSlice(dbUser.Labels)))
 	if diagnostic.HasError() {
 		return nil, diagnostic
 	}
 
-	scopesSet, diagnostic := types.SetValueFrom(ctx, ScopeObjectType, NewTFScopesModel(dbUser.Scopes))
+	scopesSet, diagnostic := types.SetValueFrom(ctx, ScopeObjectType, NewTFScopesModel(conversion.SlicePtrToSlice(dbUser.Scopes)))
 	if diagnostic.HasError() {
 		return nil, diagnostic
 	}
@@ -102,9 +102,9 @@ func NewTFDatabaseDSUserModel(ctx context.Context, dbUser *admin.CloudDatabaseUs
 		OIDCAuthType:     types.StringValue(dbUser.GetOidcAuthType()),
 		LDAPAuthType:     types.StringValue(dbUser.GetLdapAuthType()),
 		AWSIAMType:       types.StringValue(dbUser.GetAwsIAMType()),
-		Roles:            NewTFRolesModel(dbUser.Roles),
-		Labels:           NewTFLabelsModel(dbUser.Labels),
-		Scopes:           NewTFScopesModel(dbUser.Scopes),
+		Roles:            NewTFRolesModel(conversion.SlicePtrToSlice(dbUser.Roles)),
+		Labels:           NewTFLabelsModel(conversion.SlicePtrToSlice(dbUser.Labels)),
+		Scopes:           NewTFScopesModel(conversion.SlicePtrToSlice(dbUser.Scopes)),
 	}
 
 	return databaseUserModel, nil

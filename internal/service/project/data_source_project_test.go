@@ -27,11 +27,11 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
-							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(1)),
-							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+							RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
 				)),
@@ -59,12 +59,12 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
-							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
 
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(1)),
-							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+							RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
 				)),
@@ -92,12 +92,12 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
-							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
 
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(1)),
-							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+							RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
 				)),

@@ -319,7 +319,7 @@ func outputAlertConfigurationResourceHcl(label string, alert *admin.GroupAlertsC
 		resource.SetAttributeValue("enabled", cty.BoolVal(*alert.Enabled))
 	}
 
-	for _, matcher := range alert.Matchers {
+	for _, matcher := range conversion.SlicePtrToSlice(alert.Matchers) {
 		appendBlockWithCtyValues(resource, "matcher", []string{}, convertMatcherToCtyValues(matcher))
 	}
 
@@ -331,8 +331,9 @@ func outputAlertConfigurationResourceHcl(label string, alert *admin.GroupAlertsC
 		appendBlockWithCtyValues(resource, "threshold_config", []string{}, convertThresholdToCtyValues(alert.Threshold))
 	}
 
-	for i := 0; i < len(alert.Notifications); i++ {
-		appendBlockWithCtyValues(resource, "notification", []string{}, convertNotificationToCtyValues(&alert.Notifications[i]))
+	notifications := conversion.SlicePtrToSlice(alert.Notifications)
+	for i := 0; i < len(notifications); i++ {
+		appendBlockWithCtyValues(resource, "notification", []string{}, convertNotificationToCtyValues(&notifications[i]))
 	}
 
 	return string(f.Bytes())
@@ -438,16 +439,14 @@ func convertNotificationToCtyValues(notification *admin.AlertsNotificationRootFo
 		values["sms_enabled"] = cty.BoolVal(*notification.SmsEnabled)
 	}
 
-	if len(notification.Roles) > 0 {
-		roles := make([]cty.Value, 0)
-
-		for _, r := range notification.Roles {
+	if roles := conversion.SlicePtrToSlice(notification.Roles); len(roles) > 0 {
+		roleList := make([]cty.Value, 0)
+		for _, r := range roles {
 			if r != "" {
-				roles = append(roles, cty.StringVal(r))
+				roleList = append(roleList, cty.StringVal(r))
 			}
 		}
-
-		values["roles"] = cty.TupleVal(roles)
+		values["roles"] = cty.TupleVal(roleList)
 	}
 
 	return values

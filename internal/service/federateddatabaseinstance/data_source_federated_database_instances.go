@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -146,8 +147,8 @@ func flattenFederatedDatabaseInstances(d *schema.ResourceData, projectID string,
 				"hostnames":             federatedDatabaseInstances[i].GetHostnames(),
 				"cloud_provider_config": flattenCloudProviderConfig(d, federatedDatabaseInstances[i].CloudProviderConfig),
 				"data_process_region":   flattenDataProcessRegion(federatedDatabaseInstances[i].DataProcessRegion),
-				"storage_databases":     flattenDataFederationDatabase(federatedDatabaseInstances[i].Storage.Databases),
-				"storage_stores":        flattenDataFederationStores(federatedDatabaseInstances[i].Storage.Stores),
+				"storage_databases":     flattenDataFederationDatabase(conversion.SlicePtrToSlice(federatedDatabaseInstances[i].Storage.Databases)),
+				"storage_stores":        flattenDataFederationStores(conversion.SlicePtrToSlice(federatedDatabaseInstances[i].Storage.Stores)),
 			}
 		}
 	}
