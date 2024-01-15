@@ -71,15 +71,18 @@ func TestMongoDBRegionToAWSRegion(t *testing.T) {
 
 func TestSlice_SameBehavior(t *testing.T) {
 	tests := []struct {
+		name  string
 		ptr   *[]string
 		slice []string
 	}{
-		{nil, nil},
-		{&[]string{"hello", "there"}, []string{"hello", "there"}},
+		{"nil pointer and slice", nil, nil},
+		{"slice with content", &[]string{"hello", "there"}, []string{"hello", "there"}},
 	}
-	for _, test := range tests {
-		assert.Equal(t, test.slice, conversion.SlicePtrToSlice(test.ptr))
-		assert.Equal(t, test.ptr, conversion.NonEmptySliceToSlicePtr(test.slice))
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.slice, conversion.SlicePtrToSlice(tc.ptr))
+			assert.Equal(t, tc.ptr, conversion.NonEmptySliceToSlicePtr(tc.slice))
+		})
 	}
 }
 
