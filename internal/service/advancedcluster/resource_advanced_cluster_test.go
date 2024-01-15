@@ -1051,7 +1051,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
         instance_size = "M10"
         node_count    = 1
       }
-      provider_name = "aws"
+      provider_name = "AWS"
       priority      = 7
       region_name   = "US_EAST_1"
     }

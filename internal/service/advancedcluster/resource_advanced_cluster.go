@@ -12,6 +12,9 @@ import (
 	"strings"
 	"time"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"golang.org/x/exp/slices"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -21,8 +24,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
-	"golang.org/x/exp/slices"
 )
 
 type acCtxKey string
@@ -259,9 +260,8 @@ func Resource() *schema.Resource {
 										Required: true,
 									},
 									"provider_name": {
-										Type:      schema.TypeString,
-										Required:  true,
-										StateFunc: FormatProviderName,
+										Type:     schema.TypeString,
+										Required: true,
 									},
 									"read_only_specs": advancedClusterRegionConfigsSpecsSchema(),
 									"region_name": {
