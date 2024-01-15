@@ -367,7 +367,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
-	providerName := strings.ToUpper(d.Get("provider_name").(string))
+	providerName := d.Get("provider_name").(string)
 
 	computeEnabled := d.Get("auto_scaling_compute_enabled").(bool)
 	scaleDownEnabled := d.Get("auto_scaling_compute_scale_down_enabled").(bool)
@@ -1081,7 +1081,7 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 		instanceSize       = getInstanceSizeToInt(d.Get("provider_instance_size_name").(string))
 		compute            *matlas.Compute
 		autoScalingEnabled = d.Get("auto_scaling_compute_enabled").(bool)
-		providerName       = strings.ToUpper(cast.ToString(d.Get("provider_name")))
+		providerName       = cast.ToString(d.Get("provider_name"))
 	)
 
 	if minInstanceSize != 0 && autoScalingEnabled {
