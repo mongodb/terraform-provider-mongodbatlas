@@ -768,7 +768,7 @@ func ResourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID
 			return dependents, projectDependentsStateIdle, nil
 		}
 
-		results := conversion.SlicePtrToSlice(dependents.AdvancedClusters.Results)
+		results := dependents.AdvancedClusters.GetResults()
 		for i := range results {
 			if *results[i].StateName != projectDependentsStateDeleting {
 				return dependents, projectDependentsStateIdle, nil

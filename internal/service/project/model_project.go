@@ -32,7 +32,7 @@ func NewTFTeamsDataSourceModel(ctx context.Context, atlasTeams *admin.PaginatedT
 	if atlasTeams.GetTotalCount() == 0 {
 		return nil
 	}
-	results := conversion.SlicePtrToSlice(atlasTeams.Results)
+	results := atlasTeams.GetResults()
 	teams := make([]*TfTeamDSModel, len(results))
 	for i, atlasTeam := range results {
 		roleNames, _ := types.ListValueFrom(ctx, types.StringType, atlasTeam.RoleNames)
@@ -103,7 +103,7 @@ func newTFLimitsResourceModel(ctx context.Context, dataFederationLimits []admin.
 }
 
 func newTFTeamsResourceModel(ctx context.Context, atlasTeams *admin.PaginatedTeamRole) types.Set {
-	results := conversion.SlicePtrToSlice(atlasTeams.Results)
+	results := atlasTeams.GetResults()
 	teams := make([]TfTeamModel, len(results))
 	for i, atlasTeam := range results {
 		roleNames, _ := types.SetValueFrom(ctx, types.StringType, atlasTeam.RoleNames)

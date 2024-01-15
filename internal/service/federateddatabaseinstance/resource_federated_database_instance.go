@@ -496,7 +496,7 @@ func resourceMongoDBAtlasFederatedDatabaseInstanceImportState(ctx context.Contex
 
 	if storage, ok := dataFederationInstance.GetStorageOk(); ok {
 		if databases, ok := storage.GetDatabasesOk(); ok {
-			if storageDatabaseField := flattenDataFederationDatabase(conversion.SlicePtrToSlice(databases)); storageDatabaseField != nil {
+			if storageDatabaseField := flattenDataFederationDatabase(*databases); storageDatabaseField != nil {
 				if err := d.Set("storage_databases", storageDatabaseField); err != nil {
 					return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "storage_databases", name, err)
 				}
@@ -504,7 +504,7 @@ func resourceMongoDBAtlasFederatedDatabaseInstanceImportState(ctx context.Contex
 		}
 
 		if stores, ok := storage.GetStoresOk(); ok {
-			if err := d.Set("storage_stores", flattenDataFederationStores(conversion.SlicePtrToSlice(stores))); err != nil {
+			if err := d.Set("storage_stores", flattenDataFederationStores(*stores)); err != nil {
 				return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "storage_stores", name, err)
 			}
 		}
@@ -777,8 +777,8 @@ func flattenDataFederationDatabase(atlasDatabases []admin.DataLakeDatabaseInstan
 		dbs[i] = map[string]any{
 			"name":                     atlasDatabase.GetName(),
 			"max_wildcard_collections": atlasDatabase.GetMaxWildcardCollections(),
-			"collections":              flattenDataFederationCollections(conversion.SlicePtrToSlice(atlasDatabase.Collections)),
-			"views":                    flattenDataFederationDatabaseViews(conversion.SlicePtrToSlice(atlasDatabase.Views)),
+			"collections":              flattenDataFederationCollections(atlasDatabase.GetCollections()),
+			"views":                    flattenDataFederationDatabaseViews(atlasDatabase.GetViews()),
 		}
 	}
 
@@ -805,7 +805,7 @@ func flattenDataFederationCollections(atlasCollections []admin.DataLakeDatabaseC
 	for i, atlasCollection := range atlasCollections {
 		colls[i] = map[string]any{
 			"name":         atlasCollection.GetName(),
-			"data_sources": flattenDataFederationDataSources(conversion.SlicePtrToSlice(atlasCollection.DataSources)),
+			"data_sources": flattenDataFederationDataSources(atlasCollection.GetDataSources()),
 		}
 	}
 
@@ -869,7 +869,7 @@ func newReadPreferenceField(atlasReadPreference *admin.DataLakeAtlasStoreReadPre
 		{
 			"mode":                  atlasReadPreference.GetMode(),
 			"max_staleness_seconds": atlasReadPreference.GetMaxStalenessSeconds(),
-			"tag_sets":              flattenReadPreferenceTagSets(conversion.SlicePtrToSlice(atlasReadPreference.TagSets)),
+			"tag_sets":              flattenReadPreferenceTagSets(atlasReadPreference.GetTagSets()),
 		},
 	}
 }

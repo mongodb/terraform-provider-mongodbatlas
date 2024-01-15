@@ -69,33 +69,24 @@ func TestMongoDBRegionToAWSRegion(t *testing.T) {
 	}
 }
 
-func TestSlice_SameBehavior(t *testing.T) {
-	tests := []struct {
-		name  string
-		ptr   *[]string
-		slice []string
-	}{
-		{"nil pointer and slice", nil, nil},
-		{"slice with content", &[]string{"hello", "there"}, []string{"hello", "there"}},
-	}
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.slice, conversion.SlicePtrToSlice(tc.ptr))
-			assert.Equal(t, tc.ptr, conversion.NonEmptySliceToSlicePtr(tc.slice))
-		})
-	}
-}
-
-func TestSlice_DifferentBehavior(t *testing.T) {
+func TestNonEmptySliceToSlicePtr(t *testing.T) {
 	var (
 		nilSlice         []string
 		emptyNonNilSlice = []string{}
 	)
-	assert.Nil(t, conversion.SlicePtrToSlice(&nilSlice))
-	assert.NotEqual(t, &nilSlice, conversion.NonEmptySliceToSlicePtr[string](nil))
-	assert.Nil(t, conversion.NonEmptySliceToSlicePtr[string](nil))
-
-	assert.Equal(t, emptyNonNilSlice, conversion.SlicePtrToSlice(&emptyNonNilSlice))
-	assert.NotNil(t, conversion.SlicePtrToSlice(&emptyNonNilSlice))
-	assert.Nil(t, conversion.NonEmptySliceToSlicePtr(emptyNonNilSlice))
+	tests := []struct {
+		name     string
+		expected *[]string
+		given    []string
+	}{
+		{"nil pointer", nil, nil},
+		{"nil slice", nil, nilSlice},
+		{"empty non-nil slice", nil, emptyNonNilSlice},
+		{"slice with content", &[]string{"hello", "there"}, []string{"hello", "there"}},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, conversion.NonEmptySliceToSlicePtr(tc.given))
+		})
+	}
 }

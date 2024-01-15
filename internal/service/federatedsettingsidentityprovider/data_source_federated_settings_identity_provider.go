@@ -242,7 +242,7 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Con
 		return diag.FromErr(fmt.Errorf("error setting `associated_domains` for federatedSettings IdentityProviders: %s", err))
 	}
 
-	if err := d.Set("associated_orgs", FlattenAssociatedOrgs(conversion.SlicePtrToSlice(federatedSettingsIdentityProvider.AssociatedOrgs))); err != nil {
+	if err := d.Set("associated_orgs", FlattenAssociatedOrgs(federatedSettingsIdentityProvider.GetAssociatedOrgs())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `associated_orgs` for federatedSettings IdentityProviders: %s", err))
 	}
 

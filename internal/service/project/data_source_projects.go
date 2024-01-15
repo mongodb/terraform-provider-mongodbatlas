@@ -170,7 +170,7 @@ func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 }
 
 func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClient, stateModel *tfProjectsDSModel, projectsRes *admin.PaginatedAtlasGroup) error {
-	input := conversion.SlicePtrToSlice(projectsRes.Results)
+	input := projectsRes.GetResults()
 	results := make([]*TfProjectDSModel, 0, len(input))
 	for i := range input {
 		project := input[i]

@@ -39,7 +39,7 @@ func NewTFSearchDeployment(ctx context.Context, clusterName string, deployResp *
 		result.Timeouts = *timeout
 	}
 
-	specsList, diagnostics := types.ListValueFrom(ctx, SpecObjectType, newTFSpecsModel(conversion.SlicePtrToSlice(deployResp.Specs)))
+	specsList, diagnostics := types.ListValueFrom(ctx, SpecObjectType, newTFSpecsModel(deployResp.GetSpecs()))
 	if diagnostics.HasError() {
 		return nil, diagnostics
 	}
