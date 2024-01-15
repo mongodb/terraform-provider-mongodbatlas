@@ -440,7 +440,7 @@ func convertNotificationToCtyValues(notification *admin.AlertsNotificationRootFo
 	}
 
 	if roles := notification.GetRoles(); len(roles) > 0 {
-		roleList := make([]cty.Value, 0)
+		roleList := make([]cty.Value, 0, len(roles))
 		for _, r := range roles {
 			if r != "" {
 				roleList = append(roleList, cty.StringVal(r))
