@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTimeToStringWithoutNanos(t *testing.T) {
@@ -66,4 +67,32 @@ func TestMongoDBRegionToAWSRegion(t *testing.T) {
 			t.Errorf("MongoDBRegionToAWSRegion(%v) = %v; want %v", test.region, resp, test.expected)
 		}
 	}
+}
+
+func TestSlice_SameBehavior(t *testing.T) {
+	tests := []struct {
+		ptr   *[]string
+		slice []string
+	}{
+		{nil, nil},
+		{&[]string{"hello", "there"}, []string{"hello", "there"}},
+	}
+	for _, test := range tests {
+		assert.Equal(t, test.slice, conversion.SlicePtrToSlice(test.ptr))
+		assert.Equal(t, test.ptr, conversion.NonEmptySliceToSlicePtr(test.slice))
+	}
+}
+
+func TestSlice_DifferentBehavior(t *testing.T) {
+	var (
+		nilSlice         []string
+		emptyNonNilSlice = []string{}
+	)
+	assert.Nil(t, conversion.SlicePtrToSlice(&nilSlice))
+	assert.NotEqual(t, &nilSlice, conversion.NonEmptySliceToSlicePtr[string](nil))
+	assert.Nil(t, conversion.NonEmptySliceToSlicePtr[string](nil))
+
+	assert.Equal(t, emptyNonNilSlice, conversion.SlicePtrToSlice(&emptyNonNilSlice))
+	assert.NotNil(t, conversion.SlicePtrToSlice(&emptyNonNilSlice))
+	assert.Nil(t, conversion.NonEmptySliceToSlicePtr(emptyNonNilSlice))
 }
