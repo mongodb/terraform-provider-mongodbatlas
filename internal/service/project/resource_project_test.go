@@ -18,7 +18,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mocksvc"
 	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
 var (
@@ -433,7 +433,7 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 			mockResponses: AdvancedClusterDescriptionResponse{
 				AdvancedClusterDescription: &admin.PaginatedAdvancedClusterDescription{
 					TotalCount: conversion.IntPtr(2),
-					Results: []admin.AdvancedClusterDescription{
+					Results: &[]admin.AdvancedClusterDescription{
 						{StateName: conversion.StringPtr("IDLE")},
 						{StateName: conversion.StringPtr("DELETING")},
 					},
@@ -477,11 +477,11 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
-							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(1)),
-							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+							RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
 				),
@@ -499,15 +499,15 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
-							RoleNames: []string{"GROUP_OWNER"},
+							RoleNames: &[]string{"GROUP_OWNER"},
 						},
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(1)),
-							RoleNames: []string{"GROUP_DATA_ACCESS_READ_WRITE"},
+							RoleNames: &[]string{"GROUP_DATA_ACCESS_READ_WRITE"},
 						},
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(2)),
-							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 					},
 				),
@@ -526,11 +526,11 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
-							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_READ_ONLY"},
+							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_READ_ONLY"},
 						},
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(1)),
-							RoleNames: []string{"GROUP_OWNER", "GROUP_DATA_ACCESS_ADMIN"},
+							RoleNames: &[]string{"GROUP_OWNER", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 					},
 				),

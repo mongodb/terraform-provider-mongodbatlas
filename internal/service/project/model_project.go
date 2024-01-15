@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
 func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group,
@@ -32,11 +32,10 @@ func NewTFTeamsDataSourceModel(ctx context.Context, atlasTeams *admin.PaginatedT
 	if atlasTeams.GetTotalCount() == 0 {
 		return nil
 	}
-	teams := make([]*TfTeamDSModel, len(atlasTeams.Results))
-
-	for i, atlasTeam := range atlasTeams.Results {
+	results := atlasTeams.GetResults()
+	teams := make([]*TfTeamDSModel, len(results))
+	for i, atlasTeam := range results {
 		roleNames, _ := types.ListValueFrom(ctx, types.StringType, atlasTeam.RoleNames)
-
 		teams[i] = &TfTeamDSModel{
 			TeamID:    types.StringValue(atlasTeam.GetTeamId()),
 			RoleNames: roleNames,
@@ -104,11 +103,10 @@ func newTFLimitsResourceModel(ctx context.Context, dataFederationLimits []admin.
 }
 
 func newTFTeamsResourceModel(ctx context.Context, atlasTeams *admin.PaginatedTeamRole) types.Set {
-	teams := make([]TfTeamModel, len(atlasTeams.Results))
-
-	for i, atlasTeam := range atlasTeams.Results {
+	results := atlasTeams.GetResults()
+	teams := make([]TfTeamModel, len(results))
+	for i, atlasTeam := range results {
 		roleNames, _ := types.SetValueFrom(ctx, types.StringType, atlasTeam.RoleNames)
-
 		teams[i] = TfTeamModel{
 			TeamID:    types.StringValue(atlasTeam.GetTeamId()),
 			RoleNames: roleNames,
@@ -125,7 +123,7 @@ func NewTeamRoleList(ctx context.Context, teams []TfTeamModel) *[]admin.TeamRole
 	for i, team := range teams {
 		res[i] = admin.TeamRole{
 			TeamId:    team.TeamID.ValueStringPointer(),
-			RoleNames: conversion.TypesSetToString(ctx, team.RoleNames),
+			RoleNames: conversion.NonEmptyToPtr(conversion.TypesSetToString(ctx, team.RoleNames)),
 		}
 	}
 	return &res

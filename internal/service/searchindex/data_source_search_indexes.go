@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -111,7 +111,7 @@ func flattenSearchIndexes(searchIndexes []admin.ClusterSearchIndex, projectID, c
 			"name":            searchIndexes[i].Name,
 			"search_analyzer": searchIndexes[i].SearchAnalyzer,
 			"status":          searchIndexes[i].Status,
-			"synonyms":        flattenSearchIndexSynonyms(searchIndexes[i].Synonyms),
+			"synonyms":        flattenSearchIndexSynonyms(searchIndexes[i].GetSynonyms()),
 			"type":            searchIndexes[i].Type,
 		}
 
@@ -127,20 +127,20 @@ func flattenSearchIndexes(searchIndexes []admin.ClusterSearchIndex, projectID, c
 			}
 		}
 
-		if len(searchIndexes[i].Analyzers) > 0 {
-			searchIndexAnalyzers, err := marshalSearchIndex(searchIndexes[i].Analyzers)
+		if analyzers := searchIndexes[i].GetAnalyzers(); len(analyzers) > 0 {
+			searchIndexAnalyzers, err := marshalSearchIndex(analyzers)
 			if err != nil {
 				return nil, err
 			}
 			searchIndexesMap[i]["analyzers"] = searchIndexAnalyzers
 		}
 
-		if len(searchIndexes[i].Fields) > 0 {
-			fields, err := marshalSearchIndex(searchIndexes[i].Fields)
+		if fields := searchIndexes[i].GetFields(); len(fields) > 0 {
+			fieldsMarshaled, err := marshalSearchIndex(fields)
 			if err != nil {
 				return nil, err
 			}
-			searchIndexesMap[i]["fields"] = fields
+			searchIndexesMap[i]["fields"] = fieldsMarshaled
 		}
 	}
 

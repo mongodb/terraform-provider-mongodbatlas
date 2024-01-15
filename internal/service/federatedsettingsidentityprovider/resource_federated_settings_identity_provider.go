@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"regexp"
 
-	oldAdmin "go.mongodb.org/atlas-sdk/v20231001002/admin"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	admin20231001002 "go.mongodb.org/atlas-sdk/v20231001002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -154,8 +154,9 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 }
 
 func oldSDKRead(federationSettingsID, oktaIdpID string, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connOldV2 := meta.(*config.MongoDBClient).OldAtlasV2
-	federatedSettingsIdentityProvider, resp, err := connOldV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID).Execute()
+	conn20231001002 := meta.(*config.MongoDBClient).Atlas20231001002
+
+	federatedSettingsIdentityProvider, resp, err := conn20231001002.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID).Execute()
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -237,7 +238,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate(ctx context.Con
 
 	if d.HasChange("associated_domains") {
 		associatedDomains := d.Get("associated_domains")
-		updateRequest.AssociatedDomains = cast.ToStringSlice(associatedDomains)
+		updateRequest.AssociatedDomains = conversion.NonEmptyToPtr(cast.ToStringSlice(associatedDomains))
 	}
 
 	if d.HasChange("name") {
@@ -281,9 +282,9 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate(ctx context.Con
 }
 
 func oldSDKUpdate(ctx context.Context, federationSettingsID, oktaIdpID string, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connOldV2 := meta.(*config.MongoDBClient).OldAtlasV2
-	var updateRequest *oldAdmin.SamlIdentityProviderUpdate
-	_, _, err := connOldV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID).Execute()
+	conn20231001002 := meta.(*config.MongoDBClient).Atlas20231001002
+	var updateRequest *admin20231001002.SamlIdentityProviderUpdate
+	_, _, err := conn20231001002.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error retreiving federation settings identity provider (%s): %s", federationSettingsID, err))
@@ -331,7 +332,7 @@ func oldSDKUpdate(ctx context.Context, federationSettingsID, oktaIdpID string, d
 
 	updateRequest.PemFileInfo = nil
 
-	_, _, err = connOldV2.FederatedAuthenticationApi.UpdateIdentityProvider(ctx, federationSettingsID, oktaIdpID, updateRequest).Execute()
+	_, _, err = conn20231001002.FederatedAuthenticationApi.UpdateIdentityProvider(ctx, federationSettingsID, oktaIdpID, updateRequest).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating federation settings identity provider (%s): %s", federationSettingsID, err))
 	}
@@ -345,7 +346,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderDelete(ctx context.Con
 }
 
 func resourceMongoDBAtlasFederatedSettingsIdentityProviderImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	conn20231001002 := meta.(*config.MongoDBClient).Atlas20231001002
 	federationSettingsID, oktaIdpID, err := splitFederatedSettingsIdentityProviderImportID(d.Id())
 	if err != nil {
 		return nil, err
@@ -356,7 +357,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderImportState(ctx contex
 		return oldSDKImport(federationSettingsID, oktaIdpID, d, meta)
 	}
 
-	federatedSettingsIdentityProvider, _, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), *federationSettingsID, *oktaIdpID).Execute()
+	federatedSettingsIdentityProvider, _, err := conn20231001002.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), *federationSettingsID, *oktaIdpID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import Organization config (%s) in Federation settings (%s), error: %s", *oktaIdpID, *federationSettingsID, err)
 	}
@@ -402,8 +403,8 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderImportState(ctx contex
 }
 
 func oldSDKImport(federationSettingsID, oktaIdpID *string, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	connOldV2 := meta.(*config.MongoDBClient).OldAtlasV2
-	federatedSettingsIdentityProvider, _, err := connOldV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), *federationSettingsID, *oktaIdpID).Execute()
+	conn20231001002 := meta.(*config.MongoDBClient).Atlas20231001002
+	federatedSettingsIdentityProvider, _, err := conn20231001002.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), *federationSettingsID, *oktaIdpID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import Organization config (%s) in Federation settings (%s), error: %s", *oktaIdpID, *federationSettingsID, err)
 	}

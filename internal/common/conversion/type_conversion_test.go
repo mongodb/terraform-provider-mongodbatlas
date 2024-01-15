@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTimeToStringWithoutNanos(t *testing.T) {
@@ -65,5 +66,27 @@ func TestMongoDBRegionToAWSRegion(t *testing.T) {
 		if resp := conversion.MongoDBRegionToAWSRegion(test.region); resp != test.expected {
 			t.Errorf("MongoDBRegionToAWSRegion(%v) = %v; want %v", test.region, resp, test.expected)
 		}
+	}
+}
+
+func TestNonEmptyToPtr(t *testing.T) {
+	var (
+		nilSlice         []string
+		emptyNonNilSlice = []string{}
+	)
+	tests := []struct {
+		name     string
+		expected *[]string
+		given    []string
+	}{
+		{"nil pointer", nil, nil},
+		{"nil slice", nil, nilSlice},
+		{"empty non-nil slice", nil, emptyNonNilSlice},
+		{"slice with content", &[]string{"hello", "there"}, []string{"hello", "there"}},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, conversion.NonEmptyToPtr(tc.given))
+		})
 	}
 }
