@@ -19,6 +19,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -2557,4 +2558,134 @@ resource "mongodbatlas_cluster" "test" {
   provider_instance_size_name = "M30"
 }
 	`, orgID, projectName, name, backupEnabled, paused)
+}
+
+// TestIsMultiRegionCluster tests the isMultiRegionCluster function
+func TestIsMultiRegionCluster(t *testing.T) {
+	tests := []struct {
+		name     string
+		repSpecs []matlas.ReplicationSpec
+		want     bool
+	}{
+		{
+			name:     "No ReplicationSpecs",
+			repSpecs: []matlas.ReplicationSpec{},
+			want:     false,
+		},
+		{
+			name: "Single ReplicationSpec Single Region",
+			repSpecs: []matlas.ReplicationSpec{
+				{
+					RegionsConfig: map[string]matlas.RegionsConfig{
+						"region1": {},
+					},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "Single ReplicationSpec Multiple Regions",
+			repSpecs: []matlas.ReplicationSpec{
+				{
+					RegionsConfig: map[string]matlas.RegionsConfig{
+						"region1": {},
+						"region2": {},
+					},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "Multiple ReplicationSpecs",
+			repSpecs: []matlas.ReplicationSpec{
+				{
+					RegionsConfig: map[string]matlas.RegionsConfig{
+						"region1": {},
+					},
+				},
+				{
+					RegionsConfig: map[string]matlas.RegionsConfig{
+						"region2": {},
+					},
+				},
+			},
+			want: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if got := cluster.IsMultiRegionCluster(tt.repSpecs); got != tt.want {
+				t.Errorf("isMultiRegionCluster() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestValidateProviderRegionName tests the validateProviderRegionName function
+func TestValidateProviderRegionName(t *testing.T) {
+	tests := []struct {
+		name               string
+		clusterType        string
+		providerRegionName string
+		repSpecs           []matlas.ReplicationSpec
+		wantErr            bool
+	}{
+		{
+			name:               "Single Region with Provider Name",
+			clusterType:        "REPLICASET",
+			providerRegionName: "us-east-1",
+			repSpecs:           []matlas.ReplicationSpec{{RegionsConfig: map[string]matlas.RegionsConfig{"region1": {}}}},
+			wantErr:            false,
+		},
+		{
+			name:               "Single Region without Provider Name",
+			clusterType:        "REPLICASET",
+			providerRegionName: "",
+			repSpecs:           []matlas.ReplicationSpec{{RegionsConfig: map[string]matlas.RegionsConfig{"region1": {}}}},
+			wantErr:            false,
+		},
+		{
+			name:               "Multi Region with Provider Name",
+			clusterType:        "REPLICASET",
+			providerRegionName: "us-east-1",
+			repSpecs: []matlas.ReplicationSpec{
+				{RegionsConfig: map[string]matlas.RegionsConfig{"region1": {}, "region2": {}}},
+			},
+			wantErr: true,
+		},
+		{
+			name:               "Multi Region without Provider Name",
+			clusterType:        "REPLICASET",
+			providerRegionName: "",
+			repSpecs: []matlas.ReplicationSpec{
+				{RegionsConfig: map[string]matlas.RegionsConfig{"region1": {}, "region2": {}}},
+			},
+			wantErr: false,
+		},
+		{
+			name:               "Geosharded with Provider Name",
+			clusterType:        "GEOSHARDED",
+			providerRegionName: "us-east-1",
+			repSpecs:           []matlas.ReplicationSpec{{RegionsConfig: map[string]matlas.RegionsConfig{"region1": {}}}},
+			wantErr:            true,
+		},
+		{
+			name:               "Geosharded without Provider Name",
+			clusterType:        "GEOSHARDED",
+			providerRegionName: "",
+			repSpecs:           []matlas.ReplicationSpec{{RegionsConfig: map[string]matlas.RegionsConfig{"region1": {}}}},
+			wantErr:            false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := cluster.ValidateProviderRegionName(tt.clusterType, tt.providerRegionName, tt.repSpecs)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("validateProviderRegionName() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
 }

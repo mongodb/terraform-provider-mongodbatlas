@@ -465,7 +465,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	clusterType := cast.ToString(d.Get("cluster_type"))
-	err = validateProviderRegionName(clusterType, providerSettings.RegionName, replicationSpecs)
+	err = ValidateProviderRegionName(clusterType, providerSettings.RegionName, replicationSpecs)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterCreate, err))
 	}
@@ -819,7 +819,9 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if v, ok := d.GetOk("provider_region_name"); ok {
-		err = validateProviderRegionName(d.Get("cluster_type").(string), v.(string), replicationSpecs)
+		err = ValidateProviderRegionName(d.Get("cluster_type").(string), v.(string), replicationSpecs)
+		// we swallow the error here as the user may not always be able to 'unset' provider_region_name value in the state,
+		// We then ensure ProviderSettings.RegionName is not set in case of a multi-region cluster, refer https://jira.mongodb.org/browse/HELP-51429
 		if err != nil {
 			if cluster.ProviderSettings != nil {
 				cluster.ProviderSettings.RegionName = ""
@@ -982,7 +984,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	return resourceMongoDBAtlasClusterRead(ctx, d, meta)
 }
 
-func isMultiRegionCluster(repSpecs []matlas.ReplicationSpec) bool {
+func IsMultiRegionCluster(repSpecs []matlas.ReplicationSpec) bool {
 	if len(repSpecs) > 1 {
 		return true
 	}
@@ -995,8 +997,8 @@ func isMultiRegionCluster(repSpecs []matlas.ReplicationSpec) bool {
 	return false
 }
 
-func validateProviderRegionName(clusterType, providerRegionName string, repSpecs []matlas.ReplicationSpec) error {
-	if conversion.IsStringPresent(&providerRegionName) && (clusterType == "GEOSHARDED" || isMultiRegionCluster(repSpecs)) {
+func ValidateProviderRegionName(clusterType, providerRegionName string, repSpecs []matlas.ReplicationSpec) error {
+	if conversion.IsStringPresent(&providerRegionName) && (clusterType == "GEOSHARDED" || IsMultiRegionCluster(repSpecs)) {
 		return fmt.Errorf("provider_region_name attribute must be set ONLY for single-region clusters")
 	}
 
