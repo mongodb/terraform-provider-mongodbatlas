@@ -78,7 +78,7 @@ func TestAccClusterRSCluster_basicAWS_simple(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_basicAWS_WithLowecaseProviderName(t *testing.T) {
+func TestAccClusterRSCluster_basicAWS_withLowecaseProviderName(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acctest.RandomWithPrefix("test-acc")
