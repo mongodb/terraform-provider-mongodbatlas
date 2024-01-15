@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
@@ -112,7 +111,7 @@ func flattenSearchIndexes(searchIndexes []admin.ClusterSearchIndex, projectID, c
 			"name":            searchIndexes[i].Name,
 			"search_analyzer": searchIndexes[i].SearchAnalyzer,
 			"status":          searchIndexes[i].Status,
-			"synonyms":        flattenSearchIndexSynonyms(conversion.SlicePtrToSlice(searchIndexes[i].Synonyms)),
+			"synonyms":        flattenSearchIndexSynonyms(searchIndexes[i].GetSynonyms()),
 			"type":            searchIndexes[i].Type,
 		}
 
@@ -128,7 +127,7 @@ func flattenSearchIndexes(searchIndexes []admin.ClusterSearchIndex, projectID, c
 			}
 		}
 
-		if analyzers := conversion.SlicePtrToSlice(searchIndexes[i].Analyzers); len(analyzers) > 0 {
+		if analyzers := searchIndexes[i].GetAnalyzers(); len(analyzers) > 0 {
 			searchIndexAnalyzers, err := marshalSearchIndex(analyzers)
 			if err != nil {
 				return nil, err
@@ -136,7 +135,7 @@ func flattenSearchIndexes(searchIndexes []admin.ClusterSearchIndex, projectID, c
 			searchIndexesMap[i]["analyzers"] = searchIndexAnalyzers
 		}
 
-		if fields := conversion.SlicePtrToSlice(searchIndexes[i].Fields); len(fields) > 0 {
+		if fields := searchIndexes[i].GetFields(); len(fields) > 0 {
 			fieldsMarshaled, err := marshalSearchIndex(fields)
 			if err != nil {
 				return nil, err

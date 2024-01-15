@@ -13,7 +13,6 @@ import (
 	"github.com/mwielbut/pointy"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -110,11 +109,11 @@ func dataSourceMongoDBAtlasOrganizationsRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf("error getting organization information: %s", err))
 	}
 
-	if err := d.Set("results", flattenOrganizations(ctx, conn, conversion.SlicePtrToSlice(organizations.Results))); err != nil {
+	if err := d.Set("results", flattenOrganizations(ctx, conn, organizations.GetResults())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
 
-	if err := d.Set("total_count", organizations.TotalCount); err != nil {
+	if err := d.Set("total_count", organizations.GetTotalCount()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `total_count`: %s", err))
 	}
 
@@ -156,7 +155,7 @@ func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizati
 			"id":                         organization.Id,
 			"name":                       organization.Name,
 			"is_deleted":                 organization.IsDeleted,
-			"links":                      flattenOrganizationLinks(conversion.SlicePtrToSlice(organization.Links)),
+			"links":                      flattenOrganizationLinks(organization.GetLinks()),
 			"api_access_list_required":   settings.ApiAccessListRequired,
 			"multi_factor_auth_required": settings.MultiFactorAuthRequired,
 			"restrict_employee_access":   settings.RestrictEmployeeAccess,

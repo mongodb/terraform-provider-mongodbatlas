@@ -122,7 +122,7 @@ func newTFConnectionAuthenticationModel(ctx context.Context, currAuthConfig *typ
 func NewTFStreamConnections(ctx context.Context,
 	streamConnectionsConfig *TFStreamConnectionsDSModel,
 	paginatedResult *admin.PaginatedApiStreamsConnection) (*TFStreamConnectionsDSModel, diag.Diagnostics) {
-	input := conversion.SlicePtrToSlice(paginatedResult.Results)
+	input := paginatedResult.GetResults()
 	results := make([]TFStreamConnectionModel, len(input))
 	for i := range input {
 		projectID := streamConnectionsConfig.ProjectID.ValueString()

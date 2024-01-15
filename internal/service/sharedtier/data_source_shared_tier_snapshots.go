@@ -80,7 +80,7 @@ func dataSourceMongoDBAtlasSharedTierSnapshotsRead(ctx context.Context, d *schem
 		return diag.FromErr(fmt.Errorf("error getting shard-tier snapshots for cluster '%s': %w", clusterName, err))
 	}
 
-	if err := d.Set("results", flattenSharedTierSnapshots(conversion.SlicePtrToSlice(snapshots.Results))); err != nil {
+	if err := d.Set("results", flattenSharedTierSnapshots(snapshots.GetResults())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %w", err))
 	}
 

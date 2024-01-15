@@ -57,14 +57,7 @@ func MongoDBRegionToAWSRegion(region string) string {
 	return strings.ReplaceAll(strings.ToLower(region), "_", "-")
 }
 
-func SlicePtrToSlice[T any](v *[]T) []T {
-	if v == nil {
-		return nil
-	}
-	return *v
-}
-
-func NonEmptySliceToPtrSlice[T any](v []T) *[]T {
+func NonEmptySliceToSlicePtr[T any](v []T) *[]T {
 	if len(v) == 0 {
 		return nil
 	}

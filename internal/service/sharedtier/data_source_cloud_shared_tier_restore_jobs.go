@@ -97,7 +97,7 @@ func dataSourceMongoDBAtlasCloudSharedTierRestoreJobRead(ctx context.Context, d 
 		return diag.FromErr(fmt.Errorf("error getting shared tier restore jobs for cluster '%s': %w", clusterName, err))
 	}
 
-	if err := d.Set("results", flattenShardTierRestoreJobs(conversion.SlicePtrToSlice(jobs.Results))); err != nil {
+	if err := d.Set("results", flattenShardTierRestoreJobs(jobs.GetResults())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %w", err))
 	}
 
