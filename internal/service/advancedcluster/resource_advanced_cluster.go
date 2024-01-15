@@ -879,7 +879,7 @@ func expandRegionConfig(tfMap map[string]any) *matlas.AdvancedRegionConfig {
 		return nil
 	}
 
-	providerName := tfMap["provider_name"].(string)
+	providerName := strings.ToUpper(tfMap["provider_name"].(string))
 	apiObject := &matlas.AdvancedRegionConfig{
 		Priority:     pointy.Int(cast.ToInt(tfMap["priority"])),
 		ProviderName: providerName,
@@ -902,7 +902,7 @@ func expandRegionConfig(tfMap map[string]any) *matlas.AdvancedRegionConfig {
 		apiObject.AnalyticsAutoScaling = expandRegionConfigAutoScaling(v.([]any))
 	}
 	if v, ok := tfMap["backing_provider_name"]; ok {
-		apiObject.BackingProviderName = v.(string)
+		apiObject.BackingProviderName = strings.ToUpper(v.(string))
 	}
 
 	return apiObject
