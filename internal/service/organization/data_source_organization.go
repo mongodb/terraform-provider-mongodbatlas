@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -66,7 +65,7 @@ func dataSourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf("error setting `is_deleted`: %s", err))
 	}
 
-	if err := d.Set("links", flattenOrganizationLinks(conversion.SlicePtrToSlice(organization.Links))); err != nil {
+	if err := d.Set("links", flattenOrganizationLinks(organization.GetLinks())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `is_deleted`: %s", err))
 	}
 
