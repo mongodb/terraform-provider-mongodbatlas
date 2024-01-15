@@ -189,9 +189,9 @@ func newTFAtlasUserDSModel(user *admin.CloudAppUser) tfAtlasUserDSModel {
 		LastAuth:     types.StringPointerValue(conversion.TimePtrToStringPtr(user.LastAuth)),
 		LastName:     types.StringValue(user.LastName),
 		MobileNumber: types.StringValue(user.MobileNumber),
-		TeamIDs:      conversion.SlicePtrToSlice(user.TeamIds),
-		Links:        newTFLinksList(conversion.SlicePtrToSlice(user.Links)),
-		Roles:        newTFRolesList(conversion.SlicePtrToSlice(user.Roles)),
+		TeamIDs:      user.GetTeamIds(),
+		Links:        newTFLinksList(user.GetLinks()),
+		Roles:        newTFRolesList(user.GetRoles()),
 	}
 }
 

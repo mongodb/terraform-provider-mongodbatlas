@@ -380,7 +380,7 @@ func (r *alertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 	apiReq := &admin.GroupAlertsConfig{
 		EventTypeName:   alertConfigPlan.EventType.ValueStringPointer(),
 		Enabled:         alertConfigPlan.Enabled.ValueBoolPointer(),
-		Matchers:        conversion.NonEmptySliceToPtrSlice(NewMatcherList(alertConfigPlan.Matcher)),
+		Matchers:        conversion.NonEmptySliceToSlicePtr(NewMatcherList(alertConfigPlan.Matcher)),
 		MetricThreshold: NewMetricThreshold(alertConfigPlan.MetricThresholdConfig),
 		Threshold:       NewThreshold(alertConfigPlan.ThresholdConfig),
 	}
@@ -390,7 +390,7 @@ func (r *alertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 		resp.Diagnostics.AddError(errorCreateAlertConf, err.Error())
 		return
 	}
-	apiReq.Notifications = conversion.NonEmptySliceToPtrSlice(notifications)
+	apiReq.Notifications = conversion.NonEmptySliceToSlicePtr(notifications)
 
 	apiResp, _, err := connV2.AlertConfigurationsApi.CreateAlertConfiguration(ctx, projectID, apiReq).Execute()
 	if err != nil {
@@ -482,7 +482,7 @@ func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	if !reflect.DeepEqual(alertConfigPlan.Matcher, alertConfigState.Matcher) {
-		apiReq.Matchers = conversion.NonEmptySliceToPtrSlice(NewMatcherList(alertConfigPlan.Matcher))
+		apiReq.Matchers = conversion.NonEmptySliceToSlicePtr(NewMatcherList(alertConfigPlan.Matcher))
 	}
 
 	// Always refresh structure to handle service keys being obfuscated coming back from read API call
@@ -491,7 +491,7 @@ func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 		resp.Diagnostics.AddError(errorUpdateAlertConf, err.Error())
 		return
 	}
-	apiReq.Notifications = conversion.NonEmptySliceToPtrSlice(notifications)
+	apiReq.Notifications = conversion.NonEmptySliceToSlicePtr(notifications)
 
 	var updatedAlertConfigResp *admin.GroupAlertsConfig
 

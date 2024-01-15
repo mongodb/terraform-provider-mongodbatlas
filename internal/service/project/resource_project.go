@@ -675,7 +675,7 @@ func UpdateProjectTeams(ctx context.Context, client GroupProjectService, project
 
 		_, _, err := client.UpdateTeamRoles(ctx, projectID, teamID,
 			&admin.TeamRole{
-				RoleNames: conversion.NonEmptySliceToPtrSlice(conversion.TypesSetToString(ctx, team.RoleNames)),
+				RoleNames: conversion.NonEmptySliceToSlicePtr(conversion.TypesSetToString(ctx, team.RoleNames)),
 			},
 		)
 		if err != nil {
@@ -768,7 +768,7 @@ func ResourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID
 			return dependents, projectDependentsStateIdle, nil
 		}
 
-		results := conversion.SlicePtrToSlice(dependents.AdvancedClusters.Results)
+		results := dependents.AdvancedClusters.GetResults()
 		for i := range results {
 			if *results[i].StateName != projectDependentsStateDeleting {
 				return dependents, projectDependentsStateIdle, nil
