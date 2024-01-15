@@ -2560,7 +2560,6 @@ resource "mongodbatlas_cluster" "test" {
 	`, orgID, projectName, name, backupEnabled, paused)
 }
 
-// TestIsMultiRegionCluster tests the isMultiRegionCluster function
 func TestIsMultiRegionCluster(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -2623,7 +2622,6 @@ func TestIsMultiRegionCluster(t *testing.T) {
 	}
 }
 
-// TestValidateProviderRegionName tests the validateProviderRegionName function
 func TestValidateProviderRegionName(t *testing.T) {
 	tests := []struct {
 		name               string
