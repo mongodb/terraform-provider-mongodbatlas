@@ -68,7 +68,7 @@ output "mongodbatlas_search_deployment_id" {
 ### Read-Only
 
 - `id` (String) Unique 24-hexadecimal digit string that identifies the search deployment.
-- `specs` (Attributes List) List of settings that configure the search nodes for your cluster. (see [below for nested schema](#nestedatt--specs))
+- `specs` (Attributes List) List of settings that configure the search nodes for your cluster. This list is currently limited to defining a single element. (see [below for nested schema](#nestedatt--specs))
 - `state_name` (String) Human-readable label that indicates the current operating condition of this search deployment.
 
 <a id="nestedatt--specs"></a>

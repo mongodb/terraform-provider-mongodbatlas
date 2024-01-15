@@ -41,8 +41,8 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						},
 					},
 				},
-				Description:         "List of settings that configure the search nodes for your cluster.",
-				MarkdownDescription: "List of settings that configure the search nodes for your cluster.",
+				Description:         "List of settings that configure the search nodes for your cluster. This list is currently limited to defining a single element.",
+				MarkdownDescription: "List of settings that configure the search nodes for your cluster. This list is currently limited to defining a single element.",
 			},
 			"state_name": schema.StringAttribute{
 				Computed:            true,
