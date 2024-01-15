@@ -1528,7 +1528,7 @@ func testAccMongoDBAtlasClusterConfigAWS(orgID, projectName, name string, backup
 			auto_scaling_disk_gb_enabled = %[5]t
 			// Provider Settings "block"
 
-			provider_name               = "AWS"
+			provider_name               = "aws"
 			provider_instance_size_name = "M30"
 		}
 	`, orgID, projectName, name, backupEnabled, autoDiskGBEnabled)

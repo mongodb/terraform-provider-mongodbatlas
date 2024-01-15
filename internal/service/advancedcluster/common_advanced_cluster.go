@@ -212,6 +212,10 @@ func FormatMongoDBMajorVersion(val any) string {
 	return fmt.Sprintf("%.1f", cast.ToFloat32(val))
 }
 
+func FormatProviderName(val any) string {
+	return strings.ToUpper(val.(string))
+}
+
 func FlattenLabels(l []matlas.Label) []map[string]any {
 	labels := make([]map[string]any, len(l))
 	for i, v := range l {

@@ -12,8 +12,6 @@ import (
 	"strings"
 	"time"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -24,6 +22,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -152,8 +151,9 @@ func Resource() *schema.Resource {
 				Required: true,
 			},
 			"provider_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:      schema.TypeString,
+				Required:  true,
+				StateFunc: advancedcluster.FormatProviderName,
 			},
 			"pit_enabled": {
 				Type:     schema.TypeBool,
