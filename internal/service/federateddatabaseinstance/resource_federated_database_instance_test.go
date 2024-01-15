@@ -145,7 +145,7 @@ func testAccMongoDBAtlasFederatedDatabaseInstanceAtlasProviderConfig(projectName
 		provider_name               = "AWS"
 		name                        = "tfCluster0"
 		backing_provider_name       = "AWS"
-		provider_region_name        = "EU_WEST_1"
+		provider_region_name        = "EU_WEST_2"
 		provider_instance_size_name = "M10"
 	  }
 	  
@@ -155,8 +155,8 @@ func testAccMongoDBAtlasFederatedDatabaseInstanceAtlasProviderConfig(projectName
 		provider_name               = "AWS"
 		name                        = "tfCluster1"
 		backing_provider_name       = "AWS"
-		provider_region_name        = "EU_WEST_1"
-		provider_instance_size_name = "M20"
+		provider_region_name        = "EU_WEST_2"
+		provider_instance_size_name = "M10"
 	  }
 
 	  resource "mongodbatlas_federated_database_instance" "test" {
