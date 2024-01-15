@@ -216,12 +216,12 @@ func schemaOnlineArchive() map[string]*schema.Schema {
 }
 
 func dataSourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connOldV2 := meta.(*config.MongoDBClient).OldAtlasV2
+	conn20231001002 := meta.(*config.MongoDBClient).Atlas20231001002
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 	archiveID := d.Get("archive_id").(string)
 
-	archive, _, err := connOldV2.OnlineArchiveApi.GetOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
+	archive, _, err := conn20231001002.OnlineArchiveApi.GetOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error reading Online Archive datasource with id %s: %s", archiveID, err.Error()))
@@ -245,11 +245,12 @@ func dataSourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.Reso
 }
 
 func dataSourceMongoDBAtlasOnlineArchivesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connOldV2 := meta.(*config.MongoDBClient).OldAtlasV2
+	conn20231001002 := meta.(*config.MongoDBClient).Atlas20231001002
+
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	archives, _, err := connOldV2.OnlineArchiveApi.ListOnlineArchives(ctx, projectID, clusterName).Execute()
+	archives, _, err := conn20231001002.OnlineArchiveApi.ListOnlineArchives(ctx, projectID, clusterName).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting Online Archives list for project(%s) in cluster (%s): (%s)", projectID, clusterName, err.Error()))
