@@ -30,7 +30,7 @@ var (
 	teamRolesSDK = []admin.TeamRole{
 		{
 			TeamId:    conversion.StringPtr("teamId"),
-			RoleNames: conversion.NonEmptySliceToSlicePtr(roles),
+			RoleNames: conversion.NonEmptyToPtr(roles),
 		},
 	}
 	teamsDSTF = []*project.TfTeamDSModel{
@@ -88,7 +88,7 @@ func TestTeamsDataSourceSDKToTFModel(t *testing.T) {
 		{
 			name: "Complete TeamRole",
 			paginatedTeamRole: &admin.PaginatedTeamRole{
-				Results:    conversion.NonEmptySliceToSlicePtr(teamRolesSDK),
+				Results:    conversion.NonEmptyToPtr(teamRolesSDK),
 				TotalCount: conversion.IntPtr(1),
 			},
 			expectedTFModel: teamsDSTF,
@@ -141,7 +141,7 @@ func TestProjectDataSourceSDKToTFModel(t *testing.T) {
 			name:    "Project",
 			project: &projectSDK,
 			teams: &admin.PaginatedTeamRole{
-				Results:    conversion.NonEmptySliceToSlicePtr(teamRolesSDK),
+				Results:    conversion.NonEmptyToPtr(teamRolesSDK),
 				TotalCount: conversion.IntPtr(1),
 			},
 			projectSettings:      &projectSettingsSDK,

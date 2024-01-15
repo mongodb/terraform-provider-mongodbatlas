@@ -123,7 +123,7 @@ func NewTeamRoleList(ctx context.Context, teams []TfTeamModel) *[]admin.TeamRole
 	for i, team := range teams {
 		res[i] = admin.TeamRole{
 			TeamId:    team.TeamID.ValueStringPointer(),
-			RoleNames: conversion.NonEmptySliceToSlicePtr(conversion.TypesSetToString(ctx, team.RoleNames)),
+			RoleNames: conversion.NonEmptyToPtr(conversion.TypesSetToString(ctx, team.RoleNames)),
 		}
 	}
 	return &res

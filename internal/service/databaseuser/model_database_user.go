@@ -40,9 +40,9 @@ func NewMongoDBDatabaseUser(ctx context.Context, dbUserModel *TfDatabaseUserMode
 		OidcAuthType: dbUserModel.OIDCAuthType.ValueStringPointer(),
 		LdapAuthType: dbUserModel.LDAPAuthType.ValueStringPointer(),
 		DatabaseName: dbUserModel.AuthDatabaseName.ValueString(),
-		Roles:        conversion.NonEmptySliceToSlicePtr(NewMongoDBAtlasRoles(rolesModel)),
-		Labels:       conversion.NonEmptySliceToSlicePtr(NewMongoDBAtlasLabels(labelsModel)),
-		Scopes:       conversion.NonEmptySliceToSlicePtr(NewMongoDBAtlasScopes(scopesModel)),
+		Roles:        conversion.NonEmptyToPtr(NewMongoDBAtlasRoles(rolesModel)),
+		Labels:       conversion.NonEmptyToPtr(NewMongoDBAtlasLabels(labelsModel)),
+		Scopes:       conversion.NonEmptyToPtr(NewMongoDBAtlasScopes(scopesModel)),
 	}, nil
 }
 

@@ -237,7 +237,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate(ctx context.Con
 
 	if d.HasChange("associated_domains") {
 		associatedDomains := d.Get("associated_domains")
-		updateRequest.AssociatedDomains = conversion.NonEmptySliceToSlicePtr(cast.ToStringSlice(associatedDomains))
+		updateRequest.AssociatedDomains = conversion.NonEmptyToPtr(cast.ToStringSlice(associatedDomains))
 	}
 
 	if d.HasChange("name") {

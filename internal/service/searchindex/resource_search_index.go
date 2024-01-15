@@ -224,7 +224,7 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 		if err != nil {
 			return err
 		}
-		searchIndex.Analyzers = conversion.NonEmptySliceToSlicePtr(analyzers)
+		searchIndex.Analyzers = conversion.NonEmptyToPtr(analyzers)
 	}
 
 	if d.HasChange("mappings_dynamic") {
@@ -251,11 +251,11 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 		if err != nil {
 			return err
 		}
-		searchIndex.Fields = conversion.NonEmptySliceToSlicePtr(fields)
+		searchIndex.Fields = conversion.NonEmptyToPtr(fields)
 	}
 
 	if d.HasChange("synonyms") {
-		searchIndex.Synonyms = conversion.NonEmptySliceToSlicePtr(expandSearchIndexSynonyms(d))
+		searchIndex.Synonyms = conversion.NonEmptyToPtr(expandSearchIndexSynonyms(d))
 	}
 
 	searchIndex.IndexID = conversion.StringPtr("")
@@ -413,7 +413,7 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 		Name:           d.Get("name").(string),
 		SearchAnalyzer: conversion.StringPtr(d.Get("search_analyzer").(string)),
 		Status:         conversion.StringPtr(d.Get("status").(string)),
-		Synonyms:       conversion.NonEmptySliceToSlicePtr(expandSearchIndexSynonyms(d)),
+		Synonyms:       conversion.NonEmptyToPtr(expandSearchIndexSynonyms(d)),
 	}
 
 	if indexType == vectorSearch {
@@ -421,13 +421,13 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 		if err != nil {
 			return err
 		}
-		searchIndexRequest.Fields = conversion.NonEmptySliceToSlicePtr(fields)
+		searchIndexRequest.Fields = conversion.NonEmptyToPtr(fields)
 	} else {
 		analyzers, err := unmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string))
 		if err != nil {
 			return err
 		}
-		searchIndexRequest.Analyzers = conversion.NonEmptySliceToSlicePtr(analyzers)
+		searchIndexRequest.Analyzers = conversion.NonEmptyToPtr(analyzers)
 		mappingsFields, err := unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
 		if err != nil {
 			return err

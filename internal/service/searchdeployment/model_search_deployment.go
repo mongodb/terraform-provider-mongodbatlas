@@ -23,7 +23,7 @@ func NewSearchDeploymentReq(ctx context.Context, searchDeploymentPlan *TFSearchD
 	}
 
 	return admin.ApiSearchDeploymentRequest{
-		Specs: conversion.NonEmptySliceToSlicePtr(resultSpecs),
+		Specs: conversion.NonEmptyToPtr(resultSpecs),
 	}
 }
 
