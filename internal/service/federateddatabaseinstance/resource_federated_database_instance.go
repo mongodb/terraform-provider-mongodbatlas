@@ -528,8 +528,8 @@ func resourceMongoDBAtlasFederatedDatabaseInstanceImportState(ctx context.Contex
 
 func newDataFederationStorage(d *schema.ResourceData) *admin.DataLakeStorage {
 	return &admin.DataLakeStorage{
-		Databases: conversion.NonEmptySliceToPtrSlice(newDataFederationDatabase(d)),
-		Stores:    conversion.NonEmptySliceToPtrSlice(newStores(d)),
+		Databases: conversion.NonEmptySliceToSlicePtr(newDataFederationDatabase(d)),
+		Stores:    conversion.NonEmptySliceToSlicePtr(newStores(d)),
 	}
 }
 
@@ -552,7 +552,7 @@ func newStores(d *schema.ResourceData) []admin.DataLakeStoreSettings {
 			Prefix:                   conversion.StringPtr(storeFromConfMap["prefix"].(string)),
 			Delimiter:                conversion.StringPtr(storeFromConfMap["delimiter"].(string)),
 			IncludeTags:              conversion.Pointer(storeFromConfMap["include_tags"].(bool)),
-			AdditionalStorageClasses: conversion.NonEmptySliceToPtrSlice(newAdditionalStorageClasses(storeFromConfMap["additional_storage_classes"].([]any))),
+			AdditionalStorageClasses: conversion.NonEmptySliceToSlicePtr(newAdditionalStorageClasses(storeFromConfMap["additional_storage_classes"].([]any))),
 			ReadPreference:           newReadPreference(storeFromConfMap),
 		}
 	}
@@ -582,7 +582,7 @@ func newReadPreference(storeFromConfMap map[string]any) *admin.DataLakeAtlasStor
 	return &admin.DataLakeAtlasStoreReadPreference{
 		Mode:                conversion.StringPtr(readPreferenceFromConfMap["mode"].(string)),
 		MaxStalenessSeconds: conversion.IntPtr(readPreferenceFromConfMap["max_staleness_seconds"].(int)),
-		TagSets:             conversion.NonEmptySliceToPtrSlice(newTagSets(readPreferenceFromConfMap)),
+		TagSets:             conversion.NonEmptySliceToSlicePtr(newTagSets(readPreferenceFromConfMap)),
 	}
 }
 
@@ -626,7 +626,7 @@ func newDataFederationDatabase(d *schema.ResourceData) []admin.DataLakeDatabaseI
 		dbs[i] = admin.DataLakeDatabaseInstance{
 			Name:                   conversion.StringPtr(storageDBFromConfMap["name"].(string)),
 			MaxWildcardCollections: conversion.IntPtr(storageDBFromConfMap["max_wildcard_collections"].(int)),
-			Collections:            conversion.NonEmptySliceToPtrSlice(newDataFederationCollections(storageDBFromConfMap)),
+			Collections:            conversion.NonEmptySliceToSlicePtr(newDataFederationCollections(storageDBFromConfMap)),
 		}
 	}
 
@@ -643,7 +643,7 @@ func newDataFederationCollections(storageDBFromConfMap map[string]any) []admin.D
 	for i, collectionFromConf := range collectionsFromConf {
 		collections[i] = admin.DataLakeDatabaseCollection{
 			Name:        conversion.StringPtr(collectionFromConf.(map[string]any)["name"].(string)),
-			DataSources: conversion.NonEmptySliceToPtrSlice(newDataFederationDataSource(collectionFromConf.(map[string]any))),
+			DataSources: conversion.NonEmptySliceToSlicePtr(newDataFederationDataSource(collectionFromConf.(map[string]any))),
 		}
 	}
 
@@ -670,7 +670,7 @@ func newDataFederationDataSource(collectionFromConf map[string]any) []admin.Data
 			ProvenanceFieldName: conversion.StringPtr(dataSourceFromConfMap["provenance_field_name"].(string)),
 			StoreName:           conversion.StringPtr(dataSourceFromConfMap["store_name"].(string)),
 			DatasetName:         conversion.StringPtr(dataSourceFromConfMap["dataset_name"].(string)),
-			Urls:                conversion.NonEmptySliceToPtrSlice(newUrls(dataSourceFromConfMap["urls"].([]any))),
+			Urls:                conversion.NonEmptySliceToSlicePtr(newUrls(dataSourceFromConfMap["urls"].([]any))),
 		}
 	}
 

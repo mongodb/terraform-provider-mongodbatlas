@@ -64,7 +64,7 @@ func SlicePtrToSlice[T any](v *[]T) []T {
 	return *v
 }
 
-func NonEmptySliceToPtrSlice[T any](v []T) *[]T {
+func NonEmptySliceToSlicePtr[T any](v []T) *[]T {
 	if len(v) == 0 {
 		return nil
 	}

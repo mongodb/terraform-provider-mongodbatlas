@@ -675,7 +675,7 @@ func UpdateProjectTeams(ctx context.Context, client GroupProjectService, project
 
 		_, _, err := client.UpdateTeamRoles(ctx, projectID, teamID,
 			&admin.TeamRole{
-				RoleNames: conversion.NonEmptySliceToPtrSlice(conversion.TypesSetToString(ctx, team.RoleNames)),
+				RoleNames: conversion.NonEmptySliceToSlicePtr(conversion.TypesSetToString(ctx, team.RoleNames)),
 			},
 		)
 		if err != nil {
