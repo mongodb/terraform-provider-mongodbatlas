@@ -19,7 +19,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
+	clustersvc "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -2614,8 +2614,7 @@ func TestIsMultiRegionCluster(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			if got := cluster.IsMultiRegionCluster(tt.repSpecs); got != tt.want {
+			if got := clustersvc.IsMultiRegionCluster(tt.repSpecs); got != tt.want {
 				t.Errorf("isMultiRegionCluster() = %v, want %v", got, tt.want)
 			}
 		})
@@ -2680,7 +2679,7 @@ func TestValidateProviderRegionName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := cluster.ValidateProviderRegionName(tt.clusterType, tt.providerRegionName, tt.repSpecs)
+			err := clustersvc.ValidateProviderRegionName(tt.clusterType, tt.providerRegionName, tt.repSpecs)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("validateProviderRegionName() error = %v, wantErr %v", err, tt.wantErr)
 			}
