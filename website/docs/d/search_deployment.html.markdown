@@ -9,6 +9,7 @@ description: |-
 # Data Source: mongodbatlas_search_deployment
 
 
+`mongodbatlas_search_deployment` describes a search node deployment.
 
 ## Example Usages
 ```terraform
@@ -75,7 +76,7 @@ output "mongodbatlas_search_deployment_id" {
 
 Read-Only:
 
-- `instance_size` (String) Hardware specification for the search node instance sizes.
+- `instance_size` (String) Hardware specification for the search node instance sizes. The [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Atlas-Search/operation/createAtlasSearchDeployment) describes the valid values. More details can also be found in the [Search Node Documentation](https://www.mongodb.com/docs/atlas/cluster-config/multi-cloud-distribution/#search-tier).
 - `node_count` (Number) Number of search nodes in the cluster.
 
 For more information see: [MongoDB Atlas API - Search Node](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Atlas-Search/operation/createAtlasSearchDeployment) Documentation.
