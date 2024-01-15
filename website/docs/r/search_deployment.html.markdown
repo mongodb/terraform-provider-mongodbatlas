@@ -9,6 +9,11 @@ description: |-
 # Resource: mongodbatlas_search_deployment
 
 
+`mongodbatlas_search_deployment` provides a Search Deployment resource. The resource lets you create, edit and delete dedicated search nodes in a cluster.
+
+-> **NOTE:** For details on supported cloud providers and existing limitations you can visit the [Search Node Documentation](https://www.mongodb.com/docs/atlas/cluster-config/multi-cloud-distribution/#search-nodes-for-workload-isolation).
+
+-> **NOTE:** Only a single search deployment resource can be defined for each cluster.
 
 ## Example Usages
 
@@ -64,7 +69,7 @@ output "mongodbatlas_search_deployment_id" {
 
 - `cluster_name` (String) Label that identifies the cluster to return the search nodes for.
 - `project_id` (String) Unique 24-hexadecimal character string that identifies the project.
-- `specs` (Attributes List) List of settings that configure the search nodes for your cluster. (see [below for nested schema](#nestedatt--specs))
+- `specs` (Attributes List) List of settings that configure the search nodes for your cluster. This list is currently limited to defining a single element. (see [below for nested schema](#nestedatt--specs))
 
 ### Optional
 
@@ -80,7 +85,7 @@ output "mongodbatlas_search_deployment_id" {
 
 Required:
 
-- `instance_size` (String) Hardware specification for the search node instance sizes.
+- `instance_size` (String) Hardware specification for the search node instance sizes. The [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Atlas-Search/operation/createAtlasSearchDeployment) describes the valid values. More details can also be found in the [Search Node Documentation](https://www.mongodb.com/docs/atlas/cluster-config/multi-cloud-distribution/#search-tier).
 - `node_count` (Number) Number of search nodes in the cluster.
 
 
