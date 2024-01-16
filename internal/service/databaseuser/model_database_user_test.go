@@ -187,7 +187,7 @@ func TestNewTFScopesModel(t *testing.T) {
 		{
 			name:           "Empty TfScopeModel",
 			currentScopes:  []admin.UserScope{},
-			expectedResult: nil,
+			expectedResult: []databaseuser.TfScopeModel{},
 		},
 	}
 

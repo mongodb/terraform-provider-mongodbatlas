@@ -128,10 +128,6 @@ func NewTFDatabaseUsersModel(ctx context.Context, projectID string, dbUsers []ad
 }
 
 func NewTFScopesModel(scopes []admin.UserScope) []TfScopeModel {
-	if len(scopes) == 0 {
-		return nil
-	}
-
 	out := make([]TfScopeModel, len(scopes))
 	for i, v := range scopes {
 		out[i] = TfScopeModel{
@@ -139,7 +135,6 @@ func NewTFScopesModel(scopes []admin.UserScope) []TfScopeModel {
 			Type: types.StringValue(v.Type),
 		}
 	}
-
 	return out
 }
 
