@@ -2,12 +2,12 @@ package project_test
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
+	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
@@ -25,9 +25,11 @@ const (
 )
 
 var (
-	roles        = []string{"GROUP_DATA_ACCESS_READ_ONLY", "GROUP_CLUSTER_MANAGER"}
-	roleList, _  = types.ListValueFrom(context.Background(), types.StringType, roles)
-	teamRolesSDK = []admin.TeamRole{
+	roles              = []string{"GROUP_DATA_ACCESS_READ_ONLY", "GROUP_CLUSTER_MANAGER"}
+	roleList, _        = types.ListValueFrom(context.Background(), types.StringType, roles)
+	ipAddresses        = []string{"13.13.13.13"}
+	ipAddressesList, _ = types.ListValueFrom(context.Background(), types.StringType, ipAddresses)
+	teamRolesSDK       = []admin.TeamRole{
 		{
 			TeamId:    conversion.StringPtr("teamId"),
 			RoleNames: conversion.NonEmptyToPtr(roles),
@@ -57,6 +59,17 @@ var (
 			MaximumLimit: types.Int64Value(limitMaximumLimit),
 		},
 	}
+	ipAddressesTF = project.TFIPAddressesModel{
+		Services: project.TFServicesModel{
+			Clusters: []project.TFClusterIPsModel{
+				{
+					Inbound:     ipAddressesList,
+					Outbound:    ipAddressesList,
+					ClusterName: types.StringValue("Cluster0"),
+				},
+			},
+		},
+	}
 	projectSDK = admin.Group{
 		Id:           admin.PtrString(projectID),
 		Name:         projectName,
@@ -70,6 +83,18 @@ var (
 		IsPerformanceAdvisorEnabled:                 admin.PtrBool(true),
 		IsRealtimePerformancePanelEnabled:           admin.PtrBool(true),
 		IsSchemaAdvisorEnabled:                      admin.PtrBool(true),
+	}
+	projectIPAddressesSDK = admin.GroupIPAddresses{
+		GroupId: admin.PtrString(projectID),
+		Services: &admin.GroupService{
+			Clusters: &[]admin.ClusterIPAddresses{
+				{
+					Inbound:     &[]string{"13.13.13.13"},
+					Outbound:    &[]string{"13.13.13.13"},
+					ClusterName: admin.PtrString("Cluster0"),
+				},
+			},
+		},
 	}
 )
 
@@ -98,7 +123,7 @@ func TestTeamsDataSourceSDKToTFModel(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := project.NewTFTeamsDataSourceModel(context.Background(), tc.paginatedTeamRole)
-			if !reflect.DeepEqual(resultModel, tc.expectedTFModel) {
+			if !assert.Equal(t, tc.expectedTFModel, resultModel) {
 				t.Errorf("created terraform model did not match expected output")
 			}
 		})
@@ -121,7 +146,7 @@ func TestLimitsDataSourceSDKToTFModel(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := project.NewTFLimitsDataSourceModel(context.Background(), tc.dataFederationLimits)
-			if !reflect.DeepEqual(resultModel, tc.expectedTFModel) {
+			if !assert.Equal(t, tc.expectedTFModel, resultModel) {
 				t.Errorf("created terraform model did not match expected output")
 			}
 		})
@@ -134,6 +159,7 @@ func TestProjectDataSourceSDKToTFModel(t *testing.T) {
 		project              *admin.Group
 		teams                *admin.PaginatedTeamRole
 		projectSettings      *admin.GroupSettings
+		ipAddresses          *admin.GroupIPAddresses
 		dataFederationLimits []admin.DataFederationLimit
 		expectedTFModel      project.TfProjectDSModel
 	}{
@@ -145,6 +171,7 @@ func TestProjectDataSourceSDKToTFModel(t *testing.T) {
 				TotalCount: conversion.IntPtr(1),
 			},
 			projectSettings:      &projectSettingsSDK,
+			ipAddresses:          &projectIPAddressesSDK,
 			dataFederationLimits: limitsSDK,
 			expectedTFModel: project.TfProjectDSModel{
 
@@ -161,6 +188,7 @@ func TestProjectDataSourceSDKToTFModel(t *testing.T) {
 				IsSchemaAdvisorEnabled:                      types.BoolValue(true),
 				Teams:                                       teamsDSTF,
 				Limits:                                      limitsTF,
+				IPAddresses:                                 &ipAddressesTF,
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
 			},
 		},
@@ -168,8 +196,8 @@ func TestProjectDataSourceSDKToTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := project.NewTFProjectDataSourceModel(context.Background(), tc.project, tc.teams, tc.projectSettings, tc.dataFederationLimits)
-			if !reflect.DeepEqual(resultModel, tc.expectedTFModel) {
+			resultModel := project.NewTFProjectDataSourceModel(context.Background(), tc.project, tc.teams, tc.projectSettings, tc.dataFederationLimits, tc.ipAddresses)
+			if !assert.Equal(t, tc.expectedTFModel, resultModel) {
 				t.Errorf("created terraform model did not match expected output")
 			}
 		})
@@ -199,7 +227,7 @@ func TestTeamRoleListTFtoSDK(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := project.NewTeamRoleList(context.Background(), tc.teamRolesTF)
-			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
+			if !assert.Equal(t, tc.expectedResult, resultModel) {
 				t.Errorf("created terraform model did not match expected output")
 			}
 		})
@@ -233,7 +261,7 @@ func TestTeamModelMapTF(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := project.NewTfTeamModelMap(tc.teamRolesTF)
-			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
+			if !assert.Equal(t, tc.expectedResult, resultModel) {
 				t.Errorf("created terraform model did not match expected output")
 			}
 		})
@@ -267,7 +295,53 @@ func TestLimitModelMapTF(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := project.NewTfLimitModelMap(tc.limitsTF)
-			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
+			if !assert.Equal(t, tc.expectedResult, resultModel) {
+				t.Errorf("created terraform model did not match expected output")
+			}
+		})
+	}
+}
+
+func TestIPAddressesModelToTF(t *testing.T) {
+	testCases := []struct {
+		name           string
+		sdkModel       *admin.GroupIPAddresses
+		expectedResult project.TFIPAddressesModel
+	}{
+		{
+			name:     "No response",
+			sdkModel: nil,
+			expectedResult: project.TFIPAddressesModel{
+				Services: project.TFServicesModel{
+					Clusters: []project.TFClusterIPsModel{},
+				},
+			},
+		},
+		{
+			name: "Empty response when no clusters are created",
+			sdkModel: &admin.GroupIPAddresses{
+				GroupId: admin.PtrString(projectID),
+				Services: &admin.GroupService{
+					Clusters: &[]admin.ClusterIPAddresses{},
+				},
+			},
+			expectedResult: project.TFIPAddressesModel{
+				Services: project.TFServicesModel{
+					Clusters: []project.TFClusterIPsModel{},
+				},
+			},
+		},
+		{
+			name:           "Full response",
+			sdkModel:       &projectIPAddressesSDK,
+			expectedResult: ipAddressesTF,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel := project.NewTFIPAddressesModel(context.Background(), tc.sdkModel)
+			if !assert.Equal(t, tc.expectedResult, resultModel) {
 				t.Errorf("created terraform model did not match expected output")
 			}
 		})

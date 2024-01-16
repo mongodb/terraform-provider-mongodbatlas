@@ -176,7 +176,7 @@ func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClien
 		project := input[i]
 		atlasTeams, atlasLimits, atlasProjectSettings, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), project.GetId())
 		if err == nil { // if the project is still valid, e.g. could have just been deleted
-			projectModel := NewTFProjectDataSourceModel(ctx, &project, atlasTeams, atlasProjectSettings, atlasLimits)
+			projectModel := NewTFProjectDataSourceModel(ctx, &project, atlasTeams, atlasProjectSettings, atlasLimits, nil) // TODO adjust here
 			results = append(results, &projectModel)
 		}
 	}

@@ -9,7 +9,8 @@ import (
 )
 
 func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group,
-	teams *admin.PaginatedTeamRole, projectSettings *admin.GroupSettings, limits []admin.DataFederationLimit) TfProjectDSModel {
+	teams *admin.PaginatedTeamRole, projectSettings *admin.GroupSettings, limits []admin.DataFederationLimit, ipAddresses *admin.GroupIPAddresses) TfProjectDSModel {
+	ipAddressesModel := NewTFIPAddressesModel(ctx, ipAddresses)
 	return TfProjectDSModel{
 		ID:           types.StringValue(project.GetId()),
 		ProjectID:    types.StringValue(project.GetId()),
@@ -25,6 +26,7 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group,
 		IsSchemaAdvisorEnabled:                      types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled),
 		Teams:                                       NewTFTeamsDataSourceModel(ctx, teams),
 		Limits:                                      NewTFLimitsDataSourceModel(ctx, limits),
+		IPAddresses:                                 &ipAddressesModel,
 	}
 }
 
@@ -58,6 +60,28 @@ func NewTFLimitsDataSourceModel(ctx context.Context, dataFederationLimits []admi
 	}
 
 	return limits
+}
+
+func NewTFIPAddressesModel(ctx context.Context, ipAddresses *admin.GroupIPAddresses) TFIPAddressesModel {
+	clusterIPs := []TFClusterIPsModel{}
+	if ipAddresses != nil && ipAddresses.Services != nil {
+		clusterIPAddresses := ipAddresses.Services.GetClusters()
+		clusterIPs = make([]TFClusterIPsModel, len(clusterIPAddresses))
+		for i := range clusterIPAddresses {
+			inbound, _ := types.ListValueFrom(ctx, types.StringType, clusterIPAddresses[i].GetInbound())
+			outbound, _ := types.ListValueFrom(ctx, types.StringType, clusterIPAddresses[i].GetOutbound())
+			clusterIPs[i] = TFClusterIPsModel{
+				ClusterName: types.StringPointerValue(clusterIPAddresses[i].ClusterName),
+				Inbound:     inbound,
+				Outbound:    outbound,
+			}
+		}
+	}
+	return TFIPAddressesModel{
+		Services: TFServicesModel{
+			Clusters: clusterIPs,
+		},
+	}
 }
 
 func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group,

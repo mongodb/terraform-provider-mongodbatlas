@@ -31,26 +31,41 @@ type projectDS struct {
 }
 
 type TfProjectDSModel struct {
-	RegionUsageRestrictions                     types.String     `tfsdk:"region_usage_restrictions"`
-	ProjectID                                   types.String     `tfsdk:"project_id"`
-	Name                                        types.String     `tfsdk:"name"`
-	OrgID                                       types.String     `tfsdk:"org_id"`
-	Created                                     types.String     `tfsdk:"created"`
-	ID                                          types.String     `tfsdk:"id"`
-	Limits                                      []*TfLimitModel  `tfsdk:"limits"`
-	Teams                                       []*TfTeamDSModel `tfsdk:"teams"`
-	ClusterCount                                types.Int64      `tfsdk:"cluster_count"`
-	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool       `tfsdk:"is_collect_database_specifics_statistics_enabled"`
-	IsRealtimePerformancePanelEnabled           types.Bool       `tfsdk:"is_realtime_performance_panel_enabled"`
-	IsSchemaAdvisorEnabled                      types.Bool       `tfsdk:"is_schema_advisor_enabled"`
-	IsPerformanceAdvisorEnabled                 types.Bool       `tfsdk:"is_performance_advisor_enabled"`
-	IsExtendedStorageSizesEnabled               types.Bool       `tfsdk:"is_extended_storage_sizes_enabled"`
-	IsDataExplorerEnabled                       types.Bool       `tfsdk:"is_data_explorer_enabled"`
+	IPAddresses                                 *TFIPAddressesModel `tfsdk:"ip_addresses"`
+	Created                                     types.String        `tfsdk:"created"`
+	OrgID                                       types.String        `tfsdk:"org_id"`
+	RegionUsageRestrictions                     types.String        `tfsdk:"region_usage_restrictions"`
+	ID                                          types.String        `tfsdk:"id"`
+	Name                                        types.String        `tfsdk:"name"`
+	ProjectID                                   types.String        `tfsdk:"project_id"`
+	Teams                                       []*TfTeamDSModel    `tfsdk:"teams"`
+	Limits                                      []*TfLimitModel     `tfsdk:"limits"`
+	ClusterCount                                types.Int64         `tfsdk:"cluster_count"`
+	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool          `tfsdk:"is_collect_database_specifics_statistics_enabled"`
+	IsRealtimePerformancePanelEnabled           types.Bool          `tfsdk:"is_realtime_performance_panel_enabled"`
+	IsSchemaAdvisorEnabled                      types.Bool          `tfsdk:"is_schema_advisor_enabled"`
+	IsPerformanceAdvisorEnabled                 types.Bool          `tfsdk:"is_performance_advisor_enabled"`
+	IsExtendedStorageSizesEnabled               types.Bool          `tfsdk:"is_extended_storage_sizes_enabled"`
+	IsDataExplorerEnabled                       types.Bool          `tfsdk:"is_data_explorer_enabled"`
 }
 
 type TfTeamDSModel struct {
 	TeamID    types.String `tfsdk:"team_id"`
 	RoleNames types.List   `tfsdk:"role_names"`
+}
+
+type TFIPAddressesModel struct {
+	Services TFServicesModel `tfsdk:"services"`
+}
+
+type TFServicesModel struct {
+	Clusters []TFClusterIPsModel `tfsdk:"clusters"`
+}
+
+type TFClusterIPsModel struct {
+	ClusterName types.String `tfsdk:"cluster_name"`
+	Inbound     types.List   `tfsdk:"inbound"`
+	Outbound    types.List   `tfsdk:"outbound"`
 }
 
 func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -137,6 +152,34 @@ func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, re
 					},
 				},
 			},
+			"ip_addresses": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"services": schema.SingleNestedAttribute{
+						Attributes: map[string]schema.Attribute{
+							"clusters": schema.ListNestedAttribute{
+								NestedObject: schema.NestedAttributeObject{
+									Attributes: map[string]schema.Attribute{
+										"cluster_name": schema.StringAttribute{
+											Computed: true,
+										},
+										"inbound": schema.ListAttribute{
+											ElementType: types.StringType,
+											Computed:    true,
+										},
+										"outbound": schema.ListAttribute{
+											ElementType: types.StringType,
+											Computed:    true,
+										},
+									},
+								},
+								Computed: true,
+							},
+						},
+						Computed: true,
+					},
+				},
+				Computed: true,
+			},
 		},
 	}
 }
@@ -179,7 +222,13 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		return
 	}
 
-	projectState = NewTFProjectDataSourceModel(ctx, project, atlasTeams, atlasProjectSettings, atlasLimits)
+	ipAddresses, _, err := connV2.ProjectsApi.ReturnAllIPAddresses(ctx, project.GetId()).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError("error when getting project IP addresses", fmt.Sprintf(ErrorProjectRead, project.GetId(), err.Error()))
+		return
+	}
+
+	projectState = NewTFProjectDataSourceModel(ctx, project, atlasTeams, atlasProjectSettings, atlasLimits, ipAddresses)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &projectState)...)
 	if resp.Diagnostics.HasError() {

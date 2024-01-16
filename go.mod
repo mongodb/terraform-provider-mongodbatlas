@@ -4,6 +4,8 @@ go 1.21
 
 toolchain go1.21.3
 
+replace go.mongodb.org/atlas-sdk/v20231115003 => ../atlas-sdk-go
+
 require (
 	github.com/aws/aws-sdk-go v1.49.17
 	github.com/go-test/deep v1.1.0
