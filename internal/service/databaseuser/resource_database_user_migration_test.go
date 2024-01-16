@@ -51,7 +51,7 @@ func TestAccMigrationConfigRSDatabaseUser_Basic(t *testing.T) {
 	})
 }
 
-func TestAccMigrationConfigRSDatabaseUser_WithX509TypeCustomer(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_database_user.test"
 		username     = "CN=ellen@example.com,OU=users,DC=example,DC=com"
@@ -87,7 +87,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithX509TypeCustomer(t *testing.T) {
 		},
 	})
 }
-func TestAccMigrationConfigRSDatabaseUser_WithAWSIAMType(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_database_user.test"
 		username     = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
@@ -123,7 +123,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithAWSIAMType(t *testing.T) {
 	})
 }
 
-func TestAccMigrationConfigRSDatabaseUser_WithLabels(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_withLabels(t *testing.T) {
 	var (
 		dbUser       admin.CloudDatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
@@ -184,7 +184,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithLabels(t *testing.T) {
 		},
 	})
 }
-func TestAccMigrationConfigRSDatabaseUser_WithEmptyLabels(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_withEmptyLabels(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_database_user.test"
 		username     = acctest.RandomWithPrefix("test-acc")
@@ -197,7 +197,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithEmptyLabels(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username, []admin.ComponentLabel{}),
+				Config:            acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username, nil),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -208,7 +208,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithEmptyLabels(t *testing.T) {
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username, []admin.ComponentLabel{}),
+				Config:                   acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username, nil),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
@@ -220,11 +220,11 @@ func TestAccMigrationConfigRSDatabaseUser_WithEmptyLabels(t *testing.T) {
 	})
 }
 
-func TestAccMigrationConfigRSDatabaseUser_WithRoles(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_withRoles(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_database_user.test"
-		username     = acctest.RandomWithPrefix("test-acc-user-")
-		password     = acctest.RandomWithPrefix("test-acc-pass-")
+		username     = acctest.RandomWithPrefix("test-acc-user")
+		password     = acctest.RandomWithPrefix("test-acc-pass")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
@@ -283,13 +283,14 @@ func TestAccMigrationConfigRSDatabaseUser_WithRoles(t *testing.T) {
 	})
 }
 
-func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_withScopes(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_database_user.test"
-		username     = acctest.RandomWithPrefix("test-acc-user-")
-		password     = acctest.RandomWithPrefix("test-acc-pass-")
+		username     = acctest.RandomWithPrefix("test-acc-user")
+		password     = acctest.RandomWithPrefix("test-acc-pass")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterInfo  = acc.GetClusterInfo(orgID)
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		clusterName  = acctest.RandomWithPrefix("test-acc-clu")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -297,10 +298,10 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", projectName, orgID,
 					[]*admin.UserScope{
 						{
-							Name: "test-acc-nurk4llu2z",
+							Name: clusterName,
 							Type: "CLUSTER",
 						},
 					},
@@ -311,14 +312,16 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "password", password),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "scopes.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "scopes.0.name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "scopes.0.type", "CLUSTER"),
 				),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", projectName, orgID,
 					[]*admin.UserScope{
 						{
-							Name: "test-acc-nurk4llu2z",
+							Name: clusterName,
 							Type: "CLUSTER",
 						},
 					},
@@ -334,13 +337,13 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 	})
 }
 
-func TestAccMigrationConfigRSDatabaseUser_WithScopesAndEmpty(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_withEmptyScopes(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_database_user.test"
-		username     = acctest.RandomWithPrefix("test-acc-user-")
-		password     = acctest.RandomWithPrefix("test-acc-pass-")
+		username     = acctest.RandomWithPrefix("test-acc-user")
+		password     = acctest.RandomWithPrefix("test-acc-pass")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterInfo  = acc.GetClusterInfo(orgID)
+		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -348,9 +351,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopesAndEmpty(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
-					[]*admin.UserScope{},
-				),
+				Config:            acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", projectName, orgID, nil),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -361,9 +362,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopesAndEmpty(t *testing.T) {
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
-					[]*admin.UserScope{},
-				),
+				Config:                   acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", projectName, orgID, nil),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
@@ -375,7 +374,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopesAndEmpty(t *testing.T) {
 	})
 }
 
-func TestAccMigrationConfigRSDatabaseUser_WithLDAPAuthType(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_database_user.test"
 		username     = "CN=david@example.com,OU=users,DC=example,DC=com"
