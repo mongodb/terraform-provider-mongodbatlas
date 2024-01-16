@@ -4,9 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTimeToStringWithoutNanos(t *testing.T) {

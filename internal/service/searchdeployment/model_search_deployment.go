@@ -3,13 +3,11 @@ package searchdeployment
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20231115003/admin"
-
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
 func NewSearchDeploymentReq(ctx context.Context, searchDeploymentPlan *TFSearchDeploymentRSModel) admin.ApiSearchDeploymentRequest {

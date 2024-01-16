@@ -4,12 +4,10 @@ import (
 	"reflect"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20231115003/admin"
-
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
 const (

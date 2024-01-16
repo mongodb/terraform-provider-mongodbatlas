@@ -6,8 +6,6 @@ import (
 	"reflect"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20231115003/admin"
-
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -20,10 +18,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mwielbut/pointy"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mwielbut/pointy"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
 const (

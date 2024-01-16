@@ -7,15 +7,13 @@ import (
 	"regexp"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20231115003/admin"
-
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
 func TestAccConfigDSAtlasUsers_ByOrgID(t *testing.T) {
