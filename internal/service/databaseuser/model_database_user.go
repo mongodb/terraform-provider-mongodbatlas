@@ -42,7 +42,7 @@ func NewMongoDBDatabaseUser(ctx context.Context, dbUserModel *TfDatabaseUserMode
 		DatabaseName: dbUserModel.AuthDatabaseName.ValueString(),
 		Roles:        conversion.NonEmptyToPtr(NewMongoDBAtlasRoles(rolesModel)),
 		Labels:       conversion.NonEmptyToPtr(NewMongoDBAtlasLabels(labelsModel)),
-		Scopes:       conversion.NonEmptyToPtr(NewMongoDBAtlasScopes(scopesModel)),
+		Scopes:       NewMongoDBAtlasScopes(scopesModel),
 	}, nil
 }
 
@@ -175,11 +175,7 @@ func NewTFLabelsModel(labels []admin.ComponentLabel) []TfLabelModel {
 	return out
 }
 
-func NewMongoDBAtlasScopes(scopes []*TfScopeModel) []admin.UserScope {
-	if len(scopes) == 0 {
-		return []admin.UserScope{}
-	}
-
+func NewMongoDBAtlasScopes(scopes []*TfScopeModel) *[]admin.UserScope {
 	out := make([]admin.UserScope, len(scopes))
 	for i, v := range scopes {
 		out[i] = admin.UserScope{
@@ -187,8 +183,7 @@ func NewMongoDBAtlasScopes(scopes []*TfScopeModel) []admin.UserScope {
 			Type: v.Type.ValueString(),
 		}
 	}
-
-	return out
+	return &out
 }
 
 func NewTFRolesModel(roles []admin.DatabaseUserRole) []TfRoleModel {

@@ -148,19 +148,19 @@ func TestNewTfDatabaseUserModel(t *testing.T) {
 
 func TestNewMongoDBAtlasScopes(t *testing.T) {
 	testCases := []struct {
+		expectedResult *[]admin.UserScope
 		name           string
 		currentScopes  []*databaseuser.TfScopeModel
-		expectedResult []admin.UserScope
 	}{
 		{
 			name:           "Success TfScopeModel",
 			currentScopes:  []*databaseuser.TfScopeModel{&tfScope},
-			expectedResult: []admin.UserScope{sdkScope},
+			expectedResult: &[]admin.UserScope{sdkScope},
 		},
 		{
 			name:           "Empty TfScopeModel",
 			currentScopes:  []*databaseuser.TfScopeModel{},
-			expectedResult: []admin.UserScope{},
+			expectedResult: &[]admin.UserScope{},
 		},
 	}
 
