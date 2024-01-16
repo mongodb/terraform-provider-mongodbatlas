@@ -347,13 +347,13 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstanceRead(ctx context.Context, d 
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "data_process_region", name, err))
 	}
 
-	if storageDatabaseField := flattenDataFederationDatabase(dataFederationInstance.Storage.Databases); storageDatabaseField != nil {
+	if storageDatabaseField := flattenDataFederationDatabase(dataFederationInstance.Storage.GetDatabases()); storageDatabaseField != nil {
 		if err := d.Set("storage_databases", storageDatabaseField); err != nil {
 			return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "storage_databases", name, err))
 		}
 	}
 
-	if err := d.Set("storage_stores", flattenDataFederationStores(dataFederationInstance.Storage.Stores)); err != nil {
+	if err := d.Set("storage_stores", flattenDataFederationStores(dataFederationInstance.Storage.GetStores())); err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "storage_stores", name, err))
 	}
 

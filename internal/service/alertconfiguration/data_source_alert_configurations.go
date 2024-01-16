@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
 const alertConfigurationsDataSourceName = "alert_configurations"
@@ -143,7 +143,7 @@ func (d *AlertConfigurationsDS) Read(ctx context.Context, req datasource.ReadReq
 	alertConfigurationsConfig.ID = types.StringValue(conversion.EncodeStateID(map[string]string{
 		"project_id": projectID,
 	}))
-	alertConfigurationsConfig.Results = NewTFAlertConfigurationDSModelList(alerts.Results, projectID, alertConfigurationsConfig.OutputType)
+	alertConfigurationsConfig.Results = NewTFAlertConfigurationDSModelList(alerts.GetResults(), projectID, alertConfigurationsConfig.OutputType)
 	if *params.IncludeCount {
 		alertConfigurationsConfig.TotalCount = types.Int64Value(int64(*alerts.TotalCount))
 	}

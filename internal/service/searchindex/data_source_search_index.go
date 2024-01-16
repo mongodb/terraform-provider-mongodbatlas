@@ -128,8 +128,8 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		return diag.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
 	}
 
-	if len(searchIndex.Analyzers) > 0 {
-		searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Analyzers)
+	if analyzers := searchIndex.GetAnalyzers(); len(analyzers) > 0 {
+		searchIndexMappingFields, err := marshalSearchIndex(analyzers)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -155,7 +155,7 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		return diag.Errorf("error setting `searchAnalyzer` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("synonyms", flattenSearchIndexSynonyms(searchIndex.Synonyms)); err != nil {
+	if err := d.Set("synonyms", flattenSearchIndexSynonyms(searchIndex.GetSynonyms())); err != nil {
 		return diag.Errorf("error setting `synonyms` for search index (%s): %s", d.Id(), err)
 	}
 
@@ -175,13 +175,13 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		}
 	}
 
-	if len(searchIndex.Fields) > 0 {
-		fields, err := marshalSearchIndex(searchIndex.Fields)
+	if fields := searchIndex.GetFields(); len(fields) > 0 {
+		fieldsMarshaled, err := marshalSearchIndex(fields)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 
-		if err := d.Set("fields", fields); err != nil {
+		if err := d.Set("fields", fieldsMarshaled); err != nil {
 			return diag.Errorf("error setting `fields` for for search index (%s): %s", d.Id(), err)
 		}
 	}

@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
 func NewStreamInstanceCreateReq(ctx context.Context, plan *TFStreamInstanceModel) (*admin.StreamsTenant, diag.Diagnostics) {
@@ -63,9 +63,10 @@ func NewTFStreamInstance(ctx context.Context, apiResp *admin.StreamsTenant) (*TF
 }
 
 func NewTFStreamInstances(ctx context.Context, streamInstancesConfig *TFStreamInstancesModel, paginatedResult *admin.PaginatedApiStreamsTenant) (*TFStreamInstancesModel, diag.Diagnostics) {
-	results := make([]TFStreamInstanceModel, len(paginatedResult.Results))
-	for i := range paginatedResult.Results {
-		instance, diags := NewTFStreamInstance(ctx, &paginatedResult.Results[i])
+	input := paginatedResult.GetResults()
+	results := make([]TFStreamInstanceModel, len(input))
+	for i := range input {
+		instance, diags := NewTFStreamInstance(ctx, &input[i])
 		if diags.HasError() {
 			return nil, diags
 		}

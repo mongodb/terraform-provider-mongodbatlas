@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	atlasSDK "go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
@@ -97,7 +97,7 @@ func dataSourceMongoDBAtlasCloudSharedTierRestoreJobRead(ctx context.Context, d 
 		return diag.FromErr(fmt.Errorf("error getting shared tier restore jobs for cluster '%s': %w", clusterName, err))
 	}
 
-	if err := d.Set("results", flattenShardTierRestoreJobs(jobs.Results)); err != nil {
+	if err := d.Set("results", flattenShardTierRestoreJobs(jobs.GetResults())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %w", err))
 	}
 
@@ -109,7 +109,7 @@ func dataSourceMongoDBAtlasCloudSharedTierRestoreJobRead(ctx context.Context, d 
 	return nil
 }
 
-func flattenShardTierRestoreJobs(sharedTierJobs []atlasSDK.TenantRestore) []map[string]any {
+func flattenShardTierRestoreJobs(sharedTierJobs []admin.TenantRestore) []map[string]any {
 	if len(sharedTierJobs) == 0 {
 		return nil
 	}

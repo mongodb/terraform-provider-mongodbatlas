@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
 const (
@@ -30,7 +30,7 @@ var (
 	teamRolesSDK = []admin.TeamRole{
 		{
 			TeamId:    conversion.StringPtr("teamId"),
-			RoleNames: roles,
+			RoleNames: conversion.NonEmptyToPtr(roles),
 		},
 	}
 	teamsDSTF = []*project.TfTeamDSModel{
@@ -88,7 +88,7 @@ func TestTeamsDataSourceSDKToTFModel(t *testing.T) {
 		{
 			name: "Complete TeamRole",
 			paginatedTeamRole: &admin.PaginatedTeamRole{
-				Results:    teamRolesSDK,
+				Results:    conversion.NonEmptyToPtr(teamRolesSDK),
 				TotalCount: conversion.IntPtr(1),
 			},
 			expectedTFModel: teamsDSTF,
@@ -141,7 +141,7 @@ func TestProjectDataSourceSDKToTFModel(t *testing.T) {
 			name:    "Project",
 			project: &projectSDK,
 			teams: &admin.PaginatedTeamRole{
-				Results:    teamRolesSDK,
+				Results:    conversion.NonEmptyToPtr(teamRolesSDK),
 				TotalCount: conversion.IntPtr(1),
 			},
 			projectSettings:      &projectSettingsSDK,

@@ -898,7 +898,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
       }
       provider_name = "AWS"
       priority      = 7
-      region_name   = "US_EAST_1"
+      region_name   = "EU_WEST_1"
     }
   }
 }
@@ -934,7 +934,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
       }
       provider_name = "AWS"
       priority      = 7
-      region_name   = "US_EAST_1"
+      region_name   = "EU_WEST_1"
     }
     region_configs {
       electable_specs {
@@ -983,7 +983,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
       }
       provider_name = "AWS"
       priority      = 7
-      region_name   = "US_EAST_1"
+      region_name   = "EU_WEST_1"
     }
     region_configs {
       electable_specs {
@@ -1023,7 +1023,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
       }
       provider_name = "AWS"
       priority      = 7
-      region_name   = "US_EAST_1"
+      region_name   = "EU_WEST_1"
     }
   }
 }
@@ -1053,7 +1053,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
       }
       provider_name = "AWS"
       priority      = 7
-      region_name   = "US_EAST_1"
+      region_name   = "EU_WEST_1"
     }
   }
 
@@ -1105,7 +1105,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
       }
       provider_name = "AWS"
       priority      = 7
-      region_name   = "US_EAST_1"
+      region_name   = "EU_WEST_1"
     }
   }
 
@@ -1153,7 +1153,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 	  }
       provider_name = "AWS"
       priority      = 7
-      region_name   = "US_EAST_1"
+      region_name   = "EU_WEST_1"
     }
   }
 
@@ -1193,7 +1193,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 	  }
       provider_name = "AWS"
       priority      = 7
-      region_name   = "US_EAST_1"
+      region_name   = "EU_WEST_1"
     }
   }
 

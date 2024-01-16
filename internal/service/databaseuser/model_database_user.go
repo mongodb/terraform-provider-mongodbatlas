@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
 func NewMongoDBDatabaseUser(ctx context.Context, dbUserModel *TfDatabaseUserModel) (*admin.CloudDatabaseUser, diag.Diagnostics) {
@@ -40,24 +40,24 @@ func NewMongoDBDatabaseUser(ctx context.Context, dbUserModel *TfDatabaseUserMode
 		OidcAuthType: dbUserModel.OIDCAuthType.ValueStringPointer(),
 		LdapAuthType: dbUserModel.LDAPAuthType.ValueStringPointer(),
 		DatabaseName: dbUserModel.AuthDatabaseName.ValueString(),
-		Roles:        NewMongoDBAtlasRoles(rolesModel),
-		Labels:       NewMongoDBAtlasLabels(labelsModel),
-		Scopes:       NewMongoDBAtlasScopes(scopesModel),
+		Roles:        conversion.NonEmptyToPtr(NewMongoDBAtlasRoles(rolesModel)),
+		Labels:       conversion.NonEmptyToPtr(NewMongoDBAtlasLabels(labelsModel)),
+		Scopes:       conversion.NonEmptyToPtr(NewMongoDBAtlasScopes(scopesModel)),
 	}, nil
 }
 
 func NewTfDatabaseUserModel(ctx context.Context, model *TfDatabaseUserModel, dbUser *admin.CloudDatabaseUser) (*TfDatabaseUserModel, diag.Diagnostics) {
-	rolesSet, diagnostic := types.SetValueFrom(ctx, RoleObjectType, NewTFRolesModel(dbUser.Roles))
+	rolesSet, diagnostic := types.SetValueFrom(ctx, RoleObjectType, NewTFRolesModel(dbUser.GetRoles()))
 	if diagnostic.HasError() {
 		return nil, diagnostic
 	}
 
-	labelsSet, diagnostic := types.SetValueFrom(ctx, LabelObjectType, NewTFLabelsModel(dbUser.Labels))
+	labelsSet, diagnostic := types.SetValueFrom(ctx, LabelObjectType, NewTFLabelsModel(dbUser.GetLabels()))
 	if diagnostic.HasError() {
 		return nil, diagnostic
 	}
 
-	scopesSet, diagnostic := types.SetValueFrom(ctx, ScopeObjectType, NewTFScopesModel(dbUser.Scopes))
+	scopesSet, diagnostic := types.SetValueFrom(ctx, ScopeObjectType, NewTFScopesModel(dbUser.GetScopes()))
 	if diagnostic.HasError() {
 		return nil, diagnostic
 	}
@@ -102,9 +102,9 @@ func NewTFDatabaseDSUserModel(ctx context.Context, dbUser *admin.CloudDatabaseUs
 		OIDCAuthType:     types.StringValue(dbUser.GetOidcAuthType()),
 		LDAPAuthType:     types.StringValue(dbUser.GetLdapAuthType()),
 		AWSIAMType:       types.StringValue(dbUser.GetAwsIAMType()),
-		Roles:            NewTFRolesModel(dbUser.Roles),
-		Labels:           NewTFLabelsModel(dbUser.Labels),
-		Scopes:           NewTFScopesModel(dbUser.Scopes),
+		Roles:            NewTFRolesModel(dbUser.GetRoles()),
+		Labels:           NewTFLabelsModel(dbUser.GetLabels()),
+		Scopes:           NewTFScopesModel(dbUser.GetScopes()),
 	}
 
 	return databaseUserModel, nil
