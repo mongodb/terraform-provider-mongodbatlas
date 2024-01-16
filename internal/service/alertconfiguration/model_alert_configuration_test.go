@@ -4,10 +4,12 @@ import (
 	"reflect"
 	"testing"
 
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
-	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
 const (
@@ -45,7 +47,7 @@ func TestNotificationSDKToTFModel(t *testing.T) {
 					SmsEnabled:   admin.PtrBool(disabled),
 					EmailEnabled: admin.PtrBool(enabled),
 					ChannelName:  admin.PtrString("#channel"),
-					Roles:        conversion.NonEmptySliceToSlicePtr(roles),
+					Roles:        conversion.NonEmptyToPtr(roles),
 					ApiToken:     admin.PtrString("newApiToken"),
 				},
 			},
@@ -290,7 +292,7 @@ func TestNotificationTFModelToSDK(t *testing.T) {
 					DelayMin:     admin.PtrInt(delayMin),
 					SmsEnabled:   admin.PtrBool(disabled),
 					EmailEnabled: admin.PtrBool(enabled),
-					Roles:        conversion.NonEmptySliceToSlicePtr(roles),
+					Roles:        conversion.NonEmptyToPtr(roles),
 				},
 			},
 		},

@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -528,8 +529,8 @@ func resourceMongoDBAtlasFederatedDatabaseInstanceImportState(ctx context.Contex
 
 func newDataFederationStorage(d *schema.ResourceData) *admin.DataLakeStorage {
 	return &admin.DataLakeStorage{
-		Databases: conversion.NonEmptySliceToSlicePtr(newDataFederationDatabase(d)),
-		Stores:    conversion.NonEmptySliceToSlicePtr(newStores(d)),
+		Databases: conversion.NonEmptyToPtr(newDataFederationDatabase(d)),
+		Stores:    conversion.NonEmptyToPtr(newStores(d)),
 	}
 }
 
@@ -552,7 +553,7 @@ func newStores(d *schema.ResourceData) []admin.DataLakeStoreSettings {
 			Prefix:                   conversion.StringPtr(storeFromConfMap["prefix"].(string)),
 			Delimiter:                conversion.StringPtr(storeFromConfMap["delimiter"].(string)),
 			IncludeTags:              conversion.Pointer(storeFromConfMap["include_tags"].(bool)),
-			AdditionalStorageClasses: conversion.NonEmptySliceToSlicePtr(newAdditionalStorageClasses(storeFromConfMap["additional_storage_classes"].([]any))),
+			AdditionalStorageClasses: conversion.NonEmptyToPtr(newAdditionalStorageClasses(storeFromConfMap["additional_storage_classes"].([]any))),
 			ReadPreference:           newReadPreference(storeFromConfMap),
 		}
 	}
@@ -582,7 +583,7 @@ func newReadPreference(storeFromConfMap map[string]any) *admin.DataLakeAtlasStor
 	return &admin.DataLakeAtlasStoreReadPreference{
 		Mode:                conversion.StringPtr(readPreferenceFromConfMap["mode"].(string)),
 		MaxStalenessSeconds: conversion.IntPtr(readPreferenceFromConfMap["max_staleness_seconds"].(int)),
-		TagSets:             conversion.NonEmptySliceToSlicePtr(newTagSets(readPreferenceFromConfMap)),
+		TagSets:             conversion.NonEmptyToPtr(newTagSets(readPreferenceFromConfMap)),
 	}
 }
 
@@ -626,7 +627,7 @@ func newDataFederationDatabase(d *schema.ResourceData) []admin.DataLakeDatabaseI
 		dbs[i] = admin.DataLakeDatabaseInstance{
 			Name:                   conversion.StringPtr(storageDBFromConfMap["name"].(string)),
 			MaxWildcardCollections: conversion.IntPtr(storageDBFromConfMap["max_wildcard_collections"].(int)),
-			Collections:            conversion.NonEmptySliceToSlicePtr(newDataFederationCollections(storageDBFromConfMap)),
+			Collections:            conversion.NonEmptyToPtr(newDataFederationCollections(storageDBFromConfMap)),
 		}
 	}
 
@@ -643,7 +644,7 @@ func newDataFederationCollections(storageDBFromConfMap map[string]any) []admin.D
 	for i, collectionFromConf := range collectionsFromConf {
 		collections[i] = admin.DataLakeDatabaseCollection{
 			Name:        conversion.StringPtr(collectionFromConf.(map[string]any)["name"].(string)),
-			DataSources: conversion.NonEmptySliceToSlicePtr(newDataFederationDataSource(collectionFromConf.(map[string]any))),
+			DataSources: conversion.NonEmptyToPtr(newDataFederationDataSource(collectionFromConf.(map[string]any))),
 		}
 	}
 
@@ -670,7 +671,7 @@ func newDataFederationDataSource(collectionFromConf map[string]any) []admin.Data
 			ProvenanceFieldName: conversion.StringPtr(dataSourceFromConfMap["provenance_field_name"].(string)),
 			StoreName:           conversion.StringPtr(dataSourceFromConfMap["store_name"].(string)),
 			DatasetName:         conversion.StringPtr(dataSourceFromConfMap["dataset_name"].(string)),
-			Urls:                conversion.NonEmptySliceToSlicePtr(newUrls(dataSourceFromConfMap["urls"].([]any))),
+			Urls:                conversion.NonEmptyToPtr(newUrls(dataSourceFromConfMap["urls"].([]any))),
 		}
 	}
 

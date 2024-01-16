@@ -5,16 +5,18 @@ import (
 	"fmt"
 	"sort"
 
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
+
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/zclconf/go-cty/cty"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/zclconf/go-cty/cty"
-	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
 var _ datasource.DataSource = &alertConfigurationDS{}
@@ -440,7 +442,7 @@ func convertNotificationToCtyValues(notification *admin.AlertsNotificationRootFo
 	}
 
 	if roles := notification.GetRoles(); len(roles) > 0 {
-		roleList := make([]cty.Value, 0)
+		roleList := make([]cty.Value, 0, len(roles))
 		for _, r := range roles {
 			if r != "" {
 				roleList = append(roleList, cty.StringVal(r))

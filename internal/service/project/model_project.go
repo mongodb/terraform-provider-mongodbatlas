@@ -3,9 +3,11 @@ package project
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"go.mongodb.org/atlas-sdk/v20231115003/admin"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group,
@@ -123,7 +125,7 @@ func NewTeamRoleList(ctx context.Context, teams []TfTeamModel) *[]admin.TeamRole
 	for i, team := range teams {
 		res[i] = admin.TeamRole{
 			TeamId:    team.TeamID.ValueStringPointer(),
-			RoleNames: conversion.NonEmptySliceToSlicePtr(conversion.TypesSetToString(ctx, team.RoleNames)),
+			RoleNames: conversion.NonEmptyToPtr(conversion.TypesSetToString(ctx, team.RoleNames)),
 		}
 	}
 	return &res

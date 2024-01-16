@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -675,7 +676,7 @@ func UpdateProjectTeams(ctx context.Context, client GroupProjectService, project
 
 		_, _, err := client.UpdateTeamRoles(ctx, projectID, teamID,
 			&admin.TeamRole{
-				RoleNames: conversion.NonEmptySliceToSlicePtr(conversion.TypesSetToString(ctx, team.RoleNames)),
+				RoleNames: conversion.NonEmptyToPtr(conversion.TypesSetToString(ctx, team.RoleNames)),
 			},
 		)
 		if err != nil {

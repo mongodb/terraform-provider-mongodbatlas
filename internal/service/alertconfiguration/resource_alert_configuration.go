@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"strings"
 
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -18,10 +20,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mwielbut/pointy"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mwielbut/pointy"
-	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
 const (
@@ -380,7 +382,7 @@ func (r *alertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 	apiReq := &admin.GroupAlertsConfig{
 		EventTypeName:   alertConfigPlan.EventType.ValueStringPointer(),
 		Enabled:         alertConfigPlan.Enabled.ValueBoolPointer(),
-		Matchers:        conversion.NonEmptySliceToSlicePtr(NewMatcherList(alertConfigPlan.Matcher)),
+		Matchers:        conversion.NonEmptyToPtr(NewMatcherList(alertConfigPlan.Matcher)),
 		MetricThreshold: NewMetricThreshold(alertConfigPlan.MetricThresholdConfig),
 		Threshold:       NewThreshold(alertConfigPlan.ThresholdConfig),
 	}
@@ -390,7 +392,7 @@ func (r *alertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 		resp.Diagnostics.AddError(errorCreateAlertConf, err.Error())
 		return
 	}
-	apiReq.Notifications = conversion.NonEmptySliceToSlicePtr(notifications)
+	apiReq.Notifications = conversion.NonEmptyToPtr(notifications)
 
 	apiResp, _, err := connV2.AlertConfigurationsApi.CreateAlertConfiguration(ctx, projectID, apiReq).Execute()
 	if err != nil {
@@ -482,7 +484,7 @@ func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	if !reflect.DeepEqual(alertConfigPlan.Matcher, alertConfigState.Matcher) {
-		apiReq.Matchers = conversion.NonEmptySliceToSlicePtr(NewMatcherList(alertConfigPlan.Matcher))
+		apiReq.Matchers = conversion.NonEmptyToPtr(NewMatcherList(alertConfigPlan.Matcher))
 	}
 
 	// Always refresh structure to handle service keys being obfuscated coming back from read API call
@@ -491,7 +493,7 @@ func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 		resp.Diagnostics.AddError(errorUpdateAlertConf, err.Error())
 		return
 	}
-	apiReq.Notifications = conversion.NonEmptySliceToSlicePtr(notifications)
+	apiReq.Notifications = conversion.NonEmptyToPtr(notifications)
 
 	var updatedAlertConfigResp *admin.GroupAlertsConfig
 

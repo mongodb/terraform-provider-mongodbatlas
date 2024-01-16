@@ -8,15 +8,17 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
-	"github.com/mongodb-forks/digest"
-	"github.com/mongodb/terraform-provider-mongodbatlas/version"
-	"github.com/spf13/cast"
-	oldAtlasSDK "go.mongodb.org/atlas-sdk/v20231001002/admin"
-	atlasSDK "go.mongodb.org/atlas-sdk/v20231115003/admin"
+	admin20231001002 "go.mongodb.org/atlas-sdk/v20231001002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
+	"github.com/mongodb-forks/digest"
+	"github.com/spf13/cast"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
 const (
@@ -29,10 +31,10 @@ var (
 
 // MongoDBClient contains the mongodbatlas clients and configurations
 type MongoDBClient struct {
-	Atlas      *matlasClient.Client
-	AtlasV2    *atlasSDK.APIClient
-	OldAtlasV2 *oldAtlasSDK.APIClient // Needed to avoid sudden breaking changes in federated_settings_identity_provider resource. Will be removed in terraform-provider-1.16.0
-	Config     *Config
+	Atlas            *matlasClient.Client
+	AtlasV2          *admin.APIClient
+	Atlas20231001002 *admin20231001002.APIClient // Needed to avoid breaking changes in federated_settings_identity_provider and online_archive resources.
+	Config           *Config
 }
 
 // Config contains the configurations needed to use SDKs
@@ -89,30 +91,30 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	sdkOldV2Client, err := c.newOldSDKV2Client(client)
+	sdk20231001002Client, err := c.newSDK20231001002Client(client)
 	if err != nil {
 		return nil, err
 	}
 
 	clients := &MongoDBClient{
-		Atlas:      atlasClient,
-		AtlasV2:    sdkV2Client,
-		OldAtlasV2: sdkOldV2Client,
-		Config:     c,
+		Atlas:            atlasClient,
+		AtlasV2:          sdkV2Client,
+		Atlas20231001002: sdk20231001002Client,
+		Config:           c,
 	}
 
 	return clients, nil
 }
 
-func (c *Config) newSDKV2Client(client *http.Client) (*atlasSDK.APIClient, error) {
-	opts := []atlasSDK.ClientModifier{
-		atlasSDK.UseHTTPClient(client),
-		atlasSDK.UseUserAgent(userAgent),
-		atlasSDK.UseBaseURL(c.BaseURL),
-		atlasSDK.UseDebug(false)}
+func (c *Config) newSDKV2Client(client *http.Client) (*admin.APIClient, error) {
+	opts := []admin.ClientModifier{
+		admin.UseHTTPClient(client),
+		admin.UseUserAgent(userAgent),
+		admin.UseBaseURL(c.BaseURL),
+		admin.UseDebug(false)}
 
 	// Initialize the MongoDB Versioned Atlas Client.
-	sdkv2, err := atlasSDK.NewClient(opts...)
+	sdkv2, err := admin.NewClient(opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -120,15 +122,15 @@ func (c *Config) newSDKV2Client(client *http.Client) (*atlasSDK.APIClient, error
 	return sdkv2, nil
 }
 
-func (c *Config) newOldSDKV2Client(client *http.Client) (*oldAtlasSDK.APIClient, error) {
-	opts := []oldAtlasSDK.ClientModifier{
-		oldAtlasSDK.UseHTTPClient(client),
-		oldAtlasSDK.UseUserAgent(userAgent),
-		oldAtlasSDK.UseBaseURL(c.BaseURL),
-		oldAtlasSDK.UseDebug(false)}
+func (c *Config) newSDK20231001002Client(client *http.Client) (*admin20231001002.APIClient, error) {
+	opts := []admin20231001002.ClientModifier{
+		admin20231001002.UseHTTPClient(client),
+		admin20231001002.UseUserAgent(userAgent),
+		admin20231001002.UseBaseURL(c.BaseURL),
+		admin20231001002.UseDebug(false)}
 
 	// Initialize the MongoDB Versioned Atlas Client.
-	sdkv2, err := oldAtlasSDK.NewClient(opts...)
+	sdkv2, err := admin20231001002.NewClient(opts...)
 	if err != nil {
 		return nil, err
 	}

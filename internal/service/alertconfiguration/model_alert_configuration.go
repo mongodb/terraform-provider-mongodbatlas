@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mwielbut/pointy"
 	"go.mongodb.org/atlas-sdk/v20231115003/admin"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mwielbut/pointy"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 func NewNotificationList(tfNotificationSlice []TfNotificationModel) ([]admin.AlertsNotificationRootForGroup, error) {
@@ -43,7 +45,7 @@ func NewNotificationList(tfNotificationSlice []TfNotificationModel) ([]admin.Ale
 			Username:                 n.Username.ValueStringPointer(),
 			VictorOpsApiKey:          n.VictorOpsAPIKey.ValueStringPointer(),
 			VictorOpsRoutingKey:      n.VictorOpsRoutingKey.ValueStringPointer(),
-			Roles:                    conversion.NonEmptySliceToSlicePtr(n.Roles),
+			Roles:                    conversion.NonEmptyToPtr(n.Roles),
 			MicrosoftTeamsWebhookUrl: n.MicrosoftTeamsWebhookURL.ValueStringPointer(),
 			WebhookSecret:            n.WebhookSecret.ValueStringPointer(),
 			WebhookUrl:               n.WebhookURL.ValueStringPointer(),
