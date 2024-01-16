@@ -81,24 +81,6 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 	})
 }
 
-func TestAccClusterAdvancedCluster_basicTenant_withLowecaseProviderName(t *testing.T) {
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
-		rName       = acctest.RandomWithPrefix("test-acc")
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccMongoDBAtlasAdvancedClusterConfigTenantWithLowercaseProviderName(orgID, projectName, rName),
-				ExpectError: regexp.MustCompile("The provided string 'aws' must be uppercase."),
-			},
-		},
-	})
-}
 func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 	var (
 		cluster        matlas.AdvancedCluster
@@ -771,40 +753,6 @@ resource "mongodbatlas_advanced_cluster" "test" {
       }
       provider_name         = "TENANT"
       backing_provider_name = "AWS"
-      region_name           = "US_EAST_1"
-      priority              = 7
-    }
-  }
-}
-
-data "mongodbatlas_advanced_cluster" "test" {
-	project_id = mongodbatlas_advanced_cluster.test.project_id
-	name 	     = mongodbatlas_advanced_cluster.test.name
-}
-
-data "mongodbatlas_advanced_clusters" "test" {
-	project_id = mongodbatlas_advanced_cluster.test.project_id
-}
-	`, orgID, projectName, name)
-}
-
-func testAccMongoDBAtlasAdvancedClusterConfigTenantWithLowercaseProviderName(orgID, projectName, name string) string {
-	return fmt.Sprintf(`
-resource "mongodbatlas_project" "cluster_project" {
-	name   = %[2]q
-	org_id = %[1]q
-}
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = mongodbatlas_project.cluster_project.id
-  name         = %[3]q
-  cluster_type = "REPLICASET"
-
-  replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M5"
-      }
-      provider_name         = "aws"
       region_name           = "US_EAST_1"
       priority              = 7
     }

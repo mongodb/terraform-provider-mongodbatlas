@@ -621,7 +621,7 @@ func StringIsUppercase() schema.SchemaValidateDiagFunc {
 		if value != strings.ToUpper(value) {
 			diagError := diag.Diagnostic{
 				Severity: diag.Error,
-				Summary:  fmt.Sprintf("The provided string '%s' must be uppercase.", value),
+				Summary:  fmt.Sprintf("The provided string '%q' must be uppercase.", value),
 			}
 			diags = append(diags, diagError)
 		}

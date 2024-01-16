@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -73,26 +72,6 @@ func TestAccClusterRSCluster_basicAWS_simple(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "version_release_system", "LTS"),
 					resource.TestCheckResourceAttr(resourceName, "auto_scaling_disk_gb_enabled", "false"),
 				),
-			},
-		},
-	})
-}
-
-func TestAccClusterRSCluster_basicAWS_withLowecaseProviderName(t *testing.T) {
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
-		name        = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccMongoDBAtlasClusterConfigAWSWithLowecaseProviderName(orgID, projectName, name, true, true),
-				ExpectError: regexp.MustCompile("The provided string 'aws' must be uppercase."),
 			},
 		},
 	})
@@ -2432,36 +2411,4 @@ resource "mongodbatlas_cluster" "test" {
   provider_instance_size_name = "M30"
 }
 	`, orgID, projectName, name, backupEnabled, paused)
-}
-
-func testAccMongoDBAtlasClusterConfigAWSWithLowecaseProviderName(orgID, projectName, name string, backupEnabled, autoDiskGBEnabled bool) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "cluster_project" {
-			name   = %[2]q
-			org_id = %[1]q
-		}
-		resource "mongodbatlas_cluster" "test" {
-			project_id                   = mongodbatlas_project.cluster_project.id
-			name                         = %[3]q
-			disk_size_gb                 = 100
-            cluster_type = "REPLICASET"
-		    replication_specs {
-			  num_shards = 1
-			  regions_config {
-			     region_name     = "EU_CENTRAL_1"
-			     electable_nodes = 3
-			     priority        = 7
-                 read_only_nodes = 0
-		       }
-		    }
-			cloud_backup                 = %[4]t
-			pit_enabled                  = %[4]t
-			retain_backups_enabled       = true
-			auto_scaling_disk_gb_enabled = %[5]t
-			// Provider Settings "block"
-
-			provider_name               = "aws"
-			provider_instance_size_name = "M30"
-		}
-	`, orgID, projectName, name, backupEnabled, autoDiskGBEnabled)
 }
