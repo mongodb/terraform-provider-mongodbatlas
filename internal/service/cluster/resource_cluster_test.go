@@ -9,18 +9,16 @@ import (
 	"regexp"
 	"testing"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
-
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mwielbut/pointy"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	clustersvc "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mwielbut/pointy"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccClusterRSCluster_basicAWS_simple(t *testing.T) {
