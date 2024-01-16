@@ -36,7 +36,7 @@ Update guide:
 	}
 	```
 	This will return the list of `mongodbatlas_federated_settings_identity_providers` with both `okta_idp_id` (20-hex characters Id) and `idp_id` (24-hex characters Id)
-3. Replace all occurances of old Id, such as `identity_provider_id` in the singular data source
+3. Replace all occurrences of old Id, such as `identity_provider_id` in the singular data source
 2. Re-import all `mongodbatlas_federated_settings_identity_provider` resources using the new Id: 
 	-  `terraform import mongodbatlas_federated_settings_identity_provider.identity_provider  <federation_settings_id>-<new_idp_id>`
 3. Run `terraform plan` 
