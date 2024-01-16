@@ -409,7 +409,7 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSDatabaseUser_withScopesAndEmpty(t *testing.T) {
+func TestAccConfigRSDatabaseUser_updateToEmptyScopes(t *testing.T) {
 	var (
 		dbUser       admin.CloudDatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
@@ -468,7 +468,7 @@ func TestAccConfigRSDatabaseUser_withScopesAndEmpty(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSDatabaseUser_withLabelsAndEmpty(t *testing.T) {
+func TestAccConfigRSDatabaseUser_updateToEmptyLabels(t *testing.T) {
 	var (
 		dbUser       admin.CloudDatabaseUser
 		resourceName = "mongodbatlas_database_user.test"

@@ -51,7 +51,7 @@ func TestAccMigrationConfigRSDatabaseUser_Basic(t *testing.T) {
 	})
 }
 
-func TestAccMigrationConfigRSDatabaseUser_WithX509TypeCustomer(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_database_user.test"
 		username     = "CN=ellen@example.com,OU=users,DC=example,DC=com"
@@ -87,7 +87,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithX509TypeCustomer(t *testing.T) {
 		},
 	})
 }
-func TestAccMigrationConfigRSDatabaseUser_WithAWSIAMType(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_database_user.test"
 		username     = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
@@ -123,7 +123,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithAWSIAMType(t *testing.T) {
 	})
 }
 
-func TestAccMigrationConfigRSDatabaseUser_WithLabels(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_withLabels(t *testing.T) {
 	var (
 		dbUser       admin.CloudDatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
@@ -184,7 +184,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithLabels(t *testing.T) {
 		},
 	})
 }
-func TestAccMigrationConfigRSDatabaseUser_WithEmptyLabels(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_withEmptyLabels(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_database_user.test"
 		username     = acctest.RandomWithPrefix("test-acc")
@@ -220,7 +220,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithEmptyLabels(t *testing.T) {
 	})
 }
 
-func TestAccMigrationConfigRSDatabaseUser_WithRoles(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_withRoles(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_database_user.test"
 		username     = acctest.RandomWithPrefix("test-acc-user")
@@ -283,7 +283,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithRoles(t *testing.T) {
 	})
 }
 
-func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_withScopes(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_database_user.test"
 		username     = acctest.RandomWithPrefix("test-acc-user")
@@ -337,7 +337,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 	})
 }
 
-func TestAccMigrationConfigRSDatabaseUser_WithEmptyScopes(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_withEmptyScopes(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_database_user.test"
 		username     = acctest.RandomWithPrefix("test-acc-user")
@@ -374,7 +374,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithEmptyScopes(t *testing.T) {
 	})
 }
 
-func TestAccMigrationConfigRSDatabaseUser_WithLDAPAuthType(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_database_user.test"
 		username     = "CN=david@example.com,OU=users,DC=example,DC=com"
