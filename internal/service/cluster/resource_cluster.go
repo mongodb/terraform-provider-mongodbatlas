@@ -12,19 +12,17 @@ import (
 	"strings"
 	"time"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/mwielbut/pointy"
-	"github.com/spf13/cast"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mwielbut/pointy"
+	"github.com/spf13/cast"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -153,8 +151,9 @@ func Resource() *schema.Resource {
 				Required: true,
 			},
 			"provider_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: advancedcluster.StringIsUppercase(),
 			},
 			"pit_enabled": {
 				Type:     schema.TypeBool,
@@ -235,8 +234,9 @@ func Resource() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"region_name": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: advancedcluster.StringIsUppercase(),
 									},
 									"electable_nodes": {
 										Type:     schema.TypeInt,
