@@ -141,13 +141,9 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 		return diag.FromErr(fmt.Errorf("error setting sso url (%s): %s", d.Id(), err))
 	}
 
-	if err := d.Set("id", federatedSettingsIdentityProvider.Id); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting Id (%s): %s", d.Id(), err))
-	}
-
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"federation_settings_id": federationSettingsID,
-		"okta_idp_id":            oktaIdpID,
+		"okta_idp_id":            federatedSettingsIdentityProvider.Id,
 	}))
 
 	return nil
@@ -198,10 +194,6 @@ func oldSDKRead(federationSettingsID, oktaIdpID string, d *schema.ResourceData, 
 
 	if err := d.Set("sso_url", federatedSettingsIdentityProvider.SsoUrl); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting sso url (%s): %s", d.Id(), err))
-	}
-
-	if err := d.Set("id", federatedSettingsIdentityProvider.Id); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting Id (%s): %s", d.Id(), err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -346,7 +338,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderDelete(ctx context.Con
 }
 
 func resourceMongoDBAtlasFederatedSettingsIdentityProviderImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn20231001002 := meta.(*config.MongoDBClient).Atlas20231001002
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	federationSettingsID, oktaIdpID, err := splitFederatedSettingsIdentityProviderImportID(d.Id())
 	if err != nil {
 		return nil, err
@@ -357,7 +349,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderImportState(ctx contex
 		return oldSDKImport(federationSettingsID, oktaIdpID, d, meta)
 	}
 
-	federatedSettingsIdentityProvider, _, err := conn20231001002.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), *federationSettingsID, *oktaIdpID).Execute()
+	federatedSettingsIdentityProvider, _, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), *federationSettingsID, *oktaIdpID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import Organization config (%s) in Federation settings (%s), error: %s", *oktaIdpID, *federationSettingsID, err)
 	}

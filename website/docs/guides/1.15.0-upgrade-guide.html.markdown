@@ -25,7 +25,13 @@ The new format is a 24-hex characters long string.
 
 Update guide: 
 
-
+1. Get new ID value
+	- Use Atlas API:
+	- Use plural data source: 
+2. Re-import all resources using the new Id: 
+	-  `terraform import mongodbatlas_federated_settings_identity_provider.identity_provider  <federation_settings_id>-<new_idp_id>`
+3. Run `terraform plan` 
+4. Run `terraform apply`
 
 
 ### Helpful Links
