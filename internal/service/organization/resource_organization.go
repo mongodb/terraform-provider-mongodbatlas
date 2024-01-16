@@ -232,7 +232,7 @@ func resourceMongoDBAtlasOrganizationDelete(ctx context.Context, d *schema.Resou
 	orgID := ids["org_id"]
 
 	if _, _, err := conn.OrganizationsApi.DeleteOrganization(ctx, orgID).Execute(); err != nil {
-		return diag.FromErr(fmt.Errorf("error Organization: %s", err))
+		return diag.FromErr(fmt.Errorf("error deleting Organization: %s", err))
 	}
 	return nil
 }

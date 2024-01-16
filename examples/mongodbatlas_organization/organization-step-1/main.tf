@@ -3,6 +3,9 @@ resource "mongodbatlas_organization" "test" {
   name         = "testCreateORG"
   description  = "test API key from Org Creation Test"
   role_names   = ["ORG_OWNER"]
+  multi_factor_auth_required = true
+  restrict_employee_access = true
+  api_access_list_required = false
 }
 
 output "org_id" {
