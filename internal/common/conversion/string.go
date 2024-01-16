@@ -12,9 +12,9 @@ func TypesSetToString(ctx context.Context, set types.Set) []string {
 	return results
 }
 
-func TypesListToString(ctx context.Context, set types.List) []string {
+func TypesListToString(ctx context.Context, list types.List) []string {
 	results := []string{}
-	_ = set.ElementsAs(ctx, &results, false)
+	_ = list.ElementsAs(ctx, &results, false)
 	return results
 }
 
