@@ -672,10 +672,10 @@ func UpdateProjectTeams(ctx context.Context, client GroupProjectService, project
 	// updating the role names for a team
 	for _, team := range changedTeams {
 		teamID := team.TeamID.ValueString()
-
+		roleNames := conversion.TypesSetToString(ctx, team.RoleNames)
 		_, _, err := client.UpdateTeamRoles(ctx, projectID, teamID,
 			&admin.TeamRole{
-				RoleNames: conversion.NonEmptyToPtr(conversion.TypesSetToString(ctx, team.RoleNames)),
+				RoleNames: &roleNames,
 			},
 		)
 		if err != nil {
