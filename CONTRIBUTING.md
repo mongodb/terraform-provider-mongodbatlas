@@ -325,6 +325,8 @@ make scaffold resource_name=streamInstance type=resource
 
 This will generate resource/data source files and accompanying test files needed for starting the development, and will contain multiple comments with `TODO:` statements which give guidance for the development.
 
+As a follow up step, use [Scaffolding Schema and Model Definitions](#scaffolding-schema-and-model-definitions) to autogenerate the schema via the Open API specification. This will require making adjustments to the generated `./internal/service/<resource_name>/tfplugingen/generator_config.yml` file.
+
 #### Scaffolding Schema and Model Definitions
 
 Complementary to the `scaffold` command, there is a command which generates the initial Terraform schema definition and associated Go types for a resource or data source. This processes leverages [Code Generation Tools](https://developer.hashicorp.com/terraform/plugin/code-generation) developed by HashiCorp, which in turn make use of the [Atlas Admin API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/) OpenAPI Specification.
