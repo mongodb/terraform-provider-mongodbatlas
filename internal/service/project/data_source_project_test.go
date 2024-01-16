@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -27,11 +27,11 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
-							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(1)),
-							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+							RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
 				)),
@@ -59,12 +59,12 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
-							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
 
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(1)),
-							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+							RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
 				)),
@@ -92,12 +92,12 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
-							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
 
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(1)),
-							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+							RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
 				)),

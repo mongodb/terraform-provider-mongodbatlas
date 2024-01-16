@@ -31,3 +31,12 @@ resource "mongodbatlas_search_deployment" "example" {
     }
   ]
 }
+
+data "mongodbatlas_search_deployment" "example" {
+  project_id   = mongodbatlas_search_deployment.example.project_id
+  cluster_name = mongodbatlas_search_deployment.example.cluster_name
+}
+
+output "mongodbatlas_search_deployment_id" {
+  value = data.mongodbatlas_search_deployment.example.id
+}

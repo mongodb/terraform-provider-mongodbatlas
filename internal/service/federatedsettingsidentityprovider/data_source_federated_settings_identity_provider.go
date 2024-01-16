@@ -7,12 +7,11 @@ import (
 	"sort"
 	"strings"
 
-	oldAdmin "go.mongodb.org/atlas-sdk/v20231001002/admin"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	admin20231001002 "go.mongodb.org/atlas-sdk/v20231001002/admin"
 )
 
 func DataSource() *schema.Resource {
@@ -242,7 +241,7 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Con
 		return diag.FromErr(fmt.Errorf("error setting `associated_domains` for federatedSettings IdentityProviders: %s", err))
 	}
 
-	if err := d.Set("associated_orgs", FlattenAssociatedOrgs(federatedSettingsIdentityProvider.AssociatedOrgs)); err != nil {
+	if err := d.Set("associated_orgs", FlattenAssociatedOrgs(federatedSettingsIdentityProvider.GetAssociatedOrgs())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `associated_orgs` for federatedSettings IdentityProviders: %s", err))
 	}
 
@@ -288,8 +287,8 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Con
 }
 
 func oldSDKDSRead(ctx context.Context, federationSettingsID, idpID string, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connOldV2 := meta.(*config.MongoDBClient).OldAtlasV2
-	federatedSettingsIdentityProvider, _, err := connOldV2.FederatedAuthenticationApi.GetIdentityProvider(ctx, federationSettingsID, idpID).Execute()
+	conn20231001002 := meta.(*config.MongoDBClient).Atlas20231001002
+	federatedSettingsIdentityProvider, _, err := conn20231001002.FederatedAuthenticationApi.GetIdentityProvider(ctx, federationSettingsID, idpID).Execute()
 	if err != nil {
 		return diag.Errorf("error getting federatedSettings IdentityProviders assigned (%s): %s", federationSettingsID, err)
 	}
@@ -347,7 +346,7 @@ func oldSDKDSRead(ctx context.Context, federationSettingsID, idpID string, d *sc
 	return nil
 }
 
-func oldSDKFlattenAssociatedOrgs(associatedOrgs []oldAdmin.ConnectedOrgConfig) []map[string]any {
+func oldSDKFlattenAssociatedOrgs(associatedOrgs []admin20231001002.ConnectedOrgConfig) []map[string]any {
 	var associatedOrgsMap []map[string]any
 
 	if len(associatedOrgs) == 0 {
@@ -382,7 +381,7 @@ func oldSDKFlattenAssociatedOrgs(associatedOrgs []oldAdmin.ConnectedOrgConfig) [
 	return associatedOrgsMap
 }
 
-func oldSDKFlattenFederatedUser(federatedUsers []oldAdmin.FederatedUser) []map[string]any {
+func oldSDKFlattenFederatedUser(federatedUsers []admin20231001002.FederatedUser) []map[string]any {
 	var userConflictsMap []map[string]any
 
 	if len(federatedUsers) == 0 {
@@ -403,7 +402,7 @@ func oldSDKFlattenFederatedUser(federatedUsers []oldAdmin.FederatedUser) []map[s
 	return userConflictsMap
 }
 
-type oldSDKAuthFederationoleMappingsByGroupName []oldAdmin.AuthFederationRoleMapping
+type oldSDKAuthFederationoleMappingsByGroupName []admin20231001002.AuthFederationRoleMapping
 
 func (ra oldSDKAuthFederationoleMappingsByGroupName) Len() int      { return len(ra) }
 func (ra oldSDKAuthFederationoleMappingsByGroupName) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
@@ -412,7 +411,7 @@ func (ra oldSDKAuthFederationoleMappingsByGroupName) Less(i, j int) bool {
 	return ra[i].ExternalGroupName < ra[j].ExternalGroupName
 }
 
-func oldSDKFlattenAuthFederationRoleMapping(roleMappings []oldAdmin.AuthFederationRoleMapping) []map[string]any {
+func oldSDKFlattenAuthFederationRoleMapping(roleMappings []admin20231001002.AuthFederationRoleMapping) []map[string]any {
 	sort.Sort(oldSDKAuthFederationoleMappingsByGroupName(roleMappings))
 
 	var roleMappingsMap []map[string]any
@@ -432,7 +431,7 @@ func oldSDKFlattenAuthFederationRoleMapping(roleMappings []oldAdmin.AuthFederati
 	return roleMappingsMap
 }
 
-type mRoleAssignmentOldV2 []oldAdmin.RoleAssignment
+type mRoleAssignmentOldV2 []admin20231001002.RoleAssignment
 
 func (ra mRoleAssignmentOldV2) Len() int      { return len(ra) }
 func (ra mRoleAssignmentOldV2) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
@@ -452,7 +451,7 @@ func (ra mRoleAssignmentOldV2) Less(i, j int) bool {
 	return *ra[i].Role < *ra[j].Role
 }
 
-func oldSDKFlattenRoleAssignmentsV2(roleAssignments []oldAdmin.RoleAssignment) []map[string]any {
+func oldSDKFlattenRoleAssignmentsV2(roleAssignments []admin20231001002.RoleAssignment) []map[string]any {
 	sort.Sort(mRoleAssignmentOldV2(roleAssignments))
 
 	var roleAssignmentsMap []map[string]any
@@ -472,7 +471,7 @@ func oldSDKFlattenRoleAssignmentsV2(roleAssignments []oldAdmin.RoleAssignment) [
 	return roleAssignmentsMap
 }
 
-func oldSDKFlattenPemFileInfo(pemFileInfo oldAdmin.PemFileInfo) []map[string]any {
+func oldSDKFlattenPemFileInfo(pemFileInfo admin20231001002.PemFileInfo) []map[string]any {
 	var pemFileInfoMap []map[string]any
 
 	if len(pemFileInfo.Certificates) > 0 {
@@ -487,7 +486,7 @@ func oldSDKFlattenPemFileInfo(pemFileInfo oldAdmin.PemFileInfo) []map[string]any
 	return pemFileInfoMap
 }
 
-func oldSDKFlattenFederatedSettingsCertificates(certificates []oldAdmin.X509Certificate) []map[string]any {
+func oldSDKFlattenFederatedSettingsCertificates(certificates []admin20231001002.X509Certificate) []map[string]any {
 	var certificatesMap []map[string]any
 
 	if len(certificates) > 0 {

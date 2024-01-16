@@ -9,7 +9,7 @@ import (
 	"sort"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -675,7 +675,7 @@ func UpdateProjectTeams(ctx context.Context, client GroupProjectService, project
 
 		_, _, err := client.UpdateTeamRoles(ctx, projectID, teamID,
 			&admin.TeamRole{
-				RoleNames: conversion.TypesSetToString(ctx, team.RoleNames),
+				RoleNames: conversion.NonEmptyToPtr(conversion.TypesSetToString(ctx, team.RoleNames)),
 			},
 		)
 		if err != nil {
@@ -768,8 +768,9 @@ func ResourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID
 			return dependents, projectDependentsStateIdle, nil
 		}
 
-		for i := range dependents.AdvancedClusters.Results {
-			if *dependents.AdvancedClusters.Results[i].StateName != projectDependentsStateDeleting {
+		results := dependents.AdvancedClusters.GetResults()
+		for i := range results {
+			if *results[i].StateName != projectDependentsStateDeleting {
 				return dependents, projectDependentsStateIdle, nil
 			}
 		}

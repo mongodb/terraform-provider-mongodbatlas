@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
 var (
@@ -69,9 +69,9 @@ var (
 		OidcAuthType: &oidCAuthType,
 		LdapAuthType: &ldapAuthType,
 		AwsIAMType:   &awsIAMType,
-		Roles:        []admin.DatabaseUserRole{sdkRole},
-		Labels:       []admin.ComponentLabel{sdkLabel},
-		Scopes:       []admin.UserScope{sdkScope},
+		Roles:        &[]admin.DatabaseUserRole{sdkRole},
+		Labels:       &[]admin.ComponentLabel{sdkLabel},
+		Scopes:       &[]admin.UserScope{sdkScope},
 	}
 )
 

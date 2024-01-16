@@ -3,12 +3,13 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: {{.Name}}"
 subcategory: "docs_{{ .Name }}_{{.Type | lower}}"
 description: |-
-{{ .Description | trimspace | prefixlines "  " }}
+    "Provides a Search Deployment data source."
 ---
 
 # {{.Type}}: {{.Name}}
 
 {{ .Description | trimspace }}
+`mongodbatlas_search_deployment` describes a search node deployment.
 
 ## Example Usages
 {{ tffile (printf "examples/%s/main.tf" .Name )}}
