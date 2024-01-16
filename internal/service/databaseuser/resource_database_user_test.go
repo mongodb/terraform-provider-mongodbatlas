@@ -274,8 +274,8 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 	var (
 		dbUser       admin.CloudDatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
-		username     = acctest.RandomWithPrefix("test-acc-user-")
-		password     = acctest.RandomWithPrefix("test-acc-pass-")
+		username     = acctest.RandomWithPrefix("test-acc-user")
+		password     = acctest.RandomWithPrefix("test-acc-pass")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
@@ -339,10 +339,11 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 	var (
 		dbUser       admin.CloudDatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
-		username     = acctest.RandomWithPrefix("test-acc-user-")
-		password     = acctest.RandomWithPrefix("test-acc-pass-")
+		username     = acctest.RandomWithPrefix("test-acc-user")
+		password     = acctest.RandomWithPrefix("test-acc-pass")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterInfo  = acc.GetClusterInfo(orgID)
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		clusterName  = acctest.RandomWithPrefix("test-acc-clu")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -351,14 +352,14 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", projectName, orgID,
 					[]*admin.UserScope{
 						{
-							Name: "test-acc-nurk4llu2z",
+							Name: clusterName,
 							Type: "CLUSTER",
 						},
 						{
-							Name: "test-acc-nurk4llu2z",
+							Name: clusterName,
 							Type: "DATA_LAKE",
 						},
 					},
@@ -371,13 +372,17 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "password", password),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "scopes.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "scopes.0.name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "scopes.0.type", "CLUSTER"),
+					resource.TestCheckResourceAttr(resourceName, "scopes.1.name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "scopes.1.type", "DATA_LAKE"),
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", projectName, orgID,
 					[]*admin.UserScope{
 						{
-							Name: "test-acc-nurk4llu2z",
+							Name: clusterName,
 							Type: "CLUSTER",
 						},
 					},
@@ -390,6 +395,8 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "password", password),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "scopes.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "scopes.0.name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "scopes.0.type", "CLUSTER"),
 				),
 			},
 		},
@@ -400,10 +407,11 @@ func TestAccConfigRSDatabaseUser_withScopesAndEmpty(t *testing.T) {
 	var (
 		dbUser       admin.CloudDatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
-		username     = acctest.RandomWithPrefix("test-acc-user-")
-		password     = acctest.RandomWithPrefix("test-acc-pass-")
+		username     = acctest.RandomWithPrefix("test-acc-user")
+		password     = acctest.RandomWithPrefix("test-acc-pass")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterInfo  = acc.GetClusterInfo(orgID)
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		clusterName  = acctest.RandomWithPrefix("test-acc-clu")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -412,14 +420,14 @@ func TestAccConfigRSDatabaseUser_withScopesAndEmpty(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", projectName, orgID,
 					[]*admin.UserScope{
 						{
-							Name: "test-acc-nurk4llu2z",
+							Name: clusterName,
 							Type: "CLUSTER",
 						},
 						{
-							Name: "test-acc-nurk4llu2z",
+							Name: clusterName,
 							Type: "DATA_LAKE",
 						},
 					},
@@ -432,10 +440,14 @@ func TestAccConfigRSDatabaseUser_withScopesAndEmpty(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "password", password),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "scopes.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "scopes.0.name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "scopes.0.type", "CLUSTER"),
+					resource.TestCheckResourceAttr(resourceName, "scopes.1.name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "scopes.1.type", "DATA_LAKE"),
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr, nil),
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", projectName, orgID, nil),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckDatabaseUserExists(resourceName, &dbUser),
 					acc.CheckDatabaseUserAttributes(&dbUser, username),

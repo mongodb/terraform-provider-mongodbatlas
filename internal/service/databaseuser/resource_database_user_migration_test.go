@@ -223,8 +223,8 @@ func TestAccMigrationConfigRSDatabaseUser_WithEmptyLabels(t *testing.T) {
 func TestAccMigrationConfigRSDatabaseUser_WithRoles(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_database_user.test"
-		username     = acctest.RandomWithPrefix("test-acc-user-")
-		password     = acctest.RandomWithPrefix("test-acc-pass-")
+		username     = acctest.RandomWithPrefix("test-acc-user")
+		password     = acctest.RandomWithPrefix("test-acc-pass")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
@@ -286,10 +286,11 @@ func TestAccMigrationConfigRSDatabaseUser_WithRoles(t *testing.T) {
 func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_database_user.test"
-		username     = acctest.RandomWithPrefix("test-acc-user-")
-		password     = acctest.RandomWithPrefix("test-acc-pass-")
+		username     = acctest.RandomWithPrefix("test-acc-user")
+		password     = acctest.RandomWithPrefix("test-acc-pass")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterInfo  = acc.GetClusterInfo(orgID)
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		clusterName  = acctest.RandomWithPrefix("test-acc-clu")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -297,10 +298,10 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", projectName, orgID,
 					[]*admin.UserScope{
 						{
-							Name: "test-acc-nurk4llu2z",
+							Name: clusterName,
 							Type: "CLUSTER",
 						},
 					},
@@ -311,14 +312,16 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "password", password),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "scopes.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "scopes.0.name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "scopes.0.type", "CLUSTER"),
 				),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr,
+				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", projectName, orgID,
 					[]*admin.UserScope{
 						{
-							Name: "test-acc-nurk4llu2z",
+							Name: clusterName,
 							Type: "CLUSTER",
 						},
 					},
@@ -337,10 +340,10 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 func TestAccMigrationConfigRSDatabaseUser_WithEmptyScopes(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_database_user.test"
-		username     = acctest.RandomWithPrefix("test-acc-user-")
-		password     = acctest.RandomWithPrefix("test-acc-pass-")
+		username     = acctest.RandomWithPrefix("test-acc-user")
+		password     = acctest.RandomWithPrefix("test-acc-pass")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterInfo  = acc.GetClusterInfo(orgID)
+		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -348,7 +351,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithEmptyScopes(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr, nil),
+				Config:            acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", projectName, orgID, nil),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -359,7 +362,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithEmptyScopes(t *testing.T) {
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", clusterInfo.ProjectIDStr, clusterInfo.ClusterName, clusterInfo.ClusterTerraformStr, nil),
+				Config:                   acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", projectName, orgID, nil),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),

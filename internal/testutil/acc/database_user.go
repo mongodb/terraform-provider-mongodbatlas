@@ -237,40 +237,38 @@ func ConfigDatabaseUserWithAWSIAMType(projectName, orgID, roleName, username, ke
 	`, projectName, orgID, roleName, username, keyLabel, valueLabel)
 }
 
-func ConfigDatabaseUserWithScopes(username, password, roleName, projectID, clusterName, clusterTerraformStr string, scopesArr []*admin.UserScope) string {
+func ConfigDatabaseUserWithScopes(username, password, roleName, projectName, orgID string, scopesArr []*admin.UserScope) string {
 	var scopes string
-
 	for _, scope := range scopesArr {
-		var scopeType string
-
-		if scope.Type != "" {
-			scopeType = fmt.Sprintf(`type = %q`, scope.Type)
-		}
-
 		scopes += fmt.Sprintf(`
 			scopes {
-				name = "%s"
-				%s
+				name = %q
+				type = %q
 			}
-		`, clusterName, scopeType)
+		`, scope.GetName(), scope.GetType())
 	}
 
-	return clusterTerraformStr + fmt.Sprintf(`
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %q
+			org_id = %q
+		}
+	
 		resource "mongodbatlas_database_user" "test" {
-			username           = "%s"
-			password           = "%s"
-			project_id         = %s
+			username           = %q
+			password           = %q
+			project_id         = "${mongodbatlas_project.test.id}"
 			auth_database_name = "admin"
 
 			roles {
-				role_name     = "%s"
+				role_name     = %q
 				database_name = "admin"
 			}
 
 			%s
 
 		}
-	`, username, password, projectID, roleName, scopes)
+	`, projectName, orgID, username, password, roleName, scopes)
 }
 
 func ConfigDatabaseUserWithLDAPAuthType(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
