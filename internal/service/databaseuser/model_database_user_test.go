@@ -202,19 +202,19 @@ func TestNewTFScopesModel(t *testing.T) {
 
 func TestNewMongoDBAtlasLabels(t *testing.T) {
 	testCases := []struct {
+		expectedResult *[]admin.ComponentLabel
 		name           string
 		currentLabels  []*databaseuser.TfLabelModel
-		expectedResult []admin.ComponentLabel
 	}{
 		{
 			name:           "Success TfLabelModel",
 			currentLabels:  []*databaseuser.TfLabelModel{&tfLabel},
-			expectedResult: []admin.ComponentLabel{sdkLabel},
+			expectedResult: &[]admin.ComponentLabel{sdkLabel},
 		},
 		{
 			name:           "Empty TfLabelModel",
 			currentLabels:  []*databaseuser.TfLabelModel{},
-			expectedResult: []admin.ComponentLabel{},
+			expectedResult: &[]admin.ComponentLabel{},
 		},
 	}
 
@@ -241,7 +241,7 @@ func TestNewTFLabelsModel(t *testing.T) {
 		{
 			name:           "Empty TfLabelModel",
 			currentLabels:  []admin.ComponentLabel{},
-			expectedResult: nil,
+			expectedResult: []databaseuser.TfLabelModel{},
 		},
 	}
 

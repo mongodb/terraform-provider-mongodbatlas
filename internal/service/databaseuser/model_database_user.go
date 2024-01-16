@@ -41,7 +41,7 @@ func NewMongoDBDatabaseUser(ctx context.Context, dbUserModel *TfDatabaseUserMode
 		LdapAuthType: dbUserModel.LDAPAuthType.ValueStringPointer(),
 		DatabaseName: dbUserModel.AuthDatabaseName.ValueString(),
 		Roles:        NewMongoDBAtlasRoles(rolesModel),
-		Labels:       conversion.NonEmptyToPtr(NewMongoDBAtlasLabels(labelsModel)),
+		Labels:       NewMongoDBAtlasLabels(labelsModel),
 		Scopes:       NewMongoDBAtlasScopes(scopesModel),
 	}, nil
 }
@@ -138,11 +138,7 @@ func NewTFScopesModel(scopes []admin.UserScope) []TfScopeModel {
 	return out
 }
 
-func NewMongoDBAtlasLabels(labels []*TfLabelModel) []admin.ComponentLabel {
-	if len(labels) == 0 {
-		return []admin.ComponentLabel{}
-	}
-
+func NewMongoDBAtlasLabels(labels []*TfLabelModel) *[]admin.ComponentLabel {
 	out := make([]admin.ComponentLabel, len(labels))
 	for i, v := range labels {
 		out[i] = admin.ComponentLabel{
@@ -150,15 +146,10 @@ func NewMongoDBAtlasLabels(labels []*TfLabelModel) []admin.ComponentLabel {
 			Value: v.Value.ValueStringPointer(),
 		}
 	}
-
-	return out
+	return &out
 }
 
 func NewTFLabelsModel(labels []admin.ComponentLabel) []TfLabelModel {
-	if len(labels) == 0 {
-		return nil
-	}
-
 	out := make([]TfLabelModel, len(labels))
 	for i, v := range labels {
 		out[i] = TfLabelModel{
@@ -166,7 +157,6 @@ func NewTFLabelsModel(labels []admin.ComponentLabel) []TfLabelModel {
 			Value: types.StringValue(v.GetValue()),
 		}
 	}
-
 	return out
 }
 

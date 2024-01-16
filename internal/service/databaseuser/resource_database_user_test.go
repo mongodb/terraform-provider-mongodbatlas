@@ -190,7 +190,7 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType_import(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSDatabaseUser_WithLabels(t *testing.T) {
+func TestAccConfigRSDatabaseUser_withLabels(t *testing.T) {
 	var (
 		dbUser       admin.CloudDatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
@@ -205,7 +205,7 @@ func TestAccConfigRSDatabaseUser_WithLabels(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username, []admin.ComponentLabel{}),
+				Config: acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username, nil),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckDatabaseUserExists(resourceName, &dbUser),
 					acc.CheckDatabaseUserAttributes(&dbUser, username),
@@ -446,6 +446,55 @@ func TestAccConfigRSDatabaseUser_withScopesAndEmpty(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "password", password),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "scopes.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccConfigRSDatabaseUser_withLabelsAndEmpty(t *testing.T) {
+	var (
+		dbUser       admin.CloudDatabaseUser
+		resourceName = "mongodbatlas_database_user.test"
+		username     = acctest.RandomWithPrefix("test-acc")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyDatabaseUser,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username,
+					[]admin.ComponentLabel{
+						{
+							Key:   conversion.StringPtr("key 1"),
+							Value: conversion.StringPtr("value 1"),
+						},
+						{
+							Key:   conversion.StringPtr("key 2"),
+							Value: conversion.StringPtr("value 2"),
+						},
+					},
+				),
+				Check: resource.ComposeTestCheckFunc(
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
+					resource.TestCheckResourceAttr(resourceName, "labels.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "labels.0.key", "key 1"),
+					resource.TestCheckResourceAttr(resourceName, "labels.0.value", "value 1"),
+					resource.TestCheckResourceAttr(resourceName, "labels.1.key", "key 2"),
+					resource.TestCheckResourceAttr(resourceName, "labels.1.value", "value 2"),
+				),
+			},
+			{
+				Config: acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username, nil),
+				Check: resource.ComposeTestCheckFunc(
+					acc.CheckDatabaseUserExists(resourceName, &dbUser),
+					acc.CheckDatabaseUserAttributes(&dbUser, username),
+					resource.TestCheckResourceAttr(resourceName, "labels.#", "0"),
 				),
 			},
 		},
