@@ -83,53 +83,53 @@ func CheckDestroyDatabaseUser(s *terraform.State) error {
 func ConfigDatabaseUserBasic(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
+			name   = %[1]q
+			org_id = %[2]q
 		}
 
 		resource "mongodbatlas_database_user" "basic_ds" {
-			username           = "%[4]s"
+			username           = %[3]q
 			password           = "test-acc-password"
-			project_id         = "${mongodbatlas_project.test.id}"
+			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "admin"
 
 			roles {
-				role_name     = "%[3]s"
+				role_name     = %[4]q
 				database_name = "admin"
 			}
 
 			labels {
-				key   = "%s"
-				value = "%s"
+				key   = %[5]q
+				value = %[6]q
 			}
 		}
-	`, projectName, orgID, roleName, username, keyLabel, valueLabel)
+	`, projectName, orgID, username, roleName, keyLabel, valueLabel)
 }
 
 func ConfigDatabaseUserWithX509Type(projectName, orgID, roleName, username, keyLabel, valueLabel, x509Type string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
+			name   = %[1]q
+			org_id = %[2]q
 		}
 
 		resource "mongodbatlas_database_user" "test" {
-			username           = "%[4]s"
-			x509_type          = "%[7]s"
-			project_id         = "${mongodbatlas_project.test.id}"
+			username           = %[3]q
+			x509_type          = %[4]q
+			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "$external"
 
 			roles {
-				role_name     = "%[3]s"
+				role_name     = %[5]q
 				database_name = "admin"
 			}
 
 			labels {
-				key   = "%s"
-				value = "%s"
+				key   = %[6]q
+				value = %[7]q
 			}
 		}
-	`, projectName, orgID, roleName, username, keyLabel, valueLabel, x509Type)
+	`, projectName, orgID, username, x509Type, roleName, keyLabel, valueLabel)
 }
 
 func ConfigDatabaseUserWithLabels(projectName, orgID, roleName, username string, labels []admin.ComponentLabel) string {
@@ -137,33 +137,33 @@ func ConfigDatabaseUserWithLabels(projectName, orgID, roleName, username string,
 	for _, label := range labels {
 		labelsConf += fmt.Sprintf(`
 			labels {
-				key   = "%s"
-				value = "%s"
+				key   = %q
+				value = %q
 			}
 		`, label.GetKey(), label.GetValue())
 	}
 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
+			name   = %[1]q
+			org_id = %[2]q
 		}
 
 		resource "mongodbatlas_database_user" "test" {
-			username           = "%[4]s"
+			username           = %[3]q
 			password           = "test-acc-password"
-			project_id         = "${mongodbatlas_project.test.id}"
+			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "admin"
 
 			roles {
-				role_name     = "%[3]s"
+				role_name     = %[4]q
 				database_name = "admin"
 			}
 
 			%[5]s
 
 		}
-	`, projectName, orgID, roleName, username, labelsConf)
+	`, projectName, orgID, username, roleName, labelsConf)
 }
 
 func ConfigDatabaseUserWithRoles(username, password, projectName, orgID string, rolesArr []*admin.DatabaseUserRole) string {
@@ -195,17 +195,17 @@ func ConfigDatabaseUserWithRoles(username, password, projectName, orgID string, 
 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
+			name   = %[1]q
+			org_id = %[2]q
 		}
 
 		resource "mongodbatlas_database_user" "test" {
-			username           = "%s"
-			password           = "%s"
-			project_id         = "${mongodbatlas_project.test.id}"
+			username           = %[3]q
+			password           = %[4]q
+			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "admin"
 
-			%s
+			%[5]s
 
 		}
 	`, projectName, orgID, username, password, roles)
@@ -214,27 +214,27 @@ func ConfigDatabaseUserWithRoles(username, password, projectName, orgID string, 
 func ConfigDatabaseUserWithAWSIAMType(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
+			name   = %[1]q
+			org_id = %[2]q
 		}
 
 		resource "mongodbatlas_database_user" "test" {
-			username           = "%[4]s"
+			username           = %[3]q
 			aws_iam_type       = "USER"
-			project_id         = "${mongodbatlas_project.test.id}"
+			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "$external"
 
 			roles {
-				role_name     = "%[3]s"
+				role_name     = %[4]q
 				database_name = "admin"
 			}
 
 			labels {
-				key   = "%s"
-				value = "%s"
+				key   = %[5]q
+				value = %[6]q
 			}
 		}
-	`, projectName, orgID, roleName, username, keyLabel, valueLabel)
+	`, projectName, orgID, username, roleName, keyLabel, valueLabel)
 }
 
 func ConfigDatabaseUserWithScopes(username, password, roleName, projectName, orgID string, scopesArr []*admin.UserScope) string {
@@ -250,22 +250,22 @@ func ConfigDatabaseUserWithScopes(username, password, roleName, projectName, org
 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = %q
-			org_id = %q
+			name   = %[1]q
+			org_id = %[2]q
 		}
 	
 		resource "mongodbatlas_database_user" "test" {
-			username           = %q
-			password           = %q
-			project_id         = "${mongodbatlas_project.test.id}"
+			username           = %[3]q
+			password           = %[4]q
+			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "admin"
 
 			roles {
-				role_name     = %q
+				role_name     = %[5]q
 				database_name = "admin"
 			}
 
-			%s
+			%[6]s
 
 		}
 	`, projectName, orgID, username, password, roleName, scopes)
@@ -274,25 +274,25 @@ func ConfigDatabaseUserWithScopes(username, password, roleName, projectName, org
 func ConfigDatabaseUserWithLDAPAuthType(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
+			name   = %[1]q
+			org_id = %[2]q
 		}
 
 		resource "mongodbatlas_database_user" "test" {
-			username           = "%[4]s"
+			username           = %[3]q
 			ldap_auth_type     = "USER"
-			project_id         = "${mongodbatlas_project.test.id}"
+			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "$external"
 
 			roles {
-				role_name     = "%[3]s"
+				role_name     = %[4]q
 				database_name = "admin"
 			}
 
 			labels {
-				key   = "%s"
-				value = "%s"
+				key   = %[5]q
+				value = %[6]q
 			}
 		}
-	`, projectName, orgID, roleName, username, keyLabel, valueLabel)
+	`, projectName, orgID, username, roleName, keyLabel, valueLabel)
 }
