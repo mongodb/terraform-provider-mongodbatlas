@@ -133,14 +133,13 @@ func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 				},
 			},
 			"project_owner_id": schema.StringAttribute{
-				Computed: true,
 				Optional: true,
 			},
 			"with_default_alerts_settings": schema.BoolAttribute{
 				// Default values also must be Computed otherwise Terraform throws error:
 				// Schema Using Attribute Default For Non-Computed Attribute
-				Computed: true,
 				Optional: true,
+				Computed: true,
 				Default:  booldefault.StaticBool(true),
 			},
 			"is_collect_database_specifics_statistics_enabled": schema.BoolAttribute{
@@ -186,7 +185,6 @@ func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 				},
 			},
 			"region_usage_restrictions": schema.StringAttribute{
-				Computed: true,
 				Optional: true,
 			},
 		},
