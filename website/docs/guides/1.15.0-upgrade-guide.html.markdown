@@ -17,7 +17,7 @@ The Terraform MongoDB Atlas Provider version 1.15.0 has a number of new and exci
 
 Format of `okta_idp_id` that contains the IdP Id in `federated_settings_identity_provider` resource now accepts a different format to align with Atlas API. Both the current and new IdP Id format are accepted in terraform-provider 1.15.0 version.
 
-***WARNING:*** Old IdP Id format will no longer be accepted starting 1.16.0 and onwards. We recommend to update to the new format as soon as possible.
+***WARNING:*** Old IdP Id format will no longer be accepted starting 1.16.0 and onwards. We recommend to update to the new format as soon as possible. A warning will appear if old Id is still being used. Follow the guide below to start using the new Id format.
 
 The old format was a 20-hex characters long string.
 
@@ -25,10 +25,19 @@ The new format is a 24-hex characters long string.
 
 Update guide: 
 
-1. Get new ID value
-	- Use Atlas API:
+1. Get new 24-hex characters string ID value
+	- Use Atlas API v20231001, both of those endpoints include the new `id` in the response:
+		- Use [Return all identity providers from the specified federation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/2023-10-01/#tag/Federated-Authentication/operation/listIdentityProviders) endpoint
+		- Use [Return one identity provider from the specified federation by id](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/2023-10-01/#tag/Federated-Authentication/operation/listIdentityProviders) endpoint
 	- Use plural data source: 
-2. Re-import all resources using the new Id: 
+	```
+	data "mongodbatlas_federated_settings_identity_providers" "identity_provider" {
+  		federation_settings_id = <OLD_ID>
+	}
+	```
+	This will return the list of `mongodbatlas_federated_settings_identity_providers` with both `okta_idp_id` (20-hex characters Id) and `idp_id` (24-hex characters Id)
+3. Replace all occurances of old Id, such as `identity_provider_id` in the singular data source
+2. Re-import all `mongodbatlas_federated_settings_identity_provider` resources using the new Id: 
 	-  `terraform import mongodbatlas_federated_settings_identity_provider.identity_provider  <federation_settings_id>-<new_idp_id>`
 3. Run `terraform plan` 
 4. Run `terraform apply`
