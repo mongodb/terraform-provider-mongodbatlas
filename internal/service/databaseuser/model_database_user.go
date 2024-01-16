@@ -40,7 +40,7 @@ func NewMongoDBDatabaseUser(ctx context.Context, dbUserModel *TfDatabaseUserMode
 		OidcAuthType: dbUserModel.OIDCAuthType.ValueStringPointer(),
 		LdapAuthType: dbUserModel.LDAPAuthType.ValueStringPointer(),
 		DatabaseName: dbUserModel.AuthDatabaseName.ValueString(),
-		Roles:        conversion.NonEmptyToPtr(NewMongoDBAtlasRoles(rolesModel)),
+		Roles:        NewMongoDBAtlasRoles(rolesModel),
 		Labels:       conversion.NonEmptyToPtr(NewMongoDBAtlasLabels(labelsModel)),
 		Scopes:       NewMongoDBAtlasScopes(scopesModel),
 	}, nil
@@ -182,30 +182,20 @@ func NewMongoDBAtlasScopes(scopes []*TfScopeModel) *[]admin.UserScope {
 }
 
 func NewTFRolesModel(roles []admin.DatabaseUserRole) []TfRoleModel {
-	if len(roles) == 0 {
-		return nil
-	}
-
 	out := make([]TfRoleModel, len(roles))
 	for i, v := range roles {
 		out[i] = TfRoleModel{
 			RoleName:     types.StringValue(v.RoleName),
 			DatabaseName: types.StringValue(v.DatabaseName),
 		}
-
 		if v.GetCollectionName() != "" {
 			out[i].CollectionName = types.StringValue(v.GetCollectionName())
 		}
 	}
-
 	return out
 }
 
-func NewMongoDBAtlasRoles(roles []*TfRoleModel) []admin.DatabaseUserRole {
-	if len(roles) == 0 {
-		return []admin.DatabaseUserRole{}
-	}
-
+func NewMongoDBAtlasRoles(roles []*TfRoleModel) *[]admin.DatabaseUserRole {
 	out := make([]admin.DatabaseUserRole, len(roles))
 	for i, v := range roles {
 		out[i] = admin.DatabaseUserRole{
@@ -214,6 +204,5 @@ func NewMongoDBAtlasRoles(roles []*TfRoleModel) []admin.DatabaseUserRole {
 			CollectionName: v.CollectionName.ValueStringPointer(),
 		}
 	}
-
-	return out
+	return &out
 }
