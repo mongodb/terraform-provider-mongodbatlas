@@ -261,7 +261,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	// create project
 	project, _, err := connV2.ProjectsApi.CreateProjectWithParams(ctx, projectAPIParams).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(errorProjectCreate, err.Error())
+		resp.Diagnostics.AddError(fmt.Sprintf(errorProjectCreate, projectPlan.Name.ValueString()), err.Error())
 		return
 	}
 
