@@ -16,13 +16,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mwielbut/pointy"
+	"github.com/spf13/cast"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"github.com/mwielbut/pointy"
-	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -464,10 +464,16 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(fmt.Errorf(errorClusterCreate, err))
 	}
 
+	clusterType := cast.ToString(d.Get("cluster_type"))
+	err = ValidateProviderRegionName(clusterType, providerSettings.RegionName, replicationSpecs)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterCreate, err))
+	}
+
 	clusterRequest := &matlas.Cluster{
 		Name:                     d.Get("name").(string),
 		EncryptionAtRestProvider: d.Get("encryption_at_rest_provider").(string),
-		ClusterType:              cast.ToString(d.Get("cluster_type")),
+		ClusterType:              clusterType,
 		BackupEnabled:            pointy.Bool(d.Get("backup_enabled").(bool)),
 		PitEnabled:               pointy.Bool(d.Get("pit_enabled").(bool)),
 		AutoScaling:              autoScaling,
@@ -804,13 +810,23 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
+	replicationSpecs, err := expandReplicationSpecs(d)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
+	}
 	if d.HasChange("replication_specs") {
-		replicationSpecs, err := expandReplicationSpecs(d)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
-		}
-
 		cluster.ReplicationSpecs = replicationSpecs
+	}
+
+	if v, ok := d.GetOk("provider_region_name"); ok {
+		err = ValidateProviderRegionName(d.Get("cluster_type").(string), v.(string), replicationSpecs)
+		// we swallow the error here as the user may not always be able to 'unset' provider_region_name value in the state,
+		// We then ensure ProviderSettings.RegionName is not set in case of a multi-region cluster, refer https://jira.mongodb.org/browse/HELP-51429
+		if err != nil {
+			if cluster.ProviderSettings != nil {
+				cluster.ProviderSettings.RegionName = ""
+			}
+		}
 	}
 
 	cluster.AutoScaling = &matlas.AutoScaling{Compute: &matlas.Compute{}}
@@ -966,6 +982,27 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	return resourceMongoDBAtlasClusterRead(ctx, d, meta)
+}
+
+func IsMultiRegionCluster(repSpecs []matlas.ReplicationSpec) bool {
+	if len(repSpecs) > 1 {
+		return true
+	}
+
+	for i := range repSpecs {
+		if len(repSpecs[i].RegionsConfig) > 1 {
+			return true
+		}
+	}
+	return false
+}
+
+func ValidateProviderRegionName(clusterType, providerRegionName string, repSpecs []matlas.ReplicationSpec) error {
+	if conversion.IsStringPresent(&providerRegionName) && (clusterType == "GEOSHARDED" || IsMultiRegionCluster(repSpecs)) {
+		return fmt.Errorf("provider_region_name attribute must be set ONLY for single-region clusters")
+	}
+
+	return nil
 }
 
 func didErrOnPausedCluster(err error) bool {
