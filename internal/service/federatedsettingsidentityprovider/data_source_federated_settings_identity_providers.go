@@ -204,6 +204,14 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"protocol": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"idp_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},

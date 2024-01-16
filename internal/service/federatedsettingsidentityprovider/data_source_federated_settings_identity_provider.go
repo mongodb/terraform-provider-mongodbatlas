@@ -282,11 +282,7 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Con
 		return diag.FromErr(fmt.Errorf("error setting `status` for federatedSettings IdentityProviders: %s", err))
 	}
 
-	if err := d.Set("id", federatedSettingsIdentityProvider.Id); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `id` for federatedSettings IdentityProviders: %s", err))
-	}
-
-	d.SetId(federatedSettingsIdentityProvider.OktaIdpId)
+	d.SetId(federatedSettingsIdentityProvider.Id)
 
 	return nil
 }
