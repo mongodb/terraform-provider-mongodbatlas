@@ -159,7 +159,7 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfigSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr),
+				Config: testAccSearchIndexConfigSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
 
@@ -189,6 +189,39 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 					resource.TestCheckResourceAttr(datasourceName, "synonyms.0.analyzer", "lucene.simple"),
 					resource.TestCheckResourceAttr(datasourceName, "synonyms.0.name", "synonym_test"),
 					resource.TestCheckResourceAttr(datasourceName, "synonyms.0.source_collection", collectionName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccSearchIndexRS_updatedToEmptySynonyms(t *testing.T) {
+	var (
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		clusterInfo  = acc.GetClusterInfo(orgID)
+		indexName    = acctest.RandomWithPrefix("test-acc-index")
+		databaseName = acctest.RandomWithPrefix("test-acc-db")
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSearchIndexConfigSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSearchIndexExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "synonyms.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "synonyms.0.analyzer", "lucene.simple"),
+					resource.TestCheckResourceAttr(resourceName, "synonyms.0.name", "synonym_test"),
+					resource.TestCheckResourceAttr(resourceName, "synonyms.0.source_collection", collectionName),
+				),
+			},
+			{
+				Config: testAccSearchIndexConfigSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSearchIndexExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "synonyms.#", "0"),
 				),
 			},
 		},
@@ -401,7 +434,18 @@ func testAccSearchIndexConfigMapping(projectIDStr, indexName, databaseName, clus
 	`, clusterNameStr, projectIDStr, indexName, databaseName, collectionName, searchAnalyzer)
 }
 
-func testAccSearchIndexConfigSynonyms(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr string) string {
+func testAccSearchIndexConfigSynonyms(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr string, has bool) string {
+	var synonymsStr string
+	if has {
+		synonymsStr = fmt.Sprintf(`
+			synonyms {
+				analyzer          = "lucene.simple"
+				name              = "synonym_test"
+				source_collection = %q
+			}
+		`, collectionName)
+	}
+
 	return clusterTerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
 			cluster_name     = %[1]s
@@ -411,11 +455,7 @@ func testAccSearchIndexConfigSynonyms(projectIDStr, indexName, databaseName, clu
 			collection_name  = %[5]q
 			search_analyzer  = %[6]q
 			mappings_dynamic = true
-			synonyms {
-				analyzer          = "lucene.simple"
-				name              = "synonym_test"
-				source_collection = %[5]q
-			}
+			%[7]s
 		}
 
 		data "mongodbatlas_search_index" "data_index" {
@@ -423,7 +463,7 @@ func testAccSearchIndexConfigSynonyms(projectIDStr, indexName, databaseName, clu
 			project_id       = %[2]s
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
-	`, clusterNameStr, projectIDStr, indexName, databaseName, collectionName, searchAnalyzer)
+	`, clusterNameStr, projectIDStr, indexName, databaseName, collectionName, searchAnalyzer, synonymsStr)
 }
 
 func testAccSearchIndexConfigVector(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr string) string {
