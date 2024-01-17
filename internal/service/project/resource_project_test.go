@@ -642,7 +642,7 @@ func TestAccProjectRSProject_withFalseDefaultAdvSettings(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectWithFalseDefaultAdvSettings(projectName, orgID, projectOwnerID),
+				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectExists(resourceName, &group),
 					acc.CheckProjectAttributes(&group, projectName),

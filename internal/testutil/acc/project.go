@@ -131,21 +131,25 @@ func ConfigProjectWithFalseDefaultSettings(projectName, orgID, projectOwnerID st
 	`, projectName, orgID, projectOwnerID)
 }
 
-func ConfigProjectWithFalseDefaultAdvSettings(projectName, orgID, projectOwnerID string) string {
+func ConfigProjectWithSettings(projectName, orgID, projectOwnerID string, value bool) string {
+	var ownerStr string
+	if projectOwnerID != "" {
+		ownerStr = fmt.Sprintf("project_owner_id = %q", projectOwnerID)
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   			 = "%[1]s"
-			org_id 			 = "%[2]s"
-			project_owner_id = "%[3]s"
-			with_default_alerts_settings = false
-			is_collect_database_specifics_statistics_enabled = false
-			is_data_explorer_enabled = false
-			is_extended_storage_sizes_enabled = false
-			is_performance_advisor_enabled = false
-			is_realtime_performance_panel_enabled = false
-			is_schema_advisor_enabled = false
+			name   			 = %[1]q
+			org_id 			 = %[2]q
+			%[3]s
+			with_default_alerts_settings = %[4]t
+			is_collect_database_specifics_statistics_enabled = %[4]t
+			is_data_explorer_enabled = %[4]t
+			is_extended_storage_sizes_enabled = %[4]t
+			is_performance_advisor_enabled = %[4]t
+			is_realtime_performance_panel_enabled = %[4]t
+			is_schema_advisor_enabled = %[4]t
 		}
-	`, projectName, orgID, projectOwnerID)
+	`, projectName, orgID, ownerStr, value)
 }
 
 func ConfigProjectWithLimits(projectName, orgID string, limits []*admin.DataFederationLimit) string {
