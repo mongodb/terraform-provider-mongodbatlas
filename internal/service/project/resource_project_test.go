@@ -111,7 +111,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			svc.On("ListProjectTeams", mock.Anything, mock.Anything).Return(tc.teamRoleReponse.TeamRole, tc.teamRoleReponse.HTTPResponse, tc.teamRoleReponse.Err)
 			svc.On("ListProjectLimits", mock.Anything, mock.Anything).Return(tc.limitResponse.Limits, tc.limitResponse.HTTPResponse, tc.limitResponse.Err).Maybe()
 			svc.On("GetProjectSettings", mock.Anything, mock.Anything).Return(tc.groupResponse.GroupSettings, tc.groupResponse.HTTPResponse, tc.groupResponse.Err).Maybe()
-			svc.On("ReturnAllIPAddresses", mock.Anything, mock.Anything).Return(tc.groupResponse.GroupSettings, tc.groupResponse.HTTPResponse, tc.groupResponse.Err).Maybe()
+			svc.On("ReturnAllIPAddresses", mock.Anything, mock.Anything).Return(tc.ipAddressesResponse.IPAddresses, tc.ipAddressesResponse.HTTPResponse, tc.ipAddressesResponse.Err).Maybe()
 
 			_, _, _, _, err := project.GetProjectPropsFromAPI(context.Background(), svc, dummyProjectID)
 
@@ -506,6 +506,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "2"),
+					resource.TestCheckResourceAttrSet(resourceName, "ip_addresses.services.clusters.#"),
 				),
 			},
 			{

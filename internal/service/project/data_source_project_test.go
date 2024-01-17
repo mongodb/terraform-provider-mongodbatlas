@@ -15,8 +15,9 @@ import (
 
 func TestAccProjectDSProject_byID(t *testing.T) {
 	var (
-		projectName = acctest.RandomWithPrefix("test-acc")
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acctest.RandomWithPrefix("test-acc")
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		dataSourceName = "data.mongodbatlas_project.test"
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIdsWithMinCount(t, 2) },
@@ -36,9 +37,10 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 					},
 				)),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
-					resource.TestCheckResourceAttr("mongodbatlas_project.test", "teams.#", "2"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "org_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "teams.#", "2"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "ip_addresses.services.clusters.#"),
 				),
 			},
 		},
@@ -47,8 +49,9 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 
 func TestAccProjectDSProject_byName(t *testing.T) {
 	var (
-		projectName = acctest.RandomWithPrefix("test-acc")
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acctest.RandomWithPrefix("test-acc")
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		dataSourceName = "data.mongodbatlas_project.test"
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIdsWithMinCount(t, 2) },
@@ -69,9 +72,9 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 					},
 				)),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
-					resource.TestCheckResourceAttr("mongodbatlas_project.test", "teams.#", "2"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "org_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "teams.#", "2"),
 				),
 			},
 		},
@@ -80,8 +83,9 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 
 func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 	var (
-		projectName = acctest.RandomWithPrefix("test-acc")
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acctest.RandomWithPrefix("test-acc")
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		dataSourceName = "data.mongodbatlas_project.test"
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIdsWithMinCount(t, 2) },
@@ -102,15 +106,15 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 					},
 				)),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "is_collect_database_specifics_statistics_enabled"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "is_data_explorer_enabled"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "is_extended_storage_sizes_enabled"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "is_performance_advisor_enabled"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "is_realtime_performance_panel_enabled"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "is_schema_advisor_enabled"),
-					resource.TestCheckResourceAttr("mongodbatlas_project.test", "teams.#", "2"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "org_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "is_collect_database_specifics_statistics_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "is_data_explorer_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "is_extended_storage_sizes_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "is_performance_advisor_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "is_realtime_performance_panel_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "is_schema_advisor_enabled"),
+					resource.TestCheckResourceAttr(dataSourceName, "teams.#", "2"),
 				),
 			},
 		},
@@ -119,8 +123,9 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 
 func TestAccProjectDSProject_limits(t *testing.T) {
 	var (
-		projectName = acctest.RandomWithPrefix("test-acc")
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acctest.RandomWithPrefix("test-acc")
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		dataSourceName = "data.mongodbatlas_project.test"
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -129,9 +134,9 @@ func TestAccProjectDSProject_limits(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{})),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.mongodbatlas_project.test", "name"),
-					resource.TestCheckResourceAttrSet("data.mongodbatlas_project.test", "org_id"),
-					resource.TestCheckResourceAttrSet("data.mongodbatlas_project.test", "limits.0.name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "org_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "limits.0.name"),
 				),
 			},
 		},
