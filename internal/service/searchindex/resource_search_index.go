@@ -224,7 +224,7 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 		if err != nil {
 			return err
 		}
-		searchIndex.Analyzers = conversion.NonEmptyToPtr(analyzers)
+		searchIndex.Analyzers = &analyzers
 	}
 
 	if d.HasChange("mappings_dynamic") {
@@ -251,11 +251,12 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 		if err != nil {
 			return err
 		}
-		searchIndex.Fields = conversion.NonEmptyToPtr(fields)
+		searchIndex.Fields = &fields
 	}
 
 	if d.HasChange("synonyms") {
-		searchIndex.Synonyms = conversion.NonEmptyToPtr(expandSearchIndexSynonyms(d))
+		synonyms := expandSearchIndexSynonyms(d)
+		searchIndex.Synonyms = &synonyms
 	}
 
 	searchIndex.IndexID = conversion.StringPtr("")
@@ -404,7 +405,6 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 	indexType := d.Get("type").(string)
-
 	searchIndexRequest := &admin.ClusterSearchIndex{
 		Type:           conversion.StringPtr(indexType),
 		Analyzer:       conversion.StringPtr(d.Get("analyzer").(string)),
@@ -413,7 +413,6 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 		Name:           d.Get("name").(string),
 		SearchAnalyzer: conversion.StringPtr(d.Get("search_analyzer").(string)),
 		Status:         conversion.StringPtr(d.Get("status").(string)),
-		Synonyms:       conversion.NonEmptyToPtr(expandSearchIndexSynonyms(d)),
 	}
 
 	if indexType == vectorSearch {
@@ -421,13 +420,13 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 		if err != nil {
 			return err
 		}
-		searchIndexRequest.Fields = conversion.NonEmptyToPtr(fields)
+		searchIndexRequest.Fields = &fields
 	} else {
 		analyzers, err := unmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string))
 		if err != nil {
 			return err
 		}
-		searchIndexRequest.Analyzers = conversion.NonEmptyToPtr(analyzers)
+		searchIndexRequest.Analyzers = &analyzers
 		mappingsFields, err := unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
 		if err != nil {
 			return err
@@ -437,6 +436,8 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 			Dynamic: &dynamic,
 			Fields:  mappingsFields,
 		}
+		synonyms := expandSearchIndexSynonyms(d)
+		searchIndexRequest.Synonyms = &synonyms
 	}
 
 	dbSearchIndexRes, _, err := connV2.AtlasSearchApi.CreateAtlasSearchIndex(ctx, projectID, clusterName, searchIndexRequest).Execute()
@@ -546,10 +547,10 @@ func validateSearchAnalyzersDiff(k, old, newStr string, d *schema.ResourceData) 
 }
 
 func unmarshalSearchIndexMappingFields(mappingString string) (map[string]any, diag.Diagnostics) {
-	if mappingString == "" {
-		return nil, nil
-	}
 	var fields map[string]any
+	if mappingString == "" {
+		return fields, nil
+	}
 	if err := json.Unmarshal([]byte(mappingString), &fields); err != nil {
 		return nil, diag.Errorf("cannot unmarshal search index attribute `mappings_fields` because it has an incorrect format")
 	}
@@ -557,10 +558,10 @@ func unmarshalSearchIndexMappingFields(mappingString string) (map[string]any, di
 }
 
 func unmarshalSearchIndexFields(fieldsStr string) ([]map[string]any, diag.Diagnostics) {
-	if fieldsStr == "" {
-		return nil, nil
-	}
 	var fields []map[string]any
+	if fieldsStr == "" {
+		return fields, nil
+	}
 	if err := json.Unmarshal([]byte(fieldsStr), &fields); err != nil {
 		return nil, diag.Errorf("cannot unmarshal search index attribute `fields` because it has an incorrect format")
 	}
@@ -569,10 +570,10 @@ func unmarshalSearchIndexFields(fieldsStr string) ([]map[string]any, diag.Diagno
 }
 
 func unmarshalSearchIndexAnalyzersFields(mappingString string) ([]admin.ApiAtlasFTSAnalyzers, diag.Diagnostics) {
-	if mappingString == "" {
-		return nil, nil
-	}
 	var fields []admin.ApiAtlasFTSAnalyzers
+	if mappingString == "" {
+		return fields, nil
+	}
 	if err := json.Unmarshal([]byte(mappingString), &fields); err != nil {
 		return nil, diag.Errorf("cannot unmarshal search index attribute `analyzers` because it has an incorrect format")
 	}
