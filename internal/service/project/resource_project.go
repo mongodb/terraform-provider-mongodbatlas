@@ -313,24 +313,12 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		return
 	}
 
-	if !projectPlan.IsCollectDatabaseSpecificsStatisticsEnabled.IsUnknown() {
-		projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled = projectPlan.IsCollectDatabaseSpecificsStatisticsEnabled.ValueBoolPointer()
-	}
-	if !projectPlan.IsDataExplorerEnabled.IsUnknown() {
-		projectSettings.IsDataExplorerEnabled = projectPlan.IsDataExplorerEnabled.ValueBoolPointer()
-	}
-	if !projectPlan.IsExtendedStorageSizesEnabled.IsUnknown() {
-		projectSettings.IsExtendedStorageSizesEnabled = projectPlan.IsExtendedStorageSizesEnabled.ValueBoolPointer()
-	}
-	if !projectPlan.IsPerformanceAdvisorEnabled.IsUnknown() {
-		projectSettings.IsPerformanceAdvisorEnabled = projectPlan.IsPerformanceAdvisorEnabled.ValueBoolPointer()
-	}
-	if !projectPlan.IsRealtimePerformancePanelEnabled.IsUnknown() {
-		projectSettings.IsRealtimePerformancePanelEnabled = projectPlan.IsRealtimePerformancePanelEnabled.ValueBoolPointer()
-	}
-	if !projectPlan.IsSchemaAdvisorEnabled.IsUnknown() {
-		projectSettings.IsSchemaAdvisorEnabled = projectPlan.IsSchemaAdvisorEnabled.ValueBoolPointer()
-	}
+	setProjectBool(projectPlan.IsCollectDatabaseSpecificsStatisticsEnabled, &projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled)
+	setProjectBool(projectPlan.IsDataExplorerEnabled, &projectSettings.IsDataExplorerEnabled)
+	setProjectBool(projectPlan.IsExtendedStorageSizesEnabled, &projectSettings.IsExtendedStorageSizesEnabled)
+	setProjectBool(projectPlan.IsPerformanceAdvisorEnabled, &projectSettings.IsPerformanceAdvisorEnabled)
+	setProjectBool(projectPlan.IsRealtimePerformancePanelEnabled, &projectSettings.IsRealtimePerformancePanelEnabled)
+	setProjectBool(projectPlan.IsSchemaAdvisorEnabled, &projectSettings.IsSchemaAdvisorEnabled)
 
 	if _, _, err = connV2.ProjectsApi.UpdateProjectSettings(ctx, project.GetId(), projectSettings).Execute(); err != nil {
 		errd := deleteProject(ctx, r.Client.AtlasV2, project.GetId())
@@ -549,41 +537,23 @@ func GetProjectPropsFromAPI(ctx context.Context, client GroupProjectService, pro
 	return teams, limits, projectSettings, nil
 }
 
-func updateProjectSettings(ctx context.Context, connV2 *admin.APIClient, projectState, projectPlan *TfProjectRSModel) error {
-	hasChanged := false
-	projectID := projectState.ID.ValueString()
-	projectSettings, _, err := connV2.ProjectsApi.GetProjectSettings(ctx, projectID).Execute()
+func updateProjectSettings(ctx context.Context, connV2 *admin.APIClient, state, plan *TfProjectRSModel) error {
+	projectID := state.ID.ValueString()
+	settings, _, err := connV2.ProjectsApi.GetProjectSettings(ctx, projectID).Execute()
 	if err != nil {
 		return fmt.Errorf("error getting project's settings assigned: %v", err.Error())
 	}
 
-	if projectPlan.IsCollectDatabaseSpecificsStatisticsEnabled != projectState.IsCollectDatabaseSpecificsStatisticsEnabled {
-		hasChanged = true
-		projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled = projectPlan.IsCollectDatabaseSpecificsStatisticsEnabled.ValueBoolPointer()
-	}
-	if projectPlan.IsDataExplorerEnabled != projectState.IsDataExplorerEnabled {
-		hasChanged = true
-		projectSettings.IsDataExplorerEnabled = projectPlan.IsDataExplorerEnabled.ValueBoolPointer()
-	}
-	if projectPlan.IsExtendedStorageSizesEnabled != projectState.IsExtendedStorageSizesEnabled {
-		hasChanged = true
-		projectSettings.IsExtendedStorageSizesEnabled = projectPlan.IsExtendedStorageSizesEnabled.ValueBoolPointer()
-	}
-	if projectPlan.IsPerformanceAdvisorEnabled != projectState.IsPerformanceAdvisorEnabled {
-		hasChanged = true
-		projectSettings.IsPerformanceAdvisorEnabled = projectPlan.IsPerformanceAdvisorEnabled.ValueBoolPointer()
-	}
-	if projectPlan.IsRealtimePerformancePanelEnabled != projectState.IsRealtimePerformancePanelEnabled {
-		hasChanged = true
-		projectSettings.IsRealtimePerformancePanelEnabled = projectPlan.IsRealtimePerformancePanelEnabled.ValueBoolPointer()
-	}
-	if projectPlan.IsSchemaAdvisorEnabled != projectState.IsSchemaAdvisorEnabled {
-		hasChanged = true
-		projectSettings.IsSchemaAdvisorEnabled = projectPlan.IsSchemaAdvisorEnabled.ValueBoolPointer()
-	}
+	hasChanged :=
+		updateProjectBool(plan.IsCollectDatabaseSpecificsStatisticsEnabled, state.IsCollectDatabaseSpecificsStatisticsEnabled, &settings.IsCollectDatabaseSpecificsStatisticsEnabled) ||
+			updateProjectBool(plan.IsDataExplorerEnabled, state.IsDataExplorerEnabled, &settings.IsDataExplorerEnabled) ||
+			updateProjectBool(plan.IsExtendedStorageSizesEnabled, state.IsExtendedStorageSizesEnabled, &settings.IsExtendedStorageSizesEnabled) ||
+			updateProjectBool(plan.IsPerformanceAdvisorEnabled, state.IsPerformanceAdvisorEnabled, &settings.IsPerformanceAdvisorEnabled) ||
+			updateProjectBool(plan.IsRealtimePerformancePanelEnabled, state.IsRealtimePerformancePanelEnabled, &settings.IsRealtimePerformancePanelEnabled) ||
+			updateProjectBool(plan.IsSchemaAdvisorEnabled, state.IsSchemaAdvisorEnabled, &settings.IsSchemaAdvisorEnabled)
 
 	if hasChanged {
-		_, _, err = connV2.ProjectsApi.UpdateProjectSettings(ctx, projectID, projectSettings).Execute()
+		_, _, err = connV2.ProjectsApi.UpdateProjectSettings(ctx, projectID, settings).Execute()
 		if err != nil {
 			return fmt.Errorf("error updating project's settings assigned: %v", err.Error())
 		}
@@ -827,4 +797,18 @@ func getChangesInLimitsSet(planLimits, stateLimits []TfLimitModel) (newElements,
 		}
 	}
 	return newLimits, changedLimits, removedLimits
+}
+
+func setProjectBool(plan types.Bool, setting **bool) {
+	if !plan.IsUnknown() {
+		*setting = plan.ValueBoolPointer()
+	}
+}
+
+func updateProjectBool(plan, state types.Bool, setting **bool) bool {
+	if plan != state {
+		*setting = plan.ValueBoolPointer()
+		return true
+	}
+	return false
 }
