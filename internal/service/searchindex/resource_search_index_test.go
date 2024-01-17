@@ -237,7 +237,6 @@ func TestAccSearchIndexRS_updatedToEmptyAnalyzers(t *testing.T) {
 				Config: configAdditional(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, analyzersTF),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
-					// resource.TestCheckResourceAttr(resourceName, "analyzers", "asddasd"),
 					resource.TestCheckResourceAttrWith(resourceName, "analyzers", acc.JSONStringEquals(analyzersJSON)),
 				),
 			},
@@ -246,6 +245,36 @@ func TestAccSearchIndexRS_updatedToEmptyAnalyzers(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "analyzers", ""),
+				),
+			},
+		},
+	})
+}
+
+func TestAccSearchIndexRS_updatedToEmptyMappingsFields(t *testing.T) {
+	var (
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		clusterInfo  = acc.GetClusterInfo(orgID)
+		indexName    = acctest.RandomWithPrefix("test-acc-index")
+		databaseName = acctest.RandomWithPrefix("test-acc-db")
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
+		Steps: []resource.TestStep{
+			{
+				Config: configAdditional(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, mappingsFieldsTF),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSearchIndexExists(resourceName),
+					resource.TestCheckResourceAttrWith(resourceName, "mappings_fields", acc.JSONStringEquals(mappingsFieldsJSON)),
+				),
+			},
+			{
+				Config: configAdditional(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, ""),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSearchIndexExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "mappings_fields", ""),
 				),
 			},
 		},
@@ -389,39 +418,8 @@ func testAccSearchIndexConfigMapping(projectIDStr, indexName, databaseName, clus
 			collection_name  = %[5]q
 			search_analyzer  = %[6]q
 			mappings_dynamic = false
-			mappings_fields  = <<-EOF
-			{
-				"address":{
-					"type":"document",
-					"fields":{
-						"city":{
-								"type":"string",
-								"analyzer":"lucene.simple",
-								"ignoreAbove":255
-						},
-						"state":{
-								"type":"string",
-								"analyzer":"lucene.english"
-						}
-					}
-				},
-				"company":{
-					"type":"string",
-					"analyzer":"lucene.whitespace",
-					"multi":{
-						"mySecondaryAnalyzer":{
-							"type":"string",
-							"analyzer":"lucene.french"
-						}
-					}
-				},
-				"employees":{
-					"type":"string",
-					"analyzer":%[6]q
-				}
-			}
-			EOF
 			%[7]s
+			%[8]s
 		}
 
 		data "mongodbatlas_search_index" "data_index" {
@@ -429,7 +427,7 @@ func testAccSearchIndexConfigMapping(projectIDStr, indexName, databaseName, clus
 			project_id       = %[2]s
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
-	`, clusterNameStr, projectIDStr, indexName, databaseName, collectionName, searchAnalyzer, analyzersTF)
+	`, clusterNameStr, projectIDStr, indexName, databaseName, collectionName, searchAnalyzer, analyzersTF, mappingsFieldsTF)
 }
 
 func configSynonyms(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr string, has bool) string {
@@ -527,7 +525,8 @@ const (
 	resourceName   = "mongodbatlas_search_index.test"
 	datasourceName = "data.mongodbatlas_search_index.data_index"
 
-	analyzersTF = "\nanalyzers = <<-EOF\n" + analyzersJSON + "\nEOF\n"
+	analyzersTF      = "\nanalyzers = <<-EOF\n" + analyzersJSON + "\nEOF\n"
+	mappingsFieldsTF = "\nmappings_fields = <<-EOF\n" + mappingsFieldsJSON + "\nEOF\n"
 
 	analyzersJSON = `
 		[
@@ -556,4 +555,35 @@ const (
 			}
 		]
 	`
+
+	mappingsFieldsJSON = `{
+			"address":{
+				"type":"document",
+				"fields":{
+					"city":{
+							"type":"string",
+							"analyzer":"lucene.simple",
+							"ignoreAbove":255
+					},
+					"state":{
+							"type":"string",
+							"analyzer":"lucene.english"
+					}
+				}
+			},
+			"company":{
+				"type":"string",
+				"analyzer":"lucene.whitespace",
+				"multi":{
+					"mySecondaryAnalyzer":{
+						"type":"string",
+						"analyzer":"lucene.french"
+					}
+				}
+			},
+			"employees":{
+				"type":"string",
+				"analyzer":"lucene.standard"
+			}
+		}`
 )
