@@ -85,7 +85,8 @@ func NewTFIPAddressesModel(ctx context.Context, ipAddresses *admin.GroupIPAddres
 }
 
 func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group,
-	teams *admin.PaginatedTeamRole, projectSettings *admin.GroupSettings, limits []admin.DataFederationLimit) *TfProjectRSModel {
+	teams *admin.PaginatedTeamRole, projectSettings *admin.GroupSettings, limits []admin.DataFederationLimit, ipAddresses *admin.GroupIPAddresses) *TfProjectRSModel {
+	ipAddressesModel := NewTFIPAddressesModel(ctx, ipAddresses)
 	projectPlan := TfProjectRSModel{
 		ID:                        types.StringValue(projectRes.GetId()),
 		Name:                      types.StringValue(projectRes.Name),
@@ -95,6 +96,7 @@ func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group,
 		WithDefaultAlertsSettings: types.BoolPointerValue(projectRes.WithDefaultAlertsSettings),
 		Teams:                     newTFTeamsResourceModel(ctx, teams),
 		Limits:                    newTFLimitsResourceModel(ctx, limits),
+		IPAddresses:               &ipAddressesModel,
 	}
 
 	if projectSettings != nil {

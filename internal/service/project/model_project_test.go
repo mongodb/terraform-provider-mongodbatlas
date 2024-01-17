@@ -27,6 +27,7 @@ const (
 var (
 	roles              = []string{"GROUP_DATA_ACCESS_READ_ONLY", "GROUP_CLUSTER_MANAGER"}
 	roleList, _        = types.ListValueFrom(context.Background(), types.StringType, roles)
+	roleSet, _         = types.SetValueFrom(context.Background(), types.StringType, roles)
 	ipAddresses        = []string{"13.13.13.13"}
 	ipAddressesList, _ = types.ListValueFrom(context.Background(), types.StringType, ipAddresses)
 	teamRolesSDK       = []admin.TeamRole{
@@ -41,6 +42,12 @@ var (
 			RoleNames: roleList,
 		},
 	}
+	teamsTFSet, _ = types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TfTeamModel{
+		{
+			TeamID:    types.StringValue("teamId"),
+			RoleNames: roleSet,
+		},
+	})
 	limitsSDK = []admin.DataFederationLimit{
 		{
 			Name:         limitName,
@@ -59,6 +66,9 @@ var (
 			MaximumLimit: types.Int64Value(limitMaximumLimit),
 		},
 	}
+	limitsTFSet, _ = types.SetValueFrom(context.Background(), project.TfLimitObjectType, []project.TfLimitModel{
+		*limitsTF[0],
+	})
 	ipAddressesTF = project.TFIPAddressesModel{
 		Services: project.TFServicesModel{
 			Clusters: []project.TFClusterIPsModel{
@@ -153,7 +163,7 @@ func TestLimitsDataSourceSDKToTFModel(t *testing.T) {
 	}
 }
 
-func TestProjectDataSourceSDKToTFModel(t *testing.T) {
+func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 	testCases := []struct {
 		name                 string
 		project              *admin.Group
@@ -198,6 +208,56 @@ func TestProjectDataSourceSDKToTFModel(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := project.NewTFProjectDataSourceModel(context.Background(), tc.project, tc.teams, tc.projectSettings, tc.dataFederationLimits, tc.ipAddresses)
 			if !assert.Equal(t, tc.expectedTFModel, resultModel) {
+				t.Errorf("created terraform model did not match expected output")
+			}
+		})
+	}
+}
+
+func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
+	testCases := []struct {
+		name                 string
+		project              *admin.Group
+		teams                *admin.PaginatedTeamRole
+		projectSettings      *admin.GroupSettings
+		ipAddresses          *admin.GroupIPAddresses
+		dataFederationLimits []admin.DataFederationLimit
+		expectedTFModel      project.TfProjectRSModel
+	}{
+		{
+			name:    "Project",
+			project: &projectSDK,
+			teams: &admin.PaginatedTeamRole{
+				Results:    conversion.NonEmptyToPtr(teamRolesSDK),
+				TotalCount: conversion.IntPtr(1),
+			},
+			projectSettings:      &projectSettingsSDK,
+			ipAddresses:          &projectIPAddressesSDK,
+			dataFederationLimits: limitsSDK,
+			expectedTFModel: project.TfProjectRSModel{
+
+				ID:           types.StringValue(projectID),
+				Name:         types.StringValue(projectName),
+				OrgID:        types.StringValue(projectOrgID),
+				ClusterCount: types.Int64Value(clusterCount),
+				IsCollectDatabaseSpecificsStatisticsEnabled: types.BoolValue(true),
+				IsDataExplorerEnabled:                       types.BoolValue(true),
+				IsExtendedStorageSizesEnabled:               types.BoolValue(true),
+				IsPerformanceAdvisorEnabled:                 types.BoolValue(true),
+				IsRealtimePerformancePanelEnabled:           types.BoolValue(true),
+				IsSchemaAdvisorEnabled:                      types.BoolValue(true),
+				Teams:                                       teamsTFSet,
+				Limits:                                      limitsTFSet,
+				IPAddresses:                                 &ipAddressesTF,
+				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel := project.NewTFProjectResourceModel(context.Background(), tc.project, tc.teams, tc.projectSettings, tc.dataFederationLimits, tc.ipAddresses)
+			if !assert.Equal(t, tc.expectedTFModel, *resultModel) {
 				t.Errorf("created terraform model did not match expected output")
 			}
 		})

@@ -54,22 +54,23 @@ type projectRS struct {
 }
 
 type TfProjectRSModel struct {
-	Limits                                      types.Set    `tfsdk:"limits"`
-	Teams                                       types.Set    `tfsdk:"teams"`
-	RegionUsageRestrictions                     types.String `tfsdk:"region_usage_restrictions"`
-	Name                                        types.String `tfsdk:"name"`
-	OrgID                                       types.String `tfsdk:"org_id"`
-	Created                                     types.String `tfsdk:"created"`
-	ProjectOwnerID                              types.String `tfsdk:"project_owner_id"`
-	ID                                          types.String `tfsdk:"id"`
-	ClusterCount                                types.Int64  `tfsdk:"cluster_count"`
-	IsDataExplorerEnabled                       types.Bool   `tfsdk:"is_data_explorer_enabled"`
-	IsPerformanceAdvisorEnabled                 types.Bool   `tfsdk:"is_performance_advisor_enabled"`
-	IsRealtimePerformancePanelEnabled           types.Bool   `tfsdk:"is_realtime_performance_panel_enabled"`
-	IsSchemaAdvisorEnabled                      types.Bool   `tfsdk:"is_schema_advisor_enabled"`
-	IsExtendedStorageSizesEnabled               types.Bool   `tfsdk:"is_extended_storage_sizes_enabled"`
-	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool   `tfsdk:"is_collect_database_specifics_statistics_enabled"`
-	WithDefaultAlertsSettings                   types.Bool   `tfsdk:"with_default_alerts_settings"`
+	Limits                                      types.Set           `tfsdk:"limits"`
+	Teams                                       types.Set           `tfsdk:"teams"`
+	IPAddresses                                 *TFIPAddressesModel `tfsdk:"ip_addresses"`
+	RegionUsageRestrictions                     types.String        `tfsdk:"region_usage_restrictions"`
+	Name                                        types.String        `tfsdk:"name"`
+	OrgID                                       types.String        `tfsdk:"org_id"`
+	Created                                     types.String        `tfsdk:"created"`
+	ProjectOwnerID                              types.String        `tfsdk:"project_owner_id"`
+	ID                                          types.String        `tfsdk:"id"`
+	ClusterCount                                types.Int64         `tfsdk:"cluster_count"`
+	IsDataExplorerEnabled                       types.Bool          `tfsdk:"is_data_explorer_enabled"`
+	IsPerformanceAdvisorEnabled                 types.Bool          `tfsdk:"is_performance_advisor_enabled"`
+	IsRealtimePerformancePanelEnabled           types.Bool          `tfsdk:"is_realtime_performance_panel_enabled"`
+	IsSchemaAdvisorEnabled                      types.Bool          `tfsdk:"is_schema_advisor_enabled"`
+	IsExtendedStorageSizesEnabled               types.Bool          `tfsdk:"is_extended_storage_sizes_enabled"`
+	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool          `tfsdk:"is_collect_database_specifics_statistics_enabled"`
+	WithDefaultAlertsSettings                   types.Bool          `tfsdk:"with_default_alerts_settings"`
 }
 
 type TfTeamModel struct {
@@ -83,6 +84,20 @@ type TfLimitModel struct {
 	CurrentUsage types.Int64  `tfsdk:"current_usage"`
 	DefaultLimit types.Int64  `tfsdk:"default_limit"`
 	MaximumLimit types.Int64  `tfsdk:"maximum_limit"`
+}
+
+type TFIPAddressesModel struct { // TODO: consistency in Tf vs TF
+	Services TFServicesModel `tfsdk:"services"`
+}
+
+type TFServicesModel struct {
+	Clusters []TFClusterIPsModel `tfsdk:"clusters"`
+}
+
+type TFClusterIPsModel struct {
+	ClusterName types.String `tfsdk:"cluster_name"`
+	Inbound     types.List   `tfsdk:"inbound"`
+	Outbound    types.List   `tfsdk:"outbound"`
 }
 
 var TfTeamObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -186,6 +201,34 @@ func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 			},
 			"region_usage_restrictions": schema.StringAttribute{
 				Optional: true,
+			},
+			"ip_addresses": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"services": schema.SingleNestedAttribute{
+						Attributes: map[string]schema.Attribute{
+							"clusters": schema.ListNestedAttribute{
+								NestedObject: schema.NestedAttributeObject{
+									Attributes: map[string]schema.Attribute{
+										"cluster_name": schema.StringAttribute{
+											Computed: true,
+										},
+										"inbound": schema.ListAttribute{
+											ElementType: types.StringType,
+											Computed:    true,
+										},
+										"outbound": schema.ListAttribute{
+											ElementType: types.StringType,
+											Computed:    true,
+										},
+									},
+								},
+								Computed: true,
+							},
+						},
+						Computed: true,
+					},
+				},
+				Computed: true,
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -354,15 +397,14 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	// get project props
-	// TODO: implement resource
-	atlasTeams, atlasLimits, atlasProjectSettings, _, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
+	atlasTeams, atlasLimits, atlasProjectSettings, ipAddresses, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
 	atlasLimits = FilterUserDefinedLimits(atlasLimits, limits)
-	projectPlanNew := NewTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
+	projectPlanNew := NewTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits, ipAddresses)
 	updatePlanFromConfig(projectPlanNew, &projectPlan)
 
 	// set state to fully populated data
@@ -401,14 +443,14 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	// get project props
-	atlasTeams, atlasLimits, atlasProjectSettings, _, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
+	atlasTeams, atlasLimits, atlasProjectSettings, ipAddresses, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
 	atlasLimits = FilterUserDefinedLimits(atlasLimits, limits)
-	projectStateNew := NewTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
+	projectStateNew := NewTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits, ipAddresses)
 	updatePlanFromConfig(projectStateNew, &projectState)
 
 	// save read data into Terraform state
@@ -470,7 +512,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	}
 
 	// get project props
-	atlasTeams, atlasLimits, atlasProjectSettings, _, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
+	atlasTeams, atlasLimits, atlasProjectSettings, ipAddresses, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -478,7 +520,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	var planLimits []TfLimitModel
 	_ = projectPlan.Limits.ElementsAs(ctx, &planLimits, false)
 	atlasLimits = FilterUserDefinedLimits(atlasLimits, planLimits)
-	projectPlanNew := NewTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
+	projectPlanNew := NewTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits, ipAddresses)
 	updatePlanFromConfig(projectPlanNew, &projectPlan)
 
 	// save updated data into Terraform state

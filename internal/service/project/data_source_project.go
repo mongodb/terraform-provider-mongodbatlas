@@ -54,20 +54,6 @@ type TfTeamDSModel struct {
 	RoleNames types.List   `tfsdk:"role_names"`
 }
 
-type TFIPAddressesModel struct {
-	Services TFServicesModel `tfsdk:"services"`
-}
-
-type TFServicesModel struct {
-	Clusters []TFClusterIPsModel `tfsdk:"clusters"`
-}
-
-type TFClusterIPsModel struct {
-	ClusterName types.String `tfsdk:"cluster_name"`
-	Inbound     types.List   `tfsdk:"inbound"`
-	Outbound    types.List   `tfsdk:"outbound"`
-}
-
 func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
