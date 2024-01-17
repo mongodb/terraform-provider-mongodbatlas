@@ -52,18 +52,18 @@ fi
 resource_name="$1"
 
 if [ ! -f "${TEMPLATE_FOLDER_PATH}/resources/${resource_name}.md.tmpl" ]; then
-    printf "Warning: we coudn't find the template for the %s resource. The default template templates/resources.md.tmpl will be used." ${resource_name}
-    printf "Please, make sure to include the resource template under %s.\n\n" ${TEMPLATE_FOLDER_PATH}/resources/${resource_name}.md.tmpl
+    printf "Warning: we coudn't find the template for the %s resource. The default template templates/resources.md.tmpl will be used." "${resource_name}"
+    printf "Please, make sure to include the resource template under %s.\n\n" "${TEMPLATE_FOLDER_PATH}/resources/${resource_name}.md.tmpl"
 fi
 
 if [ ! -f "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl" ]; then
-    printf "Warning: we coudn't find the template for the %s data source. The default template templates/data-source.md.tmpl will be used." ${resource_name}
-    printf "Please, make sure to include the data source template under %s.\n\n" ${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl
+    printf "Warning: we coudn't find the template for the %s data source. The default template templates/data-source.md.tmpl will be used." "${resource_name}"
+    printf "Please, make sure to include the data source template under %s.\n\n" "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl"
 fi
 
 if [ ! -f "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}s.md.tmpl" ]; then
     echo "Warning: we coudn't find the template for the ${resource_name}s data source"
-    printf "Please, make sure to include the data source template under %s." ${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl
+    printf "Please, make sure to include the data source template under %s." "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl"
     printf "Skipping this check: We assume that the resource does not have a plural data source.\n\n"
 fi
 
