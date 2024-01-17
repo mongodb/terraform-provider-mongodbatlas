@@ -70,7 +70,7 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"id": {
+			"idp_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -89,15 +89,20 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 
 	ids := conversion.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
-	oktaIdpID := ids["okta_idp_id"]
+
+	// Since the migration of this resource to the latest version of the auto-generated SDK (v20231115) and the breaking changes of the API
+	// the unique identifier used by the API & SDK of the supported identity providers is no longer "okta_idp_id", it is "idp_id". Nonetheless
+	// "okta_idp_id" name was used to encode/decode the Terraform State Id. To avoid increasing the complexity of the code and be able to make
+	// as few changes as possible, this name will remain.
+	idpID := ids["okta_idp_id"]
 
 	// to be removed in terraform-provider-1.16.0
-	if len(oktaIdpID) == 20 {
+	if len(idpID) == 20 {
 		// use old version of v2 SDK
-		return append(oldSDKRead(federationSettingsID, oktaIdpID, d, meta), getGracePeriodWarning())
+		return append(oldSDKRead(federationSettingsID, idpID, d, meta), getGracePeriodWarning())
 	}
 	// latest version of v2 SDK
-	federatedSettingsIdentityProvider, resp, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID).Execute()
+	federatedSettingsIdentityProvider, resp, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), federationSettingsID, idpID).Execute()
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -141,10 +146,11 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 		return diag.FromErr(fmt.Errorf("error setting sso url (%s): %s", d.Id(), err))
 	}
 
-	d.SetId(conversion.EncodeStateID(map[string]string{
-		"federation_settings_id": federationSettingsID,
-		"okta_idp_id":            federatedSettingsIdentityProvider.Id,
-	}))
+	if err := d.Set("idp_id", federatedSettingsIdentityProvider.Id); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting IdP Id (%s): %s", d.Id(), err))
+	}
+
+	d.SetId(encodeStateID(federationSettingsID, federatedSettingsIdentityProvider.Id))
 
 	return nil
 }
@@ -196,10 +202,11 @@ func oldSDKRead(federationSettingsID, oktaIdpID string, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("error setting sso url (%s): %s", d.Id(), err))
 	}
 
-	d.SetId(conversion.EncodeStateID(map[string]string{
-		"federation_settings_id": federationSettingsID,
-		"okta_idp_id":            oktaIdpID,
-	}))
+	if err := d.Set("idp_id", federatedSettingsIdentityProvider.Id); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting IdP Id (%s): %s", d.Id(), err))
+	}
+
+	d.SetId(encodeStateID(federationSettingsID, oktaIdpID))
 
 	return nil
 }
@@ -339,19 +346,19 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderDelete(ctx context.Con
 
 func resourceMongoDBAtlasFederatedSettingsIdentityProviderImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	federationSettingsID, oktaIdpID, err := splitFederatedSettingsIdentityProviderImportID(d.Id())
+	federationSettingsID, idpID, err := splitFederatedSettingsIdentityProviderImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
 	// to be removed in terraform-provider-1.16.0
-	if len(*oktaIdpID) == 20 {
-		return oldSDKImport(federationSettingsID, oktaIdpID, d, meta)
+	if len(*idpID) == 20 {
+		return oldSDKImport(federationSettingsID, idpID, d, meta)
 	}
 
-	federatedSettingsIdentityProvider, _, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), *federationSettingsID, *oktaIdpID).Execute()
+	federatedSettingsIdentityProvider, _, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), *federationSettingsID, *idpID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import Organization config (%s) in Federation settings (%s), error: %s", *oktaIdpID, *federationSettingsID, err)
+		return nil, fmt.Errorf("couldn't import Organization config (%s) in Federation settings (%s), error: %s", *idpID, *federationSettingsID, err)
 	}
 
 	if err := d.Set("federation_settings_id", *federationSettingsID); err != nil {
@@ -386,10 +393,11 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderImportState(ctx contex
 		return nil, fmt.Errorf("error setting sso url (%s): %s", d.Id(), err)
 	}
 
-	d.SetId(conversion.EncodeStateID(map[string]string{
-		"federation_settings_id": *federationSettingsID,
-		"okta_idp_id":            *oktaIdpID,
-	}))
+	if err := d.Set("idp_id", federatedSettingsIdentityProvider.Id); err != nil {
+		return nil, fmt.Errorf("error setting IdP Id (%s): %s", d.Id(), err)
+	}
+
+	d.SetId(encodeStateID(*federationSettingsID, *idpID))
 
 	return []*schema.ResourceData{d}, nil
 }
@@ -433,6 +441,10 @@ func oldSDKImport(federationSettingsID, oktaIdpID *string, d *schema.ResourceDat
 		return nil, fmt.Errorf("error setting sso url (%s): %s", d.Id(), err)
 	}
 
+	if err := d.Set("idp_id", federatedSettingsIdentityProvider.Id); err != nil {
+		return nil, fmt.Errorf("error setting IdP Id (%s): %s", d.Id(), err)
+	}
+
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"federation_settings_id": *federationSettingsID,
 		"okta_idp_id":            *oktaIdpID,
@@ -454,6 +466,17 @@ func splitFederatedSettingsIdentityProviderImportID(id string) (federationSettin
 	oktaIdpID = &parts[2]
 
 	return
+}
+
+// Since the migration of this resource to the latest version of the auto-generated SDK (v20231115) and the breaking changes of the API
+// the unique identifier used by the API & SDK of the supported identity providers is no longer "okta_idp_id", it is "idp_id". Nonetheless
+// "okta_idp_id" name was used to encode/decode the Terraform State Id. To avoid increasing the complexity of the code and be able to make
+// as few changes as possible, this name will remain.
+func encodeStateID(federationSettingsID, idpID string) string {
+	return conversion.EncodeStateID(map[string]string{
+		"federation_settings_id": federationSettingsID,
+		"okta_idp_id":            idpID,
+	})
 }
 
 func getGracePeriodWarning() diag.Diagnostic {

@@ -200,7 +200,7 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"id": {
+			"idp_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -281,6 +281,10 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Con
 		return diag.FromErr(fmt.Errorf("error setting `status` for federatedSettings IdentityProviders: %s", err))
 	}
 
+	if err := d.Set("idp_id", federatedSettingsIdentityProvider.Id); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `idp_id` for federatedSettings IdentityProviders: %s", err))
+	}
+
 	d.SetId(federatedSettingsIdentityProvider.Id)
 
 	return nil
@@ -339,6 +343,10 @@ func oldSDKDSRead(ctx context.Context, federationSettingsID, idpID string, d *sc
 
 	if err := d.Set("status", federatedSettingsIdentityProvider.Status); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `status` for federatedSettings IdentityProviders: %s", err))
+	}
+
+	if err := d.Set("idp_id", federatedSettingsIdentityProvider.Id); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `idp_id` for federatedSettings IdentityProviders: %s", err))
 	}
 
 	d.SetId(federatedSettingsIdentityProvider.OktaIdpId)
