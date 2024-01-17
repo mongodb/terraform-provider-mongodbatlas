@@ -115,6 +115,10 @@ link-git-hooks: ## Install git hooks
 update-atlas-sdk: ## Update the atlas-sdk dependency
 	./scripts/update-sdk.sh
 
+.PHONY: generate-mocks
+generate-mocks: # uses mockery to generate mocks in folder `internal/testutil/mocksvc`
+	mockery
+
 # e.g. run: make scaffold resource_name=streamInstance type=resource
 # - type argument can have the values: `resource`, `data-source`, `plural-data-source`.
 # details on usage can be found in CONTRIBUTING.md under "Scaffolding initial Code and File Structure"

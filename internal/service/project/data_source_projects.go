@@ -134,6 +134,34 @@ func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, r
 								},
 							},
 						},
+						"ip_addresses": schema.SingleNestedAttribute{
+							Attributes: map[string]schema.Attribute{
+								"services": schema.SingleNestedAttribute{
+									Attributes: map[string]schema.Attribute{
+										"clusters": schema.ListNestedAttribute{
+											NestedObject: schema.NestedAttributeObject{
+												Attributes: map[string]schema.Attribute{
+													"cluster_name": schema.StringAttribute{
+														Computed: true,
+													},
+													"inbound": schema.ListAttribute{
+														ElementType: types.StringType,
+														Computed:    true,
+													},
+													"outbound": schema.ListAttribute{
+														ElementType: types.StringType,
+														Computed:    true,
+													},
+												},
+											},
+											Computed: true,
+										},
+									},
+									Computed: true,
+								},
+							},
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -174,9 +202,9 @@ func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClien
 	results := make([]*TfProjectDSModel, 0, len(input))
 	for i := range input {
 		project := input[i]
-		atlasTeams, atlasLimits, atlasProjectSettings, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), project.GetId())
+		atlasTeams, atlasLimits, atlasProjectSettings, ipAddresses, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), project.GetId())
 		if err == nil { // if the project is still valid, e.g. could have just been deleted
-			projectModel := NewTFProjectDataSourceModel(ctx, &project, atlasTeams, atlasProjectSettings, atlasLimits, nil) // TODO adjust here
+			projectModel := NewTFProjectDataSourceModel(ctx, &project, atlasTeams, atlasProjectSettings, atlasLimits, ipAddresses)
 			results = append(results, &projectModel)
 		}
 	}

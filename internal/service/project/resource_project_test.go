@@ -47,11 +47,12 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 		Err:           nil,
 	}
 	testCases := []struct {
-		name            string
-		teamRoleReponse TeamRoleResponse
-		groupResponse   GroupSettingsResponse
-		limitResponse   LimitsResponse
-		expectedError   bool
+		teamRoleReponse     TeamRoleResponse
+		groupResponse       GroupSettingsResponse
+		ipAddressesResponse IPAddressesResponse
+		name                string
+		limitResponse       LimitsResponse
+		expectedError       bool
 	}{
 		{
 			name:            "Successful",
@@ -90,6 +91,18 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			},
 			expectedError: true,
 		},
+		{
+			name:            "Fail to get project's ip addresses",
+			teamRoleReponse: successfulTeamRoleResponse,
+			limitResponse:   successfulLimitsResponse,
+			groupResponse:   successfulGroupSettingsResponse,
+			ipAddressesResponse: IPAddressesResponse{
+				IPAddresses:  nil,
+				HTTPResponse: &http.Response{StatusCode: 503},
+				Err:          errors.New("Service Unavailable"),
+			},
+			expectedError: true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -98,8 +111,9 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			svc.On("ListProjectTeams", mock.Anything, mock.Anything).Return(tc.teamRoleReponse.TeamRole, tc.teamRoleReponse.HTTPResponse, tc.teamRoleReponse.Err)
 			svc.On("ListProjectLimits", mock.Anything, mock.Anything).Return(tc.limitResponse.Limits, tc.limitResponse.HTTPResponse, tc.limitResponse.Err).Maybe()
 			svc.On("GetProjectSettings", mock.Anything, mock.Anything).Return(tc.groupResponse.GroupSettings, tc.groupResponse.HTTPResponse, tc.groupResponse.Err).Maybe()
+			svc.On("ReturnAllIPAddresses", mock.Anything, mock.Anything).Return(tc.groupResponse.GroupSettings, tc.groupResponse.HTTPResponse, tc.groupResponse.Err).Maybe()
 
-			_, _, _, err := project.GetProjectPropsFromAPI(context.Background(), svc, dummyProjectID)
+			_, _, _, _, err := project.GetProjectPropsFromAPI(context.Background(), svc, dummyProjectID)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -897,6 +911,12 @@ type GroupSettingsResponse struct {
 	GroupSettings *admin.GroupSettings
 	HTTPResponse  *http.Response
 	Err           error
+}
+
+type IPAddressesResponse struct {
+	IPAddresses  *admin.GroupIPAddresses
+	HTTPResponse *http.Response
+	Err          error
 }
 type ProjectResponse struct {
 	Project      *admin.Group

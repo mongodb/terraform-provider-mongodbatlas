@@ -216,15 +216,9 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		}
 	}
 
-	atlasTeams, atlasLimits, atlasProjectSettings, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), project.GetId())
+	atlasTeams, atlasLimits, atlasProjectSettings, ipAddresses, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), project.GetId())
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties", fmt.Sprintf(ErrorProjectRead, project.GetId(), err.Error()))
-		return
-	}
-
-	ipAddresses, _, err := connV2.ProjectsApi.ReturnAllIPAddresses(ctx, project.GetId()).Execute()
-	if err != nil {
-		resp.Diagnostics.AddError("error when getting project IP addresses", fmt.Sprintf(ErrorProjectRead, project.GetId(), err.Error()))
 		return
 	}
 

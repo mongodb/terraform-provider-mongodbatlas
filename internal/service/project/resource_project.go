@@ -354,7 +354,8 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	// get project props
-	atlasTeams, atlasLimits, atlasProjectSettings, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
+	// TODO: implement resource
+	atlasTeams, atlasLimits, atlasProjectSettings, _, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -400,7 +401,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	// get project props
-	atlasTeams, atlasLimits, atlasProjectSettings, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
+	atlasTeams, atlasLimits, atlasProjectSettings, _, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -469,7 +470,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	}
 
 	// get project props
-	atlasTeams, atlasLimits, atlasProjectSettings, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
+	atlasTeams, atlasLimits, atlasProjectSettings, _, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -530,23 +531,29 @@ func FilterUserDefinedLimits(allAtlasLimits []admin.DataFederationLimit, tflimit
 	return filteredLimits
 }
 
-func GetProjectPropsFromAPI(ctx context.Context, client GroupProjectService, projectID string) (*admin.PaginatedTeamRole, []admin.DataFederationLimit, *admin.GroupSettings, error) {
+// TODO refactor resp into struct
+func GetProjectPropsFromAPI(ctx context.Context, client GroupProjectService, projectID string) (*admin.PaginatedTeamRole, []admin.DataFederationLimit, *admin.GroupSettings, *admin.GroupIPAddresses, error) {
 	teams, _, err := client.ListProjectTeams(ctx, projectID)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("error getting project's teams assigned (%s): %v", projectID, err.Error())
+		return nil, nil, nil, nil, fmt.Errorf("error getting project's teams assigned (%s): %v", projectID, err.Error())
 	}
 
 	limits, _, err := client.ListProjectLimits(ctx, projectID)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("error getting project's limits (%s): %s", projectID, err.Error())
+		return nil, nil, nil, nil, fmt.Errorf("error getting project's limits (%s): %s", projectID, err.Error())
 	}
 
 	projectSettings, _, err := client.GetProjectSettings(ctx, projectID)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("error getting project's settings assigned (%s): %v", projectID, err.Error())
+		return nil, nil, nil, nil, fmt.Errorf("error getting project's settings assigned (%s): %v", projectID, err.Error())
 	}
 
-	return teams, limits, projectSettings, nil
+	ipAddresses, _, err := client.ReturnAllIPAddresses(ctx, projectID)
+	if err != nil {
+		return nil, nil, nil, nil, fmt.Errorf("error getting project's IP addresses (%s): %v", projectID, err.Error())
+	}
+
+	return teams, limits, projectSettings, ipAddresses, nil
 }
 
 func updateProjectSettings(ctx context.Context, connV2 *admin.APIClient, projectState, projectPlan *TfProjectRSModel) error {
