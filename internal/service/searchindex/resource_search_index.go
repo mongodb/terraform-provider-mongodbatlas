@@ -55,7 +55,6 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 		"index_id": {
 			Type:     schema.TypeString,
 			Computed: true,
-			Required: false,
 		},
 		"analyzer": {
 			Type:     schema.TypeString,
@@ -113,7 +112,6 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 		},
 		"status": {
 			Type:     schema.TypeString,
-			Optional: true,
 			Computed: true,
 		},
 		"wait_for_index_build_completion": {
@@ -412,7 +410,6 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 		Database:       d.Get("database").(string),
 		Name:           d.Get("name").(string),
 		SearchAnalyzer: conversion.StringPtr(d.Get("search_analyzer").(string)),
-		Status:         conversion.StringPtr(d.Get("status").(string)),
 	}
 
 	if indexType == vectorSearch {
