@@ -57,7 +57,8 @@ func MongoDBRegionToAWSRegion(region string) string {
 	return strings.ReplaceAll(strings.ToLower(region), "_", "-")
 }
 
-func NonEmptySliceToSlicePtr[T any](v []T) *[]T {
+// NonEmptyToPtr accepts an array or slice and returns a pointer to it, except if it's empty, in that case it returns nil.
+func NonEmptyToPtr[T any](v []T) *[]T {
 	if len(v) == 0 {
 		return nil
 	}

@@ -96,7 +96,7 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf("error creating Organization: %s", err))
 	}
 
-	orgID := *organization.Organization.Id
+	orgID := organization.Organization.GetId()
 
 	// update settings using new keys for this created organization because
 	// the provider/requesting API keys are not applicable for performing updates/delete for this new organization
@@ -119,11 +119,11 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf("error setting Organization setings: %s", err))
 	}
 
-	if err := d.Set("private_key", organization.ApiKey.PrivateKey); err != nil {
+	if err := d.Set("private_key", organization.ApiKey.GetPrivateKey()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
 	}
 
-	if err := d.Set("public_key", organization.ApiKey.PublicKey); err != nil {
+	if err := d.Set("public_key", organization.ApiKey.GetPublicKey()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 	}
 
@@ -132,7 +132,7 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"org_id": *organization.Organization.Id,
+		"org_id": organization.Organization.GetId(),
 	}))
 
 	return resourceMongoDBAtlasOrganizationRead(ctx, d, meta)
@@ -182,7 +182,7 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"org_id": *organization.Id,
+		"org_id": organization.GetId(),
 	}))
 	return nil
 }

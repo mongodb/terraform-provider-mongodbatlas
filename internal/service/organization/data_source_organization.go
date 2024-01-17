@@ -69,11 +69,11 @@ func dataSourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf("error getting organizations information: %s", err))
 	}
 
-	if err := d.Set("name", organization.Name); err != nil {
+	if err := d.Set("name", organization.GetName()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `name`: %s", err))
 	}
 
-	if err := d.Set("is_deleted", organization.IsDeleted); err != nil {
+	if err := d.Set("is_deleted", organization.GetIsDeleted()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `is_deleted`: %s", err))
 	}
 
@@ -95,7 +95,7 @@ func dataSourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resou
 		return diag.Errorf("error setting `restrict_employee_access` for organization (%s): %s", orgID, err)
 	}
 
-	d.SetId(*organization.Id)
+	d.SetId(organization.GetId())
 
 	return nil
 }

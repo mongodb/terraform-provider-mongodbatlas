@@ -223,10 +223,10 @@ func dataSourceChecksForUsers(dataSourceName, orgID string, users *admin.Paginat
 		resource.TestCheckResourceAttr(dataSourceName, "org_id", orgID),
 		resource.TestCheckResourceAttr(dataSourceName, "total_count", fmt.Sprintf("%d", totalCountValue)),
 	}
-	for i := range *users.Results {
-		checks = append(checks, dataSourceChecksForUser(dataSourceName, fmt.Sprintf("results.%d.", i), &(*users.Results)[i])...)
+	results := users.GetResults()
+	for i := range results {
+		checks = append(checks, dataSourceChecksForUser(dataSourceName, fmt.Sprintf("results.%d.", i), &results[i])...)
 	}
-
 	return checks
 }
 

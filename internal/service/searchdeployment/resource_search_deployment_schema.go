@@ -47,8 +47,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					Attributes: map[string]schema.Attribute{
 						"instance_size": schema.StringAttribute{
 							Required:            true,
-							Description:         "Hardware specification for the search node instance sizes.",
-							MarkdownDescription: "Hardware specification for the search node instance sizes.",
+							Description:         "Hardware specification for the search node instance sizes. The [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Atlas-Search/operation/createAtlasSearchDeployment) describes the valid values. More details can also be found in the [Search Node Documentation](https://www.mongodb.com/docs/atlas/cluster-config/multi-cloud-distribution/#search-tier).",
+							MarkdownDescription: "Hardware specification for the search node instance sizes. The [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Atlas-Search/operation/createAtlasSearchDeployment) describes the valid values. More details can also be found in the [Search Node Documentation](https://www.mongodb.com/docs/atlas/cluster-config/multi-cloud-distribution/#search-tier).",
 						},
 						"node_count": schema.Int64Attribute{
 							Required:            true,
@@ -57,8 +57,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 					},
 				},
-				Description:         "List of settings that configure the search nodes for your cluster.",
-				MarkdownDescription: "List of settings that configure the search nodes for your cluster.",
+				Description:         "List of settings that configure the search nodes for your cluster. This list is currently limited to defining a single element.",
+				MarkdownDescription: "List of settings that configure the search nodes for your cluster. This list is currently limited to defining a single element.",
 			},
 			"state_name": schema.StringAttribute{
 				Computed:            true,

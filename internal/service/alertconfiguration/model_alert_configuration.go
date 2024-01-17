@@ -43,7 +43,7 @@ func NewNotificationList(tfNotificationSlice []TfNotificationModel) ([]admin.Ale
 			Username:                 n.Username.ValueStringPointer(),
 			VictorOpsApiKey:          n.VictorOpsAPIKey.ValueStringPointer(),
 			VictorOpsRoutingKey:      n.VictorOpsRoutingKey.ValueStringPointer(),
-			Roles:                    conversion.NonEmptySliceToSlicePtr(n.Roles),
+			Roles:                    conversion.NonEmptyToPtr(n.Roles),
 			MicrosoftTeamsWebhookUrl: n.MicrosoftTeamsWebhookURL.ValueStringPointer(),
 			WebhookSecret:            n.WebhookSecret.ValueStringPointer(),
 			WebhookUrl:               n.WebhookURL.ValueStringPointer(),

@@ -69,7 +69,7 @@ func TestMongoDBRegionToAWSRegion(t *testing.T) {
 	}
 }
 
-func TestNonEmptySliceToSlicePtr(t *testing.T) {
+func TestNonEmptyToPtr(t *testing.T) {
 	var (
 		nilSlice         []string
 		emptyNonNilSlice = []string{}
@@ -86,7 +86,7 @@ func TestNonEmptySliceToSlicePtr(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, conversion.NonEmptySliceToSlicePtr(tc.given))
+			assert.Equal(t, tc.expected, conversion.NonEmptyToPtr(tc.given))
 		})
 	}
 }
