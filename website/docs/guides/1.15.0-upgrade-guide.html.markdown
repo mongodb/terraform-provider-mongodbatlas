@@ -26,7 +26,7 @@ The new format is a 24-hex characters long string.
 Update guide: 
 
 1. Get new 24-hex characters string ID value
-	- Option 1: Use Atlas API v20231001, both of those endpoints include the new `id` in the response:
+	- Option 1: Use Atlas API v20231001, both of the following endpoints include the new `id` in the response:
 		- Use [Return all identity providers from the specified federation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/2023-10-01/#tag/Federated-Authentication/operation/listIdentityProviders) endpoint
 		- Use [Return one identity provider from the specified federation by id](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/2023-10-01/#tag/Federated-Authentication/operation/listIdentityProviders) endpoint
 	- Option 2: Use `mongodbatlas_federated_settings_identity_providers` resource: 
