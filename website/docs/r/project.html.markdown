@@ -91,8 +91,16 @@ Teams attribute is optional
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The project id.
-* `created` - The ISO-8601-formatted timestamp of when Atlas created the project..
-* `cluster_count` - The number of Atlas clusters deployed in the project..
+* `created` - The ISO-8601-formatted timestamp of when Atlas created the project.
+* `cluster_count` - The number of Atlas clusters deployed in the project.
+* `ip_addresses` - IP addresses in a project categorized by services. See [IP Addresses](#ip-addresses).
+
+
+### IP Addresses
+
+* `services.clusters.#.cluster_name` - Human-readable label that identifies the cluster.
+* `services.clusters.#.inbound` - List of inbound IP addresses associated with the cluster. If your network allows outbound HTTP requests only to specific IP addresses, you must allow access to the following IP addresses so that your application can connect to your Atlas cluster.
+* `services.clusters.#.outbound` - List of outbound IP addresses associated with the cluster. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that your Atlas cluster can communicate with your webhooks and KMS.
 
 ## Import
 
