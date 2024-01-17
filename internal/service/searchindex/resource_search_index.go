@@ -24,12 +24,12 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasSearchIndexCreate,
-		ReadContext:          resourceMongoDBAtlasSearchIndexRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasSearchIndexUpdate,
-		DeleteContext:        resourceMongoDBAtlasSearchIndexDelete,
+		CreateWithoutTimeout: resourceCreate,
+		ReadContext:          resourceRead,
+		UpdateWithoutTimeout: resourceUpdate,
+		DeleteContext:        resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasSearchIndexImportState,
+			StateContext: resourceImportState,
 		},
 		Schema: returnSearchIndexSchema(),
 		Timeouts: &schema.ResourceTimeout{
@@ -130,7 +130,7 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 	}
 }
 
-func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	parts := strings.SplitN(d.Id(), "--", 3)
 	if len(parts) != 3 {
 		return nil, errors.New("import format error: to import a search index, use the format {project_id}--{cluster_name}--{index_id}")
@@ -167,7 +167,7 @@ func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.R
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceMongoDBAtlasSearchIndexDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -181,7 +181,7 @@ func resourceMongoDBAtlasSearchIndexDelete(ctx context.Context, d *schema.Resour
 	return nil
 }
 
-func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -281,16 +281,16 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 				"cluster_name": clusterName,
 				"index_id":     indexID,
 			}))
-			resourceMongoDBAtlasSearchIndexDelete(ctx, d, meta)
+			resourceDelete(ctx, d, meta)
 			d.SetId("")
 			return diag.FromErr(fmt.Errorf("error creating index in cluster (%s): %s", clusterName, err))
 		}
 	}
 
-	return resourceMongoDBAtlasSearchIndexRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -398,7 +398,7 @@ func marshalSearchIndex(fields any) (string, error) {
 	return string(bytes), err
 }
 
-func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
@@ -461,7 +461,7 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 				"cluster_name": clusterName,
 				"index_id":     indexID,
 			}))
-			resourceMongoDBAtlasSearchIndexDelete(ctx, d, meta)
+			resourceDelete(ctx, d, meta)
 			d.SetId("")
 			return diag.FromErr(fmt.Errorf("error creating index in cluster (%s): %s", clusterName, err))
 		}
@@ -472,7 +472,7 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 		"index_id":     indexID,
 	}))
 
-	return resourceMongoDBAtlasSearchIndexRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
 func expandSearchIndexSynonyms(d *schema.ResourceData) []admin.SearchSynonymMappingDefinition {
