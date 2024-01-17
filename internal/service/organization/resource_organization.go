@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -81,8 +82,8 @@ func Resource() *schema.Resource {
 }
 
 func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	if !isAPIKeyOrgOwner(conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List())) {
-		return diag.FromErr(fmt.Errorf("`role_names` for new API Key must have the ORG_OWNER role to use this resource"))
+	if err := ValidateAPIKeyIsOrgOwner(conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List())); err != nil {
+		return diag.FromErr(err)
 	}
 
 	conn := meta.(*config.MongoDBClient).AtlasV2
@@ -109,14 +110,14 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 	clients, _ := cfg.NewClient(ctx)
 	conn = clients.(*config.MongoDBClient).AtlasV2
 
-	_, _, err = conn.OrganizationsApi.UpdateOrganizationSettings(ctx, orgID, newOrganizationSettings(d)).Execute()
-	if err != nil {
+	_, _, errUpdate := conn.OrganizationsApi.UpdateOrganizationSettings(ctx, orgID, newOrganizationSettings(d)).Execute()
+	if errUpdate != nil {
 		if _, _, err := conn.OrganizationsApi.DeleteOrganization(ctx, orgID).Execute(); err != nil {
 			d.SetId("")
-			return diag.FromErr(fmt.Errorf("an error occurred when updating Organization settings. Unable to delete organization, there may be dangling resources: %s", err))
+			return diag.FromErr(fmt.Errorf("an error occurred when updating Organization settings: %s.\n Unable to delete organization, there may be dangling resources: %s", errUpdate.Error(), err.Error()))
 		}
 		d.SetId("")
-		return diag.FromErr(fmt.Errorf("error setting Organization setings: %s", err))
+		return diag.FromErr(fmt.Errorf("an error occurred when updating Organization settings: %s", err))
 	}
 
 	if err := d.Set("private_key", organization.ApiKey.GetPrivateKey()); err != nil {
@@ -263,12 +264,12 @@ func newOrganizationSettings(d *schema.ResourceData) *admin.OrganizationSettings
 	}
 }
 
-func isAPIKeyOrgOwner(roles []string) bool {
+func ValidateAPIKeyIsOrgOwner(roles []string) error {
 	for _, role := range roles {
-		if role == "ORG_OWNER" {
-			return true
+		if role == constant.OrgOwner {
+			return nil
 		}
 	}
 
-	return false
+	return fmt.Errorf("`role_names` for new API Key must have the ORG_OWNER role to use this resource")
 }

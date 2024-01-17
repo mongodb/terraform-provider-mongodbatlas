@@ -1,11 +1,11 @@
 resource "mongodbatlas_organization" "test" {
-  org_owner_id = var.org_owner_id
-  name         = "testCreateORG"
-  description  = "test API key from Org Creation Test"
-  role_names   = ["ORG_OWNER"]
+  org_owner_id               = var.org_owner_id
+  name                       = "testCreateORG"
+  description                = "test API key from Org Creation Test"
+  role_names                 = ["ORG_OWNER"]
   multi_factor_auth_required = true
-  restrict_employee_access = true
-  api_access_list_required = false
+  restrict_employee_access   = true
+  api_access_list_required   = false
 }
 
 output "org_id" {

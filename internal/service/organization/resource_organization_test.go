@@ -15,6 +15,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/organization"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -39,8 +40,10 @@ func TestAccConfigRSOrganization_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasOrganizationExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "description"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
+					resource.TestCheckResourceAttr(resourceName, "api_access_list_required", "false"),
+					resource.TestCheckResourceAttr(resourceName, "restrict_employee_access", "false"),
+					resource.TestCheckResourceAttr(resourceName, "multi_factor_auth_required", "false"),
 				),
 			},
 			{
@@ -48,8 +51,10 @@ func TestAccConfigRSOrganization_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasOrganizationExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "description"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
+					resource.TestCheckResourceAttr(resourceName, "api_access_list_required", "false"),
+					resource.TestCheckResourceAttr(resourceName, "restrict_employee_access", "false"),
+					resource.TestCheckResourceAttr(resourceName, "multi_factor_auth_required", "false"),
 				),
 			},
 		},
@@ -106,7 +111,6 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasOrganizationExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "description"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttr(resourceName, "api_access_list_required", "false"),
 					resource.TestCheckResourceAttr(resourceName, "restrict_employee_access", "false"),
@@ -118,7 +122,6 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasOrganizationExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "description"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttr(resourceName, "api_access_list_required", "false"),
 					resource.TestCheckResourceAttr(resourceName, "multi_factor_auth_required", "true"),
@@ -231,4 +234,37 @@ func getTestClientWithNewOrgCreds(rs *terraform.ResourceState) (*admin.APIClient
 	ctx := context.Background()
 	clients, _ := cfg.NewClient(ctx)
 	return clients.(*config.MongoDBClient).AtlasV2, nil
+}
+
+func TestValidateAPIKeyIsOrgOwner(t *testing.T) {
+	tests := []struct {
+		name    string
+		roles   []string
+		wantErr bool
+	}{
+		{
+			name:    "Contains OrgOwner",
+			roles:   []string{"ORG_MEMBER", "ORG_OWNER", "ORG_READ_ONLY"},
+			wantErr: false,
+		},
+		{
+			name:    "Does Not Contain OrgOwner",
+			roles:   []string{"ORG_MEMBER", "READ_ONLY"},
+			wantErr: true,
+		},
+		{
+			name:    "Empty Roles",
+			roles:   []string{},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := organization.ValidateAPIKeyIsOrgOwner(tt.roles)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("validateAPIKeyIsOrgOwner() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
 }
