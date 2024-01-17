@@ -212,8 +212,8 @@ func testAccMongoDBAtlasOrganizationConfigWithSettings(orgOwnerID, name, descrip
 	`, orgOwnerID, name, description, roleNames, settingsConfig)
 }
 
-// getTestClientWithNewOrgCreds This method creates a new Atlas client with credentials for the newly created organization.
-// This is required to call relevant API methods for the new organization, for example ListOrganizations requires that the requesting API
+// getTestClientWithNewOrgCreds creates a new Atlas client with credentials for the newly created organization which
+// is required to call relevant API methods for the new organization, for example ListOrganizations requires that the requesting API
 // key must have the Organization Member role. So we cannot invoke API methods on the new organization with credentials configured in the provider.
 func getTestClientWithNewOrgCreds(rs *terraform.ResourceState) (*admin.APIClient, error) {
 	if rs.Primary.Attributes["public_key"] == "" {
