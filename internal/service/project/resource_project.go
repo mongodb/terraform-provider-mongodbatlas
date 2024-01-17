@@ -545,13 +545,12 @@ func updateProjectSettings(ctx context.Context, connV2 *admin.APIClient, state, 
 		return fmt.Errorf("error getting project's settings assigned: %v", err.Error())
 	}
 
-	hasChanged :=
-		updateProjectBool(plan.IsCollectDatabaseSpecificsStatisticsEnabled, state.IsCollectDatabaseSpecificsStatisticsEnabled, &settings.IsCollectDatabaseSpecificsStatisticsEnabled) ||
-			updateProjectBool(plan.IsDataExplorerEnabled, state.IsDataExplorerEnabled, &settings.IsDataExplorerEnabled) ||
-			updateProjectBool(plan.IsExtendedStorageSizesEnabled, state.IsExtendedStorageSizesEnabled, &settings.IsExtendedStorageSizesEnabled) ||
-			updateProjectBool(plan.IsPerformanceAdvisorEnabled, state.IsPerformanceAdvisorEnabled, &settings.IsPerformanceAdvisorEnabled) ||
-			updateProjectBool(plan.IsRealtimePerformancePanelEnabled, state.IsRealtimePerformancePanelEnabled, &settings.IsRealtimePerformancePanelEnabled) ||
-			updateProjectBool(plan.IsSchemaAdvisorEnabled, state.IsSchemaAdvisorEnabled, &settings.IsSchemaAdvisorEnabled)
+	hasChanged := updateProjectBool(plan.IsCollectDatabaseSpecificsStatisticsEnabled, state.IsCollectDatabaseSpecificsStatisticsEnabled, &settings.IsCollectDatabaseSpecificsStatisticsEnabled)
+	hasChanged = updateProjectBool(plan.IsDataExplorerEnabled, state.IsDataExplorerEnabled, &settings.IsDataExplorerEnabled) || hasChanged
+	hasChanged = updateProjectBool(plan.IsExtendedStorageSizesEnabled, state.IsExtendedStorageSizesEnabled, &settings.IsExtendedStorageSizesEnabled) || hasChanged
+	hasChanged = updateProjectBool(plan.IsPerformanceAdvisorEnabled, state.IsPerformanceAdvisorEnabled, &settings.IsPerformanceAdvisorEnabled) || hasChanged
+	hasChanged = updateProjectBool(plan.IsRealtimePerformancePanelEnabled, state.IsRealtimePerformancePanelEnabled, &settings.IsRealtimePerformancePanelEnabled) || hasChanged
+	hasChanged = updateProjectBool(plan.IsSchemaAdvisorEnabled, state.IsSchemaAdvisorEnabled, &settings.IsSchemaAdvisorEnabled) || hasChanged
 
 	if hasChanged {
 		_, _, err = connV2.ProjectsApi.UpdateProjectSettings(ctx, projectID, settings).Execute()

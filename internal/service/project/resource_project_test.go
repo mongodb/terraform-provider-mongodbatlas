@@ -627,7 +627,7 @@ func TestAccProjectRSProject_withFalseDefaultSettings(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProject_withFalseDefaultAdvSettings(t *testing.T) {
+func TestAccProjectRSProject_withUpdatedSettings(t *testing.T) {
 	var (
 		group          admin.Group
 		resourceName   = "mongodbatlas_project.test"
@@ -648,6 +648,42 @@ func TestAccProjectRSProject_withFalseDefaultAdvSettings(t *testing.T) {
 					acc.CheckProjectAttributes(&group, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+					resource.TestCheckResourceAttr(resourceName, "project_owner_id", projectOwnerID),
+					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_extended_storage_sizes_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_performance_advisor_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_realtime_performance_panel_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_schema_advisor_enabled", "false"),
+				),
+			},
+			{
+				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, true),
+				Check: resource.ComposeTestCheckFunc(
+					acc.CheckProjectExists(resourceName, &group),
+					acc.CheckProjectAttributes(&group, projectName),
+					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"),
+					resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "is_extended_storage_sizes_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "is_performance_advisor_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "is_realtime_performance_panel_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "is_schema_advisor_enabled", "true"),
+				),
+			},
+			{
+				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false),
+				Check: resource.ComposeTestCheckFunc(
+					acc.CheckProjectExists(resourceName, &group),
+					acc.CheckProjectAttributes(&group, projectName),
+					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_extended_storage_sizes_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_performance_advisor_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_realtime_performance_panel_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_schema_advisor_enabled", "false"),
 				),
 			},
 		},
