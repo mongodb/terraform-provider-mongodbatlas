@@ -29,13 +29,14 @@ import (
 )
 
 const (
-	projectResourceName            = "project"
+	ErrorProjectRead               = "error getting project(%s): %s"
 	errorProjectCreate             = "error creating Project: %s"
 	errorProjectDelete             = "error deleting project (%s): %s"
 	errorProjectUpdate             = "error updating project (%s): %s"
 	projectDependentsStateIdle     = "IDLE"
 	projectDependentsStateDeleting = "DELETING"
 	projectDependentsStateRetry    = "RETRY"
+	projectResourceName            = "project"
 )
 
 var _ resource.ResourceWithConfigure = &projectRS{}
