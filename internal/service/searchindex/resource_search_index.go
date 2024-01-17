@@ -319,14 +319,38 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
 	}
 
-	if analyzers := searchIndex.GetAnalyzers(); len(analyzers) > 0 {
+	if searchIndex.Type != nil && *searchIndex.Type == vectorSearch {
+		fields, err := marshalSearchIndex(searchIndex.GetFields())
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		if err := d.Set("fields", fields); err != nil {
+			return diag.Errorf("error setting `fields` for for search index (%s): %s", d.Id(), err)
+		}
+	} else {
+		analyzers := searchIndex.GetAnalyzers()
 		searchIndexMappingFields, err := marshalSearchIndex(analyzers)
 		if err != nil {
 			return diag.FromErr(err)
 		}
-
 		if err := d.Set("analyzers", searchIndexMappingFields); err != nil {
 			return diag.Errorf("error setting `analyzers` for search index (%s): %s", d.Id(), err)
+		}
+
+		if searchIndex.Mappings != nil {
+			if err := d.Set("mappings_dynamic", searchIndex.Mappings.Dynamic); err != nil {
+				return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
+			}
+
+			if len(searchIndex.Mappings.Fields) > 0 {
+				searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Mappings.Fields)
+				if err != nil {
+					return diag.FromErr(err)
+				}
+				if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
+					return diag.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
+				}
+			}
 		}
 	}
 
@@ -350,34 +374,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf("error setting `synonyms` for search index (%s): %s", d.Id(), err)
 	}
 
-	if searchIndex.Mappings != nil {
-		if err := d.Set("mappings_dynamic", searchIndex.Mappings.Dynamic); err != nil {
-			return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
-		}
-
-		if len(searchIndex.Mappings.Fields) > 0 {
-			searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Mappings.Fields)
-			if err != nil {
-				return diag.FromErr(err)
-			}
-
-			if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
-				return diag.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
-			}
-		}
-	}
-
-	if fields := searchIndex.GetFields(); len(fields) > 0 {
-		fields, err := marshalSearchIndex(fields)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-
-		if err := d.Set("fields", fields); err != nil {
-			return diag.Errorf("error setting `fields` for for search index (%s): %s", d.Id(), err)
-		}
-	}
-
 	return nil
 }
 
@@ -395,7 +391,11 @@ func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition)
 
 func marshalSearchIndex(fields any) (string, error) {
 	bytes, err := json.Marshal(fields)
-	return string(bytes), err
+	str := string(bytes)
+	if str == "[]" || str == "{}" { // empty JSON array or object
+		str = ""
+	}
+	return str, err
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -543,35 +543,35 @@ func validateSearchAnalyzersDiff(k, old, newStr string, d *schema.ResourceData) 
 	return true
 }
 
-func unmarshalSearchIndexMappingFields(mappingString string) (map[string]any, diag.Diagnostics) {
-	var fields map[string]any
-	if mappingString == "" {
+func unmarshalSearchIndexMappingFields(str string) (map[string]any, diag.Diagnostics) {
+	fields := map[string]any{}
+	if str == "" {
 		return fields, nil
 	}
-	if err := json.Unmarshal([]byte(mappingString), &fields); err != nil {
+	if err := json.Unmarshal([]byte(str), &fields); err != nil {
 		return nil, diag.Errorf("cannot unmarshal search index attribute `mappings_fields` because it has an incorrect format")
 	}
 	return fields, nil
 }
 
-func unmarshalSearchIndexFields(fieldsStr string) ([]map[string]any, diag.Diagnostics) {
-	var fields []map[string]any
-	if fieldsStr == "" {
+func unmarshalSearchIndexFields(str string) ([]map[string]any, diag.Diagnostics) {
+	fields := []map[string]any{}
+	if str == "" {
 		return fields, nil
 	}
-	if err := json.Unmarshal([]byte(fieldsStr), &fields); err != nil {
+	if err := json.Unmarshal([]byte(str), &fields); err != nil {
 		return nil, diag.Errorf("cannot unmarshal search index attribute `fields` because it has an incorrect format")
 	}
 
 	return fields, nil
 }
 
-func unmarshalSearchIndexAnalyzersFields(mappingString string) ([]admin.ApiAtlasFTSAnalyzers, diag.Diagnostics) {
-	var fields []admin.ApiAtlasFTSAnalyzers
-	if mappingString == "" {
+func unmarshalSearchIndexAnalyzersFields(str string) ([]admin.ApiAtlasFTSAnalyzers, diag.Diagnostics) {
+	fields := []admin.ApiAtlasFTSAnalyzers{}
+	if str == "" {
 		return fields, nil
 	}
-	if err := json.Unmarshal([]byte(mappingString), &fields); err != nil {
+	if err := json.Unmarshal([]byte(str), &fields); err != nil {
 		return nil, diag.Errorf("cannot unmarshal search index attribute `analyzers` because it has an incorrect format")
 	}
 	return fields, nil

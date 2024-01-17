@@ -50,3 +50,22 @@ func JSONEquals[T any](value T) resource.CheckResourceAttrWithFunc {
 		return nil
 	}
 }
+
+func JSONStringEquals(value string) resource.CheckResourceAttrWithFunc {
+	return func(input string) error {
+		var valueAny, inputAny any
+
+		if err := json.Unmarshal([]byte(value), &valueAny); err != nil {
+			return fmt.Errorf("could not unmarshal json: %s", err)
+		}
+
+		if err := json.Unmarshal([]byte(input), &inputAny); err != nil {
+			return fmt.Errorf("could not unmarshal json: %s", err)
+		}
+
+		if !reflect.DeepEqual(inputAny, valueAny) {
+			return fmt.Errorf("expected `%v`, got `%v`", value, input)
+		}
+		return nil
+	}
+}

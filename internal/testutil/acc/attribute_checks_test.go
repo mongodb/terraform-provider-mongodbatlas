@@ -55,3 +55,26 @@ func TestJSONEquals(t *testing.T) {
 		t.Errorf("JSONEquals() error = %v", err)
 	}
 }
+
+func TestJSONStringEquals(t *testing.T) {
+	testCases := []struct {
+		name    string
+		input   string
+		value   string
+		wantErr bool
+	}{
+		{"same", "{\"a\": 1}", "{\"a\": 1}", false},
+		{"same with blanks", "{\"a\": 1, \"b\": 2}", "{\"a\": \t1,   \n\"b\": 2}", false},
+		{"differenct objects", "{\"a\": 1}", "{\"a\": false}", true},
+		{"different types", "{\"a\": 1}", "[{\"a\": 1}]", true},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			checkFunc := acc.JSONStringEquals(tc.value)
+			err := checkFunc(tc.input)
+			if (err != nil) != tc.wantErr {
+				t.Errorf("JSONStringEquals() error = %v, wantErr %v", err, tc.wantErr)
+			}
+		})
+	}
+}
