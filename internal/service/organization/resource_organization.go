@@ -77,20 +77,20 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf("error create Organization: %s", err))
 	}
 
-	if err := d.Set("private_key", organization.ApiKey.PrivateKey); err != nil {
+	if err := d.Set("private_key", organization.ApiKey.GetPrivateKey()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
 	}
 
-	if err := d.Set("public_key", organization.ApiKey.PublicKey); err != nil {
+	if err := d.Set("public_key", organization.ApiKey.GetPublicKey()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 	}
 
-	if err := d.Set("org_id", *organization.Organization.Id); err != nil {
+	if err := d.Set("org_id", organization.Organization.GetId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `org_id`: %s", err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"org_id": *organization.Organization.Id,
+		"org_id": organization.Organization.GetId(),
 	}))
 
 	return resourceMongoDBAtlasOrganizationRead(ctx, d, meta)
@@ -120,7 +120,7 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(fmt.Errorf("error reading organization information: %s", err))
 	}
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"org_id": *organization.Id,
+		"org_id": organization.GetId(),
 	}))
 	return nil
 }

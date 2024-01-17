@@ -6,6 +6,8 @@ import (
 	"os"
 	"testing"
 
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
+
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -63,30 +65,16 @@ func testAccCheckMongoDBAtlasOrganizationExists(resourceName string) resource.Te
 			return fmt.Errorf("no ID is set")
 		}
 
-		if rs.Primary.Attributes["public_key"] == "" {
-			return fmt.Errorf("no public_key is set")
-		}
-
-		if rs.Primary.Attributes["private_key"] == "" {
-			return fmt.Errorf("no private_key is set")
-		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		cfg := config.Config{
-			PublicKey:  rs.Primary.Attributes["public_key"],
-			PrivateKey: rs.Primary.Attributes["private_key"],
-			BaseURL:    acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Config.BaseURL,
+		conn, err := getTestClientWithNewOrgCreds(rs)
+		if err != nil {
+			return err
 		}
 
-		ctx := context.Background()
-		clients, _ := cfg.NewClient(ctx)
-		conn := clients.(*config.MongoDBClient).AtlasV2
-
-		orgs, _, err := conn.OrganizationsApi.ListOrganizations(ctx).Execute()
+		orgs, _, err := conn.OrganizationsApi.ListOrganizations(context.Background()).Execute()
 		if err == nil {
-			for _, val := range *orgs.Results {
-				if *val.Id == ids["org_id"] {
+			for _, val := range orgs.GetResults() {
+				if val.GetId() == ids["org_id"] {
 					return nil
 				}
 			}
@@ -103,30 +91,16 @@ func testAccCheckMongoDBAtlasOrganizationDestroy(s *terraform.State) error {
 			continue
 		}
 
-		if rs.Primary.Attributes["public_key"] == "" {
-			return fmt.Errorf("no public_key is set")
-		}
-
-		if rs.Primary.Attributes["private_key"] == "" {
-			return fmt.Errorf("no private_key is set")
-		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		cfg := config.Config{
-			PublicKey:  rs.Primary.Attributes["public_key"],
-			PrivateKey: rs.Primary.Attributes["private_key"],
-			BaseURL:    acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Config.BaseURL,
+		conn, err := getTestClientWithNewOrgCreds(rs)
+		if err != nil {
+			return err
 		}
-
-		ctx := context.Background()
-		clients, _ := cfg.NewClient(ctx)
-		conn := clients.(*config.MongoDBClient).AtlasV2
 
 		orgs, _, err := conn.OrganizationsApi.ListOrganizations(context.Background()).Execute()
 		if err == nil {
-			for _, val := range *orgs.Results {
-				if *val.Id == ids["org_id"] {
+			for _, val := range orgs.GetResults() {
+				if val.GetId() == ids["org_id"] {
 					return fmt.Errorf("Organization (%s) still exists", ids["org_id"])
 				}
 			}
@@ -146,4 +120,27 @@ func testAccMongoDBAtlasOrganizationConfigBasic(orgOwnerID, name, description, r
 		role_names = ["%s"]
 	  }
 	`, orgOwnerID, name, description, roleNames)
+}
+
+// getTestClientWithNewOrgCreds This method creates a new Atlas client with credentials for the newly created organization.
+// This is required to call relevant API methods for the new organization, for example ListOrganizations requires that the requesting API
+// key must have the Organization Member role. So we cannot invoke API methods on the new organization with credentials configured in the provider.
+func getTestClientWithNewOrgCreds(rs *terraform.ResourceState) (*admin.APIClient, error) {
+	if rs.Primary.Attributes["public_key"] == "" {
+		return nil, fmt.Errorf("no public_key is set")
+	}
+
+	if rs.Primary.Attributes["private_key"] == "" {
+		return nil, fmt.Errorf("no private_key is set")
+	}
+
+	cfg := config.Config{
+		PublicKey:  rs.Primary.Attributes["public_key"],
+		PrivateKey: rs.Primary.Attributes["private_key"],
+		BaseURL:    acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Config.BaseURL,
+	}
+
+	ctx := context.Background()
+	clients, _ := cfg.NewClient(ctx)
+	return clients.(*config.MongoDBClient).AtlasV2, nil
 }
