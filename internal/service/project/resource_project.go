@@ -314,12 +314,12 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		return
 	}
 
-	setProjectBool(projectPlan.IsCollectDatabaseSpecificsStatisticsEnabled, &projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled)
-	setProjectBool(projectPlan.IsDataExplorerEnabled, &projectSettings.IsDataExplorerEnabled)
-	setProjectBool(projectPlan.IsExtendedStorageSizesEnabled, &projectSettings.IsExtendedStorageSizesEnabled)
-	setProjectBool(projectPlan.IsPerformanceAdvisorEnabled, &projectSettings.IsPerformanceAdvisorEnabled)
-	setProjectBool(projectPlan.IsRealtimePerformancePanelEnabled, &projectSettings.IsRealtimePerformancePanelEnabled)
-	setProjectBool(projectPlan.IsSchemaAdvisorEnabled, &projectSettings.IsSchemaAdvisorEnabled)
+	SetProjectBool(projectPlan.IsCollectDatabaseSpecificsStatisticsEnabled, &projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled)
+	SetProjectBool(projectPlan.IsDataExplorerEnabled, &projectSettings.IsDataExplorerEnabled)
+	SetProjectBool(projectPlan.IsExtendedStorageSizesEnabled, &projectSettings.IsExtendedStorageSizesEnabled)
+	SetProjectBool(projectPlan.IsPerformanceAdvisorEnabled, &projectSettings.IsPerformanceAdvisorEnabled)
+	SetProjectBool(projectPlan.IsRealtimePerformancePanelEnabled, &projectSettings.IsRealtimePerformancePanelEnabled)
+	SetProjectBool(projectPlan.IsSchemaAdvisorEnabled, &projectSettings.IsSchemaAdvisorEnabled)
 
 	if _, _, err = connV2.ProjectsApi.UpdateProjectSettings(ctx, project.GetId(), projectSettings).Execute(); err != nil {
 		errd := deleteProject(ctx, r.Client.AtlasV2, project.GetId())
@@ -545,12 +545,12 @@ func updateProjectSettings(ctx context.Context, connV2 *admin.APIClient, state, 
 		return fmt.Errorf("error getting project's settings assigned: %v", err.Error())
 	}
 
-	hasChanged := updateProjectBool(plan.IsCollectDatabaseSpecificsStatisticsEnabled, state.IsCollectDatabaseSpecificsStatisticsEnabled, &settings.IsCollectDatabaseSpecificsStatisticsEnabled)
-	hasChanged = updateProjectBool(plan.IsDataExplorerEnabled, state.IsDataExplorerEnabled, &settings.IsDataExplorerEnabled) || hasChanged
-	hasChanged = updateProjectBool(plan.IsExtendedStorageSizesEnabled, state.IsExtendedStorageSizesEnabled, &settings.IsExtendedStorageSizesEnabled) || hasChanged
-	hasChanged = updateProjectBool(plan.IsPerformanceAdvisorEnabled, state.IsPerformanceAdvisorEnabled, &settings.IsPerformanceAdvisorEnabled) || hasChanged
-	hasChanged = updateProjectBool(plan.IsRealtimePerformancePanelEnabled, state.IsRealtimePerformancePanelEnabled, &settings.IsRealtimePerformancePanelEnabled) || hasChanged
-	hasChanged = updateProjectBool(plan.IsSchemaAdvisorEnabled, state.IsSchemaAdvisorEnabled, &settings.IsSchemaAdvisorEnabled) || hasChanged
+	hasChanged := UpdateProjectBool(plan.IsCollectDatabaseSpecificsStatisticsEnabled, state.IsCollectDatabaseSpecificsStatisticsEnabled, &settings.IsCollectDatabaseSpecificsStatisticsEnabled)
+	hasChanged = UpdateProjectBool(plan.IsDataExplorerEnabled, state.IsDataExplorerEnabled, &settings.IsDataExplorerEnabled) || hasChanged
+	hasChanged = UpdateProjectBool(plan.IsExtendedStorageSizesEnabled, state.IsExtendedStorageSizesEnabled, &settings.IsExtendedStorageSizesEnabled) || hasChanged
+	hasChanged = UpdateProjectBool(plan.IsPerformanceAdvisorEnabled, state.IsPerformanceAdvisorEnabled, &settings.IsPerformanceAdvisorEnabled) || hasChanged
+	hasChanged = UpdateProjectBool(plan.IsRealtimePerformancePanelEnabled, state.IsRealtimePerformancePanelEnabled, &settings.IsRealtimePerformancePanelEnabled) || hasChanged
+	hasChanged = UpdateProjectBool(plan.IsSchemaAdvisorEnabled, state.IsSchemaAdvisorEnabled, &settings.IsSchemaAdvisorEnabled) || hasChanged
 
 	if hasChanged {
 		_, _, err = connV2.ProjectsApi.UpdateProjectSettings(ctx, projectID, settings).Execute()
@@ -797,18 +797,4 @@ func getChangesInLimitsSet(planLimits, stateLimits []TfLimitModel) (newElements,
 		}
 	}
 	return newLimits, changedLimits, removedLimits
-}
-
-func setProjectBool(plan types.Bool, setting **bool) {
-	if !plan.IsUnknown() {
-		*setting = plan.ValueBoolPointer()
-	}
-}
-
-func updateProjectBool(plan, state types.Bool, setting **bool) bool {
-	if plan != state {
-		*setting = plan.ValueBoolPointer()
-		return true
-	}
-	return false
 }

@@ -150,3 +150,17 @@ func NewTfLimitModelMap(limits []TfLimitModel) map[types.String]TfLimitModel {
 	}
 	return limitsMap
 }
+
+func SetProjectBool(plan types.Bool, setting **bool) {
+	if !plan.IsUnknown() {
+		*setting = plan.ValueBoolPointer()
+	}
+}
+
+func UpdateProjectBool(plan, state types.Bool, setting **bool) bool {
+	if plan != state {
+		*setting = plan.ValueBoolPointer()
+		return true
+	}
+	return false
+}
