@@ -210,7 +210,6 @@ func testAccMongoDBAtlasOrganizationConfigWithSettings(orgOwnerID, name, descrip
 		%s
 	  }
 	`, orgOwnerID, name, description, roleNames, settingsConfig)
-
 }
 
 // getTestClientWithNewOrgCreds This method creates a new Atlas client with credentials for the newly created organization.
