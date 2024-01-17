@@ -26,20 +26,9 @@ type {{.NameCamelCase}}RS struct {
 	config.RSCommon
 }
 
-type TF{{.NamePascalCase}}Model struct {
-	ID          types.String   `tfsdk:"id"`
-    // TODO: add attribute definitions
-}
-
 func (r *{{.NameCamelCase}}RS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-			},
-            // TODO: add attribute definitions
-        },
-    }
+    // TODO: Schema and model must be defined in resource_{{.NameSnakeCase}}_schema.go. Details on scaffolding this file found in CONTRIBUTING.md under "Scaffolding Schema and Model Definitions"
+	resp.Schema = ResourceSchema(ctx)
 }
 
 func (r *{{.NameCamelCase}}RS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
