@@ -853,6 +853,40 @@ func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
 	})
 }
 
+func TestAccProjectRSProject_updatedToEmptyLimits(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_project.test"
+		projectName  = acctest.RandomWithPrefix("tf-acc-project")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyProject,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+					{
+						Name:  "atlas.project.deployment.clusters",
+						Value: 1,
+					},
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "limits.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "limits.0.name", "atlas.project.deployment.clusters"),
+					resource.TestCheckResourceAttr(resourceName, "limits.0.value", "1"),
+				),
+			},
+			{
+				Config: acc.ConfigProjectWithLimits(projectName, orgID, nil),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "limits.#", "0"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccProjectRSProject_withInvalidLimitName(t *testing.T) {
 	var (
 		projectName = acctest.RandomWithPrefix("tf-acc-project")
