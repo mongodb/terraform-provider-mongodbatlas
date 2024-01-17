@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -47,27 +48,28 @@ func DataSource() *schema.Resource {
 
 func dataSourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 	orgID := d.Get("org_id").(string)
 
-	organization, _, err := conn.Organizations.Get(ctx, orgID)
+	organization, _, err := conn.OrganizationsApi.GetOrganization(ctx, orgID).Execute()
+
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting organizations information: %s", err))
 	}
 
-	if err := d.Set("name", organization.Name); err != nil {
+	if err := d.Set("name", organization.GetName()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `name`: %s", err))
 	}
 
-	if err := d.Set("is_deleted", organization.IsDeleted); err != nil {
+	if err := d.Set("is_deleted", organization.GetIsDeleted()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `is_deleted`: %s", err))
 	}
 
-	if err := d.Set("links", flattenOrganizationLinks(organization.Links)); err != nil {
+	if err := d.Set("links", flattenOrganizationLinks(organization.GetLinks())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `is_deleted`: %s", err))
 	}
 
-	d.SetId(organization.ID)
+	d.SetId(organization.GetId())
 
 	return nil
 }

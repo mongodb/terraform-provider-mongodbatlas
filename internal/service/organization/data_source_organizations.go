@@ -4,13 +4,15 @@ import (
 	"context"
 	"fmt"
 
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -22,8 +24,9 @@ func PluralDataSource() *schema.Resource {
 				Optional: true,
 			},
 			"include_deleted_orgs": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Deprecated: fmt.Sprintf(constant.DeprecationParamByDate, "January 2025"),
 			},
 			"page_num": {
 				Type:     schema.TypeInt,
@@ -79,29 +82,25 @@ func PluralDataSource() *schema.Resource {
 
 func dataSourceMongoDBAtlasOrganizationsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
-	options := &matlas.ListOptions{
-		PageNum:      d.Get("page_num").(int),
-		ItemsPerPage: d.Get("items_per_page").(int),
+	organizationOptions := &admin.ListOrganizationsApiParams{
+		PageNum:      pointy.Int(d.Get("page_num").(int)),
+		ItemsPerPage: pointy.Int(d.Get("items_per_page").(int)),
+		Name:         pointy.String(d.Get("name").(string)),
 	}
 
-	organizationOptions := &matlas.OrganizationsListOptions{
-		Name:               d.Get("name").(string),
-		IncludeDeletedOrgs: pointy.Bool(d.Get("include_deleted_orgs").(bool)),
-		ListOptions:        *options,
-	}
+	organizations, _, err := conn.OrganizationsApi.ListOrganizationsWithParams(ctx, organizationOptions).Execute()
 
-	organizations, _, err := conn.Organizations.List(ctx, organizationOptions)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting organization information: %s", err))
 	}
 
-	if err := d.Set("results", flattenOrganizations(organizations.Results)); err != nil {
+	if err := d.Set("results", flattenOrganizations(organizations.GetResults())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
 
-	if err := d.Set("total_count", organizations.TotalCount); err != nil {
+	if err := d.Set("total_count", organizations.GetTotalCount()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `total_count`: %s", err))
 	}
 
@@ -110,7 +109,7 @@ func dataSourceMongoDBAtlasOrganizationsRead(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func flattenOrganizationLinks(links []*matlas.Link) []map[string]any {
+func flattenOrganizationLinks(links []admin.Link) []map[string]any {
 	linksList := make([]map[string]any, 0)
 
 	for _, link := range links {
@@ -124,7 +123,7 @@ func flattenOrganizationLinks(links []*matlas.Link) []map[string]any {
 	return linksList
 }
 
-func flattenOrganizations(organizations []*matlas.Organization) []map[string]any {
+func flattenOrganizations(organizations []admin.AtlasOrganization) []map[string]any {
 	var results []map[string]any
 
 	if len(organizations) == 0 {
@@ -135,10 +134,10 @@ func flattenOrganizations(organizations []*matlas.Organization) []map[string]any
 
 	for k, organization := range organizations {
 		results[k] = map[string]any{
-			"id":         organization.ID,
+			"id":         organization.Id,
 			"name":       organization.Name,
 			"is_deleted": organization.IsDeleted,
-			"links":      flattenOrganizationLinks(organization.Links),
+			"links":      flattenOrganizationLinks(organization.GetLinks()),
 		}
 	}
 
