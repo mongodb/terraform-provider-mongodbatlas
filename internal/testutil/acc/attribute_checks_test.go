@@ -35,28 +35,6 @@ func TestIntGreaterThan(t *testing.T) {
 }
 
 func TestJSONEquals(t *testing.T) {
-	objMap := map[string]interface{}{
-		"str":    "my_string",
-		"number": float64(1234),
-		"bool1":  true,
-		"bool2":  false,
-		"nilvar": nil,
-	}
-	strMap := `
-	{
-		"str": "my_string",
-		"number": 1234,
-		"bool1": true,
-		"bool2": false,
-		"nilvar": null
-	}
-`
-	if err := acc.JSONEquals(objMap)(strMap); err != nil {
-		t.Errorf("JSONEquals() error = %v", err)
-	}
-}
-
-func TestJSONStringEquals(t *testing.T) {
 	testCases := []struct {
 		name    string
 		input   string
@@ -70,10 +48,10 @@ func TestJSONStringEquals(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			checkFunc := acc.JSONStringEquals(tc.value)
+			checkFunc := acc.JSONEquals(tc.value)
 			err := checkFunc(tc.input)
 			if (err != nil) != tc.wantErr {
-				t.Errorf("JSONStringEquals() error = %v, wantErr %v", err, tc.wantErr)
+				t.Errorf("JSONEquals() error = %v, wantErr %v", err, tc.wantErr)
 			}
 		})
 	}

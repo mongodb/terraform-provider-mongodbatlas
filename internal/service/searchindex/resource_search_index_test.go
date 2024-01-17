@@ -237,7 +237,7 @@ func TestAccSearchIndexRS_updatedToEmptyAnalyzers(t *testing.T) {
 				Config: configAdditional(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, analyzersTF),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
-					resource.TestCheckResourceAttrWith(resourceName, "analyzers", acc.JSONStringEquals(analyzersJSON)),
+					resource.TestCheckResourceAttrWith(resourceName, "analyzers", acc.JSONEquals(analyzersJSON)),
 				),
 			},
 			{
@@ -267,7 +267,7 @@ func TestAccSearchIndexRS_updatedToEmptyMappingsFields(t *testing.T) {
 				Config: configAdditional(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, mappingsFieldsTF),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
-					resource.TestCheckResourceAttrWith(resourceName, "mappings_fields", acc.JSONStringEquals(mappingsFieldsJSON)),
+					resource.TestCheckResourceAttrWith(resourceName, "mappings_fields", acc.JSONEquals(mappingsFieldsJSON)),
 				),
 			},
 			{
@@ -320,14 +320,7 @@ func TestAccSearchIndexRS_withVector(t *testing.T) {
 		indexName    = acctest.RandomWithPrefix("test-acc-index")
 		databaseName = acctest.RandomWithPrefix("test-acc-db")
 	)
-	fields := []map[string]interface{}{
-		{
-			"type":          "vector",
-			"path":          "plot_embedding",
-			"numDimensions": float64(1536),
-			"similarity":    "euclidean",
-		},
-	}
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -344,7 +337,7 @@ func TestAccSearchIndexRS_withVector(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(resourceName, "type", "vectorSearch"),
 					resource.TestCheckResourceAttrSet(resourceName, "fields"),
-					resource.TestCheckResourceAttrWith(resourceName, "fields", acc.JSONEquals(fields)),
+					resource.TestCheckResourceAttrWith(resourceName, "fields", acc.JSONEquals(fieldsJSON)),
 
 					resource.TestCheckResourceAttr(datasourceName, "type", "vectorSearch"),
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
@@ -355,7 +348,7 @@ func TestAccSearchIndexRS_withVector(t *testing.T) {
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(datasourceName, "index_id"),
 					resource.TestCheckResourceAttrSet(datasourceName, "fields"),
-					resource.TestCheckResourceAttrWith(datasourceName, "fields", acc.JSONEquals(fields)),
+					resource.TestCheckResourceAttrWith(datasourceName, "fields", acc.JSONEquals(fieldsJSON)),
 				),
 			},
 		},
@@ -489,13 +482,8 @@ func testAccSearchIndexConfigVector(projectIDStr, indexName, databaseName, clust
 			type = "vectorSearch"
 			
 			fields = <<-EOF
-				[{
-					"type": "vector",
-					"path": "plot_embedding",
-					"numDimensions": 1536,
-					"similarity": "euclidean"
-				}]
-				EOF
+	    %[6]s
+			EOF
 		}
 	
 		data "mongodbatlas_search_index" "data_index" {
@@ -503,7 +491,7 @@ func testAccSearchIndexConfigVector(projectIDStr, indexName, databaseName, clust
 			project_id       = %[2]s
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
-	`, clusterNameStr, projectIDStr, indexName, databaseName, collectionName)
+	`, clusterNameStr, projectIDStr, indexName, databaseName, collectionName, fieldsJSON)
 }
 
 func testAccCheckMongoDBAtlasSearchIndexImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
@@ -554,9 +542,10 @@ const (
 				]
 			}
 		]
-	`
+`
 
-	mappingsFieldsJSON = `{
+	mappingsFieldsJSON = `
+		{
 			"address":{
 				"type":"document",
 				"fields":{
@@ -585,5 +574,15 @@ const (
 				"type":"string",
 				"analyzer":"lucene.standard"
 			}
-		}`
+		}
+	`
+
+	fieldsJSON = `
+		[{
+			"type": "vector",
+			"path": "plot_embedding",
+			"numDimensions": 1536,
+			"similarity": "euclidean"
+		}]	
+	`
 )

@@ -36,26 +36,11 @@ func IntGreatThan(value int) resource.CheckResourceAttrWithFunc {
 	}
 }
 
-func JSONEquals[T any](value T) resource.CheckResourceAttrWithFunc {
+func JSONEquals(expected string) resource.CheckResourceAttrWithFunc {
 	return func(input string) error {
-		var actual T
-		if err := json.Unmarshal([]byte(input), &actual); err != nil {
-			return fmt.Errorf("could not unmarshal json: %s", err)
-		}
+		var expectedAny, inputAny any
 
-		if !reflect.DeepEqual(actual, value) {
-			return fmt.Errorf("expected `%v`, got `%v`", value, actual)
-		}
-
-		return nil
-	}
-}
-
-func JSONStringEquals(value string) resource.CheckResourceAttrWithFunc {
-	return func(input string) error {
-		var valueAny, inputAny any
-
-		if err := json.Unmarshal([]byte(value), &valueAny); err != nil {
+		if err := json.Unmarshal([]byte(expected), &expectedAny); err != nil {
 			return fmt.Errorf("could not unmarshal json: %s", err)
 		}
 
@@ -63,8 +48,8 @@ func JSONStringEquals(value string) resource.CheckResourceAttrWithFunc {
 			return fmt.Errorf("could not unmarshal json: %s", err)
 		}
 
-		if !reflect.DeepEqual(inputAny, valueAny) {
-			return fmt.Errorf("expected `%v`, got `%v`", value, input)
+		if !reflect.DeepEqual(expectedAny, inputAny) {
+			return fmt.Errorf("expected `%v`, got `%v`", expected, input)
 		}
 		return nil
 	}
