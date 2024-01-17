@@ -5,11 +5,11 @@ import (
 	"os"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -24,14 +24,14 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectDSByIDUsingRS(acc.ConfigProject(projectName, orgID,
-					[]*matlas.ProjectTeam{
+					[]*admin.TeamRole{
 						{
-							TeamID:    acc.GetProjectTeamsIdsWithPos(0),
-							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
+							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
-							TeamID:    acc.GetProjectTeamsIdsWithPos(1),
-							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(1)),
+							RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
 				)),
@@ -56,15 +56,15 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(acc.ConfigProject(projectName, orgID,
-					[]*matlas.ProjectTeam{
+					[]*admin.TeamRole{
 						{
-							TeamID:    acc.GetProjectTeamsIdsWithPos(0),
-							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
+							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
 
-							TeamID:    acc.GetProjectTeamsIdsWithPos(1),
-							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(1)),
+							RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
 				)),
@@ -89,15 +89,15 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(acc.ConfigProject(projectName, orgID,
-					[]*matlas.ProjectTeam{
+					[]*admin.TeamRole{
 						{
-							TeamID:    acc.GetProjectTeamsIdsWithPos(0),
-							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
+							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
 
-							TeamID:    acc.GetProjectTeamsIdsWithPos(1),
-							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(1)),
+							RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
 				)),

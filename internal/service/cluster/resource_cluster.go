@@ -12,8 +12,6 @@ import (
 	"strings"
 	"time"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -24,6 +22,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -35,7 +34,7 @@ const (
 	ErrorSnapshotBackupPolicyRead = "error getting a Cloud Provider Snapshot Backup Policy for the cluster(%s): %s"
 )
 
-func ResourceCluster() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateWithoutTimeout: resourceMongoDBAtlasClusterCreate,
 		ReadWithoutTimeout:   resourceMongoDBAtlasClusterRead,
@@ -144,7 +143,7 @@ func ResourceCluster() *schema.Resource {
 			"cloud_backup": {
 				Type:          schema.TypeBool,
 				Optional:      true,
-				Default:       false,
+				Computed:      true,
 				ConflictsWith: []string{"backup_enabled"},
 			},
 			"provider_instance_size_name": {
@@ -152,8 +151,9 @@ func ResourceCluster() *schema.Resource {
 				Required: true,
 			},
 			"provider_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: advancedcluster.StringIsUppercase(),
 			},
 			"pit_enabled": {
 				Type:     schema.TypeBool,
@@ -234,8 +234,9 @@ func ResourceCluster() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"region_name": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: advancedcluster.StringIsUppercase(),
 									},
 									"electable_nodes": {
 										Type:     schema.TypeInt,
@@ -463,10 +464,16 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(fmt.Errorf(errorClusterCreate, err))
 	}
 
+	clusterType := cast.ToString(d.Get("cluster_type"))
+	err = ValidateProviderRegionName(clusterType, providerSettings.RegionName, replicationSpecs)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterCreate, err))
+	}
+
 	clusterRequest := &matlas.Cluster{
 		Name:                     d.Get("name").(string),
 		EncryptionAtRestProvider: d.Get("encryption_at_rest_provider").(string),
-		ClusterType:              cast.ToString(d.Get("cluster_type")),
+		ClusterType:              clusterType,
 		BackupEnabled:            pointy.Bool(d.Get("backup_enabled").(bool)),
 		PitEnabled:               pointy.Bool(d.Get("pit_enabled").(bool)),
 		AutoScaling:              autoScaling,
@@ -531,7 +538,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
 		Target:     []string{"IDLE"},
-		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
+		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, d.Get("name").(string), projectID, advancedcluster.ServiceFromClient(conn)),
 		Timeout:    timeout,
 		MinTimeout: 1 * time.Minute,
 		Delay:      3 * time.Minute,
@@ -803,13 +810,23 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
+	replicationSpecs, err := expandReplicationSpecs(d)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
+	}
 	if d.HasChange("replication_specs") {
-		replicationSpecs, err := expandReplicationSpecs(d)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
-		}
-
 		cluster.ReplicationSpecs = replicationSpecs
+	}
+
+	if v, ok := d.GetOk("provider_region_name"); ok {
+		err = ValidateProviderRegionName(d.Get("cluster_type").(string), v.(string), replicationSpecs)
+		// we swallow the error here as the user may not always be able to 'unset' provider_region_name value in the state,
+		// We then ensure ProviderSettings.RegionName is not set in case of a multi-region cluster, refer https://jira.mongodb.org/browse/HELP-51429
+		if err != nil {
+			if cluster.ProviderSettings != nil {
+				cluster.ProviderSettings.RegionName = ""
+			}
+		}
 	}
 
 	cluster.AutoScaling = &matlas.AutoScaling{Compute: &matlas.Compute{}}
@@ -967,6 +984,27 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	return resourceMongoDBAtlasClusterRead(ctx, d, meta)
 }
 
+func IsMultiRegionCluster(repSpecs []matlas.ReplicationSpec) bool {
+	if len(repSpecs) > 1 {
+		return true
+	}
+
+	for i := range repSpecs {
+		if len(repSpecs[i].RegionsConfig) > 1 {
+			return true
+		}
+	}
+	return false
+}
+
+func ValidateProviderRegionName(clusterType, providerRegionName string, repSpecs []matlas.ReplicationSpec) error {
+	if conversion.IsStringPresent(&providerRegionName) && (clusterType == "GEOSHARDED" || IsMultiRegionCluster(repSpecs)) {
+		return fmt.Errorf("provider_region_name attribute must be set ONLY for single-region clusters")
+	}
+
+	return nil
+}
+
 func didErrOnPausedCluster(err error) bool {
 	if err == nil {
 		return false
@@ -1001,7 +1039,7 @@ func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceDa
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
 		Target:     []string{"DELETED"},
-		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, clusterName, projectID, conn),
+		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, clusterName, projectID, advancedcluster.ServiceFromClient(conn)),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute, // Wait 30 secs before starting
@@ -1220,7 +1258,8 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 						break
 					}
 				}
-				if id == "" && oldSpecs != nil {
+				// If there was an item before and after then use the same id assuming it's the same replication spec
+				if id == "" && oldSpecs != nil && len(vRSpecs.(*schema.Set).List()) == 1 && len(original.(*schema.Set).List()) == 1 {
 					id = oldSpecs["id"].(string)
 				}
 			}
@@ -1374,7 +1413,7 @@ func updateCluster(ctx context.Context, conn *matlas.Client, request *matlas.Clu
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
-		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, name, projectID, conn),
+		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, name, projectID, advancedcluster.ServiceFromClient(conn)),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,

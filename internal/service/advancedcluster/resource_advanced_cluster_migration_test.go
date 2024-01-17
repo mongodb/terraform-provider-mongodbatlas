@@ -8,31 +8,26 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccMigrationAdvancedClusterRS_singleAWSProvider(t *testing.T) {
 	var (
-		cluster               matlas.AdvancedCluster
-		resourceName          = "mongodbatlas_advanced_cluster.test"
-		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName           = acctest.RandomWithPrefix("test-acc")
-		rName                 = acctest.RandomWithPrefix("test-acc")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+		cluster      matlas.AdvancedCluster
+		resourceName = "mongodbatlas_advanced_cluster.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		rName        = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
+		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProvider(orgID, projectName, rName),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            testAccMongoDBAtlasAdvancedClusterConfigSingleProvider(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
@@ -47,11 +42,11 @@ func TestAccMigrationAdvancedClusterRS_singleAWSProvider(t *testing.T) {
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasAdvancedClusterConfigSingleProvider(orgID, projectName, rName),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PostApplyPreRefresh: []plancheck.PlanCheck{
+					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
+						plancheck.ExpectEmptyPlan(),
 					},
 				},
-				PlanOnly: true,
 			},
 		},
 	})
@@ -59,26 +54,20 @@ func TestAccMigrationAdvancedClusterRS_singleAWSProvider(t *testing.T) {
 
 func TestAccMigrationAdvancedClusterRS_multiCloud(t *testing.T) {
 	var (
-		cluster               matlas.AdvancedCluster
-		resourceName          = "mongodbatlas_advanced_cluster.test"
-		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName           = acctest.RandomWithPrefix("test-acc")
-		rName                 = acctest.RandomWithPrefix("test-acc")
-		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+		cluster      matlas.AdvancedCluster
+		resourceName = "mongodbatlas_advanced_cluster.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		rName        = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasicMigration(t) },
+		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
@@ -93,11 +82,11 @@ func TestAccMigrationAdvancedClusterRS_multiCloud(t *testing.T) {
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PostApplyPreRefresh: []plancheck.PlanCheck{
+					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
+						plancheck.ExpectEmptyPlan(),
 					},
 				},
-				PlanOnly: true,
 			},
 		},
 	})

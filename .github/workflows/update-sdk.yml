@@ -1,4 +1,6 @@
 name: Update Atlas Go SDK
+
+# Checks if a new Atlas Go SDK version is available and creates a pull request adjusting version in codebase. Runs once per week and can be triggered manually.
 on:
  schedule:
    - cron: "30 8 * * TUE" # Every Tuesday at 8:30 AM 
@@ -10,13 +12,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - name: Update files
         run:  make tools update-atlas-sdk
       - name: Verify Changed files
-        uses: tj-actions/verify-changed-files@1e75cac4ffa7ea5879addde1869f8fca09fce4c1
+        uses: tj-actions/verify-changed-files@d9a97a5b5231f455f0390017ccd706727b45e287
         id: verify-changed-files
       - name: Create PR
         uses: peter-evans/create-pull-request@v5

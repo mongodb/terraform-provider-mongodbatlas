@@ -6,10 +6,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 type databaseUserDS struct {
@@ -24,7 +23,7 @@ func DataSource() datasource.DataSource {
 	}
 }
 
-type tfDatabaseUserDSModel struct {
+type TfDatabaseUserDSModel struct {
 	ID               types.String   `tfsdk:"id"`
 	ProjectID        types.String   `tfsdk:"project_id"`
 	AuthDatabaseName types.String   `tfsdk:"auth_database_name"`
@@ -34,9 +33,9 @@ type tfDatabaseUserDSModel struct {
 	OIDCAuthType     types.String   `tfsdk:"oidc_auth_type"`
 	LDAPAuthType     types.String   `tfsdk:"ldap_auth_type"`
 	AWSIAMType       types.String   `tfsdk:"aws_iam_type"`
-	Roles            []tfRoleModel  `tfsdk:"roles"`
-	Labels           []tfLabelModel `tfsdk:"labels"`
-	Scopes           []tfScopeModel `tfsdk:"scopes"`
+	Roles            []TfRoleModel  `tfsdk:"roles"`
+	Labels           []TfLabelModel `tfsdk:"labels"`
+	Scopes           []TfScopeModel `tfsdk:"scopes"`
 }
 
 var _ datasource.DataSource = &databaseUserDS{}
@@ -58,8 +57,9 @@ func (d *databaseUserDS) Schema(ctx context.Context, req datasource.SchemaReques
 				Required: true,
 			},
 			"password": schema.StringAttribute{
-				Computed:  true,
-				Sensitive: true,
+				Computed:           true,
+				Sensitive:          true,
+				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByVersion, "1.16.0"),
 			},
 			"x509_type": schema.StringAttribute{
 				Computed: true,
@@ -120,7 +120,7 @@ func (d *databaseUserDS) Schema(ctx context.Context, req datasource.SchemaReques
 }
 
 func (d *databaseUserDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var databaseDSUserModel *tfDatabaseUserDSModel
+	var databaseDSUserModel *TfDatabaseUserDSModel
 	var err error
 	resp.Diagnostics.Append(req.Config.Get(ctx, &databaseDSUserModel)...)
 	if resp.Diagnostics.HasError() {
@@ -131,14 +131,14 @@ func (d *databaseUserDS) Read(ctx context.Context, req datasource.ReadRequest, r
 	projectID := databaseDSUserModel.ProjectID.ValueString()
 	authDatabaseName := databaseDSUserModel.AuthDatabaseName.ValueString()
 
-	conn := d.Client.Atlas
-	dbUser, _, err := conn.DatabaseUsers.Get(ctx, authDatabaseName, projectID, username)
+	connV2 := d.Client.AtlasV2
+	dbUser, _, err := connV2.DatabaseUsersApi.GetDatabaseUser(ctx, projectID, authDatabaseName, username).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error getting database user information", err.Error())
 		return
 	}
 
-	dbUserModel, diagnostic := newTFDatabaseDSUserModel(ctx, dbUser)
+	dbUserModel, diagnostic := NewTFDatabaseDSUserModel(ctx, dbUser)
 	resp.Diagnostics.Append(diagnostic...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -148,24 +148,4 @@ func (d *databaseUserDS) Read(ctx context.Context, req datasource.ReadRequest, r
 	if resp.Diagnostics.HasError() {
 		return
 	}
-}
-
-func newTFDatabaseDSUserModel(ctx context.Context, dbUser *matlas.DatabaseUser) (*tfDatabaseUserDSModel, diag.Diagnostics) {
-	id := fmt.Sprintf("%s-%s-%s", dbUser.GroupID, dbUser.Username, dbUser.DatabaseName)
-	databaseUserModel := &tfDatabaseUserDSModel{
-		ID:               types.StringValue(id),
-		ProjectID:        types.StringValue(dbUser.GroupID),
-		AuthDatabaseName: types.StringValue(dbUser.DatabaseName),
-		Username:         types.StringValue(dbUser.Username),
-		Password:         types.StringValue(dbUser.Password),
-		X509Type:         types.StringValue(dbUser.X509Type),
-		OIDCAuthType:     types.StringValue(dbUser.OIDCAuthType),
-		LDAPAuthType:     types.StringValue(dbUser.LDAPAuthType),
-		AWSIAMType:       types.StringValue(dbUser.AWSIAMType),
-		Roles:            newTFRolesModel(dbUser.Roles),
-		Labels:           newTFLabelsModel(dbUser.Labels),
-		Scopes:           newTFScopesModel(dbUser.Scopes),
-	}
-
-	return databaseUserModel, nil
 }

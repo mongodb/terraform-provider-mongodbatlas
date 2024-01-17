@@ -1,0 +1,71 @@
+package {{.NameLowerNoSpaces}}_test
+
+import (
+	"context"
+	"testing"
+
+    "github.com/stretchr/testify/assert"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/{{.NameLowerNoSpaces}}"
+	// "go.mongodb.org/atlas-sdk/v20231115003/admin" use latest version
+)
+
+type sdkToTFModelTestCase struct {
+	SDKResp         *admin.{{.NamePascalCase}}
+	expectedTFModel *{{.NameLowerNoSpaces}}.TF{{.NamePascalCase}}Model
+	name            string
+}
+
+func Test{{.NamePascalCase}}SDKToTFModel(t *testing.T) {
+	testCases := []sdkToTFModelTestCase{ // TODO: consider adding test cases to contemplate all possible API responses
+		{
+			name: "Complete SDK response",
+			SDKResp: &admin.{{.NamePascalCase}}{
+			},
+			expectedTFModel: &{{.NameLowerNoSpaces}}.TF{{.NamePascalCase}}Model{
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel, diags := {{.NameLowerNoSpaces}}.NewTF{{.NamePascalCase}}(context.Background(), tc.SDKResp)
+			if diags.HasError() {
+				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
+			}
+			if !assert.Equal(t, resultModel, tc.expectedTFModel) {
+				t.Errorf("created terraform model did not match expected output")
+			}
+		})
+	}
+}
+
+{{if eq .GenerationType "resource"}}
+type tfToSDKModelTestCase struct {
+	name           string
+	tfModel        *{{.NameLowerNoSpaces}}.TF{{.NamePascalCase}}Model
+	expectedSDKReq *admin.{{.NamePascalCase}}
+}
+
+func Test{{.NamePascalCase}}TFModelToSDK(t *testing.T) {
+	testCases := []tfToSDKModelTestCase{
+		{
+			name: "Complete TF state",
+			tfModel: &{{.NameLowerNoSpaces}}.TF{{.NamePascalCase}}Model{
+			},
+			expectedSDKReq: &admin.{{.NamePascalCase}}{
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		apiReqResult, diags := {{.NameLowerNoSpaces}}.New{{.NamePascalCase}}Req(context.Background(), tc.tfModel)
+		if diags.HasError() {
+			t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
+		}
+		if !assert.Equal(t, apiReqResult, tc.expectedSDKReq) {
+			t.Errorf("created sdk model did not match expected output")
+		}
+	}
+}
+{{end}}
+

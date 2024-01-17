@@ -22,6 +22,7 @@ description: |-
 
 ~> **IMPORTANT:**
 <br> &#8226; New Users: If you are not already using `mongodbatlas_cluster` for your deployment we recommend starting with the [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster).  `mongodbatlas_advanced_cluster` has all the same functionality as `mongodbatlas_cluster` but also supports multi-cloud clusters.  
+<br> &#8226; Multi Region Cluster: The `mongodbatlas_cluster` resource doesn't return the `container_id` for each region utilized by the cluster. For retrieving the `container_id`, we recommend to use the [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) resource instead.
 <br> &#8226; Free tier cluster creation (M0) is supported.
 <br> &#8226; Shared tier clusters (M0, M2, M5) can be upgraded to dedicated tiers (M10+) via this provider. WARNING WHEN UPGRADING TENANT/SHARED CLUSTERS!!! Any change from shared tier to a different instance size will be considered a tenant upgrade. When upgrading from shared tier to dedicated simply change the `provider_name` from "TENANT"  to your preferred provider (AWS, GCP, AZURE) and remove the variable `backing_provider_name`, for example if you have an existing tenant/shared cluster and want to upgrade your Terraform config should be changed from:
 ```
@@ -334,7 +335,7 @@ But in order to explicitly change `provider_instance_size_name` comment the `lif
 
     Accepted values include:
       - `REPLICASET` Replica set
-      - `SHARDED`	Sharded cluster
+      - `SHARDED` Sharded cluster
       - `GEOSHARDED` Global Cluster
 
 * `disk_size_gb` - (Optional - GCP/AWS Only) Capacity, in gigabytes, of the host’s root volume. Increase this number to add capacity, up to a maximum possible value of 4096 (i.e., 4 TB). This value must be a positive integer.
@@ -550,7 +551,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `cluster_id` - The cluster ID.
 *  `mongo_db_version` - Version of MongoDB the cluster runs, in `major-version`.`minor-version` format.
-* `id` -	The Terraform's unique identifier used internally for state management.
+* `id` -  The Terraform's unique identifier used internally for state management.
 * `mongo_uri` - Base connection string for the cluster. Atlas only displays this field after the cluster is operational, not while it builds the cluster.
 * `mongo_uri_updated` - Lists when the connection string was last updated. The connection string changes, for example, if you change a replica set to a sharded cluster.
 * `mongo_uri_with_options` - connection string for connecting to the Atlas cluster. Includes the replicaSet, ssl, and authSource query parameters in the connection string with values appropriate for the cluster.

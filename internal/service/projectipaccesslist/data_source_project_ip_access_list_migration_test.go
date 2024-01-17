@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 func TestAccMigrationProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T) {
@@ -17,19 +18,13 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T)
 	projectName := acctest.RandomWithPrefix("test-acc")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
-	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { acc.PreCheckBasicMigration(t) },
+		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            testAccDataMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "ip_address"),
@@ -42,11 +37,11 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T)
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccDataMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PostApplyPreRefresh: []plancheck.PlanCheck{
+					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
+						plancheck.ExpectEmptyPlan(),
 					},
 				},
-				PlanOnly: true,
 			},
 		},
 	})
@@ -58,19 +53,13 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T)
 	projectName := acctest.RandomWithPrefix("test-acc")
 	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
-	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { acc.PreCheckBasicMigration(t) },
+		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(orgID, projectName, cidrBlock, comment),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            testAccDataMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(orgID, projectName, cidrBlock, comment),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "cidr_block"),
@@ -83,18 +72,18 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T)
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccDataMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(orgID, projectName, cidrBlock, comment),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PostApplyPreRefresh: []plancheck.PlanCheck{
+					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
+						plancheck.ExpectEmptyPlan(),
 					},
 				},
-				PlanOnly: true,
 			},
 		},
 	})
 }
 
 func TestAccMigrationProjectDSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	projectName := acctest.RandomWithPrefix("test-acc-migration-project-aws")
 	dataSourceName := "data.mongodbatlas_project_ip_access_list.test"
 	vpcID := os.Getenv("AWS_VPC_ID")
 	vpcCIDRBlock := os.Getenv("AWS_VPC_CIDR_BLOCK")
@@ -102,42 +91,35 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingAWSSecurityGroup(t *tes
 	awsRegion := os.Getenv("AWS_REGION")
 	providerName := "AWS"
 
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	awsSGroup := os.Getenv("AWS_SECURITY_GROUP_ID")
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	awsSGroup := os.Getenv("AWS_SECURITY_GROUP_1")
 	comment := fmt.Sprintf("TestAcc for awsSecurityGroup (%s)", awsSGroup)
-	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { acc.PreCheck(t) },
+		PreCheck: func() { acc.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: lastVersionConstraint,
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            acc.ConfigProjectIPAccessListWithAWSSecurityGroup(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectIPAccessListExists(dataSourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "aws_security_group"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "comment"),
 
-					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(dataSourceName, "aws_security_group", awsSGroup),
 					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
 				),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccDataMongoDBAtlasProjectIPAccessListConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
+				Config:                   acc.ConfigProjectIPAccessListWithAWSSecurityGroup(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PostApplyPreRefresh: []plancheck.PlanCheck{
+					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
+						plancheck.ExpectEmptyPlan(),
 					},
 				},
-				PlanOnly: true,
 			},
 		},
 	})

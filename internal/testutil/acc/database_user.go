@@ -10,12 +10,12 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
-func CheckDatabaseUserExists(resourceName string, dbUser *matlas.DatabaseUser) resource.TestCheckFunc {
+func CheckDatabaseUserExists(resourceName string, dbUser *admin.CloudDatabaseUser) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
+		connV2 := TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -38,7 +38,7 @@ func CheckDatabaseUserExists(resourceName string, dbUser *matlas.DatabaseUser) r
 		projectID := rs.Primary.Attributes["project_id"]
 		username := rs.Primary.Attributes["username"]
 
-		if dbUserResp, _, err := conn.DatabaseUsers.Get(context.Background(), authDB, projectID, username); err == nil {
+		if dbUserResp, _, err := connV2.DatabaseUsersApi.GetDatabaseUser(context.Background(), projectID, authDB, username).Execute(); err == nil {
 			*dbUser = *dbUserResp
 			return nil
 		}
@@ -47,7 +47,7 @@ func CheckDatabaseUserExists(resourceName string, dbUser *matlas.DatabaseUser) r
 	}
 }
 
-func CheckDatabaseUserAttributes(dbUser *matlas.DatabaseUser, username string) resource.TestCheckFunc {
+func CheckDatabaseUserAttributes(dbUser *admin.CloudDatabaseUser, username string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		log.Printf("[DEBUG] difference dbUser.Username: %s , username : %s", dbUser.Username, username)
 		if dbUser.Username != username {
@@ -59,7 +59,7 @@ func CheckDatabaseUserAttributes(dbUser *matlas.DatabaseUser, username string) r
 }
 
 func CheckDestroyDatabaseUser(s *terraform.State) error {
-	conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
+	connV2 := TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_database_user" {
@@ -71,7 +71,7 @@ func CheckDestroyDatabaseUser(s *terraform.State) error {
 			continue
 		}
 		// Try to find the database user
-		_, _, err = conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
+		_, _, err = connV2.DatabaseUsersApi.GetDatabaseUser(context.Background(), projectID, authDatabaseName, username).Execute()
 		if err == nil {
 			return fmt.Errorf("database user (%s) still exists", projectID)
 		}
@@ -83,90 +83,90 @@ func CheckDestroyDatabaseUser(s *terraform.State) error {
 func ConfigDatabaseUserBasic(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
+			name   = %[1]q
+			org_id = %[2]q
 		}
 
 		resource "mongodbatlas_database_user" "basic_ds" {
-			username           = "%[4]s"
+			username           = %[3]q
 			password           = "test-acc-password"
-			project_id         = "${mongodbatlas_project.test.id}"
+			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "admin"
 
 			roles {
-				role_name     = "%[3]s"
+				role_name     = %[4]q
 				database_name = "admin"
 			}
 
 			labels {
-				key   = "%s"
-				value = "%s"
+				key   = %[5]q
+				value = %[6]q
 			}
 		}
-	`, projectName, orgID, roleName, username, keyLabel, valueLabel)
+	`, projectName, orgID, username, roleName, keyLabel, valueLabel)
 }
 
 func ConfigDatabaseUserWithX509Type(projectName, orgID, roleName, username, keyLabel, valueLabel, x509Type string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
+			name   = %[1]q
+			org_id = %[2]q
 		}
 
 		resource "mongodbatlas_database_user" "test" {
-			username           = "%[4]s"
-			x509_type          = "%[7]s"
-			project_id         = "${mongodbatlas_project.test.id}"
+			username           = %[3]q
+			x509_type          = %[4]q
+			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "$external"
 
 			roles {
-				role_name     = "%[3]s"
+				role_name     = %[5]q
 				database_name = "admin"
 			}
 
 			labels {
-				key   = "%s"
-				value = "%s"
+				key   = %[6]q
+				value = %[7]q
 			}
 		}
-	`, projectName, orgID, roleName, username, keyLabel, valueLabel, x509Type)
+	`, projectName, orgID, username, x509Type, roleName, keyLabel, valueLabel)
 }
 
-func ConfigDatabaseUserWithLabels(projectName, orgID, roleName, username string, labels []matlas.Label) string {
+func ConfigDatabaseUserWithLabels(projectName, orgID, roleName, username string, labels []admin.ComponentLabel) string {
 	var labelsConf string
 	for _, label := range labels {
 		labelsConf += fmt.Sprintf(`
 			labels {
-				key   = "%s"
-				value = "%s"
+				key   = %q
+				value = %q
 			}
-		`, label.Key, label.Value)
+		`, label.GetKey(), label.GetValue())
 	}
 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
+			name   = %[1]q
+			org_id = %[2]q
 		}
 
 		resource "mongodbatlas_database_user" "test" {
-			username           = "%[4]s"
+			username           = %[3]q
 			password           = "test-acc-password"
-			project_id         = "${mongodbatlas_project.test.id}"
+			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "admin"
 
 			roles {
-				role_name     = "%[3]s"
+				role_name     = %[4]q
 				database_name = "admin"
 			}
 
 			%[5]s
 
 		}
-	`, projectName, orgID, roleName, username, labelsConf)
+	`, projectName, orgID, username, roleName, labelsConf)
 }
 
-func ConfigDatabaseUserWithRoles(username, password, projectName, orgID string, rolesArr []*matlas.Role) string {
+func ConfigDatabaseUserWithRoles(username, password, projectName, orgID string, rolesArr []*admin.DatabaseUserRole) string {
 	var roles string
 
 	for _, role := range rolesArr {
@@ -180,8 +180,8 @@ func ConfigDatabaseUserWithRoles(username, password, projectName, orgID string, 
 			databaseName = fmt.Sprintf(`database_name = %q`, role.DatabaseName)
 		}
 
-		if role.CollectionName != "" {
-			collection = fmt.Sprintf(`collection_name = %q`, role.CollectionName)
+		if role.GetCollectionName() != "" {
+			collection = fmt.Sprintf(`collection_name = %q`, role.GetCollectionName())
 		}
 
 		roles += fmt.Sprintf(`
@@ -195,17 +195,17 @@ func ConfigDatabaseUserWithRoles(username, password, projectName, orgID string, 
 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
+			name   = %[1]q
+			org_id = %[2]q
 		}
 
 		resource "mongodbatlas_database_user" "test" {
-			username           = "%s"
-			password           = "%s"
-			project_id         = "${mongodbatlas_project.test.id}"
+			username           = %[3]q
+			password           = %[4]q
+			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "admin"
 
-			%s
+			%[5]s
 
 		}
 	`, projectName, orgID, username, password, roles)
@@ -214,103 +214,85 @@ func ConfigDatabaseUserWithRoles(username, password, projectName, orgID string, 
 func ConfigDatabaseUserWithAWSIAMType(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
+			name   = %[1]q
+			org_id = %[2]q
 		}
 
 		resource "mongodbatlas_database_user" "test" {
-			username           = "%[4]s"
+			username           = %[3]q
 			aws_iam_type       = "USER"
-			project_id         = "${mongodbatlas_project.test.id}"
+			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "$external"
 
 			roles {
-				role_name     = "%[3]s"
+				role_name     = %[4]q
 				database_name = "admin"
 			}
 
 			labels {
-				key   = "%s"
-				value = "%s"
+				key   = %[5]q
+				value = %[6]q
 			}
 		}
-	`, projectName, orgID, roleName, username, keyLabel, valueLabel)
+	`, projectName, orgID, username, roleName, keyLabel, valueLabel)
 }
 
-func ConfigDatabaseUserWithScopes(username, password, projectName, orgID, roleName, clusterName string, scopesArr []*matlas.Scope) string {
+func ConfigDatabaseUserWithScopes(username, password, roleName, projectName, orgID string, scopesArr []*admin.UserScope) string {
 	var scopes string
-
 	for _, scope := range scopesArr {
-		var scopeType string
-
-		if scope.Type != "" {
-			scopeType = fmt.Sprintf(`type = %q`, scope.Type)
-		}
-
 		scopes += fmt.Sprintf(`
 			scopes {
-				name = "${mongodbatlas_cluster.my_cluster.name}"
-				%s
+				name = %q
+				type = %q
 			}
-		`, scopeType)
+		`, scope.GetName(), scope.GetType())
 	}
 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
+			name   = %[1]q
+			org_id = %[2]q
 		}
-
-		resource "mongodbatlas_cluster" "my_cluster" {
-			project_id   = "${mongodbatlas_project.test.id}"
-			name         = "%s"
-			
-			// Provider Settings "block"
-			provider_name               = "AWS"
-			provider_region_name        = "US_EAST_2"
-			provider_instance_size_name = "M10"
-			cloud_backup                = true //enable cloud provider snapshots
-		}
-
+	
 		resource "mongodbatlas_database_user" "test" {
-			username           = "%s"
-			password           = "%s"
-			project_id         = "${mongodbatlas_project.test.id}"
+			username           = %[3]q
+			password           = %[4]q
+			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "admin"
 
 			roles {
-				role_name     = "%s"
+				role_name     = %[5]q
 				database_name = "admin"
 			}
 
-			%s
+			%[6]s
 
 		}
-	`, projectName, orgID, clusterName, username, password, roleName, scopes)
+	`, projectName, orgID, username, password, roleName, scopes)
 }
 
 func ConfigDatabaseUserWithLDAPAuthType(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
+			name   = %[1]q
+			org_id = %[2]q
 		}
 
 		resource "mongodbatlas_database_user" "test" {
-			username           = "%[4]s"
+			username           = %[3]q
 			ldap_auth_type     = "USER"
-			project_id         = "${mongodbatlas_project.test.id}"
+			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "$external"
 
 			roles {
-				role_name     = "%[3]s"
+				role_name     = %[4]q
 				database_name = "admin"
 			}
 
 			labels {
-				key   = "%s"
-				value = "%s"
+				key   = %[5]q
+				value = %[6]q
 			}
 		}
-	`, projectName, orgID, roleName, username, keyLabel, valueLabel)
+	`, projectName, orgID, username, roleName, keyLabel, valueLabel)
 }

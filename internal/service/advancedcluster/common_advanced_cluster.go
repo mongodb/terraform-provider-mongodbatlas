@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
@@ -129,7 +131,7 @@ func UpgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cl
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
-		Refresh:    ResourceClusterRefreshFunc(ctx, name, projectID, conn),
+		Refresh:    ResourceClusterRefreshFunc(ctx, name, projectID, ServiceFromClient(conn)),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
@@ -144,9 +146,9 @@ func UpgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cl
 	return cluster, resp, nil
 }
 
-func ResourceClusterRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
+func ResourceClusterRefreshFunc(ctx context.Context, name, projectID string, client ClusterService) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		c, resp, err := client.Clusters.Get(ctx, projectID, name)
+		c, resp, err := client.Get(ctx, projectID, name)
 
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
@@ -172,9 +174,9 @@ func ResourceClusterRefreshFunc(ctx context.Context, name, projectID string, cli
 	}
 }
 
-func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) retry.StateRefreshFunc {
+func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, client ClusterService) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		clusters, resp, err := client.AdvancedClusters.List(ctx, projectID, nil)
+		clusters, resp, err := client.List(ctx, projectID, nil)
 
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
@@ -610,4 +612,19 @@ func flattenEndpoints(listEndpoints []matlas.Endpoint) []map[string]any {
 		})
 	}
 	return endpoints
+}
+
+func StringIsUppercase() schema.SchemaValidateDiagFunc {
+	return func(v any, p cty.Path) diag.Diagnostics {
+		value := v.(string)
+		var diags diag.Diagnostics
+		if value != strings.ToUpper(value) {
+			diagError := diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("The provided string '%q' must be uppercase.", value),
+			}
+			diags = append(diags, diagError)
+		}
+		return diags
+	}
 }

@@ -1,0 +1,57 @@
+package {{.NameLowerNoSpaces}}
+
+import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+)
+
+const {{.NameCamelCase}}Name = "{{.NameSnakeCase}}" // TODO: if resource exists this can be deleted
+
+var _ datasource.DataSource = &{{.NameCamelCase}}DS{}
+var _ datasource.DataSourceWithConfigure = &{{.NameCamelCase}}DS{}
+
+func DataSource() datasource.DataSource {
+	return &{{.NameCamelCase}}DS{
+		DSCommon: config.DSCommon{
+			DataSourceName: {{.NameCamelCase}}Name,
+		},
+	}
+}
+
+type {{.NameCamelCase}}DS struct {
+	config.DSCommon
+}
+
+
+func (d *{{.NameCamelCase}}DS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	// TODO: Schema and model must be defined in data_source_{{.NameSnakeCase}}_schema.go. Details on scaffolding this file found in CONTRIBUTING.md under "Scaffolding Schema and Model Definitions"
+	resp.Schema = DataSourceSchema(ctx)
+}
+
+func (d *{{.NameCamelCase}}DS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var {{.NameCamelCase}}Config TF{{.NamePascalCase}}Model
+	resp.Diagnostics.Append(req.Config.Get(ctx, &{{.NameCamelCase}}Config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// TODO: make get request to resource
+
+	// connV2 := r.Client.AtlasV2
+	//if err != nil {
+	//	resp.Diagnostics.AddError("error fetching resource", err.Error())
+	//	return
+	//}
+
+	// TODO: process response into new terraform state
+	new{{.NamePascalCase}}Model, diags := NewTF{{.NamePascalCase}}(ctx, apiResp)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, new{{.NamePascalCase}}Model)...)
+}

@@ -12,7 +12,7 @@ import (
 
 func CheckProjectIPAccessListExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
+		connV2 := TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -25,7 +25,7 @@ func CheckProjectIPAccessListExists(resourceName string) resource.TestCheckFunc 
 
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 
-		_, _, err := conn.ProjectIPAccessList.Get(context.Background(), ids["project_id"], ids["entry"])
+		_, _, err := connV2.ProjectIPAccessListApi.GetProjectIpList(context.Background(), ids["project_id"], ids["entry"]).Execute()
 		if err != nil {
 			return fmt.Errorf("project ip access list entry (%s) does not exist", ids["entry"])
 		}
@@ -35,7 +35,7 @@ func CheckProjectIPAccessListExists(resourceName string) resource.TestCheckFunc 
 }
 
 func CheckDestroyProjectIPAccessList(s *terraform.State) error {
-	conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
+	connV2 := TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_project_ip_access_list" {
@@ -44,7 +44,7 @@ func CheckDestroyProjectIPAccessList(s *terraform.State) error {
 
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 
-		_, _, err := conn.ProjectIPAccessList.Get(context.Background(), ids["project_id"], ids["entry"])
+		_, _, err := connV2.ProjectIPAccessListApi.GetProjectIpList(context.Background(), ids["project_id"], ids["entry"]).Execute()
 		if err == nil {
 			return fmt.Errorf("project ip access list entry (%s) still exists", ids["entry"])
 		}
@@ -82,33 +82,43 @@ func ConfigProjectIPAccessListWithCIDRBlock(orgID, projectName, cidrBlock, comme
 	`, orgID, projectName, cidrBlock, comment)
 }
 
-func ConfigProjectIPAccessListWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment string) string {
+func ConfigProjectIPAccessListWithAWSSecurityGroup(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment string) string {
 	return fmt.Sprintf(`
+
+		resource "mongodbatlas_project" "my_project" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
 		resource "mongodbatlas_network_container" "test" {
-			project_id   		  = "%[1]s"
+			project_id   		  = mongodbatlas_project.my_project.id
 			atlas_cidr_block  = "192.168.208.0/21"
-			provider_name		  = "%[2]s"
-			region_name			  = "%[6]s"
+			provider_name		  = "%[3]s"
+			region_name			  = "%[7]s"
 		}
 
 		resource "mongodbatlas_network_peering" "test" {
 			accepter_region_name	  = "us-east-1"
-			project_id    			    = "%[1]s"
+			project_id    			    = mongodbatlas_project.my_project.id
 			container_id            = mongodbatlas_network_container.test.container_id
-			provider_name           = "%[2]s"
-			route_table_cidr_block  = "%[5]s"
-			vpc_id					        = "%[3]s"
-			aws_account_id	        = "%[4]s"
+			provider_name           = "%[3]s"
+			route_table_cidr_block  = "%[6]s"
+			vpc_id					        = "%[4]s"
+			aws_account_id	        = "%[5]s"
 		}
 
 		resource "mongodbatlas_project_ip_access_list" "test" {
-			project_id         = "%[1]s"
-			aws_security_group = "%[7]s"
-			comment            = "%[8]s"
+			project_id         = mongodbatlas_project.my_project.id
+			aws_security_group = "%[8]s"
+			comment            = "%[9]s"
 
 			depends_on = ["mongodbatlas_network_peering.test"]
 		}
-	`, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment)
+
+		data "mongodbatlas_project_ip_access_list" "test" {
+			project_id = mongodbatlas_project_ip_access_list.test.project_id
+			aws_security_group = mongodbatlas_project_ip_access_list.test.aws_security_group
+		}
+	`, orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment)
 }
 
 func ConfigProjectIPAccessListWithMultiple(projectName, orgID string, accessList []map[string]string, isUpdate bool) string {

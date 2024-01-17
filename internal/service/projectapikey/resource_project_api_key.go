@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -20,7 +20,7 @@ const (
 	ErrorProjectSetting = "error setting `%s` for project (%s): %s"
 )
 
-func ResourceProjectAPIKey() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasProjectAPIKeyCreate,
 		ReadContext:   resourceMongoDBAtlasProjectAPIKeyRead,
@@ -32,6 +32,7 @@ func ResourceProjectAPIKey() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:       schema.TypeString,
+				Computed:   true,
 				Optional:   true,
 				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.16.0"),
 			},
@@ -104,6 +105,8 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 				d.SetId("")
 				return nil
 			}
+
+			return diag.FromErr(err)
 		}
 
 		// assign created api key to remaining project assignments
@@ -302,9 +305,10 @@ func resourceMongoDBAtlasProjectAPIKeyDelete(ctx context.Context, d *schema.Reso
 		}
 	}
 
-	_, err = conn.APIKeys.Delete(ctx, orgID, apiKeyID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error unable to delete Key (%s): %s", apiKeyID, err))
+	if orgID != "" {
+		if _, err = conn.APIKeys.Delete(ctx, orgID, apiKeyID); err != nil {
+			return diag.FromErr(fmt.Errorf("error unable to delete Key (%s): %s", apiKeyID, err))
+		}
 	}
 
 	d.SetId("")

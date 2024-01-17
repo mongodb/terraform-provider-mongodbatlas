@@ -14,6 +14,7 @@ VERSION=$(GITTAG:v%=%)
 LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
 
 GOLANGCI_VERSION=v1.55.0
+MOCKERY_VERSION=v2.38.0
 
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
 export SHELL := env PATH=$(PATH) /bin/bash
@@ -52,7 +53,7 @@ fmt:
 	gofmt -s -w .
 
 .PHONY: fmtcheck
-fmtcheck: # Currently required by tf-deploy compile
+fmtcheck: ## Currently required by tf-deploy compile
 	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
 
 .PHONY: lint-fix
@@ -74,6 +75,10 @@ tools:  ## Install dev tools
 	go install github.com/terraform-linters/tflint@v0.49.0
 	go install github.com/rhysd/actionlint/cmd/actionlint@latest
 	go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest
+	go install github.com/vektra/mockery/v2@$(MOCKERY_VERSION)
+	go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
+	go install github.com/hashicorp/terraform-plugin-codegen-openapi/cmd/tfplugingen-openapi@latest
+	go install github.com/hashicorp/terraform-plugin-codegen-framework/cmd/tfplugingen-framework@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
 
 .PHONY: check
@@ -109,4 +114,23 @@ link-git-hooks: ## Install git hooks
 .PHONY: update-atlas-sdk
 update-atlas-sdk: ## Update the atlas-sdk dependency
 	./scripts/update-sdk.sh
+
+# e.g. run: make scaffold resource_name=streamInstance type=resource
+# - type argument can have the values: `resource`, `data-source`, `plural-data-source`.
+# details on usage can be found in CONTRIBUTING.md under "Scaffolding initial Code and File Structure"
+.PHONY: scaffold
+scaffold:
+	@go run ./tools/scaffold/*.go $(resource_name) $(type)
+	@echo "Reminder: configure the new $(type) in provider.go"
+
+# e.g. run: make scaffold-schemas resource_name=streamInstance
+# details on usage can be found in CONTRIBUTING.md under "Scaffolding Schema and Model Definitions"
+.PHONY: scaffold-schemas
+scaffold-schemas:
+	@scripts/schema-scaffold.sh $(resource_name)
+
+
+.PHONY: generate-doc
+generate-doc: ## Generate the resource documentation via tfplugindocs
+	./scripts/generate-doc.sh ${resource_name}
 

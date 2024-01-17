@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
 func TestAccConfigDSAtlasUser_ByUserID(t *testing.T) {
@@ -19,7 +19,7 @@ func TestAccConfigDSAtlasUser_ByUserID(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_user.test"
 		userID         = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
-		user           = fetchUser(userID, t)
+		user           = fetchUser(t, userID)
 	)
 	resource.Test(t, resource.TestCase{ // does not run in parallel to avoid changes in fetched user during execution
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckBasicOwnerID(t) },
@@ -28,7 +28,7 @@ func TestAccConfigDSAtlasUser_ByUserID(t *testing.T) {
 			{
 				Config: testAccDSMongoDBAtlasUserByUserID(userID),
 				Check: resource.ComposeTestCheckFunc(
-					dataSourceChecksForUser(dataSourceName, "", user, true)...,
+					dataSourceChecksForUser(dataSourceName, "", user)...,
 				),
 			},
 		},
@@ -39,8 +39,8 @@ func TestAccConfigDSAtlasUser_ByUsername(t *testing.T) {
 	acc.SkipIfTFAccNotDefined(t)
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_user.test"
-		username       = os.Getenv("MONGODB_ATLAS_USERNAME_CLOUD_DEV")
-		user           = fetchUserByUsername(username, t)
+		username       = os.Getenv("MONGODB_ATLAS_USERNAME")
+		user           = fetchUserByUsername(t, username)
 	)
 	resource.Test(t, resource.TestCase{ // does not run in parallel to avoid changes in fetched user during execution
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckAtlasUsername(t) },
@@ -49,18 +49,14 @@ func TestAccConfigDSAtlasUser_ByUsername(t *testing.T) {
 			{
 				Config: testAccDSMongoDBAtlasUserByUsername(username),
 				Check: resource.ComposeTestCheckFunc(
-					dataSourceChecksForUser(dataSourceName, "", user, true)...,
+					dataSourceChecksForUser(dataSourceName, "", user)...,
 				),
 			},
 		},
 	})
 }
 
-func dataSourceChecksForUser(dataSourceName, attrPrefix string, user *admin.CloudAppUser, hasToCheckCountRoles bool) []resource.TestCheckFunc {
-	roleCheck := resource.TestCheckResourceAttrSet(dataSourceName, fmt.Sprintf("%sroles.#", attrPrefix))
-	if hasToCheckCountRoles {
-		roleCheck = resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%sroles.#", attrPrefix), fmt.Sprintf("%d", len(user.Roles)))
-	}
+func dataSourceChecksForUser(dataSourceName, attrPrefix string, user *admin.CloudAppUser) []resource.TestCheckFunc {
 	return []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%susername", attrPrefix), user.Username),
 		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%suser_id", attrPrefix), *user.Id),
@@ -70,9 +66,11 @@ func dataSourceChecksForUser(dataSourceName, attrPrefix string, user *admin.Clou
 		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%smobile_number", attrPrefix), user.MobileNumber),
 		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%scountry", attrPrefix), user.Country),
 		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%screated_at", attrPrefix), *conversion.TimePtrToStringPtr(user.CreatedAt)),
-		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%steam_ids.#", attrPrefix), fmt.Sprintf("%d", len(user.TeamIds))),
-		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%slinks.#", attrPrefix), fmt.Sprintf("%d", len(user.Links))),
-		roleCheck,
+		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%steam_ids.#", attrPrefix), fmt.Sprintf("%d", len(*user.TeamIds))),
+		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%slinks.#", attrPrefix), fmt.Sprintf("%d", len(*user.Links))),
+		// for assertion of roles the values of `user.Roles` must not be used as it has the risk of flaky executions. CLOUDP-220377
+		resource.TestCheckResourceAttrWith(dataSourceName, fmt.Sprintf("%sroles.#", attrPrefix), acc.IntGreatThan(0)),
+		resource.TestCheckResourceAttrSet(dataSourceName, fmt.Sprintf("%sroles.0.role_name", attrPrefix)),
 	}
 }
 
@@ -89,7 +87,8 @@ func TestAccConfigDSAtlasUser_InvalidAttrCombination(t *testing.T) {
 	})
 }
 
-func fetchUser(userID string, t *testing.T) *admin.CloudAppUser {
+func fetchUser(t *testing.T, userID string) *admin.CloudAppUser {
+	t.Helper()
 	connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 	userResp, _, err := connV2.MongoDBCloudUsersApi.GetUser(context.Background(), userID).Execute()
 	if err != nil {
@@ -98,7 +97,8 @@ func fetchUser(userID string, t *testing.T) *admin.CloudAppUser {
 	return userResp
 }
 
-func fetchUserByUsername(username string, t *testing.T) *admin.CloudAppUser {
+func fetchUserByUsername(t *testing.T, username string) *admin.CloudAppUser {
+	t.Helper()
 	connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 
 	userResp, _, err := connV2.MongoDBCloudUsersApi.GetUserByUsername(context.Background(), username).Execute()

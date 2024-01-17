@@ -1,25 +1,49 @@
 name: 'Test Suite'
 
+# Runs acceptance and migrations tests with a set of terraform versions and provider versions (used for migration tests). This worflow is scheduled daily, but can also be run manually.
 on:
   workflow_dispatch:
+    inputs:
+      terraform_matrix:
+        description: 'Terraform version matrix (JSON array)'
+        default: '["1.6.x", "1.5.x", "1.4.x", "1.3.x", "1.2.x"]'
+      provider_matrix:
+        description: 'Previous MongoDB Atlas Provider version matrix for migration tests (JSON array)'
+        default: '[""]' # "" for latest version
+
   schedule:
-    - cron: "0 2 * * *" # workflow runs every day at 02:00 AM
-  
+    - cron: "0 0 * * *" # workflow runs every day at midnight UTC
+   
+concurrency:
+  group: '${{ github.workflow }}'
+  cancel-in-progress: false
+   
 jobs:
+  versions:
+    env:
+      schedule_terraform_matrix: '["1.6.x", "1.2.x"]'
+      schedule_provider_matrix: '[""]' # "" for latest version    
+    runs-on: ubuntu-latest
+    outputs:
+      terraform_matrix: ${{ inputs.terraform_matrix || env.schedule_terraform_matrix }}
+      provider_matrix: ${{ inputs.provider_matrix || env.schedule_provider_matrix }}
+    steps:
+      - if: false
+        run: echo jobs need steps
 
   clean-before:
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
 
   mig-tests:
-    needs: clean-before
+    needs: [clean-before, versions]
     if: ${{ !cancelled() }}
     strategy:
       max-parallel: 1
       fail-fast: false
       matrix:
-        terraform_version: ['', '1.1.6', '1.0.8'] # '' for latest version
-        provider_version: ['', '1.11.1'] # '' for latest version
+        terraform_version: ${{ fromJSON(needs.versions.outputs.terraform_matrix) }}
+        provider_version: ${{ fromJSON(needs.versions.outputs.provider_matrix) }}
     name: mig-tests-${{ matrix.terraform_version || 'latest' }}-${{ matrix.provider_version || 'latest' }}
     secrets: inherit
     uses: ./.github/workflows/migration-tests.yml
@@ -28,13 +52,13 @@ jobs:
       provider_version: ${{ matrix.provider_version }}
 
   acc-tests:
-    needs: mig-tests
+    needs: [mig-tests, versions]
     if: ${{ !cancelled() }}
     strategy:
       max-parallel: 1
       fail-fast: false
       matrix:
-        terraform_version: ['', '1.1.6', '1.0.8'] # '' for latest version
+        terraform_version: ${{ fromJSON(needs.versions.outputs.terraform_matrix) }}
     name: acc-tests-${{ matrix.terraform_version || 'latest' }}
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml

@@ -1,28 +1,31 @@
 name: 'Migration Tests'
 
+# Used for running migration tests, either triggered manually or called by other workflows.
 on:
   workflow_dispatch:
     inputs:
       terraform_version:
-        description: 'Terraform version to use, empty for latest'     
+        description: 'Terraform version to use, e.g. 1.6.x, empty for latest'     
         type: string
         required: false
       provider_version:
-        description: 'MongoDB Atlas Provider version to use, empty for latest'     
+        description: 'Previous MongoDB Atlas Provider version to use, e.g. 1.14.0, empty for latest'     
+        type: string
+        required: false
+      test_group:
+        description: 'Test group to run, e.g. advanced_cluster, empty for all'
         type: string
         required: false
   workflow_call: # workflow runs after Test Suite or code-health
     inputs:
       terraform_version:
-        description: 'Terraform version to use, empty for latest'     
+        description: 'Terraform version to use, e.g. 1.6.x, empty for latest'     
         type: string
         required: false
       provider_version:
-        description: 'MongoDB Atlas Provider version to use, empty for latest'     
+        description: 'Previous MongoDB Atlas Provider version to use, e.g. 1.14.0, empty for latest'     
         type: string
         required: false
-  pull_request: # you can run a specic job in your PR using GitHub labels
-    types: [ labeled ]
 
 env:
     terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
@@ -50,20 +53,19 @@ jobs:
 
   change-detection:
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-      repository-projects: read
+    env:
+      mustTrigger: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_group == '')  }}
     outputs:
-      project: ${{ steps.filter.outputs.project }}
-      config: ${{ steps.filter.outputs.config }}
-      advanced_cluster: ${{ steps.filter.outputs.advanced_cluster }}
-      backup_online_archive: ${{ steps.filter.outputs.backup_online_archive }}
-      shouldTriggerResourceTest: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+      project: ${{ steps.filter.outputs.project == 'true' || env.mustTrigger == 'true' }}
+      config: ${{ steps.filter.outputs.config == 'true' || env.mustTrigger == 'true' }}
+      advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
+      backup_online_archive: ${{ steps.filter.outputs.backup_online_archive == 'true' || env.mustTrigger == 'true' }}
+      stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@v4
-      if: ${{ github.event_name == 'push' ||  github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
     - uses: dorny/paths-filter@v2
       id: filter
+      if: ${{ inputs.test_group == '' && env.mustTrigger == 'false' }}
       with:
         filters: |
           project:
@@ -75,19 +77,22 @@ jobs:
             - 'internal/service/databaseuser/*.go'
             - 'internal/service/projectapikey/*.go'
           backup_online_archive:
-            - 'mongodbatlas/**online_archive**.go'
+            - 'internal/service/onlinearchive/*.go'
           advanced_cluster:
             - 'internal/service/advancedcluster/*.go'
+          stream:
+            - 'internal/service/streaminstance/*.go'
+            - 'internal/service/streamconnection/*.go'
 
   project: 
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.project == 'true' || github.event.label.name == 'run-testacc-project'||  needs.change-detection.outputs.shouldTriggerResourceTest == 'true'}}
+    if: ${{ needs.change-detection.outputs.project == 'true' || inputs.test_group == 'project' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
@@ -103,18 +108,26 @@ jobs:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
           MONGODB_ATLAS_TEAMS_IDS: ${{ vars.MONGODB_ATLAS_TEAMS_IDS }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          AWS_SECURITY_GROUP_1: ${{ vars.AWS_SECURITY_GROUP_1 }}
+          AWS_SECURITY_GROUP_2: ${{ vars.AWS_SECURITY_GROUP_2 }}
+          AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
+          AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
           TEST_REGEX: "^TestAccMigrationProject"
         run: make testacc
   
   config:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.config == 'true' || github.event.label.name == 'run-testacc-config'||  needs.change-detection.outputs.shouldTriggerResourceTest == 'true'}}
+    if: ${{ needs.change-detection.outputs.config == 'true' || inputs.test_group == 'config' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
@@ -128,7 +141,7 @@ jobs:
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV_NETWORK }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
-          MONGODB_ATLAS_USERNAME_CLOUD_DEV: ${{ vars.MONGODB_ATLAS_USERNAME_CLOUD_DEV }}
+          MONGODB_ATLAS_USERNAME: ${{ vars.MONGODB_ATLAS_USERNAME_CLOUD_DEV }}
           AZURE_ATLAS_APP_ID: ${{vars.AZURE_ATLAS_APP_ID}}
           AZURE_SERVICE_PRINCIPAL_ID: ${{vars.AZURE_SERVICE_PRINCIPAL_ID}}
           AZURE_TENANT_ID: ${{vars.AZURE_TENANT_ID}}
@@ -138,13 +151,13 @@ jobs:
 
   backup_online_archive:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || github.event.label.name == 'run-testacc-backup-online-archive'||  needs.change-detection.outputs.shouldTriggerResourceTest == 'true'}}
+    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || inputs.test_group == 'backup_online_archive' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
@@ -164,13 +177,13 @@ jobs:
 
   advanced_cluster:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || github.event.label.name == 'run-testacc-advanced-cluster'||  needs.change-detection.outputs.shouldTriggerResourceTest == 'true'}}
+    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@v3
@@ -185,4 +198,30 @@ jobs:
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           TEST_REGEX: "^TestAccMigrationAdvancedCluster"
+        run: make testacc
+  
+  stream:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.stream == 'true' || inputs.test_group == 'stream' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.terraform_version }}
+          terraform_wrapper: false    
+      - name: Migration Tests
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
+          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+          MONGODB_ATLAS_ENABLE_BETA: ${{ vars.MONGODB_ATLAS_ENABLE_BETA }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          TEST_REGEX: "^TestAccMigrationStream"
         run: make testacc

@@ -12,9 +12,6 @@ import (
 	"strings"
 	"time"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
-	"golang.org/x/exp/slices"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -24,6 +21,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"golang.org/x/exp/slices"
 )
 
 type acCtxKey string
@@ -39,7 +38,7 @@ const (
 
 var upgradeRequestCtxKey acCtxKey = "upgradeRequest"
 
-func ResourceAdvancedCluster() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateWithoutTimeout: resourceMongoDBAtlasAdvancedClusterCreate,
 		ReadWithoutTimeout:   resourceMongoDBAtlasAdvancedClusterRead,
@@ -51,7 +50,7 @@ func ResourceAdvancedCluster() *schema.Resource {
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
 			{
-				Type:    ResourceAdvancedClusterResourceV0().CoreConfigSchema().ImpliedType(),
+				Type:    ResourceV0().CoreConfigSchema().ImpliedType(),
 				Upgrade: resourceMongoDBAtlasAdvancedClusterStateUpgradeV0,
 				Version: 0,
 			},
@@ -260,13 +259,15 @@ func ResourceAdvancedCluster() *schema.Resource {
 										Required: true,
 									},
 									"provider_name": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: StringIsUppercase(),
 									},
 									"read_only_specs": advancedClusterRegionConfigsSpecsSchema(),
 									"region_name": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: StringIsUppercase(),
 									},
 								},
 							},

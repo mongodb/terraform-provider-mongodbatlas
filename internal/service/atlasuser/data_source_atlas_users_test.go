@@ -13,7 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
 func TestAccConfigDSAtlasUsers_ByOrgID(t *testing.T) {
@@ -21,7 +21,7 @@ func TestAccConfigDSAtlasUsers_ByOrgID(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		users          = fetchOrgUsers(orgID, t)
+		users          = fetchOrgUsers(t, orgID)
 	)
 	checks := []resource.TestCheckFunc{testAccCheckMongoDBAtlasOrgWithUsersExists(dataSourceName)} // check that org has at least one user
 	checks = append(checks, dataSourceChecksForUsers(dataSourceName, orgID, users)...)
@@ -73,7 +73,7 @@ func TestAccConfigDSAtlasUsers_ByTeamID(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		username       = os.Getenv("MONGODB_ATLAS_USERNAME_CLOUD_DEV")
+		username       = os.Getenv("MONGODB_ATLAS_USERNAME")
 		teamName       = acctest.RandomWithPrefix("team-name")
 	)
 
@@ -105,7 +105,7 @@ func TestAccConfigDSAtlasUsers_UsingPagination(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		username       = os.Getenv("MONGODB_ATLAS_USERNAME_CLOUD_DEV")
+		username       = os.Getenv("MONGODB_ATLAS_USERNAME")
 		teamName       = acctest.RandomWithPrefix("team-name")
 		pageNum        = 2
 		itemsPerPage   = 1
@@ -202,7 +202,8 @@ func TestAccConfigDSAtlasUsers_InvalidAttrCombinations(t *testing.T) {
 	}
 }
 
-func fetchOrgUsers(orgID string, t *testing.T) *admin.PaginatedAppUser {
+func fetchOrgUsers(t *testing.T, orgID string) *admin.PaginatedAppUser {
+	t.Helper()
 	connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 	users, _, err := connV2.OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
 	if err != nil {
@@ -222,10 +223,10 @@ func dataSourceChecksForUsers(dataSourceName, orgID string, users *admin.Paginat
 		resource.TestCheckResourceAttr(dataSourceName, "org_id", orgID),
 		resource.TestCheckResourceAttr(dataSourceName, "total_count", fmt.Sprintf("%d", totalCountValue)),
 	}
-	for i := range users.Results {
-		checks = append(checks, dataSourceChecksForUser(dataSourceName, fmt.Sprintf("results.%d.", i), &users.Results[i], false)...)
+	results := users.GetResults()
+	for i := range results {
+		checks = append(checks, dataSourceChecksForUser(dataSourceName, fmt.Sprintf("results.%d.", i), &results[i])...)
 	}
-
 	return checks
 }
 

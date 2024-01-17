@@ -9,13 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
-func CheckProjectExists(resourceName string, project *matlas.Project) resource.TestCheckFunc {
+func CheckProjectExists(resourceName string, project *admin.Group) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
+		connV2 := TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -28,7 +27,7 @@ func CheckProjectExists(resourceName string, project *matlas.Project) resource.T
 
 		log.Printf("[DEBUG] projectID: %s", rs.Primary.ID)
 
-		if projectResp, _, err := conn.Projects.GetOneProjectByName(context.Background(), rs.Primary.Attributes["name"]); err == nil {
+		if projectResp, _, err := connV2.ProjectsApi.GetProjectByName(context.Background(), rs.Primary.Attributes["name"]).Execute(); err == nil {
 			*project = *projectResp
 			return nil
 		}
@@ -37,7 +36,7 @@ func CheckProjectExists(resourceName string, project *matlas.Project) resource.T
 	}
 }
 
-func CheckProjectAttributes(project *matlas.Project, projectName string) resource.TestCheckFunc {
+func CheckProjectAttributes(project *admin.Group, projectName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if project.Name != projectName {
 			return fmt.Errorf("bad project name: %s", project.Name)
@@ -64,7 +63,7 @@ func CheckDestroyProject(s *terraform.State) error {
 	return nil
 }
 
-func ConfigProject(projectName, orgID string, teams []*matlas.ProjectTeam) string {
+func ConfigProject(projectName, orgID string, teams []*admin.TeamRole) string {
 	var ts string
 
 	for _, t := range teams {
@@ -73,7 +72,7 @@ func ConfigProject(projectName, orgID string, teams []*matlas.ProjectTeam) strin
 			team_id = "%s"
 			role_names = %s
 		}
-		`, t.TeamID, strings.ReplaceAll(fmt.Sprintf("%+q", t.RoleNames), " ", ","))
+		`, t.GetTeamId(), strings.ReplaceAll(fmt.Sprintf("%+q", *t.RoleNames), " ", ","))
 	}
 
 	return fmt.Sprintf(`
@@ -132,21 +131,21 @@ func ConfigProjectWithFalseDefaultSettings(projectName, orgID, projectOwnerID st
 	`, projectName, orgID, projectOwnerID)
 }
 
-func ConfigProjectWithFalseDefaultAdvSettings(projectName, orgID, projectOwnerID string) string {
+func ConfigProjectWithSettings(projectName, orgID, projectOwnerID string, value bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   			 = "%[1]s"
-			org_id 			 = "%[2]s"
-			project_owner_id = "%[3]s"
-			with_default_alerts_settings = false
-			is_collect_database_specifics_statistics_enabled = false
-			is_data_explorer_enabled = false
-			is_extended_storage_sizes_enabled = false
-			is_performance_advisor_enabled = false
-			is_realtime_performance_panel_enabled = false
-			is_schema_advisor_enabled = false
+			name   			 = %[1]q
+			org_id 			 = %[2]q
+			project_owner_id = %[3]q
+			with_default_alerts_settings = %[4]t
+			is_collect_database_specifics_statistics_enabled = %[4]t
+			is_data_explorer_enabled = %[4]t
+			is_extended_storage_sizes_enabled = %[4]t
+			is_performance_advisor_enabled = %[4]t
+			is_realtime_performance_panel_enabled = %[4]t
+			is_schema_advisor_enabled = %[4]t
 		}
-	`, projectName, orgID, projectOwnerID)
+	`, projectName, orgID, projectOwnerID, value)
 }
 
 func ConfigProjectWithLimits(projectName, orgID string, limits []*admin.DataFederationLimit) string {

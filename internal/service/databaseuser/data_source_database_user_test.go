@@ -8,11 +8,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
 func TestAccConfigDSDatabaseUser_basic(t *testing.T) {
-	var dbUser matlas.DatabaseUser
+	var dbUser admin.CloudDatabaseUser
 
 	resourceName := "data.mongodbatlas_database_user.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")

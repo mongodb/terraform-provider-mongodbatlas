@@ -15,7 +15,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func DataSourceClusters() *schema.Resource {
+func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasClustersRead,
 		Schema: map[string]*schema.Schema{
@@ -375,7 +375,7 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 			"advanced_configuration":                  advancedcluster.FlattenProcessArgs(processArgs),
 			"auto_scaling_compute_enabled":            clusters[i].AutoScaling.Compute.Enabled,
 			"auto_scaling_compute_scale_down_enabled": clusters[i].AutoScaling.Compute.ScaleDownEnabled,
-			"auto_scaling_disk_gb_enabled":            clusters[i].BackupEnabled,
+			"auto_scaling_disk_gb_enabled":            clusters[i].AutoScaling.DiskGBEnabled,
 			"backup_enabled":                          clusters[i].BackupEnabled,
 			"provider_backup_enabled":                 clusters[i].ProviderBackupEnabled,
 			"cluster_type":                            clusters[i].ClusterType,

@@ -24,13 +24,8 @@ func TestAccMigrationConfigRSProjectAPIKey_RemovingOptionalRootProjectID(t *test
 		CheckDestroy: testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: "1.13.1", // fixed version as this is the last version where root project id was required.
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName, true),
+				ExternalProviders: acc.ExternalProviders("1.13.1"), // fixed version as this is the last version where root project id was required.
+				Config:            testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName, true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),

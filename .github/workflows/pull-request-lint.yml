@@ -1,6 +1,8 @@
 name: pull-request-lint
+
+# Run validations over pull request titles while also adding appropriate labels.
 on:
-  pull_request_target:
+  pull_request:
     types:
       - labeled
       - opened
@@ -35,6 +37,12 @@ jobs:
             revert
             style
           requireScope: false
+          # Ensures the subject start with an uppercase character.
+          subjectPattern: ^([A-Z]).+$
+          subjectPatternError: |
+            The subject "{subject}" found in the pull request title "{title}"
+            didn't match the configured pattern. Please ensure that the subject
+            starts with an uppercase character.
       - uses: marocchino/sticky-pull-request-comment@v2
         # When the previous steps fails, the workflow would stop. By adding this
         # condition you can continue the execution with the populated error message.
@@ -46,7 +54,9 @@ jobs:
             
             We require pull request titles to follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/) and it looks like your proposed title needs to be adjusted.
 
-            Details: [CONTRIBUTING.md](https://github.com/mongodb/awscdk-resources-mongodbatlas/blob/INTMDB-934/CONTRIBUTING.md#pr-title-format)
+            Additionally, the subject of the title must start with an uppercase character (e.g. feat: New `search` component).
+
+            Details: [CONTRIBUTING.md](https://github.com/mongodb/awscdk-resources-mongodbatlas/blob/master/CONTRIBUTING.md#pr-title-format)
             
             ```
             ${{ steps.lint_pr_title.outputs.error_message }}
