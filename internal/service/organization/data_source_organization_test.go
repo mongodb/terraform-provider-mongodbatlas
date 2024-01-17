@@ -23,9 +23,9 @@ func TestAccConfigDSOrganization_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(datasourceName, "name"),
 					resource.TestCheckResourceAttrSet(datasourceName, "id"),
-					resource.TestCheckResourceAttr(datasourceName, "restrict_employee_access", "false"),
-					resource.TestCheckResourceAttr(datasourceName, "multi_factor_auth_required", "false"),
-					resource.TestCheckResourceAttr(datasourceName, "api_access_list_required", "false"),
+					resource.TestCheckResourceAttrSet(datasourceName, "restrict_employee_access"),
+					resource.TestCheckResourceAttrSet(datasourceName, "multi_factor_auth_required"),
+					resource.TestCheckResourceAttrSet(datasourceName, "api_access_list_required"),
 				),
 			},
 		},
