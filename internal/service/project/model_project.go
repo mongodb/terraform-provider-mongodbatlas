@@ -26,7 +26,7 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group,
 		IsSchemaAdvisorEnabled:                      types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled),
 		Teams:                                       NewTFTeamsDataSourceModel(ctx, teams),
 		Limits:                                      NewTFLimitsDataSourceModel(ctx, limits),
-		IPAddresses:                                 &ipAddressesModel,
+		IPAddresses:                                 ipAddressesModel,
 	}
 }
 
@@ -62,7 +62,7 @@ func NewTFLimitsDataSourceModel(ctx context.Context, dataFederationLimits []admi
 	return limits
 }
 
-func NewTFIPAddressesModel(ctx context.Context, ipAddresses *admin.GroupIPAddresses) TFIPAddressesModel {
+func NewTFIPAddressesModel(ctx context.Context, ipAddresses *admin.GroupIPAddresses) types.Object {
 	clusterIPs := []TFClusterIPsModel{}
 	if ipAddresses != nil && ipAddresses.Services != nil {
 		clusterIPAddresses := ipAddresses.Services.GetClusters()
@@ -77,11 +77,12 @@ func NewTFIPAddressesModel(ctx context.Context, ipAddresses *admin.GroupIPAddres
 			}
 		}
 	}
-	return TFIPAddressesModel{
+	obj, _ := types.ObjectValueFrom(ctx, IPAddressesObjectType.AttrTypes, TFIPAddressesModel{ // TODO handle errors.
 		Services: TFServicesModel{
 			Clusters: clusterIPs,
 		},
-	}
+	})
+	return obj
 }
 
 func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group,
@@ -96,7 +97,7 @@ func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group,
 		WithDefaultAlertsSettings: types.BoolPointerValue(projectRes.WithDefaultAlertsSettings),
 		Teams:                     newTFTeamsResourceModel(ctx, teams),
 		Limits:                    newTFLimitsResourceModel(ctx, limits),
-		IPAddresses:               &ipAddressesModel,
+		IPAddresses:               ipAddressesModel,
 	}
 
 	if projectSettings != nil {

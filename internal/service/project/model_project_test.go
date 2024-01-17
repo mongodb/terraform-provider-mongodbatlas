@@ -69,7 +69,7 @@ var (
 	limitsTFSet, _ = types.SetValueFrom(context.Background(), project.TfLimitObjectType, []project.TfLimitModel{
 		*limitsTF[0],
 	})
-	ipAddressesTF = project.TFIPAddressesModel{
+	ipAddressesTF, _ = types.ObjectValueFrom(context.Background(), project.IPAddressesObjectType.AttrTypes, project.TFIPAddressesModel{
 		Services: project.TFServicesModel{
 			Clusters: []project.TFClusterIPsModel{
 				{
@@ -79,7 +79,12 @@ var (
 				},
 			},
 		},
-	}
+	})
+	emptyIPAddressesTF, _ = types.ObjectValueFrom(context.Background(), project.IPAddressesObjectType.AttrTypes, project.TFIPAddressesModel{
+		Services: project.TFServicesModel{
+			Clusters: []project.TFClusterIPsModel{},
+		},
+	})
 	projectSDK = admin.Group{
 		Id:           admin.PtrString(projectID),
 		Name:         projectName,
@@ -198,7 +203,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 				IsSchemaAdvisorEnabled:                      types.BoolValue(true),
 				Teams:                                       teamsDSTF,
 				Limits:                                      limitsTF,
-				IPAddresses:                                 &ipAddressesTF,
+				IPAddresses:                                 ipAddressesTF,
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
 			},
 		},
@@ -248,7 +253,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 				IsSchemaAdvisorEnabled:                      types.BoolValue(true),
 				Teams:                                       teamsTFSet,
 				Limits:                                      limitsTFSet,
-				IPAddresses:                                 &ipAddressesTF,
+				IPAddresses:                                 ipAddressesTF,
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
 			},
 		},
@@ -366,16 +371,12 @@ func TestIPAddressesModelToTF(t *testing.T) {
 	testCases := []struct {
 		name           string
 		sdkModel       *admin.GroupIPAddresses
-		expectedResult project.TFIPAddressesModel
+		expectedResult types.Object
 	}{
 		{
-			name:     "No response",
-			sdkModel: nil,
-			expectedResult: project.TFIPAddressesModel{
-				Services: project.TFServicesModel{
-					Clusters: []project.TFClusterIPsModel{},
-				},
-			},
+			name:           "No response",
+			sdkModel:       nil,
+			expectedResult: emptyIPAddressesTF,
 		},
 		{
 			name: "Empty response when no clusters are created",
@@ -385,11 +386,7 @@ func TestIPAddressesModelToTF(t *testing.T) {
 					Clusters: &[]admin.ClusterIPAddresses{},
 				},
 			},
-			expectedResult: project.TFIPAddressesModel{
-				Services: project.TFServicesModel{
-					Clusters: []project.TFClusterIPsModel{},
-				},
-			},
+			expectedResult: emptyIPAddressesTF,
 		},
 		{
 			name:           "Full response",

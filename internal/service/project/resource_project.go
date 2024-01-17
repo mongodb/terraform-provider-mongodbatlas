@@ -54,23 +54,23 @@ type projectRS struct {
 }
 
 type TfProjectRSModel struct {
-	Limits                                      types.Set           `tfsdk:"limits"`
-	Teams                                       types.Set           `tfsdk:"teams"`
-	IPAddresses                                 *TFIPAddressesModel `tfsdk:"ip_addresses"`
-	RegionUsageRestrictions                     types.String        `tfsdk:"region_usage_restrictions"`
-	Name                                        types.String        `tfsdk:"name"`
-	OrgID                                       types.String        `tfsdk:"org_id"`
-	Created                                     types.String        `tfsdk:"created"`
-	ProjectOwnerID                              types.String        `tfsdk:"project_owner_id"`
-	ID                                          types.String        `tfsdk:"id"`
-	ClusterCount                                types.Int64         `tfsdk:"cluster_count"`
-	IsDataExplorerEnabled                       types.Bool          `tfsdk:"is_data_explorer_enabled"`
-	IsPerformanceAdvisorEnabled                 types.Bool          `tfsdk:"is_performance_advisor_enabled"`
-	IsRealtimePerformancePanelEnabled           types.Bool          `tfsdk:"is_realtime_performance_panel_enabled"`
-	IsSchemaAdvisorEnabled                      types.Bool          `tfsdk:"is_schema_advisor_enabled"`
-	IsExtendedStorageSizesEnabled               types.Bool          `tfsdk:"is_extended_storage_sizes_enabled"`
-	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool          `tfsdk:"is_collect_database_specifics_statistics_enabled"`
-	WithDefaultAlertsSettings                   types.Bool          `tfsdk:"with_default_alerts_settings"`
+	Limits                                      types.Set    `tfsdk:"limits"`
+	Teams                                       types.Set    `tfsdk:"teams"`
+	IPAddresses                                 types.Object `tfsdk:"ip_addresses"`
+	RegionUsageRestrictions                     types.String `tfsdk:"region_usage_restrictions"`
+	Name                                        types.String `tfsdk:"name"`
+	OrgID                                       types.String `tfsdk:"org_id"`
+	Created                                     types.String `tfsdk:"created"`
+	ProjectOwnerID                              types.String `tfsdk:"project_owner_id"`
+	ID                                          types.String `tfsdk:"id"`
+	ClusterCount                                types.Int64  `tfsdk:"cluster_count"`
+	IsDataExplorerEnabled                       types.Bool   `tfsdk:"is_data_explorer_enabled"`
+	IsPerformanceAdvisorEnabled                 types.Bool   `tfsdk:"is_performance_advisor_enabled"`
+	IsRealtimePerformancePanelEnabled           types.Bool   `tfsdk:"is_realtime_performance_panel_enabled"`
+	IsSchemaAdvisorEnabled                      types.Bool   `tfsdk:"is_schema_advisor_enabled"`
+	IsExtendedStorageSizesEnabled               types.Bool   `tfsdk:"is_extended_storage_sizes_enabled"`
+	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool   `tfsdk:"is_collect_database_specifics_statistics_enabled"`
+	WithDefaultAlertsSettings                   types.Bool   `tfsdk:"with_default_alerts_settings"`
 }
 
 type TfTeamModel struct {
@@ -99,6 +99,20 @@ type TFClusterIPsModel struct {
 	Inbound     types.List   `tfsdk:"inbound"`
 	Outbound    types.List   `tfsdk:"outbound"`
 }
+
+var IPAddressesObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"services": ServicesObjectType,
+}}
+
+var ServicesObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"clusters": types.ListType{ElemType: ClusterIPsObjectType},
+}}
+
+var ClusterIPsObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"cluster_name": types.StringType,
+	"inbound":      types.ListType{ElemType: types.StringType},
+	"outbound":     types.ListType{ElemType: types.StringType},
+}}
 
 var TfTeamObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"team_id":    types.StringType,

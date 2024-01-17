@@ -31,22 +31,22 @@ type projectDS struct {
 }
 
 type TfProjectDSModel struct {
-	IPAddresses                                 *TFIPAddressesModel `tfsdk:"ip_addresses"`
-	Created                                     types.String        `tfsdk:"created"`
-	OrgID                                       types.String        `tfsdk:"org_id"`
-	RegionUsageRestrictions                     types.String        `tfsdk:"region_usage_restrictions"`
-	ID                                          types.String        `tfsdk:"id"`
-	Name                                        types.String        `tfsdk:"name"`
-	ProjectID                                   types.String        `tfsdk:"project_id"`
-	Teams                                       []*TfTeamDSModel    `tfsdk:"teams"`
-	Limits                                      []*TfLimitModel     `tfsdk:"limits"`
-	ClusterCount                                types.Int64         `tfsdk:"cluster_count"`
-	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool          `tfsdk:"is_collect_database_specifics_statistics_enabled"`
-	IsRealtimePerformancePanelEnabled           types.Bool          `tfsdk:"is_realtime_performance_panel_enabled"`
-	IsSchemaAdvisorEnabled                      types.Bool          `tfsdk:"is_schema_advisor_enabled"`
-	IsPerformanceAdvisorEnabled                 types.Bool          `tfsdk:"is_performance_advisor_enabled"`
-	IsExtendedStorageSizesEnabled               types.Bool          `tfsdk:"is_extended_storage_sizes_enabled"`
-	IsDataExplorerEnabled                       types.Bool          `tfsdk:"is_data_explorer_enabled"`
+	IPAddresses                                 types.Object     `tfsdk:"ip_addresses"`
+	Created                                     types.String     `tfsdk:"created"`
+	OrgID                                       types.String     `tfsdk:"org_id"`
+	RegionUsageRestrictions                     types.String     `tfsdk:"region_usage_restrictions"`
+	ID                                          types.String     `tfsdk:"id"`
+	Name                                        types.String     `tfsdk:"name"`
+	ProjectID                                   types.String     `tfsdk:"project_id"`
+	Teams                                       []*TfTeamDSModel `tfsdk:"teams"`
+	Limits                                      []*TfLimitModel  `tfsdk:"limits"`
+	ClusterCount                                types.Int64      `tfsdk:"cluster_count"`
+	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool       `tfsdk:"is_collect_database_specifics_statistics_enabled"`
+	IsRealtimePerformancePanelEnabled           types.Bool       `tfsdk:"is_realtime_performance_panel_enabled"`
+	IsSchemaAdvisorEnabled                      types.Bool       `tfsdk:"is_schema_advisor_enabled"`
+	IsPerformanceAdvisorEnabled                 types.Bool       `tfsdk:"is_performance_advisor_enabled"`
+	IsExtendedStorageSizesEnabled               types.Bool       `tfsdk:"is_extended_storage_sizes_enabled"`
+	IsDataExplorerEnabled                       types.Bool       `tfsdk:"is_data_explorer_enabled"`
 }
 
 type TfTeamDSModel struct {
