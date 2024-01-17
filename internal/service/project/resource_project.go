@@ -29,10 +29,10 @@ import (
 )
 
 const (
-	ErrorProjectRead               = "error getting project(%s): %s"
-	errorProjectCreate             = "error creating Project: %s"
+	ErrorProjectRead               = "error getting project (%s): %s"
 	errorProjectDelete             = "error deleting project (%s): %s"
 	errorProjectUpdate             = "error updating project (%s): %s"
+	errorProjectCreate             = "error creating project: %s"
 	projectDependentsStateIdle     = "IDLE"
 	projectDependentsStateDeleting = "DELETING"
 	projectDependentsStateRetry    = "RETRY"
