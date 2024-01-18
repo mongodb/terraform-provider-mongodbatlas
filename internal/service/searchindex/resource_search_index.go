@@ -24,12 +24,12 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasSearchIndexCreate,
-		ReadContext:          resourceMongoDBAtlasSearchIndexRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasSearchIndexUpdate,
-		DeleteContext:        resourceMongoDBAtlasSearchIndexDelete,
+		CreateWithoutTimeout: resourceCreate,
+		ReadContext:          resourceRead,
+		UpdateWithoutTimeout: resourceUpdate,
+		DeleteContext:        resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasSearchIndexImportState,
+			StateContext: resourceImportState,
 		},
 		Schema: returnSearchIndexSchema(),
 		Timeouts: &schema.ResourceTimeout{
@@ -55,7 +55,6 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 		"index_id": {
 			Type:     schema.TypeString,
 			Computed: true,
-			Required: false,
 		},
 		"analyzer": {
 			Type:     schema.TypeString,
@@ -113,7 +112,6 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 		},
 		"status": {
 			Type:     schema.TypeString,
-			Optional: true,
 			Computed: true,
 		},
 		"wait_for_index_build_completion": {
@@ -132,7 +130,7 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 	}
 }
 
-func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	parts := strings.SplitN(d.Id(), "--", 3)
 	if len(parts) != 3 {
 		return nil, errors.New("import format error: to import a search index, use the format {project_id}--{cluster_name}--{index_id}")
@@ -169,7 +167,7 @@ func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.R
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceMongoDBAtlasSearchIndexDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -183,7 +181,7 @@ func resourceMongoDBAtlasSearchIndexDelete(ctx context.Context, d *schema.Resour
 	return nil
 }
 
-func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -224,7 +222,7 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 		if err != nil {
 			return err
 		}
-		searchIndex.Analyzers = conversion.NonEmptyToPtr(analyzers)
+		searchIndex.Analyzers = &analyzers
 	}
 
 	if d.HasChange("mappings_dynamic") {
@@ -251,11 +249,12 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 		if err != nil {
 			return err
 		}
-		searchIndex.Fields = conversion.NonEmptyToPtr(fields)
+		searchIndex.Fields = &fields
 	}
 
 	if d.HasChange("synonyms") {
-		searchIndex.Synonyms = conversion.NonEmptyToPtr(expandSearchIndexSynonyms(d))
+		synonyms := expandSearchIndexSynonyms(d)
+		searchIndex.Synonyms = &synonyms
 	}
 
 	searchIndex.IndexID = conversion.StringPtr("")
@@ -282,16 +281,16 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 				"cluster_name": clusterName,
 				"index_id":     indexID,
 			}))
-			resourceMongoDBAtlasSearchIndexDelete(ctx, d, meta)
+			resourceDelete(ctx, d, meta)
 			d.SetId("")
 			return diag.FromErr(fmt.Errorf("error creating index in cluster (%s): %s", clusterName, err))
 		}
 	}
 
-	return resourceMongoDBAtlasSearchIndexRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -325,7 +324,6 @@ func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resource
 		if err != nil {
 			return diag.FromErr(err)
 		}
-
 		if err := d.Set("analyzers", searchIndexMappingFields); err != nil {
 			return diag.Errorf("error setting `analyzers` for search index (%s): %s", d.Id(), err)
 		}
@@ -361,7 +359,6 @@ func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resource
 			if err != nil {
 				return diag.FromErr(err)
 			}
-
 			if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
 				return diag.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
 			}
@@ -369,12 +366,11 @@ func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resource
 	}
 
 	if fields := searchIndex.GetFields(); len(fields) > 0 {
-		fields, err := marshalSearchIndex(fields)
+		fieldsMarshaled, err := marshalSearchIndex(fields)
 		if err != nil {
 			return diag.FromErr(err)
 		}
-
-		if err := d.Set("fields", fields); err != nil {
+		if err := d.Set("fields", fieldsMarshaled); err != nil {
 			return diag.Errorf("error setting `fields` for for search index (%s): %s", d.Id(), err)
 		}
 	}
@@ -399,12 +395,11 @@ func marshalSearchIndex(fields any) (string, error) {
 	return string(bytes), err
 }
 
-func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 	indexType := d.Get("type").(string)
-
 	searchIndexRequest := &admin.ClusterSearchIndex{
 		Type:           conversion.StringPtr(indexType),
 		Analyzer:       conversion.StringPtr(d.Get("analyzer").(string)),
@@ -412,8 +407,6 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 		Database:       d.Get("database").(string),
 		Name:           d.Get("name").(string),
 		SearchAnalyzer: conversion.StringPtr(d.Get("search_analyzer").(string)),
-		Status:         conversion.StringPtr(d.Get("status").(string)),
-		Synonyms:       conversion.NonEmptyToPtr(expandSearchIndexSynonyms(d)),
 	}
 
 	if indexType == vectorSearch {
@@ -421,13 +414,13 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 		if err != nil {
 			return err
 		}
-		searchIndexRequest.Fields = conversion.NonEmptyToPtr(fields)
+		searchIndexRequest.Fields = &fields
 	} else {
 		analyzers, err := unmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string))
 		if err != nil {
 			return err
 		}
-		searchIndexRequest.Analyzers = conversion.NonEmptyToPtr(analyzers)
+		searchIndexRequest.Analyzers = &analyzers
 		mappingsFields, err := unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
 		if err != nil {
 			return err
@@ -437,6 +430,8 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 			Dynamic: &dynamic,
 			Fields:  mappingsFields,
 		}
+		synonyms := expandSearchIndexSynonyms(d)
+		searchIndexRequest.Synonyms = &synonyms
 	}
 
 	dbSearchIndexRes, _, err := connV2.AtlasSearchApi.CreateAtlasSearchIndex(ctx, projectID, clusterName, searchIndexRequest).Execute()
@@ -463,7 +458,7 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 				"cluster_name": clusterName,
 				"index_id":     indexID,
 			}))
-			resourceMongoDBAtlasSearchIndexDelete(ctx, d, meta)
+			resourceDelete(ctx, d, meta)
 			d.SetId("")
 			return diag.FromErr(fmt.Errorf("error creating index in cluster (%s): %s", clusterName, err))
 		}
@@ -474,7 +469,7 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 		"index_id":     indexID,
 	}))
 
-	return resourceMongoDBAtlasSearchIndexRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
 func expandSearchIndexSynonyms(d *schema.ResourceData) []admin.SearchSynonymMappingDefinition {
@@ -545,35 +540,35 @@ func validateSearchAnalyzersDiff(k, old, newStr string, d *schema.ResourceData) 
 	return true
 }
 
-func unmarshalSearchIndexMappingFields(mappingString string) (map[string]any, diag.Diagnostics) {
-	if mappingString == "" {
-		return nil, nil
+func unmarshalSearchIndexMappingFields(str string) (map[string]any, diag.Diagnostics) {
+	fields := map[string]any{}
+	if str == "" {
+		return fields, nil
 	}
-	var fields map[string]any
-	if err := json.Unmarshal([]byte(mappingString), &fields); err != nil {
+	if err := json.Unmarshal([]byte(str), &fields); err != nil {
 		return nil, diag.Errorf("cannot unmarshal search index attribute `mappings_fields` because it has an incorrect format")
 	}
 	return fields, nil
 }
 
-func unmarshalSearchIndexFields(fieldsStr string) ([]map[string]any, diag.Diagnostics) {
-	if fieldsStr == "" {
-		return nil, nil
+func unmarshalSearchIndexFields(str string) ([]map[string]any, diag.Diagnostics) {
+	fields := []map[string]any{}
+	if str == "" {
+		return fields, nil
 	}
-	var fields []map[string]any
-	if err := json.Unmarshal([]byte(fieldsStr), &fields); err != nil {
+	if err := json.Unmarshal([]byte(str), &fields); err != nil {
 		return nil, diag.Errorf("cannot unmarshal search index attribute `fields` because it has an incorrect format")
 	}
 
 	return fields, nil
 }
 
-func unmarshalSearchIndexAnalyzersFields(mappingString string) ([]admin.ApiAtlasFTSAnalyzers, diag.Diagnostics) {
-	if mappingString == "" {
-		return nil, nil
+func unmarshalSearchIndexAnalyzersFields(str string) ([]admin.ApiAtlasFTSAnalyzers, diag.Diagnostics) {
+	fields := []admin.ApiAtlasFTSAnalyzers{}
+	if str == "" {
+		return fields, nil
 	}
-	var fields []admin.ApiAtlasFTSAnalyzers
-	if err := json.Unmarshal([]byte(mappingString), &fields); err != nil {
+	if err := json.Unmarshal([]byte(str), &fields); err != nil {
 		return nil, diag.Errorf("cannot unmarshal search index attribute `analyzers` because it has an incorrect format")
 	}
 	return fields, nil
