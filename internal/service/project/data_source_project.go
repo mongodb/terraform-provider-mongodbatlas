@@ -30,7 +30,7 @@ type projectDS struct {
 	config.DSCommon
 }
 
-type TfProjectDSModel struct {
+type TFProjectDSModel struct {
 	IPAddresses                                 types.Object     `tfsdk:"ip_addresses"`
 	Created                                     types.String     `tfsdk:"created"`
 	OrgID                                       types.String     `tfsdk:"org_id"`
@@ -38,8 +38,8 @@ type TfProjectDSModel struct {
 	ID                                          types.String     `tfsdk:"id"`
 	Name                                        types.String     `tfsdk:"name"`
 	ProjectID                                   types.String     `tfsdk:"project_id"`
-	Teams                                       []*TfTeamDSModel `tfsdk:"teams"`
-	Limits                                      []*TfLimitModel  `tfsdk:"limits"`
+	Teams                                       []*TFTeamDSModel `tfsdk:"teams"`
+	Limits                                      []*TFLimitModel  `tfsdk:"limits"`
 	ClusterCount                                types.Int64      `tfsdk:"cluster_count"`
 	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool       `tfsdk:"is_collect_database_specifics_statistics_enabled"`
 	IsRealtimePerformancePanelEnabled           types.Bool       `tfsdk:"is_realtime_performance_panel_enabled"`
@@ -49,7 +49,7 @@ type TfProjectDSModel struct {
 	IsDataExplorerEnabled                       types.Bool       `tfsdk:"is_data_explorer_enabled"`
 }
 
-type TfTeamDSModel struct {
+type TFTeamDSModel struct {
 	TeamID    types.String `tfsdk:"team_id"`
 	RoleNames types.List   `tfsdk:"role_names"`
 }
@@ -171,7 +171,7 @@ func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, re
 }
 
 func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var projectState TfProjectDSModel
+	var projectState TFProjectDSModel
 	connV2 := d.Client.AtlasV2
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &projectState)...)

@@ -24,10 +24,10 @@ import (
 var (
 	name             = types.StringValue("sameName")
 	diffName         = types.StringValue("diffName")
-	projectStateName = project.TfProjectRSModel{
+	projectStateName = project.TFProjectRSModel{
 		Name: name,
 	}
-	projectStateNameDiff = project.TfProjectRSModel{
+	projectStateNameDiff = project.TFProjectRSModel{
 		Name: diffName,
 	}
 	dummyProjectID = "6575af27f93c7a6a4b50b239"
@@ -126,7 +126,7 @@ func TestFilterUserDefinedLimits(t *testing.T) {
 	testCases := []struct {
 		name           string
 		allAtlasLimits []admin.DataFederationLimit
-		tfLimits       []project.TfLimitModel
+		tfLimits       []project.TFLimitModel
 		expectedResult []admin.DataFederationLimit
 	}{
 		{
@@ -136,7 +136,7 @@ func TestFilterUserDefinedLimits(t *testing.T) {
 				createDataFederationLimit("2"),
 				createDataFederationLimit("3"),
 			},
-			tfLimits: []project.TfLimitModel{
+			tfLimits: []project.TFLimitModel{
 				{
 					Name: types.StringValue("1"),
 				},
@@ -154,7 +154,7 @@ func TestFilterUserDefinedLimits(t *testing.T) {
 			allAtlasLimits: []admin.DataFederationLimit{
 				createDataFederationLimit("1"),
 			},
-			tfLimits:       []project.TfLimitModel{},
+			tfLimits:       []project.TFLimitModel{},
 			expectedResult: []admin.DataFederationLimit{},
 		},
 	}
@@ -173,8 +173,8 @@ func TestUpdateProject(t *testing.T) {
 	testCases := []struct {
 		name          string
 		mockResponses ProjectResponse
-		projectState  project.TfProjectRSModel
-		projectPlan   project.TfProjectRSModel
+		projectState  project.TFProjectRSModel
+		projectPlan   project.TFProjectRSModel
 		expectedError bool
 	}{
 		{
@@ -224,7 +224,7 @@ func TestUpdateProject(t *testing.T) {
 }
 
 func TestUpdateProjectLimits(t *testing.T) {
-	twoLimits := []project.TfLimitModel{
+	twoLimits := []project.TFLimitModel{
 		{
 			Name: types.StringValue("limit1"),
 		},
@@ -232,12 +232,12 @@ func TestUpdateProjectLimits(t *testing.T) {
 			Name: types.StringValue("limit2"),
 		},
 	}
-	oneLimit := []project.TfLimitModel{
+	oneLimit := []project.TFLimitModel{
 		{
 			Name: types.StringValue("limit1"),
 		},
 	}
-	updatedLimit := []project.TfLimitModel{
+	updatedLimit := []project.TFLimitModel{
 		{
 			Name:  types.StringValue("limit1"),
 			Value: types.Int64Value(6),
@@ -249,17 +249,17 @@ func TestUpdateProjectLimits(t *testing.T) {
 	testCases := []struct {
 		name          string
 		mockResponses DeleteProjectLimitResponse
-		projectState  project.TfProjectRSModel
-		projectPlan   project.TfProjectRSModel
+		projectState  project.TFProjectRSModel
+		projectPlan   project.TFProjectRSModel
 		expectedError bool
 	}{
 		{
 			name: "Limits has not changed",
-			projectState: project.TfProjectRSModel{
+			projectState: project.TFProjectRSModel{
 				Name:   name,
 				Limits: singleLimitSet,
 			},
-			projectPlan: project.TfProjectRSModel{
+			projectPlan: project.TFProjectRSModel{
 				Name:   name,
 				Limits: singleLimitSet,
 			},
@@ -268,11 +268,11 @@ func TestUpdateProjectLimits(t *testing.T) {
 		},
 		{
 			name: "Adding limits",
-			projectState: project.TfProjectRSModel{
+			projectState: project.TFProjectRSModel{
 				Name:   name,
 				Limits: singleLimitSet,
 			},
-			projectPlan: project.TfProjectRSModel{
+			projectPlan: project.TFProjectRSModel{
 				Name:   name,
 				Limits: twoLimitSet,
 			},
@@ -283,11 +283,11 @@ func TestUpdateProjectLimits(t *testing.T) {
 		},
 		{
 			name: "Removing limits",
-			projectState: project.TfProjectRSModel{
+			projectState: project.TFProjectRSModel{
 				Name:   name,
 				Limits: twoLimitSet,
 			},
-			projectPlan: project.TfProjectRSModel{
+			projectPlan: project.TFProjectRSModel{
 				Name:   name,
 				Limits: singleLimitSet,
 			},
@@ -298,11 +298,11 @@ func TestUpdateProjectLimits(t *testing.T) {
 		},
 		{
 			name: "Updating limits",
-			projectState: project.TfProjectRSModel{
+			projectState: project.TFProjectRSModel{
 				Name:   name,
 				Limits: singleLimitSet,
 			},
-			projectPlan: project.TfProjectRSModel{
+			projectPlan: project.TFProjectRSModel{
 				Name:   name,
 				Limits: updatedLimitSet,
 			},
@@ -331,35 +331,35 @@ func TestUpdateProjectLimits(t *testing.T) {
 
 func TestUpdateProjectTeams(t *testing.T) {
 	teamRoles, _ := types.SetValueFrom(context.Background(), types.StringType, []string{"BASIC_PERMISSION"})
-	teamOne := project.TfTeamModel{
+	teamOne := project.TFTeamModel{
 		TeamID:    types.StringValue("team1"),
 		RoleNames: teamRoles,
 	}
-	teamTwo := project.TfTeamModel{
+	teamTwo := project.TFTeamModel{
 		TeamID: types.StringValue("team2"),
 	}
 	teamRolesUpdated, _ := types.SetValueFrom(context.Background(), types.StringType, []string{"ADMIN_PERMISSION"})
-	updatedTeam := project.TfTeamModel{
+	updatedTeam := project.TFTeamModel{
 		TeamID:    types.StringValue("team1"),
 		RoleNames: teamRolesUpdated,
 	}
-	singleTeamSet, _ := types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TfTeamModel{teamOne})
-	twoTeamSet, _ := types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TfTeamModel{teamOne, teamTwo})
-	updatedTeamSet, _ := types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TfTeamModel{updatedTeam})
+	singleTeamSet, _ := types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TFTeamModel{teamOne})
+	twoTeamSet, _ := types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TFTeamModel{teamOne, teamTwo})
+	updatedTeamSet, _ := types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TFTeamModel{updatedTeam})
 
 	testCases := []struct {
 		name          string
-		projectState  project.TfProjectRSModel
-		projectPlan   project.TfProjectRSModel
+		projectState  project.TFProjectRSModel
+		projectPlan   project.TFProjectRSModel
 		expectedError bool
 	}{
 		{
 			name: "Teams has not changed",
-			projectState: project.TfProjectRSModel{
+			projectState: project.TFProjectRSModel{
 				Name:  name,
 				Teams: singleTeamSet,
 			},
-			projectPlan: project.TfProjectRSModel{
+			projectPlan: project.TFProjectRSModel{
 				Name:  name,
 				Teams: singleTeamSet,
 			},
@@ -367,11 +367,11 @@ func TestUpdateProjectTeams(t *testing.T) {
 		},
 		{
 			name: "Add teams",
-			projectState: project.TfProjectRSModel{
+			projectState: project.TFProjectRSModel{
 				Name:  name,
 				Teams: singleTeamSet,
 			},
-			projectPlan: project.TfProjectRSModel{
+			projectPlan: project.TFProjectRSModel{
 				Name:  name,
 				Teams: twoTeamSet,
 			},
@@ -379,11 +379,11 @@ func TestUpdateProjectTeams(t *testing.T) {
 		},
 		{
 			name: "Remove teams",
-			projectState: project.TfProjectRSModel{
+			projectState: project.TFProjectRSModel{
 				Name:  name,
 				Teams: twoTeamSet,
 			},
-			projectPlan: project.TfProjectRSModel{
+			projectPlan: project.TFProjectRSModel{
 				Name:  name,
 				Teams: singleTeamSet,
 			},
@@ -391,11 +391,11 @@ func TestUpdateProjectTeams(t *testing.T) {
 		},
 		{
 			name: "Update teams",
-			projectState: project.TfProjectRSModel{
+			projectState: project.TFProjectRSModel{
 				Name:  name,
 				Teams: singleTeamSet,
 			},
-			projectPlan: project.TfProjectRSModel{
+			projectPlan: project.TFProjectRSModel{
 				Name:  name,
 				Teams: updatedTeamSet,
 			},

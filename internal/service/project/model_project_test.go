@@ -36,13 +36,13 @@ var (
 			RoleNames: &roles,
 		},
 	}
-	teamsDSTF = []*project.TfTeamDSModel{
+	teamsDSTF = []*project.TFTeamDSModel{
 		{
 			TeamID:    types.StringValue("teamId"),
 			RoleNames: roleList,
 		},
 	}
-	teamsTFSet, _ = types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TfTeamModel{
+	teamsTFSet, _ = types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TFTeamModel{
 		{
 			TeamID:    types.StringValue("teamId"),
 			RoleNames: roleSet,
@@ -57,7 +57,7 @@ var (
 			MaximumLimit: admin.PtrInt64(limitMaximumLimit),
 		},
 	}
-	limitsTF = []*project.TfLimitModel{
+	limitsTF = []*project.TFLimitModel{
 		{
 			Name:         types.StringValue(limitName),
 			Value:        types.Int64Value(limitValue),
@@ -66,7 +66,7 @@ var (
 			MaximumLimit: types.Int64Value(limitMaximumLimit),
 		},
 	}
-	limitsTFSet, _ = types.SetValueFrom(context.Background(), project.TfLimitObjectType, []project.TfLimitModel{
+	limitsTFSet, _ = types.SetValueFrom(context.Background(), project.TfLimitObjectType, []project.TFLimitModel{
 		*limitsTF[0],
 	})
 	ipAddressesTF, _ = types.ObjectValueFrom(context.Background(), project.IPAddressesObjectType.AttrTypes, project.TFIPAddressesModel{
@@ -117,7 +117,7 @@ func TestTeamsDataSourceSDKToTFModel(t *testing.T) {
 	testCases := []struct {
 		name              string
 		paginatedTeamRole *admin.PaginatedTeamRole
-		expectedTFModel   []*project.TfTeamDSModel
+		expectedTFModel   []*project.TFTeamDSModel
 	}{
 		{
 			name: "TeamRole",
@@ -149,7 +149,7 @@ func TestLimitsDataSourceSDKToTFModel(t *testing.T) {
 	testCases := []struct {
 		name                 string
 		dataFederationLimits []admin.DataFederationLimit
-		expectedTFModel      []*project.TfLimitModel
+		expectedTFModel      []*project.TFLimitModel
 	}{
 		{
 			name:                 "Limit",
@@ -173,7 +173,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 		name            string
 		project         *admin.Group
 		projectProps    project.AdditionalProperties
-		expectedTFModel project.TfProjectDSModel
+		expectedTFModel project.TFProjectDSModel
 	}{
 		{
 			name:    "Project",
@@ -187,7 +187,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 				IPAddresses: &projectIPAddressesSDK,
 				Limits:      limitsSDK,
 			},
-			expectedTFModel: project.TfProjectDSModel{
+			expectedTFModel: project.TFProjectDSModel{
 
 				ID:           types.StringValue(projectID),
 				ProjectID:    types.StringValue(projectID),
@@ -223,7 +223,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 		name            string
 		project         *admin.Group
 		projectProps    project.AdditionalProperties
-		expectedTFModel project.TfProjectRSModel
+		expectedTFModel project.TFProjectRSModel
 	}{
 		{
 			name:    "Project",
@@ -237,7 +237,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 				IPAddresses: &projectIPAddressesSDK,
 				Limits:      limitsSDK,
 			},
-			expectedTFModel: project.TfProjectRSModel{
+			expectedTFModel: project.TFProjectRSModel{
 
 				ID:           types.StringValue(projectID),
 				Name:         types.StringValue(projectName),
@@ -269,7 +269,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 
 func TestTeamRoleListTFtoSDK(t *testing.T) {
 	var rolesSet, _ = types.SetValueFrom(context.Background(), types.StringType, roles)
-	teamsTF := []project.TfTeamModel{
+	teamsTF := []project.TFTeamModel{
 		{
 			TeamID:    types.StringValue("teamId"),
 			RoleNames: rolesSet,
@@ -278,7 +278,7 @@ func TestTeamRoleListTFtoSDK(t *testing.T) {
 	testCases := []struct {
 		name           string
 		expectedResult *[]admin.TeamRole
-		teamRolesTF    []project.TfTeamModel
+		teamRolesTF    []project.TFTeamModel
 	}{
 		{
 			name:           "Team roles",
@@ -298,7 +298,7 @@ func TestTeamRoleListTFtoSDK(t *testing.T) {
 }
 
 func TestTeamModelMapTF(t *testing.T) {
-	teams := []project.TfTeamModel{
+	teams := []project.TFTeamModel{
 		{
 			TeamID: types.StringValue("id1"),
 		},
@@ -308,13 +308,13 @@ func TestTeamModelMapTF(t *testing.T) {
 	}
 	testCases := []struct {
 		name           string
-		expectedResult map[types.String]project.TfTeamModel
-		teamRolesTF    []project.TfTeamModel
+		expectedResult map[types.String]project.TFTeamModel
+		teamRolesTF    []project.TFTeamModel
 	}{
 		{
 			name:        "Team roles",
 			teamRolesTF: teams,
-			expectedResult: map[types.String]project.TfTeamModel{
+			expectedResult: map[types.String]project.TFTeamModel{
 				types.StringValue("id1"): teams[0],
 				types.StringValue("id2"): teams[1],
 			},
@@ -332,7 +332,7 @@ func TestTeamModelMapTF(t *testing.T) {
 }
 
 func TestLimitModelMapTF(t *testing.T) {
-	limits := []project.TfLimitModel{
+	limits := []project.TFLimitModel{
 		{
 			Name: types.StringValue("limit1"),
 		},
@@ -342,13 +342,13 @@ func TestLimitModelMapTF(t *testing.T) {
 	}
 	testCases := []struct {
 		name           string
-		expectedResult map[types.String]project.TfLimitModel
-		limitsTF       []project.TfLimitModel
+		expectedResult map[types.String]project.TFLimitModel
+		limitsTF       []project.TFLimitModel
 	}{
 		{
 			name:     "Limits",
 			limitsTF: limits,
-			expectedResult: map[types.String]project.TfLimitModel{
+			expectedResult: map[types.String]project.TFLimitModel{
 				types.StringValue("limit1"): limits[0],
 				types.StringValue("limit2"): limits[1],
 			},

@@ -8,10 +8,10 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
-func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, projectProps AdditionalProperties) TfProjectDSModel {
+func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, projectProps AdditionalProperties) TFProjectDSModel {
 	ipAddressesModel := NewTFIPAddressesModel(ctx, projectProps.IPAddresses)
 	projectSettings := projectProps.Settings
-	return TfProjectDSModel{
+	return TFProjectDSModel{
 		ID:           types.StringValue(project.GetId()),
 		ProjectID:    types.StringValue(project.GetId()),
 		Name:         types.StringValue(project.Name),
@@ -30,15 +30,15 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, proj
 	}
 }
 
-func NewTFTeamsDataSourceModel(ctx context.Context, atlasTeams *admin.PaginatedTeamRole) []*TfTeamDSModel {
+func NewTFTeamsDataSourceModel(ctx context.Context, atlasTeams *admin.PaginatedTeamRole) []*TFTeamDSModel {
 	if atlasTeams.GetTotalCount() == 0 {
 		return nil
 	}
 	results := atlasTeams.GetResults()
-	teams := make([]*TfTeamDSModel, len(results))
+	teams := make([]*TFTeamDSModel, len(results))
 	for i, atlasTeam := range results {
 		roleNames, _ := types.ListValueFrom(ctx, types.StringType, atlasTeam.RoleNames)
-		teams[i] = &TfTeamDSModel{
+		teams[i] = &TFTeamDSModel{
 			TeamID:    types.StringValue(atlasTeam.GetTeamId()),
 			RoleNames: roleNames,
 		}
@@ -46,11 +46,11 @@ func NewTFTeamsDataSourceModel(ctx context.Context, atlasTeams *admin.PaginatedT
 	return teams
 }
 
-func NewTFLimitsDataSourceModel(ctx context.Context, dataFederationLimits []admin.DataFederationLimit) []*TfLimitModel {
-	limits := make([]*TfLimitModel, len(dataFederationLimits))
+func NewTFLimitsDataSourceModel(ctx context.Context, dataFederationLimits []admin.DataFederationLimit) []*TFLimitModel {
+	limits := make([]*TFLimitModel, len(dataFederationLimits))
 
 	for i, dataFederationLimit := range dataFederationLimits {
-		limits[i] = &TfLimitModel{
+		limits[i] = &TFLimitModel{
 			Name:         types.StringValue(dataFederationLimit.Name),
 			Value:        types.Int64Value(dataFederationLimit.Value),
 			CurrentUsage: types.Int64PointerValue(dataFederationLimit.CurrentUsage),
@@ -85,9 +85,9 @@ func NewTFIPAddressesModel(ctx context.Context, ipAddresses *admin.GroupIPAddres
 	return obj
 }
 
-func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, projectProps AdditionalProperties) *TfProjectRSModel {
+func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, projectProps AdditionalProperties) *TFProjectRSModel {
 	ipAddressesModel := NewTFIPAddressesModel(ctx, projectProps.IPAddresses)
-	projectPlan := TfProjectRSModel{
+	projectPlan := TFProjectRSModel{
 		ID:                        types.StringValue(projectRes.GetId()),
 		Name:                      types.StringValue(projectRes.Name),
 		OrgID:                     types.StringValue(projectRes.OrgId),
@@ -113,10 +113,10 @@ func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, pro
 }
 
 func newTFLimitsResourceModel(ctx context.Context, dataFederationLimits []admin.DataFederationLimit) types.Set {
-	limits := make([]TfLimitModel, len(dataFederationLimits))
+	limits := make([]TFLimitModel, len(dataFederationLimits))
 
 	for i, dataFederationLimit := range dataFederationLimits {
-		limits[i] = TfLimitModel{
+		limits[i] = TFLimitModel{
 			Name:         types.StringValue(dataFederationLimit.Name),
 			Value:        types.Int64Value(dataFederationLimit.Value),
 			CurrentUsage: types.Int64PointerValue(dataFederationLimit.CurrentUsage),
@@ -131,10 +131,10 @@ func newTFLimitsResourceModel(ctx context.Context, dataFederationLimits []admin.
 
 func newTFTeamsResourceModel(ctx context.Context, atlasTeams *admin.PaginatedTeamRole) types.Set {
 	results := atlasTeams.GetResults()
-	teams := make([]TfTeamModel, len(results))
+	teams := make([]TFTeamModel, len(results))
 	for i, atlasTeam := range results {
 		roleNames, _ := types.SetValueFrom(ctx, types.StringType, atlasTeam.RoleNames)
-		teams[i] = TfTeamModel{
+		teams[i] = TFTeamModel{
 			TeamID:    types.StringValue(atlasTeam.GetTeamId()),
 			RoleNames: roleNames,
 		}
@@ -144,7 +144,7 @@ func newTFTeamsResourceModel(ctx context.Context, atlasTeams *admin.PaginatedTea
 	return s
 }
 
-func NewTeamRoleList(ctx context.Context, teams []TfTeamModel) *[]admin.TeamRole {
+func NewTeamRoleList(ctx context.Context, teams []TFTeamModel) *[]admin.TeamRole {
 	res := make([]admin.TeamRole, len(teams))
 	for i, team := range teams {
 		roleNames := conversion.TypesSetToString(ctx, team.RoleNames)
@@ -156,22 +156,22 @@ func NewTeamRoleList(ctx context.Context, teams []TfTeamModel) *[]admin.TeamRole
 	return &res
 }
 
-func NewGroupName(tfProject *TfProjectRSModel) *admin.GroupName {
+func NewGroupName(tfProject *TFProjectRSModel) *admin.GroupName {
 	return &admin.GroupName{
 		Name: tfProject.Name.ValueStringPointer(),
 	}
 }
 
-func NewTfTeamModelMap(teams []TfTeamModel) map[types.String]TfTeamModel {
-	teamsMap := make(map[types.String]TfTeamModel)
+func NewTfTeamModelMap(teams []TFTeamModel) map[types.String]TFTeamModel {
+	teamsMap := make(map[types.String]TFTeamModel)
 	for _, team := range teams {
 		teamsMap[team.TeamID] = team
 	}
 	return teamsMap
 }
 
-func NewTfLimitModelMap(limits []TfLimitModel) map[types.String]TfLimitModel {
-	limitsMap := make(map[types.String]TfLimitModel)
+func NewTfLimitModelMap(limits []TFLimitModel) map[types.String]TFLimitModel {
+	limitsMap := make(map[types.String]TFLimitModel)
 	for _, limit := range limits {
 		limitsMap[limit.Name] = limit
 	}

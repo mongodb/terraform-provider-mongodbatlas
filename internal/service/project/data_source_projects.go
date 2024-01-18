@@ -32,7 +32,7 @@ type ProjectsDS struct {
 
 type tfProjectsDSModel struct {
 	ID           types.String        `tfsdk:"id"`
-	Results      []*TfProjectDSModel `tfsdk:"results"`
+	Results      []*TFProjectDSModel `tfsdk:"results"`
 	PageNum      types.Int64         `tfsdk:"page_num"`
 	ItemsPerPage types.Int64         `tfsdk:"items_per_page"`
 	TotalCount   types.Int64         `tfsdk:"total_count"`
@@ -199,7 +199,7 @@ func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 
 func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClient, stateModel *tfProjectsDSModel, projectsRes *admin.PaginatedAtlasGroup) error {
 	input := projectsRes.GetResults()
-	results := make([]*TfProjectDSModel, 0, len(input))
+	results := make([]*TFProjectDSModel, 0, len(input))
 	for i := range input {
 		project := input[i]
 		projectProps, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), project.GetId())
