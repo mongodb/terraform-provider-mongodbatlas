@@ -92,7 +92,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 
 	// Since the migration of this resource to the latest version of the auto-generated SDK (v20231115) and the breaking changes of the API
 	// the unique identifier used by the API & SDK of the supported identity providers is no longer "okta_idp_id", it is "idp_id". Nonetheless
-	// "okta_idp_id" name was used to encode/decode the Terraform State Id. To avoid increasing the complexity of the code and be able to make
+	// "okta_idp_id" name was used to encode/decode the Terraform State Id. To ensure backwards compatibility, the format of this resource id remains the same but the key `okta_idp_id` will store either `okta_idp_id` or `idp_id` to identify the identity provider.
 	// as few changes as possible, this name will remain.
 	idpID := ids["okta_idp_id"]
 
@@ -474,7 +474,7 @@ func splitFederatedSettingsIdentityProviderImportID(id string) (federationSettin
 
 // Since the migration of this resource to the latest version of the auto-generated SDK (v20231115) and the breaking changes of the API
 // the unique identifier used by the API & SDK of the supported identity providers is no longer "okta_idp_id", it is "idp_id". Nonetheless
-// "okta_idp_id" name was used to encode/decode the Terraform State Id. To avoid increasing the complexity of the code and be able to make
+// "okta_idp_id" name was used to encode/decode the Terraform State Id. To ensure backwards compatibility, the format of this resource id remains the same but the key `okta_idp_id` will store either `okta_idp_id` or `idp_id` to identify the identity provider.
 // as few changes as possible, this name will remain.
 func encodeStateID(federationSettingsID, idpID string) string {
 	return conversion.EncodeStateID(map[string]string{
