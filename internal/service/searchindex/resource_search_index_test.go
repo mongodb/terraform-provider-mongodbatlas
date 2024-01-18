@@ -152,7 +152,7 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, true),
+				Config: configWithSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, with),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
 
@@ -201,7 +201,7 @@ func TestAccSearchIndexRS_updatedToEmptySynonyms(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, true),
+				Config: configWithSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, with),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "synonyms.#", "1"),
@@ -211,7 +211,7 @@ func TestAccSearchIndexRS_updatedToEmptySynonyms(t *testing.T) {
 				),
 			},
 			{
-				Config: configSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
+				Config: configWithSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, without),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "synonyms.#", "0"),
@@ -423,7 +423,7 @@ func testAccSearchIndexConfigMapping(projectIDStr, indexName, databaseName, clus
 	`, clusterNameStr, projectIDStr, indexName, databaseName, collectionName, searchAnalyzer, analyzersTF, mappingsFieldsTF)
 }
 
-func configSynonyms(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr string, has bool) string {
+func configWithSynonyms(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr string, has bool) string {
 	var synonymsStr string
 	if has {
 		synonymsStr = fmt.Sprintf(`
@@ -512,6 +512,8 @@ const (
 	searchAnalyzer = "lucene.standard"
 	resourceName   = "mongodbatlas_search_index.test"
 	datasourceName = "data.mongodbatlas_search_index.data_index"
+	with           = true
+	without        = false
 
 	analyzersTF      = "\nanalyzers = <<-EOF\n" + analyzersJSON + "\nEOF\n"
 	mappingsFieldsTF = "\nmappings_fields = <<-EOF\n" + mappingsFieldsJSON + "\nEOF\n"
