@@ -27,9 +27,9 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfigBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
+				Config: configBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSearchIndexExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
@@ -67,9 +67,9 @@ func TestAccSearchIndexRS_withSearchType(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfigBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, true),
+				Config: configBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSearchIndexExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
@@ -107,9 +107,9 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfigMapping(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr),
+				Config: configWithMapping(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSearchIndexExists(resourceName),
+					checkExists(resourceName),
 
 					resource.TestCheckResourceAttr(resourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -154,7 +154,7 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 			{
 				Config: configWithSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, with),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSearchIndexExists(resourceName),
+					checkExists(resourceName),
 
 					resource.TestCheckResourceAttr(resourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -203,7 +203,7 @@ func TestAccSearchIndexRS_updatedToEmptySynonyms(t *testing.T) {
 			{
 				Config: configWithSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, with),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSearchIndexExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "synonyms.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "synonyms.0.analyzer", "lucene.simple"),
 					resource.TestCheckResourceAttr(resourceName, "synonyms.0.name", "synonym_test"),
@@ -213,7 +213,7 @@ func TestAccSearchIndexRS_updatedToEmptySynonyms(t *testing.T) {
 			{
 				Config: configWithSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, without),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSearchIndexExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "synonyms.#", "0"),
 				),
 			},
@@ -236,14 +236,14 @@ func TestAccSearchIndexRS_updatedToEmptyAnalyzers(t *testing.T) {
 			{
 				Config: configAdditional(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, analyzersTF),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSearchIndexExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrWith(resourceName, "analyzers", acc.JSONEquals(analyzersJSON)),
 				),
 			},
 			{
 				Config: configAdditional(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, ""),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSearchIndexExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "analyzers", ""),
 				),
 			},
@@ -266,14 +266,14 @@ func TestAccSearchIndexRS_updatedToEmptyMappingsFields(t *testing.T) {
 			{
 				Config: configAdditional(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, mappingsFieldsTF),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSearchIndexExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrWith(resourceName, "mappings_fields", acc.JSONEquals(mappingsFieldsJSON)),
 				),
 			},
 			{
 				Config: configAdditional(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, ""),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSearchIndexExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "mappings_fields", ""),
 				),
 			},
@@ -294,18 +294,18 @@ func TestAccSearchIndexRS_importBasic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfigBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
+				Config: configBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSearchIndexExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
 				),
 			},
 			{
-				Config:            testAccSearchIndexConfigBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
+				Config:            configBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasSearchIndexImportStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -327,9 +327,9 @@ func TestAccSearchIndexRS_withVector(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfigVector(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr),
+				Config: configVector(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSearchIndexExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
@@ -355,7 +355,7 @@ func TestAccSearchIndexRS_withVector(t *testing.T) {
 	})
 }
 
-func testAccCheckSearchIndexExists(resourceName string) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -376,7 +376,7 @@ func testAccCheckSearchIndexExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func testAccSearchIndexConfigBasic(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr string, explicitType bool) string {
+func configBasic(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr string, explicitType bool) string {
 	var indexType string
 	if explicitType {
 		indexType = `type="search"`
@@ -401,7 +401,7 @@ func testAccSearchIndexConfigBasic(projectIDStr, indexName, databaseName, cluste
 	`, clusterNameStr, projectIDStr, indexName, databaseName, collectionName, searchAnalyzer, indexType)
 }
 
-func testAccSearchIndexConfigMapping(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr string) string {
+func configWithMapping(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr string) string {
 	return clusterTerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
 			cluster_name     = %[1]s
@@ -470,7 +470,7 @@ func configAdditional(projectIDStr, indexName, databaseName, clusterNameStr, clu
 	`, clusterNameStr, projectIDStr, indexName, databaseName, collectionName, searchAnalyzer, additional)
 }
 
-func testAccSearchIndexConfigVector(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr string) string {
+func configVector(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr string) string {
 	return clusterTerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
 			cluster_name     = %[1]s
@@ -494,7 +494,7 @@ func testAccSearchIndexConfigVector(projectIDStr, indexName, databaseName, clust
 	`, clusterNameStr, projectIDStr, indexName, databaseName, collectionName, fieldsJSON)
 }
 
-func testAccCheckMongoDBAtlasSearchIndexImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
