@@ -44,6 +44,7 @@ data "mongodbatlas_search_index" "test" {
 ### Results
 
 * `name` - Name of the index.
+* `status` - Current status of the index.
 * `analyzer` - [Analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use when creating the index.
 * `analyzers` - [Custom analyzers](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-custom-analyzers) to use in this index (this is an array of objects).
 * `collection_name` - (Required) Name of the collection the index is on.
