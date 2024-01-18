@@ -10,21 +10,25 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
-func NewNotificationList(tfNotificationSlice []TfNotificationModel) ([]admin.AlertsNotificationRootForGroup, error) {
-	notifications := make([]admin.AlertsNotificationRootForGroup, 0)
+func NewNotificationList(list []TfNotificationModel) (*[]admin.AlertsNotificationRootForGroup, error) {
+	notifications := make([]admin.AlertsNotificationRootForGroup, len(list))
 
-	for i := range tfNotificationSlice {
-		if !tfNotificationSlice[i].IntervalMin.IsNull() && tfNotificationSlice[i].IntervalMin.ValueInt64() > 0 {
-			typeName := tfNotificationSlice[i].TypeName.ValueString()
+	for i := range list {
+		if !list[i].IntervalMin.IsNull() && list[i].IntervalMin.ValueInt64() > 0 {
+			typeName := list[i].TypeName.ValueString()
 			if strings.EqualFold(typeName, pagerDuty) || strings.EqualFold(typeName, opsGenie) || strings.EqualFold(typeName, victorOps) {
 				return nil, fmt.Errorf(`'interval_min' must not be set if type_name is 'PAGER_DUTY', 'OPS_GENIE' or 'VICTOR_OPS'`)
 			}
 		}
 	}
 
-	for i := range tfNotificationSlice {
-		n := &tfNotificationSlice[i]
-		notification := admin.AlertsNotificationRootForGroup{
+	for i := range list {
+		n := &list[i]
+		roles := n.Roles
+		if roles == nil {
+			roles = []string{}
+		}
+		notifications[i] = admin.AlertsNotificationRootForGroup{
 			ApiToken:                 n.APIToken.ValueStringPointer(),
 			ChannelName:              n.ChannelName.ValueStringPointer(),
 			DatadogApiKey:            n.DatadogAPIKey.ValueStringPointer(),
@@ -43,17 +47,16 @@ func NewNotificationList(tfNotificationSlice []TfNotificationModel) ([]admin.Ale
 			Username:                 n.Username.ValueStringPointer(),
 			VictorOpsApiKey:          n.VictorOpsAPIKey.ValueStringPointer(),
 			VictorOpsRoutingKey:      n.VictorOpsRoutingKey.ValueStringPointer(),
-			Roles:                    conversion.NonEmptyToPtr(n.Roles),
+			Roles:                    &roles,
 			MicrosoftTeamsWebhookUrl: n.MicrosoftTeamsWebhookURL.ValueStringPointer(),
 			WebhookSecret:            n.WebhookSecret.ValueStringPointer(),
 			WebhookUrl:               n.WebhookURL.ValueStringPointer(),
 		}
 		if !n.NotifierID.IsUnknown() {
-			notification.NotifierId = n.NotifierID.ValueStringPointer()
+			notifications[i].NotifierId = n.NotifierID.ValueStringPointer()
 		}
-		notifications = append(notifications, notification)
 	}
-	return notifications, nil
+	return &notifications, nil
 }
 
 func NewThreshold(tfThresholdConfigSlice []TfThresholdConfigModel) *admin.GreaterThanRawThreshold {
@@ -83,18 +86,16 @@ func NewMetricThreshold(tfMetricThresholdConfigSlice []TfMetricThresholdConfigMo
 	}
 }
 
-func NewMatcherList(tfMatcherSlice []TfMatcherModel) []map[string]interface{} {
-	matchers := make([]map[string]interface{}, 0)
-
-	for i := range tfMatcherSlice {
-		matcher := map[string]interface{}{
-			"fieldName": tfMatcherSlice[i].FieldName.ValueString(),
-			"operator":  tfMatcherSlice[i].Operator.ValueString(),
-			"value":     tfMatcherSlice[i].Value.ValueString(),
+func NewMatcherList(list []TfMatcherModel) *[]map[string]any {
+	matchers := make([]map[string]any, len(list))
+	for i, matcher := range list {
+		matchers[i] = map[string]any{
+			"fieldName": matcher.FieldName.ValueString(),
+			"operator":  matcher.Operator.ValueString(),
+			"value":     matcher.Value.ValueString(),
 		}
-		matchers = append(matchers, matcher)
 	}
-	return matchers
+	return &matchers
 }
 
 func NewTFAlertConfigurationModel(apiRespConfig *admin.GroupAlertsConfig, currState *TfAlertConfigurationRSModel) TfAlertConfigurationRSModel {
