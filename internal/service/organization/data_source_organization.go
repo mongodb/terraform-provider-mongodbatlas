@@ -42,6 +42,18 @@ func DataSource() *schema.Resource {
 					},
 				},
 			},
+			"api_access_list_required": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"multi_factor_auth_required": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"restrict_employee_access": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -67,6 +79,20 @@ func dataSourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resou
 
 	if err := d.Set("links", flattenOrganizationLinks(organization.GetLinks())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `is_deleted`: %s", err))
+	}
+
+	settings, _, err := conn.OrganizationsApi.GetOrganizationSettings(ctx, orgID).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error getting organization settings: %s", err))
+	}
+	if err := d.Set("api_access_list_required", settings.ApiAccessListRequired); err != nil {
+		return diag.Errorf("error setting `api_access_list_required` for organization (%s): %s", orgID, err)
+	}
+	if err := d.Set("multi_factor_auth_required", settings.MultiFactorAuthRequired); err != nil {
+		return diag.Errorf("error setting `multi_factor_auth_required` for organization (%s): %s", orgID, err)
+	}
+	if err := d.Set("restrict_employee_access", settings.RestrictEmployeeAccess); err != nil {
+		return diag.Errorf("error setting `restrict_employee_access` for organization (%s): %s", orgID, err)
 	}
 
 	d.SetId(organization.GetId())

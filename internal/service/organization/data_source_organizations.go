@@ -3,6 +3,7 @@ package organization
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 
@@ -26,7 +27,7 @@ func PluralDataSource() *schema.Resource {
 			"include_deleted_orgs": {
 				Type:       schema.TypeBool,
 				Optional:   true,
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByDate, "January 2025"),
+				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.16.0"),
 			},
 			"page_num": {
 				Type:     schema.TypeInt,
@@ -69,6 +70,18 @@ func PluralDataSource() *schema.Resource {
 								},
 							},
 						},
+						"api_access_list_required": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"multi_factor_auth_required": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"restrict_employee_access": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -96,7 +109,7 @@ func dataSourceMongoDBAtlasOrganizationsRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf("error getting organization information: %s", err))
 	}
 
-	if err := d.Set("results", flattenOrganizations(organizations.GetResults())); err != nil {
+	if err := d.Set("results", flattenOrganizations(ctx, conn, organizations.GetResults())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
 
@@ -123,7 +136,7 @@ func flattenOrganizationLinks(links []admin.Link) []map[string]any {
 	return linksList
 }
 
-func flattenOrganizations(organizations []admin.AtlasOrganization) []map[string]any {
+func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizations []admin.AtlasOrganization) []map[string]any {
 	var results []map[string]any
 
 	if len(organizations) == 0 {
@@ -133,11 +146,19 @@ func flattenOrganizations(organizations []admin.AtlasOrganization) []map[string]
 	results = make([]map[string]any, len(organizations))
 
 	for k, organization := range organizations {
+		settings, _, err := conn.OrganizationsApi.GetOrganizationSettings(ctx, *organization.Id).Execute()
+		if err != nil {
+			log.Printf("[WARN] Error getting organization settings (organization ID: %s): %s", *organization.Id, err)
+		}
+
 		results[k] = map[string]any{
-			"id":         organization.Id,
-			"name":       organization.Name,
-			"is_deleted": organization.IsDeleted,
-			"links":      flattenOrganizationLinks(organization.GetLinks()),
+			"id":                         organization.Id,
+			"name":                       organization.Name,
+			"is_deleted":                 organization.IsDeleted,
+			"links":                      flattenOrganizationLinks(organization.GetLinks()),
+			"api_access_list_required":   settings.ApiAccessListRequired,
+			"multi_factor_auth_required": settings.MultiFactorAuthRequired,
+			"restrict_employee_access":   settings.RestrictEmployeeAccess,
 		}
 	}
 
