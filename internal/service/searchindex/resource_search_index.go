@@ -392,7 +392,7 @@ func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition)
 func marshalSearchIndex(fields any) (string, error) {
 	bytes, err := json.Marshal(fields)
 	str := string(bytes)
-	if str == "[]" || str == "{}" { // empty JSON array or object
+	if str == "[]" { // empty JSON array serialized to empty string
 		str = ""
 	}
 	return str, err
