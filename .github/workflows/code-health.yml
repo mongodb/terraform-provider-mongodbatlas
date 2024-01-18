@@ -21,7 +21,7 @@ jobs:
       with:
         go-version-file: 'go.mod'
     - name: Mock generation
-      run: make tools && make generate-mocks
+      run: make tools generate-mocks
     - name: Check for uncommited files
       run: |
         export FILES=$(git ls-files -o -m --directory --exclude-standard --no-empty-directory)
