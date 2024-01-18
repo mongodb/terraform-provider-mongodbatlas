@@ -197,7 +197,12 @@ EOF
 * `synonyms` - Synonyms mapping definition to use in this index.
 
 * `fields` - Array of [Fields](https://www.mongodb.com/docs/atlas/atlas-search/field-types/knn-vector/#std-label-fts-data-types-knn-vector) to configure this `vectorSearch` index. It is mandatory for vector searches and it must contain at least one `vector` type field. This field needs to be a JSON string in order to be decoded correctly.
-* `status` - (Computed) Current status of the index.
+
+## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
+
+* `status` - Current status of the index.
 
 ### Analyzers (search  index)
 An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/) prepares a set of documents to be indexed by performing a series of operations to transform, filter, and group sequences of characters. You can define a custom analyzer to suit your specific indexing needs.
