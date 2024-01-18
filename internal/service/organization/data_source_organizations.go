@@ -27,7 +27,7 @@ func PluralDataSource() *schema.Resource {
 			"include_deleted_orgs": {
 				Type:       schema.TypeBool,
 				Optional:   true,
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByDate, "January 2025"),
+				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.16.0"),
 			},
 			"page_num": {
 				Type:     schema.TypeInt,
