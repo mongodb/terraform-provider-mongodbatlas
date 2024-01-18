@@ -328,13 +328,14 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.Errorf("error setting `fields` for for search index (%s): %s", d.Id(), err)
 		}
 	} else {
-		analyzers := searchIndex.GetAnalyzers()
-		searchIndexMappingFields, err := marshalSearchIndex(analyzers)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		if err := d.Set("analyzers", searchIndexMappingFields); err != nil {
-			return diag.Errorf("error setting `analyzers` for search index (%s): %s", d.Id(), err)
+		if analyzers := searchIndex.GetAnalyzers(); len(analyzers) > 0 {
+			searchIndexMappingFields, err := marshalSearchIndex(analyzers)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+			if err := d.Set("analyzers", searchIndexMappingFields); err != nil {
+				return diag.Errorf("error setting `analyzers` for search index (%s): %s", d.Id(), err)
+			}
 		}
 
 		if searchIndex.Mappings != nil {
@@ -391,11 +392,7 @@ func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition)
 
 func marshalSearchIndex(fields any) (string, error) {
 	bytes, err := json.Marshal(fields)
-	str := string(bytes)
-	if str == "[]" { // empty JSON array serialized to empty string
-		str = ""
-	}
-	return str, err
+	return string(bytes), err
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
