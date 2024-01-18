@@ -45,7 +45,6 @@ Update guide:
 		}
 		```
 		This will return the specific `mongodbatlas_federated_settings_identity_provider` with both `okta_idp_id` (20-hex characters Id) and `idp_id` (24-hex characters Id) 
-TODO: rephrase/restructure(point 2. only applies if user has data source, maybe move it outside)
 2. What to do with the new 24-hex characters string ID value?
 	- If you use [`mongodbatlas_federated_settings_identity_provider`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/federated_settings_identity_provider) data source:
 		- Replace all occurrences of the old Id in `mongodbatlas_federated_settings_identity_provider` data source in `identity_provider_id` attribute
