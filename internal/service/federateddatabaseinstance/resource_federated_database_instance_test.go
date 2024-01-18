@@ -70,7 +70,6 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 }
 
 func TestAccFederatedDatabaseInstance_S3bucket(t *testing.T) {
-	acc.SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_federated_database_instance.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -83,7 +82,7 @@ func TestAccFederatedDatabaseInstance_S3bucket(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasic(t) },
+		PreCheck:     func() { acc.PreCheckBasic(t); acc.PreCheckS3Bucket(t) },
 		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
