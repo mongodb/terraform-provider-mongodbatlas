@@ -24,10 +24,6 @@ func NewNotificationList(list []TfNotificationModel) (*[]admin.AlertsNotificatio
 
 	for i := range list {
 		n := &list[i]
-		roles := n.Roles
-		if roles == nil {
-			roles = []string{}
-		}
 		notifications[i] = admin.AlertsNotificationRootForGroup{
 			ApiToken:                 n.APIToken.ValueStringPointer(),
 			ChannelName:              n.ChannelName.ValueStringPointer(),
@@ -47,7 +43,7 @@ func NewNotificationList(list []TfNotificationModel) (*[]admin.AlertsNotificatio
 			Username:                 n.Username.ValueStringPointer(),
 			VictorOpsApiKey:          n.VictorOpsAPIKey.ValueStringPointer(),
 			VictorOpsRoutingKey:      n.VictorOpsRoutingKey.ValueStringPointer(),
-			Roles:                    &roles,
+			Roles:                    &n.Roles,
 			MicrosoftTeamsWebhookUrl: n.MicrosoftTeamsWebhookURL.ValueStringPointer(),
 			WebhookSecret:            n.WebhookSecret.ValueStringPointer(),
 			WebhookUrl:               n.WebhookURL.ValueStringPointer(),
