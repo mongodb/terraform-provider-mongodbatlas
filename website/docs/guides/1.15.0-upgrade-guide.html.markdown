@@ -25,7 +25,7 @@ Note: The old IdP Id format was a 20-hex characters long string. The new IdP Id 
 
 
 Update Guide: 
-1. How to get the new 24-hex characters string ID value?
+1. How to get the new IdP Id 24-hex characters string ID value
 	- Option 1: Use Atlas API v20231001, both of the following endpoints include the new `id` in the response:
 		- Use [Return all identity providers from the specified federation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/2023-10-01/#tag/Federated-Authentication/operation/listIdentityProviders) endpoint.
 		- Use [Return one identity provider from the specified federation by id](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/2023-10-01/#tag/Federated-Authentication/operation/listIdentityProviders) endpoint
