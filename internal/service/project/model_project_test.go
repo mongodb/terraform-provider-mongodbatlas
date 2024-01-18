@@ -30,6 +30,7 @@ var (
 	roleSet, _         = types.SetValueFrom(context.Background(), types.StringType, roles)
 	ipAddresses        = []string{"13.13.13.13"}
 	ipAddressesList, _ = types.ListValueFrom(context.Background(), types.StringType, ipAddresses)
+	empptyTFList, _    = types.ListValueFrom(context.Background(), types.StringType, []string{})
 	teamRolesSDK       = []admin.TeamRole{
 		{
 			TeamId:    conversion.StringPtr("teamId"),
@@ -80,9 +81,20 @@ var (
 			},
 		},
 	})
-	emptyIPAddressesTF, _ = types.ObjectValueFrom(context.Background(), project.IPAddressesObjectType.AttrTypes, project.TFIPAddressesModel{
+	IPAddressesNoClusterTF, _ = types.ObjectValueFrom(context.Background(), project.IPAddressesObjectType.AttrTypes, project.TFIPAddressesModel{
 		Services: project.TFServicesModel{
 			Clusters: []project.TFClusterIPsModel{},
+		},
+	})
+	IPAddressesWithClusterNoIPsTF, _ = types.ObjectValueFrom(context.Background(), project.IPAddressesObjectType.AttrTypes, project.TFIPAddressesModel{
+		Services: project.TFServicesModel{
+			Clusters: []project.TFClusterIPsModel{
+				{
+					Inbound:     empptyTFList,
+					Outbound:    empptyTFList,
+					ClusterName: types.StringValue("Cluster0"),
+				},
+			},
 		},
 	})
 	projectSDK = admin.Group{
@@ -99,13 +111,25 @@ var (
 		IsRealtimePerformancePanelEnabled:           admin.PtrBool(true),
 		IsSchemaAdvisorEnabled:                      admin.PtrBool(true),
 	}
-	projectIPAddressesSDK = admin.GroupIPAddresses{
+	IPAddressesSDK = admin.GroupIPAddresses{
 		GroupId: admin.PtrString(projectID),
 		Services: &admin.GroupService{
 			Clusters: &[]admin.ClusterIPAddresses{
 				{
 					Inbound:     &[]string{"13.13.13.13"},
 					Outbound:    &[]string{"13.13.13.13"},
+					ClusterName: admin.PtrString("Cluster0"),
+				},
+			},
+		},
+	}
+	IPAddressesWithClusterNoIPsSDK = admin.GroupIPAddresses{
+		GroupId: admin.PtrString(projectID),
+		Services: &admin.GroupService{
+			Clusters: &[]admin.ClusterIPAddresses{
+				{
+					Inbound:     &[]string{},
+					Outbound:    &[]string{},
 					ClusterName: admin.PtrString("Cluster0"),
 				},
 			},
@@ -184,7 +208,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 					TotalCount: conversion.IntPtr(1),
 				},
 				Settings:    &projectSettingsSDK,
-				IPAddresses: &projectIPAddressesSDK,
+				IPAddresses: &IPAddressesSDK,
 				Limits:      limitsSDK,
 			},
 			expectedTFModel: project.TFProjectDSModel{
@@ -234,7 +258,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 					TotalCount: conversion.IntPtr(1),
 				},
 				Settings:    &projectSettingsSDK,
-				IPAddresses: &projectIPAddressesSDK,
+				IPAddresses: &IPAddressesSDK,
 				Limits:      limitsSDK,
 			},
 			expectedTFModel: project.TFProjectRSModel{
@@ -374,7 +398,7 @@ func TestIPAddressesModelToTF(t *testing.T) {
 		{
 			name:           "No response",
 			sdkModel:       nil,
-			expectedResult: emptyIPAddressesTF,
+			expectedResult: IPAddressesNoClusterTF,
 		},
 		{
 			name: "Empty response when no clusters are created",
@@ -384,11 +408,16 @@ func TestIPAddressesModelToTF(t *testing.T) {
 					Clusters: &[]admin.ClusterIPAddresses{},
 				},
 			},
-			expectedResult: emptyIPAddressesTF,
+			expectedResult: IPAddressesNoClusterTF,
+		},
+		{
+			name:           "One cluster with empty IP lists",
+			sdkModel:       &IPAddressesWithClusterNoIPsSDK,
+			expectedResult: IPAddressesWithClusterNoIPsTF,
 		},
 		{
 			name:           "Full response",
-			sdkModel:       &projectIPAddressesSDK,
+			sdkModel:       &IPAddressesSDK,
 			expectedResult: ipAddressesTF,
 		},
 	}

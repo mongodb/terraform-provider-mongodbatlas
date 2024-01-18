@@ -77,7 +77,7 @@ func NewTFIPAddressesModel(ctx context.Context, ipAddresses *admin.GroupIPAddres
 			}
 		}
 	}
-	obj, _ := types.ObjectValueFrom(ctx, IPAddressesObjectType.AttrTypes, TFIPAddressesModel{ // TODO handle errors.
+	obj, _ := types.ObjectValueFrom(ctx, IPAddressesObjectType.AttrTypes, TFIPAddressesModel{
 		Services: TFServicesModel{
 			Clusters: clusterIPs,
 		},
