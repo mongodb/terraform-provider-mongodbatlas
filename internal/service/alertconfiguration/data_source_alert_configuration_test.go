@@ -22,12 +22,12 @@ func TestAccConfigDSAlertConfiguration_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDSMongoDBAtlasAlertConfiguration(orgID, projectName),
+				Config: configBasicDS(orgID, projectName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(dataSourceName, alert),
+					checkExists(dataSourceName, alert),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "notification.#", "1"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "notification.0.notifier_id"),
@@ -51,12 +51,12 @@ func TestAccConfigDSAlertConfiguration_withThreshold(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDSMongoDBAtlasAlertConfigurationConfigWithThreshold(orgID, projectName, true, 1),
+				Config: configWithThreshold(orgID, projectName, true, 1),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(dataSourceName, alert),
+					checkExists(dataSourceName, alert),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "notification.#", "1"),
@@ -81,12 +81,12 @@ func TestAccConfigDSAlertConfiguration_withOutput(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDSMongoDBAtlasAlertConfigurationWithOutputs(orgID, projectName, outputLabel),
+				Config: configWithOutputs(orgID, projectName, outputLabel),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(dataSourceName, alert),
+					checkExists(dataSourceName, alert),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "notification.#", "1"),
@@ -114,12 +114,12 @@ func TestAccConfigDSAlertConfiguration_withPagerDuty(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDSMongoDBAtlasAlertConfigurationConfigWithPagerDuty(orgID, projectName, serviceKey, true),
+				Config: configWithPagerDutyDS(orgID, projectName, serviceKey, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(dataSourceName, alert),
+					checkExists(dataSourceName, alert),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 				),
 			},
@@ -127,7 +127,7 @@ func TestAccConfigDSAlertConfiguration_withPagerDuty(t *testing.T) {
 	})
 }
 
-func testAccDSMongoDBAtlasAlertConfiguration(orgID, projectName string) string {
+func configBasicDS(orgID, projectName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q
@@ -168,7 +168,7 @@ func testAccDSMongoDBAtlasAlertConfiguration(orgID, projectName string) string {
 	`, orgID, projectName)
 }
 
-func testAccDSMongoDBAtlasAlertConfigurationConfigWithThreshold(orgID, projectName string, enabled bool, threshold float64) string {
+func configWithThreshold(orgID, projectName string, enabled bool, threshold float64) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q
@@ -208,7 +208,7 @@ func testAccDSMongoDBAtlasAlertConfigurationConfigWithThreshold(orgID, projectNa
 	`, orgID, projectName, enabled, threshold)
 }
 
-func testAccDSMongoDBAtlasAlertConfigurationWithOutputs(orgID, projectName, outputLabel string) string {
+func configWithOutputs(orgID, projectName, outputLabel string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q
@@ -246,7 +246,7 @@ func testAccDSMongoDBAtlasAlertConfigurationWithOutputs(orgID, projectName, outp
 	`, orgID, projectName, outputLabel)
 }
 
-func testAccDSMongoDBAtlasAlertConfigurationConfigWithPagerDuty(orgID, projectName, serviceKey string, enabled bool) string {
+func configWithPagerDutyDS(orgID, projectName, serviceKey string, enabled bool) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_project" "test" {
 	name   = %[2]q
