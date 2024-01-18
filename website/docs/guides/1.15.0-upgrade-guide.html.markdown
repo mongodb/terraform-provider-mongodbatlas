@@ -26,8 +26,7 @@ The old format was a 20-hex characters long string.
 The new format is a 24-hex characters long string.
 
 Update guide: 
-//TODO: Phrase it as a question? Next question: What do I do with the new ID? smth similar
-1. Get new 24-hex characters string ID value 
+1. How to get the new 24-hex characters string ID value?
 	- Option 1: Use Atlas API v20231001, both of the following endpoints include the new `id` in the response:
 		- Use [Return all identity providers from the specified federation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/2023-10-01/#tag/Federated-Authentication/operation/listIdentityProviders) endpoint.
 		- Use [Return one identity provider from the specified federation by id](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/2023-10-01/#tag/Federated-Authentication/operation/listIdentityProviders) endpoint
@@ -47,9 +46,12 @@ Update guide:
 		```
 		This will return the specific `mongodbatlas_federated_settings_identity_provider` with both `okta_idp_id` (20-hex characters Id) and `idp_id` (24-hex characters Id) 
 TODO: rephrase/restructure(point 2. only applies if user has data source, maybe move it outside)
-2.  Replace all occurrences of old Id, such as `identity_provider_id` in `mongodbatlas_federated_settings_identity_provider`
-3. Re-import all `mongodbatlas_federated_settings_identity_provider` resources using the new Id: 
-	-  `terraform import mongodbatlas_federated_settings_identity_provider.identity_provider  <federation_settings_id>-<new_idp_id>`
+2. What to do with the new 24-hex characters string ID value?
+	- If you use `mongodbatlas_federated_settings_identity_provider` data source:
+		- Replace all occurrences of the old Id in `mongodbatlas_federated_settings_identity_provider` data source in `identity_provider_id` attribute
+	- If you use `mongodbatlas_federated_settings_identity_provider` resource:
+		- Re-import all `mongodbatlas_federated_settings_identity_provider` resources using the new Id: 
+			`terraform import mongodbatlas_federated_settings_identity_provider.identity_provider  <federation_settings_id>-<new_idp_id>`
 4. Run `terraform plan` 
 5. Run `terraform apply`
 
