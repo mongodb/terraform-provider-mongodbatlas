@@ -400,14 +400,16 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	// get project props
-	atlasTeams, atlasLimits, atlasProjectSettings, ipAddresses, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
+	projectProps, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
-	atlasLimits = FilterUserDefinedLimits(atlasLimits, limits)
-	projectPlanNew := NewTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits, ipAddresses)
+	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, limits)
+	projectProps.Limits = filteredLimits
+
+	projectPlanNew := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
 	updatePlanFromConfig(projectPlanNew, &projectPlan)
 
 	// set state to fully populated data
@@ -446,14 +448,16 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	// get project props
-	atlasTeams, atlasLimits, atlasProjectSettings, ipAddresses, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
+	projectProps, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
-	atlasLimits = FilterUserDefinedLimits(atlasLimits, limits)
-	projectStateNew := NewTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits, ipAddresses)
+	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, limits)
+	projectProps.Limits = filteredLimits
+
+	projectStateNew := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
 	updatePlanFromConfig(projectStateNew, &projectState)
 
 	// save read data into Terraform state
@@ -515,15 +519,18 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	}
 
 	// get project props
-	atlasTeams, atlasLimits, atlasProjectSettings, ipAddresses, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
+	projectProps, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 	var planLimits []TfLimitModel
 	_ = projectPlan.Limits.ElementsAs(ctx, &planLimits, false)
-	atlasLimits = FilterUserDefinedLimits(atlasLimits, planLimits)
-	projectPlanNew := NewTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits, ipAddresses)
+
+	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, planLimits)
+	projectProps.Limits = filteredLimits
+
+	projectPlanNew := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
 	updatePlanFromConfig(projectPlanNew, &projectPlan)
 
 	// save updated data into Terraform state
@@ -576,29 +583,41 @@ func FilterUserDefinedLimits(allAtlasLimits []admin.DataFederationLimit, tflimit
 	return filteredLimits
 }
 
-// TODO refactor resp into struct
-func GetProjectPropsFromAPI(ctx context.Context, client GroupProjectService, projectID string) (*admin.PaginatedTeamRole, []admin.DataFederationLimit, *admin.GroupSettings, *admin.GroupIPAddresses, error) {
+type AdditionalProperties struct {
+	Teams       *admin.PaginatedTeamRole
+	Settings    *admin.GroupSettings
+	IPAddresses *admin.GroupIPAddresses
+	Limits      []admin.DataFederationLimit
+}
+
+// GetProjectPropsFromAPI fetches properties obtained from complementary endpoints associated with a project.
+func GetProjectPropsFromAPI(ctx context.Context, client GroupProjectService, projectID string) (*AdditionalProperties, error) {
 	teams, _, err := client.ListProjectTeams(ctx, projectID)
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("error getting project's teams assigned (%s): %v", projectID, err.Error())
+		return nil, fmt.Errorf("error getting project's teams assigned (%s): %v", projectID, err.Error())
 	}
 
 	limits, _, err := client.ListProjectLimits(ctx, projectID)
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("error getting project's limits (%s): %s", projectID, err.Error())
+		return nil, fmt.Errorf("error getting project's limits (%s): %s", projectID, err.Error())
 	}
 
 	projectSettings, _, err := client.GetProjectSettings(ctx, projectID)
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("error getting project's settings assigned (%s): %v", projectID, err.Error())
+		return nil, fmt.Errorf("error getting project's settings assigned (%s): %v", projectID, err.Error())
 	}
 
 	ipAddresses, _, err := client.ReturnAllIPAddresses(ctx, projectID)
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("error getting project's IP addresses (%s): %v", projectID, err.Error())
+		return nil, fmt.Errorf("error getting project's IP addresses (%s): %v", projectID, err.Error())
 	}
 
-	return teams, limits, projectSettings, ipAddresses, nil
+	return &AdditionalProperties{
+		Teams:       teams,
+		Limits:      limits,
+		Settings:    projectSettings,
+		IPAddresses: ipAddresses,
+	}, nil
 }
 
 func updateProjectSettings(ctx context.Context, connV2 *admin.APIClient, state, plan *TfProjectRSModel) error {

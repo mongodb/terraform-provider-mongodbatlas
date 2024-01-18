@@ -113,7 +113,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			svc.On("GetProjectSettings", mock.Anything, mock.Anything).Return(tc.groupResponse.GroupSettings, tc.groupResponse.HTTPResponse, tc.groupResponse.Err).Maybe()
 			svc.On("ReturnAllIPAddresses", mock.Anything, mock.Anything).Return(tc.ipAddressesResponse.IPAddresses, tc.ipAddressesResponse.HTTPResponse, tc.ipAddressesResponse.Err).Maybe()
 
-			_, _, _, _, err := project.GetProjectPropsFromAPI(context.Background(), svc, dummyProjectID)
+			_, err := project.GetProjectPropsFromAPI(context.Background(), svc, dummyProjectID)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)

@@ -8,9 +8,9 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115003/admin"
 )
 
-func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group,
-	teams *admin.PaginatedTeamRole, projectSettings *admin.GroupSettings, limits []admin.DataFederationLimit, ipAddresses *admin.GroupIPAddresses) TfProjectDSModel {
-	ipAddressesModel := NewTFIPAddressesModel(ctx, ipAddresses)
+func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, projectProps AdditionalProperties) TfProjectDSModel {
+	ipAddressesModel := NewTFIPAddressesModel(ctx, projectProps.IPAddresses)
+	projectSettings := projectProps.Settings
 	return TfProjectDSModel{
 		ID:           types.StringValue(project.GetId()),
 		ProjectID:    types.StringValue(project.GetId()),
@@ -24,8 +24,8 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group,
 		IsPerformanceAdvisorEnabled:                 types.BoolValue(*projectSettings.IsPerformanceAdvisorEnabled),
 		IsRealtimePerformancePanelEnabled:           types.BoolValue(*projectSettings.IsRealtimePerformancePanelEnabled),
 		IsSchemaAdvisorEnabled:                      types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled),
-		Teams:                                       NewTFTeamsDataSourceModel(ctx, teams),
-		Limits:                                      NewTFLimitsDataSourceModel(ctx, limits),
+		Teams:                                       NewTFTeamsDataSourceModel(ctx, projectProps.Teams),
+		Limits:                                      NewTFLimitsDataSourceModel(ctx, projectProps.Limits),
 		IPAddresses:                                 ipAddressesModel,
 	}
 }
@@ -85,9 +85,8 @@ func NewTFIPAddressesModel(ctx context.Context, ipAddresses *admin.GroupIPAddres
 	return obj
 }
 
-func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group,
-	teams *admin.PaginatedTeamRole, projectSettings *admin.GroupSettings, limits []admin.DataFederationLimit, ipAddresses *admin.GroupIPAddresses) *TfProjectRSModel {
-	ipAddressesModel := NewTFIPAddressesModel(ctx, ipAddresses)
+func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, projectProps AdditionalProperties) *TfProjectRSModel {
+	ipAddressesModel := NewTFIPAddressesModel(ctx, projectProps.IPAddresses)
 	projectPlan := TfProjectRSModel{
 		ID:                        types.StringValue(projectRes.GetId()),
 		Name:                      types.StringValue(projectRes.Name),
@@ -95,11 +94,12 @@ func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group,
 		ClusterCount:              types.Int64Value(projectRes.ClusterCount),
 		Created:                   types.StringValue(conversion.TimeToString(projectRes.Created)),
 		WithDefaultAlertsSettings: types.BoolPointerValue(projectRes.WithDefaultAlertsSettings),
-		Teams:                     newTFTeamsResourceModel(ctx, teams),
-		Limits:                    newTFLimitsResourceModel(ctx, limits),
+		Teams:                     newTFTeamsResourceModel(ctx, projectProps.Teams),
+		Limits:                    newTFLimitsResourceModel(ctx, projectProps.Limits),
 		IPAddresses:               ipAddressesModel,
 	}
 
+	projectSettings := projectProps.Settings
 	if projectSettings != nil {
 		projectPlan.IsCollectDatabaseSpecificsStatisticsEnabled = types.BoolValue(*projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled)
 		projectPlan.IsDataExplorerEnabled = types.BoolValue(*projectSettings.IsDataExplorerEnabled)

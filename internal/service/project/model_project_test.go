@@ -170,24 +170,23 @@ func TestLimitsDataSourceSDKToTFModel(t *testing.T) {
 
 func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 	testCases := []struct {
-		name                 string
-		project              *admin.Group
-		teams                *admin.PaginatedTeamRole
-		projectSettings      *admin.GroupSettings
-		ipAddresses          *admin.GroupIPAddresses
-		dataFederationLimits []admin.DataFederationLimit
-		expectedTFModel      project.TfProjectDSModel
+		name            string
+		project         *admin.Group
+		projectProps    project.AdditionalProperties
+		expectedTFModel project.TfProjectDSModel
 	}{
 		{
 			name:    "Project",
 			project: &projectSDK,
-			teams: &admin.PaginatedTeamRole{
-				Results:    &teamRolesSDK,
-				TotalCount: conversion.IntPtr(1),
+			projectProps: project.AdditionalProperties{
+				Teams: &admin.PaginatedTeamRole{
+					Results:    &teamRolesSDK,
+					TotalCount: conversion.IntPtr(1),
+				},
+				Settings:    &projectSettingsSDK,
+				IPAddresses: &projectIPAddressesSDK,
+				Limits:      limitsSDK,
 			},
-			projectSettings:      &projectSettingsSDK,
-			ipAddresses:          &projectIPAddressesSDK,
-			dataFederationLimits: limitsSDK,
 			expectedTFModel: project.TfProjectDSModel{
 
 				ID:           types.StringValue(projectID),
@@ -211,7 +210,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := project.NewTFProjectDataSourceModel(context.Background(), tc.project, tc.teams, tc.projectSettings, tc.dataFederationLimits, tc.ipAddresses)
+			resultModel := project.NewTFProjectDataSourceModel(context.Background(), tc.project, tc.projectProps)
 			if !assert.Equal(t, tc.expectedTFModel, resultModel) {
 				t.Errorf("created terraform model did not match expected output")
 			}
@@ -221,24 +220,23 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 
 func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 	testCases := []struct {
-		name                 string
-		project              *admin.Group
-		teams                *admin.PaginatedTeamRole
-		projectSettings      *admin.GroupSettings
-		ipAddresses          *admin.GroupIPAddresses
-		dataFederationLimits []admin.DataFederationLimit
-		expectedTFModel      project.TfProjectRSModel
+		name            string
+		project         *admin.Group
+		projectProps    project.AdditionalProperties
+		expectedTFModel project.TfProjectRSModel
 	}{
 		{
 			name:    "Project",
 			project: &projectSDK,
-			teams: &admin.PaginatedTeamRole{
-				Results:    conversion.NonEmptyToPtr(teamRolesSDK),
-				TotalCount: conversion.IntPtr(1),
+			projectProps: project.AdditionalProperties{
+				Teams: &admin.PaginatedTeamRole{
+					Results:    conversion.NonEmptyToPtr(teamRolesSDK),
+					TotalCount: conversion.IntPtr(1),
+				},
+				Settings:    &projectSettingsSDK,
+				IPAddresses: &projectIPAddressesSDK,
+				Limits:      limitsSDK,
 			},
-			projectSettings:      &projectSettingsSDK,
-			ipAddresses:          &projectIPAddressesSDK,
-			dataFederationLimits: limitsSDK,
 			expectedTFModel: project.TfProjectRSModel{
 
 				ID:           types.StringValue(projectID),
@@ -261,7 +259,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := project.NewTFProjectResourceModel(context.Background(), tc.project, tc.teams, tc.projectSettings, tc.dataFederationLimits, tc.ipAddresses)
+			resultModel := project.NewTFProjectResourceModel(context.Background(), tc.project, tc.projectProps)
 			if !assert.Equal(t, tc.expectedTFModel, *resultModel) {
 				t.Errorf("created terraform model did not match expected output")
 			}
