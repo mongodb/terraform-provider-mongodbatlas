@@ -17,7 +17,7 @@ The Terraform MongoDB Atlas Provider version 1.15.0 has a number of new and exci
 
 **Deprecations and Removals:**  
 
-Format of `okta_idp_id` that contains the IdP Id in `federated_settings_identity_provider` resource now accepts a different format to align with Atlas API. Both the current and new IdP Id format are accepted in terraform-provider 1.15.0 version. New features for `federated_settings_identity_provider` resource will only be available when using the new Id format.
+Format of id that uniquely identifies the identity provider when importing [`mongodbatlas_federated_settings_identity_provider`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/federated_settings_identity_provider) resource and [`mongodbatlas_federated_settings_identity_provider`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/federated_settings_identity_provider) data source now accepts a different format to align with Atlas API. Both the current and new IdP Id format are accepted in terraform-provider 1.15.0 version. New features for `mongodbatlas_federated_settings_identity_provider` resource and data source will only be available when using the new Id format.
 
 ***WARNING:*** Old IdP Id format will no longer be accepted starting 1.16.0 and onwards. We recommend to update to the new format as soon as possible. A warning will appear if old Id is still being used. Follow the guide below to start using the new Id format.
 
