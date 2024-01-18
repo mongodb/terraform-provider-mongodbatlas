@@ -128,7 +128,7 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 	}
 
-	if err := d.Set("org_id", orgID); err != nil {
+	if err := d.Set("org_id", organization.Organization.GetId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `org_id`: %s", err))
 	}
 

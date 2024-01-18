@@ -335,7 +335,7 @@ But in order to explicitly change `provider_instance_size_name` comment the `lif
 
     Accepted values include:
       - `REPLICASET` Replica set
-      - `SHARDED`	Sharded cluster
+      - `SHARDED` Sharded cluster
       - `GEOSHARDED` Global Cluster
 
 * `disk_size_gb` - (Optional - GCP/AWS Only) Capacity, in gigabytes, of the host’s root volume. Increase this number to add capacity, up to a maximum possible value of 4096 (i.e., 4 TB). This value must be a positive integer.
@@ -551,7 +551,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `cluster_id` - The cluster ID.
 *  `mongo_db_version` - Version of MongoDB the cluster runs, in `major-version`.`minor-version` format.
-* `id` -	The Terraform's unique identifier used internally for state management.
+* `id` -  The Terraform's unique identifier used internally for state management.
 * `mongo_uri` - Base connection string for the cluster. Atlas only displays this field after the cluster is operational, not while it builds the cluster.
 * `mongo_uri_updated` - Lists when the connection string was last updated. The connection string changes, for example, if you change a replica set to a sharded cluster.
 * `mongo_uri_with_options` - connection string for connecting to the Atlas cluster. Includes the replicaSet, ssl, and authSource query parameters in the connection string with values appropriate for the cluster.

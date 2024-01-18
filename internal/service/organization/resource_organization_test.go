@@ -128,6 +128,15 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "restrict_employee_access", "true"),
 				),
 			},
+			{
+				Config: testAccMongoDBAtlasOrganizationConfigBasic(orgOwnerID, "org-name-updated", description, roleName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasOrganizationExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "description"),
+					resource.TestCheckResourceAttr(resourceName, "description", description),
+				),
+			},
 		},
 	})
 }

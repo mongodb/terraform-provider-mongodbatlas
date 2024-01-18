@@ -119,11 +119,11 @@ func newTFTeamsResourceModel(ctx context.Context, atlasTeams *admin.PaginatedTea
 
 func NewTeamRoleList(ctx context.Context, teams []TfTeamModel) *[]admin.TeamRole {
 	res := make([]admin.TeamRole, len(teams))
-
 	for i, team := range teams {
+		roleNames := conversion.TypesSetToString(ctx, team.RoleNames)
 		res[i] = admin.TeamRole{
 			TeamId:    team.TeamID.ValueStringPointer(),
-			RoleNames: conversion.NonEmptyToPtr(conversion.TypesSetToString(ctx, team.RoleNames)),
+			RoleNames: &roleNames,
 		}
 	}
 	return &res
@@ -149,4 +149,18 @@ func NewTfLimitModelMap(limits []TfLimitModel) map[types.String]TfLimitModel {
 		limitsMap[limit.Name] = limit
 	}
 	return limitsMap
+}
+
+func SetProjectBool(plan types.Bool, setting **bool) {
+	if !plan.IsUnknown() {
+		*setting = plan.ValueBoolPointer()
+	}
+}
+
+func UpdateProjectBool(plan, state types.Bool, setting **bool) bool {
+	if plan != state {
+		*setting = plan.ValueBoolPointer()
+		return true
+	}
+	return false
 }

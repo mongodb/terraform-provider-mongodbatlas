@@ -35,24 +35,13 @@ func TestAccGenericBackupDSBackupCompliancePolicy_basic(t *testing.T) {
 }
 
 func testAccMongoDBAtlasDataSourceBackupCompliancePolicyConfig(projectName, orgID, projectOwnerID string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name                                             = "%s"
-			org_id                                           = "%s"
-			project_owner_id                                 = "%s"
-			with_default_alerts_settings                     = false
-			is_collect_database_specifics_statistics_enabled = false
-			is_data_explorer_enabled                         = false
-			is_performance_advisor_enabled                   = false
-			is_realtime_performance_panel_enabled            = false
-			is_schema_advisor_enabled                        = false
-		  }
-		  
-		  data "mongodbatlas_backup_compliance_policy" "backup_policy" {
+	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + `
+
+		data "mongodbatlas_backup_compliance_policy" "backup_policy" {
 			project_id = mongodbatlas_backup_compliance_policy.backup_policy_res.project_id
-		  }
+		}
 		  
-		  resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
+		resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
 			project_id                 = mongodbatlas_project.test.id
 			authorized_email           = "test@example.com"
 			authorized_user_first_name = "First"
@@ -64,7 +53,6 @@ func testAccMongoDBAtlasDataSourceBackupCompliancePolicyConfig(projectName, orgI
 			restore_window_days = 7
 		  
 			on_demand_policy_item {
-		  
 			  frequency_interval = 0
 			  retention_unit     = "days"
 			  retention_value    = 3
@@ -74,26 +62,25 @@ func testAccMongoDBAtlasDataSourceBackupCompliancePolicyConfig(projectName, orgI
 				frequency_interval = 6
 				retention_unit     = "days"
 				retention_value    = 7
-			  }
+			}
 		  
 			policy_item_daily {
 				frequency_interval = 0
 				retention_unit     = "days"
 				retention_value    = 7
-			  }
+			}
 		  
-			  policy_item_weekly {
+			policy_item_weekly {
 				frequency_interval = 0
 				retention_unit     = "weeks"
 				retention_value    = 4
-			  }
+			}
 		  
-			  policy_item_monthly {
+			policy_item_monthly {
 				frequency_interval = 0
 				retention_unit     = "months"
 				retention_value    = 12
-			  }
-		  
-		  }
-`, projectName, orgID, projectOwnerID)
+			}
+		}
+	`
 }
