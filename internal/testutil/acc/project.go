@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 )
 
 func CheckProjectExists(resourceName string, project *admin.Group) resource.TestCheckFunc {
@@ -72,7 +72,7 @@ func ConfigProject(projectName, orgID string, teams []*admin.TeamRole) string {
 			team_id = "%s"
 			role_names = %s
 		}
-		`, t.GetTeamId(), strings.ReplaceAll(fmt.Sprintf("%+q", t.RoleNames), " ", ","))
+		`, t.GetTeamId(), strings.ReplaceAll(fmt.Sprintf("%+q", *t.RoleNames), " ", ","))
 	}
 
 	return fmt.Sprintf(`
@@ -131,21 +131,21 @@ func ConfigProjectWithFalseDefaultSettings(projectName, orgID, projectOwnerID st
 	`, projectName, orgID, projectOwnerID)
 }
 
-func ConfigProjectWithFalseDefaultAdvSettings(projectName, orgID, projectOwnerID string) string {
+func ConfigProjectWithSettings(projectName, orgID, projectOwnerID string, value bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   			 = "%[1]s"
-			org_id 			 = "%[2]s"
-			project_owner_id = "%[3]s"
-			with_default_alerts_settings = false
-			is_collect_database_specifics_statistics_enabled = false
-			is_data_explorer_enabled = false
-			is_extended_storage_sizes_enabled = false
-			is_performance_advisor_enabled = false
-			is_realtime_performance_panel_enabled = false
-			is_schema_advisor_enabled = false
+			name   			 = %[1]q
+			org_id 			 = %[2]q
+			project_owner_id = %[3]q
+			with_default_alerts_settings = %[4]t
+			is_collect_database_specifics_statistics_enabled = %[4]t
+			is_data_explorer_enabled = %[4]t
+			is_extended_storage_sizes_enabled = %[4]t
+			is_performance_advisor_enabled = %[4]t
+			is_realtime_performance_panel_enabled = %[4]t
+			is_schema_advisor_enabled = %[4]t
 		}
-	`, projectName, orgID, projectOwnerID)
+	`, projectName, orgID, projectOwnerID, value)
 }
 
 func ConfigProjectWithLimits(projectName, orgID string, limits []*admin.DataFederationLimit) string {

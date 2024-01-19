@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 )
 
 const (
@@ -191,7 +191,7 @@ func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 			resp.Diagnostics.AddError("error when getting users from Atlas", fmt.Sprintf(errorUsersRead, "project", projectID, err.Error()))
 			return
 		}
-		users = apiResp.Results
+		users = apiResp.GetResults()
 		totalCount = *apiResp.TotalCount
 	case !atlasUsersConfig.TeamID.IsNull() && !atlasUsersConfig.OrgID.IsNull():
 		teamID := atlasUsersConfig.TeamID.ValueString()
@@ -205,7 +205,7 @@ func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 			resp.Diagnostics.AddError("error when getting users from Atlas", fmt.Sprintf(errorUsersRead, "team", teamID, err.Error()))
 			return
 		}
-		users = apiResp.Results
+		users = apiResp.GetResults()
 		totalCount = *apiResp.TotalCount
 	default: // only org_id is defined
 		orgID := atlasUsersConfig.OrgID.ValueString()
@@ -218,7 +218,7 @@ func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 			resp.Diagnostics.AddError("error when getting users from Atlas", fmt.Sprintf(errorUsersRead, "org", orgID, err.Error()))
 			return
 		}
-		users = apiResp.Results
+		users = apiResp.GetResults()
 		totalCount = *apiResp.TotalCount
 	}
 

@@ -6,12 +6,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 func TestAccConfigDSOrganization_basic(t *testing.T) {
 	var (
-		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		datasourceName = "data.mongodbatlas_organization.test"
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -19,8 +21,11 @@ func TestAccConfigDSOrganization_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasOrganizationConfigWithDS(orgID),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.mongodbatlas_organization.test", "name"),
-					resource.TestCheckResourceAttrSet("data.mongodbatlas_organization.test", "id"),
+					resource.TestCheckResourceAttrSet(datasourceName, "name"),
+					resource.TestCheckResourceAttrSet(datasourceName, "id"),
+					resource.TestCheckResourceAttrSet(datasourceName, "restrict_employee_access"),
+					resource.TestCheckResourceAttrSet(datasourceName, "multi_factor_auth_required"),
+					resource.TestCheckResourceAttrSet(datasourceName, "api_access_list_required"),
 				),
 			},
 		},

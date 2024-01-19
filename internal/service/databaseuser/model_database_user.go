@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 )
 
 func NewMongoDBDatabaseUser(ctx context.Context, dbUserModel *TfDatabaseUserModel) (*admin.CloudDatabaseUser, diag.Diagnostics) {
@@ -47,17 +47,17 @@ func NewMongoDBDatabaseUser(ctx context.Context, dbUserModel *TfDatabaseUserMode
 }
 
 func NewTfDatabaseUserModel(ctx context.Context, model *TfDatabaseUserModel, dbUser *admin.CloudDatabaseUser) (*TfDatabaseUserModel, diag.Diagnostics) {
-	rolesSet, diagnostic := types.SetValueFrom(ctx, RoleObjectType, NewTFRolesModel(dbUser.Roles))
+	rolesSet, diagnostic := types.SetValueFrom(ctx, RoleObjectType, NewTFRolesModel(dbUser.GetRoles()))
 	if diagnostic.HasError() {
 		return nil, diagnostic
 	}
 
-	labelsSet, diagnostic := types.SetValueFrom(ctx, LabelObjectType, NewTFLabelsModel(dbUser.Labels))
+	labelsSet, diagnostic := types.SetValueFrom(ctx, LabelObjectType, NewTFLabelsModel(dbUser.GetLabels()))
 	if diagnostic.HasError() {
 		return nil, diagnostic
 	}
 
-	scopesSet, diagnostic := types.SetValueFrom(ctx, ScopeObjectType, NewTFScopesModel(dbUser.Scopes))
+	scopesSet, diagnostic := types.SetValueFrom(ctx, ScopeObjectType, NewTFScopesModel(dbUser.GetScopes()))
 	if diagnostic.HasError() {
 		return nil, diagnostic
 	}
@@ -102,9 +102,9 @@ func NewTFDatabaseDSUserModel(ctx context.Context, dbUser *admin.CloudDatabaseUs
 		OIDCAuthType:     types.StringValue(dbUser.GetOidcAuthType()),
 		LDAPAuthType:     types.StringValue(dbUser.GetLdapAuthType()),
 		AWSIAMType:       types.StringValue(dbUser.GetAwsIAMType()),
-		Roles:            NewTFRolesModel(dbUser.Roles),
-		Labels:           NewTFLabelsModel(dbUser.Labels),
-		Scopes:           NewTFScopesModel(dbUser.Scopes),
+		Roles:            NewTFRolesModel(dbUser.GetRoles()),
+		Labels:           NewTFLabelsModel(dbUser.GetLabels()),
+		Scopes:           NewTFScopesModel(dbUser.GetScopes()),
 	}
 
 	return databaseUserModel, nil
@@ -128,10 +128,6 @@ func NewTFDatabaseUsersModel(ctx context.Context, projectID string, dbUsers []ad
 }
 
 func NewTFScopesModel(scopes []admin.UserScope) []TfScopeModel {
-	if len(scopes) == 0 {
-		return nil
-	}
-
 	out := make([]TfScopeModel, len(scopes))
 	for i, v := range scopes {
 		out[i] = TfScopeModel{
@@ -139,15 +135,10 @@ func NewTFScopesModel(scopes []admin.UserScope) []TfScopeModel {
 			Type: types.StringValue(v.Type),
 		}
 	}
-
 	return out
 }
 
-func NewMongoDBAtlasLabels(labels []*TfLabelModel) []admin.ComponentLabel {
-	if len(labels) == 0 {
-		return []admin.ComponentLabel{}
-	}
-
+func NewMongoDBAtlasLabels(labels []*TfLabelModel) *[]admin.ComponentLabel {
 	out := make([]admin.ComponentLabel, len(labels))
 	for i, v := range labels {
 		out[i] = admin.ComponentLabel{
@@ -155,15 +146,10 @@ func NewMongoDBAtlasLabels(labels []*TfLabelModel) []admin.ComponentLabel {
 			Value: v.Value.ValueStringPointer(),
 		}
 	}
-
-	return out
+	return &out
 }
 
 func NewTFLabelsModel(labels []admin.ComponentLabel) []TfLabelModel {
-	if len(labels) == 0 {
-		return nil
-	}
-
 	out := make([]TfLabelModel, len(labels))
 	for i, v := range labels {
 		out[i] = TfLabelModel{
@@ -171,15 +157,10 @@ func NewTFLabelsModel(labels []admin.ComponentLabel) []TfLabelModel {
 			Value: types.StringValue(v.GetValue()),
 		}
 	}
-
 	return out
 }
 
-func NewMongoDBAtlasScopes(scopes []*TfScopeModel) []admin.UserScope {
-	if len(scopes) == 0 {
-		return []admin.UserScope{}
-	}
-
+func NewMongoDBAtlasScopes(scopes []*TfScopeModel) *[]admin.UserScope {
 	out := make([]admin.UserScope, len(scopes))
 	for i, v := range scopes {
 		out[i] = admin.UserScope{
@@ -187,35 +168,24 @@ func NewMongoDBAtlasScopes(scopes []*TfScopeModel) []admin.UserScope {
 			Type: v.Type.ValueString(),
 		}
 	}
-
-	return out
+	return &out
 }
 
 func NewTFRolesModel(roles []admin.DatabaseUserRole) []TfRoleModel {
-	if len(roles) == 0 {
-		return nil
-	}
-
 	out := make([]TfRoleModel, len(roles))
 	for i, v := range roles {
 		out[i] = TfRoleModel{
 			RoleName:     types.StringValue(v.RoleName),
 			DatabaseName: types.StringValue(v.DatabaseName),
 		}
-
 		if v.GetCollectionName() != "" {
 			out[i].CollectionName = types.StringValue(v.GetCollectionName())
 		}
 	}
-
 	return out
 }
 
-func NewMongoDBAtlasRoles(roles []*TfRoleModel) []admin.DatabaseUserRole {
-	if len(roles) == 0 {
-		return []admin.DatabaseUserRole{}
-	}
-
+func NewMongoDBAtlasRoles(roles []*TfRoleModel) *[]admin.DatabaseUserRole {
 	out := make([]admin.DatabaseUserRole, len(roles))
 	for i, v := range roles {
 		out[i] = admin.DatabaseUserRole{
@@ -224,6 +194,5 @@ func NewMongoDBAtlasRoles(roles []*TfRoleModel) []admin.DatabaseUserRole {
 			CollectionName: v.CollectionName.ValueStringPointer(),
 		}
 	}
-
-	return out
+	return &out
 }

@@ -6,7 +6,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 )
 
 func NewSearchDeploymentReq(ctx context.Context, searchDeploymentPlan *TFSearchDeploymentRSModel) admin.ApiSearchDeploymentRequest {
@@ -22,7 +23,7 @@ func NewSearchDeploymentReq(ctx context.Context, searchDeploymentPlan *TFSearchD
 	}
 
 	return admin.ApiSearchDeploymentRequest{
-		Specs: resultSpecs,
+		Specs: conversion.NonEmptyToPtr(resultSpecs),
 	}
 }
 
@@ -38,7 +39,7 @@ func NewTFSearchDeployment(ctx context.Context, clusterName string, deployResp *
 		result.Timeouts = *timeout
 	}
 
-	specsList, diagnostics := types.ListValueFrom(ctx, SpecObjectType, newTFSpecsModel(deployResp.Specs))
+	specsList, diagnostics := types.ListValueFrom(ctx, SpecObjectType, newTFSpecsModel(deployResp.GetSpecs()))
 	if diagnostics.HasError() {
 		return nil, diagnostics
 	}

@@ -204,6 +204,14 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"protocol": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"idp_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -227,7 +235,7 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead(ctx context.Co
 		return diag.Errorf("error getting federatedSettings IdentityProviders assigned (%s): %s", federationSettingsID, err)
 	}
 
-	if err := d.Set("results", FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProviders)); err != nil {
+	if err := d.Set("results", FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProviders.GetResults())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `result` for federatedSettings IdentityProviders: %s", err))
 	}
 

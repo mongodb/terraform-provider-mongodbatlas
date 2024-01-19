@@ -8,17 +8,17 @@ This folder contains the template files used by [TFplugindocs](https://github.co
 
 The templates in [TFplugindocs](https://github.com/hashicorp/terraform-plugin-docs) are implemented with Go [`text/template`](https://golang.org/pkg/text/template/). After running `tfplugindocs generate`, the tfplugindocs engine performs the following operations:
  
- - Retrieves the templates in `templates/resources/{resource_name}.html.markdown.tmpl` and `templates/data-sources/{resource_name}.html.markdown.tmpl` for a specific `resource-name`
+ - Retrieves the templates in `templates/resources/{resource_name}.md.tmpl` and `templates/data-sources/{resource_name}.md.tmpl` for a specific `resource-name`
  - Retrieves the values in `MarkdownDescription` for all the fields in the `resource-name` schema
  - Retrieves the resource examples in `examples/{resource_name}/main.tf`
  - Generates the documentation.
 
  
  ### How to generate a new template
- Use [resources/search_deployment.html.markdown.tmpl](resources/search_deployment.html.markdown.tmpl) and [resources/search_deployment.html.markdown.tmpl](data-sources/search_deployment.html.markdown.tmpl) as an example to add templates for a resource and data source. 
+ Use [resources/search_deployment.md.tmpl](resources/search_deployment.md.tmpl) and [resources/search_deployment.md.tmpl](data-sources/search_deployment.md.tmpl) as an example to add templates for a resource and data source. 
 
 #### Data fields
-Here a list of the basic data fields and functions that you can use when defining a template.
+Here is a list of the basic data fields and functions you can use to define a template.
 
 See [the HashiCorp documentation](https://github.com/hashicorp/terraform-plugin-docs?tab=readme-ov-file#templates) for a full list of data fields and functions.
 

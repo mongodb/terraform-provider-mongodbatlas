@@ -8,7 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 )
 
 const (
@@ -30,7 +31,7 @@ var (
 	teamRolesSDK = []admin.TeamRole{
 		{
 			TeamId:    conversion.StringPtr("teamId"),
-			RoleNames: roles,
+			RoleNames: &roles,
 		},
 	}
 	teamsDSTF = []*project.TfTeamDSModel{
@@ -88,7 +89,7 @@ func TestTeamsDataSourceSDKToTFModel(t *testing.T) {
 		{
 			name: "Complete TeamRole",
 			paginatedTeamRole: &admin.PaginatedTeamRole{
-				Results:    teamRolesSDK,
+				Results:    &teamRolesSDK,
 				TotalCount: conversion.IntPtr(1),
 			},
 			expectedTFModel: teamsDSTF,
@@ -141,7 +142,7 @@ func TestProjectDataSourceSDKToTFModel(t *testing.T) {
 			name:    "Project",
 			project: &projectSDK,
 			teams: &admin.PaginatedTeamRole{
-				Results:    teamRolesSDK,
+				Results:    &teamRolesSDK,
 				TotalCount: conversion.IntPtr(1),
 			},
 			projectSettings:      &projectSettingsSDK,
@@ -270,6 +271,49 @@ func TestLimitModelMapTF(t *testing.T) {
 			if !reflect.DeepEqual(resultModel, tc.expectedResult) {
 				t.Errorf("created terraform model did not match expected output")
 			}
+		})
+	}
+}
+
+func TestSetProjectBool(t *testing.T) {
+	testCases := []struct {
+		name     string
+		plan     types.Bool
+		expected bool
+	}{
+		{"unknown", types.BoolUnknown(), false},
+		{"false", types.BoolValue(false), false},
+		{"true", types.BoolValue(true), true},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			setting := new(bool)
+			project.SetProjectBool(tc.plan, &setting)
+			assert.Equal(t, tc.expected, *setting)
+		})
+	}
+}
+
+func TestUpdateProjectBool(t *testing.T) {
+	testCases := []struct {
+		name            string
+		plan            types.Bool
+		state           types.Bool
+		expectedSetting bool
+		expected        bool
+	}{
+		{"same state unknown", types.BoolUnknown(), types.BoolUnknown(), false, false},
+		{"same state false", types.BoolValue(false), types.BoolValue(false), false, false},
+		{"same state true", types.BoolValue(true), types.BoolValue(true), false, false},
+		{"different state unknown", types.BoolUnknown(), types.BoolValue(false), false, true},
+		{"different state false", types.BoolValue(false), types.BoolValue(true), false, true},
+		{"different state true", types.BoolValue(true), types.BoolValue(false), true, true},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			setting := new(bool)
+			assert.Equal(t, tc.expected, project.UpdateProjectBool(tc.plan, tc.state, &setting))
+			assert.Equal(t, tc.expectedSetting, *setting)
 		})
 	}
 }

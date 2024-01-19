@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
@@ -146,8 +146,8 @@ func flattenFederatedDatabaseInstances(d *schema.ResourceData, projectID string,
 				"hostnames":             federatedDatabaseInstances[i].GetHostnames(),
 				"cloud_provider_config": flattenCloudProviderConfig(d, federatedDatabaseInstances[i].CloudProviderConfig),
 				"data_process_region":   flattenDataProcessRegion(federatedDatabaseInstances[i].DataProcessRegion),
-				"storage_databases":     flattenDataFederationDatabase(federatedDatabaseInstances[i].Storage.Databases),
-				"storage_stores":        flattenDataFederationStores(federatedDatabaseInstances[i].Storage.Stores),
+				"storage_databases":     flattenDataFederationDatabase(federatedDatabaseInstances[i].Storage.GetDatabases()),
+				"storage_stores":        flattenDataFederationStores(federatedDatabaseInstances[i].Storage.GetStores()),
 			}
 		}
 	}

@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 )
 
 type sdkToTFModelTestCase struct {
@@ -36,7 +36,7 @@ func TestSearchDeploymentSDKToTFModel(t *testing.T) {
 				Id:        admin.PtrString(dummyDeploymentID),
 				GroupId:   admin.PtrString(dummyProjectID),
 				StateName: admin.PtrString(stateName),
-				Specs: []admin.ApiSearchDeploymentSpec{
+				Specs: &[]admin.ApiSearchDeploymentSpec{
 					{
 						InstanceSize: instanceSize,
 						NodeCount:    nodeCount,
@@ -66,14 +66,12 @@ func TestSearchDeploymentSDKToTFModel(t *testing.T) {
 	}
 }
 
-type tfToSDKModelTestCase struct {
-	name           string
-	tfModel        *searchdeployment.TFSearchDeploymentRSModel
-	expectedSDKReq admin.ApiSearchDeploymentRequest
-}
-
 func TestSearchDeploymentTFModelToSDK(t *testing.T) {
-	testCases := []tfToSDKModelTestCase{
+	testCases := []struct {
+		tfModel        *searchdeployment.TFSearchDeploymentRSModel
+		expectedSDKReq admin.ApiSearchDeploymentRequest
+		name           string
+	}{
 		{
 			name: "Complete TF state",
 			tfModel: &searchdeployment.TFSearchDeploymentRSModel{
@@ -84,7 +82,7 @@ func TestSearchDeploymentTFModelToSDK(t *testing.T) {
 				Specs:       tfSpecsList(t, instanceSize, nodeCount),
 			},
 			expectedSDKReq: admin.ApiSearchDeploymentRequest{
-				Specs: []admin.ApiSearchDeploymentSpec{
+				Specs: &[]admin.ApiSearchDeploymentSpec{
 					{
 						InstanceSize: instanceSize,
 						NodeCount:    nodeCount,

@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 )
 
 const (
@@ -189,9 +189,9 @@ func newTFAtlasUserDSModel(user *admin.CloudAppUser) tfAtlasUserDSModel {
 		LastAuth:     types.StringPointerValue(conversion.TimePtrToStringPtr(user.LastAuth)),
 		LastName:     types.StringValue(user.LastName),
 		MobileNumber: types.StringValue(user.MobileNumber),
-		TeamIDs:      user.TeamIds,
-		Links:        newTFLinksList(user.Links),
-		Roles:        newTFRolesList(user.Roles),
+		TeamIDs:      user.GetTeamIds(),
+		Links:        newTFLinksList(user.GetLinks()),
+		Roles:        newTFRolesList(user.GetRoles()),
 	}
 }
 

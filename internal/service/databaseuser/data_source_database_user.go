@@ -2,10 +2,12 @@ package databaseuser
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -55,8 +57,9 @@ func (d *databaseUserDS) Schema(ctx context.Context, req datasource.SchemaReques
 				Required: true,
 			},
 			"password": schema.StringAttribute{
-				Computed:  true,
-				Sensitive: true,
+				Computed:           true,
+				Sensitive:          true,
+				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByVersion, "1.16.0"),
 			},
 			"x509_type": schema.StringAttribute{
 				Computed: true,

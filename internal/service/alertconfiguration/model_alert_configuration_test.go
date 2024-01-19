@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 )
 
 const (
@@ -45,7 +45,7 @@ func TestNotificationSDKToTFModel(t *testing.T) {
 					SmsEnabled:   admin.PtrBool(disabled),
 					EmailEnabled: admin.PtrBool(enabled),
 					ChannelName:  admin.PtrString("#channel"),
-					Roles:        roles,
+					Roles:        &roles,
 					ApiToken:     admin.PtrString("newApiToken"),
 				},
 			},
@@ -290,7 +290,7 @@ func TestNotificationTFModelToSDK(t *testing.T) {
 					DelayMin:     admin.PtrInt(delayMin),
 					SmsEnabled:   admin.PtrBool(disabled),
 					EmailEnabled: admin.PtrBool(enabled),
-					Roles:        roles,
+					Roles:        &roles,
 				},
 			},
 		},
@@ -299,7 +299,7 @@ func TestNotificationTFModelToSDK(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			apiReqResult, _ := alertconfiguration.NewNotificationList(tc.tfModel)
-			if !reflect.DeepEqual(apiReqResult, *tc.expectedSDKReq) {
+			if !reflect.DeepEqual(*apiReqResult, *tc.expectedSDKReq) {
 				t.Errorf("created sdk model did not match expected output")
 			}
 		})
@@ -416,7 +416,7 @@ func TestMatcherTFModelToSDK(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			apiReqResult := alertconfiguration.NewMatcherList(tc.tfModel)
+			apiReqResult := *alertconfiguration.NewMatcherList(tc.tfModel)
 			if !reflect.DeepEqual(apiReqResult, tc.expectedSDKReq) {
 				t.Errorf("created sdk model did not match expected output.\n Expected: %s \n Result: %s", tc.expectedSDKReq, apiReqResult)
 			}

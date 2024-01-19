@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -15,7 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationProjectRS_NoProps(t *testing.T) {
+func TestAccMigrationProjectRS_withNoProps(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project.test"
 		projectName  = acctest.RandomWithPrefix("test-acc-migration")
@@ -52,7 +52,7 @@ func TestAccMigrationProjectRS_NoProps(t *testing.T) {
 	})
 }
 
-func TestAccMigrationProjectRS_Teams(t *testing.T) {
+func TestAccMigrationProjectRS_withTeams(t *testing.T) {
 	var teamsIds = strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
 	if len(teamsIds) < 2 {
 		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
@@ -68,11 +68,11 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 			[]*admin.TeamRole{
 				{
 					TeamId:    &teamsIds[0],
-					RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+					RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 				},
 				{
 					TeamId:    &teamsIds[1],
-					RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+					RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 				},
 			})
 	)
@@ -106,7 +106,7 @@ func TestAccMigrationProjectRS_Teams(t *testing.T) {
 	})
 }
 
-func TestAccMigrationProjectRS_WithFalseDefaultSettings(t *testing.T) {
+func TestAccMigrationProjectRS_withFalseDefaultSettings(t *testing.T) {
 	var (
 		project         admin.Group
 		resourceName    = "mongodbatlas_project.test"
@@ -144,7 +144,7 @@ func TestAccMigrationProjectRS_WithFalseDefaultSettings(t *testing.T) {
 	})
 }
 
-func TestAccMigrationProjectRS_WithLimits(t *testing.T) {
+func TestAccMigrationProjectRS_withLimits(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project.test"
 		projectName  = acctest.RandomWithPrefix("tf-acc-project")
@@ -191,7 +191,7 @@ func TestAccMigrationProjectRS_WithLimits(t *testing.T) {
 	})
 }
 
-func TestAccMigrationProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T) {
+func TestAccMigrationProjectRSProjectIPAccesslist_withSettingIPAddress(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_access_list.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")
@@ -227,7 +227,7 @@ func TestAccMigrationProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T)
 	})
 }
 
-func TestAccMigrationProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
+func TestAccMigrationProjectRSProjectIPAccessList_withSettingCIDRBlock(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_access_list.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")
@@ -263,7 +263,7 @@ func TestAccMigrationProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T)
 	})
 }
 
-func TestAccMigrationProjectRSProjectIPAccessList_Multiple_SettingMultiple(t *testing.T) {
+func TestAccMigrationProjectRSProjectIPAccessList_withMultipleSetting(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_access_list.test_1"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")

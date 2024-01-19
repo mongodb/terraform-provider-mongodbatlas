@@ -53,7 +53,7 @@ fmt:
 	gofmt -s -w .
 
 .PHONY: fmtcheck
-fmtcheck: # Currently required by tf-deploy compile
+fmtcheck: ## Currently required by tf-deploy compile
 	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
 
 .PHONY: lint-fix
@@ -115,9 +115,22 @@ link-git-hooks: ## Install git hooks
 update-atlas-sdk: ## Update the atlas-sdk dependency
 	./scripts/update-sdk.sh
 
-# details on usage can be found in CONTRIBUTING.md under "Creating New Resource and Data Sources"
+# e.g. run: make scaffold resource_name=streamInstance type=resource
+# - type argument can have the values: `resource`, `data-source`, `plural-data-source`.
+# details on usage can be found in CONTRIBUTING.md under "Scaffolding initial Code and File Structure"
 .PHONY: scaffold
 scaffold:
-	@go run ./tools/scaffold/*.go $(name) $(type)
+	@go run ./tools/scaffold/*.go $(resource_name) $(type)
 	@echo "Reminder: configure the new $(type) in provider.go"
+
+# e.g. run: make scaffold-schemas resource_name=streamInstance
+# details on usage can be found in CONTRIBUTING.md under "Scaffolding Schema and Model Definitions"
+.PHONY: scaffold-schemas
+scaffold-schemas:
+	@scripts/schema-scaffold.sh $(resource_name)
+
+
+.PHONY: generate-doc
+generate-doc: ## Generate the resource documentation via tfplugindocs
+	./scripts/generate-doc.sh ${resource_name}
 

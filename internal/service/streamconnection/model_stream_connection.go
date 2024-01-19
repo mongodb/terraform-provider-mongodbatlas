@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 )
 
 func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) (*admin.StreamsConnection, diag.Diagnostics) {
@@ -122,11 +122,12 @@ func newTFConnectionAuthenticationModel(ctx context.Context, currAuthConfig *typ
 func NewTFStreamConnections(ctx context.Context,
 	streamConnectionsConfig *TFStreamConnectionsDSModel,
 	paginatedResult *admin.PaginatedApiStreamsConnection) (*TFStreamConnectionsDSModel, diag.Diagnostics) {
-	results := make([]TFStreamConnectionModel, len(paginatedResult.Results))
-	for i := range paginatedResult.Results {
+	input := paginatedResult.GetResults()
+	results := make([]TFStreamConnectionModel, len(input))
+	for i := range input {
 		projectID := streamConnectionsConfig.ProjectID.ValueString()
 		instanceName := streamConnectionsConfig.InstanceName.ValueString()
-		connectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, nil, &paginatedResult.Results[i])
+		connectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, nil, &input[i])
 		if diags.HasError() {
 			return nil, diags
 		}

@@ -5,12 +5,11 @@ import (
 	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20231115002/admin"
+	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 )
 
 func FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider []admin.FederationIdentityProvider) []map[string]any {
 	var federatedSettingsIdentityProviderMap []map[string]any
-
 	if len(federatedSettingsIdentityProvider) > 0 {
 		federatedSettingsIdentityProviderMap = make([]map[string]any, len(federatedSettingsIdentityProvider))
 
@@ -18,7 +17,7 @@ func FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider 
 			federatedSettingsIdentityProviderMap[i] = map[string]any{
 				"acs_url":                      federatedSettingsIdentityProvider[i].AcsUrl,
 				"associated_domains":           federatedSettingsIdentityProvider[i].AssociatedDomains,
-				"associated_orgs":              FlattenAssociatedOrgs(federatedSettingsIdentityProvider[i].AssociatedOrgs),
+				"associated_orgs":              FlattenAssociatedOrgs(federatedSettingsIdentityProvider[i].GetAssociatedOrgs()),
 				"audience_uri":                 federatedSettingsIdentityProvider[i].AudienceUri,
 				"display_name":                 federatedSettingsIdentityProvider[i].DisplayName,
 				"issuer_uri":                   federatedSettingsIdentityProvider[i].IssuerUri,
@@ -29,6 +28,8 @@ func FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider 
 				"sso_debug_enabled":            federatedSettingsIdentityProvider[i].SsoDebugEnabled,
 				"sso_url":                      federatedSettingsIdentityProvider[i].SsoUrl,
 				"status":                       federatedSettingsIdentityProvider[i].Status,
+				"idp_id":                       federatedSettingsIdentityProvider[i].Id,
+				"protocol":                     federatedSettingsIdentityProvider[i].Protocol,
 			}
 		}
 	}
@@ -52,7 +53,7 @@ func FlattenAssociatedOrgs(associatedOrgs []admin.ConnectedOrgConfig) []map[stri
 				"identity_provider_id":       associatedOrgs[i].IdentityProviderId,
 				"org_id":                     associatedOrgs[i].OrgId,
 				"post_auth_role_grants":      associatedOrgs[i].PostAuthRoleGrants,
-				"role_mappings":              FlattenAuthFederationRoleMapping(associatedOrgs[i].RoleMappings),
+				"role_mappings":              FlattenAuthFederationRoleMapping(associatedOrgs[i].GetRoleMappings()),
 				"user_conflicts":             nil,
 			}
 		} else {
@@ -62,8 +63,8 @@ func FlattenAssociatedOrgs(associatedOrgs []admin.ConnectedOrgConfig) []map[stri
 				"identity_provider_id":       associatedOrgs[i].IdentityProviderId,
 				"org_id":                     associatedOrgs[i].OrgId,
 				"post_auth_role_grants":      associatedOrgs[i].PostAuthRoleGrants,
-				"role_mappings":              FlattenAuthFederationRoleMapping(associatedOrgs[i].RoleMappings),
-				"user_conflicts":             FlattenFederatedUser(associatedOrgs[i].UserConflicts),
+				"role_mappings":              FlattenAuthFederationRoleMapping(associatedOrgs[i].GetRoleMappings()),
+				"user_conflicts":             FlattenFederatedUser(associatedOrgs[i].GetUserConflicts()),
 			}
 		}
 	}
@@ -164,11 +165,11 @@ func FlattenAuthFederationRoleMapping(roleMappings []admin.AuthFederationRoleMap
 func FlattenPemFileInfo(pemFileInfo admin.PemFileInfo) []map[string]any {
 	var pemFileInfoMap []map[string]any
 
-	if len(pemFileInfo.Certificates) > 0 {
+	if certificates := pemFileInfo.GetCertificates(); len(certificates) > 0 {
 		pemFileInfoMap = make([]map[string]any, 1)
 
 		pemFileInfoMap[0] = map[string]any{
-			"certificates": FlattenFederatedSettingsCertificates(pemFileInfo.Certificates),
+			"certificates": FlattenFederatedSettingsCertificates(certificates),
 			"file_name":    pemFileInfo.FileName,
 		}
 	}

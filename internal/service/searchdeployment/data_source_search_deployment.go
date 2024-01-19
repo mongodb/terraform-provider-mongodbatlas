@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -20,52 +18,16 @@ func DataSource() datasource.DataSource {
 	}
 }
 
-type tfSearchDeploymentDSModel struct {
-	ID          types.String `tfsdk:"id"`
-	ClusterName types.String `tfsdk:"cluster_name"`
-	ProjectID   types.String `tfsdk:"project_id"`
-	Specs       types.List   `tfsdk:"specs"`
-	StateName   types.String `tfsdk:"state_name"`
-}
-
 type searchDeploymentDS struct {
 	config.DSCommon
 }
 
 func (d *searchDeploymentDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-			},
-			"cluster_name": schema.StringAttribute{
-				Required: true,
-			},
-			"project_id": schema.StringAttribute{
-				Required: true,
-			},
-			"specs": schema.ListNestedAttribute{
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"instance_size": schema.StringAttribute{
-							Computed: true,
-						},
-						"node_count": schema.Int64Attribute{
-							Computed: true,
-						},
-					},
-				},
-				Computed: true,
-			},
-			"state_name": schema.StringAttribute{
-				Computed: true,
-			},
-		},
-	}
+	resp.Schema = DataSourceSchema(ctx)
 }
 
 func (d *searchDeploymentDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var searchDeploymentConfig tfSearchDeploymentDSModel
+	var searchDeploymentConfig TFSearchDeploymentDSModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &searchDeploymentConfig)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -89,8 +51,8 @@ func (d *searchDeploymentDS) Read(ctx context.Context, req datasource.ReadReques
 	resp.Diagnostics.Append(resp.State.Set(ctx, dsModel)...)
 }
 
-func convertToDSModel(inputModel *TFSearchDeploymentRSModel) tfSearchDeploymentDSModel {
-	return tfSearchDeploymentDSModel{
+func convertToDSModel(inputModel *TFSearchDeploymentRSModel) TFSearchDeploymentDSModel {
+	return TFSearchDeploymentDSModel{
 		ID:          inputModel.ID,
 		ClusterName: inputModel.ClusterName,
 		ProjectID:   inputModel.ProjectID,
