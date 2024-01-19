@@ -409,7 +409,11 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, limits)
 	projectProps.Limits = filteredLimits
 
-	projectPlanNew := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
+	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	updatePlanFromConfig(projectPlanNew, &projectPlan)
 
 	// set state to fully populated data
@@ -457,7 +461,11 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, limits)
 	projectProps.Limits = filteredLimits
 
-	projectStateNew := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
+	projectStateNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	updatePlanFromConfig(projectStateNew, &projectState)
 
 	// save read data into Terraform state
@@ -530,7 +538,11 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, planLimits)
 	projectProps.Limits = filteredLimits
 
-	projectPlanNew := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
+	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	updatePlanFromConfig(projectPlanNew, &projectPlan)
 
 	// save updated data into Terraform state

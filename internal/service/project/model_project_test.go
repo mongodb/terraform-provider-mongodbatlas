@@ -234,8 +234,11 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := project.NewTFProjectDataSourceModel(context.Background(), tc.project, tc.projectProps)
-			if !assert.Equal(t, tc.expectedTFModel, resultModel) {
+			resultModel, diags := project.NewTFProjectDataSourceModel(context.Background(), tc.project, tc.projectProps)
+			if diags.HasError() {
+				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
+			}
+			if !assert.Equal(t, tc.expectedTFModel, *resultModel) {
 				t.Errorf("created terraform model did not match expected output")
 			}
 		})
@@ -283,7 +286,10 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := project.NewTFProjectResourceModel(context.Background(), tc.project, tc.projectProps)
+			resultModel, diags := project.NewTFProjectResourceModel(context.Background(), tc.project, tc.projectProps)
+			if diags.HasError() {
+				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
+			}
 			if !assert.Equal(t, tc.expectedTFModel, *resultModel) {
 				t.Errorf("created terraform model did not match expected output")
 			}
@@ -424,7 +430,10 @@ func TestIPAddressesModelToTF(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := project.NewTFIPAddressesModel(context.Background(), tc.sdkModel)
+			resultModel, diags := project.NewTFIPAddressesModel(context.Background(), tc.sdkModel)
+			if diags.HasError() {
+				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
+			}
 			if !assert.Equal(t, tc.expectedResult, resultModel) {
 				t.Errorf("created terraform model did not match expected output")
 			}

@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -185,9 +186,9 @@ func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 		return
 	}
 
-	err = populateProjectsDataSourceModel(ctx, connV2, &stateModel, projectsRes)
-	if err != nil {
-		resp.Diagnostics.AddError("error in monogbatlas_projects data source", err.Error())
+	diags := populateProjectsDataSourceModel(ctx, connV2, &stateModel, projectsRes)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -197,19 +198,23 @@ func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 	}
 }
 
-func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClient, stateModel *tfProjectsDSModel, projectsRes *admin.PaginatedAtlasGroup) error {
+func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClient, stateModel *tfProjectsDSModel, projectsRes *admin.PaginatedAtlasGroup) diag.Diagnostics {
+	diagnostics := []diag.Diagnostic{}
 	input := projectsRes.GetResults()
 	results := make([]*TFProjectDSModel, 0, len(input))
 	for i := range input {
 		project := input[i]
 		projectProps, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), project.GetId())
 		if err == nil { // if the project is still valid, e.g. could have just been deleted
-			projectModel := NewTFProjectDataSourceModel(ctx, &project, *projectProps)
-			results = append(results, &projectModel)
+			projectModel, diags := NewTFProjectDataSourceModel(ctx, &project, *projectProps)
+			diagnostics = append(diagnostics, diags...)
+			if projectModel != nil {
+				results = append(results, projectModel)
+			}
 		}
 	}
 	stateModel.Results = results
 	stateModel.TotalCount = types.Int64Value(int64(projectsRes.GetTotalCount()))
 	stateModel.ID = types.StringValue(id.UniqueId())
-	return nil
+	return diagnostics
 }

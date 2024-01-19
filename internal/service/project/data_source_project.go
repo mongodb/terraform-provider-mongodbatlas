@@ -208,9 +208,13 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		return
 	}
 
-	projectState = NewTFProjectDataSourceModel(ctx, project, *projectProps)
+	newProjectState, diags := NewTFProjectDataSourceModel(ctx, project, *projectProps)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &projectState)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newProjectState)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

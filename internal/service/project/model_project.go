@@ -3,15 +3,19 @@ package project
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 )
 
-func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, projectProps AdditionalProperties) TFProjectDSModel {
-	ipAddressesModel := NewTFIPAddressesModel(ctx, projectProps.IPAddresses)
+func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, projectProps AdditionalProperties) (*TFProjectDSModel, diag.Diagnostics) {
+	ipAddressesModel, diags := NewTFIPAddressesModel(ctx, projectProps.IPAddresses)
+	if diags.HasError() {
+		return nil, diags
+	}
 	projectSettings := projectProps.Settings
-	return TFProjectDSModel{
+	return &TFProjectDSModel{
 		ID:           types.StringValue(project.GetId()),
 		ProjectID:    types.StringValue(project.GetId()),
 		Name:         types.StringValue(project.Name),
@@ -27,7 +31,7 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, proj
 		Teams:                                       NewTFTeamsDataSourceModel(ctx, projectProps.Teams),
 		Limits:                                      NewTFLimitsDataSourceModel(ctx, projectProps.Limits),
 		IPAddresses:                                 ipAddressesModel,
-	}
+	}, nil
 }
 
 func NewTFTeamsDataSourceModel(ctx context.Context, atlasTeams *admin.PaginatedTeamRole) []*TFTeamDSModel {
@@ -62,7 +66,7 @@ func NewTFLimitsDataSourceModel(ctx context.Context, dataFederationLimits []admi
 	return limits
 }
 
-func NewTFIPAddressesModel(ctx context.Context, ipAddresses *admin.GroupIPAddresses) types.Object {
+func NewTFIPAddressesModel(ctx context.Context, ipAddresses *admin.GroupIPAddresses) (types.Object, diag.Diagnostics) {
 	clusterIPs := []TFClusterIPsModel{}
 	if ipAddresses != nil && ipAddresses.Services != nil {
 		clusterIPAddresses := ipAddresses.Services.GetClusters()
@@ -77,16 +81,19 @@ func NewTFIPAddressesModel(ctx context.Context, ipAddresses *admin.GroupIPAddres
 			}
 		}
 	}
-	obj, _ := types.ObjectValueFrom(ctx, IPAddressesObjectType.AttrTypes, TFIPAddressesModel{
+	obj, diags := types.ObjectValueFrom(ctx, IPAddressesObjectType.AttrTypes, TFIPAddressesModel{
 		Services: TFServicesModel{
 			Clusters: clusterIPs,
 		},
 	})
-	return obj
+	return obj, diags
 }
 
-func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, projectProps AdditionalProperties) *TFProjectRSModel {
-	ipAddressesModel := NewTFIPAddressesModel(ctx, projectProps.IPAddresses)
+func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, projectProps AdditionalProperties) (*TFProjectRSModel, diag.Diagnostics) {
+	ipAddressesModel, diags := NewTFIPAddressesModel(ctx, projectProps.IPAddresses)
+	if diags.HasError() {
+		return nil, diags
+	}
 	projectPlan := TFProjectRSModel{
 		ID:                        types.StringValue(projectRes.GetId()),
 		Name:                      types.StringValue(projectRes.Name),
@@ -109,7 +116,7 @@ func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, pro
 		projectPlan.IsSchemaAdvisorEnabled = types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled)
 	}
 
-	return &projectPlan
+	return &projectPlan, nil
 }
 
 func newTFLimitsResourceModel(ctx context.Context, dataFederationLimits []admin.DataFederationLimit) types.Set {
