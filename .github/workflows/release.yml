@@ -39,7 +39,7 @@ jobs:
       - name: Unshallow
         run: git fetch --prune --unshallow
       - name: Create release tag
-        uses: rickstaa/action-create-tag@v1.7.2 # will fail if existing tag is present
+        uses: rickstaa/action-create-tag@a1c7777fcb2fee4f19b0f283ba888afa11678b72 # will fail if existing tag is present
         with:
           tag: ${{ inputs.version_number }}
       - name: Set up Go
@@ -48,14 +48,14 @@ jobs:
           go-version-file: 'go.mod'
       - name: Import GPG key
         id: import_gpg
-        uses: paultyng/ghaction-import-gpg@v2.1.0
+        uses: crazy-max/ghaction-import-gpg@53deb67fe3b05af114ad9488a4da7b782455d588
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           PASSPHRASE: ${{ secrets.PASSPHRASE }}
       - name: Set the user terminal
         run: export GPG_TTY=$(tty)
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v5
+        uses: goreleaser/goreleaser-action@7ec5c2b0c6cdda6e8bbb49444bc797dd33d74dd8
         with:
           version: latest
           args: release --rm-dist

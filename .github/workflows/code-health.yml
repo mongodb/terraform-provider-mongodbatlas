@@ -58,7 +58,7 @@ jobs:
           go-version-file: 'go.mod'
           cache: false # see https://github.com/golangci/golangci-lint-action/issues/807
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3.7.0
+        uses: golangci/golangci-lint-action@3a919529898de77ec3da873e3063ca4b10e7f5cc
         with:
           version: v1.55.0
   website-lint:
@@ -75,7 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run ShellCheck
-        uses: bewuethr/shellcheck-action@v2
+        uses: bewuethr/shellcheck-action@a7092784dbc0f7b2139dd8396ab357fe4678e958
   call-acceptance-tests-workflow:
     needs: [build, lint, shellcheck, unit-test, website-lint]
     secrets: inherit
