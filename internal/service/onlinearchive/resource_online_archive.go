@@ -16,7 +16,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
-	admin20231001002 "go.mongodb.org/atlas-sdk/v20231115004/admin"
+	admin20231001002 "go.mongodb.org/atlas-sdk/v20231001002/admin"
 )
 
 const (
