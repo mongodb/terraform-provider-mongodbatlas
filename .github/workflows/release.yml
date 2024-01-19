@@ -35,27 +35,27 @@ jobs:
     if: ${{ always() && needs.validate-version-input.result == 'success' && (needs.run-qa-acceptance-tests.result == 'skipped' || needs.run-qa-acceptance-tests.result == 'success') }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
       - name: Unshallow
         run: git fetch --prune --unshallow
       - name: Create release tag
-        uses: rickstaa/action-create-tag@v1.7.2 # will fail if existing tag is present
+        uses: rickstaa/action-create-tag@a1c7777fcb2fee4f19b0f283ba888afa11678b72 # will fail if existing tag is present
         with:
           tag: ${{ inputs.version_number }}
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
       - name: Import GPG key
         id: import_gpg
-        uses: paultyng/ghaction-import-gpg@v2.1.0
+        uses: crazy-max/ghaction-import-gpg@53deb67fe3b05af114ad9488a4da7b782455d588
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           PASSPHRASE: ${{ secrets.PASSPHRASE }}
       - name: Set the user terminal
         run: export GPG_TTY=$(tty)
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v5
+        uses: goreleaser/goreleaser-action@7ec5c2b0c6cdda6e8bbb49444bc797dd33d74dd8
         with:
           version: latest
           args: release --rm-dist

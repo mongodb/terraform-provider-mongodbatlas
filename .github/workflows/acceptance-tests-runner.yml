@@ -109,8 +109,8 @@ jobs:
       event_trigger: ${{ steps.filter.outputs.event_trigger == 'true' || env.mustTrigger == 'true' }}
       search_index: ${{ steps.filter.outputs.search_index == 'true' || env.mustTrigger == 'true' }}
     steps:
-    - uses: actions/checkout@v4
-    - uses: dorny/paths-filter@v2
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+    - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50
       id: filter
       if: ${{ inputs.test_group == '' && env.mustTrigger == 'false' }}
       with:
@@ -183,13 +183,13 @@ jobs:
     if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || inputs.test_group == 'cluster_outage_simulation' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -207,13 +207,13 @@ jobs:
     if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -231,13 +231,13 @@ jobs:
     if: ${{ needs.change-detection.outputs.cluster == 'true' || inputs.test_group == 'cluster' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -255,13 +255,13 @@ jobs:
     if: ${{ needs.change-detection.outputs.search_deployment == 'true' || inputs.test_group == 'search_deployment' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -279,13 +279,13 @@ jobs:
     if: ${{ inputs.atlas_cloud_env != 'qa' && (needs.change-detection.outputs.stream == 'true' || inputs.test_group == 'stream') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -304,13 +304,13 @@ jobs:
     if: ${{ needs.change-detection.outputs.generic == 'true' || inputs.test_group == 'generic' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -331,13 +331,13 @@ jobs:
     if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || inputs.test_group == 'backup_online_archive' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -356,13 +356,13 @@ jobs:
     if: ${{ needs.change-detection.outputs.backup_snapshots == 'true' || inputs.test_group == 'backup_snapshots' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -381,13 +381,13 @@ jobs:
     if: ${{ needs.change-detection.outputs.backup_schedule == 'true' || inputs.test_group == 'backup_schedule' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -405,13 +405,13 @@ jobs:
     if: ${{ needs.change-detection.outputs.project == 'true' || inputs.test_group == 'project' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -438,13 +438,13 @@ jobs:
     if: ${{ needs.change-detection.outputs.serverless == 'true' || inputs.test_group == 'serverless' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false    
@@ -461,13 +461,13 @@ jobs:
     if: ${{ needs.change-detection.outputs.network == 'true' || inputs.test_group == 'network' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -494,13 +494,13 @@ jobs:
     if: ${{ needs.change-detection.outputs.federation == 'true' || inputs.test_group == 'federation' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false    
@@ -522,13 +522,13 @@ jobs:
     if: ${{ needs.change-detection.outputs.config == 'true' || inputs.test_group == 'config' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -551,13 +551,13 @@ jobs:
     if: ${{ needs.change-detection.outputs.assume_role == 'true' || inputs.test_group == 'assume_role' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false    
@@ -589,13 +589,13 @@ jobs:
     if: ${{ needs.change-detection.outputs.search_index == 'true' || inputs.test_group == 'search_index' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false    

@@ -56,7 +56,7 @@
           echo "The following JIRA ticket has been created: ${JIRA_TICKET_ID}"
           echo "jira-ticket-id=${JIRA_TICKET_ID}" >> "${GITHUB_OUTPUT}"
       - name: Add comment
-        uses: peter-evans/create-or-update-comment@v3
+        uses: peter-evans/create-or-update-comment@23ff15729ef2fc348714a3bb66d2f655ca9066f2
         with:
           issue-number: ${{ github.event.issue.number }}
           body: |

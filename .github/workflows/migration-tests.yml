@@ -42,7 +42,7 @@ jobs:
       provider_version: ${{ inputs.provider_version || steps.get_last_release.outputs.last_provider_version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
       - name: Get Last Release
         id: get_last_release
         shell: bash
@@ -63,8 +63,8 @@ jobs:
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
       federation: ${{ steps.filter.outputs.federation == 'true' || env.mustTrigger == 'true' }}
     steps:
-    - uses: actions/checkout@v4
-    - uses: dorny/paths-filter@v2
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+    - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50
       id: filter
       if: ${{ inputs.test_group == '' && env.mustTrigger == 'false' }}
       with:
@@ -93,12 +93,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ env.terraform_version }}
           terraform_wrapper: false  
@@ -128,12 +128,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ env.terraform_version }}
           terraform_wrapper: false  
@@ -158,12 +158,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ env.terraform_version }}
           terraform_wrapper: false  
@@ -184,12 +184,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ env.terraform_version }}
           terraform_wrapper: false    
@@ -209,12 +209,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ env.terraform_version }}
           terraform_wrapper: false    
