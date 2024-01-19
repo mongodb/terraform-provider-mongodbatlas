@@ -32,10 +32,10 @@ func TestAccFederatedDatabaseInstanceDS_basic(t *testing.T) {
 			{
 				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccMongoDBAtlasFederatedDatabaseInstanceConfigDataSourceFirstSteps(name, projectName, orgID),
+				Config:                   configFirstStepsDS(name, projectName, orgID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName, &federatedInstance),
-					testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(&federatedInstance, name),
+					checkExists(resourceName, &federatedInstance),
+					checkAttributes(&federatedInstance, name),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
@@ -67,10 +67,10 @@ func TestAccFederatedDatabaseInstanceDS_s3Bucket(t *testing.T) {
 			{
 				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccMongoDBAtlasFederatedDatabaseInstanceDataSourceConfigS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, region),
+				Config:                   configDSWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, region),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName, &federatedInstance),
-					testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(&federatedInstance, name),
+					checkExists(resourceName, &federatedInstance),
+					checkAttributes(&federatedInstance, name),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 				),
@@ -79,7 +79,7 @@ func TestAccFederatedDatabaseInstanceDS_s3Bucket(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName string, dataFederatedInstance *admin.DataLakeTenant) resource.TestCheckFunc {
+func checkExists(resourceName string, dataFederatedInstance *admin.DataLakeTenant) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		connV2 := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).AtlasV2
 
@@ -102,7 +102,7 @@ func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceN
 	}
 }
 
-func testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(dataFederatedInstance *admin.DataLakeTenant, name string) resource.TestCheckFunc {
+func checkAttributes(dataFederatedInstance *admin.DataLakeTenant, name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		log.Printf("[DEBUG] difference dataFederatedInstance.Name: %s , username : %s", dataFederatedInstance.GetName(), name)
 		if dataFederatedInstance.GetName() != name {
@@ -112,8 +112,8 @@ func testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(dataFederatedInst
 	}
 }
 
-func testAccMongoDBAtlasFederatedDatabaseInstanceDataSourceConfigS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion string) string {
-	stepConfig := testAccMongoDBAtlasFederatedDatabaseInstanceConfigDataSourceFirstStepS3Bucket(name, testS3Bucket)
+func configDSWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion string) string {
+	stepConfig := configDSFirstStepS3Bucket(name, testS3Bucket)
 	return fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[1]q
@@ -180,7 +180,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 %s
 	`, policyName, roleName, projectName, orgID, stepConfig)
 }
-func testAccMongoDBAtlasFederatedDatabaseInstanceConfigDataSourceFirstStepS3Bucket(name, testS3Bucket string) string {
+func configDSFirstStepS3Bucket(name, testS3Bucket string) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_federated_database_instance" "test" {
    project_id         = mongodbatlas_project.test.id
@@ -272,7 +272,7 @@ data "mongodbatlas_federated_database_instance" "test" {
 	`, name, testS3Bucket)
 }
 
-func testAccMongoDBAtlasFederatedDatabaseInstanceConfigDataSourceFirstSteps(federatedInstanceName, projectName, orgID string) string {
+func configFirstStepsDS(federatedInstanceName, projectName, orgID string) string {
 	return fmt.Sprintf(`
 
 resource "mongodbatlas_project" "test" {
