@@ -61,6 +61,7 @@ jobs:
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
       backup_online_archive: ${{ steps.filter.outputs.backup_online_archive == 'true' || env.mustTrigger == 'true' }}
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
+      federation: ${{ steps.filter.federation.stream == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@v4
     - uses: dorny/paths-filter@v2
@@ -83,7 +84,9 @@ jobs:
           stream:
             - 'internal/service/streaminstance/*.go'
             - 'internal/service/streamconnection/*.go'
-
+          federation:
+            - 'internal/service/federateddatabaseinstance/*.go'
+  
   project: 
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.project == 'true' || inputs.test_group == 'project' }}
@@ -224,4 +227,32 @@ jobs:
           MONGODB_ATLAS_ENABLE_BETA: ${{ vars.MONGODB_ATLAS_ENABLE_BETA }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           TEST_REGEX: "^TestAccMigrationStream"
+        run: make testacc
+  federation:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.stream == 'true' || inputs.test_group == 'stream' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.terraform_version }}
+          terraform_wrapper: false    
+      - name: Migration Tests
+        env:
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET_FEDERATION }}
+          AWS_REGION: ${{ vars.AWS_REGION_FEDERATION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY:  ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
+          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          TEST_REGEX: "^TestAccMigrationFederatedDatabaseInstance"
         run: make testacc

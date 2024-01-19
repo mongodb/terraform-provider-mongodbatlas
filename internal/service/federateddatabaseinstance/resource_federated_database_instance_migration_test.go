@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccFederatedDatabaseInstance_migration(t *testing.T) {
+func TestAccMigrationFederatedDatabaseInstance_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_federated_database_instance.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
