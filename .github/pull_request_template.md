@@ -21,6 +21,6 @@ Link to any related issue(s):
 - [ ] I have added any necessary documentation (if appropriate)
 - [ ] I have run make fmt and formatted my code
 - [ ] If changes include deprecations or removals, I defined an isolated PR with a relevant title as it will be used in the auto-generated changelog.
-- [ ] If changes include removal or addition of 3rd party GitHub actions, I updated this [internal document](https://docs.google.com/spreadsheets/d/1VAEscGOpEctXDSCQVuAz5bmyD1xwwlnlBK7aDUKSHRA/edit?usp=sharing).
+- [ ] If changes include removal or addition of 3rd party GitHub actions, I updated our internal document. Reach out to the APIx Integration slack channel to get access to the internal document.
 
 ## Further comments
