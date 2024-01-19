@@ -37,7 +37,7 @@ var (
 	requestBinding             = "requestBinding"
 	responseSignatureAlgorithm = "responseSignatureAlgorithm"
 	ssoDebugEnabled            = true
-	ssoUrl                     = "ssoUrl"
+	ssoURL                     = "ssoUrl"
 	status                     = "ACTIVE"
 	protocol                   = "SAML"
 
@@ -329,7 +329,7 @@ func TestFlattenFederatedSettingsIdentityProvider(t *testing.T) {
 					RequestBinding:             &requestBinding,
 					ResponseSignatureAlgorithm: &responseSignatureAlgorithm,
 					SsoDebugEnabled:            &ssoDebugEnabled,
-					SsoUrl:                     &ssoUrl,
+					SsoUrl:                     &ssoURL,
 					Status:                     &status,
 					Id:                         identityProviderID,
 					Protocol:                   &protocol,
@@ -348,7 +348,7 @@ func TestFlattenFederatedSettingsIdentityProvider(t *testing.T) {
 					"request_binding":              &requestBinding,
 					"response_signature_algorithm": &responseSignatureAlgorithm,
 					"sso_debug_enabled":            &ssoDebugEnabled,
-					"sso_url":                      &ssoUrl,
+					"sso_url":                      &ssoURL,
 					"status":                       &status,
 					"idp_id":                       identityProviderID,
 					"protocol":                     &protocol,
