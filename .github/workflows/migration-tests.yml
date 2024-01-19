@@ -61,7 +61,7 @@ jobs:
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
       backup_online_archive: ${{ steps.filter.outputs.backup_online_archive == 'true' || env.mustTrigger == 'true' }}
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
-      federation: ${{ steps.filter.federation.stream == 'true' || env.mustTrigger == 'true' }}
+      federation: ${{ steps.filter.outputs.federation == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@v4
     - uses: dorny/paths-filter@v2
@@ -230,7 +230,7 @@ jobs:
         run: make testacc
   federation:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.stream == 'true' || inputs.test_group == 'stream' }}
+    if: ${{ needs.change-detection.outputs.federation == 'true' || inputs.test_group == 'federation' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
