@@ -11,7 +11,6 @@ import (
 
 func FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider []admin.FederationIdentityProvider) []map[string]any {
 	var federatedSettingsIdentityProviderMap []map[string]any
-
 	if len(federatedSettingsIdentityProvider) > 0 {
 		federatedSettingsIdentityProviderMap = make([]map[string]any, len(federatedSettingsIdentityProvider))
 
@@ -30,6 +29,8 @@ func FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider 
 				"sso_debug_enabled":            federatedSettingsIdentityProvider[i].SsoDebugEnabled,
 				"sso_url":                      federatedSettingsIdentityProvider[i].SsoUrl,
 				"status":                       federatedSettingsIdentityProvider[i].Status,
+				"idp_id":                       federatedSettingsIdentityProvider[i].Id,
+				"protocol":                     federatedSettingsIdentityProvider[i].Protocol,
 			}
 		}
 	}
