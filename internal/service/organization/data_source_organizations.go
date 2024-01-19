@@ -3,14 +3,17 @@ package organization
 import (
 	"context"
 	"fmt"
+	"log"
+
+	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -22,8 +25,9 @@ func PluralDataSource() *schema.Resource {
 				Optional: true,
 			},
 			"include_deleted_orgs": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.16.0"),
 			},
 			"page_num": {
 				Type:     schema.TypeInt,
@@ -66,6 +70,18 @@ func PluralDataSource() *schema.Resource {
 								},
 							},
 						},
+						"api_access_list_required": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"multi_factor_auth_required": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"restrict_employee_access": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -79,29 +95,25 @@ func PluralDataSource() *schema.Resource {
 
 func dataSourceMongoDBAtlasOrganizationsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
-	options := &matlas.ListOptions{
-		PageNum:      d.Get("page_num").(int),
-		ItemsPerPage: d.Get("items_per_page").(int),
+	organizationOptions := &admin.ListOrganizationsApiParams{
+		PageNum:      pointy.Int(d.Get("page_num").(int)),
+		ItemsPerPage: pointy.Int(d.Get("items_per_page").(int)),
+		Name:         pointy.String(d.Get("name").(string)),
 	}
 
-	organizationOptions := &matlas.OrganizationsListOptions{
-		Name:               d.Get("name").(string),
-		IncludeDeletedOrgs: pointy.Bool(d.Get("include_deleted_orgs").(bool)),
-		ListOptions:        *options,
-	}
+	organizations, _, err := conn.OrganizationsApi.ListOrganizationsWithParams(ctx, organizationOptions).Execute()
 
-	organizations, _, err := conn.Organizations.List(ctx, organizationOptions)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting organization information: %s", err))
 	}
 
-	if err := d.Set("results", flattenOrganizations(organizations.Results)); err != nil {
+	if err := d.Set("results", flattenOrganizations(ctx, conn, organizations.GetResults())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
 
-	if err := d.Set("total_count", organizations.TotalCount); err != nil {
+	if err := d.Set("total_count", organizations.GetTotalCount()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `total_count`: %s", err))
 	}
 
@@ -110,7 +122,7 @@ func dataSourceMongoDBAtlasOrganizationsRead(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func flattenOrganizationLinks(links []*matlas.Link) []map[string]any {
+func flattenOrganizationLinks(links []admin.Link) []map[string]any {
 	linksList := make([]map[string]any, 0)
 
 	for _, link := range links {
@@ -124,7 +136,7 @@ func flattenOrganizationLinks(links []*matlas.Link) []map[string]any {
 	return linksList
 }
 
-func flattenOrganizations(organizations []*matlas.Organization) []map[string]any {
+func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizations []admin.AtlasOrganization) []map[string]any {
 	var results []map[string]any
 
 	if len(organizations) == 0 {
@@ -134,11 +146,19 @@ func flattenOrganizations(organizations []*matlas.Organization) []map[string]any
 	results = make([]map[string]any, len(organizations))
 
 	for k, organization := range organizations {
+		settings, _, err := conn.OrganizationsApi.GetOrganizationSettings(ctx, *organization.Id).Execute()
+		if err != nil {
+			log.Printf("[WARN] Error getting organization settings (organization ID: %s): %s", *organization.Id, err)
+		}
+
 		results[k] = map[string]any{
-			"id":         organization.ID,
-			"name":       organization.Name,
-			"is_deleted": organization.IsDeleted,
-			"links":      flattenOrganizationLinks(organization.Links),
+			"id":                         organization.Id,
+			"name":                       organization.Name,
+			"is_deleted":                 organization.IsDeleted,
+			"links":                      flattenOrganizationLinks(organization.GetLinks()),
+			"api_access_list_required":   settings.ApiAccessListRequired,
+			"multi_factor_auth_required": settings.MultiFactorAuthRequired,
+			"restrict_employee_access":   settings.RestrictEmployeeAccess,
 		}
 	}
 

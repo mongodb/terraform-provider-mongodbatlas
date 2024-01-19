@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20231115003/admin"
+	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -14,24 +14,24 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationConfigRSAlertConfiguration_NotificationsWithMetricThreshold(t *testing.T) {
+func TestAccMigrationConfigRSAlertConfiguration_withNotificationsMetricThreshold(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		alert        = &admin.GroupAlertsConfig{}
-		config       = testAccMongoDBAtlasAlertConfigurationConfig(orgID, projectName, true)
+		config       = configBasicRS(orgID, projectName, true)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "2"),
 				),
@@ -50,24 +50,24 @@ func TestAccMigrationConfigRSAlertConfiguration_NotificationsWithMetricThreshold
 	})
 }
 
-func TestAccMigrationConfigRSAlertConfiguration_WithThreshold(t *testing.T) {
+func TestAccMigrationConfigRSAlertConfiguration_withThreshold(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		alert        = &admin.GroupAlertsConfig{}
-		config       = testAccMongoDBAtlasAlertConfigurationConfigWithThresholdUpdated(orgID, projectName, true, 1)
+		config       = configWithThresholdUpdated(orgID, projectName, true, 1)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "matcher.#", "1"),
@@ -88,24 +88,24 @@ func TestAccMigrationConfigRSAlertConfiguration_WithThreshold(t *testing.T) {
 	})
 }
 
-func TestAccMigrationConfigRSAlertConfiguration_EmptyOptionalBlocks(t *testing.T) {
+func TestAccMigrationConfigRSAlertConfiguration_withEmptyOptionalBlocks(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		alert        = &admin.GroupAlertsConfig{}
-		config       = testAccMongoDBAtlasAlertConfigurationConfigEmptyOptionalBlocks(orgID, projectName)
+		config       = configWithEmptyOptionalBlocks(orgID, projectName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "matcher.#", "0"),
@@ -127,13 +127,13 @@ func TestAccMigrationConfigRSAlertConfiguration_EmptyOptionalBlocks(t *testing.T
 	})
 }
 
-func TestAccMigrationConfigRSAlertConfiguration_MultipleMatchers(t *testing.T) {
+func TestAccMigrationConfigRSAlertConfiguration_withMultipleMatchers(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		alert        = &admin.GroupAlertsConfig{}
-		config       = testAccMongoDBAtlasAlertConfigurationConfigWithMatchers(orgID, projectName, true, false, true,
+		config       = configWithMatchers(orgID, projectName, true, false, true,
 			map[string]interface{}{
 				"fieldName": "TYPE_NAME",
 				"operator":  "EQUALS",
@@ -148,13 +148,13 @@ func TestAccMigrationConfigRSAlertConfiguration_MultipleMatchers(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "matcher.#", "2"),
 				),
@@ -173,24 +173,24 @@ func TestAccMigrationConfigRSAlertConfiguration_MultipleMatchers(t *testing.T) {
 	})
 }
 
-func TestAccMigrationConfigRSAlertConfiguration_EmptyOptionalAttributes(t *testing.T) {
+func TestAccMigrationConfigRSAlertConfiguration_withEmptyOptionalAttributes(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		alert        = &admin.GroupAlertsConfig{}
-		config       = testAccMongoDBAtlasAlertConfigurationConfigWithEmptyOptionalAttributes(orgID, projectName)
+		config       = configWithEmptyOptionalAttributes(orgID, projectName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
 				),
@@ -209,8 +209,8 @@ func TestAccMigrationConfigRSAlertConfiguration_EmptyOptionalAttributes(t *testi
 	})
 }
 
-// does not define notification.delay_min, notification.sms_enabled, and metric_threshold_config.threshold
-func testAccMongoDBAtlasAlertConfigurationConfigWithEmptyOptionalAttributes(orgID, projectName string) string {
+// configWithEmptyOptionalAttributes does not define notification.delay_min, notification.sms_enabled, and metric_threshold_config.threshold.
+func configWithEmptyOptionalAttributes(orgID, projectName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q
@@ -236,7 +236,7 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithEmptyOptionalAttributes(orgI
 	`, orgID, projectName)
 }
 
-func testAccMongoDBAtlasAlertConfigurationConfigEmptyOptionalBlocks(orgID, projectName string) string {
+func configWithEmptyOptionalBlocks(orgID, projectName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q

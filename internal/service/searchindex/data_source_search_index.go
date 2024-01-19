@@ -86,7 +86,6 @@ func returnSearchIndexDSSchema() map[string]*schema.Schema {
 		},
 		"status": {
 			Type:     schema.TypeString,
-			Optional: true,
 			Computed: true,
 		},
 		"type": {

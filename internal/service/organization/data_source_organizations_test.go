@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -21,6 +22,9 @@ func TestAccConfigDSOrganizations_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(datasourceName, "results.#"),
 					resource.TestCheckResourceAttrSet(datasourceName, "results.0.name"),
 					resource.TestCheckResourceAttrSet(datasourceName, "results.0.id"),
+					resource.TestCheckResourceAttrSet(datasourceName, "results.0.restrict_employee_access"),
+					resource.TestCheckResourceAttrSet(datasourceName, "results.0.multi_factor_auth_required"),
+					resource.TestCheckResourceAttrSet(datasourceName, "results.0.api_access_list_required"),
 				),
 			},
 		},

@@ -30,7 +30,7 @@ func TestAccConfigDSAlertConfigurations_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectName),
+				Config: configBasicPluralDS(orgID, projectName),
 				Check: resource.ComposeTestCheckFunc(
 					checkCount(dataSourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
@@ -106,7 +106,7 @@ func TestAccConfigDSAlertConfigurations_totalCount(t *testing.T) {
 	})
 }
 
-func configBasic(orgID, projectName string) string {
+func configBasicPluralDS(orgID, projectName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q

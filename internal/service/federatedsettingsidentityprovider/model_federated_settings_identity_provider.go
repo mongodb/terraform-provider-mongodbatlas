@@ -5,13 +5,12 @@ import (
 	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20231115003/admin"
+	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider []admin.FederationIdentityProvider) []map[string]any {
 	var federatedSettingsIdentityProviderMap []map[string]any
-
 	if len(federatedSettingsIdentityProvider) > 0 {
 		federatedSettingsIdentityProviderMap = make([]map[string]any, len(federatedSettingsIdentityProvider))
 
@@ -30,6 +29,8 @@ func FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider 
 				"sso_debug_enabled":            federatedSettingsIdentityProvider[i].SsoDebugEnabled,
 				"sso_url":                      federatedSettingsIdentityProvider[i].SsoUrl,
 				"status":                       federatedSettingsIdentityProvider[i].Status,
+				"idp_id":                       federatedSettingsIdentityProvider[i].Id,
+				"protocol":                     federatedSettingsIdentityProvider[i].Protocol,
 			}
 		}
 	}
