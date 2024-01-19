@@ -26,17 +26,18 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBFederatedDatabaseInstanceCreate,
-		ReadContext:   resourceMongoDBAFederatedDatabaseInstanceRead,
-		UpdateContext: resourceMongoDBFederatedDatabaseInstanceUpdate,
-		DeleteContext: resourceMongoDBAtlasFederatedDatabaseInstanceDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasFederatedDatabaseInstanceImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -338,7 +339,7 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 	}
 }
 
-func resourceMongoDBFederatedDatabaseInstanceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
@@ -358,10 +359,10 @@ func resourceMongoDBFederatedDatabaseInstanceCreate(ctx context.Context, d *sche
 		"name":       name,
 	}))
 
-	return resourceMongoDBAFederatedDatabaseInstanceRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAFederatedDatabaseInstanceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -409,7 +410,7 @@ func resourceMongoDBAFederatedDatabaseInstanceRead(ctx context.Context, d *schem
 	return nil
 }
 
-func resourceMongoDBFederatedDatabaseInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
@@ -432,10 +433,10 @@ func resourceMongoDBFederatedDatabaseInstanceUpdate(ctx context.Context, d *sche
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceUpdate, name, err))
 	}
 
-	return resourceMongoDBAFederatedDatabaseInstanceRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasFederatedDatabaseInstanceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
@@ -449,7 +450,7 @@ func resourceMongoDBAtlasFederatedDatabaseInstanceDelete(ctx context.Context, d 
 	return nil
 }
 
-func resourceMongoDBAtlasFederatedDatabaseInstanceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID, name, s3Bucket, err := splitDataFederatedInstanceImportID(d.Id())
