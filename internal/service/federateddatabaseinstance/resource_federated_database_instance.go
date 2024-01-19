@@ -57,6 +57,7 @@ func Resource() *schema.Resource {
 			"cloud_provider_config": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
+				Computed: true,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -95,6 +96,7 @@ func Resource() *schema.Resource {
 			"data_process_region": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
+				Computed: true,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -118,20 +120,24 @@ func Resource() *schema.Resource {
 func schemaFederatedDatabaseInstanceDatabases() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
+		Computed: true,
 		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"name": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"collections": {
 					Type:     schema.TypeSet,
+					Computed: true,
 					Optional: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"name": {
 								Type:     schema.TypeString,
+								Computed: true,
 								Optional: true,
 							},
 							"data_sources": {
@@ -141,46 +147,57 @@ func schemaFederatedDatabaseInstanceDatabases() *schema.Schema {
 									Schema: map[string]*schema.Schema{
 										"store_name": {
 											Type:     schema.TypeString,
+											Computed: true,
 											Optional: true,
 										},
 										"dataset_name": {
 											Type:     schema.TypeString,
+											Computed: true,
 											Optional: true,
 										},
 										"default_format": {
 											Type:     schema.TypeString,
+											Computed: true,
 											Optional: true,
 										},
 										"path": {
 											Type:     schema.TypeString,
+											Computed: true,
 											Optional: true,
 										},
 										"allow_insecure": {
 											Type:     schema.TypeBool,
+											Computed: true,
 											Optional: true,
 										},
 										"database": {
 											Type:     schema.TypeString,
+											Computed: true,
 											Optional: true,
 										},
 										"database_regex": {
 											Type:     schema.TypeString,
+											Computed: true,
 											Optional: true,
 										},
 										"collection": {
 											Type:     schema.TypeString,
+											Computed: true,
 											Optional: true,
 										},
 										"collection_regex": {
 											Type:     schema.TypeString,
+											Computed: true,
 											Optional: true,
 										},
 										"provenance_field_name": {
 											Type:     schema.TypeString,
+											Computed: true,
 											Optional: true,
 										},
 										"urls": {
 											Type:     schema.TypeList,
+											Computed: true,
 											Optional: true,
 											Elem: &schema.Schema{
 												Type: schema.TypeString,
@@ -194,6 +211,7 @@ func schemaFederatedDatabaseInstanceDatabases() *schema.Schema {
 				},
 				"views": {
 					Type:     schema.TypeSet,
+					Computed: true,
 					Optional: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
@@ -230,64 +248,79 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 			Schema: map[string]*schema.Schema{
 				"name": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"provider": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"region": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"bucket": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"cluster_name": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"cluster_id": {
 					Type:       schema.TypeString,
+					Computed:   true,
 					Optional:   true,
 					Deprecated: fmt.Sprintf(constant.DeprecationParamByDate, "September 2024"),
 				},
 				"project_id": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"prefix": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"delimiter": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"include_tags": {
 					Type:     schema.TypeBool,
+					Computed: true,
 					Optional: true,
 				},
 				"allow_insecure": {
 					Type:     schema.TypeBool,
+					Computed: true,
 					Optional: true,
 				},
 				"additional_storage_classes": {
 					Type:     schema.TypeList,
+					Computed: true,
 					Optional: true,
 					Elem:     &schema.Schema{Type: schema.TypeString},
 				},
 				"public": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"default_format": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"urls": {
 					Type:     schema.TypeList,
+					Computed: true,
 					Optional: true,
 					Elem: &schema.Schema{
 						Type: schema.TypeString,
@@ -296,19 +329,23 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 				"read_preference": {
 					Type:     schema.TypeList,
 					MaxItems: 1,
+					Computed: true,
 					Optional: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"mode": {
 								Type:     schema.TypeString,
+								Computed: true,
 								Optional: true,
 							},
 							"max_staleness_seconds": {
 								Type:     schema.TypeInt,
+								Computed: true,
 								Optional: true,
 							},
 							"tag_sets": {
 								Type:     schema.TypeList,
+								Computed: true,
 								Optional: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
@@ -319,10 +356,12 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 												Schema: map[string]*schema.Schema{
 													"name": {
 														Type:     schema.TypeString,
+														Computed: true,
 														Optional: true,
 													},
 													"value": {
 														Type:     schema.TypeString,
+														Computed: true,
 														Optional: true,
 													},
 												},
