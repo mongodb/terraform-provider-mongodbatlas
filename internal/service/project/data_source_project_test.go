@@ -13,11 +13,12 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+const dataSourceName = "data.mongodbatlas_project.test"
+
 func TestAccProjectDSProject_byID(t *testing.T) {
 	var (
-		projectName    = acctest.RandomWithPrefix("test-acc")
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		dataSourceName = "data.mongodbatlas_project.test"
+		projectName = acctest.RandomWithPrefix("test-acc")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIdsWithMinCount(t, 2) },
@@ -49,9 +50,8 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 
 func TestAccProjectDSProject_byName(t *testing.T) {
 	var (
-		projectName    = acctest.RandomWithPrefix("test-acc")
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		dataSourceName = "data.mongodbatlas_project.test"
+		projectName = acctest.RandomWithPrefix("test-acc")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIdsWithMinCount(t, 2) },
@@ -83,9 +83,8 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 
 func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 	var (
-		projectName    = acctest.RandomWithPrefix("test-acc")
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		dataSourceName = "data.mongodbatlas_project.test"
+		projectName = acctest.RandomWithPrefix("test-acc")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIdsWithMinCount(t, 2) },
@@ -123,9 +122,8 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 
 func TestAccProjectDSProject_limits(t *testing.T) {
 	var (
-		projectName    = acctest.RandomWithPrefix("test-acc")
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		dataSourceName = "data.mongodbatlas_project.test"
+		projectName = acctest.RandomWithPrefix("test-acc")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },

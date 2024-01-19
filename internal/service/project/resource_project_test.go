@@ -473,10 +473,12 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 	}
 }
 
+const resourceName = "mongodbatlas_project.test"
+
 func TestAccProjectRSProject_basic(t *testing.T) {
 	var (
-		group        admin.Group
-		resourceName = "mongodbatlas_project.test"
+		group admin.Group
+
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		clusterCount = "0"
@@ -565,7 +567,6 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 func TestAccProjectRSProject_withProjectOwner(t *testing.T) {
 	var (
 		group          admin.Group
-		resourceName   = "mongodbatlas_project.test"
 		projectName    = acctest.RandomWithPrefix("test-acc")
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
@@ -592,7 +593,6 @@ func TestAccProjectRSProject_withProjectOwner(t *testing.T) {
 func TestAccProjectRSGovProject_withProjectOwner(t *testing.T) {
 	var (
 		group          admin.Group
-		resourceName   = "mongodbatlas_project.test"
 		projectName    = acctest.RandomWithPrefix("tf-acc-project")
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID_GOV")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID_GOV")
@@ -618,7 +618,6 @@ func TestAccProjectRSGovProject_withProjectOwner(t *testing.T) {
 func TestAccProjectRSProject_withFalseDefaultSettings(t *testing.T) {
 	var (
 		group          admin.Group
-		resourceName   = "mongodbatlas_project.test"
 		projectName    = acctest.RandomWithPrefix("tf-acc-project")
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
@@ -645,7 +644,6 @@ func TestAccProjectRSProject_withFalseDefaultSettings(t *testing.T) {
 func TestAccProjectRSProject_withUpdatedSettings(t *testing.T) {
 	var (
 		group          admin.Group
-		resourceName   = "mongodbatlas_project.test"
 		projectName    = acctest.RandomWithPrefix("tf-acc-project")
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
@@ -707,7 +705,6 @@ func TestAccProjectRSProject_withUpdatedSettings(t *testing.T) {
 
 func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 	var (
-		resourceName    = "mongodbatlas_project.test"
 		projectName     = acctest.RandomWithPrefix("tf-acc-project")
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		roleName        = "GROUP_DATA_ACCESS_ADMIN"
@@ -741,10 +738,9 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 
 func TestAccProjectRSProject_updatedToEmptyRoles(t *testing.T) {
 	var (
-		group        admin.Group
-		resourceName = "mongodbatlas_project.test"
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		group       admin.Group
+		projectName = acctest.RandomWithPrefix("test-acc")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIdsWithMinCount(t, 1) },
@@ -784,9 +780,8 @@ func TestAccProjectRSProject_updatedToEmptyRoles(t *testing.T) {
 
 func TestAccProjectRSProject_importBasic(t *testing.T) {
 	var (
-		projectName  = acctest.RandomWithPrefix("tf-acc-project")
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		resourceName = "mongodbatlas_project.test"
+		projectName = acctest.RandomWithPrefix("tf-acc-project")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -812,9 +807,8 @@ func TestAccProjectRSProject_importBasic(t *testing.T) {
 
 func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_project.test"
-		projectName  = acctest.RandomWithPrefix("tf-acc-project")
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("tf-acc-project")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -906,9 +900,8 @@ func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
 
 func TestAccProjectRSProject_updatedToEmptyLimits(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_project.test"
-		projectName  = acctest.RandomWithPrefix("tf-acc-project")
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("tf-acc-project")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -964,9 +957,8 @@ func TestAccProjectRSProject_withInvalidLimitName(t *testing.T) {
 
 func TestAccProjectRSProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_project.test"
-		projectName  = acctest.RandomWithPrefix("tf-acc-project")
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("tf-acc-project")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
