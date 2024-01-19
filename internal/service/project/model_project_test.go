@@ -162,9 +162,7 @@ func TestTeamsDataSourceSDKToTFModel(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := project.NewTFTeamsDataSourceModel(context.Background(), tc.paginatedTeamRole)
-			if !assert.Equal(t, tc.expectedTFModel, resultModel) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedTFModel, resultModel)
 		})
 	}
 }
@@ -185,9 +183,7 @@ func TestLimitsDataSourceSDKToTFModel(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := project.NewTFLimitsDataSourceModel(context.Background(), tc.dataFederationLimits)
-			if !assert.Equal(t, tc.expectedTFModel, resultModel) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedTFModel, resultModel)
 		})
 	}
 }
@@ -238,9 +234,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
-			if !assert.Equal(t, tc.expectedTFModel, *resultModel) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedTFModel, *resultModel)
 		})
 	}
 }
@@ -290,9 +284,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
-			if !assert.Equal(t, tc.expectedTFModel, *resultModel) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedTFModel, *resultModel)
 		})
 	}
 }
@@ -320,9 +312,7 @@ func TestTeamRoleListTFtoSDK(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := project.NewTeamRoleList(context.Background(), tc.teamRolesTF)
-			if !assert.Equal(t, tc.expectedResult, resultModel) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}
 }
@@ -354,9 +344,7 @@ func TestTeamModelMapTF(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := project.NewTfTeamModelMap(tc.teamRolesTF)
-			if !assert.Equal(t, tc.expectedResult, resultModel) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}
 }
@@ -388,9 +376,7 @@ func TestLimitModelMapTF(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := project.NewTfLimitModelMap(tc.limitsTF)
-			if !assert.Equal(t, tc.expectedResult, resultModel) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}
 }
@@ -434,9 +420,7 @@ func TestIPAddressesModelToTF(t *testing.T) {
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
-			if !assert.Equal(t, tc.expectedResult, resultModel) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}
 }
