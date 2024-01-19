@@ -72,8 +72,8 @@ on:
         required: true
       aws_secret_access_key:
         required: true
-        
-      
+      aws_s3_bucket_federated:
+        required: true
 
 env:
   # CI: true  # GH does this automatically
@@ -504,6 +504,7 @@ jobs:
           terraform_wrapper: false    
       - name: Acceptance Tests
         env:
+          AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federated }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
