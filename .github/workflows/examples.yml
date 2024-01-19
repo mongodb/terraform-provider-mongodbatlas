@@ -23,11 +23,11 @@ jobs:
       matrix:
         terraform_version: ["${{vars.TF_VERSION_LATEST}}"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           fetch-depth: 0
       - run: echo "GO_VERSION=$(cat .go-version)" >> "${GITHUB_ENV}"
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
       - name: go build
@@ -57,10 +57,10 @@ jobs:
       matrix:
         terraform_version: ["${{vars.TF_VERSION_LATEST}}"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
       - name: tflint
