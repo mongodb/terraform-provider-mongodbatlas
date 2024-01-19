@@ -154,7 +154,7 @@ func FlattenAuthFederationRoleMapping(roleMappings []admin.AuthFederationRoleMap
 			roleMappingsMap[i] = map[string]any{
 				"external_group_name": roleMappings[i].ExternalGroupName,
 				"id":                  roleMappings[i].Id,
-				"role_assignments":    FlattenRoleAssignments(roleMappings[i].RoleAssignments),
+				"role_assignments":    FlattenRoleAssignments(*roleMappings[i].RoleAssignments),
 			}
 		}
 	}
