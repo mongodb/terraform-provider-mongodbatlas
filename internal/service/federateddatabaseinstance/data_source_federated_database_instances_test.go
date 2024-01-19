@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccDataSourceFederatedDatabaseInstances_basic(t *testing.T) {
+func TestAccFederatedDatabaseInstanceDSPlural_basic(t *testing.T) {
 	var (
 		resourceName = "data.mongodbatlas_federated_database_instances.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")

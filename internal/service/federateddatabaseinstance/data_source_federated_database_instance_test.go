@@ -16,7 +16,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 )
 
-func TestAccDataSourceFederatedDatabaseInstance_basic(t *testing.T) {
+func TestAccFederatedDatabaseInstanceDS_basic(t *testing.T) {
 	var (
 		resourceName      = "data.mongodbatlas_federated_database_instance.test"
 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -47,7 +47,7 @@ func TestAccDataSourceFederatedDatabaseInstance_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceFederatedDatabaseInstance_S3Bucket(t *testing.T) {
+func TestAccFederatedDatabaseInstanceDS_s3Bucket(t *testing.T) {
 	var (
 		resourceName      = "data.mongodbatlas_federated_database_instance.test"
 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
