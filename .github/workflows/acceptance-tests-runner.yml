@@ -505,6 +505,7 @@ jobs:
       - name: Acceptance Tests
         env:
           AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federated }}
+          AWS_ACCOUNT_ID: ${{ secrets.aws_account_id }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_REGION: ${{ vars.AWS_REGION }}
