@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -32,7 +33,7 @@ type ProjectsDS struct {
 
 type tfProjectsDSModel struct {
 	ID           types.String        `tfsdk:"id"`
-	Results      []*TfProjectDSModel `tfsdk:"results"`
+	Results      []*TFProjectDSModel `tfsdk:"results"`
 	PageNum      types.Int64         `tfsdk:"page_num"`
 	ItemsPerPage types.Int64         `tfsdk:"items_per_page"`
 	TotalCount   types.Int64         `tfsdk:"total_count"`
@@ -134,6 +135,34 @@ func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, r
 								},
 							},
 						},
+						"ip_addresses": schema.SingleNestedAttribute{
+							Computed: true,
+							Attributes: map[string]schema.Attribute{
+								"services": schema.SingleNestedAttribute{
+									Computed: true,
+									Attributes: map[string]schema.Attribute{
+										"clusters": schema.ListNestedAttribute{
+											Computed: true,
+											NestedObject: schema.NestedAttributeObject{
+												Attributes: map[string]schema.Attribute{
+													"cluster_name": schema.StringAttribute{
+														Computed: true,
+													},
+													"inbound": schema.ListAttribute{
+														ElementType: types.StringType,
+														Computed:    true,
+													},
+													"outbound": schema.ListAttribute{
+														ElementType: types.StringType,
+														Computed:    true,
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -157,9 +186,9 @@ func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 		return
 	}
 
-	err = populateProjectsDataSourceModel(ctx, connV2, &stateModel, projectsRes)
-	if err != nil {
-		resp.Diagnostics.AddError("error in monogbatlas_projects data source", err.Error())
+	diags := populateProjectsDataSourceModel(ctx, connV2, &stateModel, projectsRes)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -169,19 +198,23 @@ func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 	}
 }
 
-func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClient, stateModel *tfProjectsDSModel, projectsRes *admin.PaginatedAtlasGroup) error {
+func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClient, stateModel *tfProjectsDSModel, projectsRes *admin.PaginatedAtlasGroup) diag.Diagnostics {
+	diagnostics := []diag.Diagnostic{}
 	input := projectsRes.GetResults()
-	results := make([]*TfProjectDSModel, 0, len(input))
+	results := make([]*TFProjectDSModel, 0, len(input))
 	for i := range input {
 		project := input[i]
-		atlasTeams, atlasLimits, atlasProjectSettings, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), project.GetId())
+		projectProps, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), project.GetId())
 		if err == nil { // if the project is still valid, e.g. could have just been deleted
-			projectModel := NewTFProjectDataSourceModel(ctx, &project, atlasTeams, atlasProjectSettings, atlasLimits)
-			results = append(results, &projectModel)
+			projectModel, diags := NewTFProjectDataSourceModel(ctx, &project, *projectProps)
+			diagnostics = append(diagnostics, diags...)
+			if projectModel != nil {
+				results = append(results, projectModel)
+			}
 		}
 	}
 	stateModel.Results = results
 	stateModel.TotalCount = types.Int64Value(int64(projectsRes.GetTotalCount()))
 	stateModel.ID = types.StringValue(id.UniqueId())
-	return nil
+	return diagnostics
 }

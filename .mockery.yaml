@@ -6,12 +6,18 @@ filename: "{{ .InterfaceName | snakecase }}.go"
 mockname: "{{.InterfaceName}}"
 
 packages:
-  ? github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment
-  ? github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest
-  ? github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project
-  ? github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster
-  : interfaces:
+  github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment:
+    interfaces:
       DeploymentService:
+
+  github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest:
+    interfaces:
       EarService:
+  
+  github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project:
+    interfaces:
       GroupProjectService:
+  
+  github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster:
+    interfaces:
       ClusterService:

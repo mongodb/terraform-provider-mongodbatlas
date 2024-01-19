@@ -18,6 +18,7 @@ type GroupProjectService interface {
 	UpdateTeamRoles(ctx context.Context, groupID, teamID string, teamRole *admin.TeamRole) (*admin.PaginatedTeamRole, *http.Response, error)
 	AddAllTeamsToProject(ctx context.Context, groupID string, teamRole *[]admin.TeamRole) (*admin.PaginatedTeamRole, *http.Response, error)
 	ListClusters(ctx context.Context, groupID string) (*admin.PaginatedAdvancedClusterDescription, *http.Response, error)
+	ReturnAllIPAddresses(ctx context.Context, groupID string) (*admin.GroupIPAddresses, *http.Response, error)
 }
 
 type GroupProjectServiceFromClient struct {
@@ -63,6 +64,10 @@ func (a *GroupProjectServiceFromClient) AddAllTeamsToProject(ctx context.Context
 
 func (a *GroupProjectServiceFromClient) ListClusters(ctx context.Context, groupID string) (*admin.PaginatedAdvancedClusterDescription, *http.Response, error) {
 	return a.client.ClustersApi.ListClusters(ctx, groupID).Execute()
+}
+
+func (a *GroupProjectServiceFromClient) ReturnAllIPAddresses(ctx context.Context, groupID string) (*admin.GroupIPAddresses, *http.Response, error) {
+	return a.client.ProjectsApi.ReturnAllIPAddresses(ctx, groupID).Execute()
 }
 
 func ServiceFromClient(client *admin.APIClient) GroupProjectService {

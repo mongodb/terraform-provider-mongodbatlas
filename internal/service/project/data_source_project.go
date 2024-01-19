@@ -30,15 +30,16 @@ type projectDS struct {
 	config.DSCommon
 }
 
-type TfProjectDSModel struct {
-	RegionUsageRestrictions                     types.String     `tfsdk:"region_usage_restrictions"`
-	ProjectID                                   types.String     `tfsdk:"project_id"`
-	Name                                        types.String     `tfsdk:"name"`
-	OrgID                                       types.String     `tfsdk:"org_id"`
+type TFProjectDSModel struct {
+	IPAddresses                                 types.Object     `tfsdk:"ip_addresses"`
 	Created                                     types.String     `tfsdk:"created"`
+	OrgID                                       types.String     `tfsdk:"org_id"`
+	RegionUsageRestrictions                     types.String     `tfsdk:"region_usage_restrictions"`
 	ID                                          types.String     `tfsdk:"id"`
-	Limits                                      []*TfLimitModel  `tfsdk:"limits"`
-	Teams                                       []*TfTeamDSModel `tfsdk:"teams"`
+	Name                                        types.String     `tfsdk:"name"`
+	ProjectID                                   types.String     `tfsdk:"project_id"`
+	Teams                                       []*TFTeamDSModel `tfsdk:"teams"`
+	Limits                                      []*TFLimitModel  `tfsdk:"limits"`
 	ClusterCount                                types.Int64      `tfsdk:"cluster_count"`
 	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool       `tfsdk:"is_collect_database_specifics_statistics_enabled"`
 	IsRealtimePerformancePanelEnabled           types.Bool       `tfsdk:"is_realtime_performance_panel_enabled"`
@@ -48,7 +49,7 @@ type TfProjectDSModel struct {
 	IsDataExplorerEnabled                       types.Bool       `tfsdk:"is_data_explorer_enabled"`
 }
 
-type TfTeamDSModel struct {
+type TFTeamDSModel struct {
 	TeamID    types.String `tfsdk:"team_id"`
 	RoleNames types.List   `tfsdk:"role_names"`
 }
@@ -137,12 +138,40 @@ func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, re
 					},
 				},
 			},
+			"ip_addresses": schema.SingleNestedAttribute{
+				Computed: true,
+				Attributes: map[string]schema.Attribute{
+					"services": schema.SingleNestedAttribute{
+						Computed: true,
+						Attributes: map[string]schema.Attribute{
+							"clusters": schema.ListNestedAttribute{
+								Computed: true,
+								NestedObject: schema.NestedAttributeObject{
+									Attributes: map[string]schema.Attribute{
+										"cluster_name": schema.StringAttribute{
+											Computed: true,
+										},
+										"inbound": schema.ListAttribute{
+											ElementType: types.StringType,
+											Computed:    true,
+										},
+										"outbound": schema.ListAttribute{
+											ElementType: types.StringType,
+											Computed:    true,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
 
 func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var projectState TfProjectDSModel
+	var projectState TFProjectDSModel
 	connV2 := d.Client.AtlasV2
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &projectState)...)
@@ -173,15 +202,19 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		}
 	}
 
-	atlasTeams, atlasLimits, atlasProjectSettings, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), project.GetId())
+	projectProps, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), project.GetId())
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties", fmt.Sprintf(ErrorProjectRead, project.GetId(), err.Error()))
 		return
 	}
 
-	projectState = NewTFProjectDataSourceModel(ctx, project, atlasTeams, atlasProjectSettings, atlasLimits)
+	newProjectState, diags := NewTFProjectDataSourceModel(ctx, project, *projectProps)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &projectState)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newProjectState)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

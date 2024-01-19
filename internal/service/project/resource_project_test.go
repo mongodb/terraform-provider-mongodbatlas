@@ -24,10 +24,10 @@ import (
 var (
 	name             = types.StringValue("sameName")
 	diffName         = types.StringValue("diffName")
-	projectStateName = project.TfProjectRSModel{
+	projectStateName = project.TFProjectRSModel{
 		Name: name,
 	}
-	projectStateNameDiff = project.TfProjectRSModel{
+	projectStateNameDiff = project.TFProjectRSModel{
 		Name: diffName,
 	}
 	dummyProjectID = "6575af27f93c7a6a4b50b239"
@@ -47,11 +47,12 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 		Err:           nil,
 	}
 	testCases := []struct {
-		name            string
-		teamRoleReponse TeamRoleResponse
-		groupResponse   GroupSettingsResponse
-		limitResponse   LimitsResponse
-		expectedError   bool
+		teamRoleReponse     TeamRoleResponse
+		groupResponse       GroupSettingsResponse
+		ipAddressesResponse IPAddressesResponse
+		name                string
+		limitResponse       LimitsResponse
+		expectedError       bool
 	}{
 		{
 			name:            "Successful",
@@ -90,6 +91,18 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			},
 			expectedError: true,
 		},
+		{
+			name:            "Fail to get project's ip addresses",
+			teamRoleReponse: successfulTeamRoleResponse,
+			limitResponse:   successfulLimitsResponse,
+			groupResponse:   successfulGroupSettingsResponse,
+			ipAddressesResponse: IPAddressesResponse{
+				IPAddresses:  nil,
+				HTTPResponse: &http.Response{StatusCode: 503},
+				Err:          errors.New("Service Unavailable"),
+			},
+			expectedError: true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -98,8 +111,9 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			svc.On("ListProjectTeams", mock.Anything, mock.Anything).Return(tc.teamRoleReponse.TeamRole, tc.teamRoleReponse.HTTPResponse, tc.teamRoleReponse.Err)
 			svc.On("ListProjectLimits", mock.Anything, mock.Anything).Return(tc.limitResponse.Limits, tc.limitResponse.HTTPResponse, tc.limitResponse.Err).Maybe()
 			svc.On("GetProjectSettings", mock.Anything, mock.Anything).Return(tc.groupResponse.GroupSettings, tc.groupResponse.HTTPResponse, tc.groupResponse.Err).Maybe()
+			svc.On("ReturnAllIPAddresses", mock.Anything, mock.Anything).Return(tc.ipAddressesResponse.IPAddresses, tc.ipAddressesResponse.HTTPResponse, tc.ipAddressesResponse.Err).Maybe()
 
-			_, _, _, err := project.GetProjectPropsFromAPI(context.Background(), svc, dummyProjectID)
+			_, err := project.GetProjectPropsFromAPI(context.Background(), svc, dummyProjectID)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -112,7 +126,7 @@ func TestFilterUserDefinedLimits(t *testing.T) {
 	testCases := []struct {
 		name           string
 		allAtlasLimits []admin.DataFederationLimit
-		tfLimits       []project.TfLimitModel
+		tfLimits       []project.TFLimitModel
 		expectedResult []admin.DataFederationLimit
 	}{
 		{
@@ -122,7 +136,7 @@ func TestFilterUserDefinedLimits(t *testing.T) {
 				createDataFederationLimit("2"),
 				createDataFederationLimit("3"),
 			},
-			tfLimits: []project.TfLimitModel{
+			tfLimits: []project.TFLimitModel{
 				{
 					Name: types.StringValue("1"),
 				},
@@ -140,7 +154,7 @@ func TestFilterUserDefinedLimits(t *testing.T) {
 			allAtlasLimits: []admin.DataFederationLimit{
 				createDataFederationLimit("1"),
 			},
-			tfLimits:       []project.TfLimitModel{},
+			tfLimits:       []project.TFLimitModel{},
 			expectedResult: []admin.DataFederationLimit{},
 		},
 	}
@@ -159,8 +173,8 @@ func TestUpdateProject(t *testing.T) {
 	testCases := []struct {
 		name          string
 		mockResponses ProjectResponse
-		projectState  project.TfProjectRSModel
-		projectPlan   project.TfProjectRSModel
+		projectState  project.TFProjectRSModel
+		projectPlan   project.TFProjectRSModel
 		expectedError bool
 	}{
 		{
@@ -210,7 +224,7 @@ func TestUpdateProject(t *testing.T) {
 }
 
 func TestUpdateProjectLimits(t *testing.T) {
-	twoLimits := []project.TfLimitModel{
+	twoLimits := []project.TFLimitModel{
 		{
 			Name: types.StringValue("limit1"),
 		},
@@ -218,12 +232,12 @@ func TestUpdateProjectLimits(t *testing.T) {
 			Name: types.StringValue("limit2"),
 		},
 	}
-	oneLimit := []project.TfLimitModel{
+	oneLimit := []project.TFLimitModel{
 		{
 			Name: types.StringValue("limit1"),
 		},
 	}
-	updatedLimit := []project.TfLimitModel{
+	updatedLimit := []project.TFLimitModel{
 		{
 			Name:  types.StringValue("limit1"),
 			Value: types.Int64Value(6),
@@ -235,17 +249,17 @@ func TestUpdateProjectLimits(t *testing.T) {
 	testCases := []struct {
 		name          string
 		mockResponses DeleteProjectLimitResponse
-		projectState  project.TfProjectRSModel
-		projectPlan   project.TfProjectRSModel
+		projectState  project.TFProjectRSModel
+		projectPlan   project.TFProjectRSModel
 		expectedError bool
 	}{
 		{
 			name: "Limits has not changed",
-			projectState: project.TfProjectRSModel{
+			projectState: project.TFProjectRSModel{
 				Name:   name,
 				Limits: singleLimitSet,
 			},
-			projectPlan: project.TfProjectRSModel{
+			projectPlan: project.TFProjectRSModel{
 				Name:   name,
 				Limits: singleLimitSet,
 			},
@@ -254,11 +268,11 @@ func TestUpdateProjectLimits(t *testing.T) {
 		},
 		{
 			name: "Adding limits",
-			projectState: project.TfProjectRSModel{
+			projectState: project.TFProjectRSModel{
 				Name:   name,
 				Limits: singleLimitSet,
 			},
-			projectPlan: project.TfProjectRSModel{
+			projectPlan: project.TFProjectRSModel{
 				Name:   name,
 				Limits: twoLimitSet,
 			},
@@ -269,11 +283,11 @@ func TestUpdateProjectLimits(t *testing.T) {
 		},
 		{
 			name: "Removing limits",
-			projectState: project.TfProjectRSModel{
+			projectState: project.TFProjectRSModel{
 				Name:   name,
 				Limits: twoLimitSet,
 			},
-			projectPlan: project.TfProjectRSModel{
+			projectPlan: project.TFProjectRSModel{
 				Name:   name,
 				Limits: singleLimitSet,
 			},
@@ -284,11 +298,11 @@ func TestUpdateProjectLimits(t *testing.T) {
 		},
 		{
 			name: "Updating limits",
-			projectState: project.TfProjectRSModel{
+			projectState: project.TFProjectRSModel{
 				Name:   name,
 				Limits: singleLimitSet,
 			},
-			projectPlan: project.TfProjectRSModel{
+			projectPlan: project.TFProjectRSModel{
 				Name:   name,
 				Limits: updatedLimitSet,
 			},
@@ -317,35 +331,35 @@ func TestUpdateProjectLimits(t *testing.T) {
 
 func TestUpdateProjectTeams(t *testing.T) {
 	teamRoles, _ := types.SetValueFrom(context.Background(), types.StringType, []string{"BASIC_PERMISSION"})
-	teamOne := project.TfTeamModel{
+	teamOne := project.TFTeamModel{
 		TeamID:    types.StringValue("team1"),
 		RoleNames: teamRoles,
 	}
-	teamTwo := project.TfTeamModel{
+	teamTwo := project.TFTeamModel{
 		TeamID: types.StringValue("team2"),
 	}
 	teamRolesUpdated, _ := types.SetValueFrom(context.Background(), types.StringType, []string{"ADMIN_PERMISSION"})
-	updatedTeam := project.TfTeamModel{
+	updatedTeam := project.TFTeamModel{
 		TeamID:    types.StringValue("team1"),
 		RoleNames: teamRolesUpdated,
 	}
-	singleTeamSet, _ := types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TfTeamModel{teamOne})
-	twoTeamSet, _ := types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TfTeamModel{teamOne, teamTwo})
-	updatedTeamSet, _ := types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TfTeamModel{updatedTeam})
+	singleTeamSet, _ := types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TFTeamModel{teamOne})
+	twoTeamSet, _ := types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TFTeamModel{teamOne, teamTwo})
+	updatedTeamSet, _ := types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TFTeamModel{updatedTeam})
 
 	testCases := []struct {
 		name          string
-		projectState  project.TfProjectRSModel
-		projectPlan   project.TfProjectRSModel
+		projectState  project.TFProjectRSModel
+		projectPlan   project.TFProjectRSModel
 		expectedError bool
 	}{
 		{
 			name: "Teams has not changed",
-			projectState: project.TfProjectRSModel{
+			projectState: project.TFProjectRSModel{
 				Name:  name,
 				Teams: singleTeamSet,
 			},
-			projectPlan: project.TfProjectRSModel{
+			projectPlan: project.TFProjectRSModel{
 				Name:  name,
 				Teams: singleTeamSet,
 			},
@@ -353,11 +367,11 @@ func TestUpdateProjectTeams(t *testing.T) {
 		},
 		{
 			name: "Add teams",
-			projectState: project.TfProjectRSModel{
+			projectState: project.TFProjectRSModel{
 				Name:  name,
 				Teams: singleTeamSet,
 			},
-			projectPlan: project.TfProjectRSModel{
+			projectPlan: project.TFProjectRSModel{
 				Name:  name,
 				Teams: twoTeamSet,
 			},
@@ -365,11 +379,11 @@ func TestUpdateProjectTeams(t *testing.T) {
 		},
 		{
 			name: "Remove teams",
-			projectState: project.TfProjectRSModel{
+			projectState: project.TFProjectRSModel{
 				Name:  name,
 				Teams: twoTeamSet,
 			},
-			projectPlan: project.TfProjectRSModel{
+			projectPlan: project.TFProjectRSModel{
 				Name:  name,
 				Teams: singleTeamSet,
 			},
@@ -377,11 +391,11 @@ func TestUpdateProjectTeams(t *testing.T) {
 		},
 		{
 			name: "Update teams",
-			projectState: project.TfProjectRSModel{
+			projectState: project.TFProjectRSModel{
 				Name:  name,
 				Teams: singleTeamSet,
 			},
-			projectPlan: project.TfProjectRSModel{
+			projectPlan: project.TFProjectRSModel{
 				Name:  name,
 				Teams: updatedTeamSet,
 			},
@@ -459,10 +473,12 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 	}
 }
 
+const resourceName = "mongodbatlas_project.test"
+
 func TestAccProjectRSProject_basic(t *testing.T) {
 	var (
-		group        admin.Group
-		resourceName = "mongodbatlas_project.test"
+		group admin.Group
+
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		clusterCount = "0"
@@ -492,6 +508,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "2"),
+					resource.TestCheckResourceAttrSet(resourceName, "ip_addresses.services.clusters.#"),
 				),
 			},
 			{
@@ -550,7 +567,6 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 func TestAccProjectRSProject_withProjectOwner(t *testing.T) {
 	var (
 		group          admin.Group
-		resourceName   = "mongodbatlas_project.test"
 		projectName    = acctest.RandomWithPrefix("test-acc")
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
@@ -577,7 +593,6 @@ func TestAccProjectRSProject_withProjectOwner(t *testing.T) {
 func TestAccProjectRSGovProject_withProjectOwner(t *testing.T) {
 	var (
 		group          admin.Group
-		resourceName   = "mongodbatlas_project.test"
 		projectName    = acctest.RandomWithPrefix("tf-acc-project")
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID_GOV")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID_GOV")
@@ -603,7 +618,6 @@ func TestAccProjectRSGovProject_withProjectOwner(t *testing.T) {
 func TestAccProjectRSProject_withFalseDefaultSettings(t *testing.T) {
 	var (
 		group          admin.Group
-		resourceName   = "mongodbatlas_project.test"
 		projectName    = acctest.RandomWithPrefix("tf-acc-project")
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
@@ -630,7 +644,6 @@ func TestAccProjectRSProject_withFalseDefaultSettings(t *testing.T) {
 func TestAccProjectRSProject_withUpdatedSettings(t *testing.T) {
 	var (
 		group          admin.Group
-		resourceName   = "mongodbatlas_project.test"
 		projectName    = acctest.RandomWithPrefix("tf-acc-project")
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
@@ -692,7 +705,6 @@ func TestAccProjectRSProject_withUpdatedSettings(t *testing.T) {
 
 func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 	var (
-		resourceName    = "mongodbatlas_project.test"
 		projectName     = acctest.RandomWithPrefix("tf-acc-project")
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		roleName        = "GROUP_DATA_ACCESS_ADMIN"
@@ -726,10 +738,9 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 
 func TestAccProjectRSProject_updatedToEmptyRoles(t *testing.T) {
 	var (
-		group        admin.Group
-		resourceName = "mongodbatlas_project.test"
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		group       admin.Group
+		projectName = acctest.RandomWithPrefix("test-acc")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIdsWithMinCount(t, 1) },
@@ -769,9 +780,8 @@ func TestAccProjectRSProject_updatedToEmptyRoles(t *testing.T) {
 
 func TestAccProjectRSProject_importBasic(t *testing.T) {
 	var (
-		projectName  = acctest.RandomWithPrefix("tf-acc-project")
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		resourceName = "mongodbatlas_project.test"
+		projectName = acctest.RandomWithPrefix("tf-acc-project")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -797,9 +807,8 @@ func TestAccProjectRSProject_importBasic(t *testing.T) {
 
 func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_project.test"
-		projectName  = acctest.RandomWithPrefix("tf-acc-project")
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("tf-acc-project")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -891,9 +900,8 @@ func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
 
 func TestAccProjectRSProject_updatedToEmptyLimits(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_project.test"
-		projectName  = acctest.RandomWithPrefix("tf-acc-project")
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("tf-acc-project")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -949,9 +957,8 @@ func TestAccProjectRSProject_withInvalidLimitName(t *testing.T) {
 
 func TestAccProjectRSProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_project.test"
-		projectName  = acctest.RandomWithPrefix("tf-acc-project")
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("tf-acc-project")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -999,6 +1006,12 @@ type GroupSettingsResponse struct {
 	GroupSettings *admin.GroupSettings
 	HTTPResponse  *http.Response
 	Err           error
+}
+
+type IPAddressesResponse struct {
+	IPAddresses  *admin.GroupIPAddresses
+	HTTPResponse *http.Response
+	Err          error
 }
 type ProjectResponse struct {
 	Project      *admin.Group

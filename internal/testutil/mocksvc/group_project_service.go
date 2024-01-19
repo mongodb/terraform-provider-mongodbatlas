@@ -281,6 +281,45 @@ func (_m *GroupProjectService) RemoveProjectTeam(ctx context.Context, groupID st
 	return r0, r1
 }
 
+// ReturnAllIPAddresses provides a mock function with given fields: ctx, groupID
+func (_m *GroupProjectService) ReturnAllIPAddresses(ctx context.Context, groupID string) (*admin.GroupIPAddresses, *http.Response, error) {
+	ret := _m.Called(ctx, groupID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReturnAllIPAddresses")
+	}
+
+	var r0 *admin.GroupIPAddresses
+	var r1 *http.Response
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*admin.GroupIPAddresses, *http.Response, error)); ok {
+		return rf(ctx, groupID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *admin.GroupIPAddresses); ok {
+		r0 = rf(ctx, groupID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*admin.GroupIPAddresses)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) *http.Response); ok {
+		r1 = rf(ctx, groupID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*http.Response)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, string) error); ok {
+		r2 = rf(ctx, groupID)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // SetProjectLimit provides a mock function with given fields: ctx, limitName, groupID, dataFederationLimit
 func (_m *GroupProjectService) SetProjectLimit(ctx context.Context, limitName string, groupID string, dataFederationLimit *admin.DataFederationLimit) (*admin.DataFederationLimit, *http.Response, error) {
 	ret := _m.Called(ctx, limitName, groupID, dataFederationLimit)
