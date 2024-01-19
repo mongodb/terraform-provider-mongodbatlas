@@ -10,8 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccDataSourceFederatedDatabaseInstances_basic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+func TestAccFederatedDatabaseInstanceDSPlural_basic(t *testing.T) {
 	var (
 		resourceName = "data.mongodbatlas_federated_database_instances.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -19,19 +18,19 @@ func TestAccDataSourceFederatedDatabaseInstances_basic(t *testing.T) {
 		firstName    = acctest.RandomWithPrefix("test-acc")
 		secondName   = acctest.RandomWithPrefix("test-acc")
 		policyName   = acctest.RandomWithPrefix("test-acc")
-		roleName     = acctest.RandomWithPrefix("test-acc")
+		roleName     = acctest.RandomWithPrefix("mongodb-atlas-test-acc-fed")
 		testS3Bucket = os.Getenv("AWS_S3_BUCKET")
 		region       = "VIRGINIA_USA"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasic(t) },
+		PreCheck:     func() { acc.PreCheckBasic(t); acc.PreCheckS3Bucket(t) },
 		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccMongoDBAtlasFederatedDatabaseInstancesDataSourceConfig(policyName, roleName, projectName, orgID, firstName, secondName, testS3Bucket, region),
+				Config:                   configDSPlural(policyName, roleName, projectName, orgID, firstName, secondName, testS3Bucket, region),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
@@ -41,8 +40,8 @@ func TestAccDataSourceFederatedDatabaseInstances_basic(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasFederatedDatabaseInstancesDataSourceConfig(policyName, roleName, projectName, orgID, firstName, secondName, testS3Bucket, dataLakeRegion string) string {
-	stepConfig := testAccMongoDBAtlasFederatedDatabaseInstancesConfigDataSourceFirstStep(firstName, secondName, testS3Bucket)
+func configDSPlural(policyName, roleName, projectName, orgID, firstName, secondName, testS3Bucket, dataLakeRegion string) string {
+	stepConfig := configDSPluralFirstStep(firstName, secondName, testS3Bucket)
 	return fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[1]q
@@ -109,7 +108,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 %s
 	`, policyName, roleName, projectName, orgID, stepConfig)
 }
-func testAccMongoDBAtlasFederatedDatabaseInstancesConfigDataSourceFirstStep(firstName, secondName, testS3Bucket string) string {
+func configDSPluralFirstStep(firstName, secondName, testS3Bucket string) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_federated_database_instance" "test" {
    project_id         = mongodbatlas_project.test.id

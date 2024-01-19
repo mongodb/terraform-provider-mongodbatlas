@@ -24,7 +24,7 @@ func TestAccBackupRSBackupSnapshotExportBucket_basic(t *testing.T) {
 		iamRoleID            = os.Getenv("IAM_ROLE_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckS3Bucket(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasBackupSnapshotExportBucketDestroy,
 		Steps: []resource.TestStep{
@@ -51,7 +51,7 @@ func TestAccBackupRSBackupSnapshotExportBucket_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckS3Bucket(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasBackupSnapshotExportBucketDestroy,
 		Steps: []resource.TestStep{

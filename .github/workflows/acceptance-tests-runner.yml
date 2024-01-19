@@ -55,6 +55,9 @@ on:
       aws_secret_name:
         type: string
         required: true
+      aws_region_federation:
+          type: string
+          required: true
     secrets: # all secrets are passed explicitly in this workflow
       mongodb_atlas_public_key:
         required: true
@@ -72,8 +75,8 @@ on:
         required: true
       aws_secret_access_key:
         required: true
-        
-      
+      aws_s3_bucket_federation:
+        required: true
 
 env:
   # CI: true  # GH does this automatically
@@ -428,7 +431,6 @@ jobs:
           AWS_SECURITY_GROUP_2: ${{ vars.AWS_SECURITY_GROUP_2 }}
           AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
           AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
-
           TEST_REGEX: "^TestAccProject"
         run: make testacc
   serverless:
@@ -504,6 +506,10 @@ jobs:
           terraform_wrapper: false    
       - name: Acceptance Tests
         env:
+          AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federation }}
+          AWS_REGION: ${{ vars.aws_region_federation }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}

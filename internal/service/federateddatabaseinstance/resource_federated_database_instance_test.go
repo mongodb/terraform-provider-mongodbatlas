@@ -27,7 +27,7 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstSteps(name, projectName, orgID),
+				Config: configFirstSteps(name, projectName, orgID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
@@ -38,7 +38,7 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstStepsUpdate(name, projectName, orgID),
+				Config: configFirstStepsUpdate(name, projectName, orgID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
@@ -50,14 +50,14 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{"storage_stores.0.allow_insecure", "storage_stores.0.include_tags", "storage_stores.0.read_preference.0.max_staleness_seconds",
 					"storage_stores.1.allow_insecure", "storage_stores.1.include_tags", "storage_stores.1.read_preference.0.max_staleness_seconds"},
 			},
 			{
-				Config: testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstStepsUpdate(name, projectName, orgID),
+				Config: configFirstStepsUpdate(name, projectName, orgID),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
@@ -69,27 +69,26 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 	})
 }
 
-func TestAccFederatedDatabaseInstance_S3bucket(t *testing.T) {
-	acc.SkipTestExtCred(t)
+func TestAccFederatedDatabaseInstance_s3bucket(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_federated_database_instance.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		name         = acctest.RandomWithPrefix("test-acc")
 		policyName   = acctest.RandomWithPrefix("test-acc")
-		roleName     = acctest.RandomWithPrefix("test-acc")
+		roleName     = acctest.RandomWithPrefix("mongodb-atlas-test-acc-fed")
 		testS3Bucket = os.Getenv("AWS_S3_BUCKET")
 		region       = "VIRGINIA_USA"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasic(t) },
+		PreCheck:     func() { acc.PreCheckBasic(t); acc.PreCheckS3Bucket(t) },
 		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccMongoDBAtlasFederatedDatabaseInstanceConfigS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, region),
+				Config:                   configWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, region),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
@@ -98,7 +97,7 @@ func TestAccFederatedDatabaseInstance_S3bucket(t *testing.T) {
 			{
 				ResourceName:             resourceName,
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				ImportStateIdFunc:        testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFuncS3Bucket(resourceName, testS3Bucket),
+				ImportStateIdFunc:        importStateIDFuncS3Bucket(resourceName, testS3Bucket),
 				ImportState:              true,
 				ImportStateVerify:        true,
 			},
@@ -120,7 +119,7 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccMongoDBAtlasFederatedDatabaseInstanceAtlasProviderConfig(projectName, orgID, name),
+				Config:                   configWithCluster(projectName, orgID, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
@@ -133,7 +132,7 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasFederatedDatabaseInstanceAtlasProviderConfig(projectName, orgID, name string) string {
+func configWithCluster(projectName, orgID, name string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_project" "project-tf" {
 		name   = %[1]q
@@ -243,7 +242,7 @@ func testAccMongoDBAtlasFederatedDatabaseInstanceAtlasProviderConfig(projectName
 	`, projectName, orgID, name)
 }
 
-func testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFuncS3Bucket(resourceName, s3Bucket string) resource.ImportStateIdFunc {
+func importStateIDFuncS3Bucket(resourceName, s3Bucket string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -256,7 +255,7 @@ func testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFuncS3Bucket(
 	}
 }
 
-func testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -269,8 +268,8 @@ func testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFunc(resource
 	}
 }
 
-func testAccMongoDBAtlasFederatedDatabaseInstanceConfigS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion string) string {
-	stepConfig := testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstSteps3Bucket(name, testS3Bucket)
+func configWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion string) string {
+	stepConfig := configFirstStepS3Bucket(name, testS3Bucket)
 	return fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[1]q
@@ -337,7 +336,8 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 %s
 	`, policyName, roleName, projectName, orgID, stepConfig)
 }
-func testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstSteps3Bucket(name, testS3Bucket string) string {
+
+func configFirstStepS3Bucket(name, testS3Bucket string) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_federated_database_instance" "test" {
    project_id         = mongodbatlas_project.test.id
@@ -399,7 +399,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
 	`, name, testS3Bucket)
 }
 
-func testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstSteps(federatedInstanceName, projectName, orgID string) string {
+func configFirstSteps(federatedInstanceName, projectName, orgID string) string {
 	return fmt.Sprintf(`
 
 resource "mongodbatlas_project" "test" {
@@ -486,7 +486,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
 	`, federatedInstanceName, projectName, orgID)
 }
 
-func testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstStepsUpdate(federatedInstanceName, projectName, orgID string) string {
+func configFirstStepsUpdate(federatedInstanceName, projectName, orgID string) string {
 	return fmt.Sprintf(`
 
 resource "mongodbatlas_project" "test" {

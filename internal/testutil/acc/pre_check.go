@@ -229,3 +229,10 @@ func PreCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(tb testing.TB)
 		tb.Skip("`MONGODB_ATLAS_PRIVATE_ENDPOINT_ID` must be set for Private Endpoint Service Data Federation and Online Archive acceptance testing")
 	}
 }
+
+func PreCheckS3Bucket(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("AWS_S3_BUCKET") == "" {
+		tb.Fatal("`AWS_S3_BUCKET` must be set ")
+	}
+}

@@ -24,7 +24,7 @@ func TestAccDataSourceFederatedDatabaseQueryLimits_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheck(t) },
+		PreCheck:     func() { acc.PreCheck(t); acc.PreCheckS3Bucket(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitDestroy,
 		Steps: []resource.TestStep{
 			{

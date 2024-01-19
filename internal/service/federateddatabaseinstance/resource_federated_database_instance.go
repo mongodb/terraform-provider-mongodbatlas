@@ -26,17 +26,18 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBFederatedDatabaseInstanceCreate,
-		ReadContext:   resourceMongoDBAFederatedDatabaseInstanceRead,
-		UpdateContext: resourceMongoDBFederatedDatabaseInstanceUpdate,
-		DeleteContext: resourceMongoDBAtlasFederatedDatabaseInstanceDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasFederatedDatabaseInstanceImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -56,6 +57,7 @@ func Resource() *schema.Resource {
 			"cloud_provider_config": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
+				Computed: true,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -94,6 +96,7 @@ func Resource() *schema.Resource {
 			"data_process_region": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
+				Computed: true,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -117,20 +120,24 @@ func Resource() *schema.Resource {
 func schemaFederatedDatabaseInstanceDatabases() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
+		Computed: true,
 		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"name": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"collections": {
 					Type:     schema.TypeSet,
+					Computed: true,
 					Optional: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"name": {
 								Type:     schema.TypeString,
+								Computed: true,
 								Optional: true,
 							},
 							"data_sources": {
@@ -140,46 +147,57 @@ func schemaFederatedDatabaseInstanceDatabases() *schema.Schema {
 									Schema: map[string]*schema.Schema{
 										"store_name": {
 											Type:     schema.TypeString,
+											Computed: true,
 											Optional: true,
 										},
 										"dataset_name": {
 											Type:     schema.TypeString,
+											Computed: true,
 											Optional: true,
 										},
 										"default_format": {
 											Type:     schema.TypeString,
+											Computed: true,
 											Optional: true,
 										},
 										"path": {
 											Type:     schema.TypeString,
+											Computed: true,
 											Optional: true,
 										},
 										"allow_insecure": {
 											Type:     schema.TypeBool,
+											Computed: true,
 											Optional: true,
 										},
 										"database": {
 											Type:     schema.TypeString,
+											Computed: true,
 											Optional: true,
 										},
 										"database_regex": {
 											Type:     schema.TypeString,
+											Computed: true,
 											Optional: true,
 										},
 										"collection": {
 											Type:     schema.TypeString,
+											Computed: true,
 											Optional: true,
 										},
 										"collection_regex": {
 											Type:     schema.TypeString,
+											Computed: true,
 											Optional: true,
 										},
 										"provenance_field_name": {
 											Type:     schema.TypeString,
+											Computed: true,
 											Optional: true,
 										},
 										"urls": {
 											Type:     schema.TypeList,
+											Computed: true,
 											Optional: true,
 											Elem: &schema.Schema{
 												Type: schema.TypeString,
@@ -193,6 +211,7 @@ func schemaFederatedDatabaseInstanceDatabases() *schema.Schema {
 				},
 				"views": {
 					Type:     schema.TypeSet,
+					Computed: true,
 					Optional: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
@@ -229,64 +248,79 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 			Schema: map[string]*schema.Schema{
 				"name": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"provider": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"region": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"bucket": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"cluster_name": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"cluster_id": {
 					Type:       schema.TypeString,
+					Computed:   true,
 					Optional:   true,
 					Deprecated: fmt.Sprintf(constant.DeprecationParamByDate, "September 2024"),
 				},
 				"project_id": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"prefix": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"delimiter": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"include_tags": {
 					Type:     schema.TypeBool,
+					Computed: true,
 					Optional: true,
 				},
 				"allow_insecure": {
 					Type:     schema.TypeBool,
+					Computed: true,
 					Optional: true,
 				},
 				"additional_storage_classes": {
 					Type:     schema.TypeList,
+					Computed: true,
 					Optional: true,
 					Elem:     &schema.Schema{Type: schema.TypeString},
 				},
 				"public": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"default_format": {
 					Type:     schema.TypeString,
+					Computed: true,
 					Optional: true,
 				},
 				"urls": {
 					Type:     schema.TypeList,
+					Computed: true,
 					Optional: true,
 					Elem: &schema.Schema{
 						Type: schema.TypeString,
@@ -295,19 +329,23 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 				"read_preference": {
 					Type:     schema.TypeList,
 					MaxItems: 1,
+					Computed: true,
 					Optional: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"mode": {
 								Type:     schema.TypeString,
+								Computed: true,
 								Optional: true,
 							},
 							"max_staleness_seconds": {
 								Type:     schema.TypeInt,
+								Computed: true,
 								Optional: true,
 							},
 							"tag_sets": {
 								Type:     schema.TypeList,
+								Computed: true,
 								Optional: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
@@ -318,10 +356,12 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 												Schema: map[string]*schema.Schema{
 													"name": {
 														Type:     schema.TypeString,
+														Computed: true,
 														Optional: true,
 													},
 													"value": {
 														Type:     schema.TypeString,
+														Computed: true,
 														Optional: true,
 													},
 												},
@@ -338,7 +378,7 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 	}
 }
 
-func resourceMongoDBFederatedDatabaseInstanceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
@@ -358,10 +398,10 @@ func resourceMongoDBFederatedDatabaseInstanceCreate(ctx context.Context, d *sche
 		"name":       name,
 	}))
 
-	return resourceMongoDBAFederatedDatabaseInstanceRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAFederatedDatabaseInstanceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -409,7 +449,7 @@ func resourceMongoDBAFederatedDatabaseInstanceRead(ctx context.Context, d *schem
 	return nil
 }
 
-func resourceMongoDBFederatedDatabaseInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
@@ -432,10 +472,10 @@ func resourceMongoDBFederatedDatabaseInstanceUpdate(ctx context.Context, d *sche
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceUpdate, name, err))
 	}
 
-	return resourceMongoDBAFederatedDatabaseInstanceRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasFederatedDatabaseInstanceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
@@ -449,7 +489,7 @@ func resourceMongoDBAtlasFederatedDatabaseInstanceDelete(ctx context.Context, d 
 	return nil
 }
 
-func resourceMongoDBAtlasFederatedDatabaseInstanceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID, name, s3Bucket, err := splitDataFederatedInstanceImportID(d.Id())
@@ -528,17 +568,16 @@ func resourceMongoDBAtlasFederatedDatabaseInstanceImportState(ctx context.Contex
 
 func newDataFederationStorage(d *schema.ResourceData) *admin.DataLakeStorage {
 	return &admin.DataLakeStorage{
-		Databases: conversion.NonEmptyToPtr(newDataFederationDatabase(d)),
-		Stores:    conversion.NonEmptyToPtr(newStores(d)),
+		Databases: newDataFederationDatabase(d),
+		Stores:    newStores(d),
 	}
 }
 
-func newStores(d *schema.ResourceData) []admin.DataLakeStoreSettings {
+func newStores(d *schema.ResourceData) *[]admin.DataLakeStoreSettings {
 	storesFromConf := d.Get("storage_stores").(*schema.Set).List()
 	if len(storesFromConf) == 0 {
-		return nil
+		return new([]admin.DataLakeStoreSettings)
 	}
-
 	stores := make([]admin.DataLakeStoreSettings, len(storesFromConf))
 	for i, storeFromConf := range storesFromConf {
 		storeFromConfMap := storeFromConf.(map[string]any)
@@ -552,25 +591,22 @@ func newStores(d *schema.ResourceData) []admin.DataLakeStoreSettings {
 			Prefix:                   conversion.StringPtr(storeFromConfMap["prefix"].(string)),
 			Delimiter:                conversion.StringPtr(storeFromConfMap["delimiter"].(string)),
 			IncludeTags:              conversion.Pointer(storeFromConfMap["include_tags"].(bool)),
-			AdditionalStorageClasses: conversion.NonEmptyToPtr(newAdditionalStorageClasses(storeFromConfMap["additional_storage_classes"].([]any))),
+			AdditionalStorageClasses: newAdditionalStorageClasses(storeFromConfMap["additional_storage_classes"].([]any)),
 			ReadPreference:           newReadPreference(storeFromConfMap),
 		}
 	}
-
-	return stores
+	return &stores
 }
 
-func newAdditionalStorageClasses(additionalStorageClassesFromConfig []any) []string {
+func newAdditionalStorageClasses(additionalStorageClassesFromConfig []any) *[]string {
 	if len(additionalStorageClassesFromConfig) == 0 {
-		return nil
+		return new([]string)
 	}
-
 	additionalStorageClasses := make([]string, len(additionalStorageClassesFromConfig))
 	for i, additionalStorageClassFromConfig := range additionalStorageClassesFromConfig {
 		additionalStorageClasses[i] = additionalStorageClassFromConfig.(string)
 	}
-
-	return additionalStorageClasses
+	return &additionalStorageClasses
 }
 
 func newReadPreference(storeFromConfMap map[string]any) *admin.DataLakeAtlasStoreReadPreference {
@@ -582,83 +618,72 @@ func newReadPreference(storeFromConfMap map[string]any) *admin.DataLakeAtlasStor
 	return &admin.DataLakeAtlasStoreReadPreference{
 		Mode:                conversion.StringPtr(readPreferenceFromConfMap["mode"].(string)),
 		MaxStalenessSeconds: conversion.IntPtr(readPreferenceFromConfMap["max_staleness_seconds"].(int)),
-		TagSets:             conversion.NonEmptyToPtr(newTagSets(readPreferenceFromConfMap)),
+		TagSets:             newTagSets(readPreferenceFromConfMap),
 	}
 }
 
-func newTagSets(readPreferenceFromConfMap map[string]any) [][]admin.DataLakeAtlasStoreReadPreferenceTag {
-	var res [][]admin.DataLakeAtlasStoreReadPreferenceTag
-
+func newTagSets(readPreferenceFromConfMap map[string]any) *[][]admin.DataLakeAtlasStoreReadPreferenceTag {
 	tagSetsFromConf, ok := readPreferenceFromConfMap["tag_sets"].([]any)
 	if !ok || len(tagSetsFromConf) == 0 {
-		return nil
+		return new([][]admin.DataLakeAtlasStoreReadPreferenceTag)
 	}
-
+	var res [][]admin.DataLakeAtlasStoreReadPreferenceTag
 	for ts := 0; ts < len(tagSetsFromConf); ts++ {
 		tagSetFromConfMap := tagSetsFromConf[ts].(map[string]any)
 		tagsFromConfigMap := tagSetFromConfMap["tags"].([]any)
 		var atlastags []admin.DataLakeAtlasStoreReadPreferenceTag
-
 		for t := 0; t < len(tagsFromConfigMap); t++ {
 			tagFromConfMap := tagsFromConfigMap[t].(map[string]any)
-
 			atlastags = append(atlastags, admin.DataLakeAtlasStoreReadPreferenceTag{
 				Name:  conversion.StringPtr(tagFromConfMap["name"].(string)),
 				Value: conversion.StringPtr(tagFromConfMap["value"].(string)),
 			})
 		}
-
 		res = append(res, atlastags)
 	}
-	return res
+	return &res
 }
 
-func newDataFederationDatabase(d *schema.ResourceData) []admin.DataLakeDatabaseInstance {
+func newDataFederationDatabase(d *schema.ResourceData) *[]admin.DataLakeDatabaseInstance {
 	storageDBsFromConf := d.Get("storage_databases").(*schema.Set).List()
 	if len(storageDBsFromConf) == 0 {
-		return nil
+		return new([]admin.DataLakeDatabaseInstance)
 	}
-
 	dbs := make([]admin.DataLakeDatabaseInstance, len(storageDBsFromConf))
 	for i, storageDBFromConf := range storageDBsFromConf {
 		storageDBFromConfMap := storageDBFromConf.(map[string]any)
-
 		dbs[i] = admin.DataLakeDatabaseInstance{
 			Name:                   conversion.StringPtr(storageDBFromConfMap["name"].(string)),
 			MaxWildcardCollections: conversion.IntPtr(storageDBFromConfMap["max_wildcard_collections"].(int)),
-			Collections:            conversion.NonEmptyToPtr(newDataFederationCollections(storageDBFromConfMap)),
+			Collections:            newDataFederationCollections(storageDBFromConfMap),
 		}
 	}
-
-	return dbs
+	return &dbs
 }
 
-func newDataFederationCollections(storageDBFromConfMap map[string]any) []admin.DataLakeDatabaseCollection {
+func newDataFederationCollections(storageDBFromConfMap map[string]any) *[]admin.DataLakeDatabaseCollection {
 	collectionsFromConf := storageDBFromConfMap["collections"].(*schema.Set).List()
 	if len(collectionsFromConf) == 0 {
-		return nil
+		return new([]admin.DataLakeDatabaseCollection)
 	}
-
 	collections := make([]admin.DataLakeDatabaseCollection, len(collectionsFromConf))
 	for i, collectionFromConf := range collectionsFromConf {
 		collections[i] = admin.DataLakeDatabaseCollection{
 			Name:        conversion.StringPtr(collectionFromConf.(map[string]any)["name"].(string)),
-			DataSources: conversion.NonEmptyToPtr(newDataFederationDataSource(collectionFromConf.(map[string]any))),
+			DataSources: newDataFederationDataSource(collectionFromConf.(map[string]any)),
 		}
 	}
-
-	return collections
+	return &collections
 }
 
-func newDataFederationDataSource(collectionFromConf map[string]any) []admin.DataLakeDatabaseDataSourceSettings {
+func newDataFederationDataSource(collectionFromConf map[string]any) *[]admin.DataLakeDatabaseDataSourceSettings {
 	dataSourcesFromConf := collectionFromConf["data_sources"].(*schema.Set).List()
 	if len(dataSourcesFromConf) == 0 {
-		return nil
+		return new([]admin.DataLakeDatabaseDataSourceSettings)
 	}
 	dataSources := make([]admin.DataLakeDatabaseDataSourceSettings, len(dataSourcesFromConf))
 	for i, dataSourceFromConf := range dataSourcesFromConf {
 		dataSourceFromConfMap := dataSourceFromConf.(map[string]any)
-
 		dataSources[i] = admin.DataLakeDatabaseDataSourceSettings{
 			AllowInsecure:       conversion.Pointer(dataSourceFromConfMap["allow_insecure"].(bool)),
 			Database:            conversion.StringPtr(dataSourceFromConfMap["database"].(string)),
@@ -670,24 +695,21 @@ func newDataFederationDataSource(collectionFromConf map[string]any) []admin.Data
 			ProvenanceFieldName: conversion.StringPtr(dataSourceFromConfMap["provenance_field_name"].(string)),
 			StoreName:           conversion.StringPtr(dataSourceFromConfMap["store_name"].(string)),
 			DatasetName:         conversion.StringPtr(dataSourceFromConfMap["dataset_name"].(string)),
-			Urls:                conversion.NonEmptyToPtr(newUrls(dataSourceFromConfMap["urls"].([]any))),
+			Urls:                newUrls(dataSourceFromConfMap["urls"].([]any)),
 		}
 	}
-
-	return dataSources
+	return &dataSources
 }
 
-func newUrls(urlsFromConfig []any) []string {
+func newUrls(urlsFromConfig []any) *[]string {
 	if len(urlsFromConfig) == 0 {
-		return nil
+		return new([]string)
 	}
-
 	urls := make([]string, len(urlsFromConfig))
 	for i, urlFromConfig := range urlsFromConfig {
 		urls[i] = urlFromConfig.(string)
 	}
-
-	return urls
+	return &urls
 }
 
 func newCloudProviderConfig(d *schema.ResourceData) *admin.DataLakeCloudProviderConfig {
