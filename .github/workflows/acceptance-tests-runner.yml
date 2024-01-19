@@ -501,26 +501,11 @@ jobs:
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false    
-      - id: sts-assume-role
-        name: Generate STS Temporary credential for acceptance testing
-        shell: bash
-        env:
-          AWS_REGION: ${{ vars.AWS_REGION }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
-          ASSUME_ROLE_ARN: ${{ vars.ASSUME_ROLE_ARN }}
-        run: bash ./scripts/generate-credentials-with-sts-assume-role.sh
       - name: Acceptance Tests
         env:
           AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federated }}
-          ASSUME_ROLE_ARN: ${{ vars.ASSUME_ROLE_ARN }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
-          STS_ENDPOINT: ${{ vars.STS_ENDPOINT }}
-          SECRET_NAME: ${{ inputs.aws_secret_name }}
-          AWS_ACCESS_KEY_ID: ${{ steps.sts-assume-role.outputs.aws_access_key_id }}
-          AWS_SECRET_ACCESS_KEY: ${{ steps.sts-assume-role.outputs.aws_secret_access_key }}
-          AWS_SESSION_TOKEN: ${{ steps.sts-assume-role.outputs.AWS_SESSION_TOKEN }}
-          AWS_ACCOUNT_ID: ${{ secrets.aws_account_id }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
