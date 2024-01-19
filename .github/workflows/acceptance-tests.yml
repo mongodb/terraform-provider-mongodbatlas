@@ -50,12 +50,13 @@ jobs:
       aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
       aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      aws_s3_bucket_federated: ${{ secrets.AWS_S3_BUCKET_FEDERATED }}
+      aws_s3_bucket_federation: ${{ secrets.AWS_S3_BUCKET_FEDERATION }}
     with:
       terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
       ref: ${{ inputs.ref }}
       test_group: ${{ inputs.test_group }}
       atlas_cloud_env: ${{ inputs.atlas_cloud_env }}
+      aws_region_federation: ${{ vars.AWS_REGION_FEDERATION }}
       mongodb_atlas_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_ORG_ID_CLOUD_QA || vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
       mongodb_atlas_org_id_network: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_ORG_ID_CLOUD_QA || vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV_NETWORK }}
       mongodb_atlas_project_id_network: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_PROJECT_ID_CLOUD_QA || vars.MONGODB_ATLAS_PROJECT_ID_CLOUD_DEV_NETWORK }}

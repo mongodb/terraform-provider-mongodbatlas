@@ -55,6 +55,9 @@ on:
       aws_secret_name:
         type: string
         required: true
+      aws_region_federation:
+          type: string
+          required: true
     secrets: # all secrets are passed explicitly in this workflow
       mongodb_atlas_public_key:
         required: true
@@ -72,7 +75,7 @@ on:
         required: true
       aws_secret_access_key:
         required: true
-      aws_s3_bucket_federated:
+      aws_s3_bucket_federation:
         required: true
 
 env:
@@ -503,7 +506,8 @@ jobs:
           terraform_wrapper: false    
       - name: Acceptance Tests
         env:
-          AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federated }}
+          AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federation }}
+          AWS_REGION: ${{ vars.aws_region_federation }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
