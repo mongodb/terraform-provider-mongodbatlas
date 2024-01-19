@@ -218,10 +218,13 @@ func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 				Optional: true,
 			},
 			"ip_addresses": schema.SingleNestedAttribute{
+				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"services": schema.SingleNestedAttribute{
+						Computed: true,
 						Attributes: map[string]schema.Attribute{
 							"clusters": schema.ListNestedAttribute{
+								Computed: true,
 								NestedObject: schema.NestedAttributeObject{
 									Attributes: map[string]schema.Attribute{
 										"cluster_name": schema.StringAttribute{
@@ -237,13 +240,10 @@ func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 										},
 									},
 								},
-								Computed: true,
 							},
 						},
-						Computed: true,
 					},
 				},
-				Computed: true,
 			},
 		},
 		Blocks: map[string]schema.Block{
