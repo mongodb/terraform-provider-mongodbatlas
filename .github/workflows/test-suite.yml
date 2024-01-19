@@ -39,7 +39,7 @@ jobs:
     needs: [clean-before, versions]
     if: ${{ !cancelled() }}
     strategy:
-      max-parallel: 1
+      max-parallel: 2
       fail-fast: false
       matrix:
         terraform_version: ${{ fromJSON(needs.versions.outputs.terraform_matrix) }}
@@ -52,10 +52,10 @@ jobs:
       provider_version: ${{ matrix.provider_version }}
 
   acc-tests:
-    needs: [mig-tests, versions]
+    needs: [clean-before, versions]
     if: ${{ !cancelled() }}
     strategy:
-      max-parallel: 1
+      max-parallel: 2
       fail-fast: false
       matrix:
         terraform_version: ${{ fromJSON(needs.versions.outputs.terraform_matrix) }}
@@ -66,7 +66,7 @@ jobs:
       terraform_version: ${{ matrix.terraform_version }}
 
   clean-after:
-    needs: acc-tests
+    needs: [mig-tests, acc-tests]
     if: ${{ !cancelled() }}
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
