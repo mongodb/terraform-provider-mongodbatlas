@@ -14,7 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20231115003/admin"
+	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 )
 
 func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
@@ -28,20 +28,20 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationConfig(orgID, projectName, true),
+				Config: configBasicRS(orgID, projectName, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "2"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationConfig(orgID, projectName, false),
+				Config: configBasicRS(orgID, projectName, false),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "2"),
 				),
@@ -50,7 +50,7 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSAlertConfiguration_EmptyMetricThresholdConfig(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_withEmptyMetricThresholdConfig(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acctest.RandomWithPrefix("test-acc")
@@ -59,16 +59,16 @@ func TestAccConfigRSAlertConfiguration_EmptyMetricThresholdConfig(t *testing.T) 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationConfigEmptyMetricThresholdConfig(orgID, projectName, true),
+				Config: configWithEmptyMetricThresholdConfig(orgID, projectName, true),
 			},
 		},
 	})
 }
 
-func TestAccConfigRSAlertConfiguration_EmptyMatcherMetricThresholdConfig(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_withEmptyMatcherMetricThresholdConfig(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -79,12 +79,12 @@ func TestAccConfigRSAlertConfiguration_EmptyMatcherMetricThresholdConfig(t *test
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationConfigEmptyMatcherMetricThresholdConfig(orgID, projectName, true),
+				Config: configWithEmptyMatcherMetricThresholdConfig(orgID, projectName, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
 				),
@@ -92,7 +92,7 @@ func TestAccConfigRSAlertConfiguration_EmptyMatcherMetricThresholdConfig(t *test
 		},
 	})
 }
-func TestAccConfigRSAlertConfiguration_Notifications(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_withNotifications(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -103,19 +103,19 @@ func TestAccConfigRSAlertConfiguration_Notifications(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationConfigNotifications(orgID, projectName, true, true, false),
+				Config: configWithNotifications(orgID, projectName, true, true, false),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationConfigNotifications(orgID, projectName, false, false, true),
+				Config: configWithNotifications(orgID, projectName, false, false, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
 			},
@@ -123,7 +123,7 @@ func TestAccConfigRSAlertConfiguration_Notifications(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSAlertConfiguration_WithMatchers(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_withMatchers(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -134,10 +134,10 @@ func TestAccConfigRSAlertConfiguration_WithMatchers(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationConfigWithMatchers(orgID, projectName, true, false, true,
+				Config: configWithMatchers(orgID, projectName, true, false, true,
 					map[string]interface{}{
 						"fieldName": "TYPE_NAME",
 						"operator":  "EQUALS",
@@ -149,12 +149,12 @@ func TestAccConfigRSAlertConfiguration_WithMatchers(t *testing.T) {
 						"value":     "MONGOS",
 					}),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationConfigWithMatchers(orgID, projectName, false, true, false,
+				Config: configWithMatchers(orgID, projectName, false, true, false,
 					map[string]interface{}{
 						"fieldName": "TYPE_NAME",
 						"operator":  "NOT_EQUALS",
@@ -166,7 +166,7 @@ func TestAccConfigRSAlertConfiguration_WithMatchers(t *testing.T) {
 						"value":     "PRIMARY",
 					}),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
 			},
@@ -185,19 +185,19 @@ func TestAccConfigRSAlertConfiguration_withMetricUpdated(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationConfigWithMetrictUpdated(orgID, projectName, true, 99.0),
+				Config: configWithMetricUpdated(orgID, projectName, true, 99.0),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationConfigWithMetrictUpdated(orgID, projectName, false, 89.7),
+				Config: configWithMetricUpdated(orgID, projectName, false, 89.7),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
 			},
@@ -205,7 +205,7 @@ func TestAccConfigRSAlertConfiguration_withMetricUpdated(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSAlertConfiguration_whitThresholdUpdated(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_withThresholdUpdated(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -216,25 +216,25 @@ func TestAccConfigRSAlertConfiguration_whitThresholdUpdated(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationConfigWithThresholdUpdated(orgID, projectName, true, 1),
+				Config: configWithThresholdUpdated(orgID, projectName, true, 1),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationConfigWithThresholdUpdated(orgID, projectName, false, 3),
+				Config: configWithThresholdUpdated(orgID, projectName, false, 3),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasAlertConfigurationImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"project_id", "matcher.0.field_name"},
@@ -243,7 +243,7 @@ func TestAccConfigRSAlertConfiguration_whitThresholdUpdated(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSAlertConfiguration_whitoutRoles(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_withoutRoles(t *testing.T) {
 	var (
 		alert        = &admin.GroupAlertsConfig{}
 		resourceName = "mongodbatlas_alert_configuration.test"
@@ -254,12 +254,12 @@ func TestAccConfigRSAlertConfiguration_whitoutRoles(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationConfigWithoutRoles(orgID, projectName, true, 99.0),
+				Config: configWithoutRoles(orgID, projectName, true, 99.0),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
 			},
@@ -278,12 +278,12 @@ func TestAccConfigRSAlertConfiguration_withoutOptionalAttributes(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationConfigWithEmptyOptionalAttributes(orgID, projectName),
+				Config: configWithEmptyOptionalAttributes(orgID, projectName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
 			},
@@ -301,14 +301,14 @@ func TestAccConfigRSAlertConfiguration_importBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationConfig(orgID, projectName, true),
+				Config: configBasicRS(orgID, projectName, true),
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasAlertConfigurationImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"project_id"},
@@ -327,10 +327,10 @@ func TestAccConfigRSAlertConfiguration_importIncorrectId(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationConfig(orgID, projectName, true),
+				Config: configBasicRS(orgID, projectName, true),
 			},
 			{
 				ResourceName:  resourceName,
@@ -352,14 +352,14 @@ func TestAccConfigRSAlertConfiguration_importConfigNotifications(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationConfigNotifications(orgID, projectName, true, true, false),
+				Config: configWithNotifications(orgID, projectName, true, true, false),
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasAlertConfigurationImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"project_id"},
@@ -385,18 +385,18 @@ func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationPagerDutyConfig(orgID, projectName, serviceKey, true),
+				Config: configWithPagerDuty(orgID, projectName, serviceKey, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasAlertConfigurationImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"notification.0.service_key"}, // service key is not returned by api in import operation
@@ -405,7 +405,7 @@ func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSAlertConfiguration_UpdatePagerDutyWithNotifierId(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_updatePagerDutyWithNotifierId(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -418,21 +418,21 @@ func TestAccConfigRSAlertConfiguration_UpdatePagerDutyWithNotifierId(t *testing.
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationPagerDutyNotifierIDConfig(orgID, projectName, notifierID, 10, &serviceKey),
+				Config: configWithPagerDutyNotifierID(orgID, projectName, notifierID, 10, &serviceKey),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "notification.0.delay_min", "10"),
 					resource.TestCheckResourceAttr(resourceName, "notification.0.service_key", serviceKey),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationPagerDutyNotifierIDConfig(orgID, projectName, notifierID, 15, nil),
+				Config: configWithPagerDutyNotifierID(orgID, projectName, notifierID, 15, nil),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "notification.0.delay_min", "15"),
 				),
@@ -441,7 +441,7 @@ func TestAccConfigRSAlertConfiguration_UpdatePagerDutyWithNotifierId(t *testing.
 	})
 }
 
-func TestAccConfigRSAlertConfiguration_DataDog(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_withDataDog(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -454,12 +454,12 @@ func TestAccConfigRSAlertConfiguration_DataDog(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationConfigWithDataDog(orgID, projectName, ddAPIKey, ddRegion, true),
+				Config: configWithDataDog(orgID, projectName, ddAPIKey, ddRegion, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
 			},
@@ -467,7 +467,7 @@ func TestAccConfigRSAlertConfiguration_DataDog(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSAlertConfiguration_PagerDuty(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_withPagerDuty(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -479,12 +479,12 @@ func TestAccConfigRSAlertConfiguration_PagerDuty(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationPagerDutyConfig(orgID, projectName, serviceKey, true),
+				Config: configWithPagerDuty(orgID, projectName, serviceKey, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
 			},
@@ -492,7 +492,7 @@ func TestAccConfigRSAlertConfiguration_PagerDuty(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSAlertConfiguration_OpsGenie(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_withOpsGenie(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -504,12 +504,12 @@ func TestAccConfigRSAlertConfiguration_OpsGenie(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationOpsGenieConfig(orgID, projectName, apiKey, true),
+				Config: configWithOpsGenie(orgID, projectName, apiKey, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
 			},
@@ -517,7 +517,7 @@ func TestAccConfigRSAlertConfiguration_OpsGenie(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSAlertConfiguration_VictorOps(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_withVictorOps(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -529,12 +529,12 @@ func TestAccConfigRSAlertConfiguration_VictorOps(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationVictorOpsConfig(orgID, projectName, apiKey, true),
+				Config: configWithVictorOps(orgID, projectName, apiKey, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					checkExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
 			},
@@ -542,7 +542,7 @@ func TestAccConfigRSAlertConfiguration_VictorOps(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName string, alert *admin.GroupAlertsConfig) resource.TestCheckFunc {
+func checkExists(resourceName string, alert *admin.GroupAlertsConfig) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 
@@ -568,7 +568,7 @@ func testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName string, alert
 	}
 }
 
-func testAccCheckMongoDBAtlasAlertConfigurationDestroy(s *terraform.State) error {
+func checkDestroy(s *terraform.State) error {
 	conn := acc.TestMongoDBClient.(*config.MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
@@ -587,7 +587,7 @@ func testAccCheckMongoDBAtlasAlertConfigurationDestroy(s *terraform.State) error
 	return nil
 }
 
-func testAccCheckMongoDBAtlasAlertConfigurationImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateProjectIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -598,7 +598,7 @@ func testAccCheckMongoDBAtlasAlertConfigurationImportStateIDFunc(resourceName st
 	}
 }
 
-func testAccMongoDBAtlasAlertConfigurationConfig(orgID, projectName string, enabled bool) string {
+func configBasicRS(orgID, projectName string, enabled bool) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_project" "test" {
 	name   = %[2]q
@@ -644,7 +644,7 @@ resource "mongodbatlas_alert_configuration" "test" {
 	`, orgID, projectName, enabled)
 }
 
-func testAccMongoDBAtlasAlertConfigurationConfigNotifications(orgID, projectName string, enabled, smsEnabled, emailEnabled bool) string {
+func configWithNotifications(orgID, projectName string, enabled, smsEnabled, emailEnabled bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q
@@ -675,7 +675,7 @@ func testAccMongoDBAtlasAlertConfigurationConfigNotifications(orgID, projectName
 	`, orgID, projectName, enabled, smsEnabled, emailEnabled)
 }
 
-func testAccMongoDBAtlasAlertConfigurationConfigWithMatchers(orgID, projectName string, enabled, smsEnabled, emailEnabled bool, m1, m2 map[string]interface{}) string {
+func configWithMatchers(orgID, projectName string, enabled, smsEnabled, emailEnabled bool, m1, m2 map[string]interface{}) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q
@@ -711,7 +711,7 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithMatchers(orgID, projectName 
 		m2["fieldName"], m2["operator"], m2["value"])
 }
 
-func testAccMongoDBAtlasAlertConfigurationConfigWithMetrictUpdated(orgID, projectName string, enabled bool, threshold float64) string {
+func configWithMetricUpdated(orgID, projectName string, enabled bool, threshold float64) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q
@@ -748,7 +748,7 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithMetrictUpdated(orgID, projec
 	`, orgID, projectName, enabled, threshold)
 }
 
-func testAccMongoDBAtlasAlertConfigurationConfigWithoutRoles(orgID, projectName string, enabled bool, threshold float64) string {
+func configWithoutRoles(orgID, projectName string, enabled bool, threshold float64) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q
@@ -785,7 +785,7 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithoutRoles(orgID, projectName 
 	`, orgID, projectName, enabled, threshold)
 }
 
-func testAccMongoDBAtlasAlertConfigurationConfigWithThresholdUpdated(orgID, projectName string, enabled bool, threshold float64) string {
+func configWithThresholdUpdated(orgID, projectName string, enabled bool, threshold float64) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q
@@ -820,7 +820,7 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithThresholdUpdated(orgID, proj
 	`, orgID, projectName, enabled, threshold)
 }
 
-func testAccMongoDBAtlasAlertConfigurationConfigWithDataDog(orgID, projectName, dataDogAPIKey, dataDogRegion string, enabled bool) string {
+func configWithDataDog(orgID, projectName, dataDogAPIKey, dataDogRegion string, enabled bool) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_project" "test" {
 	name   = %[2]q
@@ -870,7 +870,7 @@ resource "mongodbatlas_alert_configuration" "test" {
 	`, orgID, projectName, enabled, dataDogAPIKey, dataDogRegion)
 }
 
-func testAccMongoDBAtlasAlertConfigurationPagerDutyConfig(orgID, projectName, serviceKey string, enabled bool) string {
+func configWithPagerDuty(orgID, projectName, serviceKey string, enabled bool) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_project" "test" {
 	name   = %[2]q
@@ -890,7 +890,7 @@ resource "mongodbatlas_alert_configuration" "test" {
 	`, orgID, projectName, serviceKey, enabled)
 }
 
-func testAccMongoDBAtlasAlertConfigurationPagerDutyNotifierIDConfig(orgID, projectName, notifierID string, delayMin int, serviceKey *string) string {
+func configWithPagerDutyNotifierID(orgID, projectName, notifierID string, delayMin int, serviceKey *string) string {
 	var serviceKeyString string
 	if serviceKey != nil {
 		serviceKeyString = fmt.Sprintf(`service_key = %q`, *serviceKey)
@@ -915,7 +915,7 @@ resource "mongodbatlas_alert_configuration" "test" {
 	`, orgID, projectName, notifierID, serviceKeyString, delayMin)
 }
 
-func testAccMongoDBAtlasAlertConfigurationOpsGenieConfig(orgID, projectName, apiKey string, enabled bool) string {
+func configWithOpsGenie(orgID, projectName, apiKey string, enabled bool) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_project" "test" {
 	name   = %[2]q
@@ -936,7 +936,7 @@ resource "mongodbatlas_alert_configuration" "test" {
 	`, orgID, projectName, apiKey, enabled)
 }
 
-func testAccMongoDBAtlasAlertConfigurationVictorOpsConfig(orgID, projectName, apiKey string, enabled bool) string {
+func configWithVictorOps(orgID, projectName, apiKey string, enabled bool) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_project" "test" {
 	name   = %[2]q
@@ -957,7 +957,7 @@ resource "mongodbatlas_alert_configuration" "test" {
 	`, orgID, projectName, apiKey, enabled)
 }
 
-func testAccMongoDBAtlasAlertConfigurationConfigEmptyMetricThresholdConfig(orgID, projectName string, enabled bool) string {
+func configWithEmptyMetricThresholdConfig(orgID, projectName string, enabled bool) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_project" "test" {
 	name   = %[2]q
@@ -988,7 +988,7 @@ resource "mongodbatlas_alert_configuration" "test" {
 	`, orgID, projectName, enabled)
 }
 
-func testAccMongoDBAtlasAlertConfigurationConfigEmptyMatcherMetricThresholdConfig(orgID, projectName string, enabled bool) string {
+func configWithEmptyMatcherMetricThresholdConfig(orgID, projectName string, enabled bool) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_project" "test" {
 	name   = %[2]q

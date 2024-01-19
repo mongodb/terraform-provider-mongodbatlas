@@ -36,17 +36,21 @@ func IntGreatThan(value int) resource.CheckResourceAttrWithFunc {
 	}
 }
 
-func JSONEquals[T any](value T) resource.CheckResourceAttrWithFunc {
+func JSONEquals(expected string) resource.CheckResourceAttrWithFunc {
 	return func(input string) error {
-		var actual T
-		if err := json.Unmarshal([]byte(input), &actual); err != nil {
+		var expectedAny, inputAny any
+
+		if err := json.Unmarshal([]byte(expected), &expectedAny); err != nil {
 			return fmt.Errorf("could not unmarshal json: %s", err)
 		}
 
-		if !reflect.DeepEqual(actual, value) {
-			return fmt.Errorf("expected `%v`, got `%v`", value, actual)
+		if err := json.Unmarshal([]byte(input), &inputAny); err != nil {
+			return fmt.Errorf("could not unmarshal json: %s", err)
 		}
 
+		if !reflect.DeepEqual(expectedAny, inputAny) {
+			return fmt.Errorf("expected `%v`, got `%v`", expected, input)
+		}
 		return nil
 	}
 }

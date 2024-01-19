@@ -26,9 +26,9 @@
 #   echo "  encryption_at_rest"
 #
 # The scripts requires to install tfplugindocs and to create the resource templates in 
-# templates/resources/${resource_name}.html.markdown.tmpl and 
-# templates/data-sources/${resource_name}.html.markdown.tmpl
-# templates/data-sources/${resource_name}s.html.markdown.tmpl
+# templates/resources/${resource_name}.md.tmpl and 
+# templates/data-sources/${resource_name}.md.tmpl
+# templates/data-sources/${resource_name}s.md.tmpl
 
 set -euo pipefail
 
@@ -51,21 +51,19 @@ fi
 
 resource_name="$1"
 
-if [ ! -f "${TEMPLATE_FOLDER_PATH}/resources/${resource_name}.html.markdown.tmpl" ]; then
-    echo "Error: we coudn't find the template for the ${resource_name} resource"
-    echo "Please, make sure to include the resource template under ${TEMPLATE_FOLDER_PATH}/resources/${resource_name}.html.markdown.tmpl"
-    exit 1
+if [ ! -f "${TEMPLATE_FOLDER_PATH}/resources/${resource_name}.md.tmpl" ]; then
+    printf "Warning: we coudn't find the template for the %s resource. The default template templates/resources.md.tmpl will be used." "${resource_name}"
+    printf "Please, make sure to include the resource template under %s.\n\n" "${TEMPLATE_FOLDER_PATH}/resources/${resource_name}.md.tmpl"
 fi
 
-if [ ! -f "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.html.markdown.tmpl" ]; then
-    echo "Error: we coudn't find the template for the ${resource_name} data source"
-    echo "Please, make sure to include the data source template under ${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.html.markdown.tmpl"
-    exit 1
+if [ ! -f "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl" ]; then
+    printf "Warning: we coudn't find the template for the %s data source. The default template templates/data-source.md.tmpl will be used." "${resource_name}"
+    printf "Please, make sure to include the data source template under %s.\n\n" "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl"
 fi
 
-if [ ! -f "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}s.html.markdown.tmpl" ]; then
+if [ ! -f "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}s.md.tmpl" ]; then
     echo "Warning: we coudn't find the template for the ${resource_name}s data source"
-    echo "Please, make sure to include the data source template under ${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.html.markdown.tmpl"
+    printf "Please, make sure to include the data source template under %s." "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl"
     printf "Skipping this check: We assume that the resource does not have a plural data source.\n\n"
 fi
 
@@ -74,31 +72,31 @@ mkdir -p docs
 
 tfplugindocs generate --tf-version "${TF_VERSION}" --website-source-dir "${TEMPLATE_FOLDER_PATH}"
 
-if [ ! -f "docs/resources/${resource_name}.html.markdown" ]; then
-    echo "Error: We cannot find the documentation file for the resource ${resource_name}.html.markdown"
-    echo "Please, make sure to include the resource template under templates/resources/${resource_name}.html.markdown.tmpl"
+if [ ! -f "docs/resources/${resource_name}.md" ]; then
+    echo "Error: We cannot find the documentation file for the resource ${resource_name}.md"
+    echo "Please, make sure to include the resource template under templates/resources/${resource_name}.md.tmpl"
     exit 1
 else
-    printf "\nMoving the generated file %s.html.markdown to the website folder" "${resource_name}"
-    mv "docs/resources/${resource_name}.html.markdown" "website/docs/r/${resource_name}.html.markdown"
+    printf "\nMoving the generated file %s.md to the website folder" "${resource_name}"
+    mv "docs/resources/${resource_name}.md" "website/docs/r/${resource_name}.html.markdown"
 fi
 
-if [ ! -f "docs/data-sources/${resource_name}.html.markdown" ]; then
-    echo "Error: We cannot find the documentation file for the data source ${resource_name}.html.markdown"
-    echo "Please, make sure to include the data source template under templates/data-sources/${resource_name}.html.markdown.tmpl"
+if [ ! -f "docs/data-sources/${resource_name}.md" ]; then
+    echo "Error: We cannot find the documentation file for the data source ${resource_name}.md"
+    echo "Please, make sure to include the data source template under templates/data-sources/${resource_name}.md.tmpl"
     exit 1
 else
-    printf "\nMoving the generated file %s.html.markdown to the website folder" "${resource_name}"
-    mv "docs/data-sources/${resource_name}.html.markdown" "website/docs/d/${resource_name}.html.markdown"
+    printf "\nMoving the generated file %s.md to the website folder" "${resource_name}"
+    mv "docs/data-sources/${resource_name}.md" "website/docs/d/${resource_name}.html.markdown"
 fi
 
-if [ ! -f "docs/data-sources/${resource_name}s.html.markdown" ]; then
-    echo "Warning: We cannot find the documentation file for the data source ${resource_name}s.html.markdown."
-    echo "Please, make sure to include the data source template under templates/data-sources/${resource_name}s.html.markdown.tmpl"
+if [ ! -f "docs/data-sources/${resource_name}s.md" ]; then
+    echo "Warning: We cannot find the documentation file for the data source ${resource_name}s.md."
+    echo "Please, make sure to include the data source template under templates/data-sources/${resource_name}s.md.tmpl"
     printf "Skipping this step: We assume that the resource does not have a plural data source.\n\n"
 else
-    printf "\nMoving the generated file %s.html.markdown to the website folder" "${resource_name}s"
-    mv "docs/data-sources/${resource_name}s.html.markdown" "/website/docs/d/${resource_name}s.html.markdown"
+    printf "\nMoving the generated file %s.md to the website folder" "${resource_name}s"
+    mv "docs/data-sources/${resource_name}s.md" "website/docs/d/${resource_name}s.html.markdown"
 fi
 
 # Delete the docs/ folder

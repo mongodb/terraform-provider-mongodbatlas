@@ -47,8 +47,8 @@ func TestAccConfigDSDatabaseUsers_basic(t *testing.T) {
 func testAccMongoDBAtlasDatabaseUsersDataSourceConfig(orgID, projectName, roleName, username string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = %[2]q
 			org_id = %[1]q
+			name   = %[2]q
 		}
 		resource "mongodbatlas_database_user" "db_user" {
 			username           = %[4]q

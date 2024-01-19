@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20231115003/admin"
+	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 )
 
 var (
@@ -148,19 +148,19 @@ func TestNewTfDatabaseUserModel(t *testing.T) {
 
 func TestNewMongoDBAtlasScopes(t *testing.T) {
 	testCases := []struct {
+		expectedResult *[]admin.UserScope
 		name           string
 		currentScopes  []*databaseuser.TfScopeModel
-		expectedResult []admin.UserScope
 	}{
 		{
 			name:           "Success TfScopeModel",
 			currentScopes:  []*databaseuser.TfScopeModel{&tfScope},
-			expectedResult: []admin.UserScope{sdkScope},
+			expectedResult: &[]admin.UserScope{sdkScope},
 		},
 		{
 			name:           "Empty TfScopeModel",
 			currentScopes:  []*databaseuser.TfScopeModel{},
-			expectedResult: []admin.UserScope{},
+			expectedResult: &[]admin.UserScope{},
 		},
 	}
 
@@ -187,7 +187,7 @@ func TestNewTFScopesModel(t *testing.T) {
 		{
 			name:           "Empty TfScopeModel",
 			currentScopes:  []admin.UserScope{},
-			expectedResult: nil,
+			expectedResult: []databaseuser.TfScopeModel{},
 		},
 	}
 
@@ -202,19 +202,19 @@ func TestNewTFScopesModel(t *testing.T) {
 
 func TestNewMongoDBAtlasLabels(t *testing.T) {
 	testCases := []struct {
+		expectedResult *[]admin.ComponentLabel
 		name           string
 		currentLabels  []*databaseuser.TfLabelModel
-		expectedResult []admin.ComponentLabel
 	}{
 		{
 			name:           "Success TfLabelModel",
 			currentLabels:  []*databaseuser.TfLabelModel{&tfLabel},
-			expectedResult: []admin.ComponentLabel{sdkLabel},
+			expectedResult: &[]admin.ComponentLabel{sdkLabel},
 		},
 		{
 			name:           "Empty TfLabelModel",
 			currentLabels:  []*databaseuser.TfLabelModel{},
-			expectedResult: []admin.ComponentLabel{},
+			expectedResult: &[]admin.ComponentLabel{},
 		},
 	}
 
@@ -241,7 +241,7 @@ func TestNewTFLabelsModel(t *testing.T) {
 		{
 			name:           "Empty TfLabelModel",
 			currentLabels:  []admin.ComponentLabel{},
-			expectedResult: nil,
+			expectedResult: []databaseuser.TfLabelModel{},
 		},
 	}
 
@@ -256,19 +256,19 @@ func TestNewTFLabelsModel(t *testing.T) {
 
 func TestNewMongoDBAtlasRoles(t *testing.T) {
 	testCases := []struct {
+		expectedResult *[]admin.DatabaseUserRole
 		name           string
 		currentRoles   []*databaseuser.TfRoleModel
-		expectedResult []admin.DatabaseUserRole
 	}{
 		{
 			name:           "Success DatabaseUserRole",
 			currentRoles:   []*databaseuser.TfRoleModel{&tfUserRole},
-			expectedResult: []admin.DatabaseUserRole{sdkRole},
+			expectedResult: &[]admin.DatabaseUserRole{sdkRole},
 		},
 		{
 			name:           "Empty DatabaseUserRole",
 			currentRoles:   []*databaseuser.TfRoleModel{},
-			expectedResult: []admin.DatabaseUserRole{},
+			expectedResult: &[]admin.DatabaseUserRole{},
 		},
 	}
 
@@ -295,7 +295,7 @@ func TestNewTFRolesModel(t *testing.T) {
 		{
 			name:           "Empty DatabaseUserRole",
 			currentRoles:   []admin.DatabaseUserRole{},
-			expectedResult: nil,
+			expectedResult: []databaseuser.TfRoleModel{},
 		},
 	}
 
