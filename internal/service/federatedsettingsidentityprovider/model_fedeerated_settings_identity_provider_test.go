@@ -28,11 +28,11 @@ var (
 	domainRestrictionEnabled   = true
 	identityProviderID         = "identityProviderId"
 	postAuthRoleGrants         = []string{"postAuthRoleGrants"}
-	acsUrl                     = "acsUrl"
+	acsURL                     = "acsURL"
 	associatedDomains          = []string{"associatedDomains"}
-	audienceUri                = "audienceUri"
+	audienceURI                = "audienceURI"
 	displayName                = "displayName"
-	issuerUri                  = "issuerUri"
+	issuerURI                  = "issuerURI"
 	oktaIdpID                  = "oktaIdpID"
 	requestBinding             = "requestBinding"
 	responseSignatureAlgorithm = "responseSignatureAlgorithm"
@@ -318,12 +318,12 @@ func TestFlattenFederatedSettingsIdentityProvider(t *testing.T) {
 			name: "Non empty FlattenFederatedSettingsIdentityProvider",
 			input: []admin.FederationIdentityProvider{
 				{
-					AcsUrl:                     &acsUrl,
+					AcsUrl:                     &acsURL,
 					AssociatedDomains:          &associatedDomains,
 					AssociatedOrgs:             &associatedOrgs,
-					AudienceUri:                &audienceUri,
+					AudienceUri:                &audienceURI,
 					DisplayName:                &displayName,
-					IssuerUri:                  &issuerUri,
+					IssuerUri:                  &issuerURI,
 					OktaIdpId:                  oktaIdpID,
 					PemFileInfo:                &pemFileInfo,
 					RequestBinding:             &requestBinding,
@@ -337,12 +337,12 @@ func TestFlattenFederatedSettingsIdentityProvider(t *testing.T) {
 			},
 			output: []map[string]any{
 				{
-					"acs_url":                      &acsUrl,
+					"acs_url":                      &acsURL,
 					"associated_domains":           &associatedDomains,
 					"associated_orgs":              flattenedAssociatedOrgs,
-					"audience_uri":                 &audienceUri,
+					"audience_uri":                 &audienceURI,
 					"display_name":                 &displayName,
-					"issuer_uri":                   &issuerUri,
+					"issuer_uri":                   &issuerURI,
 					"okta_idp_id":                  oktaIdpID,
 					"pem_file_info":                flattenedPemFileInfo,
 					"request_binding":              &requestBinding,
