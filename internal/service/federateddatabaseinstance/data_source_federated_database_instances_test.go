@@ -18,7 +18,7 @@ func TestAccFederatedDatabaseInstanceDSPlural_basic(t *testing.T) {
 		firstName    = acctest.RandomWithPrefix("test-acc")
 		secondName   = acctest.RandomWithPrefix("test-acc")
 		policyName   = acctest.RandomWithPrefix("test-acc")
-		roleName     = acctest.RandomWithPrefix("test-acc")
+		roleName     = acctest.RandomWithPrefix("mongodb-atlas-test-acc")
 		testS3Bucket = os.Getenv("AWS_S3_BUCKET")
 		region       = "VIRGINIA_USA"
 	)
