@@ -2,7 +2,7 @@ module github.com/mongodb/terraform-provider-mongodbatlas
 
 go 1.21
 
-toolchain go1.21.3
+toolchain go1.21.6
 
 require (
 	github.com/aws/aws-sdk-go v1.49.22
