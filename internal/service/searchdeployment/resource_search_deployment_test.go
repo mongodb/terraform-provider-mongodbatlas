@@ -126,7 +126,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		connV2 := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).AtlasV2
+		connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 		_, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
 		if err != nil {
 			return fmt.Errorf("search deployment (%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
