@@ -251,7 +251,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 			project: &projectSDK,
 			projectProps: project.AdditionalProperties{
 				Teams: &admin.PaginatedTeamRole{
-					Results:    conversion.NonEmptyToPtr(teamRolesSDK),
+					Results:    &teamRolesSDK,
 					TotalCount: conversion.IntPtr(1),
 				},
 				Settings:    &projectSettingsSDK,
