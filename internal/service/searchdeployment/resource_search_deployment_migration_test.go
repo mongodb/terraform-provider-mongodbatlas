@@ -1,7 +1,6 @@
 package searchdeployment_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -14,10 +13,12 @@ import (
 
 func TestAccMigrationSearchDeployment_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_search_deployment.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc-search-dep")
-		clusterName  = acctest.RandomWithPrefix("test-acc-search-dep")
+		resourceName    = "mongodbatlas_search_deployment.test"
+		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName     = acctest.RandomWithPrefix("test-acc-search-dep")
+		clusterName     = acctest.RandomWithPrefix("test-acc-search-dep")
+		instanceSize    = "S30_HIGHCPU_NVME"
+		searchNodeCount = 3
 	)
 	mig.SkipIfVersionBelow(t, "1.13.0")
 	resource.ParallelTest(t, resource.TestCase{
@@ -26,19 +27,12 @@ func TestAccMigrationSearchDeployment_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configBasic(orgID, projectName, clusterName, "S30_HIGHCPU_NVME", 4),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "specs.0.instance_size", instanceSize),
-					resource.TestCheckResourceAttr(resourceName, "specs.0.node_count", fmt.Sprintf("%d", 4)),
-					resource.TestCheckResourceAttrSet(resourceName, "state_name"),
-				),
+				Config:            configBasic(orgID, projectName, clusterName, instanceSize, searchNodeCount),
+				Check:             resource.ComposeTestCheckFunc(searchNodeChecks(resourceName, clusterName, instanceSize, searchNodeCount)...),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configBasic(orgID, projectName, clusterName, "S30_HIGHCPU_NVME", 4),
+				Config:                   configBasic(orgID, projectName, clusterName, instanceSize, searchNodeCount),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectEmptyPlan(),

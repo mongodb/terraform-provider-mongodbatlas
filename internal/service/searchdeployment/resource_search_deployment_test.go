@@ -142,7 +142,7 @@ func checkDestroy(state *terraform.State) error {
 	if clusterDestroyedErr := acc.CheckDestroyTeamAdvancedCluster(state); clusterDestroyedErr != nil {
 		return clusterDestroyedErr
 	}
-	connV2 := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).AtlasV2
+	connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type == "mongodbatlas_search_deployment" {
 			_, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
