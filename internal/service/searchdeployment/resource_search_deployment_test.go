@@ -49,7 +49,7 @@ func newSearchNodeTestStep(resourceName, orgID, projectName, clusterName, instan
 
 func searchNodeChecks(targetName, clusterName, instanceSize string, searchNodeCount int) []resource.TestCheckFunc {
 	return []resource.TestCheckFunc{
-		testAccCheckMongoDBAtlasSearchNodeExists(targetName),
+		checkExists(targetName),
 		resource.TestCheckResourceAttrSet(targetName, "id"),
 		resource.TestCheckResourceAttrSet(targetName, "project_id"),
 		resource.TestCheckResourceAttr(targetName, "cluster_name", clusterName),
@@ -119,7 +119,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func testAccCheckMongoDBAtlasSearchNodeExists(resourceName string) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

@@ -1,6 +1,7 @@
 package searchdeployment_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -18,6 +19,7 @@ func TestAccMigrationSearchDeployment_basic(t *testing.T) {
 		projectName  = acctest.RandomWithPrefix("test-acc-search-dep")
 		clusterName  = acctest.RandomWithPrefix("test-acc-search-dep")
 	)
+	mig.SkipIfVersionBelow(t, "1.13.0")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: checkDestroy,
@@ -25,7 +27,14 @@ func TestAccMigrationSearchDeployment_basic(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            configBasic(orgID, projectName, clusterName, "S30_HIGHCPU_NVME", 4),
-				Check:             resource.ComposeTestCheckFunc(searchNodeChecks(resourceName, clusterName, "S30_HIGHCPU_NVME", 4)...),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "specs.0.instance_size", instanceSize),
+					resource.TestCheckResourceAttr(resourceName, "specs.0.node_count", fmt.Sprintf("%d", 4)),
+					resource.TestCheckResourceAttrSet(resourceName, "state_name"),
+				),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
