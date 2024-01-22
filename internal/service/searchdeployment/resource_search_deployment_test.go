@@ -23,14 +23,14 @@ func TestAccSearchDeployment_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasSearchNodeDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			newSearchNodeTestStep(resourceName, orgID, projectName, clusterName, "S20_HIGHCPU_NVME", 3),
 			newSearchNodeTestStep(resourceName, orgID, projectName, clusterName, "S30_HIGHCPU_NVME", 4),
 			{
-				Config:            testAccMongoDBAtlasSearchDeploymentConfig(orgID, projectName, clusterName, "S30_HIGHCPU_NVME", 4),
+				Config:            configBasic(orgID, projectName, clusterName, "S30_HIGHCPU_NVME", 4),
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckSearchNodeImportStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -42,14 +42,14 @@ func newSearchNodeTestStep(resourceName, orgID, projectName, clusterName, instan
 	resourceChecks := searchNodeChecks(resourceName, clusterName, instanceSize, searchNodeCount)
 	dataSourceChecks := searchNodeChecks(fmt.Sprintf("data.%s", resourceName), clusterName, instanceSize, searchNodeCount)
 	return resource.TestStep{
-		Config: testAccMongoDBAtlasSearchDeploymentConfig(orgID, projectName, clusterName, instanceSize, searchNodeCount),
+		Config: configBasic(orgID, projectName, clusterName, instanceSize, searchNodeCount),
 		Check:  resource.ComposeTestCheckFunc(append(resourceChecks, dataSourceChecks...)...),
 	}
 }
 
 func searchNodeChecks(targetName, clusterName, instanceSize string, searchNodeCount int) []resource.TestCheckFunc {
 	return []resource.TestCheckFunc{
-		testAccCheckMongoDBAtlasSearchNodeExists(targetName),
+		checkExists(targetName),
 		resource.TestCheckResourceAttrSet(targetName, "id"),
 		resource.TestCheckResourceAttrSet(targetName, "project_id"),
 		resource.TestCheckResourceAttr(targetName, "cluster_name", clusterName),
@@ -59,7 +59,7 @@ func searchNodeChecks(targetName, clusterName, instanceSize string, searchNodeCo
 	}
 }
 
-func testAccMongoDBAtlasSearchDeploymentConfig(orgID, projectName, clusterName, instanceSize string, searchNodeCount int) string {
+func configBasic(orgID, projectName, clusterName, instanceSize string, searchNodeCount int) string {
 	clusterConfig := advancedClusterConfig(orgID, projectName, clusterName)
 	return fmt.Sprintf(`
 		%[1]s
@@ -109,7 +109,7 @@ func advancedClusterConfig(orgID, projectName, clusterName string) string {
 	`, orgID, projectName, clusterName)
 }
 
-func testAccCheckSearchNodeImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -119,14 +119,14 @@ func testAccCheckSearchNodeImportStateIDFunc(resourceName string) resource.Impor
 	}
 }
 
-func testAccCheckMongoDBAtlasSearchNodeExists(resourceName string) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		connV2 := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).AtlasV2
+		connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 		_, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
 		if err != nil {
 			return fmt.Errorf("search deployment (%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
@@ -135,14 +135,14 @@ func testAccCheckMongoDBAtlasSearchNodeExists(resourceName string) resource.Test
 	}
 }
 
-func testAccCheckMongoDBAtlasSearchNodeDestroy(state *terraform.State) error {
+func checkDestroy(state *terraform.State) error {
 	if projectDestroyedErr := acc.CheckDestroyProject(state); projectDestroyedErr != nil {
 		return projectDestroyedErr
 	}
 	if clusterDestroyedErr := acc.CheckDestroyTeamAdvancedCluster(state); clusterDestroyedErr != nil {
 		return clusterDestroyedErr
 	}
-	connV2 := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).AtlasV2
+	connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type == "mongodbatlas_search_deployment" {
 			_, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
