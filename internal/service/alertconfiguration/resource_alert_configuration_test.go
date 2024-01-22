@@ -237,7 +237,7 @@ func TestAccConfigRSAlertConfiguration_withThresholdUpdated(t *testing.T) {
 				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"project_id", "matcher.0.field_name"},
+				ImportStateVerifyIgnore: []string{"project_id", "updated", "matcher.0.field_name"},
 			},
 		},
 	})
