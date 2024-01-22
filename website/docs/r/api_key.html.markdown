@@ -19,7 +19,6 @@ resource "mongodbatlas_api_key" "test" {
   description   = "key-name"
   org_id        = "<ORG_ID>"
   role_names = ["ORG_READ_ONLY"]
-  }
 }
 ```
 
