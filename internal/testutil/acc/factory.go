@@ -4,10 +4,13 @@ import (
 	"context"
 	"os"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
+	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 )
 
 const (
@@ -21,8 +24,16 @@ var TestAccProviderV6Factories map[string]func() (tfprotov6.ProviderServer, erro
 // this provider instance has to be passed into mux server factory for its configure method to be invoked
 var TestAccProviderSdkV2 *schema.Provider
 
-// TestMongoDBClient is used to configure client required for Framework-based acceptance tests
-var TestMongoDBClient any
+// testMongoDBClient is used to configure client required for Framework-based acceptance tests
+var testMongoDBClient any
+
+func Conn() *matlas.Client {
+	return testMongoDBClient.(*config.MongoDBClient).Atlas
+}
+
+func ConnV2() *admin.APIClient {
+	return testMongoDBClient.(*config.MongoDBClient).AtlasV2
+}
 
 func init() {
 	TestAccProviderSdkV2 = provider.NewSdkV2Provider()
@@ -39,5 +50,5 @@ func init() {
 		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
 		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
 	}
-	TestMongoDBClient, _ = cfg.NewClient(context.Background())
+	testMongoDBClient, _ = cfg.NewClient(context.Background())
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -71,47 +70,36 @@ func TestAccFedRSFederatedSettingsOrganizationRoleMapping_importBasic(t *testing
 func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingExists(resourceName string,
 	federatedSettingsOrganizationRoleMapping *matlas.FederatedSettingsOrganizationRoleMapping) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
-		response, _, err := conn.FederatedSettings.GetRoleMapping(context.Background(),
+		response, _, err := acc.Conn().FederatedSettings.GetRoleMapping(context.Background(),
 			rs.Primary.Attributes["federation_settings_id"],
 			rs.Primary.Attributes["org_id"],
 			rs.Primary.Attributes["role_mapping_id"])
 		if err == nil {
 			*federatedSettingsOrganizationRoleMapping = *response
-
 			return nil
 		}
-
 		return fmt.Errorf("role mapping (%s) does not exist", rs.Primary.Attributes["role_mapping_id"])
 	}
 }
 
 func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy(state *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type != "mongodbatlas_federated_settings_org_role_mapping" {
 			continue
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		roleMapping, _, err := conn.FederatedSettings.GetRoleMapping(context.Background(), ids["federation_settings_id"], ids["org_id"], ids["role_mapping_id"])
+		roleMapping, _, err := acc.Conn().FederatedSettings.GetRoleMapping(context.Background(), ids["federation_settings_id"], ids["org_id"], ids["role_mapping_id"])
 		if err == nil && roleMapping != nil {
 			return fmt.Errorf("role mapping (%s) still exists", ids["okta_idp_id"])
 		}
 	}
-
 	return nil
 }
 

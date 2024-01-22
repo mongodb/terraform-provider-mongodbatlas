@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -78,25 +77,20 @@ func TestAccFedRSFederatedSettingsOrganizationConfig_importBasic(t *testing.T) {
 func testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigRExists(resourceName string,
 	federatedSettingsIdentityProvider *matlas.FederatedSettingsConnectedOrganization) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
-		response, _, err := conn.FederatedSettings.GetConnectedOrg(context.Background(),
+		response, _, err := acc.Conn().FederatedSettings.GetConnectedOrg(context.Background(),
 			rs.Primary.Attributes["federation_settings_id"],
 			rs.Primary.Attributes["org_id"])
 		if err == nil {
 			*federatedSettingsIdentityProvider = *response
 			return nil
 		}
-
 		return fmt.Errorf("connected org  (%s) does not exist", rs.Primary.Attributes["org_id"])
 	}
 }

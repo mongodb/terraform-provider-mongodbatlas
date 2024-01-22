@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -149,27 +148,18 @@ func testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceName, projectI
 
 func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		fmt.Printf("==========================================================================\n")
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
-
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		projectID := rs.Primary.ID
-
-		_, _, err := conn.PrivateEndpoints.GetRegionalizedPrivateEndpointSetting(context.Background(), projectID)
-
+		_, _, err := acc.Conn().PrivateEndpoints.GetRegionalizedPrivateEndpointSetting(context.Background(), projectID)
 		if err == nil {
 			return nil
 		}
-
 		return fmt.Errorf("regional mode for project_id (%s) does not exist", projectID)
 	}
 }
@@ -177,61 +167,44 @@ func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName stri
 func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(projectID, clusterName, clusterResourceName string) resource.TestCheckFunc {
 	resourceName := strings.Join([]string{"data", "mongodbatlas_cluster", clusterResourceName}, ".")
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
-
 		if !ok {
 			return fmt.Errorf("Could not find resource state for cluster (%s) on project (%s)", clusterName, projectID)
 		}
-
 		var rsPrivateEndpointCount int
 		var err error
-
 		if rsPrivateEndpointCount, err = strconv.Atoi(rs.Primary.Attributes["connection_strings.0.private_endpoint.#"]); err != nil {
 			return fmt.Errorf("Connection strings private endpoint count is not a number")
 		}
-
-		c, _, _ := conn.Clusters.Get(context.Background(), projectID, clusterName)
-
+		c, _, _ := acc.Conn().Clusters.Get(context.Background(), projectID, clusterName)
 		fmt.Printf("testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate %#v \n", rs.Primary.Attributes)
 		fmt.Printf("cluster.ConnectionStrings %#v \n", advancedcluster.FlattenConnectionStrings(c.ConnectionStrings))
-
 		if rsPrivateEndpointCount != len(c.ConnectionStrings.PrivateEndpoint) {
 			return fmt.Errorf("Cluster PrivateEndpoint count does not match resource")
 		}
-
 		if rs.Primary.Attributes["connection_strings.0.standard"] != c.ConnectionStrings.Standard {
 			return fmt.Errorf("Cluster standard connection_string does not match resource")
 		}
-
 		if rs.Primary.Attributes["connection_strings.0.standard_srv"] != c.ConnectionStrings.StandardSrv {
 			return fmt.Errorf("Cluster standard connection_string does not match resource")
 		}
-
 		return nil
 	}
 }
 
 func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_private_endpoint_regional_mode" {
 			continue
 		}
-
-		setting, _, err := conn.PrivateEndpoints.GetRegionalizedPrivateEndpointSetting(context.Background(), rs.Primary.ID)
-
+		setting, _, err := acc.Conn().PrivateEndpoints.GetRegionalizedPrivateEndpointSetting(context.Background(), rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("Could not read regionalized private endpoint setting for project %q", rs.Primary.ID)
 		}
-
 		if setting.Enabled != false {
 			return fmt.Errorf("Regionalized private endpoint setting for project %q was not properly disabled", rs.Primary.ID)
 		}
 	}
-
 	return nil
 }
 

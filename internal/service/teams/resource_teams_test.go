@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -116,31 +115,23 @@ func TestAccConfigRSTeam_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasTeamExists(resourceName string, team *matlas.Team) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
 		orgID := ids["org_id"]
 		id := ids["id"]
-
 		if orgID == "" && id == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		log.Printf("[DEBUG] orgID: %s", orgID)
 		log.Printf("[DEBUG] teamID: %s", id)
-
-		teamResp, _, err := conn.Teams.Get(context.Background(), orgID, id)
+		teamResp, _, err := acc.Conn().Teams.Get(context.Background(), orgID, id)
 		if err == nil {
 			*team = *teamResp
 			return nil
 		}
-
 		return fmt.Errorf("team(%s) does not exist", id)
 	}
 }
@@ -150,7 +141,6 @@ func testAccCheckMongoDBAtlasTeamAttributes(team *matlas.Team, name string) reso
 		if team.Name != name {
 			return fmt.Errorf("bad name: %s", team.Name)
 		}
-
 		return nil
 	}
 }
@@ -161,7 +151,6 @@ func testAccCheckMongoDBAtlasTeamStateIDFunc(resourceName string) resource.Impor
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-
 		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["org_id"], rs.Primary.Attributes["team_id"]), nil
 	}
 }

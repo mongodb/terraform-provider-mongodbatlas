@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
@@ -601,44 +600,33 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 
 func testAccCheckMongoDBAtlasCustomDBRolesExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		_, _, err := conn.CustomDBRoles.Get(context.Background(), ids["project_id"], ids["role_name"])
+		_, _, err := acc.Conn().CustomDBRoles.Get(context.Background(), ids["project_id"], ids["role_name"])
 		if err != nil {
 			return fmt.Errorf("custom DB Role (%s) does not exist", ids["role_name"])
 		}
-
 		return nil
 	}
 }
 
 func testAccCheckMongoDBAtlasCustomDBRolesDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_custom_db_role" {
 			continue
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		_, _, err := conn.CustomDBRoles.Get(context.Background(), ids["project_id"], ids["role_name"])
+		_, _, err := acc.Conn().CustomDBRoles.Get(context.Background(), ids["project_id"], ids["role_name"])
 		if err == nil {
 			return fmt.Errorf("custom DB Role (%s) still exists", ids["role_name"])
 		}
 	}
-
 	return nil
 }
 
@@ -648,7 +636,6 @@ func testAccCheckMongoDBAtlasCustomDBRolesImportStateIDFunc(resourceName string)
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-
 		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["role_name"]), nil
 	}
 }

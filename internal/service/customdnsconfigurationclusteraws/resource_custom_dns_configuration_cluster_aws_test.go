@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -84,40 +83,32 @@ func TestAccConfigRSCustomDNSConfigurationAWS_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasCustomDNSConfigurationAWSExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
-		_, _, err := conn.CustomAWSDNS.Get(context.Background(), rs.Primary.ID)
+		_, _, err := acc.Conn().CustomAWSDNS.Get(context.Background(), rs.Primary.ID)
 		if err == nil {
 			return nil
 		}
-
 		return fmt.Errorf("custom dns configuration cluster(%s) does not exist", rs.Primary.ID)
 	}
 }
 func testAccCheckMongoDBAtlasCustomDNSConfigurationAWSDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_custom_dns_configuration_cluster_aws" {
 			continue
 		}
 
 		// Try to find the Custom DNS Configuration for Atlas Clusters on AWS
-		resp, _, err := conn.CustomAWSDNS.Get(context.Background(), rs.Primary.ID)
+		resp, _, err := acc.Conn().CustomAWSDNS.Get(context.Background(), rs.Primary.ID)
 		if err != nil && resp != nil && resp.Enabled {
 			return fmt.Errorf("custom dns configuration cluster aws (%s) still enabled", rs.Primary.ID)
 		}
 	}
-
 	return nil
 }
 
@@ -127,7 +118,6 @@ func testAccCheckMongoDBAtlasCustomDNSConfigurationAWSStateIDFunc(resourceName s
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-
 		return rs.Primary.ID, nil
 	}
 }

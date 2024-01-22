@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -61,46 +60,33 @@ func testAccCheckMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchi
 }
 
 func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDestroy(s *terraform.State) error {
-	client := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" {
 			continue
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		_, _, err := client.DataLakes.GetPrivateLinkEndpoint(context.Background(), ids["project_id"], ids["endpoint_id"])
-
+		_, _, err := acc.Conn().DataLakes.GetPrivateLinkEndpoint(context.Background(), ids["project_id"], ids["endpoint_id"])
 		if err == nil {
 			return fmt.Errorf("Private endpoint service data federation online archive still exists")
 		}
 	}
-
 	return nil
 }
 
 func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
-
 		if !ok {
 			return fmt.Errorf("Private endpoint service data federation online archive not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("Private endpoint service data federation online archive ID not set")
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := client.DataLakes.GetPrivateLinkEndpoint(context.Background(), ids["project_id"], ids["endpoint_id"])
-
+		_, _, err := acc.Conn().DataLakes.GetPrivateLinkEndpoint(context.Background(), ids["project_id"], ids["endpoint_id"])
 		if err != nil {
 			return err
 		}
-
 		return nil
 	}
 }

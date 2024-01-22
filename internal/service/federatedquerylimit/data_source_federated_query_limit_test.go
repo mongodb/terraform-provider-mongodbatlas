@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -198,24 +197,18 @@ resource "mongodbatlas_federated_query_limit" "test" {
 
 func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceQueryLimitExists(resourceName string, queryLimit *matlas.DataFederationQueryLimit) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.Attributes["project_id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		if queryLimitResp, _, err := conn.DataFederation.GetQueryLimit(context.Background(), ids["project_id"], ids["tenant_name"], ids["limit_name"]); err == nil {
+		if queryLimitResp, _, err := acc.Conn().DataFederation.GetQueryLimit(context.Background(), ids["project_id"], ids["tenant_name"], ids["limit_name"]); err == nil {
 			*queryLimit = *queryLimitResp
 			return nil
 		}
-
 		return fmt.Errorf("federated database query limit for project (%s), tenant (%s) and limit (%s) does not exist", ids["project_id"], ids["tenant_name"], ids["limit_name"])
 	}
 }
@@ -226,7 +219,6 @@ func testAccCheckMongoDBAtlasFederatedDabaseQueryLimitAttributes(queryLimit *mat
 		if queryLimit.Name != limitName {
 			return fmt.Errorf("bad data federated query limit name: %s", queryLimit.Name)
 		}
-
 		return nil
 	}
 }

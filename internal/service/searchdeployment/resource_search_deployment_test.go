@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -126,8 +125,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
-		_, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
+		_, _, err := acc.ConnV2().AtlasSearchApi.GetAtlasSearchDeployment(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
 		if err != nil {
 			return fmt.Errorf("search deployment (%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
 		}
@@ -142,10 +140,9 @@ func checkDestroy(state *terraform.State) error {
 	if clusterDestroyedErr := acc.CheckDestroyTeamAdvancedCluster(state); clusterDestroyedErr != nil {
 		return clusterDestroyedErr
 	}
-	connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type == "mongodbatlas_search_deployment" {
-			_, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
+			_, _, err := acc.ConnV2().AtlasSearchApi.GetAtlasSearchDeployment(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
 			if err == nil {
 				return fmt.Errorf("search deployment (%s:%s) still exists", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
 			}

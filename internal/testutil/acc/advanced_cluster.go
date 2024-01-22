@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 var (
@@ -27,34 +26,28 @@ var (
 )
 
 func CheckClusterDestroy(s *terraform.State) error {
-	conn := TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_cluster" {
 			continue
 		}
 
 		// Try to find the cluster
-		_, _, err := conn.Clusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
-
+		_, _, err := Conn().Clusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
 		if err == nil {
 			return fmt.Errorf("cluster (%s:%s) still exists", rs.Primary.Attributes["cluster_name"], rs.Primary.ID)
 		}
 	}
-
 	return nil
 }
 
 func CheckDestroyTeamAdvancedCluster(s *terraform.State) error {
-	conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_advanced_cluster" {
 			continue
 		}
 
 		// Try to find the cluster
-		_, _, err := conn.AdvancedClusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
+		_, _, err := Conn().AdvancedClusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
 
 		if err == nil {
 			return fmt.Errorf("cluster (%s:%s) still exists", rs.Primary.Attributes["cluster_name"], rs.Primary.ID)

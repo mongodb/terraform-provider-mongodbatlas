@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -115,32 +114,24 @@ func TestAccBackupRSCloudBackupSnapshotRestoreJobWithPointTime_basic(t *testing.
 
 func testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobExists(resourceName string, cloudBackupSnapshotRestoreJob *matlas.CloudProviderSnapshotRestoreJob) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
 		if ids["snapshot_restore_job_id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		log.Printf("[DEBUG] cloudBackupSnapshotRestoreJob ID: %s", rs.Primary.Attributes["snapshot_restore_job_id"])
-
 		requestParameters := &matlas.SnapshotReqPathParameters{
 			GroupID:     ids["project_id"],
 			ClusterName: ids["cluster_name"],
 			JobID:       ids["snapshot_restore_job_id"],
 		}
-
-		if snapshotRes, _, err := conn.CloudProviderSnapshotRestoreJobs.Get(context.Background(), requestParameters); err == nil {
+		if snapshotRes, _, err := acc.Conn().CloudProviderSnapshotRestoreJobs.Get(context.Background(), requestParameters); err == nil {
 			*cloudBackupSnapshotRestoreJob = *snapshotRes
 			return nil
 		}
-
 		return fmt.Errorf("cloudBackupSnapshotRestoreJob (%s) does not exist", rs.Primary.Attributes["snapshot_restore_job_id"])
 	}
 }
@@ -156,27 +147,21 @@ func testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobAttributes(cloudBackup
 }
 
 func testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_cloud_backup_snapshot_restore_job" {
 			continue
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
 		requestParameters := &matlas.SnapshotReqPathParameters{
 			GroupID:     ids["project_id"],
 			ClusterName: ids["cluster_name"],
 			JobID:       ids["snapshot_restore_job_id"],
 		}
-
-		res, _, _ := conn.CloudProviderSnapshotRestoreJobs.Get(context.Background(), requestParameters)
+		res, _, _ := acc.Conn().CloudProviderSnapshotRestoreJobs.Get(context.Background(), requestParameters)
 		if res != nil {
 			return fmt.Errorf("cloudBackupSnapshotRestoreJob (%s) still exists", rs.Primary.Attributes["snapshot_restore_job_id"])
 		}
 	}
-
 	return nil
 }
 
@@ -186,7 +171,6 @@ func testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobImportStateIDFunc(reso
 		if !ok {
 			return "", fmt.Errorf("not found:: %s", resourceName)
 		}
-
 		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"], rs.Primary.Attributes["snapshot_restore_job_id"]), nil
 	}
 }

@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 )
@@ -89,8 +88,7 @@ func TestAccConfigDSAtlasUser_InvalidAttrCombination(t *testing.T) {
 
 func fetchUser(t *testing.T, userID string) *admin.CloudAppUser {
 	t.Helper()
-	connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
-	userResp, _, err := connV2.MongoDBCloudUsersApi.GetUser(context.Background(), userID).Execute()
+	userResp, _, err := acc.ConnV2().MongoDBCloudUsersApi.GetUser(context.Background(), userID).Execute()
 	if err != nil {
 		t.Fatalf("the Atlas User (%s) could not be fetched: %v", userID, err)
 	}
@@ -99,9 +97,7 @@ func fetchUser(t *testing.T, userID string) *admin.CloudAppUser {
 
 func fetchUserByUsername(t *testing.T, username string) *admin.CloudAppUser {
 	t.Helper()
-	connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
-
-	userResp, _, err := connV2.MongoDBCloudUsersApi.GetUserByUsername(context.Background(), username).Execute()
+	userResp, _, err := acc.ConnV2().MongoDBCloudUsersApi.GetUserByUsername(context.Background(), username).Execute()
 	if err != nil {
 		t.Fatalf("the Atlas User (%s) could not be fetched: %v", username, err)
 	}

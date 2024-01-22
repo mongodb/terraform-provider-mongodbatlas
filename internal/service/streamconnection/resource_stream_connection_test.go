@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -211,7 +210,6 @@ func checkStreamConnectionImportStateIDFunc(resourceName string) resource.Import
 
 func checkStreamConnectionExists() resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 		for _, rs := range s.RootModule().Resources {
 			if rs.Type != "mongodbatlas_stream_connection" {
 				continue
@@ -219,7 +217,7 @@ func checkStreamConnectionExists() resource.TestCheckFunc {
 			projectID := rs.Primary.Attributes["project_id"]
 			instanceName := rs.Primary.Attributes["instance_name"]
 			connectionName := rs.Primary.Attributes["connection_name"]
-			_, _, err := connV2.StreamsApi.GetStreamConnection(context.Background(), projectID, instanceName, connectionName).Execute()
+			_, _, err := acc.ConnV2().StreamsApi.GetStreamConnection(context.Background(), projectID, instanceName, connectionName).Execute()
 			if err != nil {
 				return fmt.Errorf("stream connection (%s:%s:%s) does not exist", projectID, instanceName, connectionName)
 			}
@@ -232,7 +230,6 @@ func CheckDestroyStreamConnection(state *terraform.State) error {
 	if instanceDestroyedErr := acc.CheckDestroyStreamInstance(state); instanceDestroyedErr != nil {
 		return instanceDestroyedErr
 	}
-	connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type != "mongodbatlas_stream_connection" {
 			continue
@@ -240,7 +237,7 @@ func CheckDestroyStreamConnection(state *terraform.State) error {
 		projectID := rs.Primary.Attributes["project_id"]
 		instanceName := rs.Primary.Attributes["instance_name"]
 		connectionName := rs.Primary.Attributes["connection_name"]
-		_, _, err := connV2.StreamsApi.GetStreamConnection(context.Background(), projectID, instanceName, connectionName).Execute()
+		_, _, err := acc.ConnV2().StreamsApi.GetStreamConnection(context.Background(), projectID, instanceName, connectionName).Execute()
 		if err == nil {
 			return fmt.Errorf("stream connection (%s:%s:%s) still exists", projectID, instanceName, connectionName)
 		}

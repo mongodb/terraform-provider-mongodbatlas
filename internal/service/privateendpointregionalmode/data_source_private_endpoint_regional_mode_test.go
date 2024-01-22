@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -34,14 +33,10 @@ func TestAccNetworkDSPrivateEndpointRegionalMode_basic(t *testing.T) {
 
 func testAccMongoDBAtlasPrivateEndpointRegionalModeUnmanagedResource(resourceName, projectID string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
-		setting, _, err := conn.PrivateEndpoints.GetRegionalizedPrivateEndpointSetting(context.Background(), projectID)
-
+		setting, _, err := acc.Conn().PrivateEndpoints.GetRegionalizedPrivateEndpointSetting(context.Background(), projectID)
 		if err != nil || setting == nil {
 			return fmt.Errorf("Could not get regionalized private endpoint setting for project_id (%s)", projectID)
 		}
-
 		return resource.TestCheckResourceAttr(resourceName, "enabled", strconv.FormatBool(setting.Enabled))(s)
 	}
 }

@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -42,8 +41,6 @@ func TestAccDataSourceClusterRSDataLakePipeline_basic(t *testing.T) {
 }
 
 func testAccCheckMongoDBAtlasDataLakePipelineDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_data_lake_pipeline" {
 			continue
@@ -51,12 +48,11 @@ func testAccCheckMongoDBAtlasDataLakePipelineDestroy(s *terraform.State) error {
 
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		// Try to find the data lake pipeline
-		_, _, err := conn.DataLakePipeline.Get(context.Background(), ids["project_id"], ids["name"])
+		_, _, err := acc.Conn().DataLakePipeline.Get(context.Background(), ids["project_id"], ids["name"])
 		if err == nil {
 			return fmt.Errorf("datalake (%s) still exists", ids["project_id"])
 		}
 	}
-
 	return nil
 }
 

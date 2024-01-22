@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 )
@@ -81,23 +80,18 @@ func TestAccFederatedDatabaseInstanceDS_s3Bucket(t *testing.T) {
 
 func checkExists(resourceName string, dataFederatedInstance *admin.DataLakeTenant) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connV2 := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).AtlasV2
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.Attributes["project_id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		if dataLakeResp, _, err := connV2.DataFederationApi.GetFederatedDatabase(context.Background(), ids["project_id"], ids["name"]).Execute(); err == nil {
+		if dataLakeResp, _, err := acc.ConnV2().DataFederationApi.GetFederatedDatabase(context.Background(), ids["project_id"], ids["name"]).Execute(); err == nil {
 			*dataFederatedInstance = *dataLakeResp
 			return nil
 		}
-
 		return fmt.Errorf("federated database instance (%s) does not exist", ids["project_id"])
 	}
 }

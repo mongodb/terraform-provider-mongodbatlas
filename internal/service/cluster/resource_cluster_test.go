@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	clustersvc "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mwielbut/pointy"
@@ -1552,26 +1551,19 @@ func testAccGetMongoDBAtlasMajorVersion() string {
 
 func testAccCheckMongoDBAtlasClusterExists(resourceName string, cluster *matlas.Cluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
 		log.Printf("[DEBUG] projectID: %s, name %s", ids["project_id"], ids["cluster_name"])
-
-		if clusterResp, _, err := conn.Clusters.Get(context.Background(), ids["project_id"], ids["cluster_name"]); err == nil {
+		if clusterResp, _, err := acc.Conn().Clusters.Get(context.Background(), ids["project_id"], ids["cluster_name"]); err == nil {
 			*cluster = *clusterResp
 			return nil
 		}
-
 		return fmt.Errorf("cluster(%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.ID)
 	}
 }
