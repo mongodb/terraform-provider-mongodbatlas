@@ -22,7 +22,6 @@ import (
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
-	"golang.org/x/exp/slices"
 )
 
 type acCtxKey string
@@ -1026,10 +1025,6 @@ func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *matlas.Advan
 	return tfMap, nil
 }
 
-func doesAdvancedReplicationSpecMatchAPI(tfObject map[string]any, apiObject *matlas.AdvancedReplicationSpec) bool {
-	return tfObject["id"] == apiObject.ID || (tfObject["id"] == nil && tfObject["zone_name"] == apiObject.ZoneName)
-}
-
 func flattenAdvancedReplicationSpecs(ctx context.Context, rawAPIObjects []*matlas.AdvancedReplicationSpec, tfMapObjects []any,
 	d *schema.ResourceData, conn *matlas.Client) ([]map[string]any, error) {
 	var apiObjects []*matlas.AdvancedReplicationSpec
@@ -1045,7 +1040,6 @@ func flattenAdvancedReplicationSpecs(ctx context.Context, rawAPIObjects []*matla
 	}
 
 	tfList := make([]map[string]any, len(apiObjects))
-	wasAPIObjectUsed := make([]bool, len(apiObjects))
 
 	for i := 0; i < len(tfList); i++ {
 		var tfMapObject map[string]any
@@ -1054,47 +1048,13 @@ func flattenAdvancedReplicationSpecs(ctx context.Context, rawAPIObjects []*matla
 			tfMapObject = tfMapObjects[i].(map[string]any)
 		}
 
-		for j := 0; j < len(apiObjects); j++ {
-			if wasAPIObjectUsed[j] {
-				continue
-			}
-
-			if !doesAdvancedReplicationSpecMatchAPI(tfMapObject, apiObjects[j]) {
-				continue
-			}
-
-			advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, apiObjects[j], tfMapObject, d, conn)
-
-			if err != nil {
-				return nil, err
-			}
-
-			tfList[i] = advancedReplicationSpec
-			wasAPIObjectUsed[j] = true
-			break
-		}
-	}
-
-	for i, tfo := range tfList {
-		var tfMapObject map[string]any
-
-		if tfo != nil {
-			continue
-		}
-
-		if len(tfMapObjects) > i {
-			tfMapObject = tfMapObjects[i].(map[string]any)
-		}
-
-		j := slices.IndexFunc(wasAPIObjectUsed, func(isUsed bool) bool { return !isUsed })
-		advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, apiObjects[j], tfMapObject, d, conn)
+		advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, apiObjects[i], tfMapObject, d, conn)
 
 		if err != nil {
 			return nil, err
 		}
 
 		tfList[i] = advancedReplicationSpec
-		wasAPIObjectUsed[j] = true
 	}
 
 	return tfList, nil
