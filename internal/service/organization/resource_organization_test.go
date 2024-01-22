@@ -236,7 +236,7 @@ func getTestClientWithNewOrgCreds(rs *terraform.ResourceState) (*admin.APIClient
 	cfg := config.Config{
 		PublicKey:  rs.Primary.Attributes["public_key"],
 		PrivateKey: rs.Primary.Attributes["private_key"],
-		BaseURL:    acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Config.BaseURL,
+		BaseURL:    acc.MongoDBClient.Config.BaseURL,
 	}
 
 	ctx := context.Background()
