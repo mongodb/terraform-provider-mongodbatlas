@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mocksvc"
@@ -569,35 +568,26 @@ func TestResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(t *testing.T) {
 
 func testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
-		if _, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), rs.Primary.ID).Execute(); err == nil {
+		if _, _, err := acc.ConnV2().EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), rs.Primary.ID).Execute(); err == nil {
 			return nil
 		}
-
 		return fmt.Errorf("encryptionAtRest (%s) does not exist", rs.Primary.ID)
 	}
 }
 
 func testAccCheckMongoDBAtlasEncryptionAtRestDestroy(s *terraform.State) error {
-	connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_encryption_at_rest" {
 			continue
 		}
-
-		res, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), rs.Primary.ID).Execute()
-
+		res, _, err := acc.ConnV2().EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), rs.Primary.ID).Execute()
 		if err != nil ||
 			(*res.AwsKms.Enabled != false &&
 				*res.AzureKeyVault.Enabled != false &&

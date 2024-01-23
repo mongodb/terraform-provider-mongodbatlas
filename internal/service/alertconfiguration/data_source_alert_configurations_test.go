@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -153,21 +152,17 @@ func configTotalCount(orgID, projectName string) string {
 
 func checkCount(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
 
-		alertResp, _, err := conn.AlertConfigurations.List(context.Background(), projectID, &matlas.ListOptions{
+		alertResp, _, err := acc.Conn().AlertConfigurations.List(context.Background(), projectID, &matlas.ListOptions{
 			PageNum:      0,
 			ItemsPerPage: 100,
 			IncludeCount: true,

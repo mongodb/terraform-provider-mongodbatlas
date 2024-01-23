@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"go.mongodb.org/atlas-sdk/v20231115004/admin"
@@ -204,8 +203,7 @@ func TestAccConfigDSAtlasUsers_InvalidAttrCombinations(t *testing.T) {
 
 func fetchOrgUsers(t *testing.T, orgID string) *admin.PaginatedAppUser {
 	t.Helper()
-	connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
-	users, _, err := connV2.OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
+	users, _, err := acc.ConnV2().OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
 	if err != nil {
 		t.Fatalf("the Atlas Users for Org(%s) could not be fetched: %v", orgID, err)
 	}
@@ -286,8 +284,6 @@ func testAccDSMongoDBAtlasUsersByTeamWithPagination(orgID, teamName, username st
 
 func testAccCheckMongoDBAtlasOrgWithUsersExists(dataSourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
-
 		rs, ok := s.RootModule().Resources[dataSourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", dataSourceName)
@@ -298,7 +294,7 @@ func testAccCheckMongoDBAtlasOrgWithUsersExists(dataSourceName string) resource.
 			return fmt.Errorf("org_id not defined in data source: %s", dataSourceName)
 		}
 
-		apiResp, _, err := connV2.OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
+		apiResp, _, err := acc.ConnV2().OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
 
 		if err != nil {
 			return fmt.Errorf("unable to determine if users exist in org: %s", orgID)

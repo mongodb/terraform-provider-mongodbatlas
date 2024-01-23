@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -210,28 +209,21 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 
 func testAccCheckMongoDBAtlasGlobalClusterExists(resourceName string, globalConfig *matlas.GlobalCluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		globalConfigResp, _, err := conn.GlobalClusters.Get(context.Background(), ids["project_id"], ids["cluster_name"])
+		globalConfigResp, _, err := acc.Conn().GlobalClusters.Get(context.Background(), ids["project_id"], ids["cluster_name"])
 		if err == nil {
 			*globalConfig = *globalConfigResp
-
 			if len(globalConfig.CustomZoneMapping) > 0 || len(globalConfig.ManagedNamespaces) > 0 {
 				return nil
 			}
 		}
-
 		return fmt.Errorf("global config for cluster(%s) does not exist", ids["cluster_name"])
 	}
 }
@@ -242,9 +234,7 @@ func testAccCheckMongoDBAtlasGlobalClusterImportStateIDFunc(resourceName string)
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
 		return fmt.Sprintf("%s-%s", ids["project_id"], ids["cluster_name"]), nil
 	}
 }
@@ -254,26 +244,22 @@ func testAccCheckMongoDBAtlasGlobalClusterAttributes(globalCluster *matlas.Globa
 		if len(globalCluster.ManagedNamespaces) != managedNamespacesCount {
 			return fmt.Errorf("bad managed namespaces: %v", globalCluster.ManagedNamespaces)
 		}
-
 		return nil
 	}
 }
 
 func testAccCheckMongoDBAtlasGlobalClusterDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_global_cluster_config" {
 			continue
 		}
 
 		// Try to find the cluster
-		globalConfig, _, err := conn.GlobalClusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
+		globalConfig, _, err := acc.Conn().GlobalClusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
 		if err != nil {
 			if strings.Contains(err.Error(), fmt.Sprintf("No cluster named %s exists in group %s", rs.Primary.Attributes["cluster_name"], rs.Primary.Attributes["project_id"])) {
 				return nil
 			}
-
 			return err
 		}
 
@@ -281,7 +267,6 @@ func testAccCheckMongoDBAtlasGlobalClusterDestroy(s *terraform.State) error {
 			return fmt.Errorf("global cluster configuration for cluster(%s) still exists", rs.Primary.Attributes["cluster_name"])
 		}
 	}
-
 	return nil
 }
 

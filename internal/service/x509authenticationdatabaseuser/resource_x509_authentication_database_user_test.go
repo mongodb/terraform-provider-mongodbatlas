@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/spf13/cast"
 )
@@ -169,59 +168,44 @@ func testAccCheckMongoDBAtlasX509AuthDBUserImportStateIDFuncBasic(resourceName s
 
 func testAccCheckMongoDBAtlasX509AuthDBUserExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.Attributes["project_id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		if ids["current_certificate"] != "" {
-			if _, _, err := conn.X509AuthDBUsers.GetUserCertificates(context.Background(), ids["project_id"], ids["username"], nil); err == nil {
+			if _, _, err := acc.Conn().X509AuthDBUsers.GetUserCertificates(context.Background(), ids["project_id"], ids["username"], nil); err == nil {
 				return nil
 			}
-
 			return fmt.Errorf("the X509 Authentication Database User(%s) does not exist in the project(%s)", ids["username"], ids["project_id"])
 		}
-
-		if _, _, err := conn.X509AuthDBUsers.GetCurrentX509Conf(context.Background(), ids["project_id"]); err == nil {
+		if _, _, err := acc.Conn().X509AuthDBUsers.GetCurrentX509Conf(context.Background(), ids["project_id"]); err == nil {
 			return nil
 		}
-
 		return fmt.Errorf("the Customer X509 Authentication does not exist in the project(%s)", ids["project_id"])
 	}
 }
 
 func testAccCheckMongoDBAtlasX509AuthDBUserDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_x509_authentication_database_user" {
 			continue
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
 		if ids["current_certificate"] != "" {
-			_, _, err := conn.X509AuthDBUsers.GetUserCertificates(context.Background(), ids["project_id"], ids["username"], nil)
+			_, _, err := acc.Conn().X509AuthDBUsers.GetUserCertificates(context.Background(), ids["project_id"], ids["username"], nil)
 			if err == nil {
-				/*
-					There is no way to remove one user certificate so until this comes it will keep in this way
-				*/
+				// There is no way to remove one user certificate so until this comes it will keep in this way
 				return nil
 			}
 		}
-
-		if _, _, err := conn.X509AuthDBUsers.GetCurrentX509Conf(context.Background(), ids["project_id"]); err == nil {
+		if _, _, err := acc.Conn().X509AuthDBUsers.GetCurrentX509Conf(context.Background(), ids["project_id"]); err == nil {
 			return nil
 		}
 	}
-
 	return nil
 }
 

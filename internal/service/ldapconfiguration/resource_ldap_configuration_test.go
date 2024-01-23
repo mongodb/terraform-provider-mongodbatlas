@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -144,24 +143,18 @@ func TestAccAdvRSLDAPConfiguration_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasLDAPConfigurationExists(resourceName string, ldapConf *matlas.LDAPConfiguration) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
-		ldapConfRes, _, err := conn.LDAPConfigurations.Get(context.Background(), rs.Primary.ID)
+		ldapConfRes, _, err := acc.Conn().LDAPConfigurations.Get(context.Background(), rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("ldapConfiguration (%s) does not exist", rs.Primary.ID)
 		}
-
 		ldapConf = ldapConfRes
-
 		return nil
 	}
 }

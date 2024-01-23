@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -69,21 +68,16 @@ func TestAccServerlessPrivateLinkEndpoint_importBasic(t *testing.T) {
 }
 
 func testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessDestroy(state *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type != "mongodbatlas_privatelink_endpoint_serverless" {
 			continue
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		privateLink, _, err := conn.ServerlessPrivateEndpoints.Get(context.Background(), ids["project_id"], ids["instance_name"], ids["endpoint_id"])
+		privateLink, _, err := acc.Conn().ServerlessPrivateEndpoints.Get(context.Background(), ids["project_id"], ids["instance_name"], ids["endpoint_id"])
 		if err == nil && privateLink != nil {
 			return fmt.Errorf("endpoint_id (%s) still exists", ids["endpoint_id"])
 		}
 	}
-
 	return nil
 }
 
@@ -102,24 +96,18 @@ func testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(orgID, projectName, 
 
 func testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		_, _, err := conn.ServerlessPrivateEndpoints.Get(context.Background(), ids["project_id"], ids["instance_name"], ids["endpoint_id"])
+		_, _, err := acc.Conn().ServerlessPrivateEndpoints.Get(context.Background(), ids["project_id"], ids["instance_name"], ids["endpoint_id"])
 		if err == nil {
 			return nil
 		}
-
 		return fmt.Errorf("endpoint_id (%s) does not exist", ids["endpoint_id"])
 	}
 }
@@ -130,9 +118,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessImportStateIDFunc(reso
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
 		return fmt.Sprintf("%s--%s--%s", ids["project_id"], ids["instance_name"], ids["endpoint_id"]), nil
 	}
 }

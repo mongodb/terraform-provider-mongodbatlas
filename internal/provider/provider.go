@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
-	sdkv2schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
@@ -451,28 +450,17 @@ func NewFrameworkProvider() provider.Provider {
 }
 
 func MuxedProviderFactory() func() tfprotov6.ProviderServer {
-	return MuxedProviderFactoryFn(NewSdkV2Provider())
-}
-
-// MuxedProviderFactoryFn creates mux provider using existing sdk v2 provider passed as parameter and creating new instance of framework provider.
-// Used in testing where existing sdk v2 provider has to be used.
-func MuxedProviderFactoryFn(sdkV2Provider *sdkv2schema.Provider) func() tfprotov6.ProviderServer {
-	fwProvider := NewFrameworkProvider()
-
+	v2Provider := NewSdkV2Provider()
+	newProvider := NewFrameworkProvider()
 	ctx := context.Background()
-	upgradedSdkProvider, err := tf5to6server.UpgradeServer(ctx, sdkV2Provider.GRPCProvider)
+	upgradedSdkProvider, err := tf5to6server.UpgradeServer(ctx, v2Provider.GRPCProvider)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	providers := []func() tfprotov6.ProviderServer{
-		func() tfprotov6.ProviderServer {
-			return upgradedSdkProvider
-		},
-		providerserver.NewProtocol6(fwProvider),
-	}
-
-	muxServer, err := tf6muxserver.NewMuxServer(ctx, providers...)
+	muxServer, err := tf6muxserver.NewMuxServer(ctx,
+		func() tfprotov6.ProviderServer { return upgradedSdkProvider },
+		providerserver.NewProtocol6(newProvider),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}

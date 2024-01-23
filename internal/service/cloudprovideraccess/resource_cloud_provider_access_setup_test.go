@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudprovideraccess"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -164,27 +163,20 @@ func testAccMongoDBAtlasCloudProviderAccessSetupAzure(orgID, projectName, atlasA
 
 func testAccCheckMongoDBAtlasProviderAccessExists(resourceName string, targetRole *matlas.CloudProviderAccessRole) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.Attributes["project_id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		providerName := ids["provider_name"]
 		id := ids["id"]
-
-		roles, _, err := conn.CloudProviderAccess.ListRoles(context.Background(), ids["project_id"])
-
+		roles, _, err := acc.Conn().CloudProviderAccess.ListRoles(context.Background(), ids["project_id"])
 		if err != nil {
 			return fmt.Errorf(cloudprovideraccess.ErrorCloudProviderGetRead, err)
 		}
-
 		if providerName == "AWS" {
 			for i := range roles.AWSIAMRoles {
 				if roles.AWSIAMRoles[i].RoleID == id && roles.AWSIAMRoles[i].ProviderName == providerName {
@@ -193,7 +185,6 @@ func testAccCheckMongoDBAtlasProviderAccessExists(resourceName string, targetRol
 				}
 			}
 		}
-
 		if providerName == "AZURE" {
 			for i := range roles.AzureServicePrincipals {
 				if *roles.AzureServicePrincipals[i].AzureID == id && roles.AzureServicePrincipals[i].ProviderName == providerName {
@@ -202,7 +193,6 @@ func testAccCheckMongoDBAtlasProviderAccessExists(resourceName string, targetRol
 				}
 			}
 		}
-
 		return fmt.Errorf("error cloud Provider Access (%s) does not exist", ids["project_id"])
 	}
 }

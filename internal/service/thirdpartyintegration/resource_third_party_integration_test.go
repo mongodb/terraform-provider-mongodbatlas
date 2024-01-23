@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -157,20 +156,16 @@ func TestAccConfigRSThirdPartyIntegration_updateBasic(t *testing.T) {
 }
 
 func testAccCheckMongoDBAtlasThirdPartyIntegrationDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_third_party_integration" {
 			continue
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := conn.Integrations.Get(context.Background(), ids["project_id"], ids["type"])
-
+		_, _, err := acc.Conn().Integrations.Get(context.Background(), ids["project_id"], ids["type"])
 		if err == nil {
 			return fmt.Errorf("third party integration service (%s) still exists", ids["type"])
 		}
 	}
-
 	return nil
 }
 

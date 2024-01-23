@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 )
@@ -80,25 +79,20 @@ func TestAccFedRSFederatedSettingsIdentityProvider_importBasic(t *testing.T) {
 func testAccCheckMongoDBAtlasFederatedSettingsIdentityProviderExists(resourceName string,
 	federatedSettingsIdentityProvider *admin.FederationIdentityProvider, idpID string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connV2 := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).AtlasV2
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
-		response, _, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(),
+		response, _, err := acc.ConnV2().FederatedAuthenticationApi.GetIdentityProvider(context.Background(),
 			rs.Primary.Attributes["federation_settings_id"],
 			idpID).Execute()
 		if err == nil {
 			*federatedSettingsIdentityProvider = *response
 			return nil
 		}
-
 		return fmt.Errorf("identity provider (%s) does not exist", idpID)
 	}
 }

@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -169,50 +168,38 @@ func TestAccGenericBackupRSBackupCompliancePolicy_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasBackupCompliancePolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
-
-		schedule, _, err := conn.BackupCompliancePolicy.Get(context.Background(), projectID)
+		schedule, _, err := acc.Conn().BackupCompliancePolicy.Get(context.Background(), projectID)
 		if err != nil || schedule == nil {
 			return fmt.Errorf("backup compliance policy (%s) does not exist: %s", rs.Primary.ID, err)
 		}
-
 		return nil
 	}
 }
 
 func testAccCheckMongoDBAtlasBackupCompliancePolicyDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_backup_compliance_policy" {
 			continue
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
-
-		compliancePolicy, _, err := conn.BackupCompliancePolicy.Get(context.Background(), projectID)
+		compliancePolicy, _, err := acc.Conn().BackupCompliancePolicy.Get(context.Background(), projectID)
 		if compliancePolicy != nil || err == nil {
 			return fmt.Errorf("Backup Compliance Policy (%s) still exists", rs.Primary.ID)
 		}
 	}
-
 	return nil
 }
 
@@ -222,9 +209,7 @@ func testAccCheckMongoDBAtlasBackupCompliancePolicyImportStateIDFunc(resourceNam
 		if !ok {
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
 		return ids["project_id"], nil
 	}
 }

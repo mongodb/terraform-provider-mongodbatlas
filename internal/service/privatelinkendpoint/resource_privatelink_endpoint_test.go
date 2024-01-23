@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -191,42 +190,32 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointImportStateIDFunc(resourceName s
 
 func testAccCheckMongoDBAtlasPrivateLinkEndpointExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		if _, _, err := conn.PrivateEndpoints.Get(context.Background(), ids["project_id"], ids["provider_name"], ids["private_link_id"]); err == nil {
+		if _, _, err := acc.Conn().PrivateEndpoints.Get(context.Background(), ids["project_id"], ids["provider_name"], ids["private_link_id"]); err == nil {
 			return nil
 		}
-
 		return fmt.Errorf("the MongoDB Private Endpoint(%s) for the project(%s) does not exist", rs.Primary.Attributes["private_link_id"], rs.Primary.Attributes["project_id"])
 	}
 }
 
 func testAccCheckMongoDBAtlasPrivateLinkEndpointDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_privatelink_endpoint" {
 			continue
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := conn.PrivateEndpoints.Get(context.Background(), ids["project_id"], ids["provider_name"], ids["private_link_id"])
+		_, _, err := acc.Conn().PrivateEndpoints.Get(context.Background(), ids["project_id"], ids["provider_name"], ids["private_link_id"])
 		if err == nil {
 			return fmt.Errorf("the MongoDB Private Endpoint(%s) still exists", ids["private_link_id"])
 		}
 	}
-
 	return nil
 }
 

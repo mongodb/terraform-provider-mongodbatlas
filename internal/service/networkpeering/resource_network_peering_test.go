@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -228,27 +227,20 @@ func testAccCheckMongoDBAtlasNetworkPeeringImportStateIDFunc(resourceName string
 
 func testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName string, peer *matlas.Peer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		log.Printf("[DEBUG] projectID: %s", ids["project_id"])
-
-		if peerResp, _, err := conn.Peers.Get(context.Background(), ids["project_id"], ids["peer_id"]); err == nil {
+		if peerResp, _, err := acc.Conn().Peers.Get(context.Background(), ids["project_id"], ids["peer_id"]); err == nil {
 			*peer = *peerResp
 			peer.ProviderName = ids["provider_name"]
-
 			return nil
 		}
-
 		return fmt.Errorf("peer(%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["peer_id"])
 	}
 }

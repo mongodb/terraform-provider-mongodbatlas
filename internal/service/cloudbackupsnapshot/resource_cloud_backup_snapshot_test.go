@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshot"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -65,28 +64,21 @@ func TestAccBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasCloudBackupSnapshotExists(resourceName string, cloudBackupSnapshot *matlas.CloudProviderSnapshot) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
 		if ids["snapshot_id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		log.Printf("[DEBUG] cloudBackupSnapshot ID: %s", ids["snapshot_id"])
-
 		requestParameters := &matlas.SnapshotReqPathParameters{
 			SnapshotID:  ids["snapshot_id"],
 			GroupID:     ids["project_id"],
 			ClusterName: ids["cluster_name"],
 		}
-
-		res, _, err := conn.CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
+		res, _, err := acc.Conn().CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
 		if err == nil {
 			*cloudBackupSnapshot = *res
 			return nil
@@ -107,28 +99,21 @@ func testAccCheckMongoDBAtlasCloudBackupSnapshotAttributes(cloudBackupSnapshot *
 }
 
 func testAccCheckMongoDBAtlasCloudBackupSnapshotDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_cloud_backup_snapshot" {
 			continue
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
 		requestParameters := &matlas.SnapshotReqPathParameters{
 			SnapshotID:  ids["snapshot_id"],
 			GroupID:     ids["project_id"],
 			ClusterName: ids["cluster_name"],
 		}
-
-		res, _, _ := conn.CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
-
+		res, _, _ := acc.Conn().CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
 		if res != nil {
 			return fmt.Errorf("cloudBackupSnapshot (%s) still exists", rs.Primary.Attributes["snapshot_id"])
 		}
 	}
-
 	return nil
 }
 

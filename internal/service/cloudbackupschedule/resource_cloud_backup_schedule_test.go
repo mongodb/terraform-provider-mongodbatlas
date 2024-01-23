@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -396,47 +395,36 @@ func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 
 func testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
 		clusterName := ids["cluster_name"]
-
-		schedule, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(context.Background(), projectID, clusterName)
+		schedule, _, err := acc.Conn().CloudProviderSnapshotBackupPolicies.Get(context.Background(), projectID, clusterName)
 		if err != nil || schedule == nil {
 			return fmt.Errorf("cloud Provider Snapshot Schedule (%s) does not exist: %s", rs.Primary.ID, err)
 		}
-
 		return nil
 	}
 }
 
 func testAccCheckMongoDBAtlasCloudBackupScheduleDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_cloud_backup_schedule" {
 			continue
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
 		clusterName := ids["cluster_name"]
-
-		schedule, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(context.Background(), projectID, clusterName)
+		schedule, _, err := acc.Conn().CloudProviderSnapshotBackupPolicies.Get(context.Background(), projectID, clusterName)
 		if schedule != nil || err == nil {
 			return fmt.Errorf("cloud Provider Snapshot Schedule (%s) still exists", rs.Primary.ID)
 		}

@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -51,22 +50,17 @@ func testAccMongoDBAtlasDataSourceFederatedSettingsOrganizationRoleMappingsConfi
 
 func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingsExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
-		_, _, err := conn.FederatedSettings.ListRoleMappings(context.Background(), rs.Primary.Attributes["federation_settings_id"], rs.Primary.Attributes["org_id"], nil)
+		_, _, err := acc.Conn().FederatedSettings.ListRoleMappings(context.Background(), rs.Primary.Attributes["federation_settings_id"], rs.Primary.Attributes["org_id"], nil)
 		if err != nil {
 			return fmt.Errorf("FederatedSettingsOrganizationRoleMappings (%s) does not exist", rs.Primary.ID)
 		}
-
 		return nil
 	}
 }

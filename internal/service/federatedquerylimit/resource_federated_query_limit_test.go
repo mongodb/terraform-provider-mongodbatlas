@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -204,19 +203,15 @@ func testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitImportStateIDFunc(resour
 }
 
 func testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_federated_query_limit" {
 			continue
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := conn.DataFederation.GetQueryLimit(context.Background(), ids["project_id"], ids["tenant_name"], ids["limit_name"])
+		_, _, err := acc.Conn().DataFederation.GetQueryLimit(context.Background(), ids["project_id"], ids["tenant_name"], ids["limit_name"])
 		if err == nil {
 			return fmt.Errorf("federated database query limit (%s) for project (%s) and tenant (%s)still exists", ids["project_id"], ids["tenant_name"], ids["limit_name"])
 		}
 	}
-
 	return nil
 }

@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -102,33 +101,25 @@ func TestAccProjectRSProjectInvitation_importBasic(t *testing.T) {
 func testAccCheckMongoDBAtlasProjectInvitationExists(t *testing.T, resourceName string, invitation *matlas.Invitation) resource.TestCheckFunc {
 	t.Helper()
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
 		projectID := ids["project_id"]
 		username := ids["username"]
 		invitationID := ids["invitation_id"]
-
 		if projectID == "" && username == "" && invitationID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		t.Logf("projectID: %s", projectID)
 		t.Logf("username: %s", username)
 		t.Logf("invitationID: %s", invitationID)
-
-		invitationResp, _, err := conn.Projects.Invitation(context.Background(), projectID, invitationID)
+		invitationResp, _, err := acc.Conn().Projects.Invitation(context.Background(), projectID, invitationID)
 		if err == nil {
 			*invitation = *invitationResp
 			return nil
 		}
-
 		return fmt.Errorf("invitation(%s) does not exist", invitationID)
 	}
 }
@@ -138,7 +129,6 @@ func testAccCheckMongoDBAtlasProjectInvitationUsernameAttribute(invitation *matl
 		if invitation.Username != username {
 			return fmt.Errorf("bad name: %s", invitation.Username)
 		}
-
 		return nil
 	}
 }
@@ -160,25 +150,20 @@ func testAccCheckMongoDBAtlasProjectInvitationRoleAttribute(invitation *matlas.I
 }
 
 func testAccCheckMongoDBAtlasProjectInvitationDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_invitations" {
 			continue
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
 		projectID := ids["project_id"]
 		invitationID := ids["invitation_id"]
 
 		// Try to find the invitation
-		_, _, err := conn.Projects.Invitation(context.Background(), projectID, invitationID)
+		_, _, err := acc.Conn().Projects.Invitation(context.Background(), projectID, invitationID)
 		if err == nil {
 			return fmt.Errorf("invitation (%s) still exists", invitationID)
 		}
 	}
-
 	return nil
 }
 
@@ -188,7 +173,6 @@ func testAccCheckMongoDBAtlasProjectInvitationStateIDFunc(resourceName string) r
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-
 		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["username"]), nil
 	}
 }

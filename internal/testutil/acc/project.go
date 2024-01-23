@@ -8,30 +8,23 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 )
 
 func CheckProjectExists(resourceName string, project *admin.Group) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connV2 := TestMongoDBClient.(*config.MongoDBClient).AtlasV2
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		log.Printf("[DEBUG] projectID: %s", rs.Primary.ID)
-
-		if projectResp, _, err := connV2.ProjectsApi.GetProjectByName(context.Background(), rs.Primary.Attributes["name"]).Execute(); err == nil {
+		if projectResp, _, err := ConnV2().ProjectsApi.GetProjectByName(context.Background(), rs.Primary.Attributes["name"]).Execute(); err == nil {
 			*project = *projectResp
 			return nil
 		}
-
 		return fmt.Errorf("project (%s) does not exist", rs.Primary.ID)
 	}
 }
@@ -47,14 +40,12 @@ func CheckProjectAttributes(project *admin.Group, projectName string) resource.T
 }
 
 func CheckDestroyProject(s *terraform.State) error {
-	conn := TestMongoDBClient.(*config.MongoDBClient).Atlas
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_project" {
 			continue
 		}
 
-		projectRes, _, _ := conn.Projects.GetOneProjectByName(context.Background(), rs.Primary.ID)
+		projectRes, _, _ := Conn().Projects.GetOneProjectByName(context.Background(), rs.Primary.ID)
 		if projectRes != nil {
 			return fmt.Errorf("project (%s) still exists", rs.Primary.ID)
 		}

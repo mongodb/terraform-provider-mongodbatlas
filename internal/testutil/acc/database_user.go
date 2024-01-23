@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 
 	"go.mongodb.org/atlas-sdk/v20231115004/admin"
@@ -15,21 +14,16 @@ import (
 
 func CheckDatabaseUserExists(resourceName string, dbUser *admin.CloudDatabaseUser) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connV2 := TestMongoDBClient.(*config.MongoDBClient).AtlasV2
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.Attributes["project_id"] == "" {
 			return fmt.Errorf("no project_id is set")
 		}
-
 		if rs.Primary.Attributes["auth_database_name"] == "" {
 			return fmt.Errorf("no auth_database_name is set")
 		}
-
 		if rs.Primary.Attributes["username"] == "" {
 			return fmt.Errorf("no username is set")
 		}
@@ -38,7 +32,7 @@ func CheckDatabaseUserExists(resourceName string, dbUser *admin.CloudDatabaseUse
 		projectID := rs.Primary.Attributes["project_id"]
 		username := rs.Primary.Attributes["username"]
 
-		if dbUserResp, _, err := connV2.DatabaseUsersApi.GetDatabaseUser(context.Background(), projectID, authDB, username).Execute(); err == nil {
+		if dbUserResp, _, err := ConnV2().DatabaseUsersApi.GetDatabaseUser(context.Background(), projectID, authDB, username).Execute(); err == nil {
 			*dbUser = *dbUserResp
 			return nil
 		}
@@ -59,8 +53,6 @@ func CheckDatabaseUserAttributes(dbUser *admin.CloudDatabaseUser, username strin
 }
 
 func CheckDestroyDatabaseUser(s *terraform.State) error {
-	connV2 := TestMongoDBClient.(*config.MongoDBClient).AtlasV2
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_database_user" {
 			continue
@@ -71,7 +63,7 @@ func CheckDestroyDatabaseUser(s *terraform.State) error {
 			continue
 		}
 		// Try to find the database user
-		_, _, err = connV2.DatabaseUsersApi.GetDatabaseUser(context.Background(), projectID, authDatabaseName, username).Execute()
+		_, _, err = ConnV2().DatabaseUsersApi.GetDatabaseUser(context.Background(), projectID, authDatabaseName, username).Execute()
 		if err == nil {
 			return fmt.Errorf("database user (%s) still exists", projectID)
 		}
