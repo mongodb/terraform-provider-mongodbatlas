@@ -37,7 +37,6 @@ func init() {
 			return provider.MuxedProviderFactory()(), nil
 		},
 	}
-
 	cfg := config.Config{
 		PublicKey:    os.Getenv("MONGODB_ATLAS_PUBLIC_KEY"),
 		PrivateKey:   os.Getenv("MONGODB_ATLAS_PRIVATE_KEY"),
