@@ -310,7 +310,7 @@ func TestAccConfigRSAlertConfiguration_importBasic(t *testing.T) {
 				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"project_id"},
+				ImportStateVerifyIgnore: []string{"project_id", "updated"},
 			},
 		},
 	})
@@ -361,7 +361,7 @@ func TestAccConfigRSAlertConfiguration_importConfigNotifications(t *testing.T) {
 				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"project_id"},
+				ImportStateVerifyIgnore: []string{"project_id", "updated"},
 			},
 		},
 	})
@@ -398,7 +398,7 @@ func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
 				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"notification.0.service_key"}, // service key is not returned by api in import operation
+				ImportStateVerifyIgnore: []string{"updated", "notification.0.service_key"}, // service key is not returned by api in import operation
 			},
 		},
 	})
