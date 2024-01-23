@@ -431,7 +431,7 @@ func oldSDKFlattenAuthFederationRoleMapping(roleMappings []admin20231001002.Auth
 			roleMappingsMap[i] = map[string]any{
 				"external_group_name": roleMappings[i].ExternalGroupName,
 				"id":                  roleMappings[i].Id,
-				"role_assignments":    oldSDKFlattenRoleAssignmentsV2(roleMappings[i].RoleAssignments),
+				"role_assignments":    oldSDKFlattenRoleAssignments(roleMappings[i].RoleAssignments),
 			}
 		}
 	}
@@ -459,7 +459,7 @@ func (ra mRoleAssignmentOldV2) Less(i, j int) bool {
 	return *ra[i].Role < *ra[j].Role
 }
 
-func oldSDKFlattenRoleAssignmentsV2(roleAssignments []admin20231001002.RoleAssignment) []map[string]any {
+func oldSDKFlattenRoleAssignments(roleAssignments []admin20231001002.RoleAssignment) []map[string]any {
 	sort.Sort(mRoleAssignmentOldV2(roleAssignments))
 
 	var roleAssignmentsMap []map[string]any

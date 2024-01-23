@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsidentityprovider"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -116,7 +115,7 @@ func flattenFederatedSettingsOrganizationRoleMappings(federatedSettingsOrganizat
 			federatedSettingsOrganizationRoleMappingMap[i] = map[string]any{
 				"external_group_name": federatedSettingsOrganizationRoleMapping.Results[i].ExternalGroupName,
 				"id":                  federatedSettingsOrganizationRoleMapping.Results[i].ID,
-				"role_assignments":    federatedsettingsidentityprovider.FlattenRoleAssignments(federatedSettingsOrganizationRoleMapping.Results[i].RoleAssignments),
+				"role_assignments":    FlattenRoleAssignments(federatedSettingsOrganizationRoleMapping.Results[i].RoleAssignments),
 			}
 		}
 	}
