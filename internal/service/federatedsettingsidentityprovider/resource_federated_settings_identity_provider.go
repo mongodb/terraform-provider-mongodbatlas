@@ -223,7 +223,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate(ctx context.Con
 		return append(oldSDKUpdate(ctx, federationSettingsID, oktaIdpID, d, meta), getGracePeriodWarning())
 	}
 
-	updateRequest := new(admin.IdentityProviderUpdate)
+	updateRequest := new(admin.FederationIdentityProviderUpdate)
 	_, _, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID).Execute()
 
 	if err != nil {
