@@ -414,7 +414,6 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderDelete(ctx context.Con
 }
 
 func resourceMongoDBAtlasFederatedSettingsIdentityProviderImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	// connV2 := meta.(*config.MongoDBClient).AtlasV2
 	federationSettingsID, idpID, err := splitFederatedSettingsIdentityProviderImportID(d.Id())
 	if err != nil {
 		return nil, err
