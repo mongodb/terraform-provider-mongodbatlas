@@ -77,6 +77,7 @@ func Resource() *schema.Resource {
 			"protocol": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"audience_claim": {
 				Type:     schema.TypeList,
@@ -184,6 +185,14 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 		if err := d.Set("user_claim", federatedSettingsIdentityProvider.UserClaim); err != nil {
 			return diag.FromErr(fmt.Errorf("error setting user claim (%s): %s", d.Id(), err))
 		}
+	}
+
+	if err := d.Set("federation_settings_id", federationSettingsID); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting Identity Provider in Federation settings (%s): %s", d.Id(), err))
+	}
+
+	if err := d.Set("name", federatedSettingsIdentityProvider.DisplayName); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting name (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("associated_domains", federatedSettingsIdentityProvider.AssociatedDomains); err != nil {
@@ -405,7 +414,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderDelete(ctx context.Con
 }
 
 func resourceMongoDBAtlasFederatedSettingsIdentityProviderImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	// connV2 := meta.(*config.MongoDBClient).AtlasV2
 	federationSettingsID, idpID, err := splitFederatedSettingsIdentityProviderImportID(d.Id())
 	if err != nil {
 		return nil, err
@@ -416,95 +425,12 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderImportState(ctx contex
 		return oldSDKImport(federationSettingsID, idpID, d, meta)
 	}
 
-	federatedSettingsIdentityProvider, _, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), *federationSettingsID, *idpID).Execute()
-	if err != nil {
-		return nil, fmt.Errorf("couldn't import Organization config (%s) in Federation settings (%s), error: %s", *idpID, *federationSettingsID, err)
-	}
-
-	if err := d.Set("federation_settings_id", *federationSettingsID); err != nil {
-		return nil, fmt.Errorf("error setting Identity Provider in Federation settings (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("name", federatedSettingsIdentityProvider.DisplayName); err != nil {
-		return nil, fmt.Errorf("error setting name (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("sso_debug_enabled", federatedSettingsIdentityProvider.SsoDebugEnabled); err != nil {
-		return nil, fmt.Errorf("error setting sso debug enabled (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("associated_domains", federatedSettingsIdentityProvider.AssociatedDomains); err != nil {
-		return nil, fmt.Errorf("error setting associaed domains list (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("issuer_uri", federatedSettingsIdentityProvider.IssuerUri); err != nil {
-		return nil, fmt.Errorf("error setting issuer uri (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("request_binding", federatedSettingsIdentityProvider.RequestBinding); err != nil {
-		return nil, fmt.Errorf("error setting request binding (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("response_signature_algorithm", federatedSettingsIdentityProvider.ResponseSignatureAlgorithm); err != nil {
-		return nil, fmt.Errorf("error setting response signature algorithm (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("sso_url", federatedSettingsIdentityProvider.SsoUrl); err != nil {
-		return nil, fmt.Errorf("error setting sso url (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("idp_id", federatedSettingsIdentityProvider.Id); err != nil {
-		return nil, fmt.Errorf("error setting IdP Id (%s): %s", d.Id(), err)
-	}
-
 	d.SetId(encodeStateID(*federationSettingsID, *idpID))
 
 	return []*schema.ResourceData{d}, nil
 }
 
 func oldSDKImport(federationSettingsID, oktaIdpID *string, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn20231001002 := meta.(*config.MongoDBClient).Atlas20231001002
-	federatedSettingsIdentityProvider, _, err := conn20231001002.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), *federationSettingsID, *oktaIdpID).Execute()
-	if err != nil {
-		return nil, fmt.Errorf("couldn't import Organization config (%s) in Federation settings (%s), error: %s", *oktaIdpID, *federationSettingsID, err)
-	}
-
-	if err := d.Set("federation_settings_id", *federationSettingsID); err != nil {
-		return nil, fmt.Errorf("error setting Identity Provider in Federation settings (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("name", federatedSettingsIdentityProvider.DisplayName); err != nil {
-		return nil, fmt.Errorf("error setting name (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("sso_debug_enabled", federatedSettingsIdentityProvider.SsoDebugEnabled); err != nil {
-		return nil, fmt.Errorf("error setting sso debug enabled (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("associated_domains", federatedSettingsIdentityProvider.AssociatedDomains); err != nil {
-		return nil, fmt.Errorf("error setting associaed domains list (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("issuer_uri", federatedSettingsIdentityProvider.IssuerUri); err != nil {
-		return nil, fmt.Errorf("error setting issuer uri (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("request_binding", federatedSettingsIdentityProvider.RequestBinding); err != nil {
-		return nil, fmt.Errorf("error setting request binding (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("response_signature_algorithm", federatedSettingsIdentityProvider.ResponseSignatureAlgorithm); err != nil {
-		return nil, fmt.Errorf("error setting response signature algorithm (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("sso_url", federatedSettingsIdentityProvider.SsoUrl); err != nil {
-		return nil, fmt.Errorf("error setting sso url (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("idp_id", federatedSettingsIdentityProvider.Id); err != nil {
-		return nil, fmt.Errorf("error setting IdP Id (%s): %s", d.Id(), err)
-	}
-
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"federation_settings_id": *federationSettingsID,
 		"okta_idp_id":            *oktaIdpID,
