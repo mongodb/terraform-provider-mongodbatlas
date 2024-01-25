@@ -8,7 +8,7 @@ import (
 	"regexp"
 
 	admin20231001002 "go.mongodb.org/atlas-sdk/v20231001002/admin"
-	"go.mongodb.org/atlas-sdk/v20231115004/admin"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -223,7 +223,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate(ctx context.Con
 		return append(oldSDKUpdate(ctx, federationSettingsID, oktaIdpID, d, meta), getGracePeriodWarning())
 	}
 
-	updateRequest := new(admin.IdentityProviderUpdate)
+	updateRequest := new(admin.FederationIdentityProviderUpdate)
 	_, _, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID).Execute()
 
 	if err != nil {
