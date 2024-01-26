@@ -204,6 +204,37 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"protocol": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+			"audience_claim": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"client_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"groups_claim": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"requested_scopes": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"user_claim": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
