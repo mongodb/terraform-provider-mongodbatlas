@@ -7,7 +7,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"go.mongodb.org/atlas-sdk/v20231115004/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -227,15 +229,25 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead(ctx context.Co
 	if !federationSettingsIDOk {
 		return diag.FromErr(errors.New("federation_settings_id must be configured"))
 	}
-	// There is no available paginated method
-	// If no protocol is specified, only SAML identity providers will be returned. Use ListIdentityProvidersWithParams to specify protocol
-	federatedSettingsIdentityProviders, _, err := connV2.FederatedAuthenticationApi.ListIdentityProviders(ctx, federationSettingsID.(string)).Execute()
 
+	oidcParams := &admin.ListIdentityProvidersApiParams{
+		FederationSettingsId: federationSettingsID.(string),
+		Protocol:             conversion.StringPtr("OIDC"),
+	}
+	samlParams := &admin.ListIdentityProvidersApiParams{
+		FederationSettingsId: federationSettingsID.(string),
+		Protocol:             conversion.StringPtr("SAML"),
+	}
+
+	samlFederatedSettingsIdentityProviders, _, err := connV2.FederatedAuthenticationApi.ListIdentityProvidersWithParams(ctx, samlParams).Execute()
+	oidcFederatedSettingsIdentityProviders, _, err := connV2.FederatedAuthenticationApi.ListIdentityProvidersWithParams(ctx, oidcParams).Execute()
+
+	allFederatedSettingsIdentityProviders := append(samlFederatedSettingsIdentityProviders.GetResults(), oidcFederatedSettingsIdentityProviders.GetResults()...)
 	if err != nil {
 		return diag.Errorf("error getting federatedSettings IdentityProviders assigned (%s): %s", federationSettingsID, err)
 	}
 
-	if err := d.Set("results", FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProviders.GetResults())); err != nil {
+	if err := d.Set("results", FlattenFederatedSettingsIdentityProvider(allFederatedSettingsIdentityProviders)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `result` for federatedSettings IdentityProviders: %s", err))
 	}
 
