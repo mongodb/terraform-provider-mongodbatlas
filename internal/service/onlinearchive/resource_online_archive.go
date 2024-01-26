@@ -27,19 +27,19 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		Schema:        getMongoDBAtlasOnlineArchiveSchema(),
-		CreateContext: resourceMongoDBAtlasOnlineArchiveCreate,
-		ReadContext:   resourceMongoDBAtlasOnlineArchiveRead,
-		DeleteContext: resourceMongoDBAtlasOnlineArchiveDelete,
-		UpdateContext: resourceMongoDBAtlasOnlineArchiveUpdate,
+		Schema:        resourceSchema(),
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		DeleteContext: resourceDelete,
+		UpdateContext: resourceUpdate,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasOnlineArchiveImportState,
+			StateContext: resourceImport,
 		},
 	}
 }
 
 // https://docs.atlas.mongodb.com/reference/api/online-archive-create-one
-func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
+func resourceSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		// argument values
 		"project_id": {
@@ -217,7 +217,7 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 	}
 }
 
-func resourceMongoDBAtlasOnlineArchiveCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
@@ -254,7 +254,7 @@ func resourceMongoDBAtlasOnlineArchiveCreate(ctx context.Context, d *schema.Reso
 		}
 	}
 
-	return resourceMongoDBAtlasOnlineArchiveRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
 func resourceOnlineRefreshFunc(ctx context.Context, projectID, clusterName, archiveID string, client *admin.APIClient) retry.StateRefreshFunc {
@@ -285,7 +285,7 @@ func resourceOnlineRefreshFunc(ctx context.Context, projectID, clusterName, arch
 	}
 }
 
-func resourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 
@@ -312,7 +312,7 @@ func resourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.Resour
 	return nil
 }
 
-func resourceMongoDBAtlasOnlineArchiveDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
 	atlasID := ids["archive_id"]
@@ -332,7 +332,7 @@ func resourceMongoDBAtlasOnlineArchiveDelete(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func resourceMongoDBAtlasOnlineArchiveImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	parts := strings.Split(d.Id(), "-")
 
@@ -415,7 +415,7 @@ func mapToArchivePayload(d *schema.ResourceData) admin.BackupOnlineArchiveCreate
 	return requestInput
 }
 
-func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
@@ -477,7 +477,7 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf("error updating Mongo Online Archive id: %s %s", atlasID, err.Error()))
 	}
 
-	return resourceMongoDBAtlasOnlineArchiveRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
 func fromOnlineArchiveToMap(in *admin.BackupOnlineArchive) map[string]any {
