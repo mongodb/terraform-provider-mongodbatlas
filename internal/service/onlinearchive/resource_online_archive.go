@@ -425,7 +425,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	clusterName := ids["cluster_name"]
 
 	if dataProcessRegionHasChange := d.HasChange("data_process_region"); dataProcessRegionHasChange {
-		return diag.FromErr(fmt.Errorf("error updating Mongo Online Archive id: %s, data_process_region can't be updated", atlasID))
+		return diag.FromErr(fmt.Errorf("error updating Mongo Online Archive id: %s, data_process_region can't be modified", atlasID))
 	}
 
 	// if the criteria or the pausedHasChange is enable then perform an update
