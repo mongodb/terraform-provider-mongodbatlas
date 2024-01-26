@@ -295,6 +295,11 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate(ctx context.Con
 		return diag.FromErr(fmt.Errorf("error retreiving federation settings identity provider (%s): %s", federationSettingsID, err))
 	}
 
+	if d.HasChange("protocol") {
+		protocol := d.Get("protocol").(string)
+		updateRequest.Protocol = &protocol
+	}
+
 	if d.HasChange("sso_debug_enabled") {
 		ssoDebugEnabled := d.Get("sso_debug_enabled").(bool)
 		updateRequest.SsoDebugEnabled = &ssoDebugEnabled
@@ -337,6 +342,39 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate(ctx context.Con
 	if d.HasChange("sso_url") {
 		status := d.Get("sso_url").(string)
 		updateRequest.SsoUrl = &status
+	}
+
+	if d.HasChange("audience_claim") {
+		audienceClaim := d.Get("audience_claim")
+		audienceClaimSlice := cast.ToStringSlice(audienceClaim)
+		if audienceClaimSlice == nil {
+			audienceClaimSlice = []string{}
+		}
+		updateRequest.AudienceClaim = &audienceClaimSlice
+	}
+
+	if d.HasChange("client_id") {
+		clientID := d.Get("client_id").(string)
+		updateRequest.ClientId = &clientID
+	}
+
+	if d.HasChange("groups_claim") {
+		groupsClaim := d.Get("groups_claim").(string)
+		updateRequest.GroupsClaim = &groupsClaim
+	}
+
+	if d.HasChange("requested_scopes") {
+		requestedScopes := d.Get("requested_scopes")
+		requestedScopesSlice := cast.ToStringSlice(requestedScopes)
+		if requestedScopesSlice == nil {
+			requestedScopesSlice = []string{}
+		}
+		updateRequest.RequestedScopes = &requestedScopesSlice
+	}
+
+	if d.HasChange("user_claim") {
+		userClaim := d.Get("user_claim").(string)
+		updateRequest.UserClaim = &userClaim
 	}
 
 	updateRequest.PemFileInfo = nil
