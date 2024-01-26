@@ -38,13 +38,13 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 			{
 				// We need this step to pupulate the cluster with Sample Data
 				// The online archive won't work if the cluster does not have data
-				Config: testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, name),
+				Config: configFirstStep(orgID, projectName, name),
 				Check: resource.ComposeTestCheckFunc(
 					populateWithSampleData(resourceName, &cluster),
 				),
 			},
 			{
-				Config: testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 1, 7),
+				Config: configWithDailySchedule(orgID, projectName, name, 1, 7),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -60,7 +60,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 2, 8),
+				Config: configWithDailySchedule(orgID, projectName, name, 2, 8),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -102,7 +102,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, name),
+				Config: configWithoutSchedule(orgID, projectName, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -111,7 +111,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, name),
+				Config: configWithoutSchedule(orgID, projectName, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "partition_fields.0.field_name", "last_review"),
 				),
@@ -138,13 +138,13 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 			{
 				// We need this step to pupulate the cluster with Sample Data
 				// The online archive won't work if the cluster does not have data
-				Config: testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, name),
+				Config: configFirstStep(orgID, projectName, name),
 				Check: resource.ComposeTestCheckFunc(
 					populateWithSampleData(resourceName, &cluster),
 				),
 			},
 			{
-				Config: testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, name),
+				Config: configWithoutSchedule(orgID, projectName, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -152,7 +152,7 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 1, 1),
+				Config: configWithDailySchedule(orgID, projectName, name, 1, 1),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -189,13 +189,13 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 			{
 				// We need this step to pupulate the cluster with Sample Data
 				// The online archive won't work if the cluster does not have data
-				Config: testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, name),
+				Config: configFirstStep(orgID, projectName, name),
 				Check: resource.ComposeTestCheckFunc(
 					populateWithSampleData(resourceName, &cluster),
 				),
 			},
 			{
-				Config: testAccBackupRSOnlineArchiveConfigWithProcessRegion(orgID, projectName, name, cloudProvider, processRegion),
+				Config: configWithDataProcessRegion(orgID, projectName, name, cloudProvider, processRegion),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.cloud_provider", cloudProvider),
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.region", processRegion),
@@ -204,11 +204,11 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccBackupRSOnlineArchiveConfigWithProcessRegion(orgID, projectName, name, cloudProvider, "AP_SOUTH_1"),
-				ExpectError: regexp.MustCompile("ONLINE_ARCHIVE_CANNOT_MODIFY_FIELD"),
+				Config:      configWithDataProcessRegion(orgID, projectName, name, cloudProvider, "AP_SOUTH_1"),
+				ExpectError: regexp.MustCompile("data_process_region can't be modified"),
 			},
 			{
-				Config: testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, name),
+				Config: configWithoutSchedule(orgID, projectName, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.cloud_provider", cloudProvider),
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.region", processRegion),
@@ -232,7 +232,7 @@ func TestAccBackupRSOnlineArchiveInvalidProcessRegion(t *testing.T) {
 		CheckDestroy:             acc.CheckClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccBackupRSOnlineArchiveConfigWithProcessRegion(orgID, projectName, name, cloudProvider, "UNKNOWN"),
+				Config:      configWithDataProcessRegion(orgID, projectName, name, cloudProvider, "UNKNOWN"),
 				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 		},
@@ -288,7 +288,7 @@ func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resour
 	}
 }
 
-func testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, clusterName string, startHour, deleteExpirationDays int) string {
+func configWithDailySchedule(orgID, projectName, clusterName string, startHour, deleteExpirationDays int) string {
 	var dataExpirationRuleBlock string
 	if deleteExpirationDays > 0 {
 		dataExpirationRuleBlock = fmt.Sprintf(`
@@ -352,10 +352,10 @@ func testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, clu
 		project_id =  mongodbatlas_online_archive.users_archive.project_id
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
-	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName), startHour, dataExpirationRuleBlock)
+	`, configFirstStep(orgID, projectName, clusterName), startHour, dataExpirationRuleBlock)
 }
 
-func testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, clusterName string) string {
+func configWithoutSchedule(orgID, projectName, clusterName string) string {
 	return fmt.Sprintf(`
 	%s
 	resource "mongodbatlas_online_archive" "users_archive" {
@@ -400,10 +400,10 @@ func testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, clust
 		project_id =  mongodbatlas_online_archive.users_archive.project_id
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
-	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName))
+	`, configFirstStep(orgID, projectName, clusterName))
 }
 
-func testAccBackupRSOnlineArchiveConfigWithProcessRegion(orgID, projectName, clusterName, cloudProvider, region string) string {
+func configWithDataProcessRegion(orgID, projectName, clusterName, cloudProvider, region string) string {
 	return fmt.Sprintf(`
 	%s
 	resource "mongodbatlas_online_archive" "users_archive" {
@@ -453,10 +453,10 @@ func testAccBackupRSOnlineArchiveConfigWithProcessRegion(orgID, projectName, clu
 		project_id =  mongodbatlas_online_archive.users_archive.project_id
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
-	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName), cloudProvider, region)
+	`, configFirstStep(orgID, projectName, clusterName), cloudProvider, region)
 }
 
-func testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName string) string {
+func configFirstStep(orgID, projectName, clusterName string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_project" "cluster_project" {
 		name   = %[2]q
@@ -553,7 +553,7 @@ func testAccBackupRSOnlineArchiveConfigWithWeeklySchedule(orgID, projectName, cl
 		project_id =  mongodbatlas_online_archive.users_archive.project_id
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
-	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName), startHour)
+	`, configFirstStep(orgID, projectName, clusterName), startHour)
 }
 
 func testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(orgID, projectName, clusterName string, startHour int) string {
@@ -612,5 +612,5 @@ func testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(orgID, projectName, c
 		project_id =  mongodbatlas_online_archive.users_archive.project_id
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
-	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName), startHour)
+	`, configFirstStep(orgID, projectName, clusterName), startHour)
 }

@@ -35,21 +35,21 @@ func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, name),
+				Config:            configFirstStep(orgID, projectName, name),
 				Check: resource.ComposeTestCheckFunc(
 					populateWithSampleData(resourceName, &cluster),
 				),
 			},
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 1, deleteExpirationDays),
+				Config:            configWithDailySchedule(orgID, projectName, name, 1, deleteExpirationDays),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "partition_fields.0.field_name", "last_review"),
 				),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 1, deleteExpirationDays),
+				Config:                   configWithDailySchedule(orgID, projectName, name, 1, deleteExpirationDays),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),

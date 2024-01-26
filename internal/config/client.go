@@ -31,7 +31,7 @@ var (
 type MongoDBClient struct {
 	Atlas            *matlasClient.Client
 	AtlasV2          *admin.APIClient
-	Atlas20231001002 *admin20231001002.APIClient // Needed to avoid breaking changes in federated_settings_identity_provider and online_archive resources.
+	Atlas20231001002 *admin20231001002.APIClient // Needed to avoid breaking changes in federated_settings_identity_provider resource.
 	Config           *Config
 }
 
