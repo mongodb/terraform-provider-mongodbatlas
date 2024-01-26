@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -303,14 +302,13 @@ func TestAccConfigRSProjectAPIKey_DeleteProjectAndAssignment(t *testing.T) {
 }
 
 func deleteAPIKeyManually(orgID, descriptionPrefix string) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-	list, _, err := conn.APIKeys.List(context.Background(), orgID, &matlas.ListOptions{})
+	list, _, err := acc.Conn().APIKeys.List(context.Background(), orgID, &matlas.ListOptions{})
 	if err != nil {
 		return err
 	}
 	for _, key := range list {
 		if strings.HasPrefix(key.Desc, descriptionPrefix) {
-			if _, err := conn.APIKeys.Delete(context.Background(), orgID, key.ID); err != nil {
+			if _, err := acc.Conn().APIKeys.Delete(context.Background(), orgID, key.ID); err != nil {
 				return err
 			}
 		}
@@ -319,27 +317,21 @@ func deleteAPIKeyManually(orgID, descriptionPrefix string) error {
 }
 
 func testAccCheckMongoDBAtlasProjectAPIKeyDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_project_api_key" {
 			continue
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		projectAPIKeys, _, err := conn.ProjectAPIKeys.List(context.Background(), ids["project_id"], nil)
+		projectAPIKeys, _, err := acc.Conn().ProjectAPIKeys.List(context.Background(), ids["project_id"], nil)
 		if err != nil {
 			return nil
 		}
-
 		for _, val := range projectAPIKeys {
 			if val.ID == ids["api_key_id"] {
 				return fmt.Errorf("Project API Key (%s) still exists", ids["role_name"])
 			}
 		}
 	}
-
 	return nil
 }
 

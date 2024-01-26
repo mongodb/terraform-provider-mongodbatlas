@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -242,35 +241,26 @@ func TestAccBackupRSOnlineArchiveInvalidProcessRegion(t *testing.T) {
 
 func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestMongoDBClient.(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
 		log.Printf("[DEBUG] projectID: %s, name %s", ids["project_id"], ids["cluster_name"])
-
-		clusterResp, _, err := conn.Clusters.Get(context.Background(), ids["project_id"], ids["cluster_name"])
-
+		clusterResp, _, err := acc.Conn().Clusters.Get(context.Background(), ids["project_id"], ids["cluster_name"])
 		if err != nil {
 			return fmt.Errorf("cluster(%s:%s) does not exist %s", rs.Primary.Attributes["project_id"], rs.Primary.ID, err)
 		}
-
 		*cluster = *clusterResp
 
-		job, _, err := conn.Clusters.LoadSampleDataset(context.Background(), ids["project_id"], ids["cluster_name"])
+		job, _, err := acc.Conn().Clusters.LoadSampleDataset(context.Background(), ids["project_id"], ids["cluster_name"])
 
 		if err != nil {
 			return fmt.Errorf("cluster(%s:%s) loading sample data set error %s", rs.Primary.Attributes["project_id"], rs.Primary.ID, err)
 		}
-
 		ticker := time.NewTicker(30 * time.Second)
 
 	JOB:
@@ -279,7 +269,7 @@ func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resour
 			case <-time.After(20 * time.Second):
 				log.Println("timeout elapsed ....")
 			case <-ticker.C:
-				job, _, err = conn.Clusters.GetSampleDatasetStatus(context.Background(), ids["project_id"], job.ID)
+				job, _, err = acc.Conn().Clusters.GetSampleDatasetStatus(context.Background(), ids["project_id"], job.ID)
 				fmt.Println("querying for job ")
 				if job.State != "WORKING" {
 					break JOB

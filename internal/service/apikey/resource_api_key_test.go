@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -81,44 +80,33 @@ func TestAccConfigRSAPIKey_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasAPIKeyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		_, _, err := conn.APIKeys.Get(context.Background(), ids["org_id"], ids["api_key_id"])
+		_, _, err := acc.Conn().APIKeys.Get(context.Background(), ids["org_id"], ids["api_key_id"])
 		if err != nil {
 			return fmt.Errorf("API Key (%s) does not exist", ids["api_key_id"])
 		}
-
 		return nil
 	}
 }
 
 func testAccCheckMongoDBAtlasAPIKeyDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_api_key" {
 			continue
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		_, _, err := conn.APIKeys.Get(context.Background(), ids["org_id"], ids["role_name"])
+		_, _, err := acc.Conn().APIKeys.Get(context.Background(), ids["org_id"], ids["role_name"])
 		if err == nil {
 			return fmt.Errorf("API Key (%s) still exists", ids["role_name"])
 		}
 	}
-
 	return nil
 }
 

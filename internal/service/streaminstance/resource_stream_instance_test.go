@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -64,10 +63,9 @@ func checkStreamInstanceImportStateIDFunc(resourceName string) resource.ImportSt
 
 func checkSearchInstanceExists() resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connV2 := acc.TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 		for _, rs := range s.RootModule().Resources {
 			if rs.Type == "mongodbatlas_stream_instance" {
-				_, _, err := connV2.StreamsApi.GetStreamInstance(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["instance_name"]).Execute()
+				_, _, err := acc.ConnV2().StreamsApi.GetStreamInstance(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["instance_name"]).Execute()
 				if err != nil {
 					return fmt.Errorf("stream instance (%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["instance_name"])
 				}

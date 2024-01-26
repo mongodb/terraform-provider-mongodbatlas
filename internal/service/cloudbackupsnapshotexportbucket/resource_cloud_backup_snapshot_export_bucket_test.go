@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -70,20 +69,15 @@ func TestAccBackupRSBackupSnapshotExportBucket_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasBackupSnapshotExportBucketExists(resourceName string, snapshotExportBucket *matlas.CloudProviderSnapshotExportBucket) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		response, _, err := conn.CloudProviderSnapshotExportBuckets.Get(context.Background(), ids["project_id"], ids["id"])
+		response, _, err := acc.Conn().CloudProviderSnapshotExportBuckets.Get(context.Background(), ids["project_id"], ids["id"])
 		if err == nil {
 			*snapshotExportBucket = *response
 			return nil
@@ -94,21 +88,16 @@ func testAccCheckMongoDBAtlasBackupSnapshotExportBucketExists(resourceName strin
 }
 
 func testAccCheckMongoDBAtlasBackupSnapshotExportBucketDestroy(state *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type != "mongodbatlas_cloud_backup_snapshot_export_bucket" {
 			continue
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		snapshotExportBucket, _, err := conn.CloudProviderSnapshotExportBuckets.Get(context.Background(), ids["project_id"], ids["id"])
+		snapshotExportBucket, _, err := acc.Conn().CloudProviderSnapshotExportBuckets.Get(context.Background(), ids["project_id"], ids["id"])
 		if err == nil && snapshotExportBucket != nil {
 			return fmt.Errorf("snapshot export bucket (%s) still exists", ids["id"])
 		}
 	}
-
 	return nil
 }
 
@@ -118,9 +107,7 @@ func testAccCheckMongoDBAtlasBackupSnapshotExportBucketImportStateIDFunc(resourc
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
 		return fmt.Sprintf("%s-%s", ids["project_id"], ids["id"]), nil
 	}
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func StreamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider string) string {
@@ -30,10 +29,9 @@ func CheckDestroyStreamInstance(state *terraform.State) error {
 	if projectDestroyedErr := CheckDestroyProject(state); projectDestroyedErr != nil {
 		return projectDestroyedErr
 	}
-	connV2 := TestMongoDBClient.(*config.MongoDBClient).AtlasV2
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type == "mongodbatlas_stream_instance" {
-			_, _, err := connV2.StreamsApi.GetStreamInstance(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["instance_name"]).Execute()
+			_, _, err := ConnV2().StreamsApi.GetStreamInstance(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["instance_name"]).Execute()
 			if err == nil {
 				return fmt.Errorf("stream instance (%s:%s) still exists", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["instance_name"])
 			}

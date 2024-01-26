@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -106,42 +105,32 @@ func TestAccAdvRSAuditing_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasAuditingExists(resourceName string, auditing *matlas.Auditing) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
-		auditingRes, _, err := conn.Auditing.Get(context.Background(), rs.Primary.ID)
+		auditingRes, _, err := acc.Conn().Auditing.Get(context.Background(), rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("auditing (%s) does not exist", rs.Primary.ID)
 		}
-
 		auditing = auditingRes
-
 		return nil
 	}
 }
 
 func testAccCheckMongoDBAtlasAuditingDestroy(s *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_auditing" {
 			continue
 		}
-
-		_, _, err := conn.Auditing.Get(context.Background(), rs.Primary.ID)
+		_, _, err := acc.Conn().Auditing.Get(context.Background(), rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("auditing (%s) does not exist", rs.Primary.ID)
 		}
 	}
-
 	return nil
 }
 

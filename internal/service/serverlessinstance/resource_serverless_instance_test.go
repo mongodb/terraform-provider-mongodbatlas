@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -159,45 +158,34 @@ func TestAccServerlessInstance_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasServerlessInstanceExists(resourceName string, serverlessInstance *matlas.Cluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		serverlessResponse, _, err := conn.ServerlessInstances.Get(context.Background(), ids["project_id"], ids["name"])
+		serverlessResponse, _, err := acc.Conn().ServerlessInstances.Get(context.Background(), ids["project_id"], ids["name"])
 		if err == nil {
 			*serverlessInstance = *serverlessResponse
 			return nil
 		}
-
 		return fmt.Errorf("serverless instance (%s) does not exist", ids["name"])
 	}
 }
 
 func testAccCheckMongoDBAtlasServerlessInstanceDestroy(state *terraform.State) error {
-	conn := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).Atlas
-
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type != "mongodbatlas_serverless_instance" {
 			continue
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		serverlessInstance, _, err := conn.ServerlessInstances.Get(context.Background(), ids["project_id"], ids["name"])
+		serverlessInstance, _, err := acc.Conn().ServerlessInstances.Get(context.Background(), ids["project_id"], ids["name"])
 		if err == nil && serverlessInstance != nil {
 			return fmt.Errorf("serverless instance (%s) still exists", ids["name"])
 		}
 	}
-
 	return nil
 }
 

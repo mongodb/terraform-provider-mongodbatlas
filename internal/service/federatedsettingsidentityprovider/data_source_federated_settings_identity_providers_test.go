@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -50,22 +49,17 @@ func testAccMongoDBAtlasDataSourceFederatedSettingsIdentityProvidersConfig(feder
 
 func testAccCheckMongoDBAtlasFederatedSettingsIdentityProvidersExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connV2 := acc.TestAccProviderSdkV2.Meta().(*config.MongoDBClient).AtlasV2
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
-		_, _, err := connV2.FederatedAuthenticationApi.ListIdentityProviders(context.Background(), rs.Primary.Attributes["federation_settings_id"]).Execute()
+		_, _, err := acc.ConnV2().FederatedAuthenticationApi.ListIdentityProviders(context.Background(), rs.Primary.Attributes["federation_settings_id"]).Execute()
 		if err != nil {
 			return fmt.Errorf("FederatedSettingsIdentityProviders (%s) does not exist", rs.Primary.ID)
 		}
-
 		return nil
 	}
 }
