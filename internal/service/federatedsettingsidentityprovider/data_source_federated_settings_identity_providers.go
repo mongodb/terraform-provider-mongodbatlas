@@ -214,6 +214,32 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"audience_claim": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"client_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"groups_claim": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"requested_scopes": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"user_claim": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
