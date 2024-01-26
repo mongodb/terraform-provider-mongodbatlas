@@ -256,7 +256,7 @@ func dataSourceMongoDBAtlasOnlineArchivesRead(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf("error getting Online Archives list for project(%s) in cluster (%s): (%s)", projectID, clusterName, err.Error()))
 	}
 
-	input := archives.Results
+	input := archives.GetResults()
 	results := make([]map[string]any, 0, len(input))
 	for i := range input {
 		archiveData := fromOnlineArchiveToMap(&input[i])

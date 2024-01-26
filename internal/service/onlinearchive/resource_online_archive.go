@@ -424,17 +424,20 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.Reso
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
+	if dataProcessRegionHasChange := d.HasChange("data_process_region"); dataProcessRegionHasChange {
+		return diag.FromErr(fmt.Errorf("error updating Mongo Online Archive id: %s, data_process_region can't be updated", atlasID))
+	}
+
 	// if the criteria or the pausedHasChange is enable then perform an update
 	pausedHasChange := d.HasChange("paused")
 	criteriaHasChange := d.HasChange("criteria")
 	dataExpirationRuleHasChange := d.HasChange("data_expiration_rule")
-	dataProcessRegionHasChange := d.HasChange("data_process_region")
 	scheduleHasChange := d.HasChange("schedule")
 
 	collectionTypeHasChange := d.HasChange("collection_type")
 
 	// nothing to do, let's go
-	if !pausedHasChange && !criteriaHasChange && !collectionTypeHasChange && !scheduleHasChange && !dataExpirationRuleHasChange && !dataProcessRegionHasChange {
+	if !pausedHasChange && !criteriaHasChange && !collectionTypeHasChange && !scheduleHasChange && !dataExpirationRuleHasChange {
 		return nil
 	}
 
@@ -457,15 +460,6 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.Reso
 			request.DataExpirationRule = &admin.DataExpirationRule{}
 		} else {
 			request.DataExpirationRule = newExpirationRule
-		}
-	}
-
-	if dataProcessRegionHasChange {
-		newDataProcessRegion := mapDataProcessRegion(d)
-		if newDataProcessRegion == nil {
-			request.DataProcessRegion = &admin.DataProcessRegion{}
-		} else {
-			request.DataProcessRegion = newDataProcessRegion
 		}
 	}
 
@@ -593,10 +587,10 @@ func mapDataExpirationRule(d *schema.ResourceData) *admin.DataExpirationRule {
 	return nil
 }
 
-func mapDataProcessRegion(d *schema.ResourceData) *admin.DataProcessRegion {
+func mapDataProcessRegion(d *schema.ResourceData) *admin.CreateDataProcessRegion {
 	if dataProcessRegions, ok := d.GetOk("data_process_region"); ok && len(dataProcessRegions.([]any)) > 0 {
 		dataProcessRegion := dataProcessRegions.([]any)[0].(map[string]any)
-		result := admin.DataProcessRegion{}
+		result := admin.CreateDataProcessRegion{}
 		if cloudProvider, ok := dataProcessRegion["cloud_provider"]; ok {
 			result.CloudProvider = pointy.String(cloudProvider.(string))
 		}
