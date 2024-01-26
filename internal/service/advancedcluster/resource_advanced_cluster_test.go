@@ -599,6 +599,44 @@ func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAnalyticsAutoScaling(t 
 	})
 }
 
+func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAndShardUpdating(t *testing.T) {
+	var (
+		cluster          matlas.AdvancedCluster
+		resourceName     = "mongodbatlas_advanced_cluster.test"
+		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName      = acctest.RandomWithPrefix("test-acc")
+		rName            = acctest.RandomWithPrefix("test-acc")
+		numShards        = 1
+		numShardsUpdated = 1
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyTeamAdvancedCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiZoneWithShards(orgID, projectName, rName, numShards, numShards),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.num_shards", "1"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.1.num_shards", "1"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiZoneWithShards(orgID, projectName, rName, numShardsUpdated, numShards),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.num_shards", "2"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.1.num_shards", "1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccClusterAdvancedCluster_WithTags(t *testing.T) {
 	var (
 		cluster                matlas.AdvancedCluster
@@ -1141,4 +1179,60 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 
 	`, orgID, projectName, name, *p.Compute.Enabled, *p.DiskGBEnabled, p.Compute.MaxInstanceSize)
+}
+
+func testAccMongoDBAtlasAdvancedClusterConfigMultiZoneWithShards(orgID, projectName, name string, numShardsFirstZone, numShardsSecondZone int) string {
+	return fmt.Sprintf(`
+
+	resource "mongodbatlas_project" "cluster_project" {
+		name   = %[2]q
+		org_id = %[1]q
+	}
+
+	resource "mongodbatlas_advanced_cluster" "cluster" {
+		project_id = mongodbatlas_project.cluster_project.id
+		name = %[3]q
+		backup_enabled = false
+		mongo_db_major_version = "6.0"
+		cluster_type   = "GEOSHARDED"
+
+		replication_specs {
+		  zone_name  = "zone n1"
+		  num_shards = %[4]q
+
+		  region_configs {
+			electable_specs {
+			  instance_size = "M10"
+			  node_count    = 3
+			}
+			analytics_specs {
+			  instance_size = "M10"
+			  node_count    = 0
+			}
+			provider_name = "AWS"
+			priority      = 7
+			region_name   = "US_EAST_1"
+		  }
+		}
+
+		replication_specs {
+		  zone_name  = "zone n2"
+		  num_shards = %[5]q
+
+		  region_configs {
+			electable_specs {
+			  instance_size = "M10"
+			  node_count    = 3
+			}
+			analytics_specs {
+			  instance_size = "M10"
+			  node_count    = 0
+			}
+			provider_name = "AWS"
+			priority      = 7
+			region_name   = "EU_WEST_1"
+		  }
+		}
+	  }
+	`, orgID, projectName, name, numShardsFirstZone, numShardsSecondZone)
 }

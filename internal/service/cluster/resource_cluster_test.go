@@ -1380,6 +1380,28 @@ func TestAccClusterRSCluster_RegionsConfig(t *testing.T) {
 		}
 	}`
 
+	replicationsShardsUpdate := `replication_specs {
+		num_shards = 2
+		zone_name = "us2"
+		regions_config{
+			region_name     = "US_WEST_2"
+			electable_nodes = 3
+			priority        = 7
+			read_only_nodes = 0
+		}
+	  }
+
+	 replication_specs {
+		num_shards = 1
+		zone_name = "us1"
+		regions_config{
+			region_name     = "US_WEST_1"
+			electable_nodes = 3
+			priority        = 7
+			read_only_nodes = 0
+		}
+	}`
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -1399,6 +1421,14 @@ func TestAccClusterRSCluster_RegionsConfig(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.#", "2"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasClusterConfigRegions(orgID, projectName, clusterName, replicationsShardsUpdate),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.num_shards", "2"),
 				),
 			},
 		},
