@@ -1189,7 +1189,7 @@ func testAccMongoDBAtlasAdvancedClusterConfigMultiZoneWithShards(orgID, projectN
 		org_id = %[1]q
 	}
 
-	resource "mongodbatlas_advanced_cluster" "cluster" {
+	resource "mongodbatlas_advanced_cluster" "test" {
 		project_id = mongodbatlas_project.cluster_project.id
 		name = %[3]q
 		backup_enabled = false
