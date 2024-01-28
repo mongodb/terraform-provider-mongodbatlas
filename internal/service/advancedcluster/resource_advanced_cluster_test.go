@@ -606,8 +606,8 @@ func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAndShardUpdating(t *tes
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName      = acctest.RandomWithPrefix("test-acc")
 		rName            = acctest.RandomWithPrefix("test-acc")
-		numShards        = 1
-		numShardsUpdated = 1
+		numShards        = "1"
+		numShardsUpdated = "2"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1181,7 +1181,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 	`, orgID, projectName, name, *p.Compute.Enabled, *p.DiskGBEnabled, p.Compute.MaxInstanceSize)
 }
 
-func testAccMongoDBAtlasAdvancedClusterConfigMultiZoneWithShards(orgID, projectName, name string, numShardsFirstZone, numShardsSecondZone int) string {
+func testAccMongoDBAtlasAdvancedClusterConfigMultiZoneWithShards(orgID, projectName, name, numShardsFirstZone, numShardsSecondZone string) string {
 	return fmt.Sprintf(`
 
 	resource "mongodbatlas_project" "cluster_project" {
