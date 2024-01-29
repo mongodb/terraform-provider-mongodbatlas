@@ -13,17 +13,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasAccessListAPIKeyCreate,
-		ReadContext:   resourceMongoDBAtlasAccessListAPIKeyRead,
-		UpdateContext: resourceMongoDBAtlasAccessListAPIKeyUpdate,
-		DeleteContext: resourceMongoDBAtlasAccessListAPIKeyDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasAccessListAPIKeyImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"org_id": {
@@ -72,8 +72,8 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasAccessListAPIKeyCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	orgID := d.Get("org_id").(string)
 	apiKeyID := d.Get("api_key_id").(string)
 	IPAddress := d.Get("ip_address").(string)
@@ -95,20 +95,19 @@ func resourceMongoDBAtlasAccessListAPIKeyCreate(ctx context.Context, d *schema.R
 		entry = IPAddress
 	}
 
-	createReq := matlas.AccessListAPIKeysReq{}
-	createReq.CidrBlock = CIDRBlock
-	createReq.IPAddress = IPAddress
+	accessList := &[]admin.UserAccessList{
+		{
+			CidrBlock: conversion.StringPtr(CIDRBlock),
+			IpAddress: conversion.StringPtr(IPAddress),
+		},
+	}
 
-	createRequest := []*matlas.AccessListAPIKeysReq{}
-	createRequest = append(createRequest, &createReq)
-
-	_, resp, err := conn.AccessListAPIKeys.Create(ctx, orgID, apiKeyID, createRequest)
+	_, resp, err := connV2.ProgrammaticAPIKeysApi.CreateApiKeyAccessList(ctx, orgID, apiKeyID, accessList).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
-
 		return diag.FromErr(fmt.Errorf("error create API key: %s", err))
 	}
 
@@ -118,17 +117,17 @@ func resourceMongoDBAtlasAccessListAPIKeyCreate(ctx context.Context, d *schema.R
 		"entry":      entry,
 	}))
 
-	return resourceMongoDBAtlasAccessListAPIKeyRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAccessListAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
 
-	apiKey, resp, err := conn.AccessListAPIKeys.Get(ctx, orgID, apiKeyID, strings.ReplaceAll(ids["entry"], "/", "%2F"))
+	ipAddress := strings.ReplaceAll(ids["entry"], "/", "%2F")
+	apiKey, resp, err := connV2.ProgrammaticAPIKeysApi.GetApiKeyAccessList(ctx, orgID, ipAddress, apiKeyID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusBadRequest {
 			d.SetId("")
@@ -141,7 +140,7 @@ func resourceMongoDBAtlasAccessListAPIKeyRead(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf("error setting `api_key_id`: %s", err))
 	}
 
-	if err := d.Set("ip_address", apiKey.IPAddress); err != nil {
+	if err := d.Set("ip_address", apiKey.IpAddress); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `ip_address`: %s", err))
 	}
 
@@ -158,25 +157,25 @@ func resourceMongoDBAtlasAccessListAPIKeyRead(ctx context.Context, d *schema.Res
 	return nil
 }
 
-func resourceMongoDBAtlasAccessListAPIKeyUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	return resourceMongoDBAtlasAccessListAPIKeyRead(ctx, d, meta)
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAccessListAPIKeyDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
-
-	_, err := conn.AccessListAPIKeys.Delete(ctx, orgID, apiKeyID, strings.ReplaceAll(ids["entry"], "/", "%2F"))
+	ipAddress := strings.ReplaceAll(ids["entry"], "/", "%2F")
+	_, _, err := connV2.ProgrammaticAPIKeysApi.DeleteApiKeyAccessListEntry(ctx, orgID, apiKeyID, ipAddress).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting API Key: %s", err))
 	}
 	return nil
 }
 
-func resourceMongoDBAtlasAccessListAPIKeyImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	parts := strings.SplitN(d.Id(), "-", 3)
 	if len(parts) != 3 {
@@ -187,7 +186,8 @@ func resourceMongoDBAtlasAccessListAPIKeyImportState(ctx context.Context, d *sch
 	apiKeyID := parts[1]
 	entry := parts[2]
 
-	r, _, err := conn.AccessListAPIKeys.Get(ctx, orgID, apiKeyID, strings.ReplaceAll(entry, "/", "%2F"))
+	ipAddress := strings.ReplaceAll(entry, "/", "%2F")
+	r, _, err := connV2.ProgrammaticAPIKeysApi.GetApiKeyAccessList(ctx, orgID, ipAddress, apiKeyID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import api key %s in project %s, error: %s", orgID, apiKeyID, err)
 	}
@@ -196,7 +196,7 @@ func resourceMongoDBAtlasAccessListAPIKeyImportState(ctx context.Context, d *sch
 		return nil, fmt.Errorf("error setting `org_id`: %s", err)
 	}
 
-	if err := d.Set("ip_address", r.IPAddress); err != nil {
+	if err := d.Set("ip_address", r.IpAddress); err != nil {
 		return nil, fmt.Errorf("error setting `ip_address`: %s", err)
 	}
 
@@ -211,23 +211,4 @@ func resourceMongoDBAtlasAccessListAPIKeyImportState(ctx context.Context, d *sch
 	}))
 
 	return []*schema.ResourceData{d}, nil
-}
-
-func flattenAccessListAPIKeys(ctx context.Context, conn *matlas.Client, orgID string, accessListAPIKeys []*matlas.AccessListAPIKey) []map[string]any {
-	var results []map[string]any
-
-	if len(accessListAPIKeys) > 0 {
-		results = make([]map[string]any, len(accessListAPIKeys))
-		for k, accessListAPIKey := range accessListAPIKeys {
-			results[k] = map[string]any{
-				"ip_address":        accessListAPIKey.IPAddress,
-				"cidr_block":        accessListAPIKey.CidrBlock,
-				"created":           accessListAPIKey.Created,
-				"access_count":      accessListAPIKey.Count,
-				"last_used":         accessListAPIKey.LastUsed,
-				"last_used_address": accessListAPIKey.LastUsedAddress,
-			}
-		}
-	}
-	return results
 }

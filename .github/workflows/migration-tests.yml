@@ -73,6 +73,8 @@ jobs:
           project:
             - 'internal/service/project/*.go'
             - 'internal/service/projectipaccesslist/*.go'
+            - 'internal/service/accesslistapikey/*.go'
+            - 'internal/service/projectinvitation/*.go'
           config:
             - 'internal/service/alertconfiguration/*.go'
             - 'internal/service/atlasuser/*.go'

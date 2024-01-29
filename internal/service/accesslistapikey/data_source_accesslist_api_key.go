@@ -8,12 +8,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasAccessListAPIKeyRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"org_id": {
 				Type:     schema.TypeString,
@@ -52,14 +53,12 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasAccessListAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	orgID := d.Get("org_id").(string)
 	apiKeyID := d.Get("api_key_id").(string)
 	ipAddress := d.Get("ip_address").(string)
-	accessListAPIKey, _, err := conn.AccessListAPIKeys.Get(ctx, orgID, apiKeyID, ipAddress)
+	accessListAPIKey, _, err := connV2.ProgrammaticAPIKeysApi.GetApiKeyAccessList(ctx, orgID, ipAddress, apiKeyID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting access list api key information: %s", err))
 	}
@@ -72,11 +71,11 @@ func dataSourceMongoDBAtlasAccessListAPIKeyRead(ctx context.Context, d *schema.R
 		return diag.FromErr(fmt.Errorf("error setting `last_used_address`: %s", err))
 	}
 
-	if err := d.Set("last_used", accessListAPIKey.LastUsed); err != nil {
+	if err := d.Set("last_used", conversion.TimePtrToStringPtr(accessListAPIKey.LastUsed)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `last_used`: %s", err))
 	}
 
-	if err := d.Set("created", accessListAPIKey.Created); err != nil {
+	if err := d.Set("created", conversion.TimePtrToStringPtr(accessListAPIKey.Created)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `created`: %s", err))
 	}
 
