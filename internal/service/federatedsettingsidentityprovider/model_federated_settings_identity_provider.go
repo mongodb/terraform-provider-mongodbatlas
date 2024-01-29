@@ -22,7 +22,7 @@ func FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider 
 				"display_name":                 federatedSettingsIdentityProvider[i].DisplayName,
 				"issuer_uri":                   federatedSettingsIdentityProvider[i].IssuerUri,
 				"okta_idp_id":                  federatedSettingsIdentityProvider[i].OktaIdpId,
-				"pem_file_info":                FlattenPemFileInfo(*federatedSettingsIdentityProvider[i].PemFileInfo),
+				"pem_file_info":                FlattenPemFileInfo(federatedSettingsIdentityProvider[i].GetPemFileInfo()),
 				"request_binding":              federatedSettingsIdentityProvider[i].RequestBinding,
 				"response_signature_algorithm": federatedSettingsIdentityProvider[i].ResponseSignatureAlgorithm,
 				"sso_debug_enabled":            federatedSettingsIdentityProvider[i].SsoDebugEnabled,
@@ -30,6 +30,11 @@ func FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider 
 				"status":                       federatedSettingsIdentityProvider[i].Status,
 				"idp_id":                       federatedSettingsIdentityProvider[i].Id,
 				"protocol":                     federatedSettingsIdentityProvider[i].Protocol,
+				"audience_claim":               federatedSettingsIdentityProvider[i].AudienceClaim,
+				"client_id":                    federatedSettingsIdentityProvider[i].ClientId,
+				"groups_claim":                 federatedSettingsIdentityProvider[i].GroupsClaim,
+				"requested_scopes":             federatedSettingsIdentityProvider[i].RequestedScopes,
+				"user_claim":                   federatedSettingsIdentityProvider[i].UserClaim,
 			}
 		}
 	}
