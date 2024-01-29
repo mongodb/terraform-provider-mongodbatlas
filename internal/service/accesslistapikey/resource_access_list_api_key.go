@@ -18,12 +18,12 @@ import (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasAccessListAPIKeyCreate,
-		ReadContext:   resourceMongoDBAtlasAccessListAPIKeyRead,
-		UpdateContext: resourceMongoDBAtlasAccessListAPIKeyUpdate,
-		DeleteContext: resourceMongoDBAtlasAccessListAPIKeyDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasAccessListAPIKeyImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"org_id": {
@@ -72,7 +72,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasAccessListAPIKeyCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	orgID := d.Get("org_id").(string)
 	apiKeyID := d.Get("api_key_id").(string)
@@ -118,10 +118,10 @@ func resourceMongoDBAtlasAccessListAPIKeyCreate(ctx context.Context, d *schema.R
 		"entry":      entry,
 	}))
 
-	return resourceMongoDBAtlasAccessListAPIKeyRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAccessListAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
@@ -158,11 +158,11 @@ func resourceMongoDBAtlasAccessListAPIKeyRead(ctx context.Context, d *schema.Res
 	return nil
 }
 
-func resourceMongoDBAtlasAccessListAPIKeyUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	return resourceMongoDBAtlasAccessListAPIKeyRead(ctx, d, meta)
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAccessListAPIKeyDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
@@ -175,7 +175,7 @@ func resourceMongoDBAtlasAccessListAPIKeyDelete(ctx context.Context, d *schema.R
 	return nil
 }
 
-func resourceMongoDBAtlasAccessListAPIKeyImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 3)
