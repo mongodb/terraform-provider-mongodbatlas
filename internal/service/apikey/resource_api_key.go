@@ -59,15 +59,14 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	orgID := d.Get("org_id").(string)
-	createRequest := new(matlas.APIKeyInput)
+	createRequest := &admin.CreateAtlasOrganizationApiKey{
+		Desc:  d.Get("description").(string),
+		Roles: conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List()),
+	}
 
-	createRequest.Desc = d.Get("description").(string)
-
-	createRequest.Roles = conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List())
-
-	apiKey, resp, err := conn.APIKeys.Create(ctx, orgID, createRequest)
+	apiKey, resp, err := connV2.ProgrammaticAPIKeysApi.CreateApiKey(ctx, orgID, createRequest).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -77,13 +76,13 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf("error create API key: %s", err))
 	}
 
-	if err := d.Set("private_key", apiKey.PrivateKey); err != nil {
+	if err := d.Set("private_key", apiKey.GetPrivateKey()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"org_id":     orgID,
-		"api_key_id": apiKey.ID,
+		"api_key_id": apiKey.GetId(),
 	}))
 
 	return resourceRead(ctx, d, meta)
