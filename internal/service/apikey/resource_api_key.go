@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -221,5 +222,18 @@ func flattenOrgAPIKeyRoles(orgID string, apiKeyRoles []matlas.AtlasRole) []strin
 		}
 	}
 
+	return flattenedOrgRoles
+}
+
+func flattenOrgAPIKeyRolesV2(orgID string, apiKeyRoles []admin.CloudAccessRoleAssignment) []string {
+	if len(apiKeyRoles) == 0 {
+		return nil
+	}
+	flattenedOrgRoles := make([]string, 0, len(apiKeyRoles))
+	for _, role := range apiKeyRoles {
+		if strings.HasPrefix(role.GetRoleName(), "ORG_") && role.GetOrgId() == orgID {
+			flattenedOrgRoles = append(flattenedOrgRoles, role.GetRoleName())
+		}
+	}
 	return flattenedOrgRoles
 }

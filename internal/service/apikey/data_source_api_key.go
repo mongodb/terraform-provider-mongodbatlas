@@ -42,12 +42,11 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	orgID := d.Get("org_id").(string)
 	apiKeyID := d.Get("api_key_id").(string)
-	apiKey, _, err := conn.APIKeys.Get(ctx, orgID, apiKeyID)
+	apiKey, _, err := connV2.ProgrammaticAPIKeysApi.GetApiKey(ctx, orgID, apiKeyID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 	}
@@ -60,7 +59,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 	}
 
-	if err := d.Set("role_names", flattenOrgAPIKeyRoles(orgID, apiKey.Roles)); err != nil {
+	if err := d.Set("role_names", flattenOrgAPIKeyRolesV2(orgID, apiKey.GetRoles())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `roles`: %s", err))
 	}
 
