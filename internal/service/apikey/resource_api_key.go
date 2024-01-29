@@ -157,8 +157,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
-
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {
 		return nil, errors.New("import format error: to import a api key use the format {org_id}-{api_key_id}")
@@ -167,7 +166,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	orgID := parts[0]
 	apiKeyID := parts[1]
 
-	r, _, err := conn.APIKeys.Get(ctx, orgID, apiKeyID)
+	r, _, err := connV2.ProgrammaticAPIKeysApi.GetApiKey(ctx, orgID, apiKeyID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import api key %s in project %s, error: %s", orgID, apiKeyID, err)
 	}
@@ -182,7 +181,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"org_id":     orgID,
-		"api_key_id": r.ID,
+		"api_key_id": r.GetId(),
 	}))
 
 	return []*schema.ResourceData{d}, nil
