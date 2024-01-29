@@ -20,27 +20,23 @@ func TestAccConfigDSAPIKey_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAPIKeyDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDSMongoDBAtlasAPIKeyConfig(orgID, description, roleName),
+				Config: configDS(orgID, description, roleName),
 				Check: resource.ComposeTestCheckFunc(
-					// Test for Resource
-					testAccCheckMongoDBAtlasAPIKeyExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "description"),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
-					// Test for Data source
-					resource.TestCheckResourceAttrSet(dataSourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
+					resource.TestCheckResourceAttr(dataSourceName, "org_id", orgID),
+					resource.TestCheckResourceAttr(dataSourceName, "description", description),
 				),
 			},
 		},
 	})
 }
 
-func testAccDSMongoDBAtlasAPIKeyConfig(orgID, apiKeyID, roleNames string) string {
+func configDS(orgID, apiKeyID, roleNames string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_api_key" "test" {
 		  org_id = "%s"

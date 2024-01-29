@@ -26,24 +26,20 @@ func TestAccConfigRSAPIKey_Basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAPIKeyDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAPIKeyConfigBasic(orgID, description, roleName),
+				Config: configBasic(orgID, description, roleName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAPIKeyExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "description"),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAPIKeyConfigBasic(orgID, descriptionUpdate, roleNameUpdated),
+				Config: configBasic(orgID, descriptionUpdate, roleNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAPIKeyExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "description"),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "description", descriptionUpdate),
 				),
@@ -63,14 +59,14 @@ func TestAccConfigRSAPIKey_importBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAPIKeyDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAPIKeyConfigBasic(orgID, description, roleName),
+				Config: configBasic(orgID, description, roleName),
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasAPIKeyImportStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: false,
 			},
@@ -78,7 +74,7 @@ func TestAccConfigRSAPIKey_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasAPIKeyExists(resourceName string) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -96,7 +92,7 @@ func testAccCheckMongoDBAtlasAPIKeyExists(resourceName string) resource.TestChec
 	}
 }
 
-func testAccCheckMongoDBAtlasAPIKeyDestroy(s *terraform.State) error {
+func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_api_key" {
 			continue
@@ -110,18 +106,17 @@ func testAccCheckMongoDBAtlasAPIKeyDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckMongoDBAtlasAPIKeyImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-
 		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["org_id"], rs.Primary.Attributes["api_key_id"]), nil
 	}
 }
 
-func testAccMongoDBAtlasAPIKeyConfigBasic(orgID, description, roleNames string) string {
+func configBasic(orgID, description, roleNames string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_api_key" "test" {
 			org_id     = "%s"
