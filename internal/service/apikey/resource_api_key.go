@@ -13,7 +13,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115005/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func Resource() *schema.Resource {
@@ -124,34 +123,33 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
 
-	updateRequest := new(matlas.APIKeyInput)
-
 	if d.HasChange("description") || d.HasChange("role_names") {
-		updateRequest.Desc = d.Get("description").(string)
-
-		updateRequest.Roles = conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List())
-
-		_, _, err := conn.APIKeys.Update(ctx, orgID, apiKeyID, updateRequest)
+		updateRequest := &admin.UpdateAtlasOrganizationApiKey{
+			Desc: conversion.StringPtr(d.Get("description").(string)),
+		}
+		if roles := conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List()); roles != nil {
+			updateRequest.Roles = &roles
+		}
+		_, _, err := connV2.ProgrammaticAPIKeysApi.UpdateApiKey(ctx, orgID, apiKeyID, updateRequest).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error updating API key: %s", err))
 		}
 	}
-
 	return resourceRead(ctx, d, meta)
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
 
-	_, err := conn.APIKeys.Delete(ctx, orgID, apiKeyID)
+	_, _, err := connV2.ProgrammaticAPIKeysApi.DeleteApiKey(ctx, orgID, apiKeyID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error API Key: %s", err))
 	}
