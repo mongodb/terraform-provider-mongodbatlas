@@ -102,7 +102,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		},
 	}
 
-	_, resp, err := connV2.ProgrammaticAPIKeysApi.CreateApiKeyAccessList(context.Background(), orgID, apiKeyID, accessList).Execute()
+	_, resp, err := connV2.ProgrammaticAPIKeysApi.CreateApiKeyAccessList(ctx, orgID, apiKeyID, accessList).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
