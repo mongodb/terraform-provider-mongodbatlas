@@ -20,18 +20,16 @@ func TestAccConfigDSAccesslistAPIKey_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAccessListAPIKeyDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDSMongoDBAtlasAccesslistAPIKeyConfig(orgID, description, ipAddress),
+				Config: configDS(orgID, description, ipAddress),
 				Check: resource.ComposeTestCheckFunc(
-					// Test for Resource
-					testAccCheckMongoDBAtlasAccessListAPIKeyExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "ip_address", ipAddress),
-					// Test for Data source
 					resource.TestCheckResourceAttrSet(dataSourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "ip_address"),
 					resource.TestCheckResourceAttr(dataSourceName, "ip_address", ipAddress),
@@ -41,7 +39,7 @@ func TestAccConfigDSAccesslistAPIKey_basic(t *testing.T) {
 	})
 }
 
-func testAccDSMongoDBAtlasAccesslistAPIKeyConfig(orgID, description, ipAddress string) string {
+func configDS(orgID, description, ipAddress string) string {
 	return fmt.Sprintf(`
 	data "mongodbatlas_access_list_api_key" "test" {
 		org_id     = %[1]q

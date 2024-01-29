@@ -23,12 +23,12 @@ func TestAccProjectRSAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAccessListAPIKeyDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAccessListAPIKeyConfigSettingIPAddress(orgID, description, ipAddress),
+				Config: configWithIPAddress(orgID, description, ipAddress),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAccessListAPIKeyExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
 
@@ -37,9 +37,9 @@ func TestAccProjectRSAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAccessListAPIKeyConfigSettingIPAddress(orgID, description, updatedIPAddress),
+				Config: configWithIPAddress(orgID, description, updatedIPAddress),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAccessListAPIKeyExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
 
@@ -61,12 +61,12 @@ func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAccessListAPIKeyDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAccessListAPIKeyConfigSettingCIDRBlock(orgID, description, cidrBlock),
+				Config: configWithCIDRBlock(orgID, description, cidrBlock),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAccessListAPIKeyExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "cidr_block"),
 
@@ -75,9 +75,9 @@ func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAccessListAPIKeyConfigSettingCIDRBlock(orgID, description, updatedCIDRBlock),
+				Config: configWithCIDRBlock(orgID, description, updatedCIDRBlock),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAccessListAPIKeyExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "cidr_block"),
 
@@ -98,14 +98,14 @@ func TestAccProjectRSAccessListAPIKey_importBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasAccessListAPIKeyDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAccessListAPIKeyConfigSettingIPAddress(orgID, description, ipAddress),
+				Config: configWithIPAddress(orgID, description, ipAddress),
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasAccessListAPIKeyImportStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -113,7 +113,7 @@ func TestAccProjectRSAccessListAPIKey_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasAccessListAPIKeyExists(resourceName string) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -132,7 +132,7 @@ func testAccCheckMongoDBAtlasAccessListAPIKeyExists(resourceName string) resourc
 	}
 }
 
-func testAccCheckMongoDBAtlasAccessListAPIKeyDestroy(s *terraform.State) error {
+func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_access_list_api_key" {
 			continue
@@ -147,7 +147,7 @@ func testAccCheckMongoDBAtlasAccessListAPIKeyDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckMongoDBAtlasAccessListAPIKeyImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -160,7 +160,7 @@ func testAccCheckMongoDBAtlasAccessListAPIKeyImportStateIDFunc(resourceName stri
 	}
 }
 
-func testAccMongoDBAtlasAccessListAPIKeyConfigSettingIPAddress(orgID, description, ipAddress string) string {
+func configWithIPAddress(orgID, description, ipAddress string) string {
 	return fmt.Sprintf(`
 
 	   resource "mongodbatlas_api_key" "test" {
@@ -171,12 +171,13 @@ func testAccMongoDBAtlasAccessListAPIKeyConfigSettingIPAddress(orgID, descriptio
 
 		resource "mongodbatlas_access_list_api_key" "test" {
 			org_id = %[1]q
-			ip_address = %[3]q
 			api_key_id = mongodbatlas_api_key.test.api_key_id
+			ip_address = %[3]q
 		}
 	`, orgID, description, ipAddress)
 }
-func testAccMongoDBAtlasAccessListAPIKeyConfigSettingCIDRBlock(orgID, description, cidrBlock string) string {
+
+func configWithCIDRBlock(orgID, description, cidrBlock string) string {
 	return fmt.Sprintf(`
 
 	resource "mongodbatlas_api_key" "test" {
