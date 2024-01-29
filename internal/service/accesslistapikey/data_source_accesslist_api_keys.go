@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mwielbut/pointy"
 
 	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
@@ -75,8 +74,8 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	orgID := d.Get("org_id").(string)
 	apiKeyID := d.Get("api_key_id").(string)
 	params := &admin.ListApiKeyAccessListsEntriesApiParams{
-		PageNum:      pointy.Int(d.Get("page_num").(int)),
-		ItemsPerPage: pointy.Int(d.Get("items_per_page").(int)),
+		PageNum:      conversion.IntPtr(d.Get("page_num").(int)),
+		ItemsPerPage: conversion.IntPtr(d.Get("items_per_page").(int)),
 		OrgId:        orgID,
 		ApiUserId:    apiKeyID,
 	}
