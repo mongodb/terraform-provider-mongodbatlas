@@ -192,23 +192,6 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func flattenOrgAPIKeys(ctx context.Context, conn *matlas.Client, orgID string, apiKeys []matlas.APIKey) []map[string]any {
-	var results []map[string]any
-
-	if len(apiKeys) > 0 {
-		results = make([]map[string]any, len(apiKeys))
-		for k, apiKey := range apiKeys {
-			results[k] = map[string]any{
-				"api_key_id":  apiKey.ID,
-				"description": apiKey.Desc,
-				"public_key":  apiKey.PublicKey,
-				"role_names":  flattenOrgAPIKeyRoles(orgID, apiKey.Roles),
-			}
-		}
-	}
-	return results
-}
-
 func flattenOrgAPIKeyRoles(orgID string, apiKeyRoles []matlas.AtlasRole) []string {
 	if len(apiKeyRoles) == 0 {
 		return nil

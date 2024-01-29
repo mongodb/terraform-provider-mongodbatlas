@@ -43,7 +43,6 @@ func DataSource() *schema.Resource {
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-
 	orgID := d.Get("org_id").(string)
 	apiKeyID := d.Get("api_key_id").(string)
 	apiKey, _, err := connV2.ProgrammaticAPIKeysApi.GetApiKey(ctx, orgID, apiKeyID).Execute()

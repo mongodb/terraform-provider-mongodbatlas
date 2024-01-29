@@ -7,9 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -60,25 +60,40 @@ func PluralDataSource() *schema.Resource {
 }
 
 func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-	options := &matlas.ListOptions{
-		PageNum:      d.Get("page_num").(int),
-		ItemsPerPage: d.Get("items_per_page").(int),
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	orgID := d.Get("org_id").(string)
+	params := &admin.ListApiKeysApiParams{
+		PageNum:      conversion.IntPtr(d.Get("page_num").(int)),
+		ItemsPerPage: conversion.IntPtr(d.Get("items_per_page").(int)),
+		OrgId:        orgID,
 	}
 
-	orgID := d.Get("org_id").(string)
+	apiKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListApiKeysWithParams(ctx, params).Execute()
 
-	apiKeys, _, err := conn.APIKeys.List(ctx, orgID, options)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting api keys information: %s", err))
 	}
 
-	if err := d.Set("results", flattenOrgAPIKeys(ctx, conn, orgID, apiKeys)); err != nil {
+	if err := d.Set("results", flattenOrgAPIKeys(ctx, orgID, apiKeys.GetResults())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
 
 	d.SetId(id.UniqueId())
-
 	return nil
+}
+
+func flattenOrgAPIKeys(ctx context.Context, orgID string, apiKeys []admin.ApiKeyUserDetails) []map[string]any {
+	if len(apiKeys) == 0 {
+		return nil
+	}
+	results := make([]map[string]any, len(apiKeys))
+	for k, apiKey := range apiKeys {
+		results[k] = map[string]any{
+			"api_key_id":  apiKey.GetId(),
+			"description": apiKey.GetDesc(),
+			"public_key":  apiKey.GetPublicKey(),
+			"role_names":  flattenOrgAPIKeyRolesV2(orgID, apiKey.GetRoles()),
+		}
+	}
+	return results
 }
