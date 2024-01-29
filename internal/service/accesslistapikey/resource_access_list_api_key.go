@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
 func Resource() *schema.Resource {
@@ -73,7 +73,7 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	orgID := d.Get("org_id").(string)
 	apiKeyID := d.Get("api_key_id").(string)
 	IPAddress := d.Get("ip_address").(string)
@@ -95,20 +95,19 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		entry = IPAddress
 	}
 
-	createReq := matlas.AccessListAPIKeysReq{}
-	createReq.CidrBlock = CIDRBlock
-	createReq.IPAddress = IPAddress
+	accessList := &[]admin.UserAccessList{
+		{
+			CidrBlock: conversion.StringPtr(CIDRBlock),
+			IpAddress: conversion.StringPtr(IPAddress),
+		},
+	}
 
-	createRequest := []*matlas.AccessListAPIKeysReq{}
-	createRequest = append(createRequest, &createReq)
-
-	_, resp, err := conn.AccessListAPIKeys.Create(ctx, orgID, apiKeyID, createRequest)
+	_, resp, err := connV2.ProgrammaticAPIKeysApi.CreateApiKeyAccessList(context.Background(), orgID, apiKeyID, accessList).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
-
 		return diag.FromErr(fmt.Errorf("error create API key: %s", err))
 	}
 
