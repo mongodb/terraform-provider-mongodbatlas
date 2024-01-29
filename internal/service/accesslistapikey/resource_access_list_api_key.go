@@ -122,13 +122,13 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
 
-	apiKey, resp, err := conn.AccessListAPIKeys.Get(ctx, orgID, apiKeyID, strings.ReplaceAll(ids["entry"], "/", "%2F"))
+	ipAddress := strings.ReplaceAll(ids["entry"], "/", "%2F")
+	apiKey, resp, err := connV2.ProgrammaticAPIKeysApi.GetApiKeyAccessList(ctx, orgID, ipAddress, apiKeyID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusBadRequest {
 			d.SetId("")
@@ -141,7 +141,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf("error setting `api_key_id`: %s", err))
 	}
 
-	if err := d.Set("ip_address", apiKey.IPAddress); err != nil {
+	if err := d.Set("ip_address", apiKey.IpAddress); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `ip_address`: %s", err))
 	}
 
@@ -163,12 +163,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
-
-	_, err := conn.AccessListAPIKeys.Delete(ctx, orgID, apiKeyID, strings.ReplaceAll(ids["entry"], "/", "%2F"))
+	ipAddress := strings.ReplaceAll(ids["entry"], "/", "%2F")
+	_, _, err := connV2.ProgrammaticAPIKeysApi.DeleteApiKeyAccessListEntry(ctx, orgID, apiKeyID, ipAddress).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting API Key: %s", err))
 	}
