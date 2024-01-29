@@ -92,7 +92,7 @@ func flattenOrgAPIKeys(ctx context.Context, orgID string, apiKeys []admin.ApiKey
 			"api_key_id":  apiKey.GetId(),
 			"description": apiKey.GetDesc(),
 			"public_key":  apiKey.GetPublicKey(),
-			"role_names":  flattenOrgAPIKeyRolesV2(orgID, apiKey.GetRoles()),
+			"role_names":  flattenOrgAPIKeyRoles(orgID, apiKey.GetRoles()),
 		}
 	}
 	return results

@@ -90,13 +90,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
 
-	apiKey, resp, err := conn.APIKeys.Get(ctx, orgID, apiKeyID)
+	apiKey, resp, err := connV2.ProgrammaticAPIKeysApi.GetApiKey(ctx, orgID, apiKeyID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusBadRequest {
 			log.Printf("warning API key deleted will recreate: %s \n", err.Error())
@@ -106,19 +105,19 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 	}
 
-	if err := d.Set("api_key_id", apiKey.ID); err != nil {
+	if err := d.Set("api_key_id", apiKey.GetId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `api_key_id`: %s", err))
 	}
 
-	if err := d.Set("description", apiKey.Desc); err != nil {
+	if err := d.Set("description", apiKey.GetDesc()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `description`: %s", err))
 	}
 
-	if err := d.Set("public_key", apiKey.PublicKey); err != nil {
+	if err := d.Set("public_key", apiKey.GetPublicKey()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 	}
 
-	if err := d.Set("role_names", flattenOrgAPIKeyRoles(orgID, apiKey.Roles)); err != nil {
+	if err := d.Set("role_names", flattenOrgAPIKeyRoles(orgID, apiKey.GetRoles())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `roles`: %s", err))
 	}
 
@@ -192,23 +191,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func flattenOrgAPIKeyRoles(orgID string, apiKeyRoles []matlas.AtlasRole) []string {
-	if len(apiKeyRoles) == 0 {
-		return nil
-	}
-
-	flattenedOrgRoles := []string{}
-
-	for _, role := range apiKeyRoles {
-		if strings.HasPrefix(role.RoleName, "ORG_") && role.OrgID == orgID {
-			flattenedOrgRoles = append(flattenedOrgRoles, role.RoleName)
-		}
-	}
-
-	return flattenedOrgRoles
-}
-
-func flattenOrgAPIKeyRolesV2(orgID string, apiKeyRoles []admin.CloudAccessRoleAssignment) []string {
+func flattenOrgAPIKeyRoles(orgID string, apiKeyRoles []admin.CloudAccessRoleAssignment) []string {
 	if len(apiKeyRoles) == 0 {
 		return nil
 	}

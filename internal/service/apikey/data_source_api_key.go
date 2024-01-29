@@ -58,7 +58,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 	}
 
-	if err := d.Set("role_names", flattenOrgAPIKeyRolesV2(orgID, apiKey.GetRoles())); err != nil {
+	if err := d.Set("role_names", flattenOrgAPIKeyRoles(orgID, apiKey.GetRoles())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `roles`: %s", err))
 	}
 
