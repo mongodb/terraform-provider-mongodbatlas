@@ -80,6 +80,16 @@ jobs:
             - 'internal/service/atlasuser/*.go'
             - 'internal/service/databaseuser/*.go'
             - 'internal/service/projectapikey/*.go'
+            - 'internal/service/apikey/*.go'
+            - 'internal/service/teams/*.go'
+            - 'internal/service/cloudprovideraccess/*.go'
+            - 'internal/service/customdbrole/*.go'
+            - 'internal/service/maintenancewindow/*.go'
+            - 'internal/service/customdnsconfigurationclusteraws/*.go'
+            - 'internal/service/rolesorgid/*.go'
+            - 'internal/service/orginvitation/*.go'
+            - 'internal/service/organization/*.go'
+            - 'internal/service/thirdpartyintegration/*.go'
           backup_online_archive:
             - 'internal/service/onlinearchive/*.go'
           advanced_cluster:
