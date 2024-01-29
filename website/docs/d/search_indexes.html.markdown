@@ -16,15 +16,11 @@ Describes a Search Indexes.
 ## Example Usage
 
 ```terraform
-data "mongodbatlas_search_index" "test" {
+data "mongodbatlas_search_indexes" "test" {
   project_id = "<PROJECT_ID>"
   cluster_name = "<CLUSTER_NAME>"
   database_name ="<DATABASE_NAME>"
   collection_name = "<COLLECTION_NAME>"
-  
-  page_num = 1
-  items_per_page = 100
-  
 }
 ```
 
@@ -34,8 +30,6 @@ data "mongodbatlas_search_index" "test" {
 * `cluster_name` - (Required) Name of the cluster containing the collection with one or more Atlas Search indexes.
 * `database_name` - (Required) Name of the database containing the collection with one or more Atlas Search indexes.
 * `collection_name` - (Required) Name of the collection with one or more Atlas Search indexes.
-* `page_num` - Page number, starting with one, that Atlas returns of the total number of objects. **WARNING:** this parameter is deprecated and will be removed in version 1.15.0
-* `items_per_page` - Number of items that Atlas returns per page, up to a maximum of 500. **WARNING:** this parameter is deprecated and will be removed in version 1.15.0
 
 ## Attributes Reference
 * `total_count` - Represents the total of the search indexes
