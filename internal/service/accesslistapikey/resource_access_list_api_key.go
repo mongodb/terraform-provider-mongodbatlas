@@ -212,22 +212,3 @@ func resourceMongoDBAtlasAccessListAPIKeyImportState(ctx context.Context, d *sch
 
 	return []*schema.ResourceData{d}, nil
 }
-
-func flattenAccessListAPIKeys(ctx context.Context, conn *matlas.Client, orgID string, accessListAPIKeys []*matlas.AccessListAPIKey) []map[string]any {
-	var results []map[string]any
-
-	if len(accessListAPIKeys) > 0 {
-		results = make([]map[string]any, len(accessListAPIKeys))
-		for k, accessListAPIKey := range accessListAPIKeys {
-			results[k] = map[string]any{
-				"ip_address":        accessListAPIKey.IPAddress,
-				"cidr_block":        accessListAPIKey.CidrBlock,
-				"created":           accessListAPIKey.Created,
-				"access_count":      accessListAPIKey.Count,
-				"last_used":         accessListAPIKey.LastUsed,
-				"last_used_address": accessListAPIKey.LastUsedAddress,
-			}
-		}
-	}
-	return results
-}

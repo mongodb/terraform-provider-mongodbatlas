@@ -7,9 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mwielbut/pointy"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -69,26 +71,43 @@ func PluralDataSource() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasAccessListAPIKeysRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-	options := &matlas.ListOptions{
-		PageNum:      d.Get("page_num").(int),
-		ItemsPerPage: d.Get("items_per_page").(int),
-	}
-
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	orgID := d.Get("org_id").(string)
 	apiKeyID := d.Get("api_key_id").(string)
-
-	accessListAPIKeys, _, err := conn.AccessListAPIKeys.List(ctx, orgID, apiKeyID, options)
+	params := &admin.ListApiKeyAccessListsEntriesApiParams{
+		PageNum:      pointy.Int(d.Get("page_num").(int)),
+		ItemsPerPage: pointy.Int(d.Get("items_per_page").(int)),
+		OrgId:        orgID,
+		ApiUserId:    apiKeyID,
+	}
+	accessListAPIKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListApiKeyAccessListsEntriesWithParams(ctx, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting access list api keys information: %s", err))
 	}
 
-	if err := d.Set("results", flattenAccessListAPIKeys(ctx, conn, orgID, accessListAPIKeys.Results)); err != nil {
+	if err := d.Set("results", flattenAccessListAPIKeys(ctx, orgID, accessListAPIKeys.GetResults())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
 
 	d.SetId(id.UniqueId())
 
 	return nil
+}
+
+func flattenAccessListAPIKeys(ctx context.Context, orgID string, list []admin.UserAccessList) []map[string]any {
+	var results []map[string]any
+	if len(list) > 0 {
+		results = make([]map[string]any, len(list))
+		for k, elm := range list {
+			results[k] = map[string]any{
+				"ip_address":        elm.IpAddress,
+				"cidr_block":        elm.CidrBlock,
+				"created":           conversion.TimePtrToStringPtr(elm.Created),
+				"access_count":      elm.Count,
+				"last_used":         conversion.TimePtrToStringPtr(elm.LastUsed),
+				"last_used_address": elm.LastUsedAddress,
+			}
+		}
+	}
+	return results
 }
