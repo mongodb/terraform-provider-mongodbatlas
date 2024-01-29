@@ -175,7 +175,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	parts := strings.SplitN(d.Id(), "-", 3)
 	if len(parts) != 3 {
@@ -186,7 +186,8 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	apiKeyID := parts[1]
 	entry := parts[2]
 
-	r, _, err := conn.AccessListAPIKeys.Get(ctx, orgID, apiKeyID, strings.ReplaceAll(entry, "/", "%2F"))
+	ipAddress := strings.ReplaceAll(entry, "/", "%2F")
+	r, _, err := connV2.ProgrammaticAPIKeysApi.GetApiKeyAccessList(ctx, orgID, ipAddress, apiKeyID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import api key %s in project %s, error: %s", orgID, apiKeyID, err)
 	}
@@ -195,7 +196,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		return nil, fmt.Errorf("error setting `org_id`: %s", err)
 	}
 
-	if err := d.Set("ip_address", r.IPAddress); err != nil {
+	if err := d.Set("ip_address", r.IpAddress); err != nil {
 		return nil, fmt.Errorf("error setting `ip_address`: %s", err)
 	}
 
