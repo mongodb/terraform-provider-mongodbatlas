@@ -42,7 +42,7 @@ var (
 	samlProtocol               = "SAML"
 	oidcProtocol               = "OIDC"
 	audienceClaim              = []string{"audienceClaim"}
-	clientId                   = "clientId"
+	clientID                   = "clientId"
 	groupsClaim                = "groupsClaim"
 	requestedScopes            = []string{"requestedScopes"}
 	userClaim                  = "userClaim"
@@ -382,7 +382,7 @@ func TestFlattenFederatedSettingsIdentityProvider(t *testing.T) {
 					Id:                identityProviderID,
 					Protocol:          &oidcProtocol,
 					AudienceClaim:     &audienceClaim,
-					ClientId:          &clientId,
+					ClientId:          &clientID,
 					GroupsClaim:       &groupsClaim,
 					RequestedScopes:   &requestedScopes,
 					UserClaim:         &userClaim,
@@ -406,7 +406,7 @@ func TestFlattenFederatedSettingsIdentityProvider(t *testing.T) {
 					"idp_id":                       identityProviderID,
 					"protocol":                     &oidcProtocol,
 					"audience_claim":               &audienceClaim,
-					"client_id":                    &clientId,
+					"client_id":                    &clientID,
 					"groups_claim":                 &groupsClaim,
 					"requested_scopes":             &requestedScopes,
 					"user_claim":                   &userClaim,
