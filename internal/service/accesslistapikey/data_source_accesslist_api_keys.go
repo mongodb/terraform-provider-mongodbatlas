@@ -95,18 +95,18 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 }
 
 func flattenAccessListAPIKeys(ctx context.Context, orgID string, list []admin.UserAccessList) []map[string]any {
-	var results []map[string]any
-	if len(list) > 0 {
-		results = make([]map[string]any, len(list))
-		for k, elm := range list {
-			results[k] = map[string]any{
-				"ip_address":        elm.IpAddress,
-				"cidr_block":        elm.CidrBlock,
-				"created":           conversion.TimePtrToStringPtr(elm.Created),
-				"access_count":      elm.Count,
-				"last_used":         conversion.TimePtrToStringPtr(elm.LastUsed),
-				"last_used_address": elm.LastUsedAddress,
-			}
+	if len(list) == 0 {
+		return nil
+	}
+	results := make([]map[string]any, len(list))
+	for k, elm := range list {
+		results[k] = map[string]any{
+			"ip_address":        elm.IpAddress,
+			"cidr_block":        elm.CidrBlock,
+			"created":           conversion.TimePtrToStringPtr(elm.Created),
+			"access_count":      elm.Count,
+			"last_used":         conversion.TimePtrToStringPtr(elm.LastUsed),
+			"last_used_address": elm.LastUsedAddress,
 		}
 	}
 	return results
