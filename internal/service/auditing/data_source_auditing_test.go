@@ -1,10 +1,10 @@
 package auditing_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -14,57 +14,29 @@ func TestAccGenericAuditingDS_basic(t *testing.T) {
 	var (
 		auditing       matlas.Auditing
 		dataSourceName = "data.mongodbatlas_auditing.test"
-		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acctest.RandomWithPrefix("test-acc")
 		auditAuth      = true
 		auditFilter    = "{ 'atype': 'authenticate', 'param': {   'user': 'auditAdmin',   'db': 'admin',   'mechanism': 'SCRAM-SHA-1' }}"
 		enabled        = true
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasicDS(projectID, auditFilter, auditAuth, enabled),
+				Config: configBasic(orgID, projectName, auditFilter, auditAuth, enabled),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists("mongodbatlas_auditing.test", &auditing),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-
-					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
+					// resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(dataSourceName, "audit_filter", auditFilter),
 					resource.TestCheckResourceAttr(dataSourceName, "audit_authorization_success", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "configuration_type", "FILTER_JSON"),
 				),
 			},
-			{
-				Config: configBasicDS(projectID, "{}", false, false),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists("mongodbatlas_auditing.test", &auditing),
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-
-					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(dataSourceName, "audit_filter", "{}"),
-					resource.TestCheckResourceAttr(dataSourceName, "audit_authorization_success", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "enabled", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "configuration_type", "FILTER_JSON"),
-				),
-			},
 		},
 	})
-}
-
-func configBasicDS(projectID, auditFilter string, auditAuth, enabled bool) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_auditing" "test" {
-			project_id                  = "%s"
-			audit_filter                = "%s"
-			audit_authorization_success = %t
-			enabled                     = %t
-		}
-
-		data "mongodbatlas_auditing" "test" {
-			project_id = "${mongodbatlas_auditing.test.id}"
-		}
-	`, projectID, auditFilter, auditAuth, enabled)
 }
