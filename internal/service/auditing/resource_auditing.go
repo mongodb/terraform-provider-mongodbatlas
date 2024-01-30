@@ -11,13 +11,13 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 	"go.mongodb.org/atlas-sdk/v20231115005/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
 	errorAuditingCreate = "error creating MongoDB Auditing (%s): %s"
 	errorAuditingUpdate = "error updating MongoDB Auditing (%s): %s"
 	errorAuditingRead   = "error reading MongoDB Auditing (%s): %s"
+	errorAuditingDelete = "error deleting MongoDB Auditing (%s): %s"
 )
 
 func Resource() *schema.Resource {
@@ -117,22 +117,21 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-
-	auditingReq := &matlas.Auditing{}
+	auditingReq := &admin.AuditLog{}
 
 	if d.HasChange("audit_authorization_success") {
 		auditingReq.AuditAuthorizationSuccess = pointy.Bool((d.Get("audit_authorization_success").(bool)))
 	}
 
 	if d.HasChange("audit_filter") {
-		auditingReq.AuditFilter = d.Get("audit_filter").(string)
+		auditingReq.AuditFilter = conversion.StringPtr(d.Get("audit_filter").(string))
 	}
 
 	if d.HasChange("enabled") {
 		auditingReq.Enabled = pointy.Bool(d.Get("enabled").(bool))
 	}
 
-	_, _, err := conn.Auditing.Configure(ctx, d.Id(), auditingReq)
+	_, _, err := connV2.AuditingApi.UpdateAuditingConfiguration(ctx, d.Id(), auditingReq).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorAuditingUpdate, d.Id(), err))
 	}
@@ -141,19 +140,14 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get the client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	auditingReq := &matlas.Auditing{}
-
-	auditingReq.Enabled = pointy.Bool(false)
-
-	_, _, err := conn.Auditing.Configure(ctx, d.Id(), auditingReq)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorAuditingUpdate, d.Id(), err))
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	auditingReq := &admin.AuditLog{
+		Enabled: pointy.Bool(false),
 	}
-
+	_, _, err := connV2.AuditingApi.UpdateAuditingConfiguration(ctx, d.Id(), auditingReq).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorAuditingDelete, d.Id(), err))
+	}
 	d.SetId("")
-
 	return nil
 }
