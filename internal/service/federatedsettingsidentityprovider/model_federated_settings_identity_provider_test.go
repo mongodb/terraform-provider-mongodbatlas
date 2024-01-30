@@ -39,7 +39,13 @@ var (
 	ssoDebugEnabled            = true
 	ssoURL                     = "ssoUrl"
 	status                     = "ACTIVE"
-	protocol                   = "SAML"
+	samlProtocol               = "SAML"
+	oidcProtocol               = "OIDC"
+	audienceClaim              = []string{"audienceClaim"}
+	clientID                   = "clientId"
+	groupsClaim                = "groupsClaim"
+	requestedScopes            = []string{"requestedScopes"}
+	userClaim                  = "userClaim"
 
 	roleAssignments = []admin.RoleAssignment{
 		{
@@ -309,13 +315,18 @@ func TestFlattenAssociatedOrgs(t *testing.T) {
 }
 
 func TestFlattenFederatedSettingsIdentityProvider(t *testing.T) {
+	var nilStringPtr *string
+	var nilStringSlicePtr *[]string
+	var nilString string
+	var nilMap []map[string]any
+	var nilBoolPtr *bool
 	testCases := []struct {
 		name   string
 		input  []admin.FederationIdentityProvider
 		output []map[string]any
 	}{
 		{
-			name: "Non empty FlattenFederatedSettingsIdentityProvider",
+			name: "Non empty SAML FlattenFederatedSettingsIdentityProvider",
 			input: []admin.FederationIdentityProvider{
 				{
 					AcsUrl:                     &acsURL,
@@ -332,7 +343,7 @@ func TestFlattenFederatedSettingsIdentityProvider(t *testing.T) {
 					SsoUrl:                     &ssoURL,
 					Status:                     &status,
 					Id:                         identityProviderID,
-					Protocol:                   &protocol,
+					Protocol:                   &samlProtocol,
 				},
 			},
 			output: []map[string]any{
@@ -351,7 +362,54 @@ func TestFlattenFederatedSettingsIdentityProvider(t *testing.T) {
 					"sso_url":                      &ssoURL,
 					"status":                       &status,
 					"idp_id":                       identityProviderID,
-					"protocol":                     &protocol,
+					"protocol":                     &samlProtocol,
+					"audience_claim":               nilStringSlicePtr,
+					"client_id":                    nilStringPtr,
+					"groups_claim":                 nilStringPtr,
+					"requested_scopes":             nilStringSlicePtr,
+					"user_claim":                   nilStringPtr,
+				},
+			},
+		},
+		{
+			name: "Non empty OIDC FlattenFederatedSettingsIdentityProvider",
+			input: []admin.FederationIdentityProvider{
+				{
+					AssociatedDomains: &associatedDomains,
+					AssociatedOrgs:    &associatedOrgs,
+					DisplayName:       &displayName,
+					IssuerUri:         &issuerURI,
+					Id:                identityProviderID,
+					Protocol:          &oidcProtocol,
+					AudienceClaim:     &audienceClaim,
+					ClientId:          &clientID,
+					GroupsClaim:       &groupsClaim,
+					RequestedScopes:   &requestedScopes,
+					UserClaim:         &userClaim,
+				},
+			},
+			output: []map[string]any{
+				{
+					"acs_url":                      nilStringPtr,
+					"associated_domains":           &associatedDomains,
+					"associated_orgs":              flattenedAssociatedOrgs,
+					"audience_uri":                 nilStringPtr,
+					"display_name":                 &displayName,
+					"issuer_uri":                   &issuerURI,
+					"okta_idp_id":                  nilString,
+					"pem_file_info":                nilMap,
+					"request_binding":              nilStringPtr,
+					"response_signature_algorithm": nilStringPtr,
+					"sso_debug_enabled":            nilBoolPtr,
+					"sso_url":                      nilStringPtr,
+					"status":                       nilStringPtr,
+					"idp_id":                       identityProviderID,
+					"protocol":                     &oidcProtocol,
+					"audience_claim":               &audienceClaim,
+					"client_id":                    &clientID,
+					"groups_claim":                 &groupsClaim,
+					"requested_scopes":             &requestedScopes,
+					"user_claim":                   &userClaim,
 				},
 			},
 		},

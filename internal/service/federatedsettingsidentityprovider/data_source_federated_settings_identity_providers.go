@@ -7,7 +7,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -212,6 +214,32 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"audience_claim": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"client_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"groups_claim": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"requested_scopes": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"user_claim": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -227,15 +255,27 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead(ctx context.Co
 	if !federationSettingsIDOk {
 		return diag.FromErr(errors.New("federation_settings_id must be configured"))
 	}
-	// There is no available paginated method
-	// If no protocol is specified, only SAML identity providers will be returned. Use ListIdentityProvidersWithParams to specify protocol
-	federatedSettingsIdentityProviders, _, err := connV2.FederatedAuthenticationApi.ListIdentityProviders(ctx, federationSettingsID.(string)).Execute()
 
-	if err != nil {
-		return diag.Errorf("error getting federatedSettings IdentityProviders assigned (%s): %s", federationSettingsID, err)
+	oidcParams := &admin.ListIdentityProvidersApiParams{
+		FederationSettingsId: federationSettingsID.(string),
+		Protocol:             conversion.StringPtr(OIDC),
+	}
+	samlParams := &admin.ListIdentityProvidersApiParams{
+		FederationSettingsId: federationSettingsID.(string),
+		Protocol:             conversion.StringPtr(SAML),
 	}
 
-	if err := d.Set("results", FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProviders.GetResults())); err != nil {
+	samlFederatedSettingsIdentityProviders, _, samlErr := connV2.FederatedAuthenticationApi.ListIdentityProvidersWithParams(ctx, samlParams).Execute()
+	if samlErr != nil {
+		return diag.Errorf("error getting federatedSettings IdentityProviders assigned (%s): %s", federationSettingsID, samlErr)
+	}
+	oidcFederatedSettingsIdentityProviders, _, oidcErr := connV2.FederatedAuthenticationApi.ListIdentityProvidersWithParams(ctx, oidcParams).Execute()
+	if oidcErr != nil {
+		return diag.Errorf("error getting federatedSettings IdentityProviders assigned (%s): %s", federationSettingsID, oidcErr)
+	}
+	allFederatedSettingsIdentityProviders := append(samlFederatedSettingsIdentityProviders.GetResults(), oidcFederatedSettingsIdentityProviders.GetResults()...)
+
+	if err := d.Set("results", FlattenFederatedSettingsIdentityProvider(allFederatedSettingsIdentityProviders)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `result` for federatedSettings IdentityProviders: %s", err))
 	}
 
