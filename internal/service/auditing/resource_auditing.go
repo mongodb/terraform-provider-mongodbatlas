@@ -85,9 +85,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	auditing, resp, err := conn.Auditing.Get(context.Background(), d.Id())
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	auditing, resp, err := connV2.AuditingApi.GetAuditingConfiguration(ctx, d.Id()).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -97,19 +96,19 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorAuditingRead, d.Id(), err))
 	}
 
-	if err := d.Set("audit_authorization_success", auditing.AuditAuthorizationSuccess); err != nil {
+	if err := d.Set("audit_authorization_success", auditing.GetAuditAuthorizationSuccess()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorAuditingRead, d.Id(), err))
 	}
 
-	if err := d.Set("audit_filter", auditing.AuditFilter); err != nil {
+	if err := d.Set("audit_filter", auditing.GetAuditFilter()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorAuditingRead, d.Id(), err))
 	}
 
-	if err := d.Set("enabled", auditing.Enabled); err != nil {
+	if err := d.Set("enabled", auditing.GetEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorAuditingRead, d.Id(), err))
 	}
 
-	if err := d.Set("configuration_type", auditing.ConfigurationType); err != nil {
+	if err := d.Set("configuration_type", auditing.GetConfigurationType()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorAuditingRead, d.Id(), err))
 	}
 
