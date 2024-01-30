@@ -27,7 +27,7 @@ func TestAccAdvDSAuditing_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasDataSourceAuditingConfig(projectID, auditFilter, auditAuth, enabled),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAuditingExists("mongodbatlas_auditing.test", &auditing),
+					checkExists("mongodbatlas_auditing.test", &auditing),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 
 					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
@@ -40,7 +40,7 @@ func TestAccAdvDSAuditing_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasDataSourceAuditingConfig(projectID, "{}", false, false),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAuditingExists("mongodbatlas_auditing.test", &auditing),
+					checkExists("mongodbatlas_auditing.test", &auditing),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 
 					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
