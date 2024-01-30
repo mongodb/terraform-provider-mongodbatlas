@@ -25,11 +25,11 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasX509AuthDBUserCreate,
-		ReadContext:   resourceMongoDBAtlasX509AuthDBUserRead,
-		DeleteContext: resourceMongoDBAtlasX509AuthDBUserDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasX509AuthDBUserImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -98,7 +98,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasX509AuthDBUserCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
@@ -130,10 +130,10 @@ func resourceMongoDBAtlasX509AuthDBUserCreate(ctx context.Context, d *schema.Res
 		"serial_number": serialNumber,
 	}))
 
-	return resourceMongoDBAtlasX509AuthDBUserRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	ids := conversion.DecodeStateID(d.Id())
@@ -175,14 +175,14 @@ func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.Resou
 	return nil
 }
 
-func resourceMongoDBAtlasX509AuthDBUserDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// We don't do anything because X.509 certificates can not be deleted or disassociated from a user.
 	// More info: https://jira.mongodb.org/browse/HELP-53363
 	d.SetId("")
 	return nil
 }
 
-func resourceMongoDBAtlasX509AuthDBUserImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
@@ -241,6 +241,5 @@ func flattenCertificates(userCertificates []matlas.UserCertificate) []map[string
 			"subject":    v.Subject,
 		}
 	}
-
 	return certificates
 }
