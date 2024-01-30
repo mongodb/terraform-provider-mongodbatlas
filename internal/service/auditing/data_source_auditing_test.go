@@ -10,7 +10,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccAdvDSAuditing_basic(t *testing.T) {
+func TestAccGenericAuditingDS_basic(t *testing.T) {
 	var (
 		auditing       matlas.Auditing
 		dataSourceName = "data.mongodbatlas_auditing.test"
@@ -25,7 +25,7 @@ func TestAccAdvDSAuditing_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDataSourceAuditingConfig(projectID, auditFilter, auditAuth, enabled),
+				Config: configBasicDS(projectID, auditFilter, auditAuth, enabled),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists("mongodbatlas_auditing.test", &auditing),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
@@ -38,7 +38,7 @@ func TestAccAdvDSAuditing_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasDataSourceAuditingConfig(projectID, "{}", false, false),
+				Config: configBasicDS(projectID, "{}", false, false),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists("mongodbatlas_auditing.test", &auditing),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
@@ -54,7 +54,7 @@ func TestAccAdvDSAuditing_basic(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasDataSourceAuditingConfig(projectID, auditFilter string, auditAuth, enabled bool) string {
+func configBasicDS(projectID, auditFilter string, auditAuth, enabled bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_auditing" "test" {
 			project_id                  = "%s"

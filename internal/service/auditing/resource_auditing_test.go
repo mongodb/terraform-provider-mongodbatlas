@@ -13,7 +13,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccAdvRSAuditing_basic(t *testing.T) {
+func TestAccGenericAuditing_basic(t *testing.T) {
 	var (
 		auditing     matlas.Auditing
 		resourceName = "mongodbatlas_auditing.test"
@@ -61,7 +61,7 @@ func TestAccAdvRSAuditing_basic(t *testing.T) {
 	})
 }
 
-func TestAccAdvRSAuditing_importBasic(t *testing.T) {
+func TestAccGenericAuditing_importBasic(t *testing.T) {
 	var (
 		auditing     = &matlas.Auditing{}
 		resourceName = "mongodbatlas_auditing.test"
