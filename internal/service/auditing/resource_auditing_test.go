@@ -10,12 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccGenericAuditing_basic(t *testing.T) {
 	var (
-		auditing     matlas.Auditing
 		resourceName = "mongodbatlas_auditing.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
@@ -32,7 +30,7 @@ func TestAccGenericAuditing_basic(t *testing.T) {
 			{
 				Config: configBasic(orgID, projectName, auditFilter, auditAuth, enabled),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &auditing),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "audit_filter"),
 					resource.TestCheckResourceAttrSet(resourceName, "audit_authorization_success"),
@@ -46,7 +44,7 @@ func TestAccGenericAuditing_basic(t *testing.T) {
 			{
 				Config: configBasic(orgID, projectName, "{}", false, false),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &auditing),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "audit_filter"),
 					resource.TestCheckResourceAttrSet(resourceName, "audit_authorization_success"),
@@ -63,7 +61,6 @@ func TestAccGenericAuditing_basic(t *testing.T) {
 
 func TestAccGenericAuditing_importBasic(t *testing.T) {
 	var (
-		auditing     = &matlas.Auditing{}
 		resourceName = "mongodbatlas_auditing.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
@@ -80,7 +77,7 @@ func TestAccGenericAuditing_importBasic(t *testing.T) {
 			{
 				Config: configBasic(orgID, projectName, auditFilter, auditAuth, enabled),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, auditing),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "audit_filter"),
 					resource.TestCheckResourceAttrSet(resourceName, "audit_authorization_success"),
@@ -102,7 +99,7 @@ func TestAccGenericAuditing_importBasic(t *testing.T) {
 	})
 }
 
-func checkExists(resourceName string, auditing *matlas.Auditing) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -111,11 +108,10 @@ func checkExists(resourceName string, auditing *matlas.Auditing) resource.TestCh
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		auditingRes, _, err := acc.Conn().Auditing.Get(context.Background(), rs.Primary.ID)
-		if err != nil {
+		auditingRes, _, _ := acc.ConnV2().AuditingApi.GetAuditingConfiguration(context.Background(), rs.Primary.ID).Execute()
+		if auditingRes == nil {
 			return fmt.Errorf("auditing (%s) does not exist", rs.Primary.ID)
 		}
-		auditing = auditingRes
 		return nil
 	}
 }
@@ -125,7 +121,7 @@ func checkDestroy(s *terraform.State) error {
 		if rs.Type != "mongodbatlas_auditing" {
 			continue
 		}
-		auditingRes, _, _ := acc.Conn().Auditing.Get(context.Background(), rs.Primary.ID)
+		auditingRes, _, _ := acc.ConnV2().AuditingApi.GetAuditingConfiguration(context.Background(), rs.Primary.ID).Execute()
 		if auditingRes != nil {
 			return fmt.Errorf("auditing (%s) exists", rs.Primary.ID)
 		}

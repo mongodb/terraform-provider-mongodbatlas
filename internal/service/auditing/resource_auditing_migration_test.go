@@ -9,12 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccMigrationGenericAuditing_basic(t *testing.T) {
 	var (
-		auditing     matlas.Auditing
 		resourceName = "mongodbatlas_auditing.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
@@ -31,7 +29,7 @@ func TestAccMigrationGenericAuditing_basic(t *testing.T) {
 				Config:            configBasic(orgID, projectName, auditFilter, auditAuth, enabled),
 				ExternalProviders: mig.ExternalProviders(),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &auditing),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "audit_filter"),
 					resource.TestCheckResourceAttrSet(resourceName, "audit_authorization_success"),

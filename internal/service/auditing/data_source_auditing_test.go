@@ -7,12 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccGenericAuditingDS_basic(t *testing.T) {
 	var (
-		auditing       matlas.Auditing
 		dataSourceName = "data.mongodbatlas_auditing.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName    = acctest.RandomWithPrefix("test-acc")
@@ -28,9 +26,8 @@ func TestAccGenericAuditingDS_basic(t *testing.T) {
 			{
 				Config: configBasic(orgID, projectName, auditFilter, auditAuth, enabled),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists("mongodbatlas_auditing.test", &auditing),
+					checkExists("mongodbatlas_auditing.test"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					// resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(dataSourceName, "audit_filter", auditFilter),
 					resource.TestCheckResourceAttr(dataSourceName, "audit_authorization_success", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "enabled", "true"),
