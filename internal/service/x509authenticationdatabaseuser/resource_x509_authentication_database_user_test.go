@@ -14,13 +14,16 @@ import (
 	"github.com/spf13/cast"
 )
 
+const (
+	resourceName   = "mongodbatlas_x509_authentication_database_user.test"
+	dataSourceName = "data.mongodbatlas_x509_authentication_database_user.test"
+)
+
 func TestAccGenericX509AuthDBUser_basic(t *testing.T) {
 	var (
-		resourceName   = "mongodbatlas_x509_authentication_database_user.test"
-		dataSourceName = "data.mongodbatlas_x509_authentication_database_user.test"
-		username       = acctest.RandomWithPrefix("test-acc")
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acctest.RandomWithPrefix("test-acc")
+		username    = acctest.RandomWithPrefix("test-acc")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -34,9 +37,9 @@ func TestAccGenericX509AuthDBUser_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "username"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "username", username),
 				),
 			},
 		},
@@ -45,7 +48,6 @@ func TestAccGenericX509AuthDBUser_basic(t *testing.T) {
 
 func TestAccGenericX509AuthDBUser_withCustomerX509(t *testing.T) {
 	var (
-		resourceName   = "mongodbatlas_x509_authentication_database_user.test"
 		dataSourceName = "data.mongodbatlas_x509_authentication_database_user.test"
 		cas            = os.Getenv("CA_CERT")
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -72,10 +74,9 @@ func TestAccGenericX509AuthDBUser_withCustomerX509(t *testing.T) {
 
 func TestAccGenericX509AuthDBUser_importBasic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_x509_authentication_database_user.test"
-		username     = acctest.RandomWithPrefix("test-acc")
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		username    = acctest.RandomWithPrefix("test-acc")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -98,11 +99,10 @@ func TestAccGenericX509AuthDBUser_importBasic(t *testing.T) {
 
 func TestAccGenericX509AuthDBUser_withDatabaseUser(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_x509_authentication_database_user.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		username     = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-		months       = acctest.RandIntRange(1, 24)
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		username    = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		months      = acctest.RandIntRange(1, 24)
+		projectName = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -126,10 +126,9 @@ func TestAccGenericX509AuthDBUser_withDatabaseUser(t *testing.T) {
 
 func TestAccGenericX509AuthDBUser_importWithCustomerX509(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_x509_authentication_database_user.test"
-		cas          = os.Getenv("CA_CERT")
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		cas         = os.Getenv("CA_CERT")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -193,7 +192,7 @@ func configBasic(projectName, orgID, username string) string {
 
 		resource "mongodbatlas_database_user" "basic_ds" {
 			username           = "%s"
-			project_id         = "${mongodbatlas_project.test.id}"
+			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "$external"
 			x509_type          = "MANAGED"
 
@@ -204,13 +203,14 @@ func configBasic(projectName, orgID, username string) string {
 		}
 
 		resource "mongodbatlas_x509_authentication_database_user" "test" {
-			project_id              = "${mongodbatlas_project.test.id}"
-			username                = "${mongodbatlas_database_user.basic_ds.username}"
+			project_id              = mongodbatlas_project.test.id
+			username                = mongodbatlas_database_user.basic_ds.username
 			months_until_expiration = 5
 		}
 
 		data "mongodbatlas_x509_authentication_database_user" "test" {
-			project_id = "${mongodbatlas_x509_authentication_database_user.test.project_id}"
+			project_id = mongodbatlas_x509_authentication_database_user.test.project_id
+			username   = mongodbatlas_x509_authentication_database_user.test.username
 		}
 	`, projectName, orgID, username)
 }
@@ -223,15 +223,15 @@ func configWithCustomerX509(projectName, orgID, cas string) string {
 		}
 
 		resource "mongodbatlas_x509_authentication_database_user" "test" {
-			project_id        = "${mongodbatlas_project.test.id}"
+			project_id        = mongodbatlas_project.test.id
 			customer_x509_cas = <<-EOT
 			%s
 			EOT
 		}
 
 		data "mongodbatlas_x509_authentication_database_user" "test" {
-			project_id = "${mongodbatlas_x509_authentication_database_user.test.project_id}"
-			username   = "${mongodbatlas_x509_authentication_database_user.test.username}"
+			project_id = mongodbatlas_x509_authentication_database_user.test.project_id
+			username   = mongodbatlas_x509_authentication_database_user.test.username
 		}
 	`, projectName, orgID, cas)
 }
@@ -261,9 +261,14 @@ func configWithDatabaseUser(projectName, orgID, username string, months int) str
 		}
 
 		resource "mongodbatlas_x509_authentication_database_user" "test" {
-			project_id              = "${mongodbatlas_database_user.user.project_id}"
-			username                = "${mongodbatlas_database_user.user.username}"
+			project_id              = mongodbatlas_database_user.user.project_id
+			username                = mongodbatlas_database_user.user.username
 			months_until_expiration = %d
+		}
+
+		data "mongodbatlas_x509_authentication_database_user" "test" {
+			project_id = mongodbatlas_x509_authentication_database_user.test.project_id
+			username   = mongodbatlas_x509_authentication_database_user.test.username
 		}
 	`, projectName, orgID, username, months)
 }
