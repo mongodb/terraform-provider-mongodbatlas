@@ -12,7 +12,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasAPIKeyRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"org_id": {
 				Type:     schema.TypeString,
@@ -41,13 +41,11 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	orgID := d.Get("org_id").(string)
 	apiKeyID := d.Get("api_key_id").(string)
-	apiKey, _, err := conn.APIKeys.Get(ctx, orgID, apiKeyID)
+	apiKey, _, err := connV2.ProgrammaticAPIKeysApi.GetApiKey(ctx, orgID, apiKeyID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 	}
@@ -60,7 +58,7 @@ func dataSourceMongoDBAtlasAPIKeyRead(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 	}
 
-	if err := d.Set("role_names", flattenOrgAPIKeyRoles(orgID, apiKey.Roles)); err != nil {
+	if err := d.Set("role_names", flattenOrgAPIKeyRoles(orgID, apiKey.GetRoles())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `roles`: %s", err))
 	}
 

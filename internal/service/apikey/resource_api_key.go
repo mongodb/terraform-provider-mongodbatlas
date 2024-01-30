@@ -12,17 +12,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasAPIKeyCreate,
-		ReadContext:   resourceMongoDBAtlasAPIKeyRead,
-		UpdateContext: resourceMongoDBAtlasAPIKeyUpdate,
-		DeleteContext: resourceMongoDBAtlasAPIKeyDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasAPIKeyImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"org_id": {
@@ -57,16 +57,15 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasAPIKeyCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	orgID := d.Get("org_id").(string)
-	createRequest := new(matlas.APIKeyInput)
+	createRequest := &admin.CreateAtlasOrganizationApiKey{
+		Desc:  d.Get("description").(string),
+		Roles: conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List()),
+	}
 
-	createRequest.Desc = d.Get("description").(string)
-
-	createRequest.Roles = conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List())
-
-	apiKey, resp, err := conn.APIKeys.Create(ctx, orgID, createRequest)
+	apiKey, resp, err := connV2.ProgrammaticAPIKeysApi.CreateApiKey(ctx, orgID, createRequest).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -76,26 +75,25 @@ func resourceMongoDBAtlasAPIKeyCreate(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(fmt.Errorf("error create API key: %s", err))
 	}
 
-	if err := d.Set("private_key", apiKey.PrivateKey); err != nil {
+	if err := d.Set("private_key", apiKey.GetPrivateKey()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"org_id":     orgID,
-		"api_key_id": apiKey.ID,
+		"api_key_id": apiKey.GetId(),
 	}))
 
-	return resourceMongoDBAtlasAPIKeyRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
 
-	apiKey, resp, err := conn.APIKeys.Get(ctx, orgID, apiKeyID)
+	apiKey, resp, err := connV2.ProgrammaticAPIKeysApi.GetApiKey(ctx, orgID, apiKeyID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusBadRequest {
 			log.Printf("warning API key deleted will recreate: %s \n", err.Error())
@@ -105,63 +103,61 @@ func resourceMongoDBAtlasAPIKeyRead(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 	}
 
-	if err := d.Set("api_key_id", apiKey.ID); err != nil {
+	if err := d.Set("api_key_id", apiKey.GetId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `api_key_id`: %s", err))
 	}
 
-	if err := d.Set("description", apiKey.Desc); err != nil {
+	if err := d.Set("description", apiKey.GetDesc()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `description`: %s", err))
 	}
 
-	if err := d.Set("public_key", apiKey.PublicKey); err != nil {
+	if err := d.Set("public_key", apiKey.GetPublicKey()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 	}
 
-	if err := d.Set("role_names", flattenOrgAPIKeyRoles(orgID, apiKey.Roles)); err != nil {
+	if err := d.Set("role_names", flattenOrgAPIKeyRoles(orgID, apiKey.GetRoles())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `roles`: %s", err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasAPIKeyUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
 
-	updateRequest := new(matlas.APIKeyInput)
-
 	if d.HasChange("description") || d.HasChange("role_names") {
-		updateRequest.Desc = d.Get("description").(string)
-
-		updateRequest.Roles = conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List())
-
-		_, _, err := conn.APIKeys.Update(ctx, orgID, apiKeyID, updateRequest)
+		updateRequest := &admin.UpdateAtlasOrganizationApiKey{
+			Desc: conversion.StringPtr(d.Get("description").(string)),
+		}
+		if roles := conversion.ExpandStringListFromSetSchema(d.Get("role_names").(*schema.Set)); roles != nil {
+			updateRequest.Roles = &roles
+		}
+		_, _, err := connV2.ProgrammaticAPIKeysApi.UpdateApiKey(ctx, orgID, apiKeyID, updateRequest).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error updating API key: %s", err))
 		}
 	}
-
-	return resourceMongoDBAtlasAPIKeyRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAPIKeyDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
 
-	_, err := conn.APIKeys.Delete(ctx, orgID, apiKeyID)
+	_, _, err := connV2.ProgrammaticAPIKeysApi.DeleteApiKey(ctx, orgID, apiKeyID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error API Key: %s", err))
 	}
 	return nil
 }
 
-func resourceMongoDBAtlasAPIKeyImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
-
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {
 		return nil, errors.New("import format error: to import a api key use the format {org_id}-{api_key_id}")
@@ -170,7 +166,7 @@ func resourceMongoDBAtlasAPIKeyImportState(ctx context.Context, d *schema.Resour
 	orgID := parts[0]
 	apiKeyID := parts[1]
 
-	r, _, err := conn.APIKeys.Get(ctx, orgID, apiKeyID)
+	r, _, err := connV2.ProgrammaticAPIKeysApi.GetApiKey(ctx, orgID, apiKeyID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import api key %s in project %s, error: %s", orgID, apiKeyID, err)
 	}
@@ -185,41 +181,18 @@ func resourceMongoDBAtlasAPIKeyImportState(ctx context.Context, d *schema.Resour
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"org_id":     orgID,
-		"api_key_id": r.ID,
+		"api_key_id": r.GetId(),
 	}))
 
 	return []*schema.ResourceData{d}, nil
 }
 
-func flattenOrgAPIKeys(ctx context.Context, conn *matlas.Client, orgID string, apiKeys []matlas.APIKey) []map[string]any {
-	var results []map[string]any
-
-	if len(apiKeys) > 0 {
-		results = make([]map[string]any, len(apiKeys))
-		for k, apiKey := range apiKeys {
-			results[k] = map[string]any{
-				"api_key_id":  apiKey.ID,
-				"description": apiKey.Desc,
-				"public_key":  apiKey.PublicKey,
-				"role_names":  flattenOrgAPIKeyRoles(orgID, apiKey.Roles),
-			}
-		}
-	}
-	return results
-}
-
-func flattenOrgAPIKeyRoles(orgID string, apiKeyRoles []matlas.AtlasRole) []string {
-	if len(apiKeyRoles) == 0 {
-		return nil
-	}
-
-	flattenedOrgRoles := []string{}
-
+func flattenOrgAPIKeyRoles(orgID string, apiKeyRoles []admin.CloudAccessRoleAssignment) []string {
+	flattenedOrgRoles := make([]string, 0, len(apiKeyRoles))
 	for _, role := range apiKeyRoles {
-		if strings.HasPrefix(role.RoleName, "ORG_") && role.OrgID == orgID {
-			flattenedOrgRoles = append(flattenedOrgRoles, role.RoleName)
+		if strings.HasPrefix(role.GetRoleName(), "ORG_") && role.GetOrgId() == orgID {
+			flattenedOrgRoles = append(flattenedOrgRoles, role.GetRoleName())
 		}
 	}
-
 	return flattenedOrgRoles
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teams"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -166,7 +165,7 @@ func resourceMongoDBAtlasProjectInvitationUpdate(ctx context.Context, d *schema.
 	invitationID := ids["invitation_id"]
 
 	invitationReq := &matlas.Invitation{
-		Roles: teams.ExpandStringListFromSetSchema(d.Get("roles").(*schema.Set)),
+		Roles: conversion.ExpandStringListFromSetSchema(d.Get("roles").(*schema.Set)),
 	}
 
 	_, _, err := conn.Projects.UpdateInvitationByID(ctx, projectID, invitationID, invitationReq)

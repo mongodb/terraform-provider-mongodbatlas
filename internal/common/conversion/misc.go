@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/spf13/cast"
 )
 
@@ -34,6 +35,13 @@ func ExpandStringList(list []any) (res []string) {
 	for _, v := range list {
 		res = append(res, v.(string))
 	}
-
 	return
+}
+
+func ExpandStringListFromSetSchema(set *schema.Set) []string {
+	res := make([]string, set.Len())
+	for i, v := range set.List() {
+		res[i] = v.(string)
+	}
+	return res
 }
