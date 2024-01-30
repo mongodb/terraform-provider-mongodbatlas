@@ -125,9 +125,9 @@ func checkDestroy(s *terraform.State) error {
 		if rs.Type != "mongodbatlas_auditing" {
 			continue
 		}
-		_, _, err := acc.Conn().Auditing.Get(context.Background(), rs.Primary.ID)
-		if err != nil {
-			return fmt.Errorf("auditing (%s) does not exist", rs.Primary.ID)
+		auditingRes, _, _ := acc.Conn().Auditing.Get(context.Background(), rs.Primary.ID)
+		if auditingRes != nil {
+			return fmt.Errorf("auditing (%s) exists", rs.Primary.ID)
 		}
 	}
 	return nil
