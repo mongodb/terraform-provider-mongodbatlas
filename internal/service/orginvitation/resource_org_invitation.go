@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teams"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -142,8 +141,8 @@ func resourceMongoDBAtlasOrgInvitationCreate(ctx context.Context, d *schema.Reso
 	orgID := d.Get("org_id").(string)
 
 	invitationReq := &matlas.Invitation{
-		Roles:    teams.ExpandStringListFromSetSchema(d.Get("roles").(*schema.Set)),
-		TeamIDs:  teams.ExpandStringListFromSetSchema(d.Get("teams_ids").(*schema.Set)),
+		Roles:    conversion.ExpandStringListFromSetSchema(d.Get("roles").(*schema.Set)),
+		TeamIDs:  conversion.ExpandStringListFromSetSchema(d.Get("teams_ids").(*schema.Set)),
 		Username: d.Get("username").(string),
 	}
 
@@ -206,7 +205,7 @@ func resourceMongoDBAtlasOrgInvitationUpdate(ctx context.Context, d *schema.Reso
 	invitationID := ids["invitation_id"]
 
 	invitationReq := &matlas.Invitation{
-		Roles: teams.ExpandStringListFromSetSchema(d.Get("roles").(*schema.Set)),
+		Roles: conversion.ExpandStringListFromSetSchema(d.Get("roles").(*schema.Set)),
 	}
 
 	_, _, err := conn.Organizations.UpdateInvitationByID(ctx, orgID, invitationID, invitationReq)

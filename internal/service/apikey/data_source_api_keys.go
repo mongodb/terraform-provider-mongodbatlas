@@ -83,9 +83,6 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 }
 
 func flattenOrgAPIKeys(ctx context.Context, orgID string, apiKeys []admin.ApiKeyUserDetails) []map[string]any {
-	if len(apiKeys) == 0 {
-		return nil
-	}
 	results := make([]map[string]any, len(apiKeys))
 	for k, apiKey := range apiKeys {
 		results[k] = map[string]any{

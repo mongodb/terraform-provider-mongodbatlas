@@ -132,7 +132,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		updateRequest := &admin.UpdateAtlasOrganizationApiKey{
 			Desc: conversion.StringPtr(d.Get("description").(string)),
 		}
-		if roles := conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List()); roles != nil {
+		if roles := conversion.ExpandStringListFromSetSchema(d.Get("role_names").(*schema.Set)); roles != nil {
 			updateRequest.Roles = &roles
 		}
 		_, _, err := connV2.ProgrammaticAPIKeysApi.UpdateApiKey(ctx, orgID, apiKeyID, updateRequest).Execute()
@@ -188,9 +188,6 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 }
 
 func flattenOrgAPIKeyRoles(orgID string, apiKeyRoles []admin.CloudAccessRoleAssignment) []string {
-	if len(apiKeyRoles) == 0 {
-		return nil
-	}
 	flattenedOrgRoles := make([]string, 0, len(apiKeyRoles))
 	for _, role := range apiKeyRoles {
 		if strings.HasPrefix(role.GetRoleName(), "ORG_") && role.GetOrgId() == orgID {
