@@ -258,11 +258,11 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead(ctx context.Co
 
 	oidcParams := &admin.ListIdentityProvidersApiParams{
 		FederationSettingsId: federationSettingsID.(string),
-		Protocol:             conversion.StringPtr("OIDC"),
+		Protocol:             conversion.StringPtr(OIDC),
 	}
 	samlParams := &admin.ListIdentityProvidersApiParams{
 		FederationSettingsId: federationSettingsID.(string),
-		Protocol:             conversion.StringPtr("SAML"),
+		Protocol:             conversion.StringPtr(SAML),
 	}
 
 	samlFederatedSettingsIdentityProviders, _, samlErr := connV2.FederatedAuthenticationApi.ListIdentityProvidersWithParams(ctx, samlParams).Execute()

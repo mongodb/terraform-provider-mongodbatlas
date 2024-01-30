@@ -263,7 +263,7 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Con
 		return diag.Errorf("error getting federatedSettings IdentityProviders assigned (%s): %s", federationSettingsID, err)
 	}
 
-	if federatedSettingsIdentityProvider.GetProtocol() == "SAML" {
+	if federatedSettingsIdentityProvider.GetProtocol() == SAML {
 		if err := d.Set("acs_url", federatedSettingsIdentityProvider.AcsUrl); err != nil {
 			return diag.FromErr(fmt.Errorf("error setting `acs_url` for federatedSettings IdentityProviders: %s", err))
 		}
@@ -293,7 +293,7 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Con
 		}
 	}
 
-	if federatedSettingsIdentityProvider.GetProtocol() == "OIDC" {
+	if federatedSettingsIdentityProvider.GetProtocol() == OIDC {
 		if err := d.Set("audience_claim", federatedSettingsIdentityProvider.AudienceClaim); err != nil {
 			return diag.FromErr(fmt.Errorf("error setting `audience_claim` for federatedSettings IdentityProviders: %s", err))
 		}

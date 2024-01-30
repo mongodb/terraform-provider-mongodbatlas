@@ -17,6 +17,9 @@ import (
 	"github.com/spf13/cast"
 )
 
+const SAML = "SAML"
+const OIDC = "OIDC"
+
 func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasFederatedSettingsIdentityProviderRead,
@@ -145,7 +148,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 		return diag.FromErr(fmt.Errorf("error getting federated settings identity provider: %s", err))
 	}
 
-	if federatedSettingsIdentityProvider.GetProtocol() == "SAML" {
+	if federatedSettingsIdentityProvider.GetProtocol() == SAML {
 		if err := d.Set("request_binding", federatedSettingsIdentityProvider.RequestBinding); err != nil {
 			return diag.FromErr(fmt.Errorf("error setting request binding (%s): %s", d.Id(), err))
 		}
@@ -165,7 +168,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 		if err := d.Set("status", federatedSettingsIdentityProvider.Status); err != nil {
 			return diag.FromErr(fmt.Errorf("error setting Status (%s): %s", d.Id(), err))
 		}
-	} else if federatedSettingsIdentityProvider.GetProtocol() == "OIDC" {
+	} else if federatedSettingsIdentityProvider.GetProtocol() == OIDC {
 		if err := d.Set("audience_claim", federatedSettingsIdentityProvider.AudienceClaim); err != nil {
 			return diag.FromErr(fmt.Errorf("error setting audience claim list (%s): %s", d.Id(), err))
 		}
@@ -457,21 +460,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderImportState(ctx contex
 		return nil, err
 	}
 
-	// to be removed in terraform-provider-1.16.0
-	if len(*idpID) == 20 {
-		return oldSDKImport(federationSettingsID, idpID, d, meta)
-	}
-
 	d.SetId(encodeStateID(*federationSettingsID, *idpID))
-
-	return []*schema.ResourceData{d}, nil
-}
-
-func oldSDKImport(federationSettingsID, oktaIdpID *string, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	d.SetId(conversion.EncodeStateID(map[string]string{
-		"federation_settings_id": *federationSettingsID,
-		"okta_idp_id":            *oktaIdpID,
-	}))
 
 	return []*schema.ResourceData{d}, nil
 }
