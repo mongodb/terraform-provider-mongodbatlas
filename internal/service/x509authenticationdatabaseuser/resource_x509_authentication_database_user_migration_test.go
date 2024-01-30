@@ -13,11 +13,9 @@ import (
 
 func TestAccMigrationGenericX509AuthDBUser_basic(t *testing.T) {
 	var (
-		resourceName   = "mongodbatlas_x509_authentication_database_user.test"
-		dataSourceName = "data.mongodbatlas_x509_authentication_database_user.test"
-		username       = acctest.RandomWithPrefix("test-acc")
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acctest.RandomWithPrefix("test-acc")
+		username    = acctest.RandomWithPrefix("test-acc")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -31,9 +29,9 @@ func TestAccMigrationGenericX509AuthDBUser_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "username"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "username", username),
 				),
 			},
 			{
@@ -52,11 +50,9 @@ func TestAccMigrationGenericX509AuthDBUser_basic(t *testing.T) {
 
 func TestAccMigrationGenericX509AuthDBUser_withCustomerX509(t *testing.T) {
 	var (
-		resourceName   = "mongodbatlas_x509_authentication_database_user.test"
-		dataSourceName = "data.mongodbatlas_x509_authentication_database_user.test"
-		cas            = os.Getenv("CA_CERT")
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acctest.RandomWithPrefix("test-acc")
+		cas         = os.Getenv("CA_CERT")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
