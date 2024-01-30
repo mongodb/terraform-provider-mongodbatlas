@@ -9,6 +9,8 @@ description: |-
 # Resource: mongodbatlas_federated_settings_identity_provider
 
 `mongodbatlas_federated_settings_identity_provider` provides an Atlas federated settings identity provider resource provides a subset of settings to be maintained post import of the existing resource.
+
+-> **NOTE:** OIDC Workforce IdP is currently in preview. To learn more about OIDC and existing limitations see the [OIDC Authentication Documentation](https://www.mongodb.com/docs/atlas/security-oidc/)
 ## Example Usage
 
 ~> **IMPORTANT** You **MUST** import this resource before you can manage it with this provider. 
