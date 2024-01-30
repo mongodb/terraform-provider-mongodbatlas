@@ -38,27 +38,27 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	auditing, _, err := conn.Auditing.Get(ctx, projectID)
+	auditing, _, err := connV2.AuditingApi.GetAuditingConfiguration(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorAuditingRead, projectID, err))
 	}
 
-	if err := d.Set("audit_authorization_success", auditing.AuditAuthorizationSuccess); err != nil {
+	if err := d.Set("audit_authorization_success", auditing.GetAuditAuthorizationSuccess()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorAuditingRead, projectID, err))
 	}
 
-	if err := d.Set("audit_filter", auditing.AuditFilter); err != nil {
+	if err := d.Set("audit_filter", auditing.GetAuditFilter()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorAuditingRead, projectID, err))
 	}
 
-	if err := d.Set("enabled", auditing.Enabled); err != nil {
+	if err := d.Set("enabled", auditing.GetEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorAuditingRead, projectID, err))
 	}
 
-	if err := d.Set("configuration_type", auditing.ConfigurationType); err != nil {
+	if err := d.Set("configuration_type", auditing.GetConfigurationType()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorAuditingRead, projectID, err))
 	}
 
