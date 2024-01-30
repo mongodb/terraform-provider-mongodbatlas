@@ -22,3 +22,9 @@ func PreCheckBasicOwnerID(tb testing.TB) {
 	tb.Helper()
 	PreCheckBasic(tb)
 }
+
+func PreCheckCert(tb testing.TB) {
+	tb.Helper()
+	checkLastVersion(tb)
+	acc.PreCheckCert(tb)
+}
