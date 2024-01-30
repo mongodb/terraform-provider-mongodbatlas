@@ -24,9 +24,9 @@ func TestAccConfigDSMaintenanceWindow_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDataSourceMaintenanceWindowConfig(orgID, projectName, dayOfWeek, hourOfDay),
+				Config: configDS(orgID, projectName, dayOfWeek, hourOfDay),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasMaintenanceWindowExists("mongodbatlas_maintenance_window.test", &maintenance),
+					checkExists("mongodbatlas_maintenance_window.test", &maintenance),
 					resource.TestCheckResourceAttrSet("data.mongodbatlas_maintenance_window.test", "project_id"),
 					resource.TestCheckResourceAttrSet("data.mongodbatlas_maintenance_window.test", "day_of_week"),
 					resource.TestCheckResourceAttrSet("data.mongodbatlas_maintenance_window.test", "hour_of_day"),
@@ -37,7 +37,7 @@ func TestAccConfigDSMaintenanceWindow_basic(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasDataSourceMaintenanceWindowConfig(orgID, projectName string, dayOfWeek, hourOfDay int) string {
+func configDS(orgID, projectName string, dayOfWeek, hourOfDay int) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q

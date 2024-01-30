@@ -24,10 +24,10 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasMaintenanceWindowCreate,
-		ReadContext:   resourceMongoDBAtlasMaintenanceWindowRead,
-		UpdateContext: resourceMongoDBAtlasMaintenanceWindowUpdate,
-		DeleteContext: resourceMongoDBAtlasMaintenanceWindowDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -89,7 +89,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasMaintenanceWindowCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 
@@ -134,10 +134,10 @@ func resourceMongoDBAtlasMaintenanceWindowCreate(ctx context.Context, d *schema.
 
 	d.SetId(projectID)
 
-	return resourceMongoDBAtlasMaintenanceWindowRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasMaintenanceWindowRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 
@@ -182,7 +182,7 @@ func resourceMongoDBAtlasMaintenanceWindowRead(ctx context.Context, d *schema.Re
 	return nil
 }
 
-func resourceMongoDBAtlasMaintenanceWindowUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 
@@ -226,7 +226,7 @@ func resourceMongoDBAtlasMaintenanceWindowUpdate(ctx context.Context, d *schema.
 	return nil
 }
 
-func resourceMongoDBAtlasMaintenanceWindowDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 
