@@ -7,8 +7,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -57,30 +59,28 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
-
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
-	auditingReq := &matlas.Auditing{}
+	auditingReq := &admin.AuditLog{}
 
 	if auditAuth, ok := d.GetOk("audit_authorization_success"); ok {
 		auditingReq.AuditAuthorizationSuccess = pointy.Bool(auditAuth.(bool))
 	}
 
 	if auditFilter, ok := d.GetOk("audit_filter"); ok {
-		auditingReq.AuditFilter = auditFilter.(string)
+		auditingReq.AuditFilter = conversion.StringPtr(auditFilter.(string))
 	}
 
 	if enabled, ok := d.GetOk("enabled"); ok {
 		auditingReq.Enabled = pointy.Bool(enabled.(bool))
 	}
 
-	_, _, err := conn.Auditing.Configure(ctx, projectID, auditingReq)
+	_, _, err := connV2.AuditingApi.UpdateAuditingConfiguration(ctx, projectID, auditingReq).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorAuditingCreate, projectID, err))
 	}
 
 	d.SetId(projectID)
-
 	return resourceRead(ctx, d, meta)
 }
 
@@ -116,8 +116,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get the client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	auditingReq := &matlas.Auditing{}
 
