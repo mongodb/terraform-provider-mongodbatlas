@@ -38,7 +38,7 @@ resource "mongodbatlas_federated_settings_org_config" "org_connections_import" {
   post_auth_role_grants      = ["ORG_MEMBER"]
 }
 
-resource "mongodbatlas_federated_settings_identity_provider" "identity_provider" {
+resource "mongodbatlas_federated_settings_identity_provider" "saml_identity_provider" {
   federation_settings_id       = data.mongodbatlas_federated_settings.federated_settings.id
   name                         = var.name
   associated_domains           = ["yourdomain.com"]
@@ -48,4 +48,18 @@ resource "mongodbatlas_federated_settings_identity_provider" "identity_provider"
   issuer_uri                   = "http://www.okta.com/exk1f716hf7f750h8"
   request_binding              = "HTTP-POST"
   response_signature_algorithm = "SHA-256"
+  protocol                     = "SAML"
+}
+
+resource "mongodbatlas_federated_settings_identity_provider" "oidc_identity_provider" {
+  federation_settings_id = data.mongodbatlas_federated_settings.federated_settings.id
+  name                   = var.name
+  associated_domains     = ["yourdomain.com"]
+  issuer_uri             = "http://www.okta.com/exk1f716hf7f750h8"
+  client_id              = "clientId"
+  audience_claim         = ["audience"]
+  requested_scopes       = ["profiles"]
+  user_claim             = "sub"
+  groups_claim           = "groups"
+  protocol               = "OIDC"
 }
