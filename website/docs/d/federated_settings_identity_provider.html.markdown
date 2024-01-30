@@ -38,7 +38,7 @@ data "mongodbatlas_federated_settings_identity_provider" "identity_provider_ds" 
 * `federation_settings_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
 * `identity_provider_id` - (Required) Unique 20-hexadecimal or 24-hexadecimal digit string that identifies the IdP. 
 
-**WARNING:** Starting at terraform provider 1.16.0 the allowed format for `identity_provider_id` will only be 24-hexadecimal digit string. See more [here](../guides/1.15.0-upgrade-guide.html.markdown)
+**WARNING:** Starting from terraform provider 1.16.0 the allowed format for `identity_provider_id` will only be 24-hexadecimal digit string. See more [here](../guides/1.15.0-upgrade-guide.html.markdown)
 
 ## Attributes Reference
 
@@ -55,6 +55,12 @@ In addition to all arguments above, the following attributes are exported:
 * `org_id` - Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
 * `post_auth_role_grants` - List that contains the default roles granted to users who authenticate through the IdP in a connected organization. If you provide a postAuthRoleGrants field in the request, the array that you provide replaces the current postAuthRoleGrants.
 * `idp_id` - Unique 24-hexadecimal digit string that identifies the IdP
+* `protocol` - The protocol of the identity provider. Either SAML or OIDC.
+* `audience_claim` - Identifier of the intended recipient of the token.
+* `client_id` - Client identifier that is assigned to an application by the Identity Provider.
+* `groups_claim` - Identifier of the claim which contains IdP Group IDs in the token.
+* `requested_scopes` - Scopes that MongoDB applications will request from the authorization endpoint.
+* `user_claim` - Identifier of the claim which contains the user ID in the token.
 
   ### Role_mappings
 * `external_group_name` - Unique human-readable label that identifies the identity provider group to which this role mapping applies.

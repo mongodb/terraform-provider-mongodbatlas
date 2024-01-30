@@ -20,7 +20,7 @@ The Terraform MongoDB Atlas Provider version 1.15.0 has a number of new and exci
 - Removal of `page_num` and `items_per_page` attributes in `mongodbatlas_search_indexes` data source.
 - Format of IdP Id that uniquely identifies the identity provider when importing [`mongodbatlas_federated_settings_identity_provider`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/federated_settings_identity_provider) resource and [`mongodbatlas_federated_settings_identity_provider`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/federated_settings_identity_provider) data source now accepts a different format to align with the Atlas Admin API. Details and upgrade guide can be found below: 
 
-Both the current and new IdP Id format are accepted in terraform-provider 1.15.0 version. New features for `mongodbatlas_federated_settings_identity_provider` resource and data source will only be available when using the new Id format.
+Both the current and new IdP Id format are accepted in terraform-provider 1.15.X version. New features for `mongodbatlas_federated_settings_identity_provider` resource and data source will only be available when using the new Id format.
 
 ***WARNING:*** Old IdP Id format will no longer be accepted starting in terraform-provider 1.16.0 version and onwards. We recommend to update to the new format as soon as possible. A warning will appear if old Id is still being used. Follow the guide below to start using the new Id format.
 
