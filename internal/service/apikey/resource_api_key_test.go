@@ -13,7 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccConfigRSAPIKey_Basic(t *testing.T) {
+func TestAccConfigRSAPIKey_basic(t *testing.T) {
 	var (
 		resourceName      = "mongodbatlas_api_key.test"
 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
