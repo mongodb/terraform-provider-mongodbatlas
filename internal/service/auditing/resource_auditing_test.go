@@ -127,8 +127,7 @@ func checkDestroy(s *terraform.State) error {
 		}
 		_, _, err := acc.Conn().Auditing.Get(context.Background(), rs.Primary.ID)
 		if err != nil {
-			// FIX return fmt.Errorf("auditing (%s) does not exist", rs.Primary.ID)
-			return nil
+			return fmt.Errorf("auditing (%s) does not exist", rs.Primary.ID)
 		}
 	}
 	return nil
