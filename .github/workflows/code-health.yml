@@ -70,6 +70,14 @@ jobs:
           go-version-file: 'go.mod'
       - name: website lint
         run: make tools && make website-lint
+  dependency-review:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' }}
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - name: 'Dependency Review'
+        uses: actions/dependency-review-action@4901385134134e04cec5fbe5ddfe3b2c5bd5d976
   shellcheck:
     runs-on: ubuntu-latest
     steps:
