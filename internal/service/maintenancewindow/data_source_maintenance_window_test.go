@@ -11,13 +11,16 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccConfigDSMaintenanceWindow_basic(t *testing.T) {
-	var maintenance matlas.MaintenanceWindow
+const dataSourceName = "mongodbatlas_maintenance_window.test"
 
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	projectName := acctest.RandomWithPrefix("test-acc")
-	dayOfWeek := 7
-	hourOfDay := 3
+func TestAccConfigDSMaintenanceWindow_basic(t *testing.T) {
+	var (
+		maintenance matlas.MaintenanceWindow
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		dayOfWeek   = 7
+		hourOfDay   = 3
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -26,11 +29,11 @@ func TestAccConfigDSMaintenanceWindow_basic(t *testing.T) {
 			{
 				Config: configDS(orgID, projectName, dayOfWeek, hourOfDay),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists("mongodbatlas_maintenance_window.test", &maintenance),
-					resource.TestCheckResourceAttrSet("data.mongodbatlas_maintenance_window.test", "project_id"),
-					resource.TestCheckResourceAttrSet("data.mongodbatlas_maintenance_window.test", "day_of_week"),
-					resource.TestCheckResourceAttrSet("data.mongodbatlas_maintenance_window.test", "hour_of_day"),
-					resource.TestCheckResourceAttrSet("data.mongodbatlas_maintenance_window.test", "auto_defer_once_enabled"),
+					checkExists(dataSourceName, &maintenance),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "day_of_week"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "hour_of_day"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "auto_defer_once_enabled"),
 				),
 			},
 		},

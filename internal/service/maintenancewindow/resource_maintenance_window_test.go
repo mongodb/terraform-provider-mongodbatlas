@@ -16,10 +16,11 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
+const resourceName = "mongodbatlas_maintenance_window.test"
+
 func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 	var (
 		maintenance      matlas.MaintenanceWindow
-		resourceName     = "mongodbatlas_maintenance_window.test"
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName      = acctest.RandomWithPrefix("test-acc")
 		dayOfWeek        = 7
@@ -64,12 +65,11 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 
 func TestAccConfigRSMaintenanceWindow_importBasic(t *testing.T) {
 	var (
-		maintenance  matlas.MaintenanceWindow
-		resourceName = "mongodbatlas_maintenance_window.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		dayOfWeek    = 1
-		hourOfDay    = 3
+		maintenance matlas.MaintenanceWindow
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		dayOfWeek   = 1
+		hourOfDay   = 3
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -102,12 +102,11 @@ func TestAccConfigRSMaintenanceWindow_importBasic(t *testing.T) {
 
 func TestAccConfigRSMaintenanceWindow_autoDeferActivated(t *testing.T) {
 	var (
-		maintenance  matlas.MaintenanceWindow
-		resourceName = "mongodbatlas_maintenance_window.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		dayOfWeek    = 7
-		hourOfDay    = 3
+		maintenance matlas.MaintenanceWindow
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		dayOfWeek   = 7
+		hourOfDay   = 3
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
