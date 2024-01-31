@@ -38,8 +38,7 @@ func Resource() *schema.Resource {
 			},
 			"day_of_week": {
 				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
+				Required: true,
 				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(int)
 					if v < 1 || v > 7 {
@@ -63,11 +62,11 @@ func Resource() *schema.Resource {
 			},
 			"start_asap": {
 				Type:     schema.TypeBool,
+				Optional: true,
 				Computed: true,
 			},
 			"number_of_deferrals": {
 				Type:     schema.TypeInt,
-				Optional: true,
 				Computed: true,
 			},
 			"defer": {
@@ -110,10 +109,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if hourOfDay, ok := d.GetOk("hour_of_day"); ok {
 		maintenanceWindowReq.HourOfDay = pointy.Int(cast.ToInt(hourOfDay))
-	}
-
-	if numberOfDeferrals, ok := d.GetOk("number_of_deferrals"); ok {
-		maintenanceWindowReq.NumberOfDeferrals = cast.ToInt(numberOfDeferrals)
 	}
 
 	if autoDeferOnceEnabled, ok := d.GetOk("auto_defer_once_enabled"); ok {
@@ -201,10 +196,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if d.HasChange("hour_of_day") {
 		maintenanceWindowReq.HourOfDay = pointy.Int(cast.ToInt(d.Get("hour_of_day")))
-	}
-
-	if d.HasChange("number_of_deferrals") {
-		maintenanceWindowReq.NumberOfDeferrals = cast.ToInt(d.Get("number_of_deferrals"))
 	}
 
 	if d.HasChange("auto_defer_once_enabled") {
