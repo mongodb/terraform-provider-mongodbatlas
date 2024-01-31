@@ -14,7 +14,6 @@ import (
 )
 
 func TestAccFederatedSettingsIdentityProviderRS_basic(t *testing.T) {
-	acc.SkipTestExtCred(t)
 	var (
 		federatedSettingsIdentityProvider admin.FederationIdentityProvider
 		resourceName                      = "mongodbatlas_federated_settings_identity_provider.test"
@@ -51,7 +50,6 @@ func TestAccFederatedSettingsIdentityProviderRS_basic(t *testing.T) {
 }
 
 func TestAccFederatedSettingsIdentityProviderRS_importBasic(t *testing.T) {
-	acc.SkipTestExtCred(t)
 	var (
 		resourceName         = "mongodbatlas_federated_settings_identity_provider.test"
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
