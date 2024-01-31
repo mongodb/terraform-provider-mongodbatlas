@@ -14,9 +14,10 @@ import (
 
 func TestAccMigrationConfigCustomDBRoles_Basic(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
-		roleName    = fmt.Sprintf("test-acc-custom_role-%s", acctest.RandString(5))
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		roleName     = fmt.Sprintf("test-acc-custom_role-%s", acctest.RandString(5))
+		databaseName = fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -25,7 +26,7 @@ func TestAccMigrationConfigCustomDBRoles_Basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configBasic(orgID, projectName, roleName, "INSERT", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+				Config:            configBasic(orgID, projectName, roleName, "INSERT", databaseName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -37,7 +38,7 @@ func TestAccMigrationConfigCustomDBRoles_Basic(t *testing.T) {
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configBasic(orgID, projectName, roleName, "INSERT", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+				Config:                   configBasic(orgID, projectName, roleName, "INSERT", databaseName),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
