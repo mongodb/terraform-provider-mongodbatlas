@@ -12,7 +12,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasCustomDBRoleRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -74,7 +74,7 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCustomDBRoleRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	roleName := d.Get("role_name").(string)

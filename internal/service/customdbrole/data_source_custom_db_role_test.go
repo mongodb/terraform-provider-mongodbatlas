@@ -23,10 +23,10 @@ func TestAccConfigDSCustomDBRole_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyNetworkPeering,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDSMongoDBAtlasCustomDBRoleConfig(orgID, projectName, roleName, "INSERT", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+				Config: configDS(orgID, projectName, roleName, "INSERT", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 				Check: resource.ComposeTestCheckFunc(
 					// Test for Resource
-					testAccCheckMongoDBAtlasCustomDBRolesExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "role_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "actions.0.action"),
@@ -44,7 +44,7 @@ func TestAccConfigDSCustomDBRole_basic(t *testing.T) {
 	})
 }
 
-func testAccDSMongoDBAtlasCustomDBRoleConfig(orgID, projectName, roleName, action, databaseName string) string {
+func configDS(orgID, projectName, roleName, action, databaseName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q
