@@ -17,12 +17,13 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
+const resourceName = "mongodbatlas_custom_db_role.test"
+
 func TestAccConfigRSCustomDBRoles_Basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_custom_db_role.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		roleName     = fmt.Sprintf("test-acc-custom_role-%s", acctest.RandString(5))
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		roleName    = fmt.Sprintf("test-acc-custom_role-%s", acctest.RandString(5))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -393,17 +394,13 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 }
 
 func TestAccConfigRSCustomDBRoles_MultipleResources(t *testing.T) {
-	t.Skip()
 	var (
-		resourceName = "mongodbatlas_custom_db_role.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		roleName     string
+		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 
-	for i := 0; i < 100; i++ {
-		roleName = fmt.Sprintf("test-acc-custom_role-%d", i)
-
+	for i := 0; i < 5; i++ {
+		roleName := fmt.Sprintf("test-acc-custom_role-%d", i)
+		projectName := acctest.RandomWithPrefix("test-acc")
 		t.Run(roleName, func(t *testing.T) {
 			resource.ParallelTest(t, resource.TestCase{
 				PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -431,7 +428,6 @@ func TestAccConfigRSCustomDBRoles_MultipleResources(t *testing.T) {
 
 func TestAccConfigRSCustomDBRoles_importBasic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_custom_db_role.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		roleName     = fmt.Sprintf("test-acc-custom_role-%s", acctest.RandString(5))
