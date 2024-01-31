@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccFedDSFederatedSettingsIdentityProvider_samlBasic(t *testing.T) {
+func TestAccFederatedSettingsIdentityProviderDS_samlBasic(t *testing.T) {
 	acc.SkipTestExtCred(t)
 	var (
 		resourceName        = "data.mongodbatlas_federated_settings_identity_provider.test"

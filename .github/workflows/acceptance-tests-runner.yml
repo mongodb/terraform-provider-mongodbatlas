@@ -108,6 +108,7 @@ jobs:
       assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
       event_trigger: ${{ steps.filter.outputs.event_trigger == 'true' || env.mustTrigger == 'true' }}
       search_index: ${{ steps.filter.outputs.search_index == 'true' || env.mustTrigger == 'true' }}
+      federated_settings_identity_provider: ${{ steps.filter.outputs.federated_settings_identity_provider == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
     - uses: dorny/paths-filter@0bc4621a3135347011ad047f9ecf449bf72ce2bd
@@ -177,6 +178,8 @@ jobs:
             - 'internal/service/eventtrigger/*.go'
           search_index:
             - 'internal/service/searchindex/*.go'
+            federated_settings_identity_provider:
+            - 'internal/service/federatedsettingsidentityprovider/*.go'
   
   cluster_outage_simulation:
     needs: [ change-detection ]
@@ -608,3 +611,31 @@ jobs:
           TEST_REGEX: "^TestAccSearchIndex"
         run: make testacc
   
+  federated_settings_identity_provider:
+    needs: [ change-detection ]
+    if: ${{ needs.change-detection.outputs.federated_settings_identity_provider == 'true' || inputs.test_group == 'federated_settings_identity_provider' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false    
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
+          MONGODB_ATLAS_FEDERATION_SETTINGS_ID: ${{ vars.MONGODB_ATLAS_FEDERATION_SETTINGS_ID }}
+          MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID: ${{ vars.MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID }}
+          MONGODB_ATLAS_FEDERATED_IDP_ID: ${{ vars.MONGODB_ATLAS_FEDERATED_IDP_ID }}
+          MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID: ${{ vars.MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID }}
+          MONGODB_ATLAS_FEDERATED_SSO_URL: ${{ vars.MONGODB_ATLAS_FEDERATED_SSO_URL }}
+          MONGODB_ATLAS_FEDERATED_ISSUER_URI: ${{ vars.MONGODB_ATLAS_FEDERATED_ISSUER_URI }}
+          TEST_REGEX: "^TestAccFederatedSettingsIdentityProvider"
+        run: make testacc
