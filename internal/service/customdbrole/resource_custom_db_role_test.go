@@ -36,8 +36,6 @@ func TestAccConfigRSCustomDBRoles_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "actions.0.action"),
 					resource.TestCheckResourceAttr(resourceName, "role_name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "actions.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "actions.0.action", "INSERT"),
@@ -49,8 +47,6 @@ func TestAccConfigRSCustomDBRoles_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "actions.0.action"),
 					resource.TestCheckResourceAttr(resourceName, "role_name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "actions.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "actions.0.action", "UPDATE"),
@@ -143,8 +139,6 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 					// inherited Role [0]
 					checkExists(InheritedRoleResourceNameOne),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameOne, "project_id"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameOne, "role_name"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameOne, "actions.0.action"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "role_name", inheritRole[0].RoleName),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.#", cast.ToString(len(inheritRole[0].Actions))),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.0.action", inheritRole[0].Actions[0].Action),
@@ -153,8 +147,6 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 					// inherited Role [1]
 					checkExists(InheritedRoleResourceNameTwo),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameTwo, "project_id"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameTwo, "role_name"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameTwo, "actions.0.action"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "role_name", inheritRole[1].RoleName),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.#", cast.ToString(len(inheritRole[1].Actions))),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.0.action", inheritRole[1].Actions[0].Action),
@@ -163,8 +155,6 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 					// For Test Role
 					checkExists(testRoleResourceName),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(testRoleResourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(testRoleResourceName, "actions.0.action"),
 					resource.TestCheckResourceAttr(testRoleResourceName, "role_name", testRole.RoleName),
 					resource.TestCheckResourceAttr(testRoleResourceName, "actions.#", cast.ToString(len(testRole.Actions))),
 					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.action", testRole.Actions[0].Action),
@@ -180,8 +170,6 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 					// inherited Role [0]
 					checkExists(InheritedRoleResourceNameOne),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameOne, "project_id"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameOne, "role_name"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameOne, "actions.0.action"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "role_name", inheritRoleUpdated[0].RoleName),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.#", cast.ToString(len(inheritRoleUpdated[0].Actions))),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.0.action", inheritRoleUpdated[0].Actions[0].Action),
@@ -190,8 +178,6 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 					// inherited Role [1]
 					checkExists(InheritedRoleResourceNameTwo),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameTwo, "project_id"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameTwo, "role_name"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameTwo, "actions.0.action"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "role_name", inheritRoleUpdated[1].RoleName),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.#", cast.ToString(len(inheritRoleUpdated[1].Actions))),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.0.action", inheritRoleUpdated[1].Actions[0].Action),
@@ -200,8 +186,6 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 					// For Test Role
 					checkExists(testRoleResourceName),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(testRoleResourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(testRoleResourceName, "actions.0.action"),
 					resource.TestCheckResourceAttr(testRoleResourceName, "role_name", testRoleUpdated.RoleName),
 					resource.TestCheckResourceAttr(testRoleResourceName, "actions.#", cast.ToString(len(testRoleUpdated.Actions))),
 					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.action", testRoleUpdated.Actions[0].Action),
@@ -345,8 +329,6 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 					// For Inherited Role
 					checkExists(InheritedRoleResourceName),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "actions.0.action"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "role_name", inheritRole.RoleName),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.#", cast.ToString(len(inheritRole.Actions))),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.action", inheritRole.Actions[0].Action),
@@ -355,8 +337,6 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 					// For Test Role
 					checkExists(testRoleResourceName),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(testRoleResourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(testRoleResourceName, "actions.0.action"),
 					resource.TestCheckResourceAttr(testRoleResourceName, "role_name", testRole.RoleName),
 					resource.TestCheckResourceAttr(testRoleResourceName, "actions.#", cast.ToString(len(testRole.Actions))),
 					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.action", testRole.Actions[0].Action),
@@ -370,8 +350,6 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 					// For Inherited Role
 					checkExists(InheritedRoleResourceName),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "actions.0.action"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "role_name", inheritRoleUpdated.RoleName),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.#", cast.ToString(len(inheritRoleUpdated.Actions))),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.action", inheritRoleUpdated.Actions[0].Action),
@@ -380,8 +358,6 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 					// For Test Role
 					checkExists(testRoleResourceName),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(testRoleResourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(testRoleResourceName, "actions.0.action"),
 					resource.TestCheckResourceAttr(testRoleResourceName, "role_name", testRoleUpdated.RoleName),
 					resource.TestCheckResourceAttr(testRoleResourceName, "actions.#", cast.ToString(len(testRoleUpdated.Actions))),
 					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.action", testRoleUpdated.Actions[0].Action),
@@ -412,8 +388,6 @@ func TestAccConfigRSCustomDBRoles_MultipleResources(t *testing.T) {
 						Check: resource.ComposeTestCheckFunc(
 							checkExists(resourceName),
 							resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-							resource.TestCheckResourceAttrSet(resourceName, "role_name"),
-							resource.TestCheckResourceAttrSet(resourceName, "actions.0.action"),
 							resource.TestCheckResourceAttr(resourceName, "role_name", roleName),
 							resource.TestCheckResourceAttr(resourceName, "actions.#", "1"),
 							resource.TestCheckResourceAttr(resourceName, "actions.0.action", "INSERT"),
@@ -553,8 +527,6 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 					// For Inherited Role
 					checkExists(InheritedRoleResourceName),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "actions.0.action"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "role_name", inheritRole.RoleName),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.#", cast.ToString(len(inheritRole.Actions))),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.action", inheritRole.Actions[0].Action),
@@ -575,8 +547,6 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 					// For Inherited Role
 					checkExists(InheritedRoleResourceName),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "actions.0.action"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "role_name", inheritRoleUpdated.RoleName),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.#", cast.ToString(len(inheritRoleUpdated.Actions))),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.action", inheritRoleUpdated.Actions[0].Action),
