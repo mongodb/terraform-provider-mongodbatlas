@@ -42,7 +42,7 @@ resource "mongodbatlas_federated_settings_identity_provider" "identity_provider"
     - HTTP POST
     - HTTP REDIRECT
 * `response_signature_algorithm` - Signature algorithm that Federated Authentication uses to encrypt the identity provider signature.  Valid values include `SHA-1 `and `SHA-256`.
-* `protocol` - The protocol of the identity provider. Either SAML or OIDC.
+* `protocol` - The protocol of the identity provider. Either `SAML` or `OIDC`.
 * `audience_claim` - Identifier of the intended recipient of the token.
 * `client_id` - Client identifier that is assigned to an application by the Identity Provider.
 * `groups_claim` - Identifier of the claim which contains IdP Group IDs in the token.
