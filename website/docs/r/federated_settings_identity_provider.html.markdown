@@ -38,7 +38,7 @@ resource "mongodbatlas_federated_settings_identity_provider" "identity_provider"
 * `status`- String enum that indicates whether the identity provider is active or not. Accepted values are ACTIVE or INACTIVE.
 * `issuer_uri` - (Required) Unique string that identifies the issuer of the IdP.
 * `sso_url` - Unique string that identifies the intended audience of the SAML assertion.
-* `request_binding` - SAML Authentication Request Protocol HTTP method binding (POST or REDIRECT) that Federated Authentication uses to send the authentication request. Atlas supports the following binding values:
+* `request_binding` - SAML Authentication Request Protocol HTTP method binding (`POST` or `REDIRECT`) that Federated Authentication uses to send the authentication request. Atlas supports the following binding values:
     - HTTP POST
     - HTTP REDIRECT
 * `response_signature_algorithm` - Signature algorithm that Federated Authentication uses to encrypt the identity provider signature.  Valid values include SHA-1 and SHA-256.
