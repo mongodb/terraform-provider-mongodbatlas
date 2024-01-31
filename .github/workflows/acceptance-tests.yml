@@ -51,6 +51,8 @@ jobs:
       aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       aws_s3_bucket_federation: ${{ secrets.AWS_S3_BUCKET_FEDERATION }}
+      mongodb_atlas_idp_public_key: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_IDP_CLOUD_DEV }}
+      mongodb_atlas_idp_private_key: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_IDP_CLOUD_DEV }}
     with:
       terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
       ref: ${{ inputs.ref }}
