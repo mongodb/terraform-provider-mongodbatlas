@@ -178,8 +178,8 @@ jobs:
             - 'internal/service/eventtrigger/*.go'
           search_index:
             - 'internal/service/searchindex/*.go'
-            federated_settings_identity_provider:
-            - 'internal/service/federatedsettingsidentityprovider/*.go'
+          federated_settings_identity_provider:
+          - 'internal/service/federatedsettingsidentityprovider/*.go'
   
   cluster_outage_simulation:
     needs: [ change-detection ]
