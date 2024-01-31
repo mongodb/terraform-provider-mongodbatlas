@@ -8,14 +8,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const dataSourceName = "mongodbatlas_maintenance_window.test"
 
 func TestAccConfigDSMaintenanceWindow_basic(t *testing.T) {
 	var (
-		maintenance matlas.MaintenanceWindow
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acctest.RandomWithPrefix("test-acc")
 		dayOfWeek   = 7
@@ -29,7 +27,7 @@ func TestAccConfigDSMaintenanceWindow_basic(t *testing.T) {
 			{
 				Config: configDS(orgID, projectName, dayOfWeek, hourOfDay),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(dataSourceName, &maintenance),
+					checkExists(dataSourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "day_of_week"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "hour_of_day"),
