@@ -13,7 +13,7 @@
 
 - feat: Adds support to new Federated Auth parameters for OIDC  [\#1874](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1874) ([oarbusi](https://github.com/oarbusi))
 - feat: Adds new `ip_addresses` computed attribute in `mongodbatlas_project` resource and data sources [\#1850](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1850) ([AgustinBettati](https://github.com/AgustinBettati))
-- feat: Adds atlas Organization New Parameters Support  [\#1835](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1835) ([maastha](https://github.com/maastha))
+- feat: Adds `mongodbatlas_organization` New Parameters Support  [\#1835](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1835) ([maastha](https://github.com/maastha))
 
 **Bug Fixes**
 
