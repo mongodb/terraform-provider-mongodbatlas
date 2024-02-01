@@ -171,35 +171,35 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID, username, err := splitProjectInvitationImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
-	projectInvitations, _, err := conn.Projects.Invitations(ctx, projectID, nil)
+	projectInvitations, _, err := connV2.ProjectsApi.ListProjectInvitations(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import Project invitations, error: %s", err)
 	}
 
 	for _, projectInvitation := range projectInvitations {
-		if projectInvitation.Username != username {
+		if conversion.SafeString(projectInvitation.Username) != username {
 			continue
 		}
 
-		if err := d.Set("username", projectInvitation.Username); err != nil {
+		if err := d.Set("username", projectInvitation.GetUsername()); err != nil {
 			return nil, fmt.Errorf("error getting `username` for Project Invitation (%s): %w", username, err)
 		}
-		if err := d.Set("project_id", projectInvitation.GroupID); err != nil {
+		if err := d.Set("project_id", projectInvitation.GetGroupId()); err != nil {
 			return nil, fmt.Errorf("error getting `project_id` for Project Invitation (%s): %w", username, err)
 		}
-		if err := d.Set("invitation_id", projectInvitation.ID); err != nil {
+		if err := d.Set("invitation_id", projectInvitation.GetId()); err != nil {
 			return nil, fmt.Errorf("error getting `invitation_id` for Project Invitation (%s): %w", username, err)
 		}
 		d.SetId(conversion.EncodeStateID(map[string]string{
 			"username":      username,
 			"project_id":    projectID,
-			"invitation_id": projectInvitation.ID,
+			"invitation_id": projectInvitation.GetId(),
 		}))
 		return []*schema.ResourceData{d}, nil
 	}
