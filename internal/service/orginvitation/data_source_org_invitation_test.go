@@ -27,11 +27,11 @@ func TestAccConfigDSOrgInvitation_basic(t *testing.T) {
 			{
 				Config: configDS(orgID, name, initialRole),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(dataSourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "username"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "invitation_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(dataSourceName, "username", name),
 					resource.TestCheckResourceAttr(dataSourceName, "roles.#", "1"),
+					resource.TestCheckTypeSetElemAttr(dataSourceName, "roles.*", initialRole[0]),
 				),
 			},
 		},

@@ -12,12 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccConfigRSOrgInvitation_basic(t *testing.T) {
 	var (
-		invitation   matlas.Invitation
 		resourceName = "mongodbatlas_org_invitation.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		name         = fmt.Sprintf("test-acc-%s@mongodb.com", acctest.RandString(10))
@@ -33,7 +31,7 @@ func TestAccConfigRSOrgInvitation_basic(t *testing.T) {
 			{
 				Config: configBasic(orgID, name, initialRole),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(t, resourceName, &invitation),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "invitation_id"),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "username", name),
@@ -44,7 +42,7 @@ func TestAccConfigRSOrgInvitation_basic(t *testing.T) {
 			{
 				Config: configBasic(orgID, name, updateRoles),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(t, resourceName, &invitation),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "invitation_id"),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "username", name),
@@ -90,8 +88,7 @@ func TestAccConfigRSOrgInvitation_importBasic(t *testing.T) {
 	})
 }
 
-func checkExists(t *testing.T, resourceName string, invitation *matlas.Invitation) resource.TestCheckFunc {
-	t.Helper()
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -104,12 +101,8 @@ func checkExists(t *testing.T, resourceName string, invitation *matlas.Invitatio
 		if orgID == "" && username == "" && invitationID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		t.Logf("orgID: %s", orgID)
-		t.Logf("username: %s", username)
-		t.Logf("invitationID: %s", invitationID)
-		invitationResp, _, err := acc.Conn().Organizations.Invitation(context.Background(), orgID, invitationID)
+		_, _, err := acc.ConnV2().OrganizationsApi.GetOrganizationInvitation(context.Background(), orgID, invitationID).Execute()
 		if err == nil {
-			*invitation = *invitationResp
 			return nil
 		}
 		return fmt.Errorf("invitation(%s) does not exist", invitationID)
