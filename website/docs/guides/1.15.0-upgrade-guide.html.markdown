@@ -12,6 +12,8 @@ The Terraform MongoDB Atlas Provider version 1.15.0 has a number of new and exci
 
 **New Resources, Data Sources, and Features:**
 
+- You can now manage [MongoDB Atlas OIDC Workforce identity providers](https://www.mongodb.com/docs/atlas/security-oidc/#configure-oidc-authorization) with `mongodbatlas_federated_settings_identity_provider` [resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/federated_settings_identity_provider).
+- You can now programmatically retrieve Atlas OIDC Workforce identity providers with [`mongodbatlas_federated_settings_identity_provider`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/federated_settings_identity_providers) and [`mongodbatlas_federated_settings_identity_providers`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/federated_settings_identity_provider)
 
 **Breaking Changes:**
 
