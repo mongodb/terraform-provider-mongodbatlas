@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -66,6 +67,38 @@ func Resource() *schema.Resource {
 			},
 		},
 	}
+}
+
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	orgID := d.Get("org_id").(string)
+	roles := conversion.ExpandStringListFromSetSchema(d.Get("roles").(*schema.Set))
+	teamIDs := conversion.ExpandStringListFromSetSchema(d.Get("teams_ids").(*schema.Set))
+	invitationReq := &admin.OrganizationInvitationRequest{
+		Roles:    &roles,
+		TeamIds:  &teamIDs,
+		Username: conversion.StringPtr(d.Get("username").(string)),
+	}
+
+	if validateOrgInvitationAlreadyAccepted(ctx, meta.(*config.MongoDBClient), invitationReq.GetUsername(), orgID) {
+		d.SetId(conversion.EncodeStateID(map[string]string{
+			"username":      invitationReq.GetUsername(),
+			"org_id":        orgID,
+			"invitation_id": orgID,
+		}))
+	} else {
+		invitationRes, _, err := connV2.OrganizationsApi.CreateOrganizationInvitation(ctx, orgID, invitationReq).Execute()
+		if err != nil {
+			return diag.Errorf("error creating Organization invitation for user %s: %s", d.Get("username").(string), err)
+		}
+
+		d.SetId(conversion.EncodeStateID(map[string]string{
+			"username":      invitationRes.GetUsername(),
+			"org_id":        invitationRes.GetOrgId(),
+			"invitation_id": invitationRes.GetId(),
+		}))
+	}
+	return resourceRead(ctx, d, meta)
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -128,38 +161,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}))
 
 	return nil
-}
-
-func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-	orgID := d.Get("org_id").(string)
-
-	invitationReq := &matlas.Invitation{
-		Roles:    conversion.ExpandStringListFromSetSchema(d.Get("roles").(*schema.Set)),
-		TeamIDs:  conversion.ExpandStringListFromSetSchema(d.Get("teams_ids").(*schema.Set)),
-		Username: d.Get("username").(string),
-	}
-
-	if validateOrgInvitationAlreadyAccepted(ctx, meta.(*config.MongoDBClient), invitationReq.Username, orgID) {
-		d.SetId(conversion.EncodeStateID(map[string]string{
-			"username":      invitationReq.Username,
-			"org_id":        orgID,
-			"invitation_id": orgID,
-		}))
-	} else {
-		invitationRes, _, err := conn.Organizations.InviteUser(ctx, orgID, invitationReq)
-		if err != nil {
-			return diag.Errorf("error creating Organization invitation for user %s: %s", d.Get("username").(string), err)
-		}
-
-		d.SetId(conversion.EncodeStateID(map[string]string{
-			"username":      invitationRes.Username,
-			"org_id":        invitationRes.OrgID,
-			"invitation_id": invitationRes.ID,
-		}))
-	}
-	return resourceRead(ctx, d, meta)
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
