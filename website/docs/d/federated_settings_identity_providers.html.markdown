@@ -10,6 +10,7 @@ description: |-
 
 `mongodbatlas_federated_settings_identity_providers` provides an Federated Settings Identity Providers datasource. Atlas Cloud Federated Settings Identity Providers provides federated settings outputs for the configured Identity Providers.
 
+-> **NOTE:** OIDC Workforce IdP is currently in preview. To learn more about OIDC and existing limitations see the [OIDC Authentication Documentation](https://www.mongodb.com/docs/atlas/security-oidc/).
 
 ## Example Usage
 
@@ -55,6 +56,11 @@ In addition to all arguments above, the following attributes are exported:
 * `post_auth_role_grants` - List that contains the default roles granted to users who authenticate through the IdP in a connected organization. If you provide a postAuthRoleGrants field in the request, the array that you provide replaces the current postAuthRoleGrants.
 * `protocol` - The protocol of the identity provider
 * `idp_id` - Unique 24-hexadecimal digit string that identifies the IdP
+* `audience_claim` - Identifier of the intended recipient of the token.
+* `client_id` - Client identifier that is assigned to an application by the Identity Provider.
+* `groups_claim` - Identifier of the claim which contains IdP Group IDs in the token.
+* `requested_scopes` - Scopes that MongoDB applications will request from the authorization endpoint.
+* `user_claim` - Identifier of the claim which contains the user ID in the token.
 
   ### Role_mappings
 * `external_group_name` - Unique human-readable label that identifies the identity provider group to which this role mapping applies.

@@ -9,6 +9,8 @@ description: |-
 # Resource: mongodbatlas_federated_settings_identity_provider
 
 `mongodbatlas_federated_settings_identity_provider` provides an Atlas federated settings identity provider resource provides a subset of settings to be maintained post import of the existing resource.
+
+-> **NOTE:** OIDC Workforce IdP is currently in preview. To learn more about OIDC and existing limitations see the [OIDC Authentication Documentation](https://www.mongodb.com/docs/atlas/security-oidc/).
 ## Example Usage
 
 ~> **IMPORTANT** You **MUST** import this resource before you can manage it with this provider. 
@@ -31,15 +33,21 @@ resource "mongodbatlas_federated_settings_identity_provider" "identity_provider"
 
 * `federation_settings_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
 * `name` - (Required) Human-readable label that identifies the identity provider.
-* `associated_domains` - (Required) List that contains the domains associated with the identity provider.
-* `sso_debug_enabled` - (Required) Flag that indicates whether the identity provider has SSO debug enabled.
-* `status`- (Required) String enum that indicates whether the identity provider is active or not. Accepted values are ACTIVE or INACTIVE.
-* `issuer_uri` - (Required) Unique string that identifies the issuer of the SAML
-* `sso_url` - (Required) Unique string that identifies the intended audience of the SAML assertion.
-* `request_binding` - (Required) SAML Authentication Request Protocol HTTP method binding (POST or REDIRECT) that Federated Authentication uses to send the authentication request. Atlas supports the following binding values:
+* `associated_domains` - List that contains the domains associated with the identity provider.
+* `sso_debug_enabled` - Flag that indicates whether the identity provider has SSO debug enabled.
+* `status`- String enum that indicates whether the identity provider is active or not. Accepted values are ACTIVE or INACTIVE.
+* `issuer_uri` - (Required) Unique string that identifies the issuer of the IdP.
+* `sso_url` - Unique string that identifies the intended audience of the SAML assertion.
+* `request_binding` - SAML Authentication Request Protocol HTTP method binding (`POST` or `REDIRECT`) that Federated Authentication uses to send the authentication request. Atlas supports the following binding values:
     - HTTP POST
     - HTTP REDIRECT
-* `response_signature_algorithm` - (Required) Signature algorithm that Federated Authentication uses to encrypt the identity provider signature.  Valid values include SHA-1 and SHA-256.
+* `response_signature_algorithm` - Signature algorithm that Federated Authentication uses to encrypt the identity provider signature.  Valid values include `SHA-1 `and `SHA-256`.
+* `protocol` - The protocol of the identity provider. Either `SAML` or `OIDC`.
+* `audience_claim` - Identifier of the intended recipient of the token.
+* `client_id` - Client identifier that is assigned to an application by the Identity Provider.
+* `groups_claim` - Identifier of the claim which contains IdP Group IDs in the token.
+* `requested_scopes` - Scopes that MongoDB applications will request from the authorization endpoint.
+* `user_claim` - Identifier of the claim which contains the user ID in the token.
 
 ## Attributes Reference
 
@@ -59,6 +67,6 @@ Identity Provider **must** be imported before using federation_settings_id-idp_i
 $ terraform import mongodbatlas_federated_settings_identity_provider.identity_provider 6287a663c660f52b1c441c6c-0oad4fas87jL5Xnk1297
 ```
 
-**WARNING:** Starting from terraform provider version 1.16.0, to import Identity Provider, `id` a 24-hexadecimal digit string that identifies the IdP, will have to be used instead of `okta_idp_id`. See more [here](../guides/1.15.0-upgrade-guide.html.markdown)
+**WARNING:** Starting from terraform provider version 1.16.0, to import the resource a 24-hexadecimal digit string that identifies the IdP (`idp_id`) will have to be used instead of `okta_idp_id`. See more [here](../guides/1.15.0-upgrade-guide.html.markdown)
 
 For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/federation-configuration/)
