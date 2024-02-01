@@ -31,23 +31,24 @@ func TestAccConfigRSOrgInvitation_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyOrgInvitation,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasOrgInvitationConfig(orgID, name, initialRole),
+				Config: configBasic(orgID, name, initialRole),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasOrgInvitationExists(t, resourceName, &invitation),
-					testAccCheckMongoDBAtlasOrgInvitationUsernameAttribute(&invitation, name),
-					testAccCheckMongoDBAtlasOrgInvitationRoleAttribute(&invitation, initialRole),
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "username"),
-					resource.TestCheckResourceAttrSet(resourceName, "roles.#"),
+					checkExists(t, resourceName, &invitation),
+					checkAttributeUsername(&invitation, name),
+					checkAttributeRole(&invitation, initialRole),
+
 					resource.TestCheckResourceAttrSet(resourceName, "invitation_id"),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+					resource.TestCheckResourceAttr(resourceName, "username", name),
+					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasOrgInvitationConfig(orgID, name, updateRoles),
+				Config: configBasic(orgID, name, updateRoles),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasOrgInvitationExists(t, resourceName, &invitation),
-					testAccCheckMongoDBAtlasOrgInvitationUsernameAttribute(&invitation, name),
-					testAccCheckMongoDBAtlasOrgInvitationRoleAttribute(&invitation, updateRoles),
+					checkExists(t, resourceName, &invitation),
+					checkAttributeUsername(&invitation, name),
+					checkAttributeRole(&invitation, updateRoles),
 					resource.TestCheckResourceAttrSet(resourceName, "username"),
 					resource.TestCheckResourceAttrSet(resourceName, "invitation_id"),
 					resource.TestCheckResourceAttr(resourceName, "roles.#", "2"),
@@ -71,11 +72,8 @@ func TestAccConfigRSOrgInvitation_importBasic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyOrgInvitation,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasOrgInvitationConfig(orgID, name, initialRole),
+				Config: configBasic(orgID, name, initialRole),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "username"),
-					resource.TestCheckResourceAttrSet(resourceName, "roles.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "invitation_id"),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "username", name),
@@ -84,7 +82,7 @@ func TestAccConfigRSOrgInvitation_importBasic(t *testing.T) {
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasOrgInvitationStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -92,7 +90,7 @@ func TestAccConfigRSOrgInvitation_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasOrgInvitationExists(t *testing.T, resourceName string, invitation *matlas.Invitation) resource.TestCheckFunc {
+func checkExists(t *testing.T, resourceName string, invitation *matlas.Invitation) resource.TestCheckFunc {
 	t.Helper()
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -118,7 +116,7 @@ func testAccCheckMongoDBAtlasOrgInvitationExists(t *testing.T, resourceName stri
 	}
 }
 
-func testAccCheckMongoDBAtlasOrgInvitationUsernameAttribute(invitation *matlas.Invitation, username string) resource.TestCheckFunc {
+func checkAttributeUsername(invitation *matlas.Invitation, username string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if invitation.Username != username {
 			return fmt.Errorf("bad name: %s", invitation.Username)
@@ -128,7 +126,7 @@ func testAccCheckMongoDBAtlasOrgInvitationUsernameAttribute(invitation *matlas.I
 	}
 }
 
-func testAccCheckMongoDBAtlasOrgInvitationRoleAttribute(invitation *matlas.Invitation, roles []string) resource.TestCheckFunc {
+func checkAttributeRole(invitation *matlas.Invitation, roles []string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		for _, role := range roles {
 			for _, currentRole := range invitation.Roles {
@@ -142,7 +140,7 @@ func testAccCheckMongoDBAtlasOrgInvitationRoleAttribute(invitation *matlas.Invit
 	}
 }
 
-func testAccCheckMongoDBAtlasOrgInvitationStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -153,7 +151,7 @@ func testAccCheckMongoDBAtlasOrgInvitationStateIDFunc(resourceName string) resou
 	}
 }
 
-func testAccMongoDBAtlasOrgInvitationConfig(orgID, username string, roles []string) string {
+func configBasic(orgID, username string, roles []string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_org_invitation" "test" {
 			org_id   = %[1]q

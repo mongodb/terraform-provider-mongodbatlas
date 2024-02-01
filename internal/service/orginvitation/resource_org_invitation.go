@@ -15,12 +15,12 @@ import (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasOrgInvitationCreate,
-		ReadContext:   resourceMongoDBAtlasOrgInvitationRead,
-		DeleteContext: resourceMongoDBAtlasOrgInvitationDelete,
-		UpdateContext: resourceMongoDBAtlasOrgInvitationUpdate,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		DeleteContext: resourceDelete,
+		UpdateContext: resourceUpdate,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasOrgInvitationImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"org_id": {
@@ -68,7 +68,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasOrgInvitationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
@@ -135,7 +135,7 @@ func resourceMongoDBAtlasOrgInvitationRead(ctx context.Context, d *schema.Resour
 	return nil
 }
 
-func resourceMongoDBAtlasOrgInvitationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	orgID := d.Get("org_id").(string)
@@ -165,10 +165,10 @@ func resourceMongoDBAtlasOrgInvitationCreate(ctx context.Context, d *schema.Reso
 			"invitation_id": invitationRes.ID,
 		}))
 	}
-	return resourceMongoDBAtlasOrgInvitationRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasOrgInvitationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
@@ -197,7 +197,7 @@ func resourceMongoDBAtlasOrgInvitationDelete(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func resourceMongoDBAtlasOrgInvitationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
@@ -213,10 +213,10 @@ func resourceMongoDBAtlasOrgInvitationUpdate(ctx context.Context, d *schema.Reso
 		return diag.Errorf("error updating Organization invitation for user %s: for %s", username, err)
 	}
 
-	return resourceMongoDBAtlasOrgInvitationRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasOrgInvitationImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 	orgID, username, err := splitOrgInvitationImportID(d.Id())
 	if err != nil {

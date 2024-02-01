@@ -25,7 +25,7 @@ func TestAccConfigDSOrgInvitation_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyOrgInvitation,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceMongoDBAtlasOrgInvitationConfig(orgID, name, initialRole),
+				Config: configDS(orgID, name, initialRole),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "username"),
@@ -38,7 +38,7 @@ func TestAccConfigDSOrgInvitation_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceMongoDBAtlasOrgInvitationConfig(orgID, username string, roles []string) string {
+func configDS(orgID, username string, roles []string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_org_invitation" "test" {
 			org_id   = %[1]q
