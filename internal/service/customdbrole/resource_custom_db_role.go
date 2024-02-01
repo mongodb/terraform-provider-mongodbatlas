@@ -222,7 +222,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleName := ids["role_name"]
@@ -231,7 +231,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending: []string{"deleting"},
 		Target:  []string{"deleted", "failed"},
 		Refresh: func() (any, string, error) {
-			_, _, err := conn.CustomDBRoles.Get(ctx, projectID, roleName)
+			_, _, err := connV2.CustomDatabaseRolesApi.GetCustomDatabaseRole(ctx, projectID, roleName).Execute()
 			if err != nil {
 				if strings.Contains(err.Error(), "404") ||
 					strings.Contains(err.Error(), "ATLAS_CUSTOM_ROLE_NOT_FOUND") {
@@ -240,7 +240,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 				return nil, "failed", err
 			}
 
-			_, err = conn.CustomDBRoles.Delete(ctx, projectID, roleName)
+			_, err = connV2.CustomDatabaseRolesApi.DeleteCustomDatabaseRole(ctx, projectID, roleName).Execute()
 			if err != nil {
 				return nil, "failed", fmt.Errorf("error deleting custom db role (%s): %s", roleName, err)
 			}
