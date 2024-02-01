@@ -8,12 +8,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasCustomDBRolesRead,
+		ReadContext: dataSourcePluralRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -83,16 +83,16 @@ func PluralDataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCustomDBRolesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	customDBRoles, _, err := conn.CustomDBRoles.List(ctx, projectID, nil)
+	customDBRoles, _, err := connV2.CustomDatabaseRolesApi.ListCustomDatabaseRoles(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting custom db roles information: %s", err))
 	}
 
-	if err := d.Set("results", flattenCustomDBRoles(*customDBRoles)); err != nil {
+	if err := d.Set("results", flattenCustomDBRoles(customDBRoles)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results for custom db roles: %s", err))
 	}
 
@@ -101,20 +101,14 @@ func dataSourceMongoDBAtlasCustomDBRolesRead(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func flattenCustomDBRoles(customDBRoles []matlas.CustomDBRole) []map[string]any {
-	var customDBRolesMap []map[string]any
-
-	if len(customDBRoles) > 0 {
-		customDBRolesMap = make([]map[string]any, len(customDBRoles))
-
-		for k, customDBRole := range customDBRoles {
-			customDBRolesMap[k] = map[string]any{
-				"role_name":       customDBRole.RoleName,
-				"actions":         flattenActions(customDBRole.Actions),
-				"inherited_roles": flattenInheritedRoles(customDBRole.InheritedRoles),
-			}
+func flattenCustomDBRoles(customDBRoles []admin.UserCustomDBRole) []map[string]any {
+	customDBRolesMap := make([]map[string]any, len(customDBRoles))
+	for k, customDBRole := range customDBRoles {
+		customDBRolesMap[k] = map[string]any{
+			"role_name":       customDBRole.RoleName,
+			"actions":         flattenActions(customDBRole.GetActions()),
+			"inherited_roles": flattenInheritedRoles(customDBRole.GetInheritedRoles()),
 		}
 	}
-
 	return customDBRolesMap
 }

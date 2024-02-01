@@ -12,7 +12,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasCustomDBRoleRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -74,12 +74,12 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCustomDBRoleRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	roleName := d.Get("role_name").(string)
 
-	customDBRole, _, err := conn.CustomDBRoles.Get(ctx, projectID, roleName)
+	customDBRole, _, err := connV2.CustomDatabaseRolesApi.GetCustomDatabaseRole(ctx, projectID, roleName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting custom db role information: %s", err))
 	}
@@ -88,11 +88,11 @@ func dataSourceMongoDBAtlasCustomDBRoleRead(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf("error setting `role_name` for custom db role (%s): %s", d.Id(), err))
 	}
 
-	if err := d.Set("actions", flattenActions(customDBRole.Actions)); err != nil {
+	if err := d.Set("actions", flattenActions(customDBRole.GetActions())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `actions` for custom db role (%s): %s", d.Id(), err))
 	}
 
-	if err := d.Set("inherited_roles", flattenInheritedRoles(customDBRole.InheritedRoles)); err != nil {
+	if err := d.Set("inherited_roles", flattenInheritedRoles(customDBRole.GetInheritedRoles())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `inherited_roles` for custom db role (%s): %s", d.Id(), err))
 	}
 

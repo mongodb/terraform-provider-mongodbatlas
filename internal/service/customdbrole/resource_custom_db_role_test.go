@@ -17,26 +17,25 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
+const resourceName = "mongodbatlas_custom_db_role.test"
+
 func TestAccConfigRSCustomDBRoles_Basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_custom_db_role.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		roleName     = fmt.Sprintf("test-acc-custom_role-%s", acctest.RandString(5))
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		roleName    = fmt.Sprintf("test-acc-custom_role-%s", acctest.RandString(5))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCustomDBRolesConfigBasic(orgID, projectName, roleName, "INSERT", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+				Config: configBasic(orgID, projectName, roleName, "INSERT", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasCustomDBRolesExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "actions.0.action"),
 					resource.TestCheckResourceAttr(resourceName, "role_name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "actions.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "actions.0.action", "INSERT"),
@@ -44,12 +43,10 @@ func TestAccConfigRSCustomDBRoles_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasCustomDBRolesConfigBasic(orgID, projectName, roleName, "UPDATE", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+				Config: configBasic(orgID, projectName, roleName, "UPDATE", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasCustomDBRolesExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "actions.0.action"),
 					resource.TestCheckResourceAttr(resourceName, "role_name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "actions.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "actions.0.action", "UPDATE"),
@@ -132,38 +129,32 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCustomDBRolesConfigWithInheritedRoles(orgID, projectName, inheritRole, testRole),
+				Config: configWithInheritedRoles(orgID, projectName, inheritRole, testRole),
 				Check: resource.ComposeTestCheckFunc(
 
 					// For Inherited Roles
 					// inherited Role [0]
-					testAccCheckMongoDBAtlasCustomDBRolesExists(InheritedRoleResourceNameOne),
+					checkExists(InheritedRoleResourceNameOne),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameOne, "project_id"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameOne, "role_name"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameOne, "actions.0.action"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "role_name", inheritRole[0].RoleName),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.#", cast.ToString(len(inheritRole[0].Actions))),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.0.action", inheritRole[0].Actions[0].Action),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.0.resources.#", cast.ToString(len(inheritRole[0].Actions[0].Resources))),
 
 					// inherited Role [1]
-					testAccCheckMongoDBAtlasCustomDBRolesExists(InheritedRoleResourceNameTwo),
+					checkExists(InheritedRoleResourceNameTwo),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameTwo, "project_id"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameTwo, "role_name"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameTwo, "actions.0.action"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "role_name", inheritRole[1].RoleName),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.#", cast.ToString(len(inheritRole[1].Actions))),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.0.action", inheritRole[1].Actions[0].Action),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.0.resources.#", cast.ToString(len(inheritRole[1].Actions[0].Resources))),
 
 					// For Test Role
-					testAccCheckMongoDBAtlasCustomDBRolesExists(testRoleResourceName),
+					checkExists(testRoleResourceName),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(testRoleResourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(testRoleResourceName, "actions.0.action"),
 					resource.TestCheckResourceAttr(testRoleResourceName, "role_name", testRole.RoleName),
 					resource.TestCheckResourceAttr(testRoleResourceName, "actions.#", cast.ToString(len(testRole.Actions))),
 					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.action", testRole.Actions[0].Action),
@@ -172,35 +163,29 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasCustomDBRolesConfigWithInheritedRoles(orgID, projectName, inheritRoleUpdated, testRoleUpdated),
+				Config: configWithInheritedRoles(orgID, projectName, inheritRoleUpdated, testRoleUpdated),
 				Check: resource.ComposeTestCheckFunc(
 
 					// For Inherited Role
 					// inherited Role [0]
-					testAccCheckMongoDBAtlasCustomDBRolesExists(InheritedRoleResourceNameOne),
+					checkExists(InheritedRoleResourceNameOne),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameOne, "project_id"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameOne, "role_name"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameOne, "actions.0.action"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "role_name", inheritRoleUpdated[0].RoleName),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.#", cast.ToString(len(inheritRoleUpdated[0].Actions))),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.0.action", inheritRoleUpdated[0].Actions[0].Action),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.0.resources.#", cast.ToString(len(inheritRoleUpdated[0].Actions[0].Resources))),
 
 					// inherited Role [1]
-					testAccCheckMongoDBAtlasCustomDBRolesExists(InheritedRoleResourceNameTwo),
+					checkExists(InheritedRoleResourceNameTwo),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameTwo, "project_id"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameTwo, "role_name"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameTwo, "actions.0.action"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "role_name", inheritRoleUpdated[1].RoleName),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.#", cast.ToString(len(inheritRoleUpdated[1].Actions))),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.0.action", inheritRoleUpdated[1].Actions[0].Action),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.0.resources.#", cast.ToString(len(inheritRoleUpdated[1].Actions[0].Resources))),
 
 					// For Test Role
-					testAccCheckMongoDBAtlasCustomDBRolesExists(testRoleResourceName),
+					checkExists(testRoleResourceName),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(testRoleResourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(testRoleResourceName, "actions.0.action"),
 					resource.TestCheckResourceAttr(testRoleResourceName, "role_name", testRoleUpdated.RoleName),
 					resource.TestCheckResourceAttr(testRoleResourceName, "actions.#", cast.ToString(len(testRoleUpdated.Actions))),
 					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.action", testRoleUpdated.Actions[0].Action),
@@ -335,27 +320,23 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCustomDBRolesConfigMultiple(orgID, projectName, inheritRole, testRole),
+				Config: configWithMultiple(orgID, projectName, inheritRole, testRole),
 				Check: resource.ComposeTestCheckFunc(
 
 					// For Inherited Role
-					testAccCheckMongoDBAtlasCustomDBRolesExists(InheritedRoleResourceName),
+					checkExists(InheritedRoleResourceName),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "actions.0.action"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "role_name", inheritRole.RoleName),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.#", cast.ToString(len(inheritRole.Actions))),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.action", inheritRole.Actions[0].Action),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.resources.#", cast.ToString(len(inheritRole.Actions[0].Resources))),
 
 					// For Test Role
-					testAccCheckMongoDBAtlasCustomDBRolesExists(testRoleResourceName),
+					checkExists(testRoleResourceName),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(testRoleResourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(testRoleResourceName, "actions.0.action"),
 					resource.TestCheckResourceAttr(testRoleResourceName, "role_name", testRole.RoleName),
 					resource.TestCheckResourceAttr(testRoleResourceName, "actions.#", cast.ToString(len(testRole.Actions))),
 					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.action", testRole.Actions[0].Action),
@@ -363,24 +344,20 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasCustomDBRolesConfigMultiple(orgID, projectName, inheritRoleUpdated, testRoleUpdated),
+				Config: configWithMultiple(orgID, projectName, inheritRoleUpdated, testRoleUpdated),
 				Check: resource.ComposeTestCheckFunc(
 
 					// For Inherited Role
-					testAccCheckMongoDBAtlasCustomDBRolesExists(InheritedRoleResourceName),
+					checkExists(InheritedRoleResourceName),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "actions.0.action"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "role_name", inheritRoleUpdated.RoleName),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.#", cast.ToString(len(inheritRoleUpdated.Actions))),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.action", inheritRoleUpdated.Actions[0].Action),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.resources.#", cast.ToString(len(inheritRoleUpdated.Actions[0].Resources))),
 
 					// For Test Role
-					testAccCheckMongoDBAtlasCustomDBRolesExists(testRoleResourceName),
+					checkExists(testRoleResourceName),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(testRoleResourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(testRoleResourceName, "actions.0.action"),
 					resource.TestCheckResourceAttr(testRoleResourceName, "role_name", testRoleUpdated.RoleName),
 					resource.TestCheckResourceAttr(testRoleResourceName, "actions.#", cast.ToString(len(testRoleUpdated.Actions))),
 					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.action", testRoleUpdated.Actions[0].Action),
@@ -393,30 +370,24 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 }
 
 func TestAccConfigRSCustomDBRoles_MultipleResources(t *testing.T) {
-	t.Skip()
 	var (
-		resourceName = "mongodbatlas_custom_db_role.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		roleName     string
+		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 
-	for i := 0; i < 100; i++ {
-		roleName = fmt.Sprintf("test-acc-custom_role-%d", i)
-
+	for i := 0; i < 5; i++ {
+		roleName := fmt.Sprintf("test-acc-custom_role-%d", i)
+		projectName := acctest.RandomWithPrefix("test-acc")
 		t.Run(roleName, func(t *testing.T) {
 			resource.ParallelTest(t, resource.TestCase{
 				PreCheck:                 func() { acc.PreCheckBasic(t) },
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
+				CheckDestroy:             checkDestroy,
 				Steps: []resource.TestStep{
 					{
-						Config: testAccMongoDBAtlasCustomDBRolesConfigBasic(orgID, projectName, roleName, "INSERT", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						Config: configBasic(orgID, projectName, roleName, "INSERT", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 						Check: resource.ComposeTestCheckFunc(
-							testAccCheckMongoDBAtlasCustomDBRolesExists(resourceName),
+							checkExists(resourceName),
 							resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-							resource.TestCheckResourceAttrSet(resourceName, "role_name"),
-							resource.TestCheckResourceAttrSet(resourceName, "actions.0.action"),
 							resource.TestCheckResourceAttr(resourceName, "role_name", roleName),
 							resource.TestCheckResourceAttr(resourceName, "actions.#", "1"),
 							resource.TestCheckResourceAttr(resourceName, "actions.0.action", "INSERT"),
@@ -431,7 +402,6 @@ func TestAccConfigRSCustomDBRoles_MultipleResources(t *testing.T) {
 
 func TestAccConfigRSCustomDBRoles_importBasic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_custom_db_role.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		roleName     = fmt.Sprintf("test-acc-custom_role-%s", acctest.RandString(5))
@@ -441,10 +411,10 @@ func TestAccConfigRSCustomDBRoles_importBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCustomDBRolesConfigBasic(orgID, projectName, roleName, "INSERT", databaseName),
+				Config: configBasic(orgID, projectName, roleName, "INSERT", databaseName),
 			},
 			{
 				ResourceName:            resourceName,
@@ -454,7 +424,7 @@ func TestAccConfigRSCustomDBRoles_importBasic(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"actions.0.resources.0.cluster"},
 			},
 			{
-				Config: testAccMongoDBAtlasCustomDBRolesConfigBasic(orgID, projectName, roleName, "INSERT", databaseName),
+				Config: configBasic(orgID, projectName, roleName, "INSERT", databaseName),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
@@ -548,24 +518,22 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCustomDBRolesConfigMultiple(orgID, projectName, inheritRole, testRole),
+				Config: configWithMultiple(orgID, projectName, inheritRole, testRole),
 				Check: resource.ComposeTestCheckFunc(
 
 					// For Inherited Role
-					testAccCheckMongoDBAtlasCustomDBRolesExists(InheritedRoleResourceName),
+					checkExists(InheritedRoleResourceName),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "actions.0.action"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "role_name", inheritRole.RoleName),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.#", cast.ToString(len(inheritRole.Actions))),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.action", inheritRole.Actions[0].Action),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.resources.#", cast.ToString(len(inheritRole.Actions[0].Resources))),
 
 					// For Test Role
-					testAccCheckMongoDBAtlasCustomDBRolesExists(testRoleResourceName),
+					checkExists(testRoleResourceName),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "role_name"),
 					resource.TestCheckResourceAttr(testRoleResourceName, "role_name", testRole.RoleName),
@@ -573,21 +541,19 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasCustomDBRolesConfigMultiple(orgID, projectName, inheritRoleUpdated, testRole),
+				Config: configWithMultiple(orgID, projectName, inheritRoleUpdated, testRole),
 				Check: resource.ComposeTestCheckFunc(
 
 					// For Inherited Role
-					testAccCheckMongoDBAtlasCustomDBRolesExists(InheritedRoleResourceName),
+					checkExists(InheritedRoleResourceName),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "actions.0.action"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "role_name", inheritRoleUpdated.RoleName),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.#", cast.ToString(len(inheritRoleUpdated.Actions))),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.action", inheritRoleUpdated.Actions[0].Action),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.resources.#", cast.ToString(len(inheritRoleUpdated.Actions[0].Resources))),
 
 					// For Test Role
-					testAccCheckMongoDBAtlasCustomDBRolesExists(testRoleResourceName),
+					checkExists(testRoleResourceName),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "role_name"),
 					resource.TestCheckResourceAttr(testRoleResourceName, "role_name", testRole.RoleName),
@@ -598,7 +564,7 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasCustomDBRolesExists(resourceName string) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -608,7 +574,7 @@ func testAccCheckMongoDBAtlasCustomDBRolesExists(resourceName string) resource.T
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.Conn().CustomDBRoles.Get(context.Background(), ids["project_id"], ids["role_name"])
+		_, _, err := acc.ConnV2().CustomDatabaseRolesApi.GetCustomDatabaseRole(context.Background(), ids["project_id"], ids["role_name"]).Execute()
 		if err != nil {
 			return fmt.Errorf("custom DB Role (%s) does not exist", ids["role_name"])
 		}
@@ -616,13 +582,13 @@ func testAccCheckMongoDBAtlasCustomDBRolesExists(resourceName string) resource.T
 	}
 }
 
-func testAccCheckMongoDBAtlasCustomDBRolesDestroy(s *terraform.State) error {
+func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_custom_db_role" {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.Conn().CustomDBRoles.Get(context.Background(), ids["project_id"], ids["role_name"])
+		_, _, err := acc.ConnV2().CustomDatabaseRolesApi.GetCustomDatabaseRole(context.Background(), ids["project_id"], ids["role_name"]).Execute()
 		if err == nil {
 			return fmt.Errorf("custom DB Role (%s) still exists", ids["role_name"])
 		}
@@ -640,7 +606,7 @@ func testAccCheckMongoDBAtlasCustomDBRolesImportStateIDFunc(resourceName string)
 	}
 }
 
-func testAccMongoDBAtlasCustomDBRolesConfigBasic(orgID, projectName, roleName, action, databaseName string) string {
+func configBasic(orgID, projectName, roleName, action, databaseName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q
@@ -661,7 +627,7 @@ func testAccMongoDBAtlasCustomDBRolesConfigBasic(orgID, projectName, roleName, a
 	`, orgID, projectName, roleName, action, databaseName)
 }
 
-func testAccMongoDBAtlasCustomDBRolesConfigWithInheritedRoles(orgID, projectName string, inheritedRole []matlas.CustomDBRole, testRole *matlas.CustomDBRole) string {
+func configWithInheritedRoles(orgID, projectName string, inheritedRole []matlas.CustomDBRole, testRole *matlas.CustomDBRole) string {
 	return fmt.Sprintf(`
 
 		resource "mongodbatlas_project" "test" {
@@ -722,7 +688,7 @@ func testAccMongoDBAtlasCustomDBRolesConfigWithInheritedRoles(orgID, projectName
 	)
 }
 
-func testAccMongoDBAtlasCustomDBRolesConfigMultiple(orgID, projectName string, inheritedRole, testRole *matlas.CustomDBRole) string {
+func configWithMultiple(orgID, projectName string, inheritedRole, testRole *matlas.CustomDBRole) string {
 	getCustomRoleFields := func(customRole *matlas.CustomDBRole) map[string]string {
 		var (
 			actions        string
