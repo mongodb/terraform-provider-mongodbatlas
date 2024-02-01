@@ -23,7 +23,7 @@
 - fix: Provider produces inconsistent result after importing `mongodbatlas_encryption_at_rest` [\#1813](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1813) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - fix: Update attributes `copy_protection_enabled`, `pit_enabled` and `encryption_at_rest_enabled` in the  resource `mongodbatlas_backup_compliance_policy` to be Optional [\#1803](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1803) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - fix: Incompatible schema defined for `mongodbatlas_backup_compliance_policy` [\#1799](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1799) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- fix: Fix `mongodbatlas_clusters` plural data source to set `auto_scaling_disk_gb_enabled` attribute correctly [\#1722](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1722) ([maastha](https://github.com/maastha))
+- fix: Fixes `mongodbatlas_clusters` plural data source to set `auto_scaling_disk_gb_enabled` attribute correctly [\#1722](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1722) ([maastha](https://github.com/maastha))
 
 **Closed Issues**
 
