@@ -39,6 +39,8 @@
 
 **Internal Improvements**
 
+- chore: Upgrades `mongodbatlas_project_invitation` resource to auto-generated SDK [\#1900](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1900)
+- chore: Upgrades `mongodbatlas_org_invitation` resource to auto-generated SDK [\#1897](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1897)
 - chore: Changes from env variable to input in Import GPG key [\#1898](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1898) ([oarbusi](https://github.com/oarbusi))
 - chore: Upgrades `mongodbatlas_custom_db_role` resource to auto-generated SDK [\#1896](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1896) ([lantoli](https://github.com/lantoli))
 - chore: New released Atlas Go SDK can't be used until several hours later [\#1885](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1885) ([gssbzn](https://github.com/gssbzn))
