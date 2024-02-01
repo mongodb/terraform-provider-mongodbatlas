@@ -16,12 +16,12 @@ import (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasProjectInvitationCreate,
-		ReadContext:   resourceMongoDBAtlasProjectInvitationRead,
-		DeleteContext: resourceMongoDBAtlasProjectInvitationDelete,
-		UpdateContext: resourceMongoDBAtlasProjectInvitationUpdate,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasProjectInvitationImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -61,7 +61,46 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasProjectInvitationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	// Get client connection.
+	conn := meta.(*config.MongoDBClient).Atlas
+	projectID := d.Get("project_id").(string)
+
+	invitationReq := &matlas.Invitation{
+		Roles:    createProjectStringListFromSetSchema(d.Get("roles").(*schema.Set)),
+		Username: d.Get("username").(string),
+	}
+
+	invitationRes, _, err := conn.Projects.InviteUser(ctx, projectID, invitationReq)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error creating Project invitation for user %s: %w", d.Get("username").(string), err))
+	}
+
+	d.SetId(conversion.EncodeStateID(map[string]string{
+		"username":      invitationRes.Username,
+		"project_id":    invitationRes.GroupID,
+		"invitation_id": invitationRes.ID,
+	}))
+
+	return resourceRead(ctx, d, meta)
+}
+
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	conn := meta.(*config.MongoDBClient).Atlas
+	ids := conversion.DecodeStateID(d.Id())
+	projectID := ids["project_id"]
+	username := ids["username"]
+	invitationID := ids["invitation_id"]
+
+	_, err := conn.Projects.DeleteInvitation(ctx, projectID, invitationID)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error deleting Project invitation for user %s: %w", username, err))
+	}
+
+	return nil
+}
+
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
@@ -118,46 +157,7 @@ func resourceMongoDBAtlasProjectInvitationRead(ctx context.Context, d *schema.Re
 	return nil
 }
 
-func resourceMongoDBAtlasProjectInvitationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-	projectID := d.Get("project_id").(string)
-
-	invitationReq := &matlas.Invitation{
-		Roles:    createProjectStringListFromSetSchema(d.Get("roles").(*schema.Set)),
-		Username: d.Get("username").(string),
-	}
-
-	invitationRes, _, err := conn.Projects.InviteUser(ctx, projectID, invitationReq)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error creating Project invitation for user %s: %w", d.Get("username").(string), err))
-	}
-
-	d.SetId(conversion.EncodeStateID(map[string]string{
-		"username":      invitationRes.Username,
-		"project_id":    invitationRes.GroupID,
-		"invitation_id": invitationRes.ID,
-	}))
-
-	return resourceMongoDBAtlasProjectInvitationRead(ctx, d, meta)
-}
-
-func resourceMongoDBAtlasProjectInvitationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
-	ids := conversion.DecodeStateID(d.Id())
-	projectID := ids["project_id"]
-	username := ids["username"]
-	invitationID := ids["invitation_id"]
-
-	_, err := conn.Projects.DeleteInvitation(ctx, projectID, invitationID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error deleting Project invitation for user %s: %w", username, err))
-	}
-
-	return nil
-}
-
-func resourceMongoDBAtlasProjectInvitationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -173,10 +173,10 @@ func resourceMongoDBAtlasProjectInvitationUpdate(ctx context.Context, d *schema.
 		return diag.FromErr(fmt.Errorf("error updating Project invitation for user %s: %w", username, err))
 	}
 
-	return resourceMongoDBAtlasProjectInvitationRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasProjectInvitationImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID, username, err := splitProjectInvitationImportID(d.Id())
 	if err != nil {

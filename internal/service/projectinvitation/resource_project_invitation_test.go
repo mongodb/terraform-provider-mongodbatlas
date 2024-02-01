@@ -29,12 +29,12 @@ func TestAccProjectRSProjectInvitation_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasProjectInvitationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectInvitationConfig(orgID, projectName, name, initialRole),
+				Config: configBasic(orgID, projectName, name, initialRole),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectInvitationExists(t, resourceName, &invitation),
+					checkExists(t, resourceName, &invitation),
 					testAccCheckMongoDBAtlasProjectInvitationUsernameAttribute(&invitation, name),
 					testAccCheckMongoDBAtlasProjectInvitationRoleAttribute(&invitation, initialRole),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -46,9 +46,9 @@ func TestAccProjectRSProjectInvitation_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectInvitationConfig(orgID, projectName, name, updateRoles),
+				Config: configBasic(orgID, projectName, name, updateRoles),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectInvitationExists(t, resourceName, &invitation),
+					checkExists(t, resourceName, &invitation),
 					testAccCheckMongoDBAtlasProjectInvitationUsernameAttribute(&invitation, name),
 					testAccCheckMongoDBAtlasProjectInvitationRoleAttribute(&invitation, updateRoles),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -75,10 +75,10 @@ func TestAccProjectRSProjectInvitation_importBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasProjectInvitationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectInvitationConfig(orgID, projectName, name, initialRole),
+				Config: configBasic(orgID, projectName, name, initialRole),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "username"),
@@ -90,7 +90,7 @@ func TestAccProjectRSProjectInvitation_importBasic(t *testing.T) {
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasProjectInvitationStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -98,7 +98,7 @@ func TestAccProjectRSProjectInvitation_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasProjectInvitationExists(t *testing.T, resourceName string, invitation *matlas.Invitation) resource.TestCheckFunc {
+func checkExists(t *testing.T, resourceName string, invitation *matlas.Invitation) resource.TestCheckFunc {
 	t.Helper()
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -149,7 +149,7 @@ func testAccCheckMongoDBAtlasProjectInvitationRoleAttribute(invitation *matlas.I
 	}
 }
 
-func testAccCheckMongoDBAtlasProjectInvitationDestroy(s *terraform.State) error {
+func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_invitations" {
 			continue
@@ -167,7 +167,7 @@ func testAccCheckMongoDBAtlasProjectInvitationDestroy(s *terraform.State) error 
 	return nil
 }
 
-func testAccCheckMongoDBAtlasProjectInvitationStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -177,7 +177,7 @@ func testAccCheckMongoDBAtlasProjectInvitationStateIDFunc(resourceName string) r
 	}
 }
 
-func testAccMongoDBAtlasProjectInvitationConfig(orgID, projectName, username string, roles []string) string {
+func configBasic(orgID, projectName, username string, roles []string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q
