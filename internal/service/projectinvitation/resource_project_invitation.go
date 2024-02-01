@@ -101,18 +101,15 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
 
-	projectInvitation, resp, err := conn.Projects.Invitation(ctx, projectID, invitationID)
+	projectInvitation, resp, err := connV2.ProjectsApi.GetProjectInvitation(ctx, projectID, invitationID).Execute()
 	if err != nil {
-		// case 404
-		// deleted in the backend case
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if resp != nil && resp.StatusCode == http.StatusNotFound { // case 404: deleted in the backend case
 			d.SetId("")
 			return nil
 		}
@@ -120,31 +117,31 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf("error getting Project Invitation information: %w", err))
 	}
 
-	if err := d.Set("username", projectInvitation.Username); err != nil {
+	if err := d.Set("username", projectInvitation.GetUsername()); err != nil {
 		return diag.FromErr(fmt.Errorf("error getting `username` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
-	if err := d.Set("project_id", projectInvitation.GroupID); err != nil {
+	if err := d.Set("project_id", projectInvitation.GetGroupId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error getting `project_id` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
-	if err := d.Set("invitation_id", projectInvitation.ID); err != nil {
+	if err := d.Set("invitation_id", projectInvitation.GetId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error getting `invitation_id` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
-	if err := d.Set("expires_at", projectInvitation.ExpiresAt); err != nil {
+	if err := d.Set("expires_at", conversion.TimePtrToStringPtr(projectInvitation.ExpiresAt)); err != nil {
 		return diag.FromErr(fmt.Errorf("error getting `expires_at` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
-	if err := d.Set("created_at", projectInvitation.CreatedAt); err != nil {
+	if err := d.Set("created_at", conversion.TimePtrToStringPtr(projectInvitation.CreatedAt)); err != nil {
 		return diag.FromErr(fmt.Errorf("error getting `created_at` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
-	if err := d.Set("inviter_username", projectInvitation.InviterUsername); err != nil {
+	if err := d.Set("inviter_username", projectInvitation.GetInviterUsername()); err != nil {
 		return diag.FromErr(fmt.Errorf("error getting `inviter_username` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
-	if err := d.Set("roles", projectInvitation.Roles); err != nil {
+	if err := d.Set("roles", projectInvitation.GetRoles()); err != nil {
 		return diag.FromErr(fmt.Errorf("error getting `roles` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
