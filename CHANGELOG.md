@@ -7,7 +7,7 @@
 **Breaking changes:**
 
 - remove!: Removes `page_num` and `items_per_page` attributes in `mongodbatlas_search_indexes` data source [\#1880](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1880) ([AgustinBettati](https://github.com/AgustinBettati))
-- remove!: Removal Cloud Provider Access Resource and Data source [\#1804](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1804) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- remove!: Removes `cloud_provider_access`  resource and data source [\#1804](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1804) ([andreaangiolillo](https://github.com/andreaangiolillo))
 
 **Enhancements**
 
