@@ -12,7 +12,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"go.mongodb.org/atlas-sdk/v20231115005/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func Resource() *schema.Resource {
@@ -141,21 +140,20 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
 
-	invitationReq := &matlas.Invitation{
-		Roles: conversion.ExpandStringListFromSetSchema(d.Get("roles").(*schema.Set)),
+	roles := conversion.ExpandStringListFromSetSchema(d.Get("roles").(*schema.Set))
+	invitationReq := &admin.GroupInvitationUpdateRequest{
+		Roles: &roles,
 	}
-
-	_, _, err := conn.Projects.UpdateInvitationByID(ctx, projectID, invitationID, invitationReq)
+	_, _, err := connV2.ProjectsApi.UpdateProjectInvitationById(ctx, projectID, invitationID, invitationReq).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating Project invitation for user %s: %w", username, err))
 	}
-
 	return resourceRead(ctx, d, meta)
 }
 
