@@ -12,12 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccProjectRSProjectInvitation_basic(t *testing.T) {
 	var (
-		invitation   matlas.Invitation
 		resourceName = "mongodbatlas_project_invitation.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
@@ -29,34 +27,29 @@ func TestAccProjectRSProjectInvitation_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasProjectInvitationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectInvitationConfig(orgID, projectName, name, initialRole),
+				Config: configBasic(orgID, projectName, name, initialRole),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectInvitationExists(t, resourceName, &invitation),
-					testAccCheckMongoDBAtlasProjectInvitationUsernameAttribute(&invitation, name),
-					testAccCheckMongoDBAtlasProjectInvitationRoleAttribute(&invitation, initialRole),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "username"),
 					resource.TestCheckResourceAttrSet(resourceName, "invitation_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "roles.#"),
 					resource.TestCheckResourceAttr(resourceName, "username", name),
 					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "roles.*", initialRole[0]),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectInvitationConfig(orgID, projectName, name, updateRoles),
+				Config: configBasic(orgID, projectName, name, updateRoles),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectInvitationExists(t, resourceName, &invitation),
-					testAccCheckMongoDBAtlasProjectInvitationUsernameAttribute(&invitation, name),
-					testAccCheckMongoDBAtlasProjectInvitationRoleAttribute(&invitation, updateRoles),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "username"),
 					resource.TestCheckResourceAttrSet(resourceName, "invitation_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "roles.#"),
 					resource.TestCheckResourceAttr(resourceName, "username", name),
 					resource.TestCheckResourceAttr(resourceName, "roles.#", "2"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "roles.*", updateRoles[0]),
+					resource.TestCheckTypeSetElemAttr(resourceName, "roles.*", updateRoles[0]),
 				),
 			},
 		},
@@ -75,22 +68,21 @@ func TestAccProjectRSProjectInvitation_importBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasProjectInvitationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectInvitationConfig(orgID, projectName, name, initialRole),
+				Config: configBasic(orgID, projectName, name, initialRole),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "username"),
-					resource.TestCheckResourceAttrSet(resourceName, "roles.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "invitation_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", name),
 					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "roles.*", initialRole[0]),
 				),
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasProjectInvitationStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -98,8 +90,7 @@ func TestAccProjectRSProjectInvitation_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasProjectInvitationExists(t *testing.T, resourceName string, invitation *matlas.Invitation) resource.TestCheckFunc {
-	t.Helper()
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -112,44 +103,15 @@ func testAccCheckMongoDBAtlasProjectInvitationExists(t *testing.T, resourceName 
 		if projectID == "" && username == "" && invitationID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		t.Logf("projectID: %s", projectID)
-		t.Logf("username: %s", username)
-		t.Logf("invitationID: %s", invitationID)
-		invitationResp, _, err := acc.Conn().Projects.Invitation(context.Background(), projectID, invitationID)
+		_, _, err := acc.ConnV2().ProjectsApi.GetProjectInvitation(context.Background(), projectID, invitationID).Execute()
 		if err == nil {
-			*invitation = *invitationResp
 			return nil
 		}
-		return fmt.Errorf("invitation(%s) does not exist", invitationID)
+		return fmt.Errorf("invitation (%s) does not exist", invitationID)
 	}
 }
 
-func testAccCheckMongoDBAtlasProjectInvitationUsernameAttribute(invitation *matlas.Invitation, username string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if invitation.Username != username {
-			return fmt.Errorf("bad name: %s", invitation.Username)
-		}
-		return nil
-	}
-}
-
-func testAccCheckMongoDBAtlasProjectInvitationRoleAttribute(invitation *matlas.Invitation, roles []string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if len(roles) > 0 {
-			for _, role := range roles {
-				for _, currentRole := range invitation.Roles {
-					if currentRole == role {
-						return nil
-					}
-				}
-			}
-		}
-
-		return fmt.Errorf("bad role: %s", invitation.Roles)
-	}
-}
-
-func testAccCheckMongoDBAtlasProjectInvitationDestroy(s *terraform.State) error {
+func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_invitations" {
 			continue
@@ -158,8 +120,7 @@ func testAccCheckMongoDBAtlasProjectInvitationDestroy(s *terraform.State) error 
 		projectID := ids["project_id"]
 		invitationID := ids["invitation_id"]
 
-		// Try to find the invitation
-		_, _, err := acc.Conn().Projects.Invitation(context.Background(), projectID, invitationID)
+		_, _, err := acc.ConnV2().ProjectsApi.GetProjectInvitation(context.Background(), projectID, invitationID).Execute()
 		if err == nil {
 			return fmt.Errorf("invitation (%s) still exists", invitationID)
 		}
@@ -167,7 +128,7 @@ func testAccCheckMongoDBAtlasProjectInvitationDestroy(s *terraform.State) error 
 	return nil
 }
 
-func testAccCheckMongoDBAtlasProjectInvitationStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -177,7 +138,7 @@ func testAccCheckMongoDBAtlasProjectInvitationStateIDFunc(resourceName string) r
 	}
 }
 
-func testAccMongoDBAtlasProjectInvitationConfig(orgID, projectName, username string, roles []string) string {
+func configBasic(orgID, projectName, username string, roles []string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q
