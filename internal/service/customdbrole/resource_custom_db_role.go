@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -17,10 +16,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	"go.mongodb.org/atlas-sdk/v20231115005/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func Resource() *schema.Resource {
@@ -105,17 +102,11 @@ func Resource() *schema.Resource {
 	}
 }
 
-var (
-	customRoleLock sync.Mutex
-)
-
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	customRoleLock.Lock()
-	defer customRoleLock.Unlock()
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	customDBRoleReq := &matlas.CustomDBRole{
+	customDBRoleReq := &admin.UserCustomDBRole{
 		RoleName:       d.Get("role_name").(string),
 		Actions:        expandActions(d),
 		InheritedRoles: expandInheritedRoles(d),
@@ -125,7 +116,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending: []string{"pending"},
 		Target:  []string{"created", "failed"},
 		Refresh: func() (any, string, error) {
-			customDBRoleRes, _, err := conn.CustomDBRoles.Create(ctx, projectID, customDBRoleReq)
+			customDBRoleRes, _, err := connV2.CustomDatabaseRolesApi.CreateCustomDatabaseRole(ctx, projectID, customDBRoleReq).Execute()
 			if err != nil {
 				if strings.Contains(err.Error(), "Unexpected error") ||
 					strings.Contains(err.Error(), "UNEXPECTED_ERROR") ||
@@ -190,34 +181,21 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	customRoleLock.Lock()
-	defer customRoleLock.Unlock()
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleName := ids["role_name"]
 
-	customDBRole, _, err := conn.CustomDBRoles.Get(ctx, projectID, roleName)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error getting custom db role information: %s", err))
+	if d.HasChange("actions") || d.HasChange("inherited_roles") {
+		updateParams := &admin.UpdateCustomDBRole{
+			Actions:        expandActions(d),
+			InheritedRoles: expandInheritedRoles(d),
+		}
+		_, _, err := connV2.CustomDatabaseRolesApi.UpdateCustomDatabaseRole(ctx, projectID, roleName, updateParams).Execute()
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("error updating custom db role (%s): %s", roleName, err))
+		}
 	}
-
-	// Clean the roleName because it can be sent into the update request to avoid an unexpected error 500
-	customDBRole.RoleName = ""
-
-	if d.HasChange("actions") {
-		customDBRole.Actions = expandActions(d)
-	}
-
-	if d.HasChange("inherited_roles") {
-		customDBRole.InheritedRoles = expandInheritedRoles(d)
-	}
-
-	_, _, err = conn.CustomDBRoles.Update(ctx, projectID, roleName, customDBRole)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error updating custom db role (%s): %s", roleName, err))
-	}
-
 	return resourceRead(ctx, d, meta)
 }
 
@@ -289,33 +267,16 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func expandActions(d *schema.ResourceData) []matlas.Action {
-	actions := make([]matlas.Action, len(d.Get("actions").([]any)))
-
+func expandActions(d *schema.ResourceData) *[]admin.DatabasePrivilegeAction {
+	actions := make([]admin.DatabasePrivilegeAction, len(d.Get("actions").([]any)))
 	for k, v := range d.Get("actions").([]any) {
 		a := v.(map[string]any)
-		actions[k] = matlas.Action{
+		actions[k] = admin.DatabasePrivilegeAction{
 			Action:    a["action"].(string),
 			Resources: expandActionResources(a["resources"].(*schema.Set)),
 		}
 	}
-
-	return actions
-}
-
-func expandActionResources(resources *schema.Set) []matlas.Resource {
-	actionResources := make([]matlas.Resource, resources.Len())
-
-	for k, v := range resources.List() {
-		resourceMap := v.(map[string]any)
-		actionResources[k] = matlas.Resource{
-			DB:         pointy.String(resourceMap["database_name"].(string)),
-			Collection: pointy.String(resourceMap["collection_name"].(string)),
-			Cluster:    pointy.Bool(cast.ToBool(resourceMap["cluster"])),
-		}
-	}
-
-	return actionResources
+	return &actions
 }
 
 func flattenActions(actions []admin.DatabasePrivilegeAction) []map[string]any {
@@ -327,6 +288,19 @@ func flattenActions(actions []admin.DatabasePrivilegeAction) []map[string]any {
 		})
 	}
 	return actionList
+}
+
+func expandActionResources(resources *schema.Set) *[]admin.DatabasePermittedNamespaceResource {
+	actionResources := make([]admin.DatabasePermittedNamespaceResource, resources.Len())
+	for k, v := range resources.List() {
+		resourceMap := v.(map[string]any)
+		actionResources[k] = admin.DatabasePermittedNamespaceResource{
+			Db:         resourceMap["database_name"].(string),
+			Collection: resourceMap["collection_name"].(string),
+			Cluster:    cast.ToBool(resourceMap["cluster"]),
+		}
+	}
+	return &actionResources
 }
 
 func flattenActionResources(resources []admin.DatabasePermittedNamespaceResource) []map[string]any {
@@ -346,6 +320,21 @@ func flattenActionResources(resources []admin.DatabasePermittedNamespaceResource
 	return actionResourceList
 }
 
+func expandInheritedRoles(d *schema.ResourceData) *[]admin.DatabaseInheritedRole {
+	vIR := d.Get("inherited_roles").(*schema.Set).List()
+	ir := make([]admin.DatabaseInheritedRole, len(vIR))
+	if len(vIR) != 0 {
+		for i := range vIR {
+			r := vIR[i].(map[string]any)
+			ir[i] = admin.DatabaseInheritedRole{
+				Db:   r["database_name"].(string),
+				Role: r["role_name"].(string),
+			}
+		}
+	}
+	return &ir
+}
+
 func flattenInheritedRoles(roles []admin.DatabaseInheritedRole) []map[string]any {
 	inheritedRoleList := make([]map[string]any, 0)
 	for _, v := range roles {
@@ -355,21 +344,4 @@ func flattenInheritedRoles(roles []admin.DatabaseInheritedRole) []map[string]any
 		})
 	}
 	return inheritedRoleList
-}
-
-func expandInheritedRoles(d *schema.ResourceData) []matlas.InheritedRole {
-	vIR := d.Get("inherited_roles").(*schema.Set).List()
-	ir := make([]matlas.InheritedRole, len(vIR))
-
-	if len(vIR) != 0 {
-		for i := range vIR {
-			r := vIR[i].(map[string]any)
-
-			ir[i] = matlas.InheritedRole{
-				Db:   r["database_name"].(string),
-				Role: r["role_name"].(string),
-			}
-		}
-	}
-	return ir
 }
