@@ -80,7 +80,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Username: conversion.StringPtr(d.Get("username").(string)),
 	}
 
-	if validateOrgInvitationAlreadyAccepted(ctx, meta.(*config.MongoDBClient), invitationReq.GetUsername(), orgID) {
+	if validateOrgInvitationAlreadyAccepted(ctx, connV2, invitationReq.GetUsername(), orgID) {
 		d.SetId(conversion.EncodeStateID(map[string]string{
 			"username":      invitationReq.GetUsername(),
 			"org_id":        orgID,
@@ -112,7 +112,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		orgInvitation, _, err := connV2.OrganizationsApi.GetOrganizationInvitation(ctx, orgID, invitationID).Execute()
 		if err != nil {
 			if strings.Contains(err.Error(), "404") { // case 404: deleted in the backend case
-				if validateOrgInvitationAlreadyAccepted(ctx, meta.(*config.MongoDBClient), username, orgID) {
+				if validateOrgInvitationAlreadyAccepted(ctx, connV2, username, orgID) {
 					d.SetId("")
 					return nil
 				}
@@ -173,7 +173,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	_, _, err := connV2.OrganizationsApi.GetOrganizationInvitation(ctx, orgID, invitationID).Execute()
 	if err != nil {
 		if strings.Contains(err.Error(), "404") { // case 404: deleted in the backend case
-			if validateOrgInvitationAlreadyAccepted(ctx, meta.(*config.MongoDBClient), username, orgID) {
+			if validateOrgInvitationAlreadyAccepted(ctx, connV2, username, orgID) {
 				d.SetId("")
 				return nil
 			}
@@ -257,17 +257,15 @@ func splitOrgInvitationImportID(id string) (orgID, username string, err error) {
 	return
 }
 
-func validateOrgInvitationAlreadyAccepted(ctx context.Context, conn *config.MongoDBClient, username, orgID string) bool {
-	user, _, err := conn.Atlas.AtlasUsers.GetByName(ctx, username)
+func validateOrgInvitationAlreadyAccepted(ctx context.Context, connV2 *admin.APIClient, username, orgID string) bool {
+	user, _, err := connV2.MongoDBCloudUsersApi.GetUserByUsername(ctx, username).Execute()
 	if err != nil {
 		return false
 	}
-
-	for _, role := range user.Roles {
-		if role.OrgID == orgID {
+	for _, role := range user.GetRoles() {
+		if role.GetOrgId() == orgID {
 			return true
 		}
 	}
-
 	return false
 }
