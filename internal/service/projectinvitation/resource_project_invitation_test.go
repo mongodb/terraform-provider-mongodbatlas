@@ -103,11 +103,11 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if projectID == "" && username == "" && invitationID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		_, _, err := acc.Conn().Projects.Invitation(context.Background(), projectID, invitationID)
+		_, _, err := acc.ConnV2().ProjectsApi.GetProjectInvitation(context.Background(), projectID, invitationID).Execute()
 		if err == nil {
 			return nil
 		}
-		return fmt.Errorf("invitation(%s) does not exist", invitationID)
+		return fmt.Errorf("invitation (%s) does not exist", invitationID)
 	}
 }
 
@@ -120,8 +120,7 @@ func checkDestroy(s *terraform.State) error {
 		projectID := ids["project_id"]
 		invitationID := ids["invitation_id"]
 
-		// Try to find the invitation
-		_, _, err := acc.Conn().Projects.Invitation(context.Background(), projectID, invitationID)
+		_, _, err := acc.ConnV2().ProjectsApi.GetProjectInvitation(context.Background(), projectID, invitationID).Execute()
 		if err == nil {
 			return fmt.Errorf("invitation (%s) still exists", invitationID)
 		}
