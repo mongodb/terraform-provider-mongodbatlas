@@ -69,22 +69,17 @@ func Resource() *schema.Resource {
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
 
 	if orgID != invitationID {
-		orgInvitation, _, err := conn.Organizations.Invitation(ctx, orgID, invitationID)
+		orgInvitation, _, err := connV2.OrganizationsApi.GetOrganizationInvitation(ctx, orgID, invitationID).Execute()
 		if err != nil {
-			// case 404
-			// deleted in the backend case
-
-			if strings.Contains(err.Error(), "404") {
-				accepted, _ := validateOrgInvitationAlreadyAccepted(ctx, meta.(*config.MongoDBClient), username, orgID)
-				if accepted {
+			if strings.Contains(err.Error(), "404") { // case 404: deleted in the backend case
+				if validateOrgInvitationAlreadyAccepted(ctx, meta.(*config.MongoDBClient), username, orgID) {
 					d.SetId("")
 					return nil
 				}
@@ -94,35 +89,35 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.Errorf("error getting Organization Invitation information: %s", err)
 		}
 
-		if err := d.Set("username", orgInvitation.Username); err != nil {
+		if err := d.Set("username", orgInvitation.GetUsername()); err != nil {
 			return diag.Errorf("error getting `username` for Organization Invitation (%s): %s", d.Id(), err)
 		}
 
-		if err := d.Set("org_id", orgInvitation.OrgID); err != nil {
+		if err := d.Set("org_id", orgInvitation.GetOrgId()); err != nil {
 			return diag.Errorf("error getting `username` for Organization Invitation (%s): %s", d.Id(), err)
 		}
 
-		if err := d.Set("invitation_id", orgInvitation.ID); err != nil {
+		if err := d.Set("invitation_id", orgInvitation.GetId()); err != nil {
 			return diag.Errorf("error getting `invitation_id` for Organization Invitation (%s): %s", d.Id(), err)
 		}
 
-		if err := d.Set("expires_at", orgInvitation.ExpiresAt); err != nil {
+		if err := d.Set("expires_at", conversion.TimePtrToStringPtr(orgInvitation.ExpiresAt)); err != nil {
 			return diag.Errorf("error getting `expires_at` for Organization Invitation (%s): %s", d.Id(), err)
 		}
 
-		if err := d.Set("created_at", orgInvitation.CreatedAt); err != nil {
+		if err := d.Set("created_at", conversion.TimePtrToStringPtr(orgInvitation.CreatedAt)); err != nil {
 			return diag.Errorf("error getting `created_at` for Organization Invitation (%s): %s", d.Id(), err)
 		}
 
-		if err := d.Set("inviter_username", orgInvitation.InviterUsername); err != nil {
+		if err := d.Set("inviter_username", orgInvitation.GetInviterUsername()); err != nil {
 			return diag.Errorf("error getting `inviter_username` for Organization Invitation (%s): %s", d.Id(), err)
 		}
 
-		if err := d.Set("teams_ids", orgInvitation.TeamIDs); err != nil {
+		if err := d.Set("teams_ids", orgInvitation.GetTeamIds()); err != nil {
 			return diag.Errorf("error getting `teams_ids` for Organization Invitation (%s): %s", d.Id(), err)
 		}
 
-		if err := d.Set("roles", orgInvitation.Roles); err != nil {
+		if err := d.Set("roles", orgInvitation.GetRoles()); err != nil {
 			return diag.Errorf("error getting `roles` for Organization Invitation (%s): %s", d.Id(), err)
 		}
 	}
@@ -146,8 +141,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Username: d.Get("username").(string),
 	}
 
-	accepted, _ := validateOrgInvitationAlreadyAccepted(ctx, meta.(*config.MongoDBClient), invitationReq.Username, orgID)
-	if accepted {
+	if validateOrgInvitationAlreadyAccepted(ctx, meta.(*config.MongoDBClient), invitationReq.Username, orgID) {
 		d.SetId(conversion.EncodeStateID(map[string]string{
 			"username":      invitationReq.Username,
 			"org_id":        orgID,
@@ -169,27 +163,23 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
 
-	_, _, err := conn.Organizations.Invitation(ctx, orgID, invitationID)
+	_, _, err := connV2.OrganizationsApi.GetOrganizationInvitation(ctx, orgID, invitationID).Execute()
 	if err != nil {
-		// case 404
-		// deleted in the backend case
-
-		if strings.Contains(err.Error(), "404") {
-			accepted, _ := validateOrgInvitationAlreadyAccepted(ctx, meta.(*config.MongoDBClient), username, orgID)
-			if accepted {
+		if strings.Contains(err.Error(), "404") { // case 404: deleted in the backend case
+			if validateOrgInvitationAlreadyAccepted(ctx, meta.(*config.MongoDBClient), username, orgID) {
 				d.SetId("")
 				return nil
 			}
 			return nil
 		}
 	}
-	_, err = conn.Organizations.DeleteInvitation(ctx, orgID, invitationID)
+	_, _, err = connV2.OrganizationsApi.DeleteOrganizationInvitation(ctx, orgID, invitationID).Execute()
 	if err != nil {
 		return diag.Errorf("error deleting Organization invitation for user %s: %s", username, err)
 	}
@@ -268,17 +258,17 @@ func splitOrgInvitationImportID(id string) (orgID, username string, err error) {
 	return
 }
 
-func validateOrgInvitationAlreadyAccepted(ctx context.Context, conn *config.MongoDBClient, username, orgID string) (bool, error) {
+func validateOrgInvitationAlreadyAccepted(ctx context.Context, conn *config.MongoDBClient, username, orgID string) bool {
 	user, _, err := conn.Atlas.AtlasUsers.GetByName(ctx, username)
 	if err != nil {
-		return false, err
+		return false
 	}
 
 	for _, role := range user.Roles {
 		if role.OrgID == orgID {
-			return true, nil
+			return true
 		}
 	}
 
-	return false, nil
+	return false
 }
