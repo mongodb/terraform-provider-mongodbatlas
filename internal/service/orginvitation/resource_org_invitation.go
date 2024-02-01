@@ -11,7 +11,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115005/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func Resource() *schema.Resource {
@@ -27,6 +26,7 @@ func Resource() *schema.Resource {
 			"org_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"username": {
 				Type:     schema.TypeString,
@@ -189,21 +189,19 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
-
-	invitationReq := &matlas.Invitation{
-		Roles: conversion.ExpandStringListFromSetSchema(d.Get("roles").(*schema.Set)),
+	roles := conversion.ExpandStringListFromSetSchema(d.Get("roles").(*schema.Set))
+	invitationReq := &admin.OrganizationInvitationUpdateRequest{
+		Roles: &roles,
 	}
-
-	_, _, err := conn.Organizations.UpdateInvitationByID(ctx, orgID, invitationID, invitationReq)
+	_, _, err := connV2.OrganizationsApi.UpdateOrganizationInvitationById(ctx, orgID, invitationID, invitationReq).Execute()
 	if err != nil {
 		return diag.Errorf("error updating Organization invitation for user %s: for %s", username, err)
 	}
-
 	return resourceRead(ctx, d, meta)
 }
 
