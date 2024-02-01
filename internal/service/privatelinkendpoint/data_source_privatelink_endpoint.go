@@ -12,7 +12,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasPrivateLinkEndpointRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -85,65 +85,65 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasPrivateLinkEndpointRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	privateLinkID := conversion.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
 	providerName := d.Get("provider_name").(string)
 
-	privateEndpoint, _, err := conn.PrivateEndpoints.Get(ctx, projectID, providerName, privateLinkID)
+	privateEndpoint, _, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpointService(ctx, projectID, providerName, privateLinkID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsRead, privateLinkID, err))
 	}
 
-	if err := d.Set("private_link_id", privateEndpoint.ID); err != nil {
+	if err := d.Set("private_link_id", privateEndpoint.GetId()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "private_link_id", privateLinkID, err))
 	}
 
-	if err := d.Set("endpoint_service_name", privateEndpoint.EndpointServiceName); err != nil {
+	if err := d.Set("endpoint_service_name", privateEndpoint.GetEndpointServiceName()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "endpoint_service_name", privateLinkID, err))
 	}
 
-	if err := d.Set("error_message", privateEndpoint.ErrorMessage); err != nil {
+	if err := d.Set("error_message", privateEndpoint.GetErrorMessage()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "error_message", privateLinkID, err))
 	}
 
-	if err := d.Set("interface_endpoints", privateEndpoint.InterfaceEndpoints); err != nil {
+	if err := d.Set("interface_endpoints", privateEndpoint.GetInterfaceEndpoints()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "interface_endpoints", privateLinkID, err))
 	}
 
-	if err := d.Set("private_endpoints", privateEndpoint.PrivateEndpoints); err != nil {
+	if err := d.Set("private_endpoints", privateEndpoint.GetPrivateEndpoints()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "private_endpoints", privateLinkID, err))
 	}
 
-	if err := d.Set("private_link_service_name", privateEndpoint.PrivateLinkServiceName); err != nil {
+	if err := d.Set("private_link_service_name", privateEndpoint.GetPrivateLinkServiceName()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "private_link_service_name", privateLinkID, err))
 	}
 
-	if err := d.Set("private_link_service_resource_id", privateEndpoint.PrivateLinkServiceResourceID); err != nil {
+	if err := d.Set("private_link_service_resource_id", privateEndpoint.GetPrivateLinkServiceResourceId()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "private_link_service_resource_id", privateLinkID, err))
 	}
 
-	if err := d.Set("status", privateEndpoint.Status); err != nil {
+	if err := d.Set("status", privateEndpoint.GetStatus()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "status", privateLinkID, err))
 	}
 
-	if err := d.Set("endpoint_group_names", privateEndpoint.EndpointGroupNames); err != nil {
+	if err := d.Set("endpoint_group_names", privateEndpoint.GetEndpointGroupNames()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "endpoint_group_names", privateLinkID, err))
 	}
 
-	if err := d.Set("region_name", privateEndpoint.RegionName); err != nil {
+	if err := d.Set("region_name", privateEndpoint.GetRegionName()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "region_name", privateLinkID, err))
 	}
 
-	if err := d.Set("service_attachment_names", privateEndpoint.ServiceAttachmentNames); err != nil {
+	if err := d.Set("service_attachment_names", privateEndpoint.GetServiceAttachmentNames()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "service_attachment_names", privateLinkID, err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"private_link_id": privateEndpoint.ID,
+		"private_link_id": privateEndpoint.GetId(),
 		"project_id":      projectID,
 		"provider_name":   providerName,
 	}))
