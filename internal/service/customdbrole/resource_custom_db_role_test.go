@@ -574,7 +574,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.Conn().CustomDBRoles.Get(context.Background(), ids["project_id"], ids["role_name"])
+		_, _, err := acc.ConnV2().CustomDatabaseRolesApi.GetCustomDatabaseRole(context.Background(), ids["project_id"], ids["role_name"]).Execute()
 		if err != nil {
 			return fmt.Errorf("custom DB Role (%s) does not exist", ids["role_name"])
 		}
@@ -588,7 +588,7 @@ func checkDestroy(s *terraform.State) error {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.Conn().CustomDBRoles.Get(context.Background(), ids["project_id"], ids["role_name"])
+		_, _, err := acc.ConnV2().CustomDatabaseRolesApi.GetCustomDatabaseRole(context.Background(), ids["project_id"], ids["role_name"]).Execute()
 		if err == nil {
 			return fmt.Errorf("custom DB Role (%s) still exists", ids["role_name"])
 		}
