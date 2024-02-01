@@ -57,46 +57,45 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	orgID := d.Get("org_id").(string)
 	username := d.Get("username").(string)
 	invitationID := d.Get("invitation_id").(string)
 
-	orgInvitation, _, err := conn.Organizations.Invitation(ctx, orgID, invitationID)
+	orgInvitation, _, err := connV2.OrganizationsApi.GetOrganizationInvitation(ctx, orgID, invitationID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting Organization Invitation information: %w", err))
 	}
 
-	if err := d.Set("username", orgInvitation.Username); err != nil {
+	if err := d.Set("username", orgInvitation.GetUsername()); err != nil {
 		return diag.FromErr(fmt.Errorf("error getting `username` for Organization Invitation (%s): %w", d.Id(), err))
 	}
 
-	if err := d.Set("org_id", orgInvitation.OrgID); err != nil {
+	if err := d.Set("org_id", orgInvitation.GetOrgId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error getting `username` for Organization Invitation (%s): %w", d.Id(), err))
 	}
 
-	if err := d.Set("invitation_id", orgInvitation.ID); err != nil {
+	if err := d.Set("invitation_id", orgInvitation.GetId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error getting `invitation_id` for Organization Invitation (%s): %w", d.Id(), err))
 	}
 
-	if err := d.Set("expires_at", orgInvitation.ExpiresAt); err != nil {
+	if err := d.Set("expires_at", conversion.TimePtrToStringPtr(orgInvitation.ExpiresAt)); err != nil {
 		return diag.FromErr(fmt.Errorf("error getting `expires_at` for Organization Invitation (%s): %w", d.Id(), err))
 	}
 
-	if err := d.Set("created_at", orgInvitation.CreatedAt); err != nil {
+	if err := d.Set("created_at", conversion.TimePtrToStringPtr(orgInvitation.CreatedAt)); err != nil {
 		return diag.FromErr(fmt.Errorf("error getting `created_at` for Organization Invitation (%s): %w", d.Id(), err))
 	}
 
-	if err := d.Set("inviter_username", orgInvitation.InviterUsername); err != nil {
+	if err := d.Set("inviter_username", orgInvitation.GetInviterUsername()); err != nil {
 		return diag.FromErr(fmt.Errorf("error getting `inviter_username` for Organization Invitation (%s): %w", d.Id(), err))
 	}
 
-	if err := d.Set("teams_ids", orgInvitation.TeamIDs); err != nil {
+	if err := d.Set("teams_ids", orgInvitation.GetTeamIds()); err != nil {
 		return diag.FromErr(fmt.Errorf("error getting `teams_ids` for Organization Invitation (%s): %w", d.Id(), err))
 	}
 
-	if err := d.Set("roles", orgInvitation.Roles); err != nil {
+	if err := d.Set("roles", orgInvitation.GetRoles()); err != nil {
 		return diag.FromErr(fmt.Errorf("error getting `roles` for Organization Invitation (%s): %w", d.Id(), err))
 	}
 
