@@ -110,10 +110,11 @@ func NewTFDatabaseDSUserModel(ctx context.Context, dbUser *admin.CloudDatabaseUs
 	return databaseUserModel, nil
 }
 
-func NewTFDatabaseUsersModel(ctx context.Context, projectID string, dbUsers []admin.CloudDatabaseUser) (*TfDatabaseUsersDSModel, diag.Diagnostics) {
-	results := make([]*TfDatabaseUserDSModel, len(dbUsers))
-	for i := range dbUsers {
-		dbUserModel, d := NewTFDatabaseDSUserModel(ctx, &dbUsers[i])
+func NewTFDatabaseUsersModel(ctx context.Context, dbUsersConfig *TfDatabaseUsersDSModel, paginatedResp *admin.PaginatedApiAtlasDatabaseUser) (*TfDatabaseUsersDSModel, diag.Diagnostics) {
+	users := paginatedResp.GetResults()
+	results := make([]*TfDatabaseUserDSModel, len(users))
+	for i := range users {
+		dbUserModel, d := NewTFDatabaseDSUserModel(ctx, &users[i])
 		if d.HasError() {
 			return nil, d
 		}
@@ -121,9 +122,12 @@ func NewTFDatabaseUsersModel(ctx context.Context, projectID string, dbUsers []ad
 	}
 
 	return &TfDatabaseUsersDSModel{
-		ProjectID: types.StringValue(projectID),
-		Results:   results,
-		ID:        types.StringValue(id.UniqueId()),
+		ProjectID:    dbUsersConfig.ProjectID,
+		Results:      results,
+		ID:           types.StringValue(id.UniqueId()),
+		PageNum:      dbUsersConfig.PageNum,
+		ItemsPerPage: dbUsersConfig.ItemsPerPage,
+		TotalCount:   types.Int64PointerValue(conversion.IntPtrToInt64Ptr(paginatedResp.TotalCount)),
 	}, nil
 }
 
