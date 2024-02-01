@@ -18,7 +18,7 @@
 **Bug Fixes**
 
 - `mongodbatlas_project_ip_access_list` Unexpected replacement of CIDR with IP address [\#1571](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1571)
-- fix: Add toUpperCase to provider and region fields in cluster resources [\#1837](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1837) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- fix: Adds toUpperCase to provider and region fields in cluster resources [\#1837](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1837) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - fix: Improves error message when improperly setting `provider_region_name` field [\#1815](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1815) ([maastha](https://github.com/maastha))
 - fix: Provider produces inconsistent result after importing `mongodbatlas_encryption_at_rest` [\#1813](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1813) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - fix: Update attributes `copy_protection_enabled`, `pit_enabled` and `encryption_at_rest_enabled` in the  resource `mongodbatlas_backup_compliance_policy` to be Optional [\#1803](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1803) ([andreaangiolillo](https://github.com/andreaangiolillo))
