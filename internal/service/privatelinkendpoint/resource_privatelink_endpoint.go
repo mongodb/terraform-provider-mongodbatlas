@@ -315,10 +315,15 @@ func refreshFunc(ctx context.Context, client *admin.APIClient, projectID, provid
 			return nil, "REJECTED", err
 		}
 
-		if *p.Status != "WAITING_FOR_USER" {
-			return "", *p.Status, nil
+		status := ""
+		if _, ok := p.GetStatusOk(); ok {
+			status = p.GetStatus()
 		}
 
-		return p, *p.Status, nil
+		if status != "WAITING_FOR_USER" {
+			return "", status, nil
+		}
+
+		return p, status, nil
 	}
 }
