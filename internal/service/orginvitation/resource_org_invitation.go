@@ -207,35 +207,35 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	orgID, username, err := splitOrgInvitationImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
-	orgInvitations, _, err := conn.Organizations.Invitations(ctx, orgID, nil)
+	orgInvitations, _, err := connV2.OrganizationsApi.ListOrganizationInvitations(ctx, orgID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import Organization invitations, error: %s", err)
 	}
 
 	for _, orgInvitation := range orgInvitations {
-		if orgInvitation.Username != username {
+		if conversion.SafeString(orgInvitation.Username) != username {
 			continue
 		}
 
-		if err := d.Set("username", orgInvitation.Username); err != nil {
+		if err := d.Set("username", orgInvitation.GetUsername()); err != nil {
 			return nil, fmt.Errorf("error getting `username` for Organization Invitation (%s): %s", username, err)
 		}
-		if err := d.Set("org_id", orgInvitation.GroupID); err != nil {
+		if err := d.Set("org_id", orgInvitation.GetOrgId()); err != nil {
 			return nil, fmt.Errorf("error getting `org_id` for Organization Invitation (%s): %s", username, err)
 		}
-		if err := d.Set("invitation_id", orgInvitation.ID); err != nil {
+		if err := d.Set("invitation_id", orgInvitation.GetId()); err != nil {
 			return nil, fmt.Errorf("error getting `invitation_id` for Organization Invitation (%s): %s", username, err)
 		}
 		d.SetId(conversion.EncodeStateID(map[string]string{
 			"username":      username,
 			"org_id":        orgID,
-			"invitation_id": orgInvitation.ID,
+			"invitation_id": orgInvitation.GetId(),
 		}))
 		return []*schema.ResourceData{d}, nil
 	}
