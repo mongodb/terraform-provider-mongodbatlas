@@ -34,24 +34,23 @@ func TestAccConfigRSOrgInvitation_basic(t *testing.T) {
 				Config: configBasic(orgID, name, initialRole),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(t, resourceName, &invitation),
-					checkAttributeUsername(&invitation, name),
-					checkAttributeRole(&invitation, initialRole),
-
 					resource.TestCheckResourceAttrSet(resourceName, "invitation_id"),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "username", name),
 					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "roles.*", initialRole[0]),
 				),
 			},
 			{
 				Config: configBasic(orgID, name, updateRoles),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(t, resourceName, &invitation),
-					checkAttributeUsername(&invitation, name),
-					checkAttributeRole(&invitation, updateRoles),
-					resource.TestCheckResourceAttrSet(resourceName, "username"),
 					resource.TestCheckResourceAttrSet(resourceName, "invitation_id"),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+					resource.TestCheckResourceAttr(resourceName, "username", name),
 					resource.TestCheckResourceAttr(resourceName, "roles.#", "2"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "roles.*", updateRoles[0]),
+					resource.TestCheckTypeSetElemAttr(resourceName, "roles.*", updateRoles[1]),
 				),
 			},
 		},
@@ -78,6 +77,7 @@ func TestAccConfigRSOrgInvitation_importBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "username", name),
 					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "roles.*", initialRole[0]),
 				),
 			},
 			{
@@ -113,30 +113,6 @@ func checkExists(t *testing.T, resourceName string, invitation *matlas.Invitatio
 			return nil
 		}
 		return fmt.Errorf("invitation(%s) does not exist", invitationID)
-	}
-}
-
-func checkAttributeUsername(invitation *matlas.Invitation, username string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if invitation.Username != username {
-			return fmt.Errorf("bad name: %s", invitation.Username)
-		}
-
-		return nil
-	}
-}
-
-func checkAttributeRole(invitation *matlas.Invitation, roles []string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		for _, role := range roles {
-			for _, currentRole := range invitation.Roles {
-				if currentRole == role {
-					return nil
-				}
-			}
-		}
-
-		return fmt.Errorf("bad role: %s", invitation.Roles)
 	}
 }
 
