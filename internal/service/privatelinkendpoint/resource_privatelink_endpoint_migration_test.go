@@ -21,7 +21,7 @@ func TestAccMigrationPrivateLinkEndpoint_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasic(t) },
+		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
