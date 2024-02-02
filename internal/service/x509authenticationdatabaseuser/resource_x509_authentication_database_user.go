@@ -187,22 +187,19 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
-
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 1 && len(parts) != 2 {
 		return nil, errors.New("import format error: to import a X509 Authentication, use the formats {project_id} or {project_id}-{username}")
 	}
-
 	var username string
 	if len(parts) == 2 {
 		username = parts[1]
 	}
-
 	projectID := parts[0]
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	if username != "" {
-		_, _, err := conn.X509AuthDBUsers.GetUserCertificates(ctx, projectID, username, nil)
+		_, _, err := connV2.X509AuthenticationApi.ListDatabaseUserCertificates(ctx, projectID, username).Execute()
 		if err != nil {
 			return nil, fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err)
 		}
@@ -212,12 +209,12 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		}
 	}
 
-	customerX509, _, err := conn.X509AuthDBUsers.GetCurrentX509Conf(ctx, projectID)
+	resp, _, err := connV2.LDAPConfigurationApi.GetLDAPConfiguration(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorCustomerX509AuthDBUsersRead, projectID, err)
 	}
-
-	if err := d.Set("customer_x509_cas", customerX509.Cas); err != nil {
+	customerX509 := resp.GetCustomerX509()
+	if err := d.Set("customer_x509_cas", customerX509.GetCas()); err != nil {
 		return nil, fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err)
 	}
 
