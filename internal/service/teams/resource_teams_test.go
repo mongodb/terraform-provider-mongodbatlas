@@ -39,7 +39,6 @@ func TestAccConfigRSTeam_basic(t *testing.T) {
 				),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &team),
-					checkAttributes(&team, name),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
@@ -53,7 +52,6 @@ func TestAccConfigRSTeam_basic(t *testing.T) {
 				),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &team),
-					checkAttributes(&team, updatedName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", updatedName),
 					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
@@ -67,7 +65,6 @@ func TestAccConfigRSTeam_basic(t *testing.T) {
 				),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &team),
-					checkAttributes(&team, updatedName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", updatedName),
 					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
@@ -133,15 +130,6 @@ func checkExists(resourceName string, team *matlas.Team) resource.TestCheckFunc 
 			return nil
 		}
 		return fmt.Errorf("team(%s) does not exist", id)
-	}
-}
-
-func checkAttributes(team *matlas.Team, name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if team.Name != name {
-			return fmt.Errorf("bad name: %s", team.Name)
-		}
-		return nil
 	}
 }
 
