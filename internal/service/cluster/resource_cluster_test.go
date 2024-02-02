@@ -1380,6 +1380,28 @@ func TestAccClusterRSCluster_RegionsConfig(t *testing.T) {
 		}
 	}`
 
+	replicationsShardsUpdate := `replication_specs {
+		num_shards = 2
+		zone_name = "us2"
+		regions_config{
+			region_name     = "US_WEST_2"
+			electable_nodes = 3
+			priority        = 7
+			read_only_nodes = 0
+		}
+	  }
+
+	 replication_specs {
+		num_shards = 1
+		zone_name = "us1"
+		regions_config{
+			region_name     = "US_WEST_1"
+			electable_nodes = 3
+			priority        = 7
+			read_only_nodes = 0
+		}
+	}`
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -1399,6 +1421,19 @@ func TestAccClusterRSCluster_RegionsConfig(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.#", "2"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasClusterConfigRegions(orgID, projectName, clusterName, replicationsShardsUpdate),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
+					// Note: replication_specs is a set for the cluster resource, therefore the order does not
+					// necessarily match the one used to insert the configuration in the .tf file.
+					// In fact, the num_shards field is used in the custom hash algorithm hence it affects the ordering.
+					// https://github.com/mongodb/terraform-provider-mongodbatlas/blob/059cd565e7aafd59eb8be30bbc9372b56ce2ffa4/internal/service/cluster/resource_cluster.go#L274
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.num_shards", "1"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.1.num_shards", "2"),
 				),
 			},
 		},

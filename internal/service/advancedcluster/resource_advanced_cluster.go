@@ -850,6 +850,10 @@ func expandAdvancedReplicationSpec(tfMap map[string]any) *matlas.AdvancedReplica
 		RegionConfigs: expandRegionConfigs(tfMap["region_configs"].([]any)),
 	}
 
+	if tfMap["id"].(string) != "" {
+		apiObject.ID = tfMap["id"].(string)
+	}
+
 	return apiObject
 }
 
