@@ -665,3 +665,4 @@ jobs:
           MONGODB_ATLAS_FEDERATED_ORG_ID: ${{ inputs.mongo_atlas_federatied_org_id }}
           TEST_REGEX: "^TestAccFederatedSettingsIdentityProvider"
         run: make testacc
+          
