@@ -32,42 +32,42 @@ func TestAccConfigRSTeam_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyTeam,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasTeamConfig(orgID, name,
+				Config: configBasic(orgID, name,
 					[]string{
 						username,
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasTeamExists(resourceName, &team),
-					testAccCheckMongoDBAtlasTeamAttributes(&team, name),
+					checkExists(resourceName, &team),
+					checkAttributes(&team, name),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasTeamConfig(orgID, updatedName,
+				Config: configBasic(orgID, updatedName,
 					[]string{
 						username,
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasTeamExists(resourceName, &team),
-					testAccCheckMongoDBAtlasTeamAttributes(&team, updatedName),
+					checkExists(resourceName, &team),
+					checkAttributes(&team, updatedName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", updatedName),
 					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasTeamConfig(orgID, updatedName,
+				Config: configBasic(orgID, updatedName,
 					[]string{
 						username,
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasTeamExists(resourceName, &team),
-					testAccCheckMongoDBAtlasTeamAttributes(&team, updatedName),
+					checkExists(resourceName, &team),
+					checkAttributes(&team, updatedName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", updatedName),
 					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
@@ -91,7 +91,7 @@ func TestAccConfigRSTeam_importBasic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyTeam,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasTeamConfig(orgID, name, []string{username}),
+				Config: configBasic(orgID, name, []string{username}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -105,7 +105,7 @@ func TestAccConfigRSTeam_importBasic(t *testing.T) {
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasTeamStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -113,7 +113,7 @@ func TestAccConfigRSTeam_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasTeamExists(resourceName string, team *matlas.Team) resource.TestCheckFunc {
+func checkExists(resourceName string, team *matlas.Team) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -136,7 +136,7 @@ func testAccCheckMongoDBAtlasTeamExists(resourceName string, team *matlas.Team) 
 	}
 }
 
-func testAccCheckMongoDBAtlasTeamAttributes(team *matlas.Team, name string) resource.TestCheckFunc {
+func checkAttributes(team *matlas.Team, name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if team.Name != name {
 			return fmt.Errorf("bad name: %s", team.Name)
@@ -145,7 +145,7 @@ func testAccCheckMongoDBAtlasTeamAttributes(team *matlas.Team, name string) reso
 	}
 }
 
-func testAccCheckMongoDBAtlasTeamStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -155,7 +155,7 @@ func testAccCheckMongoDBAtlasTeamStateIDFunc(resourceName string) resource.Impor
 	}
 }
 
-func testAccMongoDBAtlasTeamConfig(orgID, name string, usernames []string) string {
+func configBasic(orgID, name string, usernames []string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_teams" "test" {
 			org_id     = "%s"
