@@ -12,12 +12,13 @@ The Terraform MongoDB Atlas Provider version 1.15.0 has a number of new and exci
 
 **New Resources, Data Sources, and Features:**
 
-
-**Breaking Changes:**
+- You can now manage [MongoDB Atlas OIDC Workforce identity providers](https://www.mongodb.com/docs/atlas/security-oidc/#configure-oidc-authorization) with `mongodbatlas_federated_settings_identity_provider` [resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/federated_settings_identity_provider).
+- You can now programmatically retrieve Atlas OIDC Workforce identity providers with [`mongodbatlas_federated_settings_identity_provider`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/federated_settings_identity_providers) and [`mongodbatlas_federated_settings_identity_providers`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/federated_settings_identity_provider)
 
 **Deprecations and Removals:**
 
-- Removal of `page_num` and `items_per_page` attributes in `mongodbatlas_search_indexes` data source.
+- Removal of `cloud_provider_access`  resource and data source.
+- Removal of `page_num` and `items_per_page` attributes in [`mongodbatlas_search_indexes`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/search_indexes) data source.
 - Format of IdP Id that uniquely identifies the identity provider when importing [`mongodbatlas_federated_settings_identity_provider`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/federated_settings_identity_provider) resource and [`mongodbatlas_federated_settings_identity_provider`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/federated_settings_identity_provider) data source now accepts a different format to align with the Atlas Admin API. Details and upgrade guide can be found below: 
 
 Both the current and new IdP Id format are accepted in `terraform-provider` version 1.15.x. New features for `mongodbatlas_federated_settings_identity_provider` resource and data source will only be available when using the new Id format.

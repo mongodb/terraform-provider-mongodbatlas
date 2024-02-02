@@ -43,11 +43,11 @@ resource "mongodbatlas_federated_settings_identity_provider" "identity_provider"
     - HTTP REDIRECT
 * `response_signature_algorithm` - Signature algorithm that Federated Authentication uses to encrypt the identity provider signature.  Valid values include `SHA-1 `and `SHA-256`.
 * `protocol` - The protocol of the identity provider. Either `SAML` or `OIDC`.
-* `audience_claim` - Identifier of the intended recipient of the token.
-* `client_id` - Client identifier that is assigned to an application by the Identity Provider.
-* `groups_claim` - Identifier of the claim which contains IdP Group IDs in the token.
-* `requested_scopes` - Scopes that MongoDB applications will request from the authorization endpoint.
-* `user_claim` - Identifier of the claim which contains the user ID in the token.
+* `audience_claim` - Identifier of the intended recipient of the token used in OIDC IdP.
+* `client_id` - Client identifier that is assigned to an application by the OIDC Identity Provider.
+* `groups_claim` - Identifier of the claim which contains OIDC IdP Group IDs in the token.
+* `requested_scopes` - Scopes that MongoDB applications will request from the authorization endpoint used for OIDC IdPs.
+* `user_claim` - Identifier of the claim which contains the user ID in the token used for OIDC IdPs.
 
 ## Attributes Reference
 
