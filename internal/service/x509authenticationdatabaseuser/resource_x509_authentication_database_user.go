@@ -138,20 +138,18 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
-
 	var (
-		certificates []matlas.UserCertificate
-		err          error
+		certificates []admin.UserCert
 		serialNumber string
 	)
 
 	if username != "" {
-		certificates, _, err = conn.X509AuthDBUsers.GetUserCertificates(ctx, projectID, username, nil)
+		resp, _, err := connV2.X509AuthenticationApi.ListDatabaseUserCertificates(ctx, projectID, username).Execute()
 		if err != nil {
 			// new resource missing
 			reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
@@ -161,11 +159,14 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			}
 			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err))
 		}
-		if len(certificates) > 0 {
-			serialNumber = cast.ToString(certificates[len(certificates)-1].ID) // Get SerialId from last user certificate
+		if resp != nil && resp.Results != nil {
+			certificates = *resp.Results
+			if len(certificates) > 0 {
+				serialNumber = cast.ToString(certificates[len(certificates)-1].GetId()) // Get SerialId from last user certificate
+			}
 		}
 	}
-	if err := d.Set("certificates", flattenCertificates(certificates)); err != nil {
+	if err := d.Set("certificates", flattenCertificatesV2(certificates)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err))
 	}
 
@@ -242,6 +243,20 @@ func flattenCertificates(userCertificates []matlas.UserCertificate) []map[string
 			"group_id":   v.GroupID,
 			"not_after":  v.NotAfter,
 			"subject":    v.Subject,
+		}
+	}
+	return certificates
+}
+
+func flattenCertificatesV2(userCertificates []admin.UserCert) []map[string]any {
+	certificates := make([]map[string]any, len(userCertificates))
+	for i, v := range userCertificates {
+		certificates[i] = map[string]any{
+			"id":         v.GetId(),
+			"created_at": conversion.TimePtrToStringPtr(v.CreatedAt),
+			"group_id":   v.GetGroupId(),
+			"not_after":  conversion.TimePtrToStringPtr(v.NotAfter),
+			"subject":    v.GetSubject(),
 		}
 	}
 	return certificates
