@@ -329,4 +329,8 @@ jobs:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           TEST_REGEX: "^TestAccMigrationGeneric"
         run: make testacc
-      
+      - uses: lhotari/action-upterm@v1
+        with:
+          limit-access-to-actor: true
+          limit-access-to-users: lantoli
+          wait-timeout-minutes: 30
