@@ -11,6 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -99,26 +100,29 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	username := d.Get("username").(string)
 
-	var serialNumber string
-
 	if expirationMonths, ok := d.GetOk("months_until_expiration"); ok {
-		res, _, err := conn.X509AuthDBUsers.CreateUserCertificate(ctx, projectID, username, expirationMonths.(int))
+		months := expirationMonths.(int)
+		params := &admin.UserCert{
+			MonthsUntilExpiration: &months,
+		}
+		certStr, _, err := connV2.X509AuthenticationApi.CreateDatabaseUserCertificate(ctx, projectID, username, params).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersCreate, username, projectID, err))
 		}
-
-		serialNumber = cast.ToString(res.ID)
-		if err := d.Set("current_certificate", cast.ToString(res.Certificate)); err != nil {
+		if err := d.Set("current_certificate", cast.ToString(certStr)); err != nil {
 			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "current_certificate", username, err))
 		}
 	} else {
 		customerX509Cas := d.Get("customer_x509_cas").(string)
-		_, _, err := conn.X509AuthDBUsers.SaveConfiguration(ctx, projectID, &matlas.CustomerX509{Cas: customerX509Cas})
+		userReq := &admin.UserSecurity{
+			CustomerX509: &admin.DBUserTLSX509Settings{Cas: &customerX509Cas},
+		}
+		_, _, err := connV2.LDAPConfigurationApi.SaveLDAPConfiguration(ctx, projectID, userReq).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorCustomerX509AuthDBUsersCreate, projectID, err))
 		}
@@ -127,7 +131,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":    projectID,
 		"username":      username,
-		"serial_number": serialNumber,
+		"serial_number": "", // not returned in create API, got later in Read
 	}))
 
 	return resourceRead(ctx, d, meta)
@@ -157,11 +161,10 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			}
 			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err))
 		}
-		for _, val := range certificates {
-			serialNumber = cast.ToString(val.ID)
+		if len(certificates) > 0 {
+			serialNumber = cast.ToString(certificates[len(certificates)-1].ID) // Get SerialId from last user certificate
 		}
 	}
-
 	if err := d.Set("certificates", flattenCertificates(certificates)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err))
 	}
