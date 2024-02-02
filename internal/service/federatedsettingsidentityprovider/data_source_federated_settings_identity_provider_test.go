@@ -27,7 +27,6 @@ func TestAccFederatedSettingsIdentityProviderDS_samlBasic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "associated_orgs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "acs_url"),
-					resource.TestCheckResourceAttrSet(resourceName, "display_name"),
 					resource.TestCheckResourceAttr(resourceName, "display_name", "SAML-test"),
 					resource.TestCheckResourceAttr(resourceName, "protocol", "SAML"),
 					resource.TestCheckResourceAttr(resourceName, "okta_idp_id", "0oa10l49zjuBdjDT1358"),
@@ -54,7 +53,6 @@ func TestAccFedDSFederatedSettingsIdentityProvider_oidcBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasFederatedSettingsIdentityProvidersExists(resourceName),
 
-					resource.TestCheckResourceAttrSet(resourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "associated_orgs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "audience_claim.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "client_id"),
