@@ -171,12 +171,12 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		if ids["current_certificate"] != "" {
-			if _, _, err := acc.Conn().X509AuthDBUsers.GetUserCertificates(context.Background(), ids["project_id"], ids["username"], nil); err == nil {
+			if _, _, err := acc.ConnV2().X509AuthenticationApi.ListDatabaseUserCertificates(context.Background(), ids["project_id"], ids["username"]).Execute(); err == nil {
 				return nil
 			}
 			return fmt.Errorf("the X509 Authentication Database User(%s) does not exist in the project(%s)", ids["username"], ids["project_id"])
 		}
-		if _, _, err := acc.Conn().X509AuthDBUsers.GetCurrentX509Conf(context.Background(), ids["project_id"]); err == nil {
+		if _, _, err := acc.ConnV2().LDAPConfigurationApi.GetLDAPConfiguration(context.Background(), ids["project_id"]).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("the Customer X509 Authentication does not exist in the project(%s)", ids["project_id"])
