@@ -30,8 +30,6 @@ func TestAccMigrationPrivateLinkEndpoint_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "region"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "region", region),
 				),
