@@ -64,6 +64,7 @@ jobs:
       federation: ${{ steps.filter.outputs.federation == 'true' || env.mustTrigger == 'true' }}
       search_deployment: ${{ steps.filter.outputs.search_deployment == 'true' || env.mustTrigger == 'true' }}
       generic: ${{ steps.filter.outputs.generic == 'true' || env.mustTrigger == 'true' }}
+      network: ${{ steps.filter.outputs.network == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
     - uses: dorny/paths-filter@0bc4621a3135347011ad047f9ecf449bf72ce2bd
@@ -106,6 +107,13 @@ jobs:
             - 'internal/service/backupcompliancepolicy/*.go'
             - 'internal/service/auditing/*.go'
             - 'internal/service/x509authenticationdatabaseuser/*.go'
+          network:
+            - 'internal/service/networkcontainer/*.go'
+            - 'internal/service/networkpeering/*.go'
+            - 'internal/service/privateendpointregionalmode/*.go'
+            - 'internal/service/privatelinkendpoint/*.go'
+            - 'internal/service/privatelinkendpointservice/*.go'
+            - 'internal/service/privatelinkendpointservicedatafederationonlinearchive/*.go'
   
   project: 
     needs: [ change-detection, get-provider-version ]
@@ -330,3 +338,36 @@ jobs:
           TEST_REGEX: "^TestAccMigrationGeneric"
         run: make testacc
       
+  network:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.network == 'true' || inputs.test_group == 'network' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.terraform_version }}
+          terraform_wrapper: false    
+      - name: Migration Tests
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV_NETWORK }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV_NETWORK }}
+          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV_NETWORK }}
+          MONGODB_ATLAS_PROJECT_ID: ${{ vars.MONGODB_ATLAS_PROJECT_ID_CLOUD_DEV_NETWORK }}
+          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          AWS_SECURITY_GROUP_1: ${{ vars.AWS_SECURITY_GROUP_1 }}
+          AWS_SECURITY_GROUP_2: ${{ vars.AWS_SECURITY_GROUP_2 }}
+          AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
+          AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          TEST_REGEX: "^TestAccMigrationNetwork"
+        run: make testacc

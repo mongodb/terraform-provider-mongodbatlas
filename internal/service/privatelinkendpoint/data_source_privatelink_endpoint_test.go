@@ -21,9 +21,9 @@ func TestAccNetworkDSPrivateLinkEndpoint_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateLinkEndpointDataSourceConfig(projectID, providerName, region),
+				Config: configDS(projectID, providerName, region),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateLinkEndpointExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "private_link_id"),
 				),
@@ -32,7 +32,7 @@ func TestAccNetworkDSPrivateLinkEndpoint_basic(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasPrivateLinkEndpointDataSourceConfig(projectID, providerName, region string) string {
+func configDS(projectID, providerName, region string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_privatelink_endpoint" "test" {
 			project_id    = "%s"
