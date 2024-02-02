@@ -198,7 +198,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		if _, _, err := acc.Conn().PrivateEndpoints.Get(context.Background(), ids["project_id"], ids["provider_name"], ids["private_link_id"]); err == nil {
+		if _, _, err := acc.ConnV2().PrivateEndpointServicesApi.GetPrivateEndpointService(context.Background(), ids["project_id"], ids["provider_name"], ids["private_link_id"]).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("the MongoDB Private Endpoint(%s) for the project(%s) does not exist", rs.Primary.Attributes["private_link_id"], rs.Primary.Attributes["project_id"])
@@ -211,7 +211,7 @@ func checkDestroy(s *terraform.State) error {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.Conn().PrivateEndpoints.Get(context.Background(), ids["project_id"], ids["provider_name"], ids["private_link_id"])
+		_, _, err := acc.ConnV2().PrivateEndpointServicesApi.GetPrivateEndpointService(context.Background(), ids["project_id"], ids["provider_name"], ids["private_link_id"]).Execute()
 		if err == nil {
 			return fmt.Errorf("the MongoDB Private Endpoint(%s) still exists", ids["private_link_id"])
 		}
