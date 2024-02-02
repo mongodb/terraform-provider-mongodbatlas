@@ -29,12 +29,12 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasTeamCreate,
-		ReadContext:   resourceMongoDBAtlasTeamRead,
-		UpdateContext: resourceMongoDBAtlasTeamUpdate,
-		DeleteContext: resourceMongoDBAtlasTeamDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasTeamImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"org_id": {
@@ -61,7 +61,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasTeamCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	orgID := d.Get("org_id").(string)
 
@@ -80,10 +80,10 @@ func resourceMongoDBAtlasTeamCreate(ctx context.Context, d *schema.ResourceData,
 		"id":     teamsResp.ID,
 	}))
 
-	return resourceMongoDBAtlasTeamRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	ids := conversion.DecodeStateID(d.Id())
@@ -127,7 +127,7 @@ func resourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, m
 	return nil
 }
 
-func resourceMongoDBAtlasTeamUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	ids := conversion.DecodeStateID(d.Id())
@@ -214,10 +214,10 @@ func resourceMongoDBAtlasTeamUpdate(ctx context.Context, d *schema.ResourceData,
 		}
 	}
 
-	return resourceMongoDBAtlasTeamRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasTeamDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
@@ -249,7 +249,7 @@ func resourceMongoDBAtlasTeamDelete(ctx context.Context, d *schema.ResourceData,
 	return nil
 }
 
-func resourceMongoDBAtlasTeamImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
