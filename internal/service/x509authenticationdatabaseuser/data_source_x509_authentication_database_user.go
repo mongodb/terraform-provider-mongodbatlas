@@ -62,28 +62,28 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	username := d.Get("username").(string)
 
 	if username != "" {
-		certificates, _, err := conn.X509AuthDBUsers.GetUserCertificates(ctx, projectID, username, nil)
+		resp, _, err := connV2.X509AuthenticationApi.ListDatabaseUserCertificates(ctx, projectID, username).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err))
 		}
-
-		if err := d.Set("certificates", flattenCertificates(certificates)); err != nil {
-			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err))
+		if resp != nil && resp.Results != nil {
+			if err := d.Set("certificates", flattenCertificates(*resp.Results)); err != nil {
+				return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err))
+			}
 		}
 	}
 
-	customerX509, _, err := conn.X509AuthDBUsers.GetCurrentX509Conf(ctx, projectID)
+	resp, _, err := connV2.LDAPConfigurationApi.GetLDAPConfiguration(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCustomerX509AuthDBUsersRead, projectID, err))
 	}
-
-	if err := d.Set("customer_x509_cas", customerX509.Cas); err != nil {
+	customerX509 := resp.GetCustomerX509()
+	if err := d.Set("customer_x509_cas", customerX509.GetCas()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err))
 	}
 

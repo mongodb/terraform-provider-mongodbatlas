@@ -12,7 +12,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
 	"go.mongodb.org/atlas-sdk/v20231115005/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -101,7 +100,6 @@ func Resource() *schema.Resource {
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-
 	projectID := d.Get("project_id").(string)
 	username := d.Get("username").(string)
 
@@ -139,7 +137,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
@@ -166,7 +163,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			}
 		}
 	}
-	if err := d.Set("certificates", flattenCertificatesV2(certificates)); err != nil {
+	if err := d.Set("certificates", flattenCertificates(certificates)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err))
 	}
 
@@ -187,6 +184,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 1 && len(parts) != 2 {
 		return nil, errors.New("import format error: to import a X509 Authentication, use the formats {project_id} or {project_id}-{username}")
@@ -196,7 +194,6 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		username = parts[1]
 	}
 	projectID := parts[0]
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	if username != "" {
 		_, _, err := connV2.X509AuthenticationApi.ListDatabaseUserCertificates(ctx, projectID, username).Execute()
@@ -231,21 +228,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func flattenCertificates(userCertificates []matlas.UserCertificate) []map[string]any {
-	certificates := make([]map[string]any, len(userCertificates))
-	for i, v := range userCertificates {
-		certificates[i] = map[string]any{
-			"id":         v.ID,
-			"created_at": v.CreatedAt,
-			"group_id":   v.GroupID,
-			"not_after":  v.NotAfter,
-			"subject":    v.Subject,
-		}
-	}
-	return certificates
-}
-
-func flattenCertificatesV2(userCertificates []admin.UserCert) []map[string]any {
+func flattenCertificates(userCertificates []admin.UserCert) []map[string]any {
 	certificates := make([]map[string]any, len(userCertificates))
 	for i, v := range userCertificates {
 		certificates[i] = map[string]any{
