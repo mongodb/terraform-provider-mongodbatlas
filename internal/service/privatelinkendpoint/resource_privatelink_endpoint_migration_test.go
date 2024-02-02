@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationPrivateLinkEndpoint_basic(t *testing.T) {
+func TestAccMigrationNetworkPrivateLinkEndpoint_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
