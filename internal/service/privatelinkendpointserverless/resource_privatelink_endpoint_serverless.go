@@ -251,10 +251,12 @@ func resourceRefreshFunc(ctx context.Context, client *admin.APIClient, projectID
 			return nil, "REJECTED", err
 		}
 
-		if p.GetStatus() != "WAITING_FOR_USER" {
-			return "", p.GetStatus(), nil
+		status := p.GetStatus()
+
+		if status != "WAITING_FOR_USER" {
+			return "", status, nil
 		}
 
-		return p, p.GetStatus(), nil
+		return p, status, nil
 	}
 }
