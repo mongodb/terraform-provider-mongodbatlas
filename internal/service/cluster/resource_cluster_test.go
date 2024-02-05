@@ -899,7 +899,7 @@ func TestAccClusterRSCluster_WithTags(t *testing.T) {
 }
 
 func TestAccClusterRSCluster_withPrivateEndpointLink(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.with_endpoint_link"
@@ -935,7 +935,7 @@ func TestAccClusterRSCluster_withPrivateEndpointLink(t *testing.T) {
 }
 
 func TestAccClusterRSCluster_withAzureNetworkPeering(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.with_azure_peering"
@@ -970,7 +970,7 @@ func TestAccClusterRSCluster_withAzureNetworkPeering(t *testing.T) {
 }
 
 func TestAccClusterRSCluster_withGCPNetworkPeering(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		cluster          matlas.Cluster
 		resourceName     = "mongodbatlas_cluster.test"
@@ -1006,7 +1006,7 @@ func TestAccClusterRSCluster_withGCPNetworkPeering(t *testing.T) {
 }
 
 func TestAccClusterRSCluster_withAzureAndContainerID(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		resourceName      = "mongodbatlas_cluster.test"
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -1037,7 +1037,7 @@ func TestAccClusterRSCluster_withAzureAndContainerID(t *testing.T) {
 }
 
 func TestAccClusterRSCluster_withAWSAndContainerID(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_cluster.test"
 
@@ -1070,7 +1070,7 @@ func TestAccClusterRSCluster_withAWSAndContainerID(t *testing.T) {
 }
 
 func TestAccClusterRSCluster_withGCPAndContainerID(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		resourceName     = "mongodbatlas_cluster.test"
 		gcpProjectID     = os.Getenv("GCP_PROJECT_ID")

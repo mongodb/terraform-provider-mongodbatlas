@@ -15,7 +15,7 @@ import (
 )
 
 func TestAccMigrationAdvRS_EncryptionAtRest_basicAWS(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -58,7 +58,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAWS(t *testing.T) {
 }
 
 func TestAccMigrationAdvRS_EncryptionAtRest_WithRole_basicAWS(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -105,7 +105,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_WithRole_basicAWS(t *testing.T) {
 }
 
 func TestAccMigrationAdvRS_EncryptionAtRest_basicAzure(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -154,7 +154,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAzure(t *testing.T) {
 }
 
 func TestAccMigrationAdvRS_EncryptionAtRest_basicGCP(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -194,7 +194,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicGCP(t *testing.T) {
 }
 
 func TestAccMigrationAdvRS_EncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

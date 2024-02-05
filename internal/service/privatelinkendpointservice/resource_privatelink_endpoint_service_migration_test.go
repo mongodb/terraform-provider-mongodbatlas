@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccMigrationNetworkRSPrivateLinkEndpointService_Complete(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		resourceSuffix = "test"
 		resourceName   = fmt.Sprintf("mongodbatlas_privatelink_endpoint_service.%s", resourceSuffix)

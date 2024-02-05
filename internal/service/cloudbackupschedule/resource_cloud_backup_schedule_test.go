@@ -138,7 +138,7 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 }
 
 func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")

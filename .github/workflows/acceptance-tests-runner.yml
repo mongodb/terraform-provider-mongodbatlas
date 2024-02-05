@@ -103,9 +103,7 @@ on:
         required: true
 
 env:
-  # CI: true  # GH does this automatically
   TF_ACC: 1
-  SKIP_TEST_EXTERNAL_CREDENTIALS: true
   TF_LOG: ${{ vars.LOG_LEVEL }}
   ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
 

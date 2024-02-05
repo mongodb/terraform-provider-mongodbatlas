@@ -11,7 +11,7 @@ import (
 )
 
 func TestAccBackupDSCloudBackupSnapshotExportBucket_basic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		snapshotExportBackup matlas.CloudProviderSnapshotExportBucket
 		projectID            = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

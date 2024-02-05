@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccAdvDSLDAPConfiguration_basic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		ldapConfiguration matlas.LDAPConfiguration
 		resourceName      = "mongodbatlas_ldap_configuration.test"

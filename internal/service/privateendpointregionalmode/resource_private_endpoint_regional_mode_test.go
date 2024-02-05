@@ -16,7 +16,7 @@ import (
 )
 
 func TestAccNetworkRSPrivateEndpointRegionalMode_conn(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		endpointResourceSuffix = "atlasple"
 		resourceSuffix         = "atlasrm"

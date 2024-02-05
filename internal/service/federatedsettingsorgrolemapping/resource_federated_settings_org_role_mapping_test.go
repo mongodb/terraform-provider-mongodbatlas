@@ -14,7 +14,7 @@ import (
 )
 
 func TestAccFederatedSettingsOrgRoleMapping_basic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		federatedSettingsOrganizationRoleMapping matlas.FederatedSettingsOrganizationRoleMapping
 		resourceName                             = "mongodbatlas_federated_settings_org_role_mapping.test"
@@ -42,7 +42,7 @@ func TestAccFederatedSettingsOrgRoleMapping_basic(t *testing.T) {
 }
 
 func TestAccFederatedSettingsOrgRoleMapping_importBasic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		resourceName         = "mongodbatlas_federated_settings_org_role_mapping.test"
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")

@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccNetworkDSPrivateLinkEndpointServiceAWS_basic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	resourceName := "data.mongodbatlas_privatelink_endpoint_service.test"
 
 	awsAccessKey := os.Getenv("AWS_ACCESS_KEY_ID")

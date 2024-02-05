@@ -15,7 +15,7 @@ import (
 )
 
 func TestAccAdvRSLDAPConfiguration_basic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		ldapConfiguration matlas.LDAPConfiguration
 		resourceName      = "mongodbatlas_ldap_configuration.test"
@@ -50,7 +50,7 @@ func TestAccAdvRSLDAPConfiguration_basic(t *testing.T) {
 }
 
 func TestAccAdvRSLDAPConfigurationWithVerify_CACertificateComplete(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		ldapConfiguration  matlas.LDAPConfiguration
 		resourceName       = "mongodbatlas_ldap_configuration.test"
@@ -100,7 +100,7 @@ func TestAccAdvRSLDAPConfigurationWithVerify_CACertificateComplete(t *testing.T)
 }
 
 func TestAccAdvRSLDAPConfiguration_importBasic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		ldapConf     = matlas.LDAPConfiguration{}
 		resourceName = "mongodbatlas_ldap_configuration.test"

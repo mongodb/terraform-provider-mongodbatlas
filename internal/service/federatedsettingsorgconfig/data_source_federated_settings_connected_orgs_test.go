@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccFederatedSettingsOrgDSPlural_basic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		resourceName        = "data.mongodbatlas_federated_settings_org_configs.test"
 		federatedSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
