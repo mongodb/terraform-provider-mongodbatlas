@@ -1319,7 +1319,6 @@ func TestAccClusterRSCluster_basicGCPRegionNameUSWest2(t *testing.T) {
 }
 
 func TestAccClusterRSCluster_RegionsConfig(t *testing.T) {
-	acc.SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_cluster.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
