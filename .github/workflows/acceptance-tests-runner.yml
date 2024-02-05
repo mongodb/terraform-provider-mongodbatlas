@@ -122,7 +122,6 @@ jobs:
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
       generic: ${{ steps.filter.outputs.generic == 'true' || env.mustTrigger == 'true' }}
       backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
-      federation: ${{ steps.filter.outputs.federation == 'true' || env.mustTrigger == 'true' }}
       project: ${{ steps.filter.outputs.project == 'true' || env.mustTrigger == 'true' }}
       serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
       network: ${{ steps.filter.outputs.network == 'true' || env.mustTrigger == 'true' }}
@@ -130,7 +129,7 @@ jobs:
       assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
       event_trigger: ${{ steps.filter.outputs.event_trigger == 'true' || env.mustTrigger == 'true' }}
       search_index: ${{ steps.filter.outputs.search_index == 'true' || env.mustTrigger == 'true' }}
-      federated_settings_identity_provider: ${{ steps.filter.outputs.federated_settings_identity_provider == 'true' || env.mustTrigger == 'true' }}
+      federated: ${{ steps.filter.outputs.federated == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
     - uses: dorny/paths-filter@0bc4621a3135347011ad047f9ecf449bf72ce2bd
@@ -178,11 +177,6 @@ jobs:
             - 'internal/service/privatelinkendpoint/*.go'
             - 'internal/service/privatelinkendpointservice/*.go'
             - 'internal/service/privatelinkendpointservicedatafederationonlinearchive/*.go'
-          federation:
-            - 'internal/service/federateddatabaseinstance/*.go'
-            - 'internal/service/federatedsettingsorgconfig/*.go'
-            - 'internal/service/federatedsettingsorgrolemapping/*.go'
-            - 'internal/service/federatedquerylimit/*.go'
           config:
             - 'internal/service/alertconfiguration/*.go'
             - 'internal/service/atlasuser/*.go'
@@ -202,8 +196,12 @@ jobs:
             - 'internal/service/eventtrigger/*.go'
           search_index:
             - 'internal/service/searchindex/*.go'
-          federated_settings_identity_provider:
+          federated:
           - 'internal/service/federatedsettingsidentityprovider/*.go'
+          - 'internal/service/federateddatabaseinstance/*.go'
+          - 'internal/service/federatedsettingsorgconfig/*.go'
+          - 'internal/service/federatedsettingsorgrolemapping/*.go'
+          - 'internal/service/federatedquerylimit/*.go'
   
   cluster_outage_simulation:
     needs: [ change-detection ]
@@ -464,35 +462,6 @@ jobs:
           AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
           TEST_REGEX: "^TestAccNetwork"
         run: make testacc
-
-  federation:
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.federation == 'true' || inputs.test_group == 'federation' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false    
-      - name: Acceptance Tests
-        env:
-          AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federation }}
-          AWS_REGION: ${{ vars.aws_region_federation }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          TEST_REGEX: "^TestAccFederatedDatabase|^TestAccFederatedSettings"
-        run: make testacc
-      
   config:
     needs: [ change-detection ]
     if: ${{ needs.change-detection.outputs.config == 'true' || inputs.test_group == 'config' }}
@@ -584,9 +553,9 @@ jobs:
           TEST_REGEX: "^TestAccSearchIndex"
         run: make testacc
   
-  federated_settings_identity_provider:
+  federated:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.federated_settings_identity_provider == 'true' || inputs.test_group == 'federated_settings_identity_provider' }}
+    if: ${{ needs.change-detection.outputs.federated == 'true' || inputs.test_group == 'federated' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
@@ -601,6 +570,10 @@ jobs:
           terraform_wrapper: false    
       - name: Acceptance Tests
         env:
+          AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federation }}
+          AWS_REGION: ${{ vars.aws_region_federation }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}          
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
@@ -612,6 +585,5 @@ jobs:
           MONGODB_ATLAS_FEDERATED_ISSUER_URI: ${{ inputs.mongodb_atlas_federatied_issuer_uri }}
           MONGODB_ATLAS_FEDERATED_PROJECT_ID: ${{ inputs.mongodb_atlas_federatied_project_id }}
           MONGODB_ATLAS_FEDERATED_ORG_ID: ${{ inputs.mongodb_atlas_federatied_org_id }}
-          TEST_REGEX: "^TestAccFederatedSettingsIdentityProvider"
+          TEST_REGEX: "^TestAccFederated"
         run: make testacc
-          

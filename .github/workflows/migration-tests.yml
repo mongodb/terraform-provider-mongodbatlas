@@ -61,7 +61,7 @@ jobs:
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
       backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
-      federation: ${{ steps.filter.outputs.federation == 'true' || env.mustTrigger == 'true' }}
+      federated: ${{ steps.filter.outputs.federated == 'true' || env.mustTrigger == 'true' }}
       search_deployment: ${{ steps.filter.outputs.search_deployment == 'true' || env.mustTrigger == 'true' }}
       generic: ${{ steps.filter.outputs.generic == 'true' || env.mustTrigger == 'true' }}
       network: ${{ steps.filter.outputs.network == 'true' || env.mustTrigger == 'true' }}
@@ -104,8 +104,12 @@ jobs:
           stream:
             - 'internal/service/streaminstance/*.go'
             - 'internal/service/streamconnection/*.go'
-          federation:
+          federated:
+            - 'internal/service/federatedsettingsidentityprovider/*.go'
             - 'internal/service/federateddatabaseinstance/*.go'
+            - 'internal/service/federatedsettingsorgconfig/*.go'
+            - 'internal/service/federatedsettingsorgrolemapping/*.go'
+            - 'internal/service/federatedquerylimit/*.go'
           search_deployment:
             - 'internal/service/searchdeployment/*.go'
           generic:
@@ -262,9 +266,9 @@ jobs:
           TEST_REGEX: "^TestAccMigrationStream"
         run: make testacc
 
-  federation:
+  federated:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.federation == 'true' || inputs.test_group == 'federation' }}
+    if: ${{ needs.change-detection.outputs.federated == 'true' || inputs.test_group == 'federated' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -288,7 +292,7 @@ jobs:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          TEST_REGEX: "^TestAccMigrationFederatedDatabaseInstance"
+          TEST_REGEX: "^TestAccMigrationFederated"
         run: make testacc
 
   search_deployment:
