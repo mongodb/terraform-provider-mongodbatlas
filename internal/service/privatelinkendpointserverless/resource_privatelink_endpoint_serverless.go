@@ -27,11 +27,11 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasPrivateLinkEndpointServerlessCreate,
-		ReadContext:   resourceMongoDBAtlasPrivateLinkEndpointServerlessRead,
-		DeleteContext: resourceMongoDBAtlasPrivateLinkEndpointServerlessDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasPrivateLinkEndpointServerlessImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -74,7 +74,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasPrivateLinkEndpointServerlessCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -92,7 +92,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessCreate(ctx context.Context
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"RESERVATION_REQUESTED", "INITIATING", "DELETING"},
 		Target:     []string{"RESERVED", "FAILED", "DELETED", "AVAILABLE"},
-		Refresh:    resourcePrivateLinkEndpointServerlessRefreshFunc(ctx, conn, projectID, instanceName, endPoint.ID),
+		Refresh:    resourceRefreshFunc(ctx, conn, projectID, instanceName, endPoint.ID),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 5 * time.Second,
 		Delay:      5 * time.Second,
@@ -110,10 +110,10 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessCreate(ctx context.Context
 		"endpoint_id":   endPoint.ID,
 	}))
 
-	return resourceMongoDBAtlasPrivateLinkEndpointServerlessRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasPrivateLinkEndpointServerlessRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
@@ -156,7 +156,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessRead(ctx context.Context, 
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateLinkEndpointServerlessDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
@@ -184,7 +184,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessDelete(ctx context.Context
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"DELETING"},
 		Target:     []string{"DELETED", "FAILED"},
-		Refresh:    resourcePrivateLinkEndpointServerlessRefreshFunc(ctx, conn, projectID, instanceName, endpointID),
+		Refresh:    resourceRefreshFunc(ctx, conn, projectID, instanceName, endpointID),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		MinTimeout: 5 * time.Second,
 		Delay:      5 * time.Second,
@@ -198,7 +198,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessDelete(ctx context.Context
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateLinkEndpointServerlessImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "--", 3)
@@ -249,7 +249,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessImportState(ctx context.Co
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourcePrivateLinkEndpointServerlessRefreshFunc(ctx context.Context, client *matlas.Client, projectID, instanceName, privateLinkID string) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, client *matlas.Client, projectID, instanceName, privateLinkID string) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		p, resp, err := client.ServerlessPrivateEndpoints.Get(ctx, projectID, instanceName, privateLinkID)
 		if err != nil {
