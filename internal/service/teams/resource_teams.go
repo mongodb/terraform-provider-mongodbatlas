@@ -89,7 +89,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	orgID := ids["org_id"]
 	teamID := ids["id"]
 
-	// team, resp, err := conn.Teams.Get(context.Background(), orgID, teamID)
 	team, resp, err := connV2.TeamsApi.GetTeamById(context.Background(), orgID, teamID).Execute()
 
 	if err != nil {
