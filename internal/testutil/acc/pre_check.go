@@ -25,6 +25,16 @@ func PreCheck(tb testing.TB) {
 	}
 }
 
+func PreCheckCert(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
+		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
+		os.Getenv("MONGODB_ATLAS_ORG_ID") == "" ||
+		os.Getenv("CA_CERT") == "" {
+		tb.Fatal("`CA_CERT, MONGODB_ATLAS_PUBLIC_KEY`, `MONGODB_ATLAS_PRIVATE_KEY`, and `MONGODB_ATLAS_ORG_ID` must be set for acceptance testing")
+	}
+}
+
 func PreCheckBetaFlag(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_ENABLE_BETA") == "" {
