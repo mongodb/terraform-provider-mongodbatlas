@@ -185,6 +185,7 @@ jobs:
             - 'internal/service/federateddatabaseinstance/*.go'
             - 'internal/service/federatedsettingsorgconfig/*.go'
             - 'internal/service/federatedsettingsorgrolemapping/*.go'
+            - 'internal/service/federatedquerylimit/*.go'
           config:
             - 'internal/service/alertconfiguration/*.go'
             - 'internal/service/atlasuser/*.go'
@@ -543,7 +544,7 @@ jobs:
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
           MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          TEST_REGEX: "^TestAccFederatedDatabaseInstance|^TestAccFederatedSettings"
+          TEST_REGEX: "^TestAccFederatedDatabase|^TestAccFederatedSettings"
         run: make testacc
       
   config:

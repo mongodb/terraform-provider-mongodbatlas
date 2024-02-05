@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccDataSourceFederatedDatabaseQueryLimits_basic(t *testing.T) {
+func TestAccFederatedDatabaseQueryLimitDSPlural_basic(t *testing.T) {
 	acc.SkipTestExtCred(t)
 	var (
 		resourceName = "data.mongodbatlas_federated_query_limits.test"

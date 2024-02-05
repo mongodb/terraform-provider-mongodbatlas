@@ -15,7 +15,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccDataSourceFederatedDatabaseQueryLimit_basic(t *testing.T) {
+func TestAccFederatedDatabaseQueryLimitDS_basic(t *testing.T) {
 	acc.SkipTestExtCred(t)
 	var (
 		resourceName = "data.mongodbatlas_federated_query_limit.test"
