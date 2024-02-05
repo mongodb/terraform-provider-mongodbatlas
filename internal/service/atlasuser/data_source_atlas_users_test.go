@@ -16,6 +16,9 @@ import (
 )
 
 func TestAccConfigDSAtlasUsers_ByOrgID(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" { // needed while fetchOrgUsers is called from the test
+		t.Skip()
+	}
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
