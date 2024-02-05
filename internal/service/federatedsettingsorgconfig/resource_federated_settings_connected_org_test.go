@@ -13,7 +13,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccFedRSFederatedSettingsOrganizationConfig_basic(t *testing.T) {
+func TestAccFederatedSettingsOrg_basic(t *testing.T) {
 	acc.SkipTestExtCred(t)
 	var (
 		federatedSettingsIdentityProvider matlas.FederatedSettingsConnectedOrganization
@@ -49,7 +49,7 @@ func TestAccFedRSFederatedSettingsOrganizationConfig_basic(t *testing.T) {
 	})
 }
 
-func TestAccFedRSFederatedSettingsOrganizationConfig_importBasic(t *testing.T) {
+func TestAccFederatedSettingsOrg_importBasic(t *testing.T) {
 	acc.SkipTestExtCred(t)
 	var (
 		resourceName         = "mongodbatlas_federated_settings_org_config.test"
