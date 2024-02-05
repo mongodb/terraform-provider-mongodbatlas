@@ -14,7 +14,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
-func TestAccMigrationAdvRS_EncryptionAtRest_basicAWS(t *testing.T) {
+func TestAccMigrationEncryptionAtRest_basicAWS(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
@@ -57,7 +57,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAWS(t *testing.T) {
 	})
 }
 
-func TestAccMigrationAdvRS_EncryptionAtRest_WithRole_basicAWS(t *testing.T) {
+func TestAccMigrationEncryptionAtRest_withRole_basicAWS(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
@@ -104,7 +104,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_WithRole_basicAWS(t *testing.T) {
 	})
 }
 
-func TestAccMigrationAdvRS_EncryptionAtRest_basicAzure(t *testing.T) {
+func TestAccMigrationEncryptionAtRest_basicAzure(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
@@ -153,7 +153,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAzure(t *testing.T) {
 	})
 }
 
-func TestAccMigrationAdvRS_EncryptionAtRest_basicGCP(t *testing.T) {
+func TestAccMigrationEncryptionAtRest_basicGCP(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
@@ -193,7 +193,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicGCP(t *testing.T) {
 	})
 }
 
-func TestAccMigrationAdvRS_EncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
+func TestAccMigrationEncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"

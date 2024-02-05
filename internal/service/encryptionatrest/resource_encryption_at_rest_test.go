@@ -104,7 +104,7 @@ data "aws_iam_role" "test" {
 `
 )
 
-func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
+func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
@@ -166,7 +166,7 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 	})
 }
 
-func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
+func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
@@ -236,7 +236,7 @@ func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
 	})
 }
 
-func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
+func TestAccEncryptionAtRest_basicGCP(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
@@ -288,7 +288,7 @@ func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
 	})
 }
 
-func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
+func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 	acc.SkipTestForCI(t) // For now it will skipped because of aws errors reasons, already made another test using terratest.
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
