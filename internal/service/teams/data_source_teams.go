@@ -10,12 +10,12 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasTeamRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"org_id": {
 				Type:     schema.TypeString,
@@ -44,15 +44,15 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	var (
-		conn             = meta.(*config.MongoDBClient).Atlas
+		connV2           = meta.(*config.MongoDBClient).AtlasV2
 		orgID            = d.Get("org_id").(string)
 		teamID, teamIDOk = d.GetOk("team_id")
 		name, nameOk     = d.GetOk("name")
 
 		err  error
-		team *matlas.Team
+		team *admin.TeamResponse
 	)
 
 	if !teamIDOk && !nameOk {
@@ -60,32 +60,31 @@ func dataSourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData,
 	}
 
 	if teamIDOk {
-		team, _, err = conn.Teams.Get(ctx, orgID, teamID.(string))
+		team, _, err = connV2.TeamsApi.GetTeamById(ctx, orgID, teamID.(string)).Execute()
 	} else {
-		team, _, err = conn.Teams.GetOneTeamByName(ctx, orgID, name.(string))
+		team, _, err = connV2.TeamsApi.GetTeamByName(ctx, orgID, name.(string)).Execute()
 	}
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamRead, err))
 	}
 
-	if err := d.Set("team_id", team.ID); err != nil {
+	if err := d.Set("team_id", team.GetId()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamSetting, "name", d.Id(), err))
 	}
 
-	if err := d.Set("name", team.Name); err != nil {
+	if err := d.Set("name", team.GetName()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamSetting, "name", d.Id(), err))
 	}
 
-	// Set Usernames
-	users, _, err := conn.Teams.GetTeamUsersAssigned(ctx, orgID, team.ID)
+	users, _, err := connV2.TeamsApi.ListTeamUsers(ctx, orgID, team.GetId()).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamRead, err))
 	}
 
 	usernames := []string{}
-	for i := range users {
-		usernames = append(usernames, users[i].Username)
+	for i := range users.GetResults() {
+		usernames = append(usernames, users.GetResults()[i].GetUsername())
 	}
 
 	if err := d.Set("usernames", usernames); err != nil {
@@ -94,7 +93,7 @@ func dataSourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData,
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"org_id": orgID,
-		"id":     team.ID,
+		"id":     team.GetId(),
 	}))
 
 	return nil

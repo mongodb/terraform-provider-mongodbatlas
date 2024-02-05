@@ -13,61 +13,44 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccConfigRSTeam_basic(t *testing.T) {
 	var (
-		team         matlas.Team
 		resourceName = "mongodbatlas_teams.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 		updatedName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-		username     = os.Getenv("MONGODB_ATLAS_USERNAME")
+		usernames    = []string{os.Getenv("MONGODB_ATLAS_USERNAME")}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckAtlasUsername(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyTeam,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasTeamConfig(orgID, name,
-					[]string{
-						username,
-					},
-				),
+				Config: configBasic(orgID, name, usernames),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasTeamExists(resourceName, &team),
-					testAccCheckMongoDBAtlasTeamAttributes(&team, name),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasTeamConfig(orgID, updatedName,
-					[]string{
-						username,
-					},
-				),
+				Config: configBasic(orgID, updatedName, usernames),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasTeamExists(resourceName, &team),
-					testAccCheckMongoDBAtlasTeamAttributes(&team, updatedName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", updatedName),
 					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasTeamConfig(orgID, updatedName,
-					[]string{
-						username,
-					},
-				),
+				Config: configBasic(orgID, updatedName, usernames),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasTeamExists(resourceName, &team),
-					testAccCheckMongoDBAtlasTeamAttributes(&team, updatedName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", updatedName),
 					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
@@ -86,12 +69,12 @@ func TestAccConfigRSTeam_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckAtlasUsername(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyTeam,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasTeamConfig(orgID, name, []string{username}),
+				Config: configBasic(orgID, name, []string{username}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -105,7 +88,7 @@ func TestAccConfigRSTeam_importBasic(t *testing.T) {
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasTeamStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -113,7 +96,7 @@ func TestAccConfigRSTeam_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasTeamExists(resourceName string, team *matlas.Team) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -127,25 +110,15 @@ func testAccCheckMongoDBAtlasTeamExists(resourceName string, team *matlas.Team) 
 		}
 		log.Printf("[DEBUG] orgID: %s", orgID)
 		log.Printf("[DEBUG] teamID: %s", id)
-		teamResp, _, err := acc.Conn().Teams.Get(context.Background(), orgID, id)
+		_, _, err := acc.ConnV2().TeamsApi.GetTeamById(context.Background(), orgID, id).Execute()
 		if err == nil {
-			*team = *teamResp
 			return nil
 		}
 		return fmt.Errorf("team(%s) does not exist", id)
 	}
 }
 
-func testAccCheckMongoDBAtlasTeamAttributes(team *matlas.Team, name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if team.Name != name {
-			return fmt.Errorf("bad name: %s", team.Name)
-		}
-		return nil
-	}
-}
-
-func testAccCheckMongoDBAtlasTeamStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -155,7 +128,7 @@ func testAccCheckMongoDBAtlasTeamStateIDFunc(resourceName string) resource.Impor
 	}
 }
 
-func testAccMongoDBAtlasTeamConfig(orgID, name string, usernames []string) string {
+func configBasic(orgID, name string, usernames []string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_teams" "test" {
 			org_id     = "%s"

@@ -28,3 +28,9 @@ func PreCheckCert(tb testing.TB) {
 	checkLastVersion(tb)
 	acc.PreCheckCert(tb)
 }
+
+func PreCheckAtlasUsername(tb testing.TB) {
+	tb.Helper()
+	checkLastVersion(tb)
+	acc.PreCheckAtlasUsername(tb)
+}

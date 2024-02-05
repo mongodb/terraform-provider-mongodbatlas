@@ -19,12 +19,12 @@ func TestAccConfigDSTeam_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckAtlasUsername(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyTeam,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceMongoDBAtlasTeamConfig(orgID, name, username),
+				Config: dataSourceConfigBasic(orgID, name, username),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "team_id"),
@@ -45,12 +45,12 @@ func TestAccConfigDSTeamByName_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckAtlasUsername(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyTeam,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceMongoDBAtlasTeamConfigByName(orgID, name, username),
+				Config: dataSourceConfigBasicByName(orgID, name, username),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "team_id"),
@@ -62,7 +62,7 @@ func TestAccConfigDSTeamByName_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceMongoDBAtlasTeamConfig(orgID, name, username string) string {
+func dataSourceConfigBasic(orgID, name, username string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_teams" "test" {
 			org_id     = "%s"
@@ -78,7 +78,7 @@ func testAccDataSourceMongoDBAtlasTeamConfig(orgID, name, username string) strin
 	`, orgID, name, username)
 }
 
-func testAccDataSourceMongoDBAtlasTeamConfigByName(orgID, name, username string) string {
+func dataSourceConfigBasicByName(orgID, name, username string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_teams" "test" {
 			org_id     = "%s"

@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
 const (
@@ -29,12 +28,12 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasTeamCreate,
-		ReadContext:   resourceMongoDBAtlasTeamRead,
-		UpdateContext: resourceMongoDBAtlasTeamUpdate,
-		DeleteContext: resourceMongoDBAtlasTeamDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasTeamImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"org_id": {
@@ -61,39 +60,38 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasTeamCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	orgID := d.Get("org_id").(string)
 
-	// Creating the team
-	teamsResp, _, err := conn.Teams.Create(ctx, orgID,
-		&matlas.Team{
+	usernames := conversion.ExpandStringListFromSetSchema(d.Get("usernames").(*schema.Set))
+	teamsResp, _, err := connV2.TeamsApi.CreateTeam(ctx, orgID,
+		&admin.Team{
 			Name:      d.Get("name").(string),
-			Usernames: conversion.ExpandStringListFromSetSchema(d.Get("usernames").(*schema.Set)),
-		})
+			Usernames: &usernames,
+		}).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamCreate, err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"org_id": orgID,
-		"id":     teamsResp.ID,
+		"id":     teamsResp.GetId(),
 	}))
 
-	return resourceMongoDBAtlasTeamRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	teamID := ids["id"]
 
-	team, resp, err := conn.Teams.Get(context.Background(), orgID, teamID)
+	team, resp, err := connV2.TeamsApi.GetTeamById(context.Background(), orgID, teamID).Execute()
 
 	if err != nil {
-		// new resource missing
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
@@ -101,23 +99,22 @@ func resourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf(errorTeamRead, err))
 	}
 
-	if err = d.Set("name", team.Name); err != nil {
+	if err = d.Set("name", team.GetName()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamSetting, "name", teamID, err))
 	}
 
-	if err = d.Set("team_id", team.ID); err != nil {
+	if err = d.Set("team_id", team.GetId()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamSetting, "team_id", teamID, err))
 	}
 
-	// Set Usernames
-	users, _, err := conn.Teams.GetTeamUsersAssigned(ctx, orgID, teamID)
+	users, _, err := connV2.TeamsApi.ListTeamUsers(ctx, orgID, teamID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamRead, err))
 	}
 
 	usernames := []string{}
-	for i := range users {
-		usernames = append(usernames, users[i].Username)
+	for i := range users.GetResults() {
+		usernames = append(usernames, users.GetResults()[i].GetUsername())
 	}
 
 	if err := d.Set("usernames", usernames); err != nil {
@@ -127,40 +124,37 @@ func resourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, m
 	return nil
 }
 
-func resourceMongoDBAtlasTeamUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	teamID := ids["id"]
 
 	if d.HasChange("name") {
-		_, _, err := conn.Teams.Rename(ctx, orgID, teamID, d.Get("name").(string))
+		_, _, err := connV2.TeamsApi.RenameTeam(ctx, orgID, teamID,
+			&admin.Team{Name: d.Get("name").(string)},
+		).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorTeamUpdate, err))
 		}
 	}
 
 	if d.HasChange("usernames") {
-		// First, we need to remove the current users of the team and later add the new users
-		// Get the current team's users
-		users, _, err := conn.Teams.GetTeamUsersAssigned(ctx, orgID, teamID)
+		users, _, err := connV2.TeamsApi.ListTeamUsers(ctx, orgID, teamID).Execute()
 
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorTeamRead, err))
 		}
 
-		// Removing each user - Let's not modify the state before making sure we can continue
-
-		// existig users
-		index := make(map[string]matlas.AtlasUser)
-		for i := range users {
-			index[users[i].Username] = users[i]
+		index := make(map[string]admin.CloudAppUser)
+		for i := range users.GetResults() {
+			index[users.GetResults()[i].GetUsername()] = users.GetResults()[i]
 		}
 
 		cleanUsers := func() error {
-			for i := range users {
-				_, err := conn.Teams.RemoveUserToTeam(ctx, orgID, teamID, users[i].ID)
+			for i := range users.GetResults() {
+				_, err := connV2.TeamsApi.RemoveTeamUser(ctx, orgID, teamID, users.GetResults()[i].GetId()).Execute()
 				if err != nil {
 					return fmt.Errorf("error deleting Atlas User (%s) information: %s", teamID, err)
 				}
@@ -168,20 +162,15 @@ func resourceMongoDBAtlasTeamUpdate(ctx context.Context, d *schema.ResourceData,
 			return nil
 		}
 
-		// existing users
-
-		// Verify if the gave users exists
-		var newUsers []string
+		var newUsers []admin.AddUserToTeam
 
 		for _, username := range d.Get("usernames").(*schema.Set).List() {
-			user, _, err := conn.AtlasUsers.GetByName(ctx, username.(string))
+			user, _, err := connV2.MongoDBCloudUsersApi.GetUserByUsername(ctx, username.(string)).Execute()
 
 			updatedUserData := user
 
 			if err != nil {
-				// this must be handle as a soft error
 				if !strings.Contains(err.Error(), "401") {
-					// In this case is a hard error doing a rollback from the initial operation
 					return diag.FromErr(fmt.Errorf("error getting Atlas User (%s) information: %s", username, err))
 				}
 
@@ -198,42 +187,39 @@ func resourceMongoDBAtlasTeamUpdate(ctx context.Context, d *schema.ResourceData,
 					updatedUserData = &cached
 				}
 			}
-			// if the user exists, we will storage its teamID
-			newUsers = append(newUsers, updatedUserData.ID)
+			newUsers = append(newUsers, admin.AddUserToTeam{Id: updatedUserData.GetId()})
 		}
 
-		// Update the users, remove the old ones, add the new ones
 		err = cleanUsers()
 		if err != nil {
 			return diag.FromErr(err)
 		}
 
-		_, _, err = conn.Teams.AddUsersToTeam(ctx, orgID, teamID, newUsers)
+		_, _, err = connV2.TeamsApi.AddTeamUser(ctx, orgID, teamID, &newUsers).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorTeamAddUsers, err))
 		}
 	}
 
-	return resourceMongoDBAtlasTeamRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasTeamDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	id := ids["id"]
 
 	err := retry.RetryContext(ctx, 1*time.Hour, func() *retry.RetryError {
-		_, err := conn.Teams.RemoveTeamFromOrganization(ctx, orgID, id)
+		_, _, err := connV2.TeamsApi.DeleteTeam(ctx, orgID, id).Execute()
 		if err != nil {
-			var target *matlas.ErrorResponse
-			if errors.As(err, &target) && target.ErrorCode == "CANNOT_DELETE_TEAM_ASSIGNED_TO_PROJECT" {
-				projectID, err := getProjectIDByTeamID(ctx, conn, id)
+			if admin.IsErrorCode(err, "CANNOT_DELETE_TEAM_ASSIGNED_TO_PROJECT") {
+				projectID, err := getProjectIDByTeamID(ctx, connV2, id)
 				if err != nil {
 					return retry.NonRetryableError(err)
 				}
 
-				_, err = conn.Teams.RemoveTeamFromProject(ctx, projectID, id)
+				_, err = connV2.TeamsApi.RemoveProjectTeam(ctx, projectID, id).Execute()
 				if err != nil {
 					return retry.NonRetryableError(fmt.Errorf(errorTeamDelete, id, err))
 				}
@@ -249,8 +235,8 @@ func resourceMongoDBAtlasTeamDelete(ctx context.Context, d *schema.ResourceData,
 	return nil
 }
 
-func resourceMongoDBAtlasTeamImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {
@@ -260,7 +246,7 @@ func resourceMongoDBAtlasTeamImportState(ctx context.Context, d *schema.Resource
 	orgID := parts[0]
 	teamID := parts[1]
 
-	u, _, err := conn.Teams.Get(ctx, orgID, teamID)
+	team, _, err := connV2.TeamsApi.GetTeamById(ctx, orgID, teamID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import team (%s) in organization(%s), error: %s", teamID, orgID, err)
 	}
@@ -275,28 +261,27 @@ func resourceMongoDBAtlasTeamImportState(ctx context.Context, d *schema.Resource
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"org_id": orgID,
-		"id":     u.ID,
+		"id":     team.GetId(),
 	}))
 
 	return []*schema.ResourceData{d}, nil
 }
 
-func getProjectIDByTeamID(ctx context.Context, conn *matlas.Client, teamID string) (string, error) {
-	options := &matlas.ListOptions{}
-	projects, _, err := conn.Projects.GetAllProjects(ctx, options)
+func getProjectIDByTeamID(ctx context.Context, connV2 *admin.APIClient, teamID string) (string, error) {
+	projects, _, err := connV2.ProjectsApi.ListProjects(ctx).Execute()
 	if err != nil {
 		return "", fmt.Errorf("error getting projects information: %s", err)
 	}
 
-	for _, project := range projects.Results {
-		teams, _, err := conn.Projects.GetProjectTeamsAssigned(ctx, project.ID)
+	for _, project := range projects.GetResults() {
+		teams, _, err := connV2.TeamsApi.ListProjectTeams(ctx, project.GetId()).Execute()
 		if err != nil {
 			return "", fmt.Errorf("error getting teams from project information: %s", err)
 		}
 
-		for _, team := range teams.Results {
-			if team.TeamID == teamID {
-				return project.ID, nil
+		for _, team := range teams.GetResults() {
+			if team.GetTeamId() == teamID {
+				return project.GetId(), nil
 			}
 		}
 	}
