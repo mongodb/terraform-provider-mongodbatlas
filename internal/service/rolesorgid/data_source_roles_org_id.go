@@ -29,13 +29,12 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err != nil {
 		return diag.Errorf("error getting API Key's org assigned (%s): ", err)
 	}
-	for idx, role := range apiKeyOrgList.ApiKey.GetRoles() {
+	for _, role := range apiKeyOrgList.ApiKey.GetRoles() {
 		if strings.HasPrefix(role.GetRoleName(), "ORG_") {
-			orgID := apiKeyOrgList.ApiKey.GetRoles()[idx].GetOrgId()
-			if err := d.Set("org_id", orgID); err != nil {
+			if err := d.Set("org_id", role.GetOrgId()); err != nil {
 				return diag.Errorf(constant.ErrorSettingAttribute, "org_id", err)
 			}
-			d.SetId(orgID)
+			d.SetId(role.GetOrgId())
 			return nil
 		}
 	}
