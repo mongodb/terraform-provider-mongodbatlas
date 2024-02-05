@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccClusterDSGlobalCluster_basic(t *testing.T) {
+func TestAccClusterRSGlobalClusterDS_basic(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_global_cluster_config.config"
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
