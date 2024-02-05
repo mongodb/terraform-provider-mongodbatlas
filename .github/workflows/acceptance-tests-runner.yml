@@ -184,6 +184,7 @@ jobs:
           federation:
             - 'internal/service/federateddatabaseinstance/*.go'
             - 'internal/service/federatedsettingsorgconfig/*.go'
+            - 'internal/service/federatedsettingsorgrolemapping/*.go'
           config:
             - 'internal/service/alertconfiguration/*.go'
             - 'internal/service/atlasuser/*.go'
