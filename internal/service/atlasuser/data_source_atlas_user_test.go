@@ -14,14 +14,13 @@ import (
 )
 
 func TestAccConfigDSAtlasUser_ByUserID(t *testing.T) {
-	acc.SkipIfTFAccNotDefined(t)
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_user.test"
 		userID         = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 		user           = fetchUser(t, userID)
 	)
 	resource.Test(t, resource.TestCase{ // does not run in parallel to avoid changes in fetched user during execution
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckBasicOwnerID(t) },
+		PreCheck:                 func() { acc.PreCheckBasicOwnerID(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
@@ -35,14 +34,13 @@ func TestAccConfigDSAtlasUser_ByUserID(t *testing.T) {
 }
 
 func TestAccConfigDSAtlasUser_ByUsername(t *testing.T) {
-	acc.SkipIfTFAccNotDefined(t)
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_user.test"
 		username       = os.Getenv("MONGODB_ATLAS_USERNAME")
 		user           = fetchUserByUsername(t, username)
 	)
 	resource.Test(t, resource.TestCase{ // does not run in parallel to avoid changes in fetched user during execution
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckAtlasUsername(t) },
+		PreCheck:                 func() { acc.PreCheckAtlasUsername(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{

@@ -16,7 +16,6 @@ import (
 )
 
 func TestAccConfigDSAtlasUsers_ByOrgID(t *testing.T) {
-	acc.SkipIfTFAccNotDefined(t)
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -46,7 +45,7 @@ func TestAccConfigDSAtlasUsers_ByProjectID(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckBasicOwnerID(t) },
+		PreCheck:                 func() { acc.PreCheckBasicOwnerID(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
@@ -77,7 +76,7 @@ func TestAccConfigDSAtlasUsers_ByTeamID(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckAtlasUsername(t) },
+		PreCheck:                 func() { acc.PreCheckAtlasUsername(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyTeam,
 		Steps: []resource.TestStep{
@@ -111,7 +110,7 @@ func TestAccConfigDSAtlasUsers_UsingPagination(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckAtlasUsername(t) },
+		PreCheck:                 func() { acc.PreCheckAtlasUsername(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyTeam,
 		Steps: []resource.TestStep{
