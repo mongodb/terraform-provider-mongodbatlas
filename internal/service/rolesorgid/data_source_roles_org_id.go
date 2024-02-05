@@ -9,8 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func DataSource() *schema.Resource {
@@ -26,28 +24,21 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasOrgIDRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	var err error
-
-	options := &matlas.ListOptions{}
-	apiKeyOrgList, _, err := conn.Root.List(ctx, options)
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	apiKeyOrgList, _, err := connV2.RootApi.GetSystemStatus(ctx).Execute()
 	if err != nil {
 		return diag.Errorf("error getting API Key's org assigned (%s): ", err)
 	}
-
-	for idx, role := range apiKeyOrgList.APIKey.Roles {
-		if strings.HasPrefix(role.RoleName, "ORG_") {
-			if err := d.Set("org_id", apiKeyOrgList.APIKey.Roles[idx].OrgID); err != nil {
+	for idx, role := range apiKeyOrgList.ApiKey.GetRoles() {
+		if strings.HasPrefix(role.GetRoleName(), "ORG_") {
+			orgID := apiKeyOrgList.ApiKey.GetRoles()[idx].GetOrgId()
+			if err := d.Set("org_id", orgID); err != nil {
 				return diag.Errorf(constant.ErrorSettingAttribute, "org_id", err)
 			}
-			d.SetId(apiKeyOrgList.APIKey.Roles[idx].OrgID)
+			d.SetId(orgID)
 			return nil
 		}
 	}
-
 	d.SetId(id.UniqueId())
-
 	return nil
 }
