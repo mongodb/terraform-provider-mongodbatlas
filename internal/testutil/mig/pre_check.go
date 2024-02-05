@@ -22,3 +22,9 @@ func PreCheckBasicOwnerID(tb testing.TB) {
 	tb.Helper()
 	PreCheckBasic(tb)
 }
+
+func PreCheckAtlasUsername(tb testing.TB) {
+	tb.Helper()
+	checkAtlasUser(tb)
+	PreCheckBasic(tb)
+}

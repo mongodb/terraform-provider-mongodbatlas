@@ -40,3 +40,10 @@ func checkLastVersion(tb testing.TB) {
 func versionConstraint() string {
 	return os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 }
+
+func checkAtlasUser(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("MONGODB_ATLAS_USERNAME") == "" {
+		tb.Fatal("`MONGODB_ATLAS_USERNAME` must be set ")
+	}
+}

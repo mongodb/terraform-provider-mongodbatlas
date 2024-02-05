@@ -23,7 +23,7 @@ func TestAccMigrationTeams_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t) },
+		PreCheck:     func() { mig.PreCheckAtlasUsername(t) },
 		CheckDestroy: acc.CheckDestroyTeam,
 		Steps: []resource.TestStep{
 			{
