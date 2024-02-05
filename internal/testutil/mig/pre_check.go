@@ -23,6 +23,12 @@ func PreCheckBasicOwnerID(tb testing.TB) {
 	PreCheckBasic(tb)
 }
 
+func PreCheckCert(tb testing.TB) {
+	tb.Helper()
+	checkLastVersion(tb)
+	acc.PreCheckCert(tb)
+}
+
 func PreCheckAtlasUsername(tb testing.TB) {
 	tb.Helper()
 	checkAtlasUser(tb)

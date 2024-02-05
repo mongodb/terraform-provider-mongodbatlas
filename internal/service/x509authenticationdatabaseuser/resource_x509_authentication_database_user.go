@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
 const (
@@ -25,11 +25,11 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasX509AuthDBUserCreate,
-		ReadContext:   resourceMongoDBAtlasX509AuthDBUserRead,
-		DeleteContext: resourceMongoDBAtlasX509AuthDBUserDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasX509AuthDBUserImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -98,27 +98,29 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasX509AuthDBUserCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
-
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	username := d.Get("username").(string)
 
-	var serialNumber string
-
 	if expirationMonths, ok := d.GetOk("months_until_expiration"); ok {
-		res, _, err := conn.X509AuthDBUsers.CreateUserCertificate(ctx, projectID, username, expirationMonths.(int))
+		months := expirationMonths.(int)
+		params := &admin.UserCert{
+			MonthsUntilExpiration: &months,
+		}
+		certStr, _, err := connV2.X509AuthenticationApi.CreateDatabaseUserCertificate(ctx, projectID, username, params).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersCreate, username, projectID, err))
 		}
-
-		serialNumber = cast.ToString(res.ID)
-		if err := d.Set("current_certificate", cast.ToString(res.Certificate)); err != nil {
+		if err := d.Set("current_certificate", cast.ToString(certStr)); err != nil {
 			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "current_certificate", username, err))
 		}
 	} else {
 		customerX509Cas := d.Get("customer_x509_cas").(string)
-		_, _, err := conn.X509AuthDBUsers.SaveConfiguration(ctx, projectID, &matlas.CustomerX509{Cas: customerX509Cas})
+		userReq := &admin.UserSecurity{
+			CustomerX509: &admin.DBUserTLSX509Settings{Cas: &customerX509Cas},
+		}
+		_, _, err := connV2.LDAPConfigurationApi.SaveLDAPConfiguration(ctx, projectID, userReq).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorCustomerX509AuthDBUsersCreate, projectID, err))
 		}
@@ -127,27 +129,24 @@ func resourceMongoDBAtlasX509AuthDBUserCreate(ctx context.Context, d *schema.Res
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":    projectID,
 		"username":      username,
-		"serial_number": serialNumber,
+		"serial_number": "", // not returned in create API, got later in Read
 	}))
 
-	return resourceMongoDBAtlasX509AuthDBUserRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
-
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
-
 	var (
-		certificates []matlas.UserCertificate
-		err          error
+		certificates []admin.UserCert
 		serialNumber string
 	)
 
 	if username != "" {
-		certificates, _, err = conn.X509AuthDBUsers.GetUserCertificates(ctx, projectID, username, nil)
+		resp, _, err := connV2.X509AuthenticationApi.ListDatabaseUserCertificates(ctx, projectID, username).Execute()
 		if err != nil {
 			// new resource missing
 			reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
@@ -157,11 +156,13 @@ func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.Resou
 			}
 			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err))
 		}
-		for _, val := range certificates {
-			serialNumber = cast.ToString(val.ID)
+		if resp != nil && resp.Results != nil {
+			certificates = *resp.Results
+			if len(certificates) > 0 {
+				serialNumber = cast.ToString(certificates[len(certificates)-1].GetId()) // Get SerialId from last user certificate
+			}
 		}
 	}
-
 	if err := d.Set("certificates", flattenCertificates(certificates)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err))
 	}
@@ -175,30 +176,27 @@ func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.Resou
 	return nil
 }
 
-func resourceMongoDBAtlasX509AuthDBUserDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// We don't do anything because X.509 certificates can not be deleted or disassociated from a user.
 	// More info: https://jira.mongodb.org/browse/HELP-53363
 	d.SetId("")
 	return nil
 }
 
-func resourceMongoDBAtlasX509AuthDBUserImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
-
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 1 && len(parts) != 2 {
 		return nil, errors.New("import format error: to import a X509 Authentication, use the formats {project_id} or {project_id}-{username}")
 	}
-
 	var username string
 	if len(parts) == 2 {
 		username = parts[1]
 	}
-
 	projectID := parts[0]
 
 	if username != "" {
-		_, _, err := conn.X509AuthDBUsers.GetUserCertificates(ctx, projectID, username, nil)
+		_, _, err := connV2.X509AuthenticationApi.ListDatabaseUserCertificates(ctx, projectID, username).Execute()
 		if err != nil {
 			return nil, fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err)
 		}
@@ -208,12 +206,12 @@ func resourceMongoDBAtlasX509AuthDBUserImportState(ctx context.Context, d *schem
 		}
 	}
 
-	customerX509, _, err := conn.X509AuthDBUsers.GetCurrentX509Conf(ctx, projectID)
+	resp, _, err := connV2.LDAPConfigurationApi.GetLDAPConfiguration(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorCustomerX509AuthDBUsersRead, projectID, err)
 	}
-
-	if err := d.Set("customer_x509_cas", customerX509.Cas); err != nil {
+	customerX509 := resp.GetCustomerX509()
+	if err := d.Set("customer_x509_cas", customerX509.GetCas()); err != nil {
 		return nil, fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err)
 	}
 
@@ -230,17 +228,16 @@ func resourceMongoDBAtlasX509AuthDBUserImportState(ctx context.Context, d *schem
 	return []*schema.ResourceData{d}, nil
 }
 
-func flattenCertificates(userCertificates []matlas.UserCertificate) []map[string]any {
+func flattenCertificates(userCertificates []admin.UserCert) []map[string]any {
 	certificates := make([]map[string]any, len(userCertificates))
 	for i, v := range userCertificates {
 		certificates[i] = map[string]any{
-			"id":         v.ID,
-			"created_at": v.CreatedAt,
-			"group_id":   v.GroupID,
-			"not_after":  v.NotAfter,
-			"subject":    v.Subject,
+			"id":         v.GetId(),
+			"created_at": conversion.TimePtrToStringPtr(v.CreatedAt),
+			"group_id":   v.GetGroupId(),
+			"not_after":  conversion.TimePtrToStringPtr(v.NotAfter),
+			"subject":    v.GetSubject(),
 		}
 	}
-
 	return certificates
 }

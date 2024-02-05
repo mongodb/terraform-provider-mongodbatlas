@@ -13,8 +13,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
-func TestAccFedRSFederatedSettingsIdentityProvider_basic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+func TestAccFederatedSettingsIdentityProviderRS_basic(t *testing.T) {
 	var (
 		federatedSettingsIdentityProvider admin.FederationIdentityProvider
 		resourceName                      = "mongodbatlas_federated_settings_identity_provider.test"
@@ -50,8 +49,7 @@ func TestAccFedRSFederatedSettingsIdentityProvider_basic(t *testing.T) {
 	})
 }
 
-func TestAccFedRSFederatedSettingsIdentityProvider_importBasic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+func TestAccFederatedSettingsIdentityProviderRS_importBasic(t *testing.T) {
 	var (
 		resourceName         = "mongodbatlas_federated_settings_identity_provider.test"
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
