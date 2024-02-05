@@ -121,10 +121,8 @@ jobs:
       search_deployment: ${{ steps.filter.outputs.search_deployment == 'true' || env.mustTrigger == 'true' }}
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
       generic: ${{ steps.filter.outputs.generic == 'true' || env.mustTrigger == 'true' }}
-      backup_online_archive: ${{ steps.filter.outputs.backup_online_archive == 'true' || env.mustTrigger == 'true' }}
-      backup_snapshots: ${{ steps.filter.outputs.backup_snapshots == 'true' || env.mustTrigger == 'true' }}
+      backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
       federation: ${{ steps.filter.outputs.federation == 'true' || env.mustTrigger == 'true' }}
-      backup_schedule: ${{ steps.filter.outputs.backup_schedule == 'true' || env.mustTrigger == 'true' }}
       project: ${{ steps.filter.outputs.project == 'true' || env.mustTrigger == 'true' }}
       serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
       network: ${{ steps.filter.outputs.network == 'true' || env.mustTrigger == 'true' }}
@@ -157,14 +155,13 @@ jobs:
             - 'internal/service/backupcompliancepolicy/*.go'
             - 'internal/service/auditing/*.go'
             - 'internal/service/x509authenticationdatabaseuser/*.go'
-          backup_online_archive:
+          backup:
             - 'internal/service/onlinearchive/*.go'
-          backup_snapshots:
+            - 'internal/service/cloudbackupschedule/*.go'
             - 'internal/service/cloudbackupsnapshot/*.go'
             - 'internal/service/cloudbackupsnapshotexportbucket/*.go'
             - 'internal/service/cloudbackupsnapshotexportjob/*.go'
-          backup_schedule:
-            - 'internal/service/cloudbackupschedule/*.go'
+            - 'internal/service/cloudbackupsnapshotrestorejob/*.go'
           project:
             - 'internal/service/project/*.go'
             - 'internal/service/projectipaccesslist/*.go'
@@ -355,10 +352,9 @@ jobs:
           TEST_REGEX: "^TestAccGeneric"
         run: |
           make testacc
-
-  backup_online_archive:
+  backup:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || inputs.test_group == 'backup_online_archive' }}
+    if: ${{ needs.change-detection.outputs.backup == 'true' || inputs.test_group == 'backup' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
@@ -378,57 +374,7 @@ jobs:
           MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
           MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
-          TEST_REGEX: "^TestAccBackupRSOnlineArchive"
-        run: make testacc
-
-  backup_snapshots:
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_snapshots == 'true' || inputs.test_group == 'backup_snapshots' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
-      - name: Acceptance Tests
-        env:
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
-          TEST_REGEX: "^TestAccBackupRSCloudBackupSnapshot"
-        run: make testacc
-        
-  backup_schedule:
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_schedule == 'true' || inputs.test_group == 'backup_schedule' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
-      - name: Acceptance Tests
-        env:
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
-          TEST_REGEX: "^TestAccBackupRSCloudBackupSchedule"
+          TEST_REGEX: "^TestAccBackup"
         run: make testacc
   project: 
     needs: [ change-detection ]

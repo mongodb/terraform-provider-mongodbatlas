@@ -59,7 +59,7 @@ jobs:
       project: ${{ steps.filter.outputs.project == 'true' || env.mustTrigger == 'true' }}
       config: ${{ steps.filter.outputs.config == 'true' || env.mustTrigger == 'true' }}
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
-      backup_online_archive: ${{ steps.filter.outputs.backup_online_archive == 'true' || env.mustTrigger == 'true' }}
+      backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
       federation: ${{ steps.filter.outputs.federation == 'true' || env.mustTrigger == 'true' }}
       search_deployment: ${{ steps.filter.outputs.search_deployment == 'true' || env.mustTrigger == 'true' }}
@@ -92,8 +92,13 @@ jobs:
             - 'internal/service/orginvitation/*.go'
             - 'internal/service/organization/*.go'
             - 'internal/service/thirdpartyintegration/*.go'
-          backup_online_archive:
+          backup:
             - 'internal/service/onlinearchive/*.go'
+            - 'internal/service/cloudbackupschedule/*.go'
+            - 'internal/service/cloudbackupsnapshot/*.go'
+            - 'internal/service/cloudbackupsnapshotexportbucket/*.go'
+            - 'internal/service/cloudbackupsnapshotexportjob/*.go'
+            - 'internal/service/cloudbackupsnapshotrestorejob/*.go'
           advanced_cluster:
             - 'internal/service/advancedcluster/*.go'
           stream:
@@ -180,9 +185,9 @@ jobs:
           TEST_REGEX: "^TestAccMigrationConfig"
         run: make testacc
 
-  backup_online_archive:
+  backup:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || inputs.test_group == 'backup_online_archive' }}
+    if: ${{ needs.change-detection.outputs.backup == 'true' || inputs.test_group == 'backup' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

@@ -82,7 +82,6 @@ func testAccCheckMongoDBAtlasBackupSnapshotExportBucketExists(resourceName strin
 			*snapshotExportBucket = *response
 			return nil
 		}
-
 		return fmt.Errorf("snapshot export bucket (%s) does not exist", ids["id"])
 	}
 }
