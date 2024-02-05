@@ -23,7 +23,7 @@ func TestAccConfigRSTeam_basic(t *testing.T) {
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 		updatedName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-		username     = os.Getenv("MONGODB_ATLAS_USERNAME")
+		usernames    = []string{os.Getenv("MONGODB_ATLAS_USERNAME")}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -32,11 +32,7 @@ func TestAccConfigRSTeam_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyTeam,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, name,
-					[]string{
-						username,
-					},
-				),
+				Config: configBasic(orgID, name, usernames),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &team),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
@@ -45,11 +41,7 @@ func TestAccConfigRSTeam_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic(orgID, updatedName,
-					[]string{
-						username,
-					},
-				),
+				Config: configBasic(orgID, updatedName, usernames),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &team),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
@@ -58,11 +50,7 @@ func TestAccConfigRSTeam_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic(orgID, updatedName,
-					[]string{
-						username,
-					},
-				),
+				Config: configBasic(orgID, updatedName, usernames),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &team),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
