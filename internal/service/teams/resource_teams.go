@@ -137,7 +137,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		_, _, err := connV2.TeamsApi.RenameTeam(ctx, orgID, teamID,
 			&admin.Team{
 				Name:      d.Get("name").(string),
-				Usernames: conversion.ExpandStringPointerListFromSetSchema(d.Get("usernames").(*schema.Set)),
 			}).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorTeamUpdate, err))
