@@ -31,6 +31,6 @@ func PreCheckCert(tb testing.TB) {
 
 func PreCheckAtlasUsername(tb testing.TB) {
 	tb.Helper()
-	checkAtlasUser(tb)
-	PreCheckBasic(tb)
+	checkLastVersion(tb)
+	acc.PreCheckAtlasUsername(tb)
 }
