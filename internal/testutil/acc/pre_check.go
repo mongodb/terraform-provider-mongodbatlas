@@ -223,6 +223,7 @@ func PreCheckLDAP(tb testing.TB) {
 		os.Getenv("MONGODB_ATLAS_LDAP_PORT") == "" {
 		tb.Fatal("`MONGODB_ATLAS_LDAP_HOSTNAME`, `MONGODB_ATLAS_LDAP_USERNAME`, `MONGODB_ATLAS_LDAP_PASSWORD` and `MONGODB_ATLAS_LDAP_PORT` must be set for ldap configuration/verify acceptance testing")
 	}
+	PreCheck(tb)
 }
 
 func PreCheckFederatedSettings(tb testing.TB) {

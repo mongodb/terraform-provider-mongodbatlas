@@ -14,27 +14,26 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccAdvRSLDAPConfiguration_basic(t *testing.T) {
-	acc.SkipTestForCI(t)
+func TestAccLDAPConfiguration_basic(t *testing.T) {
 	var (
 		ldapConfiguration matlas.LDAPConfiguration
 		resourceName      = "mongodbatlas_ldap_configuration.test"
 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName       = acctest.RandomWithPrefix("test-acc")
+		authEnabled       = true
 		hostname          = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
 		username          = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
 		password          = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
-		authEnabled       = true
 		port              = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckLDAP(t) },
+		PreCheck:                 func() { acc.PreCheckLDAP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyLDAPConfiguration,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasLDAPConfigurationConfig(projectName, orgID, hostname, username, password, authEnabled, cast.ToInt(port)),
+				Config: testAccMongoDBAtlasLDAPConfigurationConfig(projectName, orgID, hostname, username, password, authEnabled, port),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasLDAPConfigurationExists(resourceName, &ldapConfiguration),
 
@@ -49,7 +48,7 @@ func TestAccAdvRSLDAPConfiguration_basic(t *testing.T) {
 	})
 }
 
-func TestAccAdvRSLDAPConfigurationWithVerify_CACertificateComplete(t *testing.T) {
+func TestAccLDAPConfiguration_withVerify_CACertificateComplete(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		ldapConfiguration  matlas.LDAPConfiguration
@@ -66,7 +65,7 @@ func TestAccAdvRSLDAPConfigurationWithVerify_CACertificateComplete(t *testing.T)
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckLDAP(t) },
+		PreCheck:                 func() { acc.PreCheckLDAP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyLDAPConfiguration,
 		Steps: []resource.TestStep{
@@ -99,22 +98,21 @@ func TestAccAdvRSLDAPConfigurationWithVerify_CACertificateComplete(t *testing.T)
 	})
 }
 
-func TestAccAdvRSLDAPConfiguration_importBasic(t *testing.T) {
-	acc.SkipTestForCI(t)
+func TestAccLDAPConfiguration_importBasic(t *testing.T) {
 	var (
 		ldapConf     = matlas.LDAPConfiguration{}
 		resourceName = "mongodbatlas_ldap_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
-		hostname     = "3.138.245.82"
-		username     = "cn=admin,dc=space,dc=intern"
-		password     = "neuewelt32"
 		authEnabled  = true
-		port         = 7001
+		hostname     = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
+		username     = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
+		password     = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
+		port         = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckLDAP(t) },
+		PreCheck:                 func() { acc.PreCheckLDAP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyLDAPConfiguration,
 		Steps: []resource.TestStep{
@@ -170,7 +168,7 @@ func testAccCheckMongoDBAtlasLDAPConfigurationImportStateIDFunc(resourceName str
 	}
 }
 
-func testAccMongoDBAtlasLDAPConfigurationConfig(projectName, orgID, hostname, username, password string, authEnabled bool, port int) string {
+func testAccMongoDBAtlasLDAPConfigurationConfig(projectName, orgID, hostname, username, password string, authEnabled bool, port string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = "%[1]s"
@@ -181,7 +179,7 @@ func testAccMongoDBAtlasLDAPConfigurationConfig(projectName, orgID, hostname, us
 			project_id                  =  mongodbatlas_project.test.id
 			authentication_enabled      =  %[6]t
 			hostname					= "%[3]s"
-			port                     	=  %[7]d
+			port                     	=  %[7]s
 			bind_username               = "%[4]s"
 			bind_password               = "%[5]s"
 		}`, projectName, orgID, hostname, username, password, authEnabled, port)
