@@ -227,7 +227,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	err := retry.RetryContext(ctx, 1*time.Hour, func() *retry.RetryError {
 		_, _, err := connV2.TeamsApi.DeleteTeam(ctx, orgID, id).Execute()
 		if err != nil {
-			if errors.Is(err, errors.New("CANNOT_DELETE_TEAM_ASSIGNED_TO_PROJECT")) {
+			if admin.IsErrorCode(err, "CANNOT_DELETE_TEAM_ASSIGNED_TO_PROJECT") {
 				projectID, err := getProjectIDByTeamID(ctx, connV2, id)
 				if err != nil {
 					return retry.NonRetryableError(err)
