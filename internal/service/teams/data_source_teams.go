@@ -77,7 +77,6 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(errorTeamSetting, "name", d.Id(), err))
 	}
 
-	// Set Usernames
 	users, _, err := connV2.TeamsApi.ListTeamUsers(ctx, orgID, team.GetId()).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamRead, err))

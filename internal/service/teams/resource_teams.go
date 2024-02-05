@@ -64,11 +64,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	orgID := d.Get("org_id").(string)
 
-	// Creating the team
+	usernames := conversion.ExpandStringListFromSetSchema(d.Get("usernames").(*schema.Set))
 	teamsResp, _, err := connV2.TeamsApi.CreateTeam(ctx, orgID,
 		&admin.Team{
 			Name:      d.Get("name").(string),
-			Usernames: conversion.ExpandStringPointerListFromSetSchema(d.Get("usernames").(*schema.Set)),
+			Usernames: &usernames,
 		}).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamCreate, err))
@@ -92,7 +92,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	team, resp, err := connV2.TeamsApi.GetTeamById(context.Background(), orgID, teamID).Execute()
 
 	if err != nil {
-		// new resource missing
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
@@ -108,7 +107,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorTeamSetting, "team_id", teamID, err))
 	}
 
-	// Set Usernames
 	users, _, err := connV2.TeamsApi.ListTeamUsers(ctx, orgID, teamID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamRead, err))
@@ -143,17 +141,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("usernames") {
-		// First, we need to remove the current users of the team and later add the new users
-		// Get the current team's users
 		users, _, err := connV2.TeamsApi.ListTeamUsers(ctx, orgID, teamID).Execute()
 
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorTeamRead, err))
 		}
 
-		// Removing each user - Let's not modify the state before making sure we can continue
-
-		// existig users
 		index := make(map[string]admin.CloudAppUser)
 		for i := range users.GetResults() {
 			index[users.GetResults()[i].GetUsername()] = users.GetResults()[i]
@@ -169,9 +162,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return nil
 		}
 
-		// existing users
-
-		// Verify if the gave users exists
 		var newUsers []admin.AddUserToTeam
 
 		for _, username := range d.Get("usernames").(*schema.Set).List() {
@@ -180,9 +170,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			updatedUserData := user
 
 			if err != nil {
-				// this must be handle as a soft error
 				if !strings.Contains(err.Error(), "401") {
-					// In this case is a hard error doing a rollback from the initial operation
 					return diag.FromErr(fmt.Errorf("error getting Atlas User (%s) information: %s", username, err))
 				}
 
@@ -199,11 +187,9 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 					updatedUserData = &cached
 				}
 			}
-			// if the user exists, we will storage its teamID
 			newUsers = append(newUsers, admin.AddUserToTeam{Id: updatedUserData.GetId()})
 		}
 
-		// Update the users, remove the old ones, add the new ones
 		err = cleanUsers()
 		if err != nil {
 			return diag.FromErr(err)

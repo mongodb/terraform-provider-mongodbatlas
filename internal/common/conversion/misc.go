@@ -45,11 +45,3 @@ func ExpandStringListFromSetSchema(set *schema.Set) []string {
 	}
 	return res
 }
-
-func ExpandStringPointerListFromSetSchema(set *schema.Set) *[]string {
-	res := make([]string, set.Len())
-	for i, v := range set.List() {
-		res[i] = v.(string)
-	}
-	return &res
-}
