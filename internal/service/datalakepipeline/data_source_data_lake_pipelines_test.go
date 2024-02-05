@@ -24,7 +24,7 @@ func TestAccDataLakeDSPlural_basic(t *testing.T) {
 		projectName        = acctest.RandomWithPrefix("test-acc")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasDataLakePipelineDestroy,
 		Steps: []resource.TestStep{
