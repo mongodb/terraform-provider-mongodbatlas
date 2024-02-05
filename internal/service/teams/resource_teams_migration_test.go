@@ -10,12 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
-	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
 func TestAccMigrationTeams_basic(t *testing.T) {
 	var (
-		team         admin.Team
 		resourceName = "mongodbatlas_teams.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
@@ -30,7 +28,7 @@ func TestAccMigrationTeams_basic(t *testing.T) {
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            configBasic(orgID, name, []string{username}),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &team),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
