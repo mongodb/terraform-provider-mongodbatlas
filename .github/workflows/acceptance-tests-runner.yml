@@ -577,6 +577,7 @@ jobs:
           MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}          
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
+          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
           MONGODB_ATLAS_FEDERATION_SETTINGS_ID: ${{ inputs.mongodb_atlas_federation_settings_id }}
           MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID: ${{ inputs.mongodb_atlas_federatied_okta_idp_id }}
           MONGODB_ATLAS_FEDERATED_IDP_ID: ${{ inputs.mongodb_atlas_federatied_idp_id }}
