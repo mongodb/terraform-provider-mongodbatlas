@@ -9,8 +9,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccBackupDSDataLakePipelineRuns_basic(t *testing.T) {
-	acc.PreCheckDataLakePipelineRuns(t)
+func TestAccDataLakeRunDSPlural_basic(t *testing.T) {
+	acc.SkipTestForCI(t)
 	var (
 		dataSourceName = "data.mongodbatlas_data_lake_pipeline_runs.test"
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -18,7 +18,7 @@ func TestAccBackupDSDataLakePipelineRuns_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckDataLakePipelineRuns(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{

@@ -14,13 +14,14 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccDataSourceClusterRSDataLakePipeline_basic(t *testing.T) {
+func TestAccDataLakeDS_basic(t *testing.T) {
 	var (
 		pipeline     matlas.DataLakePipeline
 		resourceName = "mongodbatlas_data_lake_pipeline.test"
 		clusterName  = acctest.RandomWithPrefix("test-acc-index")
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		name         = acctest.RandomWithPrefix("test-acc-index")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
@@ -28,11 +29,11 @@ func TestAccDataSourceClusterRSDataLakePipeline_basic(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasDataLakePipelineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceMongoDBAtlasDataLakePipelineConfig(projectID, clusterName, name),
+				Config: testAccDataSourceMongoDBAtlasDataLakePipelineConfig(orgID, projectName, clusterName, name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasDataLakePipelineExists(resourceName, &pipeline),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "state", "ACTIVE"),
 				),
 			},
@@ -56,11 +57,16 @@ func testAccCheckMongoDBAtlasDataLakePipelineDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccDataSourceMongoDBAtlasDataLakePipelineConfig(projectID, clusterName, pipelineName string) string {
+func testAccDataSourceMongoDBAtlasDataLakePipelineConfig(orgID, projectName, clusterName, pipelineName string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "project" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+
 		resource "mongodbatlas_advanced_cluster" "aws_conf" {
-			project_id   = %[1]q
-			name         = %[2]q
+			project_id   = mongodbatlas_project.project.id
+			name         = %[3]q
 			cluster_type = "REPLICASET"
 		
 			replication_specs {
@@ -78,8 +84,8 @@ func testAccDataSourceMongoDBAtlasDataLakePipelineConfig(projectID, clusterName,
 		}
 
 		resource "mongodbatlas_data_lake_pipeline" "test" {
-			project_id       = "%[1]s"
-			name			 = "%[3]s"
+			project_id       = mongodbatlas_project.project.id
+			name			 = %[4]q
 			sink {
 				type = "DLS"
 				partition_fields {
@@ -105,5 +111,5 @@ func testAccDataSourceMongoDBAtlasDataLakePipelineConfig(projectID, clusterName,
 			project_id       = mongodbatlas_data_lake_pipeline.test.project_id
 			name			 = mongodbatlas_data_lake_pipeline.test.name	
 		}
-	`, projectID, clusterName, pipelineName)
+	`, orgID, projectName, clusterName, pipelineName)
 }

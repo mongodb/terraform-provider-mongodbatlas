@@ -130,6 +130,7 @@ jobs:
       event_trigger: ${{ steps.filter.outputs.event_trigger == 'true' || env.mustTrigger == 'true' }}
       search_index: ${{ steps.filter.outputs.search_index == 'true' || env.mustTrigger == 'true' }}
       federated: ${{ steps.filter.outputs.federated == 'true' || env.mustTrigger == 'true' }}
+      data_lake: ${{ steps.filter.outputs.data_lake == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
     - uses: dorny/paths-filter@0bc4621a3135347011ad047f9ecf449bf72ce2bd
@@ -197,12 +198,14 @@ jobs:
           search_index:
             - 'internal/service/searchindex/*.go'
           federated:
-          - 'internal/service/federatedsettingsidentityprovider/*.go'
-          - 'internal/service/federateddatabaseinstance/*.go'
-          - 'internal/service/federatedsettingsorgconfig/*.go'
-          - 'internal/service/federatedsettingsorgrolemapping/*.go'
-          - 'internal/service/federatedquerylimit/*.go'
-  
+            - 'internal/service/federatedsettingsidentityprovider/*.go'
+            - 'internal/service/federateddatabaseinstance/*.go'
+            - 'internal/service/federatedsettingsorgconfig/*.go'
+            - 'internal/service/federatedsettingsorgrolemapping/*.go'
+            - 'internal/service/federatedquerylimit/*.go'
+          data_lake:
+          - 'internal/service/datalakepipeline/*.go'
+    
   cluster_outage_simulation:
     needs: [ change-detection ]
     if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || inputs.test_group == 'cluster_outage_simulation' }}
@@ -587,4 +590,27 @@ jobs:
           MONGODB_ATLAS_FEDERATED_PROJECT_ID: ${{ inputs.mongodb_atlas_federated_project_id }}
           MONGODB_ATLAS_FEDERATED_ORG_ID: ${{ inputs.mongodb_atlas_federated_org_id }}
           TEST_REGEX: "^TestAccFederated"
+        run: make testacc
+  data_lake:
+    needs: [ change-detection ]
+    if: ${{ needs.change-detection.outputs.data_lake == 'true' || inputs.test_group == 'data_lake' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false    
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
+          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
+          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
+          TEST_REGEX: "^TestAccDataLake"
         run: make testacc

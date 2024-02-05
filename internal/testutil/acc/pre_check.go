@@ -212,6 +212,7 @@ func PreCheckDataLakePipelineRuns(tb testing.TB) {
 	if os.Getenv("MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME") == "" {
 		tb.Skip("`MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME` must be set for Projects acceptance testing")
 	}
+	PreCheck(tb)
 }
 
 func PreCheckLDAP(tb testing.TB) {
