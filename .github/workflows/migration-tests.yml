@@ -113,6 +113,7 @@ jobs:
             - 'internal/service/privateendpointregionalmode/*.go'
             - 'internal/service/privatelinkendpoint/*.go'
             - 'internal/service/privatelinkendpointservice/*.go'
+            - 'internal/service/privatelinkendpointseerverless/*.go'
             - 'internal/service/privatelinkendpointservicedatafederationonlinearchive/*.go'
   
   project: 
