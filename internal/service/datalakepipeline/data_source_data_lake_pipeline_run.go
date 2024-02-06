@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
 const errorDataLakePipelineRunRead = "error reading MongoDB Atlas DataLake Run (%s): %s"
@@ -88,12 +88,12 @@ func DataSourceRun() *schema.Resource {
 }
 
 func dataSourceRunRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	name := d.Get("pipeline_name").(string)
 	pipelineRunID := d.Get("pipeline_run_id").(string)
 
-	dataLakeRun, resp, err := conn.DataLakePipeline.GetRun(ctx, projectID, name, pipelineRunID)
+	run, resp, err := connV2.DataLakePipelinesApi.GetPipelineRun(ctx, projectID, name, pipelineRunID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -103,47 +103,47 @@ func dataSourceRunRead(ctx context.Context, d *schema.ResourceData, meta any) di
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineRunRead, name, err))
 	}
 
-	if err := d.Set("id", dataLakeRun.ID); err != nil {
+	if err := d.Set("id", run.GetId()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "hostnames", name, err))
 	}
 
-	if err := d.Set("project_id", dataLakeRun.GroupID); err != nil {
+	if err := d.Set("project_id", run.GetGroupId()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "state", name, err))
 	}
 
-	if err := d.Set("created_date", dataLakeRun.CreatedDate); err != nil {
+	if err := d.Set("created_date", conversion.TimePtrToStringPtr(run.CreatedDate)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "storage_databases", name, err))
 	}
 
-	if err := d.Set("last_updated_date", dataLakeRun.LastUpdatedDate); err != nil {
+	if err := d.Set("last_updated_date", conversion.TimePtrToStringPtr(run.LastUpdatedDate)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "storage_databases", name, err))
 	}
 
-	if err := d.Set("state", dataLakeRun.State); err != nil {
+	if err := d.Set("state", run.GetState()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "storage_databases", name, err))
 	}
 
-	if err := d.Set("phase", dataLakeRun.Phase); err != nil {
+	if err := d.Set("phase", run.GetPhase()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "storage_databases", name, err))
 	}
 
-	if err := d.Set("pipeline_id", dataLakeRun.PipelineID); err != nil {
+	if err := d.Set("pipeline_id", run.GetPipelineId()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "storage_stores", name, err))
 	}
 
-	if err := d.Set("dataset_name", dataLakeRun.DatasetName); err != nil {
+	if err := d.Set("dataset_name", run.GetDatasetName()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "storage_stores", name, err))
 	}
 
-	if err := d.Set("snapshot_id", dataLakeRun.SnapshotID); err != nil {
+	if err := d.Set("snapshot_id", run.GetSnapshotId()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "storage_stores", name, err))
 	}
 
-	if err := d.Set("backup_frequency_type", dataLakeRun.BackupFrequencyType); err != nil {
+	if err := d.Set("backup_frequency_type", run.GetBackupFrequencyType()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "storage_stores", name, err))
 	}
 
-	if err := d.Set("stats", flattenDataLakePipelineRunStats(dataLakeRun.Stats)); err != nil {
+	if err := d.Set("stats", flattenRunStats(run.Stats)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "storage_stores", name, err))
 	}
 
@@ -156,15 +156,14 @@ func dataSourceRunRead(ctx context.Context, d *schema.ResourceData, meta any) di
 	return nil
 }
 
-func flattenDataLakePipelineRunStats(datalakeRunStats *matlas.DataLakePipelineRunStats) []map[string]any {
-	if datalakeRunStats == nil {
+func flattenRunStats(stats *admin.PipelineRunStats) []map[string]any {
+	if stats == nil {
 		return nil
 	}
-
 	maps := make([]map[string]any, 1)
 	maps[0] = map[string]any{
-		"bytes_exported": datalakeRunStats.BytesExported,
-		"num_docs":       datalakeRunStats.NumDocs,
+		"bytes_exported": stats.GetBytesExported(),
+		"num_docs":       stats.GetNumDocs(),
 	}
 	return maps
 }
