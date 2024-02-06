@@ -30,7 +30,7 @@ resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archi
 data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archives" "test_data_source" {
   project_id = mongodbatlas_project.atlas-project.id
 }
-
+```
 
 
 ## Argument Reference
