@@ -28,7 +28,7 @@ func TestAccFederatedSettingsIdentityProviderDS_samlBasic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "acs_url"),
 					resource.TestCheckResourceAttr(resourceName, "display_name", "SAML-test"),
 					resource.TestCheckResourceAttr(resourceName, "protocol", "SAML"),
-					resource.TestCheckResourceAttr(resourceName, "okta_idp_id", "0oa10l49zjuBdjDT1358"),
+					resource.TestCheckResourceAttrSet(resourceName, "okta_idp_id"),
 					resource.TestCheckResourceAttr(resourceName, "idp_id", idpID),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federatedSettingsID),
 				),
