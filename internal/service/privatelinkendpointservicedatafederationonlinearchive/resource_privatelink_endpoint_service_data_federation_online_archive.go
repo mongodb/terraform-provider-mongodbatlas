@@ -191,7 +191,8 @@ func newPrivateNetworkEndpointIDEntry(d *schema.ResourceData) *admin.PrivateNetw
 	}
 
 	if v, ok := d.GetOk("comment"); ok {
-		out.Comment = v.(*string)
+		comment := v.(string)
+		out.Comment = &comment
 	}
 
 	if v, ok := d.GetOk("provider_name"); ok && v != "" {
