@@ -70,7 +70,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	endpointID := d.Get("endpoint_id").(string)
 
-	_, _, err := connV2.DataFederationApi.CreateDataFederationPrivateEndpoint(ctx, projectID, newPrivateNetworkEndpointIdEntry(d)).Execute()
+	_, _, err := connV2.DataFederationApi.CreateDataFederationPrivateEndpoint(ctx, projectID, newPrivateNetworkEndpointIDEntry(d)).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveCreate, projectID, err))
 	}
@@ -183,7 +183,7 @@ func splitAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive(id string) 
 	return
 }
 
-func newPrivateNetworkEndpointIdEntry(d *schema.ResourceData) *admin.PrivateNetworkEndpointIdEntry {
+func newPrivateNetworkEndpointIDEntry(d *schema.ResourceData) *admin.PrivateNetworkEndpointIdEntry {
 	endpointType := endpointType
 	out := admin.PrivateNetworkEndpointIdEntry{
 		EndpointId: d.Get("endpoint_id").(string),
