@@ -12,8 +12,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccAdvDSLDAPConfiguration_basic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+func TestAccLDAPConfigurationDS_basic(t *testing.T) {
 	var (
 		ldapConfiguration matlas.LDAPConfiguration
 		resourceName      = "mongodbatlas_ldap_configuration.test"
@@ -27,7 +26,7 @@ func TestAccAdvDSLDAPConfiguration_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckLDAP(t) },
+		PreCheck:                 func() { acc.PreCheckLDAP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyLDAPConfiguration,
 		Steps: []resource.TestStep{

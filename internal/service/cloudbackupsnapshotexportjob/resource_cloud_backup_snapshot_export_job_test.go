@@ -14,7 +14,7 @@ import (
 )
 
 func TestAccBackupRSBackupSnapshotExportJob_basic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		snapshotExportJob matlas.CloudProviderSnapshotExportJob
 		resourceName      = "mongodbatlas_cloud_backup_snapshot_export_job.test"
@@ -41,7 +41,7 @@ func TestAccBackupRSBackupSnapshotExportJob_basic(t *testing.T) {
 }
 
 func TestAccBackupRSBackupSnapshotExportJob_importBasic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_cloud_backup_snapshot_export_job.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

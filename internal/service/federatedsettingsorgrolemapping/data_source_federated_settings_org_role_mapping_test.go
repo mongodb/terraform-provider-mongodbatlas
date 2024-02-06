@@ -10,8 +10,8 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccFedDSFederatedSettingsOrganizationRoleMapping_basic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+func TestAccFederatedSettingsOrgRoleMappingDS_basic(t *testing.T) {
+	acc.SkipTestForCI(t)
 	var (
 		federatedSettingsOrganizationRoleMapping matlas.FederatedSettingsOrganizationRoleMapping
 		resourceName                             = "data.mongodbatlas_federated_settings_org_role_mapping.test"

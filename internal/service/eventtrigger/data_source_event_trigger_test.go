@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestEventTrigger_basic(t *testing.T) {
+func TestAccEventTriggerDS_basic(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"

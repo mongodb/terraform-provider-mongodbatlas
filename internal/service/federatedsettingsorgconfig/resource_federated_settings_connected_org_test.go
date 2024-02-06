@@ -13,8 +13,8 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccFedRSFederatedSettingsOrganizationConfig_basic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+func TestAccFederatedSettingsOrg_basic(t *testing.T) {
+	acc.SkipTestForCI(t)
 	var (
 		federatedSettingsIdentityProvider matlas.FederatedSettingsConnectedOrganization
 		resourceName                      = "mongodbatlas_federated_settings_org_config.test"
@@ -49,8 +49,8 @@ func TestAccFedRSFederatedSettingsOrganizationConfig_basic(t *testing.T) {
 	})
 }
 
-func TestAccFedRSFederatedSettingsOrganizationConfig_importBasic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+func TestAccFederatedSettingsOrg_importBasic(t *testing.T) {
+	acc.SkipTestForCI(t)
 	var (
 		resourceName         = "mongodbatlas_federated_settings_org_config.test"
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")

@@ -212,6 +212,7 @@ func PreCheckDataLakePipelineRuns(tb testing.TB) {
 	if os.Getenv("MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME") == "" {
 		tb.Skip("`MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME` must be set for Projects acceptance testing")
 	}
+	PreCheck(tb)
 }
 
 func PreCheckLDAP(tb testing.TB) {
@@ -222,6 +223,7 @@ func PreCheckLDAP(tb testing.TB) {
 		os.Getenv("MONGODB_ATLAS_LDAP_PORT") == "" {
 		tb.Fatal("`MONGODB_ATLAS_LDAP_HOSTNAME`, `MONGODB_ATLAS_LDAP_USERNAME`, `MONGODB_ATLAS_LDAP_PASSWORD` and `MONGODB_ATLAS_LDAP_PORT` must be set for ldap configuration/verify acceptance testing")
 	}
+	PreCheckBasic(tb)
 }
 
 func PreCheckFederatedSettings(tb testing.TB) {

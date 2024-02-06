@@ -104,8 +104,8 @@ data "aws_iam_role" "test" {
 `
 )
 
-func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
-	acc.SkipTestExtCred(t)
+func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
+	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -166,8 +166,8 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 	})
 }
 
-func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
-	acc.SkipTestExtCred(t)
+func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
+	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -236,8 +236,8 @@ func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
 	})
 }
 
-func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
-	acc.SkipTestExtCred(t)
+func TestAccEncryptionAtRest_basicGCP(t *testing.T) {
+	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -288,9 +288,8 @@ func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
 	})
 }
 
-func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
-	acc.SkipTest(t) // For now it will skipped because of aws errors reasons, already made another test using terratest.
-	acc.SkipTestExtCred(t)
+func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
+	acc.SkipTestForCI(t) // For now it will skipped because of aws errors reasons, already made another test using terratest.
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

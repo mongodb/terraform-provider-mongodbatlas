@@ -16,7 +16,8 @@ import (
 	"go.mongodb.org/realm/realm"
 )
 
-func TestEventTriggerDatabase_basic(t *testing.T) {
+func TestAccEventTrigger_basic(t *testing.T) {
+	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -78,7 +79,8 @@ func TestEventTriggerDatabase_basic(t *testing.T) {
 	})
 }
 
-func TestEventTriggerDatabase_eventProccesor(t *testing.T) {
+func TestAccEventTriggerDatabase_eventProccesor(t *testing.T) {
+	acc.SkipTestForCI(t)
 	var (
 		resourceName            = "mongodbatlas_event_trigger.test"
 		projectID               = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -143,7 +145,8 @@ func TestEventTriggerDatabase_eventProccesor(t *testing.T) {
 	})
 }
 
-func TestEventTriggerAuth_basic(t *testing.T) {
+func TestAccEventTriggerAuth_basic(t *testing.T) {
+	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -201,7 +204,8 @@ func TestEventTriggerAuth_basic(t *testing.T) {
 	})
 }
 
-func TestEventTriggerAuth_eventProcessor(t *testing.T) {
+func TestAccEventTriggerAuth_eventProcessor(t *testing.T) {
+	acc.SkipTestForCI(t)
 	var (
 		resourceName            = "mongodbatlas_event_trigger.test"
 		projectID               = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -261,7 +265,8 @@ func TestEventTriggerAuth_eventProcessor(t *testing.T) {
 	})
 }
 
-func TestEventTriggerSchedule_basic(t *testing.T) {
+func TestAccEventTriggerSchedule_basic(t *testing.T) {
+	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -316,7 +321,8 @@ func TestEventTriggerSchedule_basic(t *testing.T) {
 	})
 }
 
-func TestEventTriggerSchedule_eventProcessor(t *testing.T) {
+func TestAccEventTriggerSchedule_eventProcessor(t *testing.T) {
+	acc.SkipTestForCI(t)
 	var (
 		resourceName            = "mongodbatlas_event_trigger.test"
 		projectID               = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -373,7 +379,8 @@ func TestEventTriggerSchedule_eventProcessor(t *testing.T) {
 	})
 }
 
-func TestEventTriggerFunction_basic(t *testing.T) {
+func TestAccEventTriggerFunction_basic(t *testing.T) {
+	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
