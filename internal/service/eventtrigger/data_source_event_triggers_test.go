@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/realm/realm"
 )
 
-func TestEventTriggers_basic(t *testing.T) {
+func TestAccEventTriggerDSPlural_basic(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
