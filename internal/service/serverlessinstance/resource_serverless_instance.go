@@ -15,7 +15,9 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/ldapverify"
 	"github.com/mwielbut/pointy"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -230,7 +232,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf(errorServerlessInstanceSetting, "mongo_db_version", d.Id(), err)
 	}
 
-	if err := d.Set("links", flattenLinks(serverlessInstance.Links)); err != nil {
+	if err := d.Set("links", ldapverify.FlattenLinks(serverlessInstance.Links)); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "links", d.Id(), err)
 	}
 
@@ -392,26 +394,20 @@ func resourceRefreshFunc(ctx context.Context, name, projectID string, client *ma
 	}
 }
 
-func flattenLinks(links []*matlas.Link) []map[string]any {
-	linksList := make([]map[string]any, 0)
-
-	for _, link := range links {
-		mLink := map[string]any{
-			"href": link.Href,
-			"rel":  link.Rel,
-		}
-		linksList = append(linksList, mLink)
-	}
-
-	return linksList
-}
-
 func flattenSRVConnectionString(srvConnectionStringArray []matlas.PrivateEndpoint) []any {
 	srvconnections := make([]any, 0)
 	for _, v := range srvConnectionStringArray {
 		srvconnections = append(srvconnections, v.SRVConnectionString)
 	}
 	return srvconnections
+}
+
+func flattenSRVConnectionStringV2(list []admin.ServerlessConnectionStringsPrivateEndpointList) []any {
+	ret := make([]any, len(list))
+	for i, elm := range list {
+		ret[i] = elm.GetSrvConnectionString()
+	}
+	return ret
 }
 
 func splitImportID(id string) (projectID, instanceName *string, err error) {

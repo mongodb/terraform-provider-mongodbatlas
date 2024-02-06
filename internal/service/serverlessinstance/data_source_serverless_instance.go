@@ -97,8 +97,7 @@ func dataSourceSchema() map[string]*schema.Schema {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID, projectIDOk := d.GetOk("project_id")
 	instanceName, instanceNameOk := d.GetOk("name")
@@ -107,61 +106,61 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.Errorf("project_id and name must be configured")
 	}
 
-	serverlessInstance, _, err := conn.ServerlessInstances.Get(ctx, projectID.(string), instanceName.(string))
+	instance, _, err := connV2.ServerlessInstancesApi.GetServerlessInstance(ctx, projectID.(string), instanceName.(string)).Execute()
 	if err != nil {
 		return diag.Errorf("error getting serverless instance information: %s", err)
 	}
 
-	if err := d.Set("id", serverlessInstance.ID); err != nil {
+	if err := d.Set("id", instance.GetId()); err != nil {
 		return diag.Errorf("error setting `is` for serverless instance (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("provider_settings_backing_provider_name", serverlessInstance.ProviderSettings.BackingProviderName); err != nil {
+	if err := d.Set("provider_settings_backing_provider_name", instance.ProviderSettings.GetBackingProviderName()); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "provider_settings_backing_provider_name", d.Id(), err)
 	}
 
-	if err := d.Set("provider_settings_provider_name", serverlessInstance.ProviderSettings.ProviderName); err != nil {
+	if err := d.Set("provider_settings_provider_name", instance.ProviderSettings.GetProviderName()); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "provider_settings_provider_name", d.Id(), err)
 	}
 
-	if err := d.Set("provider_settings_region_name", serverlessInstance.ProviderSettings.RegionName); err != nil {
+	if err := d.Set("provider_settings_region_name", instance.ProviderSettings.GetRegionName()); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "provider_settings_region_name", d.Id(), err)
 	}
 
-	if err := d.Set("connection_strings_standard_srv", serverlessInstance.ConnectionStrings.StandardSrv); err != nil {
+	if err := d.Set("connection_strings_standard_srv", instance.ConnectionStrings.GetStandardSrv()); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "connection_strings_standard_srv", d.Id(), err)
 	}
 
-	if len(serverlessInstance.ConnectionStrings.PrivateEndpoint) > 0 {
-		if err := d.Set("connection_strings_private_endpoint_srv", flattenSRVConnectionString(serverlessInstance.ConnectionStrings.PrivateEndpoint)); err != nil {
+	if len(instance.ConnectionStrings.GetPrivateEndpoint()) > 0 {
+		if err := d.Set("connection_strings_private_endpoint_srv", flattenSRVConnectionStringV2(instance.ConnectionStrings.GetPrivateEndpoint())); err != nil {
 			return diag.Errorf(errorServerlessInstanceSetting, "connection_strings_private_endpoint_srv", d.Id(), err)
 		}
 	}
 
-	if err := d.Set("create_date", serverlessInstance.CreateDate); err != nil {
+	if err := d.Set("create_date", conversion.TimePtrToStringPtr(instance.CreateDate)); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "create_date", d.Id(), err)
 	}
 
-	if err := d.Set("mongo_db_version", serverlessInstance.MongoDBVersion); err != nil {
+	if err := d.Set("mongo_db_version", instance.GetMongoDBVersion()); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "mongo_db_version", d.Id(), err)
 	}
 
-	if err := d.Set("links", flattenLinks(serverlessInstance.Links)); err != nil {
+	if err := d.Set("links", conversion.FlattenLinks(instance.GetLinks())); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "links", d.Id(), err)
 	}
 
-	if err := d.Set("state_name", serverlessInstance.StateName); err != nil {
+	if err := d.Set("state_name", instance.GetStateName()); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "state_name", d.Id(), err)
 	}
 
-	if err := d.Set("termination_protection_enabled", serverlessInstance.TerminationProtectionEnabled); err != nil {
+	if err := d.Set("termination_protection_enabled", instance.GetTerminationProtectionEnabled()); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "termination_protection_enabled", d.Id(), err)
 	}
 
-	if err := d.Set("continuous_backup_enabled", serverlessInstance.ServerlessBackupOptions.ServerlessContinuousBackupEnabled); err != nil {
+	if err := d.Set("continuous_backup_enabled", instance.ServerlessBackupOptions.GetServerlessContinuousBackupEnabled()); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "continuous_backup_enabled", d.Id(), err)
 	}
-	if err := d.Set("tags", advancedcluster.FlattenTags(serverlessInstance.Tags)); err != nil {
+	if err := d.Set("tags", conversion.FlattenTags(instance.GetTags())); err != nil {
 		return diag.Errorf(advancedcluster.ErrorClusterAdvancedSetting, "tags", d.Id(), err)
 	}
 
