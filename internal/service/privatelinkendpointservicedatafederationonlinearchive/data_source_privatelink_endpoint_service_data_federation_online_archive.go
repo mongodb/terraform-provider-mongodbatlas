@@ -38,24 +38,24 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	endopointID := d.Get("endpoint_id").(string)
 
-	privateEndpoint, _, err := conn.DataLakes.GetPrivateLinkEndpoint(context.Background(), projectID, endopointID)
+	privateEndpoint, _, err := connV2.DataFederationApi.GetDataFederationPrivateEndpoint(context.Background(), projectID, endopointID).Execute()
 	if err != nil {
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
 	}
 
-	if err := d.Set("comment", privateEndpoint.Comment); err != nil {
+	if err := d.Set("comment", privateEndpoint.GetComment()); err != nil {
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
 	}
 
-	if err := d.Set("provider_name", privateEndpoint.Provider); err != nil {
+	if err := d.Set("provider_name", privateEndpoint.GetProvider()); err != nil {
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
 	}
 
-	if err := d.Set("type", privateEndpoint.Type); err != nil {
+	if err := d.Set("type", privateEndpoint.GetType()); err != nil {
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
 	}
 
