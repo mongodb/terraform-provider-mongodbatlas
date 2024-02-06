@@ -8,12 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccDataLakeDSPlural_basic(t *testing.T) {
 	var (
-		pipeline           matlas.DataLakePipeline
 		resourceName       = "mongodbatlas_data_lake_pipeline.test"
 		dataSourceName     = "data.mongodbatlas_data_lake_pipelines.testDataSource"
 		firstClusterName   = acctest.RandomWithPrefix("test-acc-index")
@@ -31,7 +29,7 @@ func TestAccDataLakeDSPlural_basic(t *testing.T) {
 			{
 				Config: configDSPlural(orgID, projectName, firstClusterName, secondClusterName, firstPipelineName, secondPipelineName),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &pipeline),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "results.#"),
 				),
 			},

@@ -11,12 +11,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccDataLakePipeline_basic(t *testing.T) {
 	var (
-		pipeline     matlas.DataLakePipeline
 		resourceName = "mongodbatlas_data_lake_pipeline.test"
 		clusterName  = acctest.RandomWithPrefix("test-acc-index")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -31,7 +29,7 @@ func TestAccDataLakePipeline_basic(t *testing.T) {
 			{
 				Config: configBasic(orgID, projectName, clusterName, name),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &pipeline),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "state", "ACTIVE"),
@@ -67,8 +65,7 @@ func checkDestroy(s *terraform.State) error {
 		}
 
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		// Try to find the data lake pipeline
-		_, _, err := acc.Conn().DataLakePipeline.Get(context.Background(), ids["project_id"], ids["name"])
+		_, _, err := acc.ConnV2().DataLakePipelinesApi.GetPipeline(context.Background(), ids["project_id"], ids["name"]).Execute()
 		if err == nil {
 			return fmt.Errorf("datalake (%s) still exists", ids["project_id"])
 		}
@@ -76,7 +73,7 @@ func checkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func checkExists(resourceName string, pipeline *matlas.DataLakePipeline) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -86,9 +83,8 @@ func checkExists(resourceName string, pipeline *matlas.DataLakePipeline) resourc
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		response, _, err := acc.Conn().DataLakePipeline.Get(context.Background(), ids["project_id"], ids["name"])
+		_, _, err := acc.ConnV2().DataLakePipelinesApi.GetPipeline(context.Background(), ids["project_id"], ids["name"]).Execute()
 		if err == nil {
-			*pipeline = *response
 			return nil
 		}
 		return fmt.Errorf("DataLake pipeline (%s) does not exist", ids["name"])
