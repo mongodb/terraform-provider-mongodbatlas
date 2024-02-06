@@ -9,16 +9,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccMigrationServerlessInstance_basic(t *testing.T) {
 	var (
-		serverlessInstance matlas.Cluster
-		resourceName       = "mongodbatlas_serverless_instance.test"
-		instanceName       = acctest.RandomWithPrefix("test-acc-serverless")
-		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName        = acctest.RandomWithPrefix("test-acc-serverless")
+		instanceName = acctest.RandomWithPrefix("test-acc-serverless")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc-serverless")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
@@ -29,7 +26,7 @@ func TestAccMigrationServerlessInstance_basic(t *testing.T) {
 				Config:            acc.ConfigServerlessInstanceBasic(orgID, projectName, instanceName, true),
 				Check: resource.ComposeTestCheckFunc(
 					checkConnectionStringPrivateEndpointIsPresentWithNoElement(resourceName),
-					checkExists(resourceName, &serverlessInstance),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", instanceName),
 					resource.TestCheckResourceAttr(resourceName, "termination_protection_enabled", "false"),
 				),

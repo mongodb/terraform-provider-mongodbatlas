@@ -3,7 +3,7 @@ package acc
 import (
 	"fmt"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
 func ConfigServerlessInstanceBasic(orgID, projectName, name string, ignoreConnectionStrings bool) string {
@@ -21,15 +21,15 @@ func ConfigServerlessInstanceBasic(orgID, projectName, name string, ignoreConnec
 	return fmt.Sprintf(serverlessConfig, orgID, projectName, name, lifecycle)
 }
 
-func ConfigServerlessInstanceWithTags(orgID, projectName, name string, tags []matlas.Tag) string {
+func ConfigServerlessInstanceWithTags(orgID, projectName, name string, tags []admin.ResourceTag) string {
 	var tagsConf string
 	for _, label := range tags {
 		tagsConf += fmt.Sprintf(`
 			tags {
-				key   = "%s"
-				value = "%s"
+				key   = %q
+				value = %q
 			}
-		`, label.Key, label.Value)
+		`, label.GetKey(), label.GetValue())
 	}
 	return fmt.Sprintf(serverlessConfig, orgID, projectName, name, tagsConf)
 }
