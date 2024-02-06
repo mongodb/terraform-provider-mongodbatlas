@@ -412,7 +412,7 @@ jobs:
         run: make testacc
   serverless:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.encryption == 'true' || inputs.test_group == 'encryption' }}
+    if: ${{ needs.change-detection.outputs.serverless == 'true' || inputs.test_group == 'serverless' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
