@@ -7,8 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
 const errorDataLakePipelineList = "error creating MongoDB Atlas DataLake Pipelines: %s"
@@ -139,42 +140,36 @@ func PluralDataSource() *schema.Resource {
 }
 
 func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	dataLakePipelines, _, err := conn.DataLakePipeline.List(ctx, projectID)
+	pipelines, _, err := connV2.DataLakePipelinesApi.ListPipelines(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineList, err))
 	}
 
-	if err := d.Set("results", flattenDataLakePipelines(dataLakePipelines)); err != nil {
+	if err := d.Set("results", flattenDataLakePipelines(pipelines)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `result` for DataLake Pipelines: %s", err))
 	}
 
 	d.SetId(id.UniqueId())
-
 	return nil
 }
 
-func flattenDataLakePipelines(peers []*matlas.DataLakePipeline) []map[string]any {
-	if len(peers) == 0 {
-		return nil
-	}
-
+func flattenDataLakePipelines(peers []admin.DataLakeIngestionPipeline) []map[string]any {
 	pipelines := make([]map[string]any, len(peers))
 	for i := range peers {
 		pipelines[i] = map[string]any{
-			"project_id":        peers[i].GroupID,
-			"name":              peers[i].Name,
-			"id":                peers[i].ID,
-			"created_date":      peers[i].CreatedDate,
-			"last_updated_date": peers[i].LastUpdatedDate,
-			"state":             peers[i].State,
+			"project_id":        peers[i].GetGroupId(),
+			"name":              peers[i].GetName(),
+			"id":                peers[i].GetId(),
+			"created_date":      conversion.TimePtrToStringPtr(peers[i].CreatedDate),
+			"last_updated_date": conversion.TimePtrToStringPtr(peers[i].LastUpdatedDate),
+			"state":             peers[i].GetState(),
 			"sink":              flattenSink(peers[i].Sink),
 			"source":            flattenSource(peers[i].Source),
-			"transformations":   flattenTransformations(peers[i].Transformations),
+			"transformations":   flattenTransformations(peers[i].GetTransformations()),
 		}
 	}
-
 	return pipelines
 }

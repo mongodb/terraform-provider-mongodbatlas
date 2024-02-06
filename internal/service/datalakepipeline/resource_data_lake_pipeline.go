@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -282,12 +283,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	name := ids["name"]
 
-	dataLakePipeline, resp, err := conn.DataLakePipeline.Get(ctx, projectID, name)
+	pipeline, resp, err := connV2.DataLakePipelinesApi.GetPipeline(ctx, projectID, name).Execute()
 	if resp != nil && resp.StatusCode == http.StatusNotFound {
 		d.SetId("")
 		return nil
@@ -297,44 +298,44 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineRead, name, err))
 	}
 
-	if err := d.Set("id", dataLakePipeline.ID); err != nil {
+	if err := d.Set("id", pipeline.GetId()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "id", name, err))
 	}
 
-	if err := d.Set("state", dataLakePipeline.State); err != nil {
+	if err := d.Set("state", pipeline.GetState()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "state", name, err))
 	}
 
-	if err := d.Set("created_date", dataLakePipeline.CreatedDate); err != nil {
+	if err := d.Set("created_date", conversion.TimePtrToStringPtr(pipeline.CreatedDate)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "created_date", name, err))
 	}
 
-	if err := d.Set("last_updated_date", dataLakePipeline.LastUpdatedDate); err != nil {
+	if err := d.Set("last_updated_date", conversion.TimePtrToStringPtr(pipeline.LastUpdatedDate)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "last_updated_date", name, err))
 	}
 
-	if err := d.Set("sink", flattenSink(dataLakePipeline.Sink)); err != nil {
+	if err := d.Set("sink", flattenSink(pipeline.Sink)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "sink", name, err))
 	}
 
-	if err := d.Set("source", flattenSource(dataLakePipeline.Source)); err != nil {
+	if err := d.Set("source", flattenSource(pipeline.Source)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "source", name, err))
 	}
 
-	if err := d.Set("transformations", flattenTransformations(dataLakePipeline.Transformations)); err != nil {
+	if err := d.Set("transformations", flattenTransformations(pipeline.GetTransformations())); err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "transformations", name, err))
 	}
 
-	snapshots, _, err := conn.DataLakePipeline.ListSnapshots(ctx, projectID, name, nil)
+	snapshots, _, err := connV2.DataLakePipelinesApi.ListPipelineSnapshots(ctx, projectID, name).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineRead, name, err))
 	}
 
-	if err := d.Set("snapshots", flattenSnapshots(snapshots.Results)); err != nil {
+	if err := d.Set("snapshots", flattenSnapshots(snapshots.GetResults())); err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "snapshots", name, err))
 	}
 
-	ingestionSchedules, _, err := conn.DataLakePipeline.ListIngestionSchedules(ctx, projectID, name)
+	ingestionSchedules, _, err := connV2.DataLakePipelinesApi.ListPipelineSchedules(ctx, projectID, name).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineRead, name, err))
 	}
@@ -345,7 +346,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id": projectID,
-		"name":       dataLakePipeline.Name,
+		"name":       pipeline.GetName(),
 	}))
 
 	return nil
@@ -387,14 +388,14 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID, name, err := splitDataLakePipelineImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
-	dataLakePipeline, _, err := conn.DataLakePipeline.Get(ctx, projectID, name)
+	pipeline, _, err := connV2.DataLakePipelinesApi.GetPipeline(ctx, projectID, name).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorDataLakePipelineImport, name, err)
 	}
@@ -407,49 +408,49 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		return nil, fmt.Errorf(errorDataLakePipelineImportField, "project_id", name, err)
 	}
 
-	if err := d.Set("id", dataLakePipeline.ID); err != nil {
+	if err := d.Set("id", pipeline.GetId()); err != nil {
 		return nil, fmt.Errorf(errorDataLakePipelineImportField, "id", name, err)
 	}
 
-	if err := d.Set("state", dataLakePipeline.State); err != nil {
+	if err := d.Set("state", pipeline.GetState()); err != nil {
 		return nil, fmt.Errorf(errorDataLakePipelineImportField, "state", name, err)
 	}
 
-	if err := d.Set("created_date", dataLakePipeline.CreatedDate); err != nil {
+	if err := d.Set("created_date", conversion.TimePtrToStringPtr(pipeline.CreatedDate)); err != nil {
 		return nil, fmt.Errorf(errorDataLakePipelineImportField, "created_date", name, err)
 	}
 
-	if err := d.Set("last_updated_date", dataLakePipeline.LastUpdatedDate); err != nil {
+	if err := d.Set("last_updated_date", conversion.TimePtrToStringPtr(pipeline.LastUpdatedDate)); err != nil {
 		return nil, fmt.Errorf(errorDataLakePipelineImportField, "last_updated_date", name, err)
 	}
 
-	if err := d.Set("sink", flattenSink(dataLakePipeline.Sink)); err != nil {
+	if err := d.Set("sink", flattenSink(pipeline.Sink)); err != nil {
 		return nil, fmt.Errorf(errorDataLakePipelineImportField, "sink", name, err)
 	}
 
-	if err := d.Set("source", flattenSource(dataLakePipeline.Source)); err != nil {
+	if err := d.Set("source", flattenSource(pipeline.Source)); err != nil {
 		return nil, fmt.Errorf(errorDataLakePipelineImportField, "source", name, err)
 	}
 
-	if err := d.Set("transformations", flattenTransformations(dataLakePipeline.Transformations)); err != nil {
+	if err := d.Set("transformations", flattenTransformations(pipeline.GetTransformations())); err != nil {
 		return nil, fmt.Errorf(errorDataLakePipelineImportField, "transformations", name, err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id": projectID,
-		"name":       dataLakePipeline.Name,
+		"name":       pipeline.GetName(),
 	}))
 
-	snapshots, _, err := conn.DataLakePipeline.ListSnapshots(ctx, projectID, name, nil)
+	snapshots, _, err := connV2.DataLakePipelinesApi.ListPipelineSnapshots(ctx, projectID, name).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorDataLakePipelineImport, name, err)
 	}
 
-	if err := d.Set("snapshots", flattenSnapshots(snapshots.Results)); err != nil {
+	if err := d.Set("snapshots", flattenSnapshots(snapshots.GetResults())); err != nil {
 		return nil, fmt.Errorf(errorDataLakePipelineImportField, "snapshots", name, err)
 	}
 
-	ingestionSchedules, _, err := conn.DataLakePipeline.ListIngestionSchedules(ctx, projectID, name)
+	ingestionSchedules, _, err := connV2.DataLakePipelinesApi.ListPipelineSchedules(ctx, projectID, name).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorDataLakePipelineImport, name, err)
 	}
@@ -576,107 +577,101 @@ func newTransformation(d *schema.ResourceData) []*matlas.DataLakePipelineTransfo
 	return dataLakePipelineTransformations
 }
 
-func flattenSource(atlasPipelineSource *matlas.DataLakePipelineSource) []map[string]any {
-	if atlasPipelineSource == nil {
+func flattenSource(source *admin.IngestionSource) []map[string]any {
+	if source == nil {
 		return nil
 	}
-
 	return []map[string]any{
 		{
-			"type":            atlasPipelineSource.Type,
-			"cluster_name":    atlasPipelineSource.ClusterName,
-			"collection_name": atlasPipelineSource.CollectionName,
-			"database_name":   atlasPipelineSource.DatabaseName,
-			"project_id":      atlasPipelineSource.GroupID,
+			"type":            source.GetType(),
+			"cluster_name":    source.GetClusterName(),
+			"collection_name": source.GetCollectionName(),
+			"database_name":   source.GetDatabaseName(),
+			"project_id":      source.GetGroupId(),
 		},
 	}
 }
 
-func flattenSink(atlasPipelineSink *matlas.DataLakePipelineSink) []map[string]any {
-	if atlasPipelineSink == nil {
+func flattenSink(sink *admin.IngestionSink) []map[string]any {
+	if sink == nil {
 		return nil
 	}
-
 	return []map[string]any{
 		{
-			"type":             atlasPipelineSink.Type,
-			"provider":         atlasPipelineSink.MetadataProvider,
-			"region":           atlasPipelineSink.MetadataRegion,
-			"partition_fields": flattenPartitionFields(atlasPipelineSink.PartitionFields),
+			"type":             sink.GetType(),
+			"provider":         sink.GetMetadataProvider(),
+			"region":           sink.GetMetadataRegion(),
+			"partition_fields": flattenPartitionFields(sink.GetPartitionFields()),
 		},
 	}
 }
 
-func flattenIngestionSchedules(atlasPipelineIngestionSchedules []*matlas.DataLakePipelineIngestionSchedule) []map[string]any {
-	if len(atlasPipelineIngestionSchedules) == 0 {
+func flattenIngestionSchedules(schedules []admin.DiskBackupApiPolicyItem) []map[string]any {
+	if len(schedules) == 0 {
 		return nil
 	}
-
-	out := make([]map[string]any, len(atlasPipelineIngestionSchedules))
-	for i, schedule := range atlasPipelineIngestionSchedules {
+	out := make([]map[string]any, len(schedules))
+	for i, schedule := range schedules {
 		out[i] = map[string]any{
-			"id":                 schedule.ID,
-			"frequency_type":     schedule.FrequencyType,
-			"frequency_interval": schedule.FrequencyInterval,
-			"retention_unit":     schedule.RetentionUnit,
-			"retention_value":    schedule.RetentionValue,
+			"id":                 schedule.GetId(),
+			"frequency_type":     schedule.GetFrequencyType(),
+			"frequency_interval": schedule.GetFrequencyInterval(),
+			"retention_unit":     schedule.GetRetentionUnit(),
+			"retention_value":    schedule.GetRetentionValue(),
 		}
 	}
-
 	return out
 }
 
-func flattenSnapshots(snapshots []*matlas.DataLakePipelineSnapshot) []map[string]any {
+func flattenSnapshots(snapshots []admin.DiskBackupSnapshot) []map[string]any {
 	if len(snapshots) == 0 {
 		return nil
 	}
-
 	out := make([]map[string]any, len(snapshots))
-	for i, snapshot := range snapshots {
+	for i := range snapshots {
+		snapshot := &snapshots[i]
 		out[i] = map[string]any{
-			"id":               snapshot.ID,
-			"provider":         snapshot.CloudProvider,
-			"created_at":       snapshot.CreatedAt,
-			"expires_at":       snapshot.ExpiresAt,
-			"frequency_yype":   snapshot.FrequencyType,
-			"master_key":       snapshot.MasterKeyUUID,
-			"mongod_version":   snapshot.MongodVersion,
-			"replica_set_name": snapshot.ReplicaSetName,
-			"type":             snapshot.Type,
-			"snapshot_type":    snapshot.SnapshotType,
-			"status":           snapshot.Status,
-			"size":             snapshot.StorageSizeBytes,
-			"policies":         snapshot.PolicyItems,
+			"id":               snapshot.GetId(),
+			"provider":         snapshot.GetCloudProvider(),
+			"created_at":       conversion.TimePtrToStringPtr(snapshot.CreatedAt),
+			"expires_at":       conversion.TimePtrToStringPtr(snapshot.ExpiresAt),
+			"frequency_yype":   snapshot.GetFrequencyType(),
+			"master_key":       snapshot.GetMasterKeyUUID(),
+			"mongod_version":   snapshot.GetMongodVersion(),
+			"replica_set_name": snapshot.GetReplicaSetName(),
+			"type":             snapshot.GetType(),
+			"snapshot_type":    snapshot.GetSnapshotType(),
+			"status":           snapshot.GetStatus(),
+			"size":             snapshot.GetStorageSizeBytes(),
+			"policies":         snapshot.GetPolicyItems(),
 		}
 	}
 	return out
 }
 
-func flattenTransformations(atlasPipelineTransformation []*matlas.DataLakePipelineTransformation) []map[string]any {
-	if len(atlasPipelineTransformation) == 0 {
+func flattenTransformations(transformations []admin.FieldTransformation) []map[string]any {
+	if len(transformations) == 0 {
 		return nil
 	}
-
-	out := make([]map[string]any, len(atlasPipelineTransformation))
-	for i, atlasPipelineTransformation := range atlasPipelineTransformation {
+	out := make([]map[string]any, len(transformations))
+	for i, transformation := range transformations {
 		out[i] = map[string]any{
-			"type":  atlasPipelineTransformation.Type,
-			"field": atlasPipelineTransformation.Field,
+			"type":  transformation.GetType(),
+			"field": transformation.GetField(),
 		}
 	}
 	return out
 }
 
-func flattenPartitionFields(atlasDataLakePipelinePartitionFields []*matlas.DataLakePipelinePartitionField) []map[string]any {
-	if len(atlasDataLakePipelinePartitionFields) == 0 {
+func flattenPartitionFields(fields []admin.DataLakePipelinesPartitionField) []map[string]any {
+	if len(fields) == 0 {
 		return nil
 	}
-
-	out := make([]map[string]any, len(atlasDataLakePipelinePartitionFields))
-	for i, atlasDataLakePipelinePartitionField := range atlasDataLakePipelinePartitionFields {
+	out := make([]map[string]any, len(fields))
+	for i, field := range fields {
 		out[i] = map[string]any{
-			"field_name": atlasDataLakePipelinePartitionField.FieldName,
-			"order":      atlasDataLakePipelinePartitionField.Order,
+			"field_name": field.GetFieldName(),
+			"order":      field.GetOrder(),
 		}
 	}
 	return out
