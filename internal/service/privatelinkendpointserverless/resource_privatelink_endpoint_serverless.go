@@ -120,6 +120,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	privateLinkResponse, _, err := connV2.ServerlessPrivateEndpointsApi.GetServerlessPrivateEndpoint(ctx, projectID, instanceName, endpointID).Execute()
 	if err != nil {
+		// case 404/400: deleted in the backend case
 		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "400") {
 			d.SetId("")
 			return nil
@@ -160,6 +161,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	_, _, err := connV2.ServerlessPrivateEndpointsApi.GetServerlessPrivateEndpoint(ctx, projectID, instanceName, endpointID).Execute()
 	if err != nil {
+		// case 404/400: deleted in the backend case
 		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "400") {
 			d.SetId("")
 			return nil
