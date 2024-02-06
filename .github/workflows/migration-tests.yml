@@ -122,6 +122,7 @@ jobs:
             - 'internal/service/privatelinkendpoint/*.go'
             - 'internal/service/privatelinkendpointservice/*.go'
             - 'internal/service/privatelinkendpointservicedatafederationonlinearchive/*.go'
+            - 'internal/service/privatelinkendpointserverless/*.go'
           encryption:
             - 'internal/service/encryptionatrest/*.go'
   

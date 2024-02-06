@@ -187,6 +187,7 @@ jobs:
             - 'internal/service/privatelinkendpoint/*.go'
             - 'internal/service/privatelinkendpointservice/*.go'
             - 'internal/service/privatelinkendpointservicedatafederationonlinearchive/*.go'
+            - 'internal/service/privatelinkendpointserverless/*.go'
           config:
             - 'internal/service/alertconfiguration/*.go'
             - 'internal/service/atlasuser/*.go'
