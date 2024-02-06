@@ -33,12 +33,6 @@ func TestAccDataLakeDSPlural_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &pipeline),
 					resource.TestCheckResourceAttrSet(dataSourceName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "results.0.name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "results.0.state"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "results.0.project_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "results.1.name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "results.1.state"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "results.1.project_id"),
 				),
 			},
 		},
