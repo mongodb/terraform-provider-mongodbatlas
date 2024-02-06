@@ -17,12 +17,12 @@ func TestAccDataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnline
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveConfig(projectID, endpointID),
+				Config: dataSourcesConfigBasic(projectID, endpointID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveExists(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive),
+					checkExists(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive),
 					resource.TestCheckResourceAttr(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchive, "project_id", projectID),
 					resource.TestCheckResourceAttr(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchive, "endpoint_id", endpointID),
 					resource.TestCheckResourceAttrSet(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchive, "comment"),
@@ -34,7 +34,7 @@ func TestAccDataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnline
 	})
 }
 
-func testAccDataSourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveConfig(projectID, endpointID string) string {
+func dataSourcesConfigBasic(projectID, endpointID string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
 	  project_id				= %[1]q

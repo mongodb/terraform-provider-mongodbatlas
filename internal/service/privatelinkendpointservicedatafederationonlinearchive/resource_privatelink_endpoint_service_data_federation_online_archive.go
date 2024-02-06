@@ -26,11 +26,11 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveCreate,
-		ReadContext:   resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveRead,
-		DeleteContext: resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -65,7 +65,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	endpointID := d.Get("endpoint_id").(string)
@@ -80,10 +80,10 @@ func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveCr
 		"endpoint_id": endpointID,
 	}))
 
-	return resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -114,7 +114,7 @@ func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveRe
 	return nil
 }
 
-func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -130,7 +130,7 @@ func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveDe
 	return nil
 }
 
-func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID, endpointID, err := splitAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive(d.Id())
 	if err != nil {

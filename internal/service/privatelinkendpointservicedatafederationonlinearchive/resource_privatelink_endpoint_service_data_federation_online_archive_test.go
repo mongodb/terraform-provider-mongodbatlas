@@ -23,12 +23,12 @@ func TestAccMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive_ba
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveConfig(projectID, endpointID),
+				Config: resourceConfigBasic(projectID, endpointID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveExists(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive),
+					checkExists(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive),
 					resource.TestCheckResourceAttr(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive, "endpoint_id", endpointID),
 					resource.TestCheckResourceAttrSet(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive, "comment"),
@@ -38,7 +38,7 @@ func TestAccMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive_ba
 			},
 			{
 				ResourceName:      resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveFunc(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive),
+				ImportStateIdFunc: importStateIDFunc(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -46,7 +46,7 @@ func TestAccMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive_ba
 	})
 }
 
-func testAccCheckMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -59,7 +59,7 @@ func testAccCheckMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchi
 	}
 }
 
-func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDestroy(s *terraform.State) error {
+func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" {
 			continue
@@ -73,7 +73,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDe
 	return nil
 }
 
-func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveExists(resourceName string) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -91,7 +91,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveEx
 	}
 }
 
-func testAccMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveConfig(projectID, endpointID string) string {
+func resourceConfigBasic(projectID, endpointID string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
 	  project_id				= %[1]q
