@@ -12,7 +12,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115005/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -257,26 +256,26 @@ func schemaSnapshots() *schema.Schema {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	name := d.Get("name").(string)
 
-	dataLakePipelineReqBody := &matlas.DataLakePipeline{
-		GroupID:         projectID,
-		Name:            name,
+	params := &admin.DataLakeIngestionPipeline{
+		GroupId:         conversion.StringPtr(projectID),
+		Name:            conversion.StringPtr(name),
 		Sink:            newSink(d),
 		Source:          newSource(d),
 		Transformations: newTransformation(d),
 	}
 
-	dataLakePipeline, _, err := conn.DataLakePipeline.Create(ctx, projectID, dataLakePipelineReqBody)
+	pipeline, _, err := connV2.DataLakePipelinesApi.CreatePipeline(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineCreate, err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id": projectID,
-		"name":       dataLakePipeline.Name,
+		"name":       pipeline.GetName(),
 	}))
 
 	return resourceRead(ctx, d, meta)
@@ -353,23 +352,22 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	name := d.Get("name").(string)
 
-	dataLakePipelineReqBody := &matlas.DataLakePipeline{
-		GroupID:         projectID,
-		Name:            name,
+	params := &admin.DataLakeIngestionPipeline{
+		GroupId:         conversion.StringPtr(projectID),
+		Name:            conversion.StringPtr(name),
 		Sink:            newSink(d),
 		Source:          newSource(d),
 		Transformations: newTransformation(d),
 	}
 
-	_, _, err := conn.DataLakePipeline.Update(ctx, projectID, name, dataLakePipelineReqBody)
+	_, _, err := connV2.DataLakePipelinesApi.UpdatePipeline(ctx, projectID, name, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineUpdate, err))
 	}
-
 	return resourceRead(ctx, d, meta)
 }
 
@@ -476,105 +474,98 @@ func splitDataLakePipelineImportID(id string) (projectID, name string, err error
 	return
 }
 
-func newSink(d *schema.ResourceData) *matlas.DataLakePipelineSink {
+func newSink(d *schema.ResourceData) *admin.IngestionSink {
 	if sink, ok := d.Get("sink").([]any); ok && len(sink) == 1 {
 		sinkMap := sink[0].(map[string]any)
-		dataLakePipelineSink := &matlas.DataLakePipelineSink{}
+		dataLakePipelineSink := &admin.IngestionSink{}
 
 		if sinkType, ok := sinkMap["type"].(string); ok {
-			dataLakePipelineSink.Type = sinkType
+			dataLakePipelineSink.Type = conversion.StringPtr(sinkType)
 		}
-
 		if provider, ok := sinkMap["provider"].(string); ok {
-			dataLakePipelineSink.MetadataProvider = provider
+			dataLakePipelineSink.MetadataProvider = conversion.StringPtr(provider)
 		}
-
 		if region, ok := sinkMap["region"].(string); ok {
-			dataLakePipelineSink.MetadataRegion = region
+			dataLakePipelineSink.MetadataRegion = conversion.StringPtr(region)
 		}
-
 		dataLakePipelineSink.PartitionFields = newPartitionField(sinkMap)
 		return dataLakePipelineSink
 	}
-
 	return nil
 }
 
-func newPartitionField(sinkMap map[string]any) []*matlas.DataLakePipelinePartitionField {
+func newPartitionField(sinkMap map[string]any) *[]admin.DataLakePipelinesPartitionField {
 	partitionFields, ok := sinkMap["partition_fields"].([]any)
 	if !ok || len(partitionFields) == 0 {
 		return nil
 	}
-
-	fields := make([]*matlas.DataLakePipelinePartitionField, len(partitionFields))
+	fields := make([]admin.DataLakePipelinesPartitionField, len(partitionFields))
 	for i, partitionField := range partitionFields {
 		fieldMap := partitionField.(map[string]any)
-		fields[i] = &matlas.DataLakePipelinePartitionField{
+		fields[i] = admin.DataLakePipelinesPartitionField{
 			FieldName: fieldMap["field_name"].(string),
-			Order:     int32(fieldMap["order"].(int)),
+			Order:     fieldMap["order"].(int),
 		}
 	}
-
-	return fields
+	return &fields
 }
 
-func newSource(d *schema.ResourceData) *matlas.DataLakePipelineSource {
+func newSource(d *schema.ResourceData) *admin.IngestionSource {
 	source, ok := d.Get("source").([]any)
 	if !ok || len(source) == 0 {
 		return nil
 	}
 
 	sourceMap := source[0].(map[string]any)
-	dataLakePipelineSource := &matlas.DataLakePipelineSource{}
+	dataLakePipelineSource := new(admin.IngestionSource)
 
 	if sourceType, ok := sourceMap["type"].(string); ok {
-		dataLakePipelineSource.Type = sourceType
+		dataLakePipelineSource.Type = conversion.StringPtr(sourceType)
 	}
 
 	if clusterName, ok := sourceMap["cluster_name"].(string); ok {
-		dataLakePipelineSource.ClusterName = clusterName
+		dataLakePipelineSource.ClusterName = conversion.StringPtr(clusterName)
 	}
 
 	if collectionName, ok := sourceMap["collection_name"].(string); ok {
-		dataLakePipelineSource.CollectionName = collectionName
+		dataLakePipelineSource.CollectionName = conversion.StringPtr(collectionName)
 	}
 
 	if databaseName, ok := sourceMap["database_name"].(string); ok {
-		dataLakePipelineSource.DatabaseName = databaseName
+		dataLakePipelineSource.DatabaseName = conversion.StringPtr(databaseName)
 	}
 
 	if policyID, ok := sourceMap["policy_item_id"].(string); ok {
-		dataLakePipelineSource.PolicyItemID = policyID
+		dataLakePipelineSource.PolicyItemId = conversion.StringPtr(policyID)
 	}
 
 	return dataLakePipelineSource
 }
 
-func newTransformation(d *schema.ResourceData) []*matlas.DataLakePipelineTransformation {
+func newTransformation(d *schema.ResourceData) *[]admin.FieldTransformation {
 	trasformations, ok := d.Get("transformations").([]any)
 	if !ok || len(trasformations) == 0 {
 		return nil
 	}
 
-	dataLakePipelineTransformations := make([]*matlas.DataLakePipelineTransformation, len(trasformations))
-	for i, trasformation := range trasformations {
+	dataLakePipelineTransformations := make([]admin.FieldTransformation, 0)
+	for _, trasformation := range trasformations {
 		trasformationMap := trasformation.(map[string]any)
-		dataLakeTransformation := &matlas.DataLakePipelineTransformation{}
+		dataLakeTransformation := admin.FieldTransformation{}
 
 		if transformationType, ok := trasformationMap["type"].(string); ok {
-			dataLakeTransformation.Type = transformationType
+			dataLakeTransformation.Type = conversion.StringPtr(transformationType)
 		}
 
 		if transformationField, ok := trasformationMap["field"].(string); ok {
-			dataLakeTransformation.Field = transformationField
+			dataLakeTransformation.Field = conversion.StringPtr(transformationField)
 		}
 
-		if dataLakeTransformation.Field != "" || dataLakeTransformation.Type != "" {
-			dataLakePipelineTransformations[i] = dataLakeTransformation
+		if conversion.SafeString(dataLakeTransformation.Field) != "" || conversion.SafeString(dataLakeTransformation.Type) != "" {
+			dataLakePipelineTransformations = append(dataLakePipelineTransformations, dataLakeTransformation)
 		}
 	}
-
-	return dataLakePipelineTransformations
+	return &dataLakePipelineTransformations
 }
 
 func flattenSource(source *admin.IngestionSource) []map[string]any {
