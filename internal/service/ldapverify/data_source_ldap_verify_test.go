@@ -12,7 +12,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccAdvDSLDAPVerify_basic(t *testing.T) {
+func TestAccLDAPVerifyDS_basic(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		ldapVerify   matlas.LDAPConfiguration
