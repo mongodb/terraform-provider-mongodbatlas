@@ -27,12 +27,13 @@ func TestAccServerlessInstance_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasServerlessInstanceDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigServerlessInstanceBasic(orgID, projectName, instanceName, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasServerlessInstanceExists(resourceName, &serverlessInstance),
+					checkConnectionStringPrivateEndpointIsPresentWithNoElement(resourceName),
+					checkExists(resourceName, &serverlessInstance),
 					resource.TestCheckResourceAttr(resourceName, "name", instanceName),
 					resource.TestCheckResourceAttr(resourceName, "termination_protection_enabled", "false"),
 					resource.TestCheckResourceAttrSet(datasourceName, "name"),
@@ -49,7 +50,6 @@ func TestAccServerlessInstance_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(datasourceInstancesName, "results.0.state_name"),
 					resource.TestCheckResourceAttrSet(datasourceInstancesName, "results.0.continuous_backup_enabled"),
 					resource.TestCheckResourceAttrSet(datasourceInstancesName, "results.0.termination_protection_enabled"),
-					testAccCheckConnectionStringPrivateEndpointIsPresentWithNoElement(resourceName),
 				),
 			},
 		},
@@ -69,12 +69,12 @@ func TestAccServerlessInstance_WithTags(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasServerlessInstanceDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigServerlessInstanceWithTags(orgID, projectName, instanceName, []matlas.Tag{}),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasServerlessInstanceExists(resourceName, &serverlessInstance),
+					checkExists(resourceName, &serverlessInstance),
 					resource.TestCheckResourceAttr(resourceName, "name", instanceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "0"),
@@ -94,7 +94,7 @@ func TestAccServerlessInstance_WithTags(t *testing.T) {
 				},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasServerlessInstanceExists(resourceName, &serverlessInstance),
+					checkExists(resourceName, &serverlessInstance),
 					resource.TestCheckResourceAttr(resourceName, "name", instanceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "2"),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", acc.ClusterTagsMap1),
@@ -116,7 +116,7 @@ func TestAccServerlessInstance_WithTags(t *testing.T) {
 				},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasServerlessInstanceExists(resourceName, &serverlessInstance),
+					checkExists(resourceName, &serverlessInstance),
 					resource.TestCheckResourceAttr(resourceName, "name", instanceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", acc.ClusterTagsMap3),
@@ -141,14 +141,14 @@ func TestAccServerlessInstance_importBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasServerlessInstanceDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigServerlessInstanceBasic(orgID, projectName, instanceName, true),
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasServerlessInstanceImportStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -156,7 +156,7 @@ func TestAccServerlessInstance_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasServerlessInstanceExists(resourceName string, serverlessInstance *matlas.Cluster) resource.TestCheckFunc {
+func checkExists(resourceName string, serverlessInstance *matlas.Cluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -175,7 +175,7 @@ func testAccCheckMongoDBAtlasServerlessInstanceExists(resourceName string, serve
 	}
 }
 
-func testAccCheckMongoDBAtlasServerlessInstanceDestroy(state *terraform.State) error {
+func checkDestroy(state *terraform.State) error {
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type != "mongodbatlas_serverless_instance" {
 			continue
@@ -189,7 +189,7 @@ func testAccCheckMongoDBAtlasServerlessInstanceDestroy(state *terraform.State) e
 	return nil
 }
 
-func testAccCheckMongoDBAtlasServerlessInstanceImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -201,7 +201,7 @@ func testAccCheckMongoDBAtlasServerlessInstanceImportStateIDFunc(resourceName st
 	}
 }
 
-func testAccCheckConnectionStringPrivateEndpointIsPresentWithNoElement(resourceName string) resource.TestCheckFunc {
+func checkConnectionStringPrivateEndpointIsPresentWithNoElement(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

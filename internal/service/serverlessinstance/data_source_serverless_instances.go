@@ -15,7 +15,7 @@ import (
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasServerlessInstancesRead,
+		ReadContext: dataSourcePluralRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -25,14 +25,14 @@ func PluralDataSource() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
-					Schema: returnServerlessInstanceDSSchema(),
+					Schema: dataSourceSchema(),
 				},
 			},
 		},
 	}
 }
 
-func dataSourceMongoDBAtlasServerlessInstancesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	projectID, projectIDOK := d.GetOk("project_id")
 
 	if !(projectIDOK) {

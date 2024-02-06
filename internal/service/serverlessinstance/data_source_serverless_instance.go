@@ -12,89 +12,12 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasServerlessInstanceRead,
-		Schema:      returnServerlessInstanceDSSchema(),
+		ReadContext: dataSourceRead,
+		Schema:      dataSourceSchema(),
 	}
 }
 
-func dataSourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	projectID, projectIDOk := d.GetOk("project_id")
-	instanceName, instanceNameOk := d.GetOk("name")
-
-	if !(projectIDOk && instanceNameOk) {
-		return diag.Errorf("project_id and name must be configured")
-	}
-
-	serverlessInstance, _, err := conn.ServerlessInstances.Get(ctx, projectID.(string), instanceName.(string))
-	if err != nil {
-		return diag.Errorf("error getting serverless instance information: %s", err)
-	}
-
-	if err := d.Set("id", serverlessInstance.ID); err != nil {
-		return diag.Errorf("error setting `is` for serverless instance (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("provider_settings_backing_provider_name", serverlessInstance.ProviderSettings.BackingProviderName); err != nil {
-		return diag.Errorf(errorServerlessInstanceSetting, "provider_settings_backing_provider_name", d.Id(), err)
-	}
-
-	if err := d.Set("provider_settings_provider_name", serverlessInstance.ProviderSettings.ProviderName); err != nil {
-		return diag.Errorf(errorServerlessInstanceSetting, "provider_settings_provider_name", d.Id(), err)
-	}
-
-	if err := d.Set("provider_settings_region_name", serverlessInstance.ProviderSettings.RegionName); err != nil {
-		return diag.Errorf(errorServerlessInstanceSetting, "provider_settings_region_name", d.Id(), err)
-	}
-
-	if err := d.Set("connection_strings_standard_srv", serverlessInstance.ConnectionStrings.StandardSrv); err != nil {
-		return diag.Errorf(errorServerlessInstanceSetting, "connection_strings_standard_srv", d.Id(), err)
-	}
-
-	if len(serverlessInstance.ConnectionStrings.PrivateEndpoint) > 0 {
-		if err := d.Set("connection_strings_private_endpoint_srv", flattenSRVConnectionString(serverlessInstance.ConnectionStrings.PrivateEndpoint)); err != nil {
-			return diag.Errorf(errorServerlessInstanceSetting, "connection_strings_private_endpoint_srv", d.Id(), err)
-		}
-	}
-
-	if err := d.Set("create_date", serverlessInstance.CreateDate); err != nil {
-		return diag.Errorf(errorServerlessInstanceSetting, "create_date", d.Id(), err)
-	}
-
-	if err := d.Set("mongo_db_version", serverlessInstance.MongoDBVersion); err != nil {
-		return diag.Errorf(errorServerlessInstanceSetting, "mongo_db_version", d.Id(), err)
-	}
-
-	if err := d.Set("links", flattenServerlessInstanceLinks(serverlessInstance.Links)); err != nil {
-		return diag.Errorf(errorServerlessInstanceSetting, "links", d.Id(), err)
-	}
-
-	if err := d.Set("state_name", serverlessInstance.StateName); err != nil {
-		return diag.Errorf(errorServerlessInstanceSetting, "state_name", d.Id(), err)
-	}
-
-	if err := d.Set("termination_protection_enabled", serverlessInstance.TerminationProtectionEnabled); err != nil {
-		return diag.Errorf(errorServerlessInstanceSetting, "termination_protection_enabled", d.Id(), err)
-	}
-
-	if err := d.Set("continuous_backup_enabled", serverlessInstance.ServerlessBackupOptions.ServerlessContinuousBackupEnabled); err != nil {
-		return diag.Errorf(errorServerlessInstanceSetting, "continuous_backup_enabled", d.Id(), err)
-	}
-	if err := d.Set("tags", advancedcluster.FlattenTags(serverlessInstance.Tags)); err != nil {
-		return diag.Errorf(advancedcluster.ErrorClusterAdvancedSetting, "tags", d.Id(), err)
-	}
-
-	d.SetId(conversion.EncodeStateID(map[string]string{
-		"project_id": projectID.(string),
-		"name":       instanceName.(string),
-	}))
-
-	return nil
-}
-
-func returnServerlessInstanceDSSchema() map[string]*schema.Schema {
+func dataSourceSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -171,4 +94,81 @@ func returnServerlessInstanceDSSchema() map[string]*schema.Schema {
 		},
 		"tags": &advancedcluster.DSTagsSchema,
 	}
+}
+
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	// Get client connection.
+	conn := meta.(*config.MongoDBClient).Atlas
+
+	projectID, projectIDOk := d.GetOk("project_id")
+	instanceName, instanceNameOk := d.GetOk("name")
+
+	if !(projectIDOk && instanceNameOk) {
+		return diag.Errorf("project_id and name must be configured")
+	}
+
+	serverlessInstance, _, err := conn.ServerlessInstances.Get(ctx, projectID.(string), instanceName.(string))
+	if err != nil {
+		return diag.Errorf("error getting serverless instance information: %s", err)
+	}
+
+	if err := d.Set("id", serverlessInstance.ID); err != nil {
+		return diag.Errorf("error setting `is` for serverless instance (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("provider_settings_backing_provider_name", serverlessInstance.ProviderSettings.BackingProviderName); err != nil {
+		return diag.Errorf(errorServerlessInstanceSetting, "provider_settings_backing_provider_name", d.Id(), err)
+	}
+
+	if err := d.Set("provider_settings_provider_name", serverlessInstance.ProviderSettings.ProviderName); err != nil {
+		return diag.Errorf(errorServerlessInstanceSetting, "provider_settings_provider_name", d.Id(), err)
+	}
+
+	if err := d.Set("provider_settings_region_name", serverlessInstance.ProviderSettings.RegionName); err != nil {
+		return diag.Errorf(errorServerlessInstanceSetting, "provider_settings_region_name", d.Id(), err)
+	}
+
+	if err := d.Set("connection_strings_standard_srv", serverlessInstance.ConnectionStrings.StandardSrv); err != nil {
+		return diag.Errorf(errorServerlessInstanceSetting, "connection_strings_standard_srv", d.Id(), err)
+	}
+
+	if len(serverlessInstance.ConnectionStrings.PrivateEndpoint) > 0 {
+		if err := d.Set("connection_strings_private_endpoint_srv", flattenSRVConnectionString(serverlessInstance.ConnectionStrings.PrivateEndpoint)); err != nil {
+			return diag.Errorf(errorServerlessInstanceSetting, "connection_strings_private_endpoint_srv", d.Id(), err)
+		}
+	}
+
+	if err := d.Set("create_date", serverlessInstance.CreateDate); err != nil {
+		return diag.Errorf(errorServerlessInstanceSetting, "create_date", d.Id(), err)
+	}
+
+	if err := d.Set("mongo_db_version", serverlessInstance.MongoDBVersion); err != nil {
+		return diag.Errorf(errorServerlessInstanceSetting, "mongo_db_version", d.Id(), err)
+	}
+
+	if err := d.Set("links", flattenLinks(serverlessInstance.Links)); err != nil {
+		return diag.Errorf(errorServerlessInstanceSetting, "links", d.Id(), err)
+	}
+
+	if err := d.Set("state_name", serverlessInstance.StateName); err != nil {
+		return diag.Errorf(errorServerlessInstanceSetting, "state_name", d.Id(), err)
+	}
+
+	if err := d.Set("termination_protection_enabled", serverlessInstance.TerminationProtectionEnabled); err != nil {
+		return diag.Errorf(errorServerlessInstanceSetting, "termination_protection_enabled", d.Id(), err)
+	}
+
+	if err := d.Set("continuous_backup_enabled", serverlessInstance.ServerlessBackupOptions.ServerlessContinuousBackupEnabled); err != nil {
+		return diag.Errorf(errorServerlessInstanceSetting, "continuous_backup_enabled", d.Id(), err)
+	}
+	if err := d.Set("tags", advancedcluster.FlattenTags(serverlessInstance.Tags)); err != nil {
+		return diag.Errorf(advancedcluster.ErrorClusterAdvancedSetting, "tags", d.Id(), err)
+	}
+
+	d.SetId(conversion.EncodeStateID(map[string]string{
+		"project_id": projectID.(string),
+		"name":       instanceName.(string),
+	}))
+
+	return nil
 }

@@ -25,63 +25,18 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasServerlessInstanceCreate,
-		ReadContext:   resourceMongoDBAtlasServerlessInstanceRead,
-		UpdateContext: resourceMongoDBAtlasServerlessInstanceUpdate,
-		DeleteContext: resourceMongoDBAtlasServerlessInstanceDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasServerlessInstanceImportState,
+			StateContext: resourceImport,
 		},
-		Schema: returnServerlessInstanceSchema(),
+		Schema: resourceSchema(),
 	}
 }
 
-func resourceMongoDBAtlasServerlessInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-	ids := conversion.DecodeStateID(d.Id())
-	projectID := ids["project_id"]
-	instanceName := ids["name"]
-
-	if d.HasChange("termination_protection_enabled") || d.HasChange("continuous_backup_enabled") || d.HasChange("tags") {
-		serverlessBackupOptions := &matlas.ServerlessBackupOptions{
-			ServerlessContinuousBackupEnabled: pointy.Bool(d.Get("continuous_backup_enabled").(bool)),
-		}
-
-		ServerlessUpdateRequestParams := &matlas.ServerlessUpdateRequestParams{
-			ServerlessBackupOptions:      serverlessBackupOptions,
-			TerminationProtectionEnabled: pointy.Bool(d.Get("termination_protection_enabled").(bool)),
-		}
-
-		if d.HasChange("tags") {
-			tags := advancedcluster.ExpandTagSliceFromSetSchema(d)
-			ServerlessUpdateRequestParams.Tag = &tags
-		}
-
-		_, _, err := conn.ServerlessInstances.Update(ctx, projectID, instanceName, ServerlessUpdateRequestParams)
-		if err != nil {
-			return diag.Errorf("error updating serverless instance: %s", err)
-		}
-
-		stateConf := &retry.StateChangeConf{
-			Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
-			Target:     []string{"IDLE"},
-			Refresh:    resourceServerlessInstanceRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
-			Timeout:    3 * time.Hour,
-			MinTimeout: 1 * time.Minute,
-			Delay:      3 * time.Minute,
-		}
-
-		// Wait, catching any errors
-		_, err = stateConf.WaitForStateContext(ctx)
-		if err != nil {
-			return diag.Errorf("error updating MongoDB Serverless Instance: %s", err)
-		}
-	}
-	return resourceMongoDBAtlasServerlessInstanceRead(ctx, d, meta)
-}
-
-func returnServerlessInstanceSchema() map[string]*schema.Schema {
+func resourceSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -165,73 +120,64 @@ func returnServerlessInstanceSchema() map[string]*schema.Schema {
 	}
 }
 
-func resourceMongoDBAtlasServerlessInstanceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	projectID, name, err := splitServerlessInstanceImportID(d.Id())
-	if err != nil {
-		return nil, err
-	}
-
-	u, _, err := conn.ServerlessInstances.Get(ctx, *projectID, *name)
-	if err != nil {
-		return nil, fmt.Errorf("couldn't import cluster %s in project %s, error: %s", *name, *projectID, err)
-	}
-
-	if err := d.Set("project_id", u.GroupID); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "project_id", u.ID, err)
-	}
-
-	if err := d.Set("name", u.Name); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "name", u.ID, err)
-	}
-
-	if err := d.Set("continuous_backup_enabled", u.ServerlessBackupOptions.ServerlessContinuousBackupEnabled); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "continuous_backup_enabled", u.ID, err)
-	}
-
-	d.SetId(conversion.EncodeStateID(map[string]string{
-		"project_id": *projectID,
-		"name":       u.Name,
-	}))
-
-	return []*schema.ResourceData{d}, nil
-}
-
-func resourceMongoDBAtlasServerlessInstanceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := conversion.DecodeStateID(d.Id())
-	projectID := ids["project_id"]
-	serverlessName := ids["name"]
+	projectID := d.Get("project_id").(string)
 
-	_, err := conn.ServerlessInstances.Delete(ctx, projectID, serverlessName)
+	name := d.Get("name").(string)
 
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error deleting MongoDB Serverless Instance (%s): %s", serverlessName, err))
+	serverlessProviderSettings := &matlas.ServerlessProviderSettings{
+		BackingProviderName: d.Get("provider_settings_backing_provider_name").(string),
+		ProviderName:        d.Get("provider_settings_provider_name").(string),
+		RegionName:          d.Get("provider_settings_region_name").(string),
 	}
 
-	log.Println("[INFO] Waiting for MongoDB Serverless Instance to be destroyed")
+	serverlessBackupOptions := &matlas.ServerlessBackupOptions{
+		ServerlessContinuousBackupEnabled: pointy.Bool(d.Get("continuous_backup_enabled").(bool)),
+	}
+
+	serverlessInstanceRequest := &matlas.ServerlessCreateRequestParams{
+		Name:                         name,
+		ProviderSettings:             serverlessProviderSettings,
+		ServerlessBackupOptions:      serverlessBackupOptions,
+		TerminationProtectionEnabled: pointy.Bool(d.Get("termination_protection_enabled").(bool)),
+	}
+
+	if _, ok := d.GetOk("tags"); ok {
+		tagsSlice := advancedcluster.ExpandTagSliceFromSetSchema(d)
+		serverlessInstanceRequest.Tag = &tagsSlice
+	}
+
+	_, _, err := conn.ServerlessInstances.Create(ctx, projectID, serverlessInstanceRequest)
+	if err != nil {
+		return diag.Errorf("error creating serverless instance: %s", err)
+	}
 
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
-		Target:     []string{"DELETED"},
-		Refresh:    resourceServerlessInstanceRefreshFunc(ctx, serverlessName, projectID, conn),
+		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
+		Target:     []string{"IDLE"},
+		Refresh:    resourceRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
 		Timeout:    3 * time.Hour,
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute, // Wait 30 secs before starting
+		MinTimeout: 1 * time.Minute,
+		Delay:      3 * time.Minute,
 	}
 
 	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error deleting MongoDB Serverless Instance (%s): %s", serverlessName, err))
+		return diag.Errorf("error creating MongoDB Serverless Instance: %s", err)
 	}
 
-	return nil
+	d.SetId(conversion.EncodeStateID(map[string]string{
+		"project_id": projectID,
+		"name":       name,
+	}))
+
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
@@ -284,7 +230,7 @@ func resourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.R
 		return diag.Errorf(errorServerlessInstanceSetting, "mongo_db_version", d.Id(), err)
 	}
 
-	if err := d.Set("links", flattenServerlessInstanceLinks(serverlessInstance.Links)); err != nil {
+	if err := d.Set("links", flattenLinks(serverlessInstance.Links)); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "links", d.Id(), err)
 	}
 
@@ -307,64 +253,118 @@ func resourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.R
 	return nil
 }
 
-func resourceMongoDBAtlasServerlessInstanceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-	projectID := d.Get("project_id").(string)
+	ids := conversion.DecodeStateID(d.Id())
+	projectID := ids["project_id"]
+	instanceName := ids["name"]
 
-	name := d.Get("name").(string)
+	if d.HasChange("termination_protection_enabled") || d.HasChange("continuous_backup_enabled") || d.HasChange("tags") {
+		serverlessBackupOptions := &matlas.ServerlessBackupOptions{
+			ServerlessContinuousBackupEnabled: pointy.Bool(d.Get("continuous_backup_enabled").(bool)),
+		}
 
-	serverlessProviderSettings := &matlas.ServerlessProviderSettings{
-		BackingProviderName: d.Get("provider_settings_backing_provider_name").(string),
-		ProviderName:        d.Get("provider_settings_provider_name").(string),
-		RegionName:          d.Get("provider_settings_region_name").(string),
+		ServerlessUpdateRequestParams := &matlas.ServerlessUpdateRequestParams{
+			ServerlessBackupOptions:      serverlessBackupOptions,
+			TerminationProtectionEnabled: pointy.Bool(d.Get("termination_protection_enabled").(bool)),
+		}
+
+		if d.HasChange("tags") {
+			tags := advancedcluster.ExpandTagSliceFromSetSchema(d)
+			ServerlessUpdateRequestParams.Tag = &tags
+		}
+
+		_, _, err := conn.ServerlessInstances.Update(ctx, projectID, instanceName, ServerlessUpdateRequestParams)
+		if err != nil {
+			return diag.Errorf("error updating serverless instance: %s", err)
+		}
+
+		stateConf := &retry.StateChangeConf{
+			Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
+			Target:     []string{"IDLE"},
+			Refresh:    resourceRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
+			Timeout:    3 * time.Hour,
+			MinTimeout: 1 * time.Minute,
+			Delay:      3 * time.Minute,
+		}
+
+		// Wait, catching any errors
+		_, err = stateConf.WaitForStateContext(ctx)
+		if err != nil {
+			return diag.Errorf("error updating MongoDB Serverless Instance: %s", err)
+		}
 	}
+	return resourceRead(ctx, d, meta)
+}
 
-	serverlessBackupOptions := &matlas.ServerlessBackupOptions{
-		ServerlessContinuousBackupEnabled: pointy.Bool(d.Get("continuous_backup_enabled").(bool)),
-	}
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	// Get client connection.
+	conn := meta.(*config.MongoDBClient).Atlas
+	ids := conversion.DecodeStateID(d.Id())
+	projectID := ids["project_id"]
+	serverlessName := ids["name"]
 
-	serverlessInstanceRequest := &matlas.ServerlessCreateRequestParams{
-		Name:                         name,
-		ProviderSettings:             serverlessProviderSettings,
-		ServerlessBackupOptions:      serverlessBackupOptions,
-		TerminationProtectionEnabled: pointy.Bool(d.Get("termination_protection_enabled").(bool)),
-	}
+	_, err := conn.ServerlessInstances.Delete(ctx, projectID, serverlessName)
 
-	if _, ok := d.GetOk("tags"); ok {
-		tagsSlice := advancedcluster.ExpandTagSliceFromSetSchema(d)
-		serverlessInstanceRequest.Tag = &tagsSlice
-	}
-
-	_, _, err := conn.ServerlessInstances.Create(ctx, projectID, serverlessInstanceRequest)
 	if err != nil {
-		return diag.Errorf("error creating serverless instance: %s", err)
+		return diag.FromErr(fmt.Errorf("error deleting MongoDB Serverless Instance (%s): %s", serverlessName, err))
 	}
+
+	log.Println("[INFO] Waiting for MongoDB Serverless Instance to be destroyed")
 
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
-		Target:     []string{"IDLE"},
-		Refresh:    resourceServerlessInstanceRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
+		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
+		Target:     []string{"DELETED"},
+		Refresh:    resourceRefreshFunc(ctx, serverlessName, projectID, conn),
 		Timeout:    3 * time.Hour,
-		MinTimeout: 1 * time.Minute,
-		Delay:      3 * time.Minute,
+		MinTimeout: 30 * time.Second,
+		Delay:      1 * time.Minute, // Wait 30 secs before starting
 	}
 
 	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return diag.Errorf("error creating MongoDB Serverless Instance: %s", err)
+		return diag.FromErr(fmt.Errorf("error deleting MongoDB Serverless Instance (%s): %s", serverlessName, err))
+	}
+
+	return nil
+}
+
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+	conn := meta.(*config.MongoDBClient).Atlas
+
+	projectID, name, err := splitImportID(d.Id())
+	if err != nil {
+		return nil, err
+	}
+
+	u, _, err := conn.ServerlessInstances.Get(ctx, *projectID, *name)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't import cluster %s in project %s, error: %s", *name, *projectID, err)
+	}
+
+	if err := d.Set("project_id", u.GroupID); err != nil {
+		log.Printf(advancedcluster.ErrorClusterSetting, "project_id", u.ID, err)
+	}
+
+	if err := d.Set("name", u.Name); err != nil {
+		log.Printf(advancedcluster.ErrorClusterSetting, "name", u.ID, err)
+	}
+
+	if err := d.Set("continuous_backup_enabled", u.ServerlessBackupOptions.ServerlessContinuousBackupEnabled); err != nil {
+		log.Printf(advancedcluster.ErrorClusterSetting, "continuous_backup_enabled", u.ID, err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"project_id": projectID,
-		"name":       name,
+		"project_id": *projectID,
+		"name":       u.Name,
 	}))
 
-	return resourceMongoDBAtlasServerlessInstanceRead(ctx, d, meta)
+	return []*schema.ResourceData{d}, nil
 }
 
-func resourceServerlessInstanceRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		c, resp, err := client.ServerlessInstances.Get(ctx, projectID, name)
 
@@ -392,7 +392,7 @@ func resourceServerlessInstanceRefreshFunc(ctx context.Context, name, projectID 
 	}
 }
 
-func flattenServerlessInstanceLinks(links []*matlas.Link) []map[string]any {
+func flattenLinks(links []*matlas.Link) []map[string]any {
 	linksList := make([]map[string]any, 0)
 
 	for _, link := range links {
@@ -414,7 +414,7 @@ func flattenSRVConnectionString(srvConnectionStringArray []matlas.PrivateEndpoin
 	return srvconnections
 }
 
-func splitServerlessInstanceImportID(id string) (projectID, instanceName *string, err error) {
+func splitImportID(id string) (projectID, instanceName *string, err error) {
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
