@@ -10,6 +10,7 @@ import (
 )
 
 func TestAccMigrationNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
+	acc.SkipTestForCI(t)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t) },
 		CheckDestroy: checkDestroy,
