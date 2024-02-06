@@ -61,25 +61,25 @@ on:
       mongodb_atlas_federation_settings_id:
         type: string
         required: true
-      mongodb_atlas_federatied_okta_idp_id:
+      mongodb_atlas_federated_okta_idp_id:
         type: string
         required: true
-      mongodb_atlas_federatied_idp_id:
+      mongodb_atlas_federated_idp_id:
         type: string
         required: true
-      mongodb_atlas_federatied_oidc_idp_id:
+      mongodb_atlas_federated_oidc_idp_id:
         type: string
         required: true
-      mongodb_atlas_federatied_sso_url:
+      mongodb_atlas_federated_sso_url:
         type: string
         required: true
-      mongodb_atlas_federatied_issuer_uri:
+      mongodb_atlas_federated_issuer_uri:
         type: string
         required: true
-      mongodb_atlas_federatied_project_id:
+      mongodb_atlas_federated_project_id:
         type: string
         required: true
-      mongodb_atlas_federatied_org_id:
+      mongodb_atlas_federated_org_id:
         type: string
         required: true
     secrets: # all secrets are passed explicitly in this workflow
@@ -101,11 +101,17 @@ on:
         required: true
       aws_s3_bucket_federation:
         required: true
-
+      mongodb_atlas_ldap_hostname:
+        required: true
+      mongodb_atlas_ldap_username:
+        required: true
+      mongodb_atlas_ldap_password:
+        required: true
+      mongodb_atlas_ldap_port:
+        required: true
+  
 env:
-  # CI: true  # GH does this automatically
   TF_ACC: 1
-  SKIP_TEST_EXTERNAL_CREDENTIALS: true
   TF_LOG: ${{ vars.LOG_LEVEL }}
   ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
 
@@ -121,10 +127,7 @@ jobs:
       search_deployment: ${{ steps.filter.outputs.search_deployment == 'true' || env.mustTrigger == 'true' }}
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
       generic: ${{ steps.filter.outputs.generic == 'true' || env.mustTrigger == 'true' }}
-      backup_online_archive: ${{ steps.filter.outputs.backup_online_archive == 'true' || env.mustTrigger == 'true' }}
-      backup_snapshots: ${{ steps.filter.outputs.backup_snapshots == 'true' || env.mustTrigger == 'true' }}
-      federation: ${{ steps.filter.outputs.federation == 'true' || env.mustTrigger == 'true' }}
-      backup_schedule: ${{ steps.filter.outputs.backup_schedule == 'true' || env.mustTrigger == 'true' }}
+      backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
       project: ${{ steps.filter.outputs.project == 'true' || env.mustTrigger == 'true' }}
       serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
       network: ${{ steps.filter.outputs.network == 'true' || env.mustTrigger == 'true' }}
@@ -132,7 +135,10 @@ jobs:
       assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
       event_trigger: ${{ steps.filter.outputs.event_trigger == 'true' || env.mustTrigger == 'true' }}
       search_index: ${{ steps.filter.outputs.search_index == 'true' || env.mustTrigger == 'true' }}
-      federated_settings_identity_provider: ${{ steps.filter.outputs.federated_settings_identity_provider == 'true' || env.mustTrigger == 'true' }}
+      federated: ${{ steps.filter.outputs.federated == 'true' || env.mustTrigger == 'true' }}
+      data_lake: ${{ steps.filter.outputs.data_lake == 'true' || env.mustTrigger == 'true' }}
+      ldap: ${{ steps.filter.outputs.ldap == 'true' || env.mustTrigger == 'true' }}
+      encryption: ${{ steps.filter.outputs.encryption == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
     - uses: dorny/paths-filter@0bc4621a3135347011ad047f9ecf449bf72ce2bd
@@ -148,6 +154,7 @@ jobs:
             - 'internal/service/advancedcluster/*.go'
           cluster:
             - 'internal/service/cluster/*.go'
+            - 'internal/service/globalclusterconfig/*.go'
           search_deployment:
             - 'internal/service/searchdeployment/*.go'
           stream:
@@ -157,14 +164,13 @@ jobs:
             - 'internal/service/backupcompliancepolicy/*.go'
             - 'internal/service/auditing/*.go'
             - 'internal/service/x509authenticationdatabaseuser/*.go'
-          backup_online_archive:
+          backup:
             - 'internal/service/onlinearchive/*.go'
-          backup_snapshots:
+            - 'internal/service/cloudbackupschedule/*.go'
             - 'internal/service/cloudbackupsnapshot/*.go'
             - 'internal/service/cloudbackupsnapshotexportbucket/*.go'
             - 'internal/service/cloudbackupsnapshotexportjob/*.go'
-          backup_schedule:
-            - 'internal/service/cloudbackupschedule/*.go'
+            - 'internal/service/cloudbackupsnapshotrestorejob/*.go'
           project:
             - 'internal/service/project/*.go'
             - 'internal/service/projectipaccesslist/*.go'
@@ -181,8 +187,6 @@ jobs:
             - 'internal/service/privatelinkendpoint/*.go'
             - 'internal/service/privatelinkendpointservice/*.go'
             - 'internal/service/privatelinkendpointservicedatafederationonlinearchive/*.go'
-          federation:
-            - 'internal/service/federateddatabaseinstance/*.go'
           config:
             - 'internal/service/alertconfiguration/*.go'
             - 'internal/service/atlasuser/*.go'
@@ -202,9 +206,20 @@ jobs:
             - 'internal/service/eventtrigger/*.go'
           search_index:
             - 'internal/service/searchindex/*.go'
-          federated_settings_identity_provider:
-          - 'internal/service/federatedsettingsidentityprovider/*.go'
-  
+          federated:
+            - 'internal/service/federatedsettingsidentityprovider/*.go'
+            - 'internal/service/federateddatabaseinstance/*.go'
+            - 'internal/service/federatedsettingsorgconfig/*.go'
+            - 'internal/service/federatedsettingsorgrolemapping/*.go'
+            - 'internal/service/federatedquerylimit/*.go'
+          data_lake:
+            - 'internal/service/datalakepipeline/*.go'
+          ldap:
+            - 'internal/service/ldapconfiguration/*.go'
+            - 'internal/service/ldapverify/*.go'
+          encryption:
+            - 'internal/service/encryptionatrest/*.go'
+        
   cluster_outage_simulation:
     needs: [ change-detection ]
     if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || inputs.test_group == 'cluster_outage_simulation' }}
@@ -274,7 +289,7 @@ jobs:
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
           MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          TEST_REGEX: "^TestAccClusterRSCluster"
+          TEST_REGEX: "^TestAccClusterRS"
         run: make testacc
 
   search_deployment:
@@ -352,10 +367,9 @@ jobs:
           TEST_REGEX: "^TestAccGeneric"
         run: |
           make testacc
-
-  backup_online_archive:
+  backup:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || inputs.test_group == 'backup_online_archive' }}
+    if: ${{ needs.change-detection.outputs.backup == 'true' || inputs.test_group == 'backup' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
@@ -375,57 +389,7 @@ jobs:
           MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
           MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
-          TEST_REGEX: "^TestAccBackupRSOnlineArchive"
-        run: make testacc
-
-  backup_snapshots:
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_snapshots == 'true' || inputs.test_group == 'backup_snapshots' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
-      - name: Acceptance Tests
-        env:
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
-          TEST_REGEX: "^TestAccBackupRSCloudBackupSnapshot"
-        run: make testacc
-        
-  backup_schedule:
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_schedule == 'true' || inputs.test_group == 'backup_schedule' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
-      - name: Acceptance Tests
-        env:
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
-          TEST_REGEX: "^TestAccBackupRSCloudBackupSchedule"
+          TEST_REGEX: "^TestAccBackup"
         run: make testacc
   project: 
     needs: [ change-detection ]
@@ -515,35 +479,6 @@ jobs:
           AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
           TEST_REGEX: "^TestAccNetwork"
         run: make testacc
-
-  federation:
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.federation == 'true' || inputs.test_group == 'federation' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false    
-      - name: Acceptance Tests
-        env:
-          AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federation }}
-          AWS_REGION: ${{ vars.aws_region_federation }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          TEST_REGEX: "^TestAccFederatedDatabaseInstance"
-        run: make testacc
-      
   config:
     needs: [ change-detection ]
     if: ${{ needs.change-detection.outputs.config == 'true' || inputs.test_group == 'config' }}
@@ -635,9 +570,9 @@ jobs:
           TEST_REGEX: "^TestAccSearchIndex"
         run: make testacc
   
-  federated_settings_identity_provider:
+  federated:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.federated_settings_identity_provider == 'true' || inputs.test_group == 'federated_settings_identity_provider' }}
+    if: ${{ needs.change-detection.outputs.federated == 'true' || inputs.test_group == 'federated' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
@@ -652,17 +587,117 @@ jobs:
           terraform_wrapper: false    
       - name: Acceptance Tests
         env:
+          AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federation }}
+          AWS_REGION: ${{ vars.aws_region_federation }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}          
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
+          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
           MONGODB_ATLAS_FEDERATION_SETTINGS_ID: ${{ inputs.mongodb_atlas_federation_settings_id }}
-          MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID: ${{ inputs.mongodb_atlas_federatied_okta_idp_id }}
-          MONGODB_ATLAS_FEDERATED_IDP_ID: ${{ inputs.mongodb_atlas_federatied_idp_id }}
-          MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID: ${{ inputs.mongodb_atlas_federatied_oidc_idp_id }}
-          MONGODB_ATLAS_FEDERATED_SSO_URL: ${{ inputs.mongodb_atlas_federatied_sso_url }}
-          MONGODB_ATLAS_FEDERATED_ISSUER_URI: ${{ inputs.mongodb_atlas_federatied_issuer_uri }}
-          MONGODB_ATLAS_FEDERATED_PROJECT_ID: ${{ inputs.mongodb_atlas_federatied_project_id }}
-          MONGODB_ATLAS_FEDERATED_ORG_ID: ${{ inputs.mongodb_atlas_federatied_org_id }}
-          TEST_REGEX: "^TestAccFederatedSettingsIdentityProvider"
+          MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID: ${{ inputs.mongodb_atlas_federated_okta_idp_id }}
+          MONGODB_ATLAS_FEDERATED_IDP_ID: ${{ inputs.mongodb_atlas_federated_idp_id }}
+          MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID: ${{ inputs.mongodb_atlas_federated_oidc_idp_id }}
+          MONGODB_ATLAS_FEDERATED_SSO_URL: ${{ inputs.mongodb_atlas_federated_sso_url }}
+          MONGODB_ATLAS_FEDERATED_ISSUER_URI: ${{ inputs.mongodb_atlas_federated_issuer_uri }}
+          MONGODB_ATLAS_FEDERATED_PROJECT_ID: ${{ inputs.mongodb_atlas_federated_project_id }}
+          MONGODB_ATLAS_FEDERATED_ORG_ID: ${{ inputs.mongodb_atlas_federated_org_id }}
+          TEST_REGEX: "^TestAccFederated"
         run: make testacc
-          
+  data_lake:
+    needs: [ change-detection ]
+    if: ${{ needs.change-detection.outputs.data_lake == 'true' || inputs.test_group == 'data_lake' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false    
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
+          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
+          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
+          TEST_REGEX: "^TestAccDataLake"
+        run: make testacc
+  ldap:
+    needs: [ change-detection ]
+    if: ${{ needs.change-detection.outputs.ldap == 'true' || inputs.test_group == 'ldap' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false  
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
+          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
+          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
+          MONGODB_ATLAS_LDAP_HOSTNAME: ${{ secrets.mongodb_atlas_ldap_hostname }}
+          MONGODB_ATLAS_LDAP_USERNAME: ${{ secrets.mongodb_atlas_ldap_username }}
+          MONGODB_ATLAS_LDAP_PASSWORD: ${{ secrets.mongodb_atlas_ldap_password }}
+          MONGODB_ATLAS_LDAP_PORT: ${{ secrets.mongodb_atlas_ldap_port }}
+          TEST_REGEX: "^TestAccLDAP"
+        run: make testacc
+  encryption:
+    needs: [ change-detection ]
+    if: ${{ needs.change-detection.outputs.encryption == 'true' || inputs.test_group == 'encryption' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false  
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
+          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
+          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
+          TEST_REGEX: "^TestAccEncryption"
+        run: make testacc
+  event_trigger:
+    needs: [ change-detection ]
+    if: ${{ needs.change-detection.outputs.encryption == 'true' || inputs.test_group == 'encryption' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false  
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
+          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
+          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
+          TEST_REGEX: "^TestAccEventTrigger"
+        run: make testacc

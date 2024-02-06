@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccNetworkDSPrivateLinkEndpoint_basic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	resourceName := "data.mongodbatlas_privatelink_endpoint.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	region := os.Getenv("AWS_REGION")

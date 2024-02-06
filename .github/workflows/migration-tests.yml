@@ -29,9 +29,7 @@ on:
 
 env:
     terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
-    # CI: true  # GH does this automatically
     TF_ACC: 1
-    SKIP_TEST_EXTERNAL_CREDENTIALS: true
     TF_LOG: ${{ vars.LOG_LEVEL }}
     ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
 
@@ -59,12 +57,14 @@ jobs:
       project: ${{ steps.filter.outputs.project == 'true' || env.mustTrigger == 'true' }}
       config: ${{ steps.filter.outputs.config == 'true' || env.mustTrigger == 'true' }}
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
-      backup_online_archive: ${{ steps.filter.outputs.backup_online_archive == 'true' || env.mustTrigger == 'true' }}
+      backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
-      federation: ${{ steps.filter.outputs.federation == 'true' || env.mustTrigger == 'true' }}
+      federated: ${{ steps.filter.outputs.federated == 'true' || env.mustTrigger == 'true' }}
       search_deployment: ${{ steps.filter.outputs.search_deployment == 'true' || env.mustTrigger == 'true' }}
       generic: ${{ steps.filter.outputs.generic == 'true' || env.mustTrigger == 'true' }}
       network: ${{ steps.filter.outputs.network == 'true' || env.mustTrigger == 'true' }}
+      encryption: ${{ steps.filter.outputs.encryption == 'true' || env.mustTrigger == 'true' }}
+      serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
     - uses: dorny/paths-filter@0bc4621a3135347011ad047f9ecf449bf72ce2bd
@@ -92,15 +92,24 @@ jobs:
             - 'internal/service/orginvitation/*.go'
             - 'internal/service/organization/*.go'
             - 'internal/service/thirdpartyintegration/*.go'
-          backup_online_archive:
+          backup:
             - 'internal/service/onlinearchive/*.go'
+            - 'internal/service/cloudbackupschedule/*.go'
+            - 'internal/service/cloudbackupsnapshot/*.go'
+            - 'internal/service/cloudbackupsnapshotexportbucket/*.go'
+            - 'internal/service/cloudbackupsnapshotexportjob/*.go'
+            - 'internal/service/cloudbackupsnapshotrestorejob/*.go'
           advanced_cluster:
             - 'internal/service/advancedcluster/*.go'
           stream:
             - 'internal/service/streaminstance/*.go'
             - 'internal/service/streamconnection/*.go'
-          federation:
+          federated:
+            - 'internal/service/federatedsettingsidentityprovider/*.go'
             - 'internal/service/federateddatabaseinstance/*.go'
+            - 'internal/service/federatedsettingsorgconfig/*.go'
+            - 'internal/service/federatedsettingsorgrolemapping/*.go'
+            - 'internal/service/federatedquerylimit/*.go'
           search_deployment:
             - 'internal/service/searchdeployment/*.go'
           generic:
@@ -114,6 +123,12 @@ jobs:
             - 'internal/service/privatelinkendpoint/*.go'
             - 'internal/service/privatelinkendpointservice/*.go'
             - 'internal/service/privatelinkendpointservicedatafederationonlinearchive/*.go'
+          encryption:
+            - 'internal/service/encryptionatrest/*.go'
+          serverless:
+            - 'internal/service/serverlessinstance/*.go'
+            - 'internal/service/privatelinkendpointserverless/*.go'
+            - 'internal/service/privatelinkendpointserviceserverless/*.go'
   
   project: 
     needs: [ change-detection, get-provider-version ]
@@ -180,9 +195,9 @@ jobs:
           TEST_REGEX: "^TestAccMigrationConfig"
         run: make testacc
 
-  backup_online_archive:
+  backup:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || inputs.test_group == 'backup_online_archive' }}
+    if: ${{ needs.change-detection.outputs.backup == 'true' || inputs.test_group == 'backup' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -257,9 +272,9 @@ jobs:
           TEST_REGEX: "^TestAccMigrationStream"
         run: make testacc
 
-  federation:
+  federated:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.federation == 'true' || inputs.test_group == 'federation' }}
+    if: ${{ needs.change-detection.outputs.federated == 'true' || inputs.test_group == 'federated' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -283,7 +298,7 @@ jobs:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          TEST_REGEX: "^TestAccMigrationFederatedDatabaseInstance"
+          TEST_REGEX: "^TestAccMigrationFederated"
         run: make testacc
 
   search_deployment:
@@ -371,3 +386,52 @@ jobs:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           TEST_REGEX: "^TestAccMigrationNetwork"
         run: make testacc
+  encryption:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.encryption == 'true' || inputs.test_group == 'encryption' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.terraform_version }}
+          terraform_wrapper: false    
+      - name: Migration Tests
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV_NETWORK }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV_NETWORK }}
+          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV_NETWORK }}
+          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          TEST_REGEX: "^TestAccMigrationEncryption"
+        run: make testacc
+  serverless:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.serverless == 'true' || inputs.test_group == 'serverless' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.terraform_version }}
+          terraform_wrapper: false    
+      - name: Migration Tests
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
+          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          TEST_REGEX: "^TestAccMigrationServerless"
+        run: make testacc
+      

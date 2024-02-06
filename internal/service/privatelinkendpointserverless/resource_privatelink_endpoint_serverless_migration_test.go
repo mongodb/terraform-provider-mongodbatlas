@@ -1,7 +1,6 @@
-package teams_test
+package privatelinkendpointserverless_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -12,31 +11,29 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationConfigTeams_basic(t *testing.T) {
+func TestAccMigrationServerlessPrivateLinkEndpoint_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_teams.test"
+		resourceName = "mongodbatlas_privatelink_endpoint_serverless.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-		username     = os.Getenv("MONGODB_ATLAS_USERNAME")
+		projectName  = acctest.RandomWithPrefix("test-acc-serverless")
+		instanceName = "serverlessplink"
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckAtlasUsername(t) },
-		CheckDestroy: acc.CheckDestroyTeam,
+		PreCheck:     func() { mig.PreCheckBasic(t) },
+		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configBasic(orgID, name, []string{username}),
+				Config:            configBasic(orgID, projectName, instanceName, true),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
 				),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configBasic(orgID, name, []string{username}),
+				Config:                   configBasic(orgID, projectName, instanceName, true),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),

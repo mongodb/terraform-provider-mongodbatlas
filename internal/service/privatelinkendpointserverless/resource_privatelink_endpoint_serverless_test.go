@@ -24,12 +24,12 @@ func TestAccServerlessPrivateLinkEndpoint_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(orgID, projectName, instanceName, true),
+				Config: configBasic(orgID, projectName, instanceName, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
 				),
 			},
@@ -47,18 +47,18 @@ func TestAccServerlessPrivateLinkEndpoint_importBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(orgID, projectName, instanceName, true),
+				Config: configBasic(orgID, projectName, instanceName, true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
 				),
 			},
 			{
-				Config:                  testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(orgID, projectName, instanceName, false),
+				Config:                  configBasic(orgID, projectName, instanceName, false),
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       importStateIDFuncBasic(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"connection_strings_private_endpoint_srv"},
@@ -67,13 +67,13 @@ func TestAccServerlessPrivateLinkEndpoint_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessDestroy(state *terraform.State) error {
+func checkDestroy(state *terraform.State) error {
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type != "mongodbatlas_privatelink_endpoint_serverless" {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		privateLink, _, err := acc.Conn().ServerlessPrivateEndpoints.Get(context.Background(), ids["project_id"], ids["instance_name"], ids["endpoint_id"])
+		privateLink, _, err := acc.ConnV2().ServerlessPrivateEndpointsApi.GetServerlessPrivateEndpoint(context.Background(), ids["project_id"], ids["instance_name"], ids["endpoint_id"]).Execute()
 		if err == nil && privateLink != nil {
 			return fmt.Errorf("endpoint_id (%s) still exists", ids["endpoint_id"])
 		}
@@ -81,7 +81,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessDestroy(state *terrafo
 	return nil
 }
 
-func testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(orgID, projectName, instanceName string, ignoreConnectionStrings bool) string {
+func configBasic(orgID, projectName, instanceName string, ignoreConnectionStrings bool) string {
 	return fmt.Sprintf(`
 
 	resource "mongodbatlas_privatelink_endpoint_serverless" "test" {
@@ -94,7 +94,7 @@ func testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(orgID, projectName, 
 	`, acc.ConfigServerlessInstanceBasic(orgID, projectName, instanceName, ignoreConnectionStrings))
 }
 
-func testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessExists(resourceName string) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -104,7 +104,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessExists(resourceName st
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.Conn().ServerlessPrivateEndpoints.Get(context.Background(), ids["project_id"], ids["instance_name"], ids["endpoint_id"])
+		_, _, err := acc.ConnV2().ServerlessPrivateEndpointsApi.GetServerlessPrivateEndpoint(context.Background(), ids["project_id"], ids["instance_name"], ids["endpoint_id"]).Execute()
 		if err == nil {
 			return nil
 		}
@@ -112,7 +112,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessExists(resourceName st
 	}
 }
 
-func testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFuncBasic(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

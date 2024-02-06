@@ -8,7 +8,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
-func TestAccClusterRSAdvancedClusterMigrateState_empty_advancedConfig(t *testing.T) {
+func TestAccMigrationAdvancedCluster_empty_advancedConfig(t *testing.T) {
 	v0State := map[string]any{
 		"project_id":   "test-id",
 		"name":         "test-cluster",
@@ -60,7 +60,7 @@ func TestAccClusterRSAdvancedClusterMigrateState_empty_advancedConfig(t *testing
 	}
 }
 
-func TestAccClusterRSAdvancedClusterV0StateUpgrade_ReplicationSpecs(t *testing.T) {
+func TestAccMigrationAdvancedCluster_v0StateUpgrade_ReplicationSpecs(t *testing.T) {
 	v0State := map[string]any{
 		"project_id":     "test-id",
 		"name":           "test-cluster",

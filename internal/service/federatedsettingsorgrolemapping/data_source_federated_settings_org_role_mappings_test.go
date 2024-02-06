@@ -11,8 +11,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccFedDSFederatedSettingsOrganizationRoleMappings_basic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+func TestAccFederatedSettingsOrgRoleMappingDSPlural_basic(t *testing.T) {
+	acc.SkipTestForCI(t)
 	var (
 		resourceName        = "data.mongodbatlas_federated_settings_org_role_mappings.test"
 		federatedSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")

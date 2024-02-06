@@ -51,6 +51,10 @@ jobs:
       aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       aws_s3_bucket_federation: ${{ secrets.AWS_S3_BUCKET_FEDERATION }}
+      mongodb_atlas_ldap_hostname: ${{ secrets.MONGODB_ATLAS_LDAP_HOSTNAME }}
+      mongodb_atlas_ldap_username: ${{ secrets.MONGODB_ATLAS_LDAP_USERNAME }}
+      mongodb_atlas_ldap_password: ${{ secrets.MONGODB_ATLAS_LDAP_PASSWORD }}
+      mongodb_atlas_ldap_port: ${{ secrets.MONGODB_ATLAS_LDAP_PORT }}
     with:
       terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
       ref: ${{ inputs.ref }}
@@ -69,10 +73,10 @@ jobs:
       azure_tenant_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.AZURE_TENANT_ID_QA || vars.AZURE_TENANT_ID }}
       aws_secret_name: ${{ inputs.atlas_cloud_env == 'qa' && vars.AWS_SECRET_NAME_QA || vars.AWS_SECRET_NAME }}
       mongodb_atlas_federation_settings_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATION_SETTINGS_ID_QA || vars.MONGODB_ATLAS_FEDERATION_SETTINGS_ID }}
-      mongodb_atlas_federatied_okta_idp_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID_QA || vars.MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID }}
-      mongodb_atlas_federatied_idp_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATED_IDP_ID_QA || vars.MONGODB_ATLAS_FEDERATED_IDP_ID }}
-      mongodb_atlas_federatied_oidc_idp_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID_QA || vars.MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID }}
-      mongodb_atlas_federatied_sso_url: ${{  vars.MONGODB_ATLAS_FEDERATED_SSO_URL }}
-      mongodb_atlas_federatied_issuer_uri: ${{ vars.MONGODB_ATLAS_FEDERATED_ISSUER_URI }}
-      mongodb_atlas_federatied_project_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATED_PROJECT_ID_QA || vars.MONGODB_ATLAS_FEDERATED_PROJECT_ID }}
-      mongodb_atlas_federatied_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATED_ORG_ID_QA || vars.MONGODB_ATLAS_FEDERATED_ORG_ID }}
+      mongodb_atlas_federated_okta_idp_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID_QA || vars.MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID }}
+      mongodb_atlas_federated_idp_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATED_IDP_ID_QA || vars.MONGODB_ATLAS_FEDERATED_IDP_ID }}
+      mongodb_atlas_federated_oidc_idp_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID_QA || vars.MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID }}
+      mongodb_atlas_federated_sso_url: ${{  vars.MONGODB_ATLAS_FEDERATED_SSO_URL }}
+      mongodb_atlas_federated_issuer_uri: ${{ vars.MONGODB_ATLAS_FEDERATED_ISSUER_URI }}
+      mongodb_atlas_federated_project_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATED_PROJECT_ID_QA || vars.MONGODB_ATLAS_FEDERATED_PROJECT_ID }}
+      mongodb_atlas_federated_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATED_ORG_ID_QA || vars.MONGODB_ATLAS_FEDERATED_ORG_ID }}

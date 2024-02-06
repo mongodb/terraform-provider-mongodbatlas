@@ -139,11 +139,6 @@ You must also configure the following environment variables before running the t
   ```
 ~> **Notice:** It should be at least one team id up to 3 teams ids depending of acceptance testing using separator comma like this `teamId1,teamdId2,teamId3`.
 
-- For skip acceptances testing that requires additional credentials such as AWS, AZURE and GCP:
-  ```bash
-  export SKIP_TEST_EXTERNAL_CREDENTIALS=TRUE
-  ```
-
 - For `Federated Settings` resource configuration:
   ```bash
   $ export MONGODB_ATLAS_FEDERATION_SETTINGS_ID=<YOUR_FEDERATION_SETTINGS_ID>

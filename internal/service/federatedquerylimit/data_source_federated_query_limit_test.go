@@ -15,8 +15,8 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccDataSourceFederatedDatabaseQueryLimit_basic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+func TestAccFederatedDatabaseQueryLimitDS_basic(t *testing.T) {
+	acc.SkipTestForCI(t)
 	var (
 		resourceName = "data.mongodbatlas_federated_query_limit.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")

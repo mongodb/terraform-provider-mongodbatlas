@@ -14,7 +14,7 @@ import (
 )
 
 func TestAccFederatedDatabaseQueryLimit_basic(t *testing.T) {
-	acc.SkipTestExtCred(t)
+	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_federated_query_limit.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
