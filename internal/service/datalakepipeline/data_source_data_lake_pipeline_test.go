@@ -58,7 +58,7 @@ func configDS(orgID, projectName, clusterName, pipelineName string) string {
 				}
 				provider_name = "AWS"
 				priority      = 7
-				region_name   = "EU_WEST_1"
+				region_name   = "US_EAST_1"
 			}
 			}
 			backup_enabled               = true
