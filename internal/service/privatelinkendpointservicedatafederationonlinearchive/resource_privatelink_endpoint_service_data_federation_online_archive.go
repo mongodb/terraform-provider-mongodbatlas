@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -66,11 +66,11 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	endpointID := d.Get("endpoint_id").(string)
 
-	_, _, err := conn.DataLakes.CreatePrivateLinkEndpoint(ctx, projectID, newPrivateLinkEndpointDataLake(d))
+	_, _, err := connV2.DataFederationApi.CreateDataFederationPrivateEndpoint(ctx, projectID, newPrivateNetworkEndpointIdEntry(d)).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveCreate, projectID, err))
 	}
@@ -84,30 +84,29 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	endopointID := ids["endpoint_id"]
 
-	privateEndpoint, resp, err := conn.DataLakes.GetPrivateLinkEndpoint(context.Background(), projectID, endopointID)
+	privateEndpoint, resp, err := connV2.DataFederationApi.GetDataFederationPrivateEndpoint(context.Background(), projectID, endopointID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
-
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
 	}
 
-	if err := d.Set("comment", privateEndpoint.Comment); err != nil {
+	if err := d.Set("comment", privateEndpoint.GetComment()); err != nil {
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
 	}
 
-	if err := d.Set("provider_name", privateEndpoint.Provider); err != nil {
+	if err := d.Set("provider_name", privateEndpoint.GetProvider()); err != nil {
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
 	}
 
-	if err := d.Set("type", privateEndpoint.Type); err != nil {
+	if err := d.Set("type", privateEndpoint.GetType()); err != nil {
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
 	}
 
@@ -115,12 +114,12 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	endpointID := ids["endpoint_id"]
 
-	_, err := conn.DataLakes.DeletePrivateLinkEndpoint(ctx, projectID, endpointID)
+	_, _, err := connV2.DataFederationApi.DeleteDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveDelete, endpointID, projectID, err))
 	}
@@ -131,30 +130,30 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID, endpointID, err := splitAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
-	privateEndpoint, _, err := conn.DataLakes.GetPrivateLinkEndpoint(ctx, projectID, endpointID)
+	privateEndpoint, _, err := connV2.DataFederationApi.GetDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
 	}
 
-	if err := d.Set("comment", privateEndpoint.Comment); err != nil {
+	if err := d.Set("comment", privateEndpoint.GetComment()); err != nil {
 		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
 	}
 
-	if err := d.Set("provider_name", privateEndpoint.Provider); err != nil {
+	if err := d.Set("provider_name", privateEndpoint.GetProvider()); err != nil {
 		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
 	}
 
-	if err := d.Set("type", privateEndpoint.Type); err != nil {
+	if err := d.Set("type", privateEndpoint.GetType()); err != nil {
 		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
 	}
 
-	if err := d.Set("endpoint_id", privateEndpoint.EndpointID); err != nil {
+	if err := d.Set("endpoint_id", privateEndpoint.GetEndpointId()); err != nil {
 		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
 	}
 
@@ -184,18 +183,20 @@ func splitAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive(id string) 
 	return
 }
 
-func newPrivateLinkEndpointDataLake(d *schema.ResourceData) *matlas.PrivateLinkEndpointDataLake {
-	out := matlas.PrivateLinkEndpointDataLake{
-		EndpointID: d.Get("endpoint_id").(string),
-		Type:       endpointType,
+func newPrivateNetworkEndpointIdEntry(d *schema.ResourceData) *admin.PrivateNetworkEndpointIdEntry {
+	endpointType := endpointType
+	out := admin.PrivateNetworkEndpointIdEntry{
+		EndpointId: d.Get("endpoint_id").(string),
+		Type:       &endpointType,
 	}
 
 	if v, ok := d.GetOk("comment"); ok {
-		out.Comment = v.(string)
+		out.Comment = v.(*string)
 	}
 
 	if v, ok := d.GetOk("provider_name"); ok && v != "" {
-		out.Provider = strings.ToUpper(v.(string))
+		providerName := strings.ToUpper(v.(string))
+		out.Provider = &providerName
 	}
 
 	return &out

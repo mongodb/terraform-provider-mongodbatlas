@@ -64,7 +64,7 @@ func checkDestroy(s *terraform.State) error {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.Conn().DataLakes.GetPrivateLinkEndpoint(context.Background(), ids["project_id"], ids["endpoint_id"])
+		_, _, err := acc.ConnV2().DataFederationApi.GetDataFederationPrivateEndpoint(context.Background(), ids["project_id"], ids["endpoint_id"]).Execute()
 		if err == nil {
 			return fmt.Errorf("Private endpoint service data federation online archive still exists")
 		}
@@ -82,7 +82,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Private endpoint service data federation online archive ID not set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.Conn().DataLakes.GetPrivateLinkEndpoint(context.Background(), ids["project_id"], ids["endpoint_id"])
+		_, _, err := acc.ConnV2().DataFederationApi.GetDataFederationPrivateEndpoint(context.Background(), ids["project_id"], ids["endpoint_id"]).Execute()
 		if err != nil {
 			return err
 		}
