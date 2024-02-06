@@ -23,7 +23,7 @@ func TestAccDataLakeRunDS_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDataLakeDataSourcePipelineRunConfig(projectID, pipelineName, runID),
+				Config: configRunDS(projectID, pipelineName, runID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "pipeline_name", pipelineName),
@@ -38,7 +38,7 @@ func TestAccDataLakeRunDS_basic(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasDataLakeDataSourcePipelineRunConfig(projectID, pipelineName, runID string) string {
+func configRunDS(projectID, pipelineName, runID string) string {
 	return fmt.Sprintf(`
 
 data "mongodbatlas_data_lake_pipeline_run" "test" {

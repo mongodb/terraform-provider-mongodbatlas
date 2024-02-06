@@ -27,12 +27,12 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasDataLakePipelineCreate,
-		ReadContext:   resourceMongoDBAtlasDataLakePipelineRead,
-		UpdateContext: resourceMongoDBAtlasDataLakePipelineUpdate,
-		DeleteContext: resourceMongoDBAtlasDataLakePipelineDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasDataLakePipelineImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -148,13 +148,13 @@ func Resource() *schema.Resource {
 					},
 				},
 			},
-			"snapshots":           schemaDataLakePipelineSnapshots(),
-			"ingestion_schedules": schemaDataLakePipelineIngestionSchedules(),
+			"snapshots":           schemaSnapshots(),
+			"ingestion_schedules": schemaSchedules(),
 		},
 	}
 }
 
-func schemaDataLakePipelineIngestionSchedules() *schema.Schema {
+func schemaSchedules() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
 		Computed: true,
@@ -185,7 +185,7 @@ func schemaDataLakePipelineIngestionSchedules() *schema.Schema {
 	}
 }
 
-func schemaDataLakePipelineSnapshots() *schema.Schema {
+func schemaSnapshots() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
 		Computed: true,
@@ -255,7 +255,7 @@ func schemaDataLakePipelineSnapshots() *schema.Schema {
 	}
 }
 
-func resourceMongoDBAtlasDataLakePipelineCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	name := d.Get("name").(string)
@@ -263,9 +263,9 @@ func resourceMongoDBAtlasDataLakePipelineCreate(ctx context.Context, d *schema.R
 	dataLakePipelineReqBody := &matlas.DataLakePipeline{
 		GroupID:         projectID,
 		Name:            name,
-		Sink:            newDataLakePipelineSink(d),
-		Source:          newDataLakePipelineSource(d),
-		Transformations: newDataLakePipelineTransformation(d),
+		Sink:            newSink(d),
+		Source:          newSource(d),
+		Transformations: newTransformation(d),
 	}
 
 	dataLakePipeline, _, err := conn.DataLakePipeline.Create(ctx, projectID, dataLakePipelineReqBody)
@@ -278,10 +278,10 @@ func resourceMongoDBAtlasDataLakePipelineCreate(ctx context.Context, d *schema.R
 		"name":       dataLakePipeline.Name,
 	}))
 
-	return resourceMongoDBAtlasDataLakePipelineRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasDataLakePipelineRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -313,15 +313,15 @@ func resourceMongoDBAtlasDataLakePipelineRead(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "last_updated_date", name, err))
 	}
 
-	if err := d.Set("sink", flattenDataLakePipelineSink(dataLakePipeline.Sink)); err != nil {
+	if err := d.Set("sink", flattenSink(dataLakePipeline.Sink)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "sink", name, err))
 	}
 
-	if err := d.Set("source", flattenDataLakePipelineSource(dataLakePipeline.Source)); err != nil {
+	if err := d.Set("source", flattenSource(dataLakePipeline.Source)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "source", name, err))
 	}
 
-	if err := d.Set("transformations", flattenDataLakePipelineTransformations(dataLakePipeline.Transformations)); err != nil {
+	if err := d.Set("transformations", flattenTransformations(dataLakePipeline.Transformations)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "transformations", name, err))
 	}
 
@@ -330,7 +330,7 @@ func resourceMongoDBAtlasDataLakePipelineRead(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineRead, name, err))
 	}
 
-	if err := d.Set("snapshots", flattenDataLakePipelineSnapshots(snapshots.Results)); err != nil {
+	if err := d.Set("snapshots", flattenSnapshots(snapshots.Results)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "snapshots", name, err))
 	}
 
@@ -339,7 +339,7 @@ func resourceMongoDBAtlasDataLakePipelineRead(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineRead, name, err))
 	}
 
-	if err := d.Set("ingestion_schedules", flattenDataLakePipelineIngestionSchedules(ingestionSchedules)); err != nil {
+	if err := d.Set("ingestion_schedules", flattenIngestionSchedules(ingestionSchedules)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "ingestion_schedules", name, err))
 	}
 
@@ -351,7 +351,7 @@ func resourceMongoDBAtlasDataLakePipelineRead(ctx context.Context, d *schema.Res
 	return nil
 }
 
-func resourceMongoDBAtlasDataLakePipelineUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	name := d.Get("name").(string)
@@ -359,9 +359,9 @@ func resourceMongoDBAtlasDataLakePipelineUpdate(ctx context.Context, d *schema.R
 	dataLakePipelineReqBody := &matlas.DataLakePipeline{
 		GroupID:         projectID,
 		Name:            name,
-		Sink:            newDataLakePipelineSink(d),
-		Source:          newDataLakePipelineSource(d),
-		Transformations: newDataLakePipelineTransformation(d),
+		Sink:            newSink(d),
+		Source:          newSource(d),
+		Transformations: newTransformation(d),
 	}
 
 	_, _, err := conn.DataLakePipeline.Update(ctx, projectID, name, dataLakePipelineReqBody)
@@ -369,10 +369,10 @@ func resourceMongoDBAtlasDataLakePipelineUpdate(ctx context.Context, d *schema.R
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineUpdate, err))
 	}
 
-	return resourceMongoDBAtlasDataLakePipelineRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasDataLakePipelineDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -386,7 +386,7 @@ func resourceMongoDBAtlasDataLakePipelineDelete(ctx context.Context, d *schema.R
 	return nil
 }
 
-func resourceMongoDBAtlasDataLakePipelineImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	projectID, name, err := splitDataLakePipelineImportID(d.Id())
@@ -423,15 +423,15 @@ func resourceMongoDBAtlasDataLakePipelineImportState(ctx context.Context, d *sch
 		return nil, fmt.Errorf(errorDataLakePipelineImportField, "last_updated_date", name, err)
 	}
 
-	if err := d.Set("sink", flattenDataLakePipelineSink(dataLakePipeline.Sink)); err != nil {
+	if err := d.Set("sink", flattenSink(dataLakePipeline.Sink)); err != nil {
 		return nil, fmt.Errorf(errorDataLakePipelineImportField, "sink", name, err)
 	}
 
-	if err := d.Set("source", flattenDataLakePipelineSource(dataLakePipeline.Source)); err != nil {
+	if err := d.Set("source", flattenSource(dataLakePipeline.Source)); err != nil {
 		return nil, fmt.Errorf(errorDataLakePipelineImportField, "source", name, err)
 	}
 
-	if err := d.Set("transformations", flattenDataLakePipelineTransformations(dataLakePipeline.Transformations)); err != nil {
+	if err := d.Set("transformations", flattenTransformations(dataLakePipeline.Transformations)); err != nil {
 		return nil, fmt.Errorf(errorDataLakePipelineImportField, "transformations", name, err)
 	}
 
@@ -445,7 +445,7 @@ func resourceMongoDBAtlasDataLakePipelineImportState(ctx context.Context, d *sch
 		return nil, fmt.Errorf(errorDataLakePipelineImport, name, err)
 	}
 
-	if err := d.Set("snapshots", flattenDataLakePipelineSnapshots(snapshots.Results)); err != nil {
+	if err := d.Set("snapshots", flattenSnapshots(snapshots.Results)); err != nil {
 		return nil, fmt.Errorf(errorDataLakePipelineImportField, "snapshots", name, err)
 	}
 
@@ -454,7 +454,7 @@ func resourceMongoDBAtlasDataLakePipelineImportState(ctx context.Context, d *sch
 		return nil, fmt.Errorf(errorDataLakePipelineImport, name, err)
 	}
 
-	if err := d.Set("ingestion_schedules", flattenDataLakePipelineIngestionSchedules(ingestionSchedules)); err != nil {
+	if err := d.Set("ingestion_schedules", flattenIngestionSchedules(ingestionSchedules)); err != nil {
 		return nil, fmt.Errorf(errorDataLakePipelineImportField, "ingestion_schedules", name, err)
 	}
 
@@ -475,7 +475,7 @@ func splitDataLakePipelineImportID(id string) (projectID, name string, err error
 	return
 }
 
-func newDataLakePipelineSink(d *schema.ResourceData) *matlas.DataLakePipelineSink {
+func newSink(d *schema.ResourceData) *matlas.DataLakePipelineSink {
 	if sink, ok := d.Get("sink").([]any); ok && len(sink) == 1 {
 		sinkMap := sink[0].(map[string]any)
 		dataLakePipelineSink := &matlas.DataLakePipelineSink{}
@@ -492,14 +492,14 @@ func newDataLakePipelineSink(d *schema.ResourceData) *matlas.DataLakePipelineSin
 			dataLakePipelineSink.MetadataRegion = region
 		}
 
-		dataLakePipelineSink.PartitionFields = newDataLakePipelinePartitionField(sinkMap)
+		dataLakePipelineSink.PartitionFields = newPartitionField(sinkMap)
 		return dataLakePipelineSink
 	}
 
 	return nil
 }
 
-func newDataLakePipelinePartitionField(sinkMap map[string]any) []*matlas.DataLakePipelinePartitionField {
+func newPartitionField(sinkMap map[string]any) []*matlas.DataLakePipelinePartitionField {
 	partitionFields, ok := sinkMap["partition_fields"].([]any)
 	if !ok || len(partitionFields) == 0 {
 		return nil
@@ -517,7 +517,7 @@ func newDataLakePipelinePartitionField(sinkMap map[string]any) []*matlas.DataLak
 	return fields
 }
 
-func newDataLakePipelineSource(d *schema.ResourceData) *matlas.DataLakePipelineSource {
+func newSource(d *schema.ResourceData) *matlas.DataLakePipelineSource {
 	source, ok := d.Get("source").([]any)
 	if !ok || len(source) == 0 {
 		return nil
@@ -549,7 +549,7 @@ func newDataLakePipelineSource(d *schema.ResourceData) *matlas.DataLakePipelineS
 	return dataLakePipelineSource
 }
 
-func newDataLakePipelineTransformation(d *schema.ResourceData) []*matlas.DataLakePipelineTransformation {
+func newTransformation(d *schema.ResourceData) []*matlas.DataLakePipelineTransformation {
 	trasformations, ok := d.Get("transformations").([]any)
 	if !ok || len(trasformations) == 0 {
 		return nil
@@ -576,7 +576,7 @@ func newDataLakePipelineTransformation(d *schema.ResourceData) []*matlas.DataLak
 	return dataLakePipelineTransformations
 }
 
-func flattenDataLakePipelineSource(atlasPipelineSource *matlas.DataLakePipelineSource) []map[string]any {
+func flattenSource(atlasPipelineSource *matlas.DataLakePipelineSource) []map[string]any {
 	if atlasPipelineSource == nil {
 		return nil
 	}
@@ -592,7 +592,7 @@ func flattenDataLakePipelineSource(atlasPipelineSource *matlas.DataLakePipelineS
 	}
 }
 
-func flattenDataLakePipelineSink(atlasPipelineSink *matlas.DataLakePipelineSink) []map[string]any {
+func flattenSink(atlasPipelineSink *matlas.DataLakePipelineSink) []map[string]any {
 	if atlasPipelineSink == nil {
 		return nil
 	}
@@ -602,12 +602,12 @@ func flattenDataLakePipelineSink(atlasPipelineSink *matlas.DataLakePipelineSink)
 			"type":             atlasPipelineSink.Type,
 			"provider":         atlasPipelineSink.MetadataProvider,
 			"region":           atlasPipelineSink.MetadataRegion,
-			"partition_fields": flattenDataLakePipelinePartitionFields(atlasPipelineSink.PartitionFields),
+			"partition_fields": flattenPartitionFields(atlasPipelineSink.PartitionFields),
 		},
 	}
 }
 
-func flattenDataLakePipelineIngestionSchedules(atlasPipelineIngestionSchedules []*matlas.DataLakePipelineIngestionSchedule) []map[string]any {
+func flattenIngestionSchedules(atlasPipelineIngestionSchedules []*matlas.DataLakePipelineIngestionSchedule) []map[string]any {
 	if len(atlasPipelineIngestionSchedules) == 0 {
 		return nil
 	}
@@ -626,7 +626,7 @@ func flattenDataLakePipelineIngestionSchedules(atlasPipelineIngestionSchedules [
 	return out
 }
 
-func flattenDataLakePipelineSnapshots(snapshots []*matlas.DataLakePipelineSnapshot) []map[string]any {
+func flattenSnapshots(snapshots []*matlas.DataLakePipelineSnapshot) []map[string]any {
 	if len(snapshots) == 0 {
 		return nil
 	}
@@ -652,7 +652,7 @@ func flattenDataLakePipelineSnapshots(snapshots []*matlas.DataLakePipelineSnapsh
 	return out
 }
 
-func flattenDataLakePipelineTransformations(atlasPipelineTransformation []*matlas.DataLakePipelineTransformation) []map[string]any {
+func flattenTransformations(atlasPipelineTransformation []*matlas.DataLakePipelineTransformation) []map[string]any {
 	if len(atlasPipelineTransformation) == 0 {
 		return nil
 	}
@@ -667,7 +667,7 @@ func flattenDataLakePipelineTransformations(atlasPipelineTransformation []*matla
 	return out
 }
 
-func flattenDataLakePipelinePartitionFields(atlasDataLakePipelinePartitionFields []*matlas.DataLakePipelinePartitionField) []map[string]any {
+func flattenPartitionFields(atlasDataLakePipelinePartitionFields []*matlas.DataLakePipelinePartitionField) []map[string]any {
 	if len(atlasDataLakePipelinePartitionFields) == 0 {
 		return nil
 	}

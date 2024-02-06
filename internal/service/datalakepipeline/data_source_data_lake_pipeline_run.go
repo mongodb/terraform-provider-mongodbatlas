@@ -16,7 +16,7 @@ const errorDataLakePipelineRunRead = "error reading MongoDB Atlas DataLake Run (
 
 func DataSourceRun() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasDataLakeRunRead,
+		ReadContext: dataSourceRunRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -87,7 +87,7 @@ func DataSourceRun() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasDataLakeRunRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceRunRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	name := d.Get("pipeline_name").(string)

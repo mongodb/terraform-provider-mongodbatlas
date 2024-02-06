@@ -26,12 +26,12 @@ func TestAccDataLakeDSPlural_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasDataLakePipelineDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceMongoDBAtlasDataLakePipelinesConfig(orgID, projectName, firstClusterName, secondClusterName, firstPipelineName, secondPipelineName),
+				Config: configDSPlural(orgID, projectName, firstClusterName, secondClusterName, firstPipelineName, secondPipelineName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDataLakePipelineExists(resourceName, &pipeline),
+					checkExists(resourceName, &pipeline),
 					resource.TestCheckResourceAttrSet(dataSourceName, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "results.0.name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "results.0.state"),
@@ -45,7 +45,7 @@ func TestAccDataLakeDSPlural_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceMongoDBAtlasDataLakePipelinesConfig(orgID, projectName, firstClusterName, secondClusterName, firstPipelineName, secondPipelineName string) string {
+func configDSPlural(orgID, projectName, firstClusterName, secondClusterName, firstPipelineName, secondPipelineName string) string {
 	return fmt.Sprintf(`
 
 		resource "mongodbatlas_project" "project" {

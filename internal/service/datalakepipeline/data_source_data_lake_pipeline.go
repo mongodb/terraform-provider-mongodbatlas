@@ -13,7 +13,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasDataLakePipelineRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -119,13 +119,13 @@ func DataSource() *schema.Resource {
 					},
 				},
 			},
-			"snapshots":           dataSourceSchemaDataLakePipelineSnapshots(),
-			"ingestion_schedules": dataSourceSchemaDataLakePipelineIngestionSchedules(),
+			"snapshots":           dataSourceSchemaSnapshots(),
+			"ingestion_schedules": dataSourceSchemaIngestionSchedules(),
 		},
 	}
 }
 
-func dataSourceSchemaDataLakePipelineIngestionSchedules() *schema.Schema {
+func dataSourceSchemaIngestionSchedules() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
 		Computed: true,
@@ -156,7 +156,7 @@ func dataSourceSchemaDataLakePipelineIngestionSchedules() *schema.Schema {
 	}
 }
 
-func dataSourceSchemaDataLakePipelineSnapshots() *schema.Schema {
+func dataSourceSchemaSnapshots() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
 		Computed: true,
@@ -222,7 +222,7 @@ func dataSourceSchemaDataLakePipelineSnapshots() *schema.Schema {
 	}
 }
 
-func dataSourceMongoDBAtlasDataLakePipelineRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	name := d.Get("name").(string)
@@ -266,23 +266,23 @@ func setDataLakeResourceData(
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "last_updated_date", pipeline.Name, err))
 	}
 
-	if err := d.Set("sink", flattenDataLakePipelineSink(pipeline.Sink)); err != nil {
+	if err := d.Set("sink", flattenSink(pipeline.Sink)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "sink", pipeline.Name, err))
 	}
 
-	if err := d.Set("source", flattenDataLakePipelineSource(pipeline.Source)); err != nil {
+	if err := d.Set("source", flattenSource(pipeline.Source)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "source", pipeline.Name, err))
 	}
 
-	if err := d.Set("transformations", flattenDataLakePipelineTransformations(pipeline.Transformations)); err != nil {
+	if err := d.Set("transformations", flattenTransformations(pipeline.Transformations)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "transformations", pipeline.Name, err))
 	}
 
-	if err := d.Set("snapshots", flattenDataLakePipelineSnapshots(snapshots.Results)); err != nil {
+	if err := d.Set("snapshots", flattenSnapshots(snapshots.Results)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "snapshots", pipeline.Name, err))
 	}
 
-	if err := d.Set("ingestion_schedules", flattenDataLakePipelineIngestionSchedules(ingestionSchedules)); err != nil {
+	if err := d.Set("ingestion_schedules", flattenIngestionSchedules(ingestionSchedules)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "ingestion_schedules", pipeline.Name, err))
 	}
 

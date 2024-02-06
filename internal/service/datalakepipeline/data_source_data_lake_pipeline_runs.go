@@ -15,7 +15,7 @@ const errorDataLakePipelineRunList = "error reading MongoDB Atlas DataLake Runs 
 
 func PluralDataSourceRun() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasDataLakeRunsRead,
+		ReadContext: dataSourcePluralRunRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -90,7 +90,7 @@ func PluralDataSourceRun() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasDataLakeRunsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourcePluralRunRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	name := d.Get("pipeline_name").(string)
@@ -100,7 +100,7 @@ func dataSourceMongoDBAtlasDataLakeRunsRead(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineRunList, projectID, err))
 	}
 
-	if err := d.Set("results", flattenDataLakePipelineRunResult(dataLakeRuns.Results)); err != nil {
+	if err := d.Set("results", flattenRunResult(dataLakeRuns.Results)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "results", projectID, err))
 	}
 
@@ -109,7 +109,7 @@ func dataSourceMongoDBAtlasDataLakeRunsRead(ctx context.Context, d *schema.Resou
 	return nil
 }
 
-func flattenDataLakePipelineRunResult(datalakePipelineRuns []*matlas.DataLakePipelineRun) []map[string]any {
+func flattenRunResult(datalakePipelineRuns []*matlas.DataLakePipelineRun) []map[string]any {
 	var results []map[string]any
 
 	if len(datalakePipelineRuns) == 0 {

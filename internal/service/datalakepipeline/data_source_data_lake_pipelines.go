@@ -15,7 +15,7 @@ const errorDataLakePipelineList = "error creating MongoDB Atlas DataLake Pipelin
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasDataLakePipelinesRead,
+		ReadContext: dataSourcePluralRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -25,7 +25,7 @@ func PluralDataSource() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
-					ReadContext: dataSourceMongoDBAtlasDataLakePipelineRead,
+					ReadContext: dataSourceRead,
 					Schema: map[string]*schema.Schema{
 						"project_id": {
 							Type:     schema.TypeString,
@@ -138,7 +138,7 @@ func PluralDataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasDataLakePipelinesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
@@ -170,9 +170,9 @@ func flattenDataLakePipelines(peers []*matlas.DataLakePipeline) []map[string]any
 			"created_date":      peers[i].CreatedDate,
 			"last_updated_date": peers[i].LastUpdatedDate,
 			"state":             peers[i].State,
-			"sink":              flattenDataLakePipelineSink(peers[i].Sink),
-			"source":            flattenDataLakePipelineSource(peers[i].Source),
-			"transformations":   flattenDataLakePipelineTransformations(peers[i].Transformations),
+			"sink":              flattenSink(peers[i].Sink),
+			"source":            flattenSource(peers[i].Source),
+			"transformations":   flattenTransformations(peers[i].Transformations),
 		}
 	}
 
