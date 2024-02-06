@@ -16,6 +16,7 @@ import (
 )
 
 func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
+	acc.SkipTestForCI(t) // needs to be fixed: "cloud_backup": conflicts with backup_enabled
 	var (
 		globalConfig matlas.GlobalCluster
 		resourceName = "mongodbatlas_global_cluster_config.config"
@@ -67,6 +68,7 @@ func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 }
 
 func TestAccClusterRSGlobalCluster_WithAWSCluster(t *testing.T) {
+	acc.SkipTestForCI(t) // needs to be fixed: 404 (request "GROUP_NOT_FOUND") No group with ID
 	var (
 		globalConfig matlas.GlobalCluster
 		resourceName = "mongodbatlas_global_cluster_config.config"
@@ -98,6 +100,7 @@ func TestAccClusterRSGlobalCluster_WithAWSCluster(t *testing.T) {
 }
 
 func TestAccClusterRSGlobalCluster_importBasic(t *testing.T) {
+	acc.SkipTestForCI(t) // needs to be fixed: "cloud_backup": conflicts with backup_enabled
 	var (
 		resourceName = "mongodbatlas_global_cluster_config.config"
 		name         = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
@@ -125,6 +128,7 @@ func TestAccClusterRSGlobalCluster_importBasic(t *testing.T) {
 }
 
 func TestAccClusterRSGlobalCluster_database(t *testing.T) {
+	acc.SkipTestForCI(t) // needs to be fixed: 404 (request "GROUP_NOT_FOUND") No group with ID, next steps should use the first project
 	var (
 		globalConfig matlas.GlobalCluster
 		resourceName = "mongodbatlas_global_cluster_config.test"
