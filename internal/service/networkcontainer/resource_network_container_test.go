@@ -163,7 +163,7 @@ func TestAccNetworkRSNetworkContainer_WithRegionsGCP(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasNetworkContainerConfigGCPWithRegions(projectName, orgID, cidrBlock, providerName),
+				Config: configGCPWithRegions(projectName, orgID, cidrBlock, providerName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -312,7 +312,7 @@ func configGCP(projectName, orgID, cidrBlock, providerName string) string {
 	`, projectName, orgID, cidrBlock, providerName)
 }
 
-func testAccMongoDBAtlasNetworkContainerConfigGCPWithRegions(projectName, orgID, cidrBlock, providerName string) string {
+func configGCPWithRegions(projectName, orgID, cidrBlock, providerName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = "%s"
