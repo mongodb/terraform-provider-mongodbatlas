@@ -32,6 +32,7 @@ func PluralDataSource() *schema.Resource {
 }
 
 func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID, projectIDOK := d.GetOk("project_id")
 	if !(projectIDOK) {
 		return diag.Errorf("project_id must be configured")
@@ -43,7 +44,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 		GroupId:      projectID.(string),
 	}
 
-	serverlessInstances, err := getServerlessList(ctx, meta, options, 0)
+	serverlessInstances, err := getServerlessList(ctx, connV2, options, 0)
 	if err != nil {
 		return diag.Errorf("error getting serverless instances information: %s", err)
 	}
@@ -57,11 +58,10 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	return nil
 }
 
-func getServerlessList(ctx context.Context, meta any, options *admin.ListServerlessInstancesApiParams, obtainedItemsCount int) ([]admin.ServerlessInstanceDescription, error) {
+func getServerlessList(ctx context.Context, connV2 *admin.APIClient, options *admin.ListServerlessInstancesApiParams, obtainedItemsCount int) ([]admin.ServerlessInstanceDescription, error) {
 	var list []admin.ServerlessInstanceDescription
-	*options.PageNum++
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
+	*options.PageNum++
 	serverlessInstances, _, err := connV2.ServerlessInstancesApi.ListServerlessInstancesWithParams(ctx, options).Execute()
 	if err != nil {
 		return list, fmt.Errorf("error getting serverless instances information: %s", err)
@@ -71,19 +71,17 @@ func getServerlessList(ctx context.Context, meta any, options *admin.ListServerl
 	obtainedItemsCount += len(serverlessInstances.GetResults())
 
 	if serverlessInstances.GetTotalCount() > *options.ItemsPerPage && obtainedItemsCount < *serverlessInstances.TotalCount {
-		instances, err := getServerlessList(ctx, meta, options, obtainedItemsCount)
+		instances, err := getServerlessList(ctx, connV2, options, obtainedItemsCount)
 		if err != nil {
 			return list, fmt.Errorf("error getting serverless instances information: %s", err)
 		}
 		list = append(list, instances...)
 	}
-
 	return list, nil
 }
 
 func flattenServerlessInstances(serverlessInstances []admin.ServerlessInstanceDescription) []map[string]any {
 	var serverlessInstancesMap []map[string]any
-
 	if len(serverlessInstances) == 0 {
 		return nil
 	}
@@ -106,6 +104,5 @@ func flattenServerlessInstances(serverlessInstances []admin.ServerlessInstanceDe
 			"tags":                                    conversion.FlattenTags(serverlessInstances[i].GetTags()),
 		}
 	}
-
 	return serverlessInstancesMap
 }
