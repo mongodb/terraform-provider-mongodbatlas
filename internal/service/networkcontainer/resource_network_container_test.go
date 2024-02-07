@@ -27,7 +27,7 @@ var (
 	projectID                = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 )
 
-func TestAccNetworkRSNetworkContainer_basicAWS(t *testing.T) {
+func TestAccNetworkContainerRS_basicAWS(t *testing.T) {
 	var (
 		randIntUpdated   = acctest.RandIntRange(0, 255)
 		cidrBlockUpdated = fmt.Sprintf("10.8.%d.0/24", randIntUpdated)
@@ -60,7 +60,7 @@ func TestAccNetworkRSNetworkContainer_basicAWS(t *testing.T) {
 	})
 }
 
-func TestAccNetworkRSNetworkContainer_basicAzure(t *testing.T) {
+func TestAccNetworkContainerRS_basicAzure(t *testing.T) {
 	var (
 		randIntUpdated   = acctest.RandIntRange(0, 255)
 		cidrBlockUpdated = fmt.Sprintf("192.168.%d.0/24", randIntUpdated)
@@ -93,7 +93,7 @@ func TestAccNetworkRSNetworkContainer_basicAzure(t *testing.T) {
 	})
 }
 
-func TestAccNetworkRSNetworkContainer_basicGCP(t *testing.T) {
+func TestAccNetworkContainerRS_basicGCP(t *testing.T) {
 	var (
 		randIntUpdated   = acctest.RandIntRange(0, 255)
 		cidrBlockUpdated = fmt.Sprintf("10.%d.0.0/18", randIntUpdated)
@@ -126,7 +126,7 @@ func TestAccNetworkRSNetworkContainer_basicGCP(t *testing.T) {
 	})
 }
 
-func TestAccNetworkRSNetworkContainer_WithRegionsGCP(t *testing.T) {
+func TestAccNetworkContainerRS_WithRegionsGCP(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -151,7 +151,7 @@ func TestAccNetworkRSNetworkContainer_WithRegionsGCP(t *testing.T) {
 	})
 }
 
-func TestAccNetworkRSNetworkContainer_importBasic(t *testing.T) {
+func TestAccNetworkContainerRS_importBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
