@@ -21,9 +21,7 @@ var (
 	providerNameAws          = "AWS"
 	providerNameAzure        = "AZURE"
 	providerNameGCP          = "GCP"
-	orgID                    = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectID                = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	projectName              = acctest.RandomWithPrefix("test-acc")
 )
 
 func TestAccNetworkContainerDSPlural_basicAWS(t *testing.T) {
