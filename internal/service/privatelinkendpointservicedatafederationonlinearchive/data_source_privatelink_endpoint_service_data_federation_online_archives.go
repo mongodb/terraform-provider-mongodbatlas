@@ -9,14 +9,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/datalakepipeline"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
 const errorPrivateEndpointServiceDataFederationOnlineArchiveList = "error reading Private Endpoings for projectId %s: %s"
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchivesRead,
+		ReadContext: dataSourcePluralRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -50,16 +50,16 @@ func PluralDataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchivesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	privateEndpoints, _, err := conn.DataLakes.ListPrivateLinkEndpoint(context.Background(), projectID)
+	privateEndpoints, _, err := connV2.DataFederationApi.ListDataFederationPrivateEndpoints(ctx, projectID).Execute()
 	if err != nil {
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveList, projectID, err)
 	}
 
-	if err := d.Set("results", flattenPrivateLinkEndpointDataLakeResponse(privateEndpoints.Results)); err != nil {
+	if err := d.Set("results", flattenPrivateLinkEndpointDataLakeResponse(privateEndpoints.GetResults())); err != nil {
 		return diag.FromErr(fmt.Errorf(datalakepipeline.ErrorDataLakeSetting, "results", projectID, err))
 	}
 
@@ -68,7 +68,7 @@ func dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive
 	return nil
 }
 
-func flattenPrivateLinkEndpointDataLakeResponse(atlasPrivateLinkEndpointDataLakes []*matlas.PrivateLinkEndpointDataLake) []map[string]any {
+func flattenPrivateLinkEndpointDataLakeResponse(atlasPrivateLinkEndpointDataLakes []admin.PrivateNetworkEndpointIdEntry) []map[string]any {
 	if len(atlasPrivateLinkEndpointDataLakes) == 0 {
 		return []map[string]any{}
 	}
@@ -77,10 +77,10 @@ func flattenPrivateLinkEndpointDataLakeResponse(atlasPrivateLinkEndpointDataLake
 
 	for i, atlasPrivateLinkEndpointDataLake := range atlasPrivateLinkEndpointDataLakes {
 		results[i] = map[string]any{
-			"endpoint_id":   atlasPrivateLinkEndpointDataLake.EndpointID,
-			"provider_name": atlasPrivateLinkEndpointDataLake.Provider,
-			"comment":       atlasPrivateLinkEndpointDataLake.Comment,
-			"type":          atlasPrivateLinkEndpointDataLake.Type,
+			"endpoint_id":   atlasPrivateLinkEndpointDataLake.GetEndpointId(),
+			"provider_name": atlasPrivateLinkEndpointDataLake.GetProvider(),
+			"comment":       atlasPrivateLinkEndpointDataLake.GetComment(),
+			"type":          atlasPrivateLinkEndpointDataLake.GetType(),
 		}
 	}
 

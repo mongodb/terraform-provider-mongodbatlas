@@ -34,3 +34,9 @@ func PreCheckAtlasUsername(tb testing.TB) {
 	checkLastVersion(tb)
 	acc.PreCheckAtlasUsername(tb)
 }
+
+func PreCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(tb testing.TB) {
+	tb.Helper()
+	checkLastVersion(tb)
+	acc.PreCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(tb)
+}

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -26,11 +26,11 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveCreate,
-		ReadContext:   resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveRead,
-		DeleteContext: resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -65,12 +65,12 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	endpointID := d.Get("endpoint_id").(string)
 
-	_, _, err := conn.DataLakes.CreatePrivateLinkEndpoint(ctx, projectID, newPrivateLinkEndpointDataLake(d))
+	_, _, err := connV2.DataFederationApi.CreateDataFederationPrivateEndpoint(ctx, projectID, newPrivateNetworkEndpointIDEntry(d)).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveCreate, projectID, err))
 	}
@@ -80,47 +80,46 @@ func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveCr
 		"endpoint_id": endpointID,
 	}))
 
-	return resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	endopointID := ids["endpoint_id"]
 
-	privateEndpoint, resp, err := conn.DataLakes.GetPrivateLinkEndpoint(context.Background(), projectID, endopointID)
+	privateEndpoint, resp, err := connV2.DataFederationApi.GetDataFederationPrivateEndpoint(ctx, projectID, endopointID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
-
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
 	}
 
-	if err := d.Set("comment", privateEndpoint.Comment); err != nil {
+	if err := d.Set("comment", privateEndpoint.GetComment()); err != nil {
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
 	}
 
-	if err := d.Set("provider_name", privateEndpoint.Provider); err != nil {
+	if err := d.Set("provider_name", privateEndpoint.GetProvider()); err != nil {
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
 	}
 
-	if err := d.Set("type", privateEndpoint.Type); err != nil {
+	if err := d.Set("type", privateEndpoint.GetType()); err != nil {
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	endpointID := ids["endpoint_id"]
 
-	_, err := conn.DataLakes.DeletePrivateLinkEndpoint(ctx, projectID, endpointID)
+	_, _, err := connV2.DataFederationApi.DeleteDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveDelete, endpointID, projectID, err))
 	}
@@ -130,31 +129,31 @@ func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveDe
 	return nil
 }
 
-func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID, endpointID, err := splitAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
-	privateEndpoint, _, err := conn.DataLakes.GetPrivateLinkEndpoint(ctx, projectID, endpointID)
+	privateEndpoint, _, err := connV2.DataFederationApi.GetDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
 	}
 
-	if err := d.Set("comment", privateEndpoint.Comment); err != nil {
+	if err := d.Set("comment", privateEndpoint.GetComment()); err != nil {
 		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
 	}
 
-	if err := d.Set("provider_name", privateEndpoint.Provider); err != nil {
+	if err := d.Set("provider_name", privateEndpoint.GetProvider()); err != nil {
 		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
 	}
 
-	if err := d.Set("type", privateEndpoint.Type); err != nil {
+	if err := d.Set("type", privateEndpoint.GetType()); err != nil {
 		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
 	}
 
-	if err := d.Set("endpoint_id", privateEndpoint.EndpointID); err != nil {
+	if err := d.Set("endpoint_id", privateEndpoint.GetEndpointId()); err != nil {
 		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
 	}
 
@@ -184,18 +183,21 @@ func splitAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive(id string) 
 	return
 }
 
-func newPrivateLinkEndpointDataLake(d *schema.ResourceData) *matlas.PrivateLinkEndpointDataLake {
-	out := matlas.PrivateLinkEndpointDataLake{
-		EndpointID: d.Get("endpoint_id").(string),
-		Type:       endpointType,
+func newPrivateNetworkEndpointIDEntry(d *schema.ResourceData) *admin.PrivateNetworkEndpointIdEntry {
+	endpointType := endpointType
+	out := admin.PrivateNetworkEndpointIdEntry{
+		EndpointId: d.Get("endpoint_id").(string),
+		Type:       &endpointType,
 	}
 
 	if v, ok := d.GetOk("comment"); ok {
-		out.Comment = v.(string)
+		comment := v.(string)
+		out.Comment = &comment
 	}
 
 	if v, ok := d.GetOk("provider_name"); ok && v != "" {
-		out.Provider = strings.ToUpper(v.(string))
+		providerName := strings.ToUpper(v.(string))
+		out.Provider = &providerName
 	}
 
 	return &out
