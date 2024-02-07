@@ -32,13 +32,12 @@ func TestAccNetworkRSNetworkContainer_basicAWS(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasNetworkContainerDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlock, providerName, "US_EAST_1"),
+				Config: configAWS(projectName, orgID, cidrBlock, providerName, "US_EAST_1"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasNetworkContainerExists(resourceName, &container),
-					testAccCheckMongoDBAtlasNetworkContainerAttributes(&container, providerName),
+					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
@@ -53,10 +52,9 @@ func TestAccNetworkRSNetworkContainer_basicAWS(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlockUpdated, providerName, "US_WEST_2"),
+				Config: configAWS(projectName, orgID, cidrBlockUpdated, providerName, "US_WEST_2"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasNetworkContainerExists(resourceName, &container),
-					testAccCheckMongoDBAtlasNetworkContainerAttributes(&container, providerName),
+					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
@@ -82,23 +80,21 @@ func TestAccNetworkRSNetworkContainer_basicAzure(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasNetworkContainerDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasNetworkContainerConfigAzure(projectName, orgID, cidrBlock, providerName),
+				Config: configAzure(projectName, orgID, cidrBlock, providerName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasNetworkContainerExists(resourceName, &container),
-					testAccCheckMongoDBAtlasNetworkContainerAttributes(&container, providerName),
+					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasNetworkContainerConfigAzure(projectName, orgID, cidrBlockUpdated, providerName),
+				Config: configAzure(projectName, orgID, cidrBlockUpdated, providerName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasNetworkContainerExists(resourceName, &container),
-					testAccCheckMongoDBAtlasNetworkContainerAttributes(&container, providerName),
+					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
@@ -124,23 +120,21 @@ func TestAccNetworkRSNetworkContainer_basicGCP(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasNetworkContainerDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasNetworkContainerConfigGCP(projectName, orgID, cidrBlock, providerName),
+				Config: configGCP(projectName, orgID, cidrBlock, providerName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasNetworkContainerExists(resourceName, &container),
-					testAccCheckMongoDBAtlasNetworkContainerAttributes(&container, providerName),
+					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasNetworkContainerConfigGCP(projectName, orgID, cidrBlockUpdated, providerName),
+				Config: configGCP(projectName, orgID, cidrBlockUpdated, providerName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasNetworkContainerExists(resourceName, &container),
-					testAccCheckMongoDBAtlasNetworkContainerAttributes(&container, providerName),
+					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
@@ -166,13 +160,12 @@ func TestAccNetworkRSNetworkContainer_WithRegionsGCP(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasNetworkContainerDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasNetworkContainerConfigGCPWithRegions(projectName, orgID, cidrBlock, providerName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasNetworkContainerExists(resourceName, &container),
-					testAccCheckMongoDBAtlasNetworkContainerAttributes(&container, providerName),
+					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
@@ -201,14 +194,14 @@ func TestAccNetworkRSNetworkContainer_importBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasNetworkContainerDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlock, providerName, "US_EAST_1"),
+				Config: configAWS(projectName, orgID, cidrBlock, providerName, "US_EAST_1"),
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasNetworkContainerImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{},
@@ -217,7 +210,7 @@ func TestAccNetworkRSNetworkContainer_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasNetworkContainerImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -228,7 +221,7 @@ func testAccCheckMongoDBAtlasNetworkContainerImportStateIDFunc(resourceName stri
 	}
 }
 
-func testAccCheckMongoDBAtlasNetworkContainerExists(resourceName string, container *matlas.Container) resource.TestCheckFunc {
+func checkExists(resourceName string, container *matlas.Container) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -246,22 +239,12 @@ func testAccCheckMongoDBAtlasNetworkContainerExists(resourceName string, contain
 	}
 }
 
-func testAccCheckMongoDBAtlasNetworkContainerAttributes(container *matlas.Container, providerName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if container.ProviderName != providerName {
-			return fmt.Errorf("bad provider name: %s", container.ProviderName)
-		}
-		return nil
-	}
-}
-
-func testAccCheckMongoDBAtlasNetworkContainerDestroy(s *terraform.State) error {
+func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_container" {
 			continue
 		}
 
-		// Try to find the container
 		_, _, err := acc.Conn().Containers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["container_id"])
 
 		if err == nil {
@@ -271,7 +254,7 @@ func testAccCheckMongoDBAtlasNetworkContainerDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlock, providerName, region string) string {
+func configAWS(projectName, orgID, cidrBlock, providerName, region string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = "%s"
@@ -298,7 +281,7 @@ func testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlock,
 	`, projectName, orgID, cidrBlock, providerName, region)
 }
 
-func testAccMongoDBAtlasNetworkContainerConfigAzure(projectName, orgID, cidrBlock, providerName string) string {
+func configAzure(projectName, orgID, cidrBlock, providerName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = "%s"
@@ -314,7 +297,7 @@ func testAccMongoDBAtlasNetworkContainerConfigAzure(projectName, orgID, cidrBloc
 	`, projectName, orgID, cidrBlock, providerName)
 }
 
-func testAccMongoDBAtlasNetworkContainerConfigGCP(projectName, orgID, cidrBlock, providerName string) string {
+func configGCP(projectName, orgID, cidrBlock, providerName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = "%s"

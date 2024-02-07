@@ -29,12 +29,12 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasNetworkContainerCreate,
-		ReadContext:   resourceMongoDBAtlasNetworkContainerRead,
-		UpdateContext: resourceMongoDBAtlasNetworkContainerUpdate,
-		DeleteContext: resourceMongoDBAtlasNetworkContainerDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasNetworkContainerImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -103,8 +103,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasNetworkContainerCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	providerName := d.Get("provider_name").(string)
@@ -149,11 +148,10 @@ func resourceMongoDBAtlasNetworkContainerCreate(ctx context.Context, d *schema.R
 		"container_id": container.ID,
 	}))
 
-	return resourceMongoDBAtlasNetworkContainerRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasNetworkContainerRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -216,8 +214,7 @@ func resourceMongoDBAtlasNetworkContainerRead(ctx context.Context, d *schema.Res
 	return nil
 }
 
-func resourceMongoDBAtlasNetworkContainerUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -244,7 +241,6 @@ func resourceMongoDBAtlasNetworkContainerUpdate(ctx context.Context, d *schema.R
 		container.Region = region
 	}
 
-	// Has changes
 	if !reflect.DeepEqual(container, matlas.Container{}) {
 		_, _, err := conn.Containers.Update(ctx, projectID, containerID, container)
 		if err != nil {
@@ -252,23 +248,21 @@ func resourceMongoDBAtlasNetworkContainerUpdate(ctx context.Context, d *schema.R
 		}
 	}
 
-	return resourceMongoDBAtlasNetworkContainerRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasNetworkContainerDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"provisioned_container"},
 		Target:     []string{"deleted"},
-		Refresh:    resourceNetworkContainerRefreshFunc(ctx, d, conn),
+		Refresh:    resourceRefreshFunc(ctx, d, conn),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 10 * time.Second,
 		Delay:      2 * time.Minute,
 	}
 
-	// Wait, catching any errors
 	_, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorContainerDelete, conversion.DecodeStateID(d.Id())["container_id"], err))
@@ -277,7 +271,7 @@ func resourceMongoDBAtlasNetworkContainerDelete(ctx context.Context, d *schema.R
 	return nil
 }
 
-func resourceMongoDBAtlasNetworkContainerImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
@@ -317,7 +311,7 @@ func resourceMongoDBAtlasNetworkContainerImportState(ctx context.Context, d *sch
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceNetworkContainerRefreshFunc(ctx context.Context, d *schema.ResourceData, client *matlas.Client) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, d *schema.ResourceData, client *matlas.Client) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		ids := conversion.DecodeStateID(d.Id())
 		projectID := ids["project_id"]
