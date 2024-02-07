@@ -22,7 +22,7 @@
 - chore: Upgrades `private_link_endpoint` resource to auto-generated SDK. [\#1901](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1901) ([marcosuma](https://github.com/marcosuma))
 - test: Enables Acceptance test in CI for `mongodbatlas_federated_settings_identity_provider` [\#1895](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1895) ([oarbusi](https://github.com/oarbusi))
 - chore: Upgrades `x509authentication_database_user` resource to auto-generated SDK [\#1884](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1884) ([lantoli](https://github.com/lantoli))
-chore: Bump marocchino/sticky-pull-request-comment from 2.8.0 to 2.9.0 [\#1916](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1916) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore: Bump marocchino/sticky-pull-request-comment from 2.8.0 to 2.9.0 [\#1916](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1916) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore: Bump tj-actions/verify-changed-files [\#1914](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1914) ([dependabot[bot]](https://github.com/apps/dependabot))
 
 ## [v1.15.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.15.0) (2024-02-01)
