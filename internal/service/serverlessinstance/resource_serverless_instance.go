@@ -122,23 +122,22 @@ func resourceSchema() map[string]*schema.Schema {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
 	name := d.Get("name").(string)
 
-	serverlessProviderSettings := &matlas.ServerlessProviderSettings{
+	serverlessProviderSettings := admin.ServerlessProviderSettings{
 		BackingProviderName: d.Get("provider_settings_backing_provider_name").(string),
-		ProviderName:        d.Get("provider_settings_provider_name").(string),
+		ProviderName:        conversion.StringPtr(d.Get("provider_settings_provider_name").(string)),
 		RegionName:          d.Get("provider_settings_region_name").(string),
 	}
 
-	serverlessBackupOptions := &matlas.ServerlessBackupOptions{
+	serverlessBackupOptions := &admin.ClusterServerlessBackupOptions{
 		ServerlessContinuousBackupEnabled: pointy.Bool(d.Get("continuous_backup_enabled").(bool)),
 	}
 
-	serverlessInstanceRequest := &matlas.ServerlessCreateRequestParams{
+	params := &admin.ServerlessInstanceDescriptionCreate{
 		Name:                         name,
 		ProviderSettings:             serverlessProviderSettings,
 		ServerlessBackupOptions:      serverlessBackupOptions,
@@ -146,11 +145,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if _, ok := d.GetOk("tags"); ok {
-		tagsSlice := advancedcluster.ExpandTagSliceFromSetSchema(d)
-		serverlessInstanceRequest.Tag = &tagsSlice
+		tags := conversion.ExpandTagsFromSetSchema(d)
+		params.Tags = &tags
 	}
 
-	_, _, err := conn.ServerlessInstances.Create(ctx, projectID, serverlessInstanceRequest)
+	_, _, err := connV2.ServerlessInstancesApi.CreateServerlessInstance(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.Errorf("error creating serverless instance: %s", err)
 	}
