@@ -17,7 +17,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mwielbut/pointy"
 	"go.mongodb.org/atlas-sdk/v20231115005/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -249,28 +248,27 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	instanceName := ids["name"]
 
 	if d.HasChange("termination_protection_enabled") || d.HasChange("continuous_backup_enabled") || d.HasChange("tags") {
-		serverlessBackupOptions := &matlas.ServerlessBackupOptions{
+		serverlessBackupOptions := &admin.ClusterServerlessBackupOptions{
 			ServerlessContinuousBackupEnabled: pointy.Bool(d.Get("continuous_backup_enabled").(bool)),
 		}
 
-		ServerlessUpdateRequestParams := &matlas.ServerlessUpdateRequestParams{
+		params := &admin.ServerlessInstanceDescriptionUpdate{
 			ServerlessBackupOptions:      serverlessBackupOptions,
 			TerminationProtectionEnabled: pointy.Bool(d.Get("termination_protection_enabled").(bool)),
 		}
 
 		if d.HasChange("tags") {
-			tags := advancedcluster.ExpandTagSliceFromSetSchema(d)
-			ServerlessUpdateRequestParams.Tag = &tags
+			tags := conversion.ExpandTagsFromSetSchema(d)
+			params.Tags = &tags
 		}
 
-		_, _, err := conn.ServerlessInstances.Update(ctx, projectID, instanceName, ServerlessUpdateRequestParams)
+		_, _, err := connV2.ServerlessInstancesApi.UpdateServerlessInstance(ctx, projectID, instanceName, params).Execute()
 		if err != nil {
 			return diag.Errorf("error updating serverless instance: %s", err)
 		}
