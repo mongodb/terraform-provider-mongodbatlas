@@ -13,9 +13,9 @@ import (
 
 func TestAccMigrationServerlessInstance_basic(t *testing.T) {
 	var (
-		instanceName = acctest.RandomWithPrefix("test-acc-serverless")
+		instanceName = acctest.RandomWithPrefix("test-acc-serverless-leo")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc-serverless")
+		projectName  = acctest.RandomWithPrefix("test-acc-serverless-leo")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },

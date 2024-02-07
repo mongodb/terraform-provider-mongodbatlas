@@ -22,9 +22,9 @@ const (
 
 func TestAccServerlessInstance_basic(t *testing.T) {
 	var (
-		instanceName = acctest.RandomWithPrefix("test-acc-serverless")
+		instanceName = acctest.RandomWithPrefix("test-acc-serverless-leo")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc-serverless")
+		projectName  = acctest.RandomWithPrefix("test-acc-serverless-leo")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -60,9 +60,9 @@ func TestAccServerlessInstance_basic(t *testing.T) {
 
 func TestAccServerlessInstance_WithTags(t *testing.T) {
 	var (
-		instanceName = acctest.RandomWithPrefix("test-acc-serverless")
+		instanceName = acctest.RandomWithPrefix("test-acc-serverless-leo")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc-serverless")
+		projectName  = acctest.RandomWithPrefix("test-acc-serverless-leo")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -130,9 +130,9 @@ func TestAccServerlessInstance_WithTags(t *testing.T) {
 
 func TestAccServerlessInstance_importBasic(t *testing.T) {
 	var (
-		instanceName = acctest.RandomWithPrefix("test-acc-serverless")
+		instanceName = acctest.RandomWithPrefix("test-acc-serverless-leo")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc-serverless")
+		projectName  = acctest.RandomWithPrefix("test-acc-serverless-leo")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
