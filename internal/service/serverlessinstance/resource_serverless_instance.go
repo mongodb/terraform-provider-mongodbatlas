@@ -328,33 +328,33 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID, name, err := splitImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
-	u, _, err := conn.ServerlessInstances.Get(ctx, *projectID, *name)
+	u, _, err := connV2.ServerlessInstancesApi.GetServerlessInstance(ctx, *projectID, *name).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import cluster %s in project %s, error: %s", *name, *projectID, err)
 	}
 
-	if err := d.Set("project_id", u.GroupID); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "project_id", u.ID, err)
+	if err := d.Set("project_id", u.GetGroupId()); err != nil {
+		log.Printf(advancedcluster.ErrorClusterSetting, "project_id", u.GetId(), err)
 	}
 
 	if err := d.Set("name", u.Name); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "name", u.ID, err)
+		log.Printf(advancedcluster.ErrorClusterSetting, "name", u.GetId(), err)
 	}
 
 	if err := d.Set("continuous_backup_enabled", u.ServerlessBackupOptions.ServerlessContinuousBackupEnabled); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "continuous_backup_enabled", u.ID, err)
+		log.Printf(advancedcluster.ErrorClusterSetting, "continuous_backup_enabled", u.GetId(), err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id": *projectID,
-		"name":       u.Name,
+		"name":       u.GetName(),
 	}))
 
 	return []*schema.ResourceData{d}, nil
