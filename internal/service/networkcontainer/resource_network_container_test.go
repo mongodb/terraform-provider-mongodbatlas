@@ -202,7 +202,7 @@ func checkExists(resourceName string, container *matlas.Container) resource.Test
 
 func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_container" {
+		if rs.Type != "mongodbatlas_network_container" {
 			continue
 		}
 
