@@ -14,8 +14,8 @@ import (
 
 var (
 	resourceName = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
-	projectID                                                         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	endpointID                                                        = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+	projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	endpointID   = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
 )
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
