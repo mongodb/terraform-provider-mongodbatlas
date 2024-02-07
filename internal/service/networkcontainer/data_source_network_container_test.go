@@ -16,6 +16,7 @@ func TestAccNetworkContainerDS_basicAWS(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: dataSourceConfigBasicAWS(projectID, cidrBlock, providerNameAws, "US_EAST_1"),
@@ -37,6 +38,7 @@ func TestAccNetworkContainerDS_basicAzure(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: dataSourceConfigBasicAzure(projectID, cidrBlock, providerNameAzure, "US_EAST_2"),
@@ -58,6 +60,7 @@ func TestAccNetworkContainerDS_basicGCP(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: dataSourceConfigBasicGCP(projectID, gcpCidrBlock, providerNameGCP),
@@ -67,7 +70,7 @@ func TestAccNetworkContainerDS_basicGCP(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameGCP),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "provider_name", providerNameAzure),
+					resource.TestCheckResourceAttr(dataSourceName, "provider_name", providerNameGCP),
 					resource.TestCheckResourceAttrSet(dataSourceName, "provisioned"),
 				),
 			},
