@@ -22,16 +22,17 @@ var (
 	providerNameAzure        = "AZURE"
 	providerNameGCP          = "GCP"
 	orgID                    = os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectID                = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	projectName              = acctest.RandomWithPrefix("test-acc")
 )
 
 func TestAccNetworkContainerDSPlural_basicAWS(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceConfigBasicAWS(projectName, orgID, cidrBlock, providerNameAws, "US_EAST_1"),
+				Config: dataSourcePluralConfigBasicAWS(projectID, cidrBlock, providerNameAws, "US_EAST_1"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -50,11 +51,11 @@ func TestAccNetworkContainerDSPlural_basicAWS(t *testing.T) {
 
 func TestAccNetworkContainerDSPlural_basicAzure(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceConfigBasicAzure(projectName, orgID, cidrBlock, providerNameAzure, "US_EAST_2"),
+				Config: dataSourcePluralConfigBasicAzure(projectID, cidrBlock, providerNameAzure, "US_EAST_2"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -73,11 +74,11 @@ func TestAccNetworkContainerDSPlural_basicAzure(t *testing.T) {
 
 func TestAccNetworkContainerDSPlural_basicGCP(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceConfigBasicGCP(projectName, orgID, gcpCidrBlock, providerNameGCP),
+				Config: dataSourceConfigBasicGCP(projectID, gcpCidrBlock, providerNameGCP),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -94,15 +95,10 @@ func TestAccNetworkContainerDSPlural_basicGCP(t *testing.T) {
 	})
 }
 
-func dataSourceConfigBasicAWS(projectName, orgID, cidrBlock, providerName, region string) string {
+func dataSourcePluralConfigBasicAWS(projectID, cidrBlock, providerName, region string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
-		}
-
 		resource "mongodbatlas_network_container" "test" {
-			project_id   		 = mongodbatlas_project.test.id
+			project_id   		 = "%s"
 			atlas_cidr_block 	 = "%s"
 			provider_name		 = "%s"
 			region_name			 = "%s"
@@ -113,18 +109,13 @@ func dataSourceConfigBasicAWS(projectName, orgID, cidrBlock, providerName, regio
 			provider_name = "AWS"
 		}
 
-	`, projectName, orgID, cidrBlock, providerName, region)
+	`, projectID, cidrBlock, providerName, region)
 }
 
-func dataSourceConfigBasicAzure(projectName, orgID, cidrBlock, providerName, region string) string {
+func dataSourcePluralConfigBasicAzure(projectID, cidrBlock, providerName, region string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
-		}
-
 		resource "mongodbatlas_network_container" "test" {
-			project_id   		 = "${mongodbatlas_project.test.id}"
+			project_id   		 = "%s"
 			atlas_cidr_block     = "%s"
 			provider_name		 = "%s"
 			region			     = "%s"
@@ -134,18 +125,13 @@ func dataSourceConfigBasicAzure(projectName, orgID, cidrBlock, providerName, reg
 			project_id = "${mongodbatlas_network_container.test.project_id}"
 			provider_name = "AZURE"
 		}
-	`, projectName, orgID, cidrBlock, providerName, region)
+	`, projectID, cidrBlock, providerName, region)
 }
 
-func dataSourceConfigBasicGCP(projectName, orgID, cidrBlock, providerName string) string {
+func dataSourceConfigBasicGCP(projectID, cidrBlock, providerName string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
-		}
-
 		resource "mongodbatlas_network_container" "test" {
-			project_id   		 = "${mongodbatlas_project.test.id}"
+			project_id   		 = "%s"
 			atlas_cidr_block     = "%s"
 			provider_name		 = "%s"
 		}
@@ -154,5 +140,5 @@ func dataSourceConfigBasicGCP(projectName, orgID, cidrBlock, providerName string
 			project_id = "${mongodbatlas_network_container.test.project_id}"
 			provider_name = "GCP"
 		}
-	`, projectName, orgID, cidrBlock, providerName)
+	`, projectID, cidrBlock, providerName)
 }
