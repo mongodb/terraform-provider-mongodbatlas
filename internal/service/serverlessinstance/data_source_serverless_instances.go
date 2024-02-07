@@ -38,6 +38,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	}
 	options := &admin.ListServerlessInstancesApiParams{
 		ItemsPerPage: conversion.IntPtr(500),
+		PageNum:      conversion.IntPtr(0),
 		IncludeCount: conversion.Pointer(true),
 		GroupId:      projectID.(string),
 	}
