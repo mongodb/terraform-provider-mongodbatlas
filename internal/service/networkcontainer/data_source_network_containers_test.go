@@ -2,26 +2,10 @@ package networkcontainer_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
-)
-
-var (
-	container                matlas.Container
-	randInt                  = acctest.RandIntRange(0, 255)
-	resourceName             = "mongodbatlas_network_container.test"
-	dataSourceContainersName = "data.mongodbatlas_network_containers.test"
-	cidrBlock                = fmt.Sprintf("10.8.%d.0/24", randInt)
-	gcpCidrBlock             = fmt.Sprintf("10.%d.0.0/18", randInt)
-	providerNameAws          = "AWS"
-	providerNameAzure        = "AZURE"
-	providerNameGCP          = "GCP"
-	projectID                = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 )
 
 func TestAccNetworkContainerDSPlural_basicAWS(t *testing.T) {
@@ -76,7 +60,7 @@ func TestAccNetworkContainerDSPlural_basicGCP(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceConfigBasicGCP(projectID, gcpCidrBlock, providerNameGCP),
+				Config: dataSourcePluralConfigBasicGCP(projectID, gcpCidrBlock, providerNameGCP),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -126,7 +110,7 @@ func dataSourcePluralConfigBasicAzure(projectID, cidrBlock, providerName, region
 	`, projectID, cidrBlock, providerName, region)
 }
 
-func dataSourceConfigBasicGCP(projectID, cidrBlock, providerName string) string {
+func dataSourcePluralConfigBasicGCP(projectID, cidrBlock, providerName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_network_container" "test" {
 			project_id   		 = "%s"
