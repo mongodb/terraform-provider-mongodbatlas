@@ -20,9 +20,12 @@ LATEST_SDK_TAG=$(curl -sSfL -X GET  https://api.github.com/repos/mongodb/atlas-s
 LATEST_SDK_RELEASE=$(echo "${LATEST_SDK_TAG}" | cut -d '.' -f 1)
 
 echo  "==> Updating SDK to latest major version tag: ${LATEST_SDK_TAG}, release: ${LATEST_SDK_RELEASE}"
-curl -sSfL -X GET  "https://proxy.golang.org/go.mongodb.org/atlas-sdk/${LATEST_SDK_RELEASE}/@v/${LATEST_SDK_TAG}.info"
-GOPROXY=direct
-echo "Using GOPROXY: $GOPROXY"
+
+export GOPROXY=direct
 gomajor get "go.mongodb.org/atlas-sdk/${LATEST_SDK_RELEASE}@${LATEST_SDK_TAG}"
 go mod tidy
+
+echo "Refreshing cache info"
+curl -sSfL -X GET  "https://proxy.golang.org/go.mongodb.org/atlas-sdk/${LATEST_SDK_RELEASE}/@v/${LATEST_SDK_TAG}.info"
+
 echo "Done"
