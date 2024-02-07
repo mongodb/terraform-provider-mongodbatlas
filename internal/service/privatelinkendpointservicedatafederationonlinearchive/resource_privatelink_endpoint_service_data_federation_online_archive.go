@@ -89,7 +89,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	projectID := ids["project_id"]
 	endopointID := ids["endpoint_id"]
 
-	privateEndpoint, resp, err := connV2.DataFederationApi.GetDataFederationPrivateEndpoint(context.Background(), projectID, endopointID).Execute()
+	privateEndpoint, resp, err := connV2.DataFederationApi.GetDataFederationPrivateEndpoint(ctx, projectID, endopointID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")

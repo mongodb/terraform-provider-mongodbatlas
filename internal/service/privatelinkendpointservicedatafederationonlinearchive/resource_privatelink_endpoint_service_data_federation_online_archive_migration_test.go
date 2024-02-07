@@ -18,12 +18,12 @@ func TestAccMigrationNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiv
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            resourceConfigBasic(projectID, endpointID),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive),
-					resource.TestCheckResourceAttr(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttrSet(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive, "comment"),
-					resource.TestCheckResourceAttrSet(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive, "type"),
-					resource.TestCheckResourceAttrSet(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive, "provider_name"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
+					resource.TestCheckResourceAttrSet(resourceName, "comment"),
+					resource.TestCheckResourceAttrSet(resourceName, "type"),
+					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
 				),
 			},
 			{

@@ -16,7 +16,7 @@ const errorPrivateEndpointServiceDataFederationOnlineArchiveList = "error readin
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceRead,
+		ReadContext: dataSourcePluralRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -50,11 +50,11 @@ func PluralDataSource() *schema.Resource {
 	}
 }
 
-func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	privateEndpoints, _, err := connV2.DataFederationApi.ListDataFederationPrivateEndpoints(context.Background(), projectID).Execute()
+	privateEndpoints, _, err := connV2.DataFederationApi.ListDataFederationPrivateEndpoints(ctx, projectID).Execute()
 	if err != nil {
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveList, projectID, err)
 	}
