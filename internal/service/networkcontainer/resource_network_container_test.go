@@ -229,7 +229,7 @@ func configAWS(projectID, cidrBlock, providerName, region string) string {
 func configAzure(projectID, cidrBlock, providerName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_network_container" "test" {
-			project_id   		 = "${mongodbatlas_project.test.id}"
+			project_id   		 = "%s"
 			atlas_cidr_block     = "%s"
 			provider_name		 = "%s"
 			region			     = "US_EAST_2"
@@ -240,7 +240,7 @@ func configAzure(projectID, cidrBlock, providerName string) string {
 func configGCP(projectID, cidrBlock, providerName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_network_container" "test" {
-			project_id   		 = "${mongodbatlas_project.test.id}"
+			project_id   		 = "%s"
 			atlas_cidr_block     = "%s"
 			provider_name		 = "%s"
 		}
@@ -250,7 +250,7 @@ func configGCP(projectID, cidrBlock, providerName string) string {
 func configGCPWithRegions(projectID, cidrBlock, providerName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_network_container" "test" {
-			project_id   		 = mongodbatlas_project.test.id
+			project_id   		 = "%s"
 			atlas_cidr_block     = "%s"
 			provider_name		 = "%s"
 			regions = ["US_EAST_4", "US_WEST_3"]
