@@ -294,19 +294,15 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	serverlessName := ids["name"]
 
-	_, err := conn.ServerlessInstances.Delete(ctx, projectID, serverlessName)
-
+	_, _, err := connV2.ServerlessInstancesApi.DeleteServerlessInstance(ctx, projectID, serverlessName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting MongoDB Serverless Instance (%s): %s", serverlessName, err))
 	}
-
-	log.Println("[INFO] Waiting for MongoDB Serverless Instance to be destroyed")
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
@@ -322,38 +318,36 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting MongoDB Serverless Instance (%s): %s", serverlessName, err))
 	}
-
 	return nil
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-
 	projectID, name, err := splitImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
-	u, _, err := connV2.ServerlessInstancesApi.GetServerlessInstance(ctx, *projectID, *name).Execute()
+	instance, _, err := connV2.ServerlessInstancesApi.GetServerlessInstance(ctx, *projectID, *name).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import cluster %s in project %s, error: %s", *name, *projectID, err)
 	}
 
-	if err := d.Set("project_id", u.GetGroupId()); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "project_id", u.GetId(), err)
+	if err := d.Set("project_id", instance.GetGroupId()); err != nil {
+		log.Printf(advancedcluster.ErrorClusterSetting, "project_id", instance.GetId(), err)
 	}
 
-	if err := d.Set("name", u.Name); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "name", u.GetId(), err)
+	if err := d.Set("name", instance.GetName()); err != nil {
+		log.Printf(advancedcluster.ErrorClusterSetting, "name", instance.GetId(), err)
 	}
 
-	if err := d.Set("continuous_backup_enabled", u.ServerlessBackupOptions.ServerlessContinuousBackupEnabled); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "continuous_backup_enabled", u.GetId(), err)
+	if err := d.Set("continuous_backup_enabled", instance.ServerlessBackupOptions.GetServerlessContinuousBackupEnabled()); err != nil {
+		log.Printf(advancedcluster.ErrorClusterSetting, "continuous_backup_enabled", instance.GetId(), err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id": *projectID,
-		"name":       u.GetName(),
+		"name":       instance.GetName(),
 	}))
 
 	return []*schema.ResourceData{d}, nil
