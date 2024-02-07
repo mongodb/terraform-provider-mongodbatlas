@@ -15,7 +15,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/ldapverify"
 	"github.com/mwielbut/pointy"
 	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -180,75 +179,70 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	instanceName := ids["name"]
 
-	serverlessInstance, _, err := conn.ServerlessInstances.Get(ctx, projectID, instanceName)
+	instance, _, err := connV2.ServerlessInstancesApi.GetServerlessInstance(ctx, projectID, instanceName).Execute()
 	if err != nil {
-		// case 404
-		// deleted in the backend case
-		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
-
-		if reset {
+		// case 404: deleted in the backend case
+		if strings.Contains(err.Error(), "404") && !d.IsNewResource() {
 			d.SetId("")
 			return nil
 		}
-
 		return diag.Errorf("error getting serverless instance information: %s", err)
 	}
 
-	if err := d.Set("id", serverlessInstance.ID); err != nil {
+	if err := d.Set("id", instance.GetId()); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "id", d.Id(), err)
 	}
 
-	if err := d.Set("provider_settings_backing_provider_name", serverlessInstance.ProviderSettings.BackingProviderName); err != nil {
+	if err := d.Set("provider_settings_backing_provider_name", instance.ProviderSettings.GetBackingProviderName()); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "provider_settings_backing_provider_name", d.Id(), err)
 	}
 
-	if err := d.Set("provider_settings_provider_name", serverlessInstance.ProviderSettings.ProviderName); err != nil {
+	if err := d.Set("provider_settings_provider_name", instance.ProviderSettings.GetProviderName()); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "provider_settings_provider_name", d.Id(), err)
 	}
 
-	if err := d.Set("provider_settings_region_name", serverlessInstance.ProviderSettings.RegionName); err != nil {
+	if err := d.Set("provider_settings_region_name", instance.ProviderSettings.GetRegionName()); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "provider_settings_region_name", d.Id(), err)
 	}
 
-	if err := d.Set("connection_strings_standard_srv", serverlessInstance.ConnectionStrings.StandardSrv); err != nil {
+	if err := d.Set("connection_strings_standard_srv", instance.ConnectionStrings.GetStandardSrv()); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "connection_strings_standard_srv", d.Id(), err)
 	}
 
-	if err := d.Set("connection_strings_private_endpoint_srv", flattenSRVConnectionString(serverlessInstance.ConnectionStrings.PrivateEndpoint)); err != nil {
+	if err := d.Set("connection_strings_private_endpoint_srv", flattenSRVConnectionString(instance.ConnectionStrings.GetPrivateEndpoint())); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "connection_strings_private_endpoint_srv", d.Id(), err)
 	}
 
-	if err := d.Set("create_date", serverlessInstance.CreateDate); err != nil {
+	if err := d.Set("create_date", conversion.TimePtrToStringPtr(instance.CreateDate)); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "create_date", d.Id(), err)
 	}
 
-	if err := d.Set("mongo_db_version", serverlessInstance.MongoDBVersion); err != nil {
+	if err := d.Set("mongo_db_version", instance.GetMongoDBVersion()); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "mongo_db_version", d.Id(), err)
 	}
 
-	if err := d.Set("links", ldapverify.FlattenLinks(serverlessInstance.Links)); err != nil {
+	if err := d.Set("links", conversion.FlattenLinks(instance.GetLinks())); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "links", d.Id(), err)
 	}
 
-	if err := d.Set("state_name", serverlessInstance.StateName); err != nil {
+	if err := d.Set("state_name", instance.GetStateName()); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "state_name", d.Id(), err)
 	}
 
-	if err := d.Set("termination_protection_enabled", serverlessInstance.TerminationProtectionEnabled); err != nil {
+	if err := d.Set("termination_protection_enabled", instance.GetTerminationProtectionEnabled()); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "termination_protection_enabled", d.Id(), err)
 	}
 
-	if err := d.Set("continuous_backup_enabled", serverlessInstance.ServerlessBackupOptions.ServerlessContinuousBackupEnabled); err != nil {
+	if err := d.Set("continuous_backup_enabled", instance.ServerlessBackupOptions.GetServerlessContinuousBackupEnabled()); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "continuous_backup_enabled", d.Id(), err)
 	}
 
-	if err := d.Set("tags", advancedcluster.FlattenTags(serverlessInstance.Tags)); err != nil {
+	if err := d.Set("tags", conversion.FlattenTags(instance.GetTags())); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "tags", d.Id(), err)
 	}
 
@@ -394,15 +388,7 @@ func resourceRefreshFunc(ctx context.Context, name, projectID string, client *ma
 	}
 }
 
-func flattenSRVConnectionString(srvConnectionStringArray []matlas.PrivateEndpoint) []any {
-	srvconnections := make([]any, 0)
-	for _, v := range srvConnectionStringArray {
-		srvconnections = append(srvconnections, v.SRVConnectionString)
-	}
-	return srvconnections
-}
-
-func flattenSRVConnectionStringV2(list []admin.ServerlessConnectionStringsPrivateEndpointList) []any {
+func flattenSRVConnectionString(list []admin.ServerlessConnectionStringsPrivateEndpointList) []any {
 	ret := make([]any, len(list))
 	for i, elm := range list {
 		ret[i] = elm.GetSrvConnectionString()

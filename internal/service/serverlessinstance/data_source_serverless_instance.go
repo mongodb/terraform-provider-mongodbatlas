@@ -132,7 +132,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if len(instance.ConnectionStrings.GetPrivateEndpoint()) > 0 {
-		if err := d.Set("connection_strings_private_endpoint_srv", flattenSRVConnectionStringV2(instance.ConnectionStrings.GetPrivateEndpoint())); err != nil {
+		if err := d.Set("connection_strings_private_endpoint_srv", flattenSRVConnectionString(instance.ConnectionStrings.GetPrivateEndpoint())); err != nil {
 			return diag.Errorf(errorServerlessInstanceSetting, "connection_strings_private_endpoint_srv", d.Id(), err)
 		}
 	}
