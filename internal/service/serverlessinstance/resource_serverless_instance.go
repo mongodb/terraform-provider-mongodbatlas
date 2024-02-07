@@ -122,8 +122,8 @@ func resourceSchema() map[string]*schema.Schema {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
 	name := d.Get("name").(string)
@@ -158,7 +158,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
 		Target:     []string{"IDLE"},
-		Refresh:    resourceRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
+		Refresh:    resourceRefreshFunc(ctx, d.Get("name").(string), projectID, connV2),
 		Timeout:    3 * time.Hour,
 		MinTimeout: 1 * time.Minute,
 		Delay:      3 * time.Minute,
@@ -250,8 +250,8 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	instanceName := ids["name"]
@@ -279,7 +279,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		stateConf := &retry.StateChangeConf{
 			Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
 			Target:     []string{"IDLE"},
-			Refresh:    resourceRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
+			Refresh:    resourceRefreshFunc(ctx, d.Get("name").(string), projectID, connV2),
 			Timeout:    3 * time.Hour,
 			MinTimeout: 1 * time.Minute,
 			Delay:      3 * time.Minute,
@@ -295,8 +295,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	serverlessName := ids["name"]
@@ -312,7 +312,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
 		Target:     []string{"DELETED"},
-		Refresh:    resourceRefreshFunc(ctx, serverlessName, projectID, conn),
+		Refresh:    resourceRefreshFunc(ctx, serverlessName, projectID, connV2),
 		Timeout:    3 * time.Hour,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute, // Wait 30 secs before starting
@@ -360,15 +360,13 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, name, projectID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		c, resp, err := client.ServerlessInstances.Get(ctx, projectID, name)
-
+		instance, resp, err := connV2.ServerlessInstancesApi.GetServerlessInstance(ctx, projectID, name).Execute()
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
 		}
-
-		if err != nil && c == nil && resp == nil {
+		if err != nil && instance == nil && resp == nil {
 			return nil, "", err
 		} else if err != nil {
 			if resp.StatusCode == 404 {
@@ -379,12 +377,8 @@ func resourceRefreshFunc(ctx context.Context, name, projectID string, client *ma
 			}
 			return nil, "", err
 		}
-
-		if c.StateName != "" {
-			log.Printf("[DEBUG] status for MongoDB Serverless Instance: %s: %s", name, c.StateName)
-		}
-
-		return c, c.StateName, nil
+		stateName := instance.GetStateName()
+		return instance, stateName, nil
 	}
 }
 
