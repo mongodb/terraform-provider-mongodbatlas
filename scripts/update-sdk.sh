@@ -21,11 +21,12 @@ LATEST_SDK_RELEASE=$(echo "${LATEST_SDK_TAG}" | cut -d '.' -f 1)
 
 echo  "==> Updating SDK to latest major version tag: ${LATEST_SDK_TAG}, release: ${LATEST_SDK_RELEASE}"
 
-export GOPROXY=direct
+echo "Refreshing cache info and waiting 60s"
+curl -sSfL -X GET  "https://proxy.golang.org/go.mongodb.org/atlas-sdk/${LATEST_SDK_RELEASE}/@v/${LATEST_SDK_TAG}.info"
+echo
+sleep 60
+
 gomajor get "go.mongodb.org/atlas-sdk/${LATEST_SDK_RELEASE}@${LATEST_SDK_TAG}"
 go mod tidy
-
-echo "Refreshing cache info"
-curl -sSfL -X GET  "https://proxy.golang.org/go.mongodb.org/atlas-sdk/${LATEST_SDK_RELEASE}/@v/${LATEST_SDK_TAG}.info"
 
 echo "Done"
