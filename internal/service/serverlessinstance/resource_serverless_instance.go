@@ -162,7 +162,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Delay:      3 * time.Minute,
 	}
 
-	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.Errorf("error creating MongoDB Serverless Instance: %s", err)
@@ -282,7 +281,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			Delay:      3 * time.Minute,
 		}
 
-		// Wait, catching any errors
 		_, err = stateConf.WaitForStateContext(ctx)
 		if err != nil {
 			return diag.Errorf("error updating MongoDB Serverless Instance: %s", err)
@@ -308,10 +306,9 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Refresh:    resourceRefreshFunc(ctx, serverlessName, projectID, connV2),
 		Timeout:    3 * time.Hour,
 		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute, // Wait 30 secs before starting
+		Delay:      1 * time.Minute,
 	}
 
-	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting MongoDB Serverless Instance (%s): %s", serverlessName, err))
