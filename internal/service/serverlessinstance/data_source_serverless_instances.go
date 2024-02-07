@@ -39,7 +39,6 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	}
 	options := &admin.ListServerlessInstancesApiParams{
 		ItemsPerPage: conversion.IntPtr(500),
-		PageNum:      conversion.IntPtr(0),
 		IncludeCount: conversion.Pointer(true),
 		GroupId:      projectID.(string),
 	}
@@ -59,9 +58,12 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 }
 
 func getServerlessList(ctx context.Context, connV2 *admin.APIClient, options *admin.ListServerlessInstancesApiParams, obtainedItemsCount int) ([]admin.ServerlessInstanceDescription, error) {
+	if options.PageNum == nil {
+		options.PageNum = conversion.IntPtr(1)
+	} else {
+		*options.PageNum++
+	}
 	var list []admin.ServerlessInstanceDescription
-
-	*options.PageNum++
 	serverlessInstances, _, err := connV2.ServerlessInstancesApi.ListServerlessInstancesWithParams(ctx, options).Execute()
 	if err != nil {
 		return list, fmt.Errorf("error getting serverless instances information: %s", err)
