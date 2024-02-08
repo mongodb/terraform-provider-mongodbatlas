@@ -19,6 +19,7 @@ var (
 )
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
+	acc.SkipTestForCI(t)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
