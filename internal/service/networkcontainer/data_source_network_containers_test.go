@@ -14,7 +14,7 @@ func TestAccNetworkContainerDSPlural_basicAWS(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourcePluralConfigBasicAWS(projectID, cidrBlock, providerNameAws, "US_EAST_1"),
+				Config: dataSourcePluralConfigBasicAWS(projectID, cidrBlock, providerNameAws, "US_WEST_1"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -37,7 +37,7 @@ func TestAccNetworkContainerDSPlural_basicAzure(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourcePluralConfigBasicAzure(projectID, cidrBlock, providerNameAzure, "US_EAST_2"),
+				Config: dataSourcePluralConfigBasicAzure(projectID, cidrBlock, providerNameAzure, "US_WEST_1"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),

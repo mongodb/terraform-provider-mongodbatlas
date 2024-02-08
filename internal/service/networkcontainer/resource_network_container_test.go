@@ -72,7 +72,7 @@ func TestAccNetworkContainerRS_basicAzure(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configAzure(projectID, cidrBlock, providerNameAzure),
+				Config: configAzure(projectID, cidrBlock, providerNameAzure, "US_EAST_2"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -81,7 +81,7 @@ func TestAccNetworkContainerRS_basicAzure(t *testing.T) {
 				),
 			},
 			{
-				Config: configAzure(projectID, cidrBlockUpdated, providerNameAzure),
+				Config: configAzure(projectID, cidrBlockUpdated, providerNameAzure, "US_EAST_2"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -226,15 +226,15 @@ func configAWS(projectID, cidrBlock, providerName, region string) string {
 	`, projectID, cidrBlock, providerName, region)
 }
 
-func configAzure(projectID, cidrBlock, providerName string) string {
+func configAzure(projectID, cidrBlock, providerName, region string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_network_container" "test" {
 			project_id   		 = "%s"
 			atlas_cidr_block     = "%s"
 			provider_name		 = "%s"
-			region			     = "US_EAST_2"
+			region			     = "%s"
 		}
-	`, projectID, cidrBlock, providerName)
+	`, projectID, cidrBlock, providerName, region)
 }
 
 func configGCP(projectID, cidrBlock, providerName string) string {
