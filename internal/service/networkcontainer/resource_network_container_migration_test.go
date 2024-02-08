@@ -12,6 +12,7 @@ import (
 func TestAccMigrationNetworkContainerRS_basicAWS(t *testing.T) {
 	var (
 		projectName = acctest.RandomWithPrefix("test-acc")
+		configAWS   = configAWS(projectName, orgID, cidrBlock, providerNameAws, "US_EAST_1")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -20,7 +21,7 @@ func TestAccMigrationNetworkContainerRS_basicAWS(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configAWS(projectName, orgID, cidrBlock, providerNameAws, "US_EAST_1"),
+				Config:            configAWS,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -28,7 +29,7 @@ func TestAccMigrationNetworkContainerRS_basicAWS(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 				),
 			},
-			mig.TestStep(configAWS(projectName, orgID, cidrBlock, providerNameAws, "US_EAST_1")),
+			mig.TestStep(configAWS),
 		},
 	})
 }
@@ -36,6 +37,7 @@ func TestAccMigrationNetworkContainerRS_basicAWS(t *testing.T) {
 func TestAccMigrationNetworkContainerRS_basicAzure(t *testing.T) {
 	var (
 		projectName = acctest.RandomWithPrefix("test-acc")
+		configAzure = configAzure(projectName, orgID, cidrBlock, providerNameAzure)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -44,7 +46,7 @@ func TestAccMigrationNetworkContainerRS_basicAzure(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configAzure(projectName, orgID, cidrBlock, providerNameAzure),
+				Config:            configAzure,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -52,7 +54,7 @@ func TestAccMigrationNetworkContainerRS_basicAzure(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 				),
 			},
-			mig.TestStep(configAzure(projectName, orgID, cidrBlock, providerNameAzure)),
+			mig.TestStep(configAzure),
 		},
 	})
 }
@@ -60,6 +62,7 @@ func TestAccMigrationNetworkContainerRS_basicAzure(t *testing.T) {
 func TestAccMigrationNetworkContainerRS_basicGCP(t *testing.T) {
 	var (
 		projectName = acctest.RandomWithPrefix("test-acc")
+		configGCP   = configGCP(projectName, orgID, gcpCidrBlock, providerNameGCP)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -68,7 +71,7 @@ func TestAccMigrationNetworkContainerRS_basicGCP(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configGCP(projectName, orgID, gcpCidrBlock, providerNameGCP),
+				Config:            configGCP,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -76,7 +79,7 @@ func TestAccMigrationNetworkContainerRS_basicGCP(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 				),
 			},
-			mig.TestStep(configGCP(projectName, orgID, gcpCidrBlock, providerNameGCP)),
+			mig.TestStep(configGCP),
 		},
 	})
 }
