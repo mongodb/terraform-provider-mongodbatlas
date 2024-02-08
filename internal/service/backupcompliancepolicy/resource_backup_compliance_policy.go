@@ -312,7 +312,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 
-	policy, resp, err := connV2.CloudBackupsApi.GetDataProtectionSettings(context.Background(), projectID).Execute()
+	policy, resp, err := connV2.CloudBackupsApi.GetDataProtectionSettings(ctx, projectID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -467,7 +467,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params.ScheduledPolicyItems = &backupPoliciesItem
 	}
 
-	_, _, err := connV2.CloudBackupsApi.UpdateDataProtectionSettings(context.Background(), projectID, params).Execute()
+	_, _, err := connV2.CloudBackupsApi.UpdateDataProtectionSettings(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicyUpdate, projectID, err))
 	}
