@@ -87,7 +87,7 @@ func TestAccBackupRSCloudBackupSnapshotRestoreJob_basicDownload(t *testing.T) {
 			},
 			{
 				Config:      testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigDownload(orgID, projectName, clusterName, description, retentionInDays, !useSnapshotID),
-				ExpectError: regexp.MustCompile("snapshotId is required"),
+				ExpectError: regexp.MustCompile("SNAPSHOT_NOT_FOUND"),
 			},
 		},
 	})
