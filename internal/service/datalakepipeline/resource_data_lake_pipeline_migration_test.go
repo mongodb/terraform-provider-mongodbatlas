@@ -6,8 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
@@ -18,6 +16,7 @@ func TestAccMigrationcDataLakePipeline_basic(t *testing.T) {
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		name         = acctest.RandomWithPrefix("test-acc-index")
+		config       = configBasic(orgID, projectName, clusterName, name)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
@@ -25,7 +24,7 @@ func TestAccMigrationcDataLakePipeline_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configBasic(orgID, projectName, clusterName, name),
+				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -33,16 +32,7 @@ func TestAccMigrationcDataLakePipeline_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "state", "ACTIVE"),
 				),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configBasic(orgID, projectName, clusterName, name),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStep(config),
 		},
 	})
 }
