@@ -52,8 +52,8 @@ func Resource() *schema.Resource {
 			"provider_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "AWS",
-				ValidateFunc: validation.StringInSlice([]string{"AWS", "GCP", "AZURE"}, false),
+				Default:      AWS,
+				ValidateFunc: validation.StringInSlice([]string{AWS, GCP, AZURE}, false),
 			},
 			"region_name": {
 				Type:     schema.TypeString,
