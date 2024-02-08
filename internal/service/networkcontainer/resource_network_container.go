@@ -17,8 +17,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20231115005/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 const (
@@ -241,7 +240,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		container.Region = &region
 	}
 
-	if !reflect.DeepEqual(container, matlas.Container{}) {
+	if !reflect.DeepEqual(container, admin.CloudProviderContainer{}) {
 		_, _, err := connV2.NetworkPeeringApi.UpdatePeeringContainer(ctx, projectID, containerID, container).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorContainerUpdate, containerID, err))
