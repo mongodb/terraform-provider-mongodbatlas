@@ -19,7 +19,7 @@ func TestAccNetworkContainerDS_basicAWS(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceConfigBasicAWS(projectID, cidrBlock, providerNameAws, "US_EAST_2"),
+				Config: dataSourceConfigBasicAWS(projectID, cidrBlock, providerNameAws, "US_EAST_1"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -41,7 +41,7 @@ func TestAccNetworkContainerDS_basicAzure(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceConfigBasicAzure(projectID, cidrBlock, providerNameAzure, "US_EAST_1"),
+				Config: dataSourceConfigBasicAzure(projectID, cidrBlock, providerNameAzure, "US_EAST_2"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
