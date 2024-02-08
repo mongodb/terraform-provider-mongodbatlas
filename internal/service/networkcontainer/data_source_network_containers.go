@@ -98,7 +98,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	}
 
 	// Necessary to keep same behavior. Only have to return the containers of the specified provider. This was the behavior of old SDK
-	containersOfSpecifiedProvider := filterContainersByProvider(containers.GetResults(), d.Get("project_id").(string))
+	containersOfSpecifiedProvider := filterContainersByProvider(containers.GetResults(), d.Get("provider_name").(string))
 
 	if err := d.Set("results", flattenNetworkContainers(containersOfSpecifiedProvider)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `result` for network containers: %s", err))

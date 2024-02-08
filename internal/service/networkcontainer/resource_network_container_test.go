@@ -21,6 +21,7 @@ var (
 	dataSourceContainersName = "data.mongodbatlas_network_containers.test"
 	cidrBlock                = fmt.Sprintf("10.8.%d.0/24", randInt)
 	gcpCidrBlock             = fmt.Sprintf("10.%d.0.0/18", randInt)
+	gcpWithRegionsCidrBlock  = fmt.Sprintf("10.%d.0.0/24", randInt)
 	providerNameAws          = "AWS"
 	providerNameAzure        = "AZURE"
 	providerNameGCP          = "GCP"
@@ -139,7 +140,7 @@ func TestAccNetworkContainerRS_WithRegionsGCP(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configGCPWithRegions(projectName, orgID, gcpCidrBlock, providerNameGCP),
+				Config: configGCPWithRegions(projectName, orgID, gcpWithRegionsCidrBlock, providerNameGCP),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
