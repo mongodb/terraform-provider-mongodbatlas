@@ -387,7 +387,6 @@ jobs:
           AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
           AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          MONGODB_ATLAS_PRIVATE_ENDPOINT_ID: ${{ vars.MONGODB_ATLAS_PRIVATE_ENDPOINT_ID }}
           TEST_REGEX: "^TestAccMigrationNetwork"
         run: make testacc
   encryption:
