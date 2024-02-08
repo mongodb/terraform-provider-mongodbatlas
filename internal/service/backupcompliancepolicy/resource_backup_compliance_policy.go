@@ -15,6 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupschedule"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -543,6 +544,18 @@ func flattenOnDemandBackupPolicyItem(item matlas.PolicyItem) []map[string]any {
 	return policyItems
 }
 
+func flattenOnDemandBackupPolicyItemV2(item admin.BackupComplianceOnDemandPolicyItem) []map[string]any {
+	return []map[string]any{
+		{
+			"id":                 item.GetId(),
+			"frequency_interval": item.GetFrequencyInterval(),
+			"frequency_type":     item.GetFrequencyType(),
+			"retention_unit":     item.GetRetentionUnit(),
+			"retention_value":    item.GetRetentionValue(),
+		},
+	}
+}
+
 func expandDemandBackupPolicyItem(d *schema.ResourceData) *matlas.PolicyItem {
 	var onDemand matlas.PolicyItem
 
@@ -574,6 +587,23 @@ func flattenBackupPolicyItems(items []matlas.ScheduledPolicyItem, frequencyType 
 				"frequency_type":     v.FrequencyType,
 				"retention_unit":     v.RetentionUnit,
 				"retention_value":    v.RetentionValue,
+			})
+		}
+	}
+	return policyItems
+}
+
+func flattenBackupPolicyItemsV2(items []admin.BackupComplianceScheduledPolicyItem, frequencyType string) []map[string]any {
+	policyItems := make([]map[string]any, 0)
+	for i := range items {
+		item := &items[i]
+		if frequencyType == item.FrequencyType {
+			policyItems = append(policyItems, map[string]any{
+				"id":                 item.GetId(),
+				"frequency_interval": item.GetFrequencyInterval(),
+				"frequency_type":     item.GetFrequencyType(),
+				"retention_unit":     item.GetRetentionUnit(),
+				"retention_value":    item.GetRetentionValue(),
 			})
 		}
 	}
