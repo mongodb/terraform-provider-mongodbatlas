@@ -54,7 +54,7 @@ Once maintenance is scheduled for your cluster, you cannot change your maintenan
 
 In addition to all arguments above, the following attributes are exported:
 
-* `number_of_deferrals` - Number of times the current maintenance event for this project has been deferred, it can be a maximum of 2 deferrals.
+* `number_of_deferrals` - Number of times the current maintenance event for this project has been deferred, there can be a maximum of 2 deferrals.
 
 ## Import
 
