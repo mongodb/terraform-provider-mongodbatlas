@@ -25,6 +25,9 @@ const (
 	ErrorContainerRead    = "error reading MongoDB Network Peering Container (%s): %s"
 	errorContainerDelete  = "error deleting MongoDB Network Peering Container (%s): %s"
 	errorContainerUpdate  = "error updating MongoDB Network Peering Container (%s): %s"
+	AWS                   = "AWS"
+	AZURE                 = "AZURE"
+	GCP                   = "GCP"
 )
 
 func Resource() *schema.Resource {
@@ -114,7 +117,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		ProviderName:   &providerName,
 	}
 
-	if providerName == "AWS" {
+	if providerName == AWS {
 		region, err := conversion.ValRegion(d.Get("region_name"))
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("`region_name` must be set when `provider_name` is AWS"))
@@ -122,7 +125,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		containerRequest.RegionName = &region
 	}
 
-	if providerName == "AZURE" {
+	if providerName == AZURE {
 		region, err := conversion.ValRegion(d.Get("region"))
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("`region` must be set when `provider_name` is AZURE"))
@@ -130,7 +133,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		containerRequest.Region = &region
 	}
 
-	if providerName == "GCP" {
+	if providerName == GCP {
 		regions, ok := d.GetOk("regions")
 		if ok {
 			regionsSlice := cast.ToStringSlice(regions)
