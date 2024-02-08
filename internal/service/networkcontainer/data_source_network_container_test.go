@@ -25,10 +25,7 @@ func TestAccNetworkContainerDS_basicAWS(t *testing.T) {
 			{
 				Config: dataSourceConfigBasicAWS(projectName, orgID, cidrBlock, providerNameAws, "US_EAST_1"),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &container),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameAws),
-					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
+					checkExists(dataSourceName, &container),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "provider_name", providerNameAws),
 					resource.TestCheckResourceAttrSet(dataSourceName, "provisioned"),
@@ -50,10 +47,7 @@ func TestAccNetworkContainerDS_basicAzure(t *testing.T) {
 			{
 				Config: dataSourceConfigBasicAzure(projectName, orgID, cidrBlock, providerNameAzure, "US_EAST_2"),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &container),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameAzure),
-					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
+					checkExists(dataSourceName, &container),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "provider_name", providerNameAzure),
 					resource.TestCheckResourceAttrSet(dataSourceName, "provisioned"),
@@ -75,10 +69,7 @@ func TestAccNetworkContainerDS_basicGCP(t *testing.T) {
 			{
 				Config: dataSourceConfigBasicGCP(projectName, orgID, gcpCidrBlock, providerNameGCP),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &container),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameGCP),
-					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
+					checkExists(dataSourceName, &container),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "provider_name", providerNameGCP),
 					resource.TestCheckResourceAttrSet(dataSourceName, "provisioned"),
