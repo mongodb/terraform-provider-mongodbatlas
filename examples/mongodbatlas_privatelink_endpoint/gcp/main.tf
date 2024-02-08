@@ -52,10 +52,10 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
   gcp_project_id      = var.gcp_project_id
 
   dynamic "endpoints" {
-    for_each = mongodbatlas_privatelink_endpoint.test.service_attachment_names
+    for_each = google_compute_address.default
 
     content {
-      ip_address    = google_compute_address.default[endpoints.key].address
+      ip_address    = endpoints.value["address"]
       endpoint_name = google_compute_forwarding_rule.default[endpoints.key].name
     }
   }
