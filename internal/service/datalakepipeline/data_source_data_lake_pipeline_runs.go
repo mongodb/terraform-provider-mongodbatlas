@@ -7,15 +7,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
 const errorDataLakePipelineRunList = "error reading MongoDB Atlas DataLake Runs (%s): %s"
 
 func PluralDataSourceRun() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasDataLakeRunsRead,
+		ReadContext: dataSourcePluralRunRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -90,46 +91,38 @@ func PluralDataSourceRun() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasDataLakeRunsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func dataSourcePluralRunRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	name := d.Get("pipeline_name").(string)
-
-	dataLakeRuns, _, err := conn.DataLakePipeline.ListRuns(ctx, projectID, name)
+	runs, _, err := connV2.DataLakePipelinesApi.ListPipelineRuns(ctx, projectID, name).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineRunList, projectID, err))
 	}
-
-	if err := d.Set("results", flattenDataLakePipelineRunResult(dataLakeRuns.Results)); err != nil {
+	if err := d.Set("results", flattenRunResults(runs.GetResults())); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorDataLakeSetting, "results", projectID, err))
 	}
-
 	d.SetId(id.UniqueId())
-
 	return nil
 }
 
-func flattenDataLakePipelineRunResult(datalakePipelineRuns []*matlas.DataLakePipelineRun) []map[string]any {
-	var results []map[string]any
-
+func flattenRunResults(datalakePipelineRuns []admin.IngestionPipelineRun) []map[string]any {
 	if len(datalakePipelineRuns) == 0 {
-		return results
+		return nil
 	}
-
-	results = make([]map[string]any, len(datalakePipelineRuns))
+	results := make([]map[string]any, len(datalakePipelineRuns))
 
 	for k, run := range datalakePipelineRuns {
 		results[k] = map[string]any{
-			"id":                    run.ID,
-			"created_date":          run.CreatedDate,
-			"last_updated_date":     run.LastUpdatedDate,
-			"state":                 run.State,
-			"pipeline_id":           run.PipelineID,
-			"snapshot_id":           run.SnapshotID,
-			"backup_frequency_type": run.BackupFrequencyType,
-			"stats":                 flattenDataLakePipelineRunStats(run.Stats),
+			"id":                    run.GetId(),
+			"created_date":          conversion.TimePtrToStringPtr(run.CreatedDate),
+			"last_updated_date":     conversion.TimePtrToStringPtr(run.LastUpdatedDate),
+			"state":                 run.GetState(),
+			"pipeline_id":           run.GetPipelineId(),
+			"snapshot_id":           run.GetSnapshotId(),
+			"backup_frequency_type": run.GetBackupFrequencyType(),
+			"stats":                 flattenRunStats(run.Stats),
 		}
 	}
-
 	return results
 }

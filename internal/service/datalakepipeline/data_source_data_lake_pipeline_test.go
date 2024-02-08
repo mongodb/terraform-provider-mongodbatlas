@@ -1,22 +1,17 @@
 package datalakepipeline_test
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccDataLakeDS_basic(t *testing.T) {
 	var (
-		pipeline     matlas.DataLakePipeline
 		resourceName = "mongodbatlas_data_lake_pipeline.test"
 		clusterName  = acctest.RandomWithPrefix("test-acc-index")
 		name         = acctest.RandomWithPrefix("test-acc-index")
@@ -26,12 +21,12 @@ func TestAccDataLakeDS_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasDataLakePipelineDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceMongoDBAtlasDataLakePipelineConfig(orgID, projectName, clusterName, name),
+				Config: configDS(orgID, projectName, clusterName, name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDataLakePipelineExists(resourceName, &pipeline),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "state", "ACTIVE"),
@@ -41,23 +36,7 @@ func TestAccDataLakeDS_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasDataLakePipelineDestroy(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_data_lake_pipeline" {
-			continue
-		}
-
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		// Try to find the data lake pipeline
-		_, _, err := acc.Conn().DataLakePipeline.Get(context.Background(), ids["project_id"], ids["name"])
-		if err == nil {
-			return fmt.Errorf("datalake (%s) still exists", ids["project_id"])
-		}
-	}
-	return nil
-}
-
-func testAccDataSourceMongoDBAtlasDataLakePipelineConfig(orgID, projectName, clusterName, pipelineName string) string {
+func configDS(orgID, projectName, clusterName, pipelineName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "project" {
 			org_id = %[1]q
