@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -87,18 +87,20 @@ func PluralDataSource() *schema.Resource {
 }
 
 func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	containers, _, err := conn.Containers.List(ctx, projectID, &matlas.ContainersListOptions{
-		ProviderName: d.Get("provider_name").(string),
-	})
+	// Returns all providers independently of provider
+	containers, _, err := connV2.NetworkPeeringApi.ListPeeringContainers(ctx, projectID).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting network peering containers information: %s", err))
 	}
 
-	if err := d.Set("results", flattenNetworkContainers(containers)); err != nil {
+	// Necessary to keep same behavior. Only have to return the containers of the specified provider. This was the behavior of old SDK
+	containersOfSpecifiedProvider := filterContainersByProvider(containers.GetResults(), d.Get("project_id").(string))
+
+	if err := d.Set("results", flattenNetworkContainers(containersOfSpecifiedProvider)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `result` for network containers: %s", err))
 	}
 
@@ -107,7 +109,17 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	return nil
 }
 
-func flattenNetworkContainers(containers []matlas.Container) []map[string]any {
+func filterContainersByProvider(containers []admin.CloudProviderContainer, provider string) []admin.CloudProviderContainer {
+	result := make([]admin.CloudProviderContainer, 0)
+	for _, container := range containers {
+		if container.GetProviderName() == provider {
+			result = append(result, container)
+		}
+	}
+	return result
+}
+
+func flattenNetworkContainers(containers []admin.CloudProviderContainer) []map[string]any {
 	var containersMap []map[string]any
 
 	if len(containers) > 0 {
@@ -115,18 +127,18 @@ func flattenNetworkContainers(containers []matlas.Container) []map[string]any {
 
 		for i := range containers {
 			containersMap[i] = map[string]any{
-				"id":                    containers[i].ID,
-				"atlas_cidr_block":      containers[i].AtlasCIDRBlock,
-				"provider_name":         containers[i].ProviderName,
-				"region_name":           containers[i].RegionName,
-				"region":                containers[i].Region,
-				"azure_subscription_id": containers[i].AzureSubscriptionID,
-				"provisioned":           containers[i].Provisioned,
-				"gcp_project_id":        containers[i].GCPProjectID,
-				"network_name":          containers[i].NetworkName,
-				"vpc_id":                containers[i].VPCID,
-				"vnet_name":             containers[i].VNetName,
-				"regions":               containers[i].Regions,
+				"id":                    containers[i].GetId(),
+				"atlas_cidr_block":      containers[i].GetAtlasCidrBlock(),
+				"provider_name":         containers[i].GetProviderName(),
+				"region_name":           containers[i].GetRegionName(),
+				"region":                containers[i].GetRegion(),
+				"azure_subscription_id": containers[i].GetAzureSubscriptionId(),
+				"provisioned":           containers[i].GetProvisioned(),
+				"gcp_project_id":        containers[i].GetGcpProjectId(),
+				"network_name":          containers[i].GetNetworkName(),
+				"vpc_id":                containers[i].GetVpcId(),
+				"vnet_name":             containers[i].GetVnetName(),
+				"regions":               containers[i].GetRegions(),
 			}
 		}
 	}

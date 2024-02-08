@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
 var (
-	container                matlas.Container
+	container                admin.CloudProviderContainer
 	randInt                  = acctest.RandIntRange(0, 255)
 	resourceName             = "mongodbatlas_network_container.test"
 	dataSourceContainersName = "data.mongodbatlas_network_containers.test"
@@ -139,7 +139,7 @@ func TestAccNetworkContainerRS_WithRegionsGCP(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configGCPWithRegions(projectName, orgID, cidrBlock, providerNameGCP),
+				Config: configGCPWithRegions(projectName, orgID, gcpCidrBlock, providerNameGCP),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -191,7 +191,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func checkExists(resourceName string, container *matlas.Container) resource.TestCheckFunc {
+func checkExists(resourceName string, container *admin.CloudProviderContainer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -201,7 +201,7 @@ func checkExists(resourceName string, container *matlas.Container) resource.Test
 			return fmt.Errorf("no ID is set")
 		}
 		log.Printf("[DEBUG] projectID: %s", rs.Primary.Attributes["project_id"])
-		if containerResp, _, err := acc.Conn().Containers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["container_id"]); err == nil {
+		if containerResp, _, err := acc.ConnV2().NetworkPeeringApi.GetPeeringContainer(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["container_id"]).Execute(); err == nil {
 			*container = *containerResp
 			return nil
 		}
@@ -215,7 +215,7 @@ func checkDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, _, err := acc.Conn().Containers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["container_id"])
+		_, _, err := acc.ConnV2().NetworkPeeringApi.GetPeeringContainer(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["container_id"]).Execute()
 
 		if err == nil {
 			return fmt.Errorf("container (%s:%s) still exists", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["container_id"])
