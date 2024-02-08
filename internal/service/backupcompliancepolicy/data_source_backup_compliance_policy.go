@@ -206,10 +206,10 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	ConnV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	policy, resp, err := ConnV2.CloudBackupsApi.GetDataProtectionSettings(ctx, projectID).Execute()
+	policy, resp, err := connV2.CloudBackupsApi.GetDataProtectionSettings(ctx, projectID).Execute()
 	if resp != nil && resp.StatusCode == http.StatusNotFound || policy.GetProjectId() == "" {
 		return nil
 	}
@@ -257,23 +257,23 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicySetting, "updated_user", projectID, err))
 	}
 
-	if err := d.Set("on_demand_policy_item", flattenOnDemandBackupPolicyItemV2(policy.GetOnDemandPolicyItem())); err != nil {
+	if err := d.Set("on_demand_policy_item", flattenOnDemandBackupPolicyItem(policy.GetOnDemandPolicyItem())); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicySetting, "policies", projectID, err))
 	}
 
-	if err := d.Set("policy_item_hourly", flattenBackupPolicyItemsV2(policy.GetScheduledPolicyItems(), cloudbackupschedule.Hourly)); err != nil {
+	if err := d.Set("policy_item_hourly", flattenBackupPolicyItems(policy.GetScheduledPolicyItems(), cloudbackupschedule.Hourly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_hourly", projectID, err)
 	}
 
-	if err := d.Set("policy_item_daily", flattenBackupPolicyItemsV2(policy.GetScheduledPolicyItems(), cloudbackupschedule.Daily)); err != nil {
+	if err := d.Set("policy_item_daily", flattenBackupPolicyItems(policy.GetScheduledPolicyItems(), cloudbackupschedule.Daily)); err != nil {
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_daily", projectID, err)
 	}
 
-	if err := d.Set("policy_item_weekly", flattenBackupPolicyItemsV2(policy.GetScheduledPolicyItems(), cloudbackupschedule.Weekly)); err != nil {
+	if err := d.Set("policy_item_weekly", flattenBackupPolicyItems(policy.GetScheduledPolicyItems(), cloudbackupschedule.Weekly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_weekly", projectID, err)
 	}
 
-	if err := d.Set("policy_item_monthly", flattenBackupPolicyItemsV2(policy.GetScheduledPolicyItems(), cloudbackupschedule.Monthly)); err != nil {
+	if err := d.Set("policy_item_monthly", flattenBackupPolicyItems(policy.GetScheduledPolicyItems(), cloudbackupschedule.Monthly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_monthly", projectID, err)
 	}
 
