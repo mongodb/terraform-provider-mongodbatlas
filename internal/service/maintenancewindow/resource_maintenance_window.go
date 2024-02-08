@@ -133,10 +133,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get the client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
-	maintenanceWindow, resp, err := conn.MaintenanceWindows.Get(context.Background(), d.Id())
+	maintenanceWindow, resp, err := connV2.MaintenanceWindowsApi.GetMaintenanceWindow(context.Background(), d.Id()).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -146,28 +145,24 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, d.Id(), err))
 	}
 
-	if err := d.Set("day_of_week", maintenanceWindow.DayOfWeek); err != nil {
+	if err := d.Set("day_of_week", maintenanceWindow.GetDayOfWeek()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, d.Id(), err))
 	}
 
-	if err := d.Set("hour_of_day", maintenanceWindow.HourOfDay); err != nil {
+	if err := d.Set("hour_of_day", maintenanceWindow.GetHourOfDay()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, d.Id(), err))
 	}
 
-	if err := d.Set("number_of_deferrals", maintenanceWindow.NumberOfDeferrals); err != nil {
-		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, d.Id(), err))
-	}
-	// start_asap is just display the state of the maintenance,
-	// and it doesn't able to set it because breaks the Terraform flow
-	// it can be used via API
-	if err := d.Set("start_asap", maintenanceWindow.StartASAP); err != nil {
+	if err := d.Set("number_of_deferrals", maintenanceWindow.GetNumberOfDeferrals()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, d.Id(), err))
 	}
 
-	if maintenanceWindow.AutoDeferOnceEnabled != nil {
-		if err := d.Set("auto_defer_once_enabled", *maintenanceWindow.AutoDeferOnceEnabled); err != nil {
-			return diag.Errorf(errorMaintenanceRead, d.Id(), err)
-		}
+	if err := d.Set("start_asap", maintenanceWindow.GetStartASAP()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, d.Id(), err))
+	}
+
+	if err := d.Set("auto_defer_once_enabled", maintenanceWindow.GetAutoDeferOnceEnabled()); err != nil {
+		return diag.Errorf(errorMaintenanceRead, d.Id(), err)
 	}
 
 	if err := d.Set("project_id", d.Id()); err != nil {
