@@ -30,6 +30,9 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
   count        = (var.point_in_time_utc_seconds == 0 ? 0 : 1)
   project_id   = mongodbatlas_cloud_backup_snapshot.test.project_id
   cluster_name = mongodbatlas_cloud_backup_snapshot.test.cluster_name
+  # for provider versions > 1.15.1 the snapshot_id field can be omitted
+  # when delivery_type_config is "point_in_time"
+  snapshot_id  = mongodbatlas_cloud_backup_snapshot.test.id
 
   delivery_type_config {
     point_in_time             = true
