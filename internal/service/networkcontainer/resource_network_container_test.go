@@ -11,11 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 var (
-	container                admin.CloudProviderContainer
 	randInt                  = acctest.RandIntRange(0, 255)
 	resourceName             = "mongodbatlas_network_container.test"
 	dataSourceContainersName = "data.mongodbatlas_network_containers.test"
@@ -42,7 +40,7 @@ func TestAccNetworkContainerRS_basicAWS(t *testing.T) {
 			{
 				Config: configAWS(projectName, orgID, cidrBlock, providerNameAws, "US_EAST_1"),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &container),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameAws),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
@@ -51,7 +49,7 @@ func TestAccNetworkContainerRS_basicAWS(t *testing.T) {
 			{
 				Config: configAWS(projectName, orgID, cidrBlockUpdated, providerNameAws, "US_WEST_2"),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &container),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameAws),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
@@ -76,7 +74,7 @@ func TestAccNetworkContainerRS_basicAzure(t *testing.T) {
 			{
 				Config: configAzure(projectName, orgID, cidrBlock, providerNameAzure),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &container),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameAzure),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
@@ -85,7 +83,7 @@ func TestAccNetworkContainerRS_basicAzure(t *testing.T) {
 			{
 				Config: configAzure(projectName, orgID, cidrBlockUpdated, providerNameAzure),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &container),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameAzure),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
@@ -110,7 +108,7 @@ func TestAccNetworkContainerRS_basicGCP(t *testing.T) {
 			{
 				Config: configGCP(projectName, orgID, gcpCidrBlock, providerNameGCP),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &container),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameGCP),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
@@ -119,7 +117,7 @@ func TestAccNetworkContainerRS_basicGCP(t *testing.T) {
 			{
 				Config: configGCP(projectName, orgID, cidrBlockUpdated, providerNameGCP),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &container),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameGCP),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
@@ -142,7 +140,7 @@ func TestAccNetworkContainerRS_WithRegionsGCP(t *testing.T) {
 			{
 				Config: configGCPWithRegions(projectName, orgID, gcpWithRegionsCidrBlock, providerNameGCP),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &container),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameGCP),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
@@ -192,7 +190,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func checkExists(resourceName string, container *admin.CloudProviderContainer) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -202,8 +200,7 @@ func checkExists(resourceName string, container *admin.CloudProviderContainer) r
 			return fmt.Errorf("no ID is set")
 		}
 		log.Printf("[DEBUG] projectID: %s", rs.Primary.Attributes["project_id"])
-		if containerResp, _, err := acc.ConnV2().NetworkPeeringApi.GetPeeringContainer(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["container_id"]).Execute(); err == nil {
-			*container = *containerResp
+		if _, _, err := acc.ConnV2().NetworkPeeringApi.GetPeeringContainer(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["container_id"]).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("container(%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["container_id"])

@@ -20,7 +20,7 @@ func TestAccNetworkContainerDSPlural_basicAWS(t *testing.T) {
 			{
 				Config: dataSourcePluralConfigBasicAWS(projectName, orgID, cidrBlock, providerNameAws, "US_EAST_1"),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(dataSourceContainersName, &container),
+					checkExists(dataSourceContainersName),
 					resource.TestCheckResourceAttrSet(dataSourceContainersName, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourceContainersName, "results.0.id"),
 					resource.TestCheckResourceAttrSet(dataSourceContainersName, "results.0.atlas_cidr_block"),
@@ -43,7 +43,7 @@ func TestAccNetworkContainerDSPlural_basicAzure(t *testing.T) {
 			{
 				Config: dataSourcePluralConfigBasicAzure(projectName, orgID, cidrBlock, providerNameAzure, "US_EAST_2"),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(dataSourceContainersName, &container),
+					checkExists(dataSourceContainersName),
 					resource.TestCheckResourceAttrSet(dataSourceContainersName, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourceContainersName, "results.0.id"),
 					resource.TestCheckResourceAttrSet(dataSourceContainersName, "results.0.atlas_cidr_block"),
@@ -66,7 +66,7 @@ func TestAccNetworkContainerDSPlural_basicGCP(t *testing.T) {
 			{
 				Config: dataSourcePluralConfigBasicGCP(projectName, orgID, gcpCidrBlock, providerNameGCP),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(dataSourceContainersName, &container),
+					checkExists(dataSourceContainersName),
 					resource.TestCheckResourceAttrSet(dataSourceContainersName, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourceContainersName, "results.0.id"),
 					resource.TestCheckResourceAttrSet(dataSourceContainersName, "results.0.atlas_cidr_block"),

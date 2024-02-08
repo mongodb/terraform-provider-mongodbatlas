@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
@@ -25,9 +26,6 @@ const (
 	ErrorContainerRead    = "error reading MongoDB Network Peering Container (%s): %s"
 	errorContainerDelete  = "error deleting MongoDB Network Peering Container (%s): %s"
 	errorContainerUpdate  = "error updating MongoDB Network Peering Container (%s): %s"
-	AWS                   = "AWS"
-	AZURE                 = "AZURE"
-	GCP                   = "GCP"
 )
 
 func Resource() *schema.Resource {
@@ -52,8 +50,8 @@ func Resource() *schema.Resource {
 			"provider_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      AWS,
-				ValidateFunc: validation.StringInSlice([]string{AWS, GCP, AZURE}, false),
+				Default:      constant.AWS,
+				ValidateFunc: validation.StringInSlice([]string{constant.AWS, constant.GCP, constant.AZURE}, false),
 			},
 			"region_name": {
 				Type:     schema.TypeString,
@@ -117,7 +115,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		ProviderName:   &providerName,
 	}
 
-	if providerName == AWS {
+	if providerName == constant.AWS {
 		region, err := conversion.ValRegion(d.Get("region_name"))
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("`region_name` must be set when `provider_name` is AWS"))
@@ -125,7 +123,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		containerRequest.RegionName = &region
 	}
 
-	if providerName == AZURE {
+	if providerName == constant.AZURE {
 		region, err := conversion.ValRegion(d.Get("region"))
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("`region` must be set when `provider_name` is AZURE"))
@@ -133,7 +131,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		containerRequest.Region = &region
 	}
 
-	if providerName == GCP {
+	if providerName == constant.GCP {
 		regions, ok := d.GetOk("regions")
 		if ok {
 			regionsSlice := cast.ToStringSlice(regions)

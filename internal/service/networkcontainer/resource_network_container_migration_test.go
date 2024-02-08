@@ -23,7 +23,7 @@ func TestAccMigrationNetworkContainerRS_basicAWS(t *testing.T) {
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            configAWS,
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &container),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameAws),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
@@ -48,7 +48,7 @@ func TestAccMigrationNetworkContainerRS_basicAzure(t *testing.T) {
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            configAzure,
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &container),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameAzure),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
@@ -73,7 +73,7 @@ func TestAccMigrationNetworkContainerRS_basicGCP(t *testing.T) {
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            configGCP,
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &container),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameGCP),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
