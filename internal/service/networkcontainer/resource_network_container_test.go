@@ -21,7 +21,6 @@ var (
 	dataSourceContainersName = "data.mongodbatlas_network_containers.test"
 	cidrBlock                = fmt.Sprintf("10.8.%d.0/24", randInt)
 	gcpCidrBlock             = fmt.Sprintf("10.%d.0.0/18", randInt)
-	gcpWithRegionsCidrBlock  = fmt.Sprintf("10.%d.0.0/24", randInt)
 	providerNameAws          = "AWS"
 	providerNameAzure        = "AZURE"
 	providerNameGCP          = "GCP"
@@ -132,7 +131,8 @@ func TestAccNetworkContainerRS_basicGCP(t *testing.T) {
 
 func TestAccNetworkContainerRS_WithRegionsGCP(t *testing.T) {
 	var (
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName             = acctest.RandomWithPrefix("test-acc")
+		gcpWithRegionsCidrBlock = fmt.Sprintf("10.%d.0.0/21", randInt)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
