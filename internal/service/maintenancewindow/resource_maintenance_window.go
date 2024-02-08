@@ -132,39 +132,40 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	projectID := d.Id()
 
-	maintenanceWindow, resp, err := connV2.MaintenanceWindowsApi.GetMaintenanceWindow(context.Background(), d.Id()).Execute()
+	maintenanceWindow, resp, err := connV2.MaintenanceWindowsApi.GetMaintenanceWindow(context.Background(), projectID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
 
-		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 	}
 
 	if err := d.Set("day_of_week", maintenanceWindow.GetDayOfWeek()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 	}
 
 	if err := d.Set("hour_of_day", maintenanceWindow.GetHourOfDay()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 	}
 
 	if err := d.Set("number_of_deferrals", maintenanceWindow.GetNumberOfDeferrals()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 	}
 
 	if err := d.Set("start_asap", maintenanceWindow.GetStartASAP()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 	}
 
 	if err := d.Set("auto_defer_once_enabled", maintenanceWindow.GetAutoDeferOnceEnabled()); err != nil {
-		return diag.Errorf(errorMaintenanceRead, d.Id(), err)
+		return diag.Errorf(errorMaintenanceRead, projectID, err)
 	}
 
-	if err := d.Set("project_id", d.Id()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, d.Id(), err))
+	if err := d.Set("project_id", projectID); err != nil {
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 	}
 
 	return nil
@@ -172,11 +173,12 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	projectID := d.Id()
 
 	if d.HasChange("defer") {
-		_, err := connV2.MaintenanceWindowsApi.DeferMaintenanceWindow(ctx, d.Id()).Execute()
+		_, err := connV2.MaintenanceWindowsApi.DeferMaintenanceWindow(ctx, projectID).Execute()
 		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorMaintenanceDefer, d.Id(), err))
+			return diag.FromErr(fmt.Errorf(errorMaintenanceDefer, projectID, err))
 		}
 	}
 
@@ -194,15 +196,15 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params.AutoDeferOnceEnabled = pointy.Bool(d.Get("auto_defer_once_enabled").(bool))
 	}
 
-	_, _, err := connV2.MaintenanceWindowsApi.UpdateMaintenanceWindow(ctx, d.Id(), params).Execute()
+	_, _, err := connV2.MaintenanceWindowsApi.UpdateMaintenanceWindow(ctx, projectID, params).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorMaintenanceUpdate, d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorMaintenanceUpdate, projectID, err))
 	}
 
 	if d.HasChange("auto_defer") {
-		_, err := connV2.MaintenanceWindowsApi.ToggleMaintenanceAutoDefer(ctx, d.Id()).Execute()
+		_, err := connV2.MaintenanceWindowsApi.ToggleMaintenanceAutoDefer(ctx, projectID).Execute()
 		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorMaintenanceAutoDefer, d.Id(), err))
+			return diag.FromErr(fmt.Errorf(errorMaintenanceAutoDefer, projectID, err))
 		}
 	}
 
@@ -211,9 +213,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	_, err := connV2.MaintenanceWindowsApi.ResetMaintenanceWindow(ctx, d.Id()).Execute()
+	projectID := d.Id()
+
+	_, err := connV2.MaintenanceWindowsApi.ResetMaintenanceWindow(ctx, projectID).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorMaintenanceDelete, d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorMaintenanceDelete, projectID, err))
 	}
 	return nil
 }
