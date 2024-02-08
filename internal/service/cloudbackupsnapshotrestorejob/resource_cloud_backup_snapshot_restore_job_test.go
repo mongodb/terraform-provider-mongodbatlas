@@ -255,7 +255,7 @@ data "mongodbatlas_cloud_backup_snapshot_restore_jobs" "pagination" {
 func testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigDownload(orgID, projectName, clusterName, description, retentionInDays string, useSnapshotID bool) string {
 	snapshotIDField := ""
 	if useSnapshotID {
-		snapshotIDField = "snapshot_id  = mongodbatlas_cloud_backup_snapshot.test.id"
+		snapshotIDField = `snapshot_id  = mongodbatlas_cloud_backup_snapshot.test.id`
 	}
 
 	return fmt.Sprintf(`
