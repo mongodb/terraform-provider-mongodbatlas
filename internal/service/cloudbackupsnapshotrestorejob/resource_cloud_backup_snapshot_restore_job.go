@@ -37,7 +37,7 @@ func Resource() *schema.Resource {
 			},
 			"snapshot_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 			},
 			"delivery_type_config": {
