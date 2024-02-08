@@ -24,7 +24,6 @@ var (
 	providerNameAws          = "AWS"
 	providerNameAzure        = "AZURE"
 	providerNameGCP          = "GCP"
-	projectID                = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	orgID                    = os.Getenv("MONGODB_ATLAS_ORG_ID")
 )
 
