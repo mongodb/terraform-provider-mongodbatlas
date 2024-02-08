@@ -253,7 +253,7 @@ data "mongodbatlas_cloud_backup_snapshot_restore_jobs" "pagination" {
 }
 
 func testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigDownload(orgID, projectName, clusterName, description, retentionInDays string, useSnapshotID bool) string {
-	snapshotIDField := ""
+	var snapshotIDField string
 	if useSnapshotID {
 		snapshotIDField = `snapshot_id  = mongodbatlas_cloud_backup_snapshot.test.id`
 	}
@@ -283,7 +283,7 @@ resource "mongodbatlas_cloud_backup_snapshot" "test" {
 resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
   project_id   = mongodbatlas_cloud_backup_snapshot.test.project_id
   cluster_name = mongodbatlas_cloud_backup_snapshot.test.cluster_name
-  %[6]q
+  %[4]s
 
   delivery_type_config {
     download = true
