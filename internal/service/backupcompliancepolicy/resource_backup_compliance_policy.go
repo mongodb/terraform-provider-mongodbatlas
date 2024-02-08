@@ -502,16 +502,15 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 1 {
 		return nil, errors.New("import format error: to import a Backup Compliance Policy use the format {project_id}")
 	}
-
 	projectID := parts[0]
 
-	_, _, err := conn.BackupCompliancePolicy.Get(ctx, projectID)
+	_, _, err := connV2.CloudBackupsApi.GetDataProtectionSettings(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorBackupPolicyRead, projectID, err)
 	}
