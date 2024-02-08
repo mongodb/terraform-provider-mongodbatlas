@@ -8,7 +8,7 @@ import (
 	"regexp"
 
 	admin20231001002 "go.mongodb.org/atlas-sdk/v20231001002/admin"
-	"go.mongodb.org/atlas-sdk/v20231115005/admin"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"

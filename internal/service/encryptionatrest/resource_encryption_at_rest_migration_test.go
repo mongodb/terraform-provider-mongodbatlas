@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 	"github.com/mwielbut/pointy"
-	"go.mongodb.org/atlas-sdk/v20231115005/admin"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 func TestAccMigrationEncryptionAtRest_basicAWS(t *testing.T) {
