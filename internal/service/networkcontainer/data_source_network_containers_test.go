@@ -4,17 +4,21 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 func TestAccNetworkContainerDSPlural_basicAWS(t *testing.T) {
+	var (
+		projectName = acctest.RandomWithPrefix("test-acc")
+	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourcePluralConfigBasicAWS(projectID, cidrBlock, providerNameAws, "US_EAST_1"),
+				Config: dataSourcePluralConfigBasicAWS(projectName, orgID, cidrBlock, providerNameAws, "US_EAST_1"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -32,12 +36,15 @@ func TestAccNetworkContainerDSPlural_basicAWS(t *testing.T) {
 }
 
 func TestAccNetworkContainerDSPlural_basicAzure(t *testing.T) {
+	var (
+		projectName = acctest.RandomWithPrefix("test-acc")
+	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourcePluralConfigBasicAzure(projectID, cidrBlock, providerNameAzure, "US_EAST_2"),
+				Config: dataSourcePluralConfigBasicAzure(projectName, orgID, cidrBlock, providerNameAzure, "US_EAST_2"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -55,12 +62,15 @@ func TestAccNetworkContainerDSPlural_basicAzure(t *testing.T) {
 }
 
 func TestAccNetworkContainerDSPlural_basicGCP(t *testing.T) {
+	var (
+		projectName = acctest.RandomWithPrefix("test-acc")
+	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourcePluralConfigBasicGCP(projectID, gcpCidrBlock, providerNameGCP),
+				Config: dataSourcePluralConfigBasicGCP(projectName, orgID, gcpCidrBlock, providerNameGCP),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -77,8 +87,13 @@ func TestAccNetworkContainerDSPlural_basicGCP(t *testing.T) {
 	})
 }
 
-func dataSourcePluralConfigBasicAWS(projectID, cidrBlock, providerName, region string) string {
+func dataSourcePluralConfigBasicAWS(projectName, orgID, cidrBlock, providerName, region string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = "%s"
+			org_id = "%s"
+		}
+
 		resource "mongodbatlas_network_container" "test" {
 			project_id   		 = "%s"
 			atlas_cidr_block 	 = "%s"
@@ -91,11 +106,16 @@ func dataSourcePluralConfigBasicAWS(projectID, cidrBlock, providerName, region s
 			provider_name = "AWS"
 		}
 
-	`, projectID, cidrBlock, providerName, region)
+	`, projectName, orgID, cidrBlock, providerName, region)
 }
 
-func dataSourcePluralConfigBasicAzure(projectID, cidrBlock, providerName, region string) string {
+func dataSourcePluralConfigBasicAzure(projectName, orgID, cidrBlock, providerName, region string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = "%s"
+			org_id = "%s"
+		}
+
 		resource "mongodbatlas_network_container" "test" {
 			project_id   		 = "%s"
 			atlas_cidr_block     = "%s"
@@ -107,11 +127,16 @@ func dataSourcePluralConfigBasicAzure(projectID, cidrBlock, providerName, region
 			project_id = "${mongodbatlas_network_container.test.project_id}"
 			provider_name = "AZURE"
 		}
-	`, projectID, cidrBlock, providerName, region)
+	`, projectName, orgID, cidrBlock, providerName, region)
 }
 
-func dataSourcePluralConfigBasicGCP(projectID, cidrBlock, providerName string) string {
+func dataSourcePluralConfigBasicGCP(projectName, orgID, cidrBlock, providerName string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = "%s"
+			org_id = "%s"
+		}
+		
 		resource "mongodbatlas_network_container" "test" {
 			project_id   		 = "%s"
 			atlas_cidr_block     = "%s"
@@ -122,5 +147,5 @@ func dataSourcePluralConfigBasicGCP(projectID, cidrBlock, providerName string) s
 			project_id = "${mongodbatlas_network_container.test.project_id}"
 			provider_name = "GCP"
 		}
-	`, projectID, cidrBlock, providerName)
+	`, projectName, orgID, cidrBlock, providerName)
 }
