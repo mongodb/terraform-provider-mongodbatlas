@@ -16,13 +16,13 @@
 
 set -euo pipefail
 
-LATEST_SDK_TAG=$(curl -sSfL -X GET  https://api.github.com/repos/mongodb/atlas-sdk-go/releases/latest | jq -r '.tag_name')
+LATEST_SDK_TAG=$(curl -sSfL https://api.github.com/repos/mongodb/atlas-sdk-go/releases/latest | jq -r '.tag_name')
 LATEST_SDK_RELEASE=$(echo "${LATEST_SDK_TAG}" | cut -d '.' -f 1)
 
 echo  "==> Updating SDK to latest major version tag: ${LATEST_SDK_TAG}, release: ${LATEST_SDK_RELEASE}"
 
 echo "Refreshing cache info and waiting 60s"
-curl -sSL -X GET  "https://proxy.golang.org/go.mongodb.org/atlas-sdk/${LATEST_SDK_RELEASE}/@v/${LATEST_SDK_TAG}.info"
+curl "https://proxy.golang.org/go.mongodb.org/atlas-sdk/${LATEST_SDK_RELEASE}/@v/${LATEST_SDK_TAG}.info"
 echo
 sleep 60
 
