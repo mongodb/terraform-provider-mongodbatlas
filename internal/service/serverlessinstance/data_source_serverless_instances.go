@@ -7,15 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/ldapverify"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115005/admin"
 )
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasServerlessInstancesRead,
+		ReadContext: dataSourcePluralRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -25,69 +24,66 @@ func PluralDataSource() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
-					Schema: returnServerlessInstanceDSSchema(),
+					Schema: dataSourceSchema(),
 				},
 			},
 		},
 	}
 }
 
-func dataSourceMongoDBAtlasServerlessInstancesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID, projectIDOK := d.GetOk("project_id")
-
 	if !(projectIDOK) {
 		return diag.Errorf("project_id must be configured")
 	}
-
-	options := &matlas.ListOptions{
-		ItemsPerPage: 500,
-		IncludeCount: true,
+	options := &admin.ListServerlessInstancesApiParams{
+		ItemsPerPage: conversion.IntPtr(500),
+		IncludeCount: conversion.Pointer(true),
+		GroupId:      projectID.(string),
 	}
 
-	serverlessInstances, err := getServerlessList(ctx, meta, projectID.(string), options, 0)
+	serverlessInstances, err := getServerlessList(ctx, connV2, options, 0)
 	if err != nil {
 		return diag.Errorf("error getting serverless instances information: %s", err)
 	}
 
 	flatServerlessInstances := flattenServerlessInstances(serverlessInstances)
-
 	if err := d.Set("results", flatServerlessInstances); err != nil {
 		return diag.Errorf("error setting `results` for serverless instances: %s", err)
 	}
 
 	d.SetId(id.UniqueId())
-
 	return nil
 }
 
-func getServerlessList(ctx context.Context, meta any, projectID string, options *matlas.ListOptions, obtainedItemsCount int) ([]*matlas.Cluster, error) {
-	// Get client connection.
-	var list []*matlas.Cluster
-	options.PageNum++
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	serverlessInstances, _, err := conn.ServerlessInstances.List(ctx, projectID, options)
+func getServerlessList(ctx context.Context, connV2 *admin.APIClient, options *admin.ListServerlessInstancesApiParams, obtainedItemsCount int) ([]admin.ServerlessInstanceDescription, error) {
+	if options.PageNum == nil {
+		options.PageNum = conversion.IntPtr(1)
+	} else {
+		*options.PageNum++
+	}
+	var list []admin.ServerlessInstanceDescription
+	serverlessInstances, _, err := connV2.ServerlessInstancesApi.ListServerlessInstancesWithParams(ctx, options).Execute()
 	if err != nil {
 		return list, fmt.Errorf("error getting serverless instances information: %s", err)
 	}
 
-	list = append(list, serverlessInstances.Results...)
-	obtainedItemsCount += len(serverlessInstances.Results)
+	list = append(list, serverlessInstances.GetResults()...)
+	obtainedItemsCount += len(serverlessInstances.GetResults())
 
-	if serverlessInstances.TotalCount > options.ItemsPerPage && obtainedItemsCount < serverlessInstances.TotalCount {
-		instances, err := getServerlessList(ctx, meta, projectID, options, obtainedItemsCount)
+	if serverlessInstances.GetTotalCount() > *options.ItemsPerPage && obtainedItemsCount < *serverlessInstances.TotalCount {
+		instances, err := getServerlessList(ctx, connV2, options, obtainedItemsCount)
 		if err != nil {
 			return list, fmt.Errorf("error getting serverless instances information: %s", err)
 		}
 		list = append(list, instances...)
 	}
-
 	return list, nil
 }
 
-func flattenServerlessInstances(serverlessInstances []*matlas.Cluster) []map[string]any {
+func flattenServerlessInstances(serverlessInstances []admin.ServerlessInstanceDescription) []map[string]any {
 	var serverlessInstancesMap []map[string]any
-
 	if len(serverlessInstances) == 0 {
 		return nil
 	}
@@ -95,21 +91,20 @@ func flattenServerlessInstances(serverlessInstances []*matlas.Cluster) []map[str
 
 	for i := range serverlessInstances {
 		serverlessInstancesMap[i] = map[string]any{
-			"connection_strings_standard_srv": serverlessInstances[i].ConnectionStrings.StandardSrv,
-			"create_date":                     serverlessInstances[i].CreateDate,
-			"id":                              serverlessInstances[i].ID,
-			"links":                           ldapverify.FlattenLinks(serverlessInstances[i].Links),
-			"mongo_db_version":                serverlessInstances[i].MongoDBVersion,
-			"name":                            serverlessInstances[i].Name,
-			"provider_settings_backing_provider_name": serverlessInstances[i].ProviderSettings.BackingProviderName,
-			"provider_settings_region_name":           serverlessInstances[i].ProviderSettings.RegionName,
-			"provider_settings_provider_name":         serverlessInstances[i].ProviderSettings.ProviderName,
-			"state_name":                              serverlessInstances[i].StateName,
-			"termination_protection_enabled":          serverlessInstances[i].TerminationProtectionEnabled,
-			"continuous_backup_enabled":               serverlessInstances[i].ServerlessBackupOptions.ServerlessContinuousBackupEnabled,
-			"tags":                                    advancedcluster.FlattenTags(serverlessInstances[i].Tags),
+			"connection_strings_standard_srv": serverlessInstances[i].ConnectionStrings.GetStandardSrv(),
+			"create_date":                     conversion.TimePtrToStringPtr(serverlessInstances[i].CreateDate),
+			"id":                              serverlessInstances[i].GetId(),
+			"links":                           conversion.FlattenLinks(serverlessInstances[i].GetLinks()),
+			"mongo_db_version":                serverlessInstances[i].GetMongoDBVersion(),
+			"name":                            serverlessInstances[i].GetName(),
+			"provider_settings_backing_provider_name": serverlessInstances[i].ProviderSettings.GetBackingProviderName(),
+			"provider_settings_region_name":           serverlessInstances[i].ProviderSettings.GetRegionName(),
+			"provider_settings_provider_name":         serverlessInstances[i].ProviderSettings.GetProviderName(),
+			"state_name":                              serverlessInstances[i].GetStateName(),
+			"termination_protection_enabled":          serverlessInstances[i].GetTerminationProtectionEnabled(),
+			"continuous_backup_enabled":               serverlessInstances[i].ServerlessBackupOptions.GetServerlessContinuousBackupEnabled(),
+			"tags":                                    conversion.FlattenTags(serverlessInstances[i].GetTags()),
 		}
 	}
-
 	return serverlessInstancesMap
 }
