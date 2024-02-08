@@ -6,8 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 	"github.com/spf13/cast"
 )
@@ -18,6 +16,7 @@ func TestAccMigrationConfigMaintenanceWindow_basic(t *testing.T) {
 		projectName = acctest.RandomWithPrefix("test-acc")
 		dayOfWeek   = 7
 		hourOfDay   = 3
+		config      = configBasic(orgID, projectName, dayOfWeek, hourOfDay)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -25,7 +24,7 @@ func TestAccMigrationConfigMaintenanceWindow_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configBasic(orgID, projectName, dayOfWeek, hourOfDay),
+				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -36,16 +35,7 @@ func TestAccMigrationConfigMaintenanceWindow_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
 				),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configBasic(orgID, projectName, dayOfWeek, hourOfDay),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStep(config),
 		},
 	})
 }
