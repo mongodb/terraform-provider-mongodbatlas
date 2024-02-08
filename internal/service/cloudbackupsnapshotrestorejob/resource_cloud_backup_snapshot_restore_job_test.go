@@ -283,7 +283,7 @@ resource "mongodbatlas_cloud_backup_snapshot" "test" {
 resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
   project_id   = mongodbatlas_cloud_backup_snapshot.test.project_id
   cluster_name = mongodbatlas_cloud_backup_snapshot.test.cluster_name
-  %[4]s
+  %[6]s
 
   delivery_type_config {
     download = true
