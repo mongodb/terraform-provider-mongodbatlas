@@ -27,12 +27,12 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasBackupCompliancePolicyCreate,
-		UpdateContext: resourceMongoDBAtlasBackupCompliancePolicyUpdate,
-		ReadContext:   resourceMongoDBAtlasBackupCompliancePolicyRead,
-		DeleteContext: resourceMongoDBAtlasBackupCompliancePolicyDelete,
+		CreateContext: resourceCreate,
+		UpdateContext: resourceUpdate,
+		ReadContext:   resourceRead,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasBackupCompliancePolicyImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -230,7 +230,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
@@ -314,10 +314,10 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 		"project_id": projectID,
 	}))
 
-	return resourceMongoDBAtlasBackupCompliancePolicyRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 
@@ -401,7 +401,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *sche
 	return nil
 }
 
-func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	ids := conversion.DecodeStateID(d.Id())
@@ -490,10 +490,10 @@ func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf(errorBackupPolicyUpdate, projectID, err))
 	}
 
-	return resourceMongoDBAtlasBackupCompliancePolicyRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasBackupCompliancePolicyDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// There is no resource to delete a backup compliance policy, it can only be updated.
 	log.Printf("[WARN] Note: Deleting a Backup Compliance Policy resource in Terraform does not remove the policy from your Atlas Project. " +
 		"To disable a Backup Compliance Policy, the security or legal representative specified for the Backup Compliance Policy must contact " +
@@ -503,7 +503,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyDelete(ctx context.Context, d *sc
 	return nil
 }
 
-func resourceMongoDBAtlasBackupCompliancePolicyImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
@@ -562,4 +562,20 @@ func expandDemandBackupPolicyItem(d *schema.ResourceData) *matlas.PolicyItem {
 	}
 
 	return &onDemand
+}
+
+func flattenBackupPolicyItems(items []matlas.ScheduledPolicyItem, frequencyType string) []map[string]any {
+	policyItems := make([]map[string]any, 0)
+	for _, v := range items {
+		if frequencyType == v.FrequencyType {
+			policyItems = append(policyItems, map[string]any{
+				"id":                 v.ID,
+				"frequency_interval": v.FrequencyInterval,
+				"frequency_type":     v.FrequencyType,
+				"retention_unit":     v.RetentionUnit,
+				"retention_value":    v.RetentionValue,
+			})
+		}
+	}
+	return policyItems
 }

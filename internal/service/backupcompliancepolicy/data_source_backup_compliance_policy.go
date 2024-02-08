@@ -11,12 +11,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupschedule"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasBackupCompliancePolicyRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -206,7 +205,7 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
@@ -284,20 +283,4 @@ func dataSourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *sc
 	}))
 
 	return nil
-}
-
-func flattenBackupPolicyItems(items []matlas.ScheduledPolicyItem, frequencyType string) []map[string]any {
-	policyItems := make([]map[string]any, 0)
-	for _, v := range items {
-		if frequencyType == v.FrequencyType {
-			policyItems = append(policyItems, map[string]any{
-				"id":                 v.ID,
-				"frequency_interval": v.FrequencyInterval,
-				"frequency_type":     v.FrequencyType,
-				"retention_unit":     v.RetentionUnit,
-				"retention_value":    v.RetentionValue,
-			})
-		}
-	}
-	return policyItems
 }
