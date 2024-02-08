@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 const (
@@ -89,39 +89,37 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get the client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
 	if deferValue := d.Get("defer").(bool); deferValue {
-		_, err := conn.MaintenanceWindows.Defer(ctx, projectID)
+		_, err := connV2.MaintenanceWindowsApi.DeferMaintenanceWindow(ctx, projectID).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorMaintenanceDefer, projectID, err))
 		}
 	}
 
-	maintenanceWindowReq := &matlas.MaintenanceWindow{}
+	params := new(admin.GroupMaintenanceWindow)
 
 	if dayOfWeek, ok := d.GetOk("day_of_week"); ok {
-		maintenanceWindowReq.DayOfWeek = cast.ToInt(dayOfWeek)
+		params.DayOfWeek = cast.ToInt(dayOfWeek)
 	}
 
 	if hourOfDay, ok := d.GetOk("hour_of_day"); ok {
-		maintenanceWindowReq.HourOfDay = pointy.Int(cast.ToInt(hourOfDay))
+		params.HourOfDay = pointy.Int(cast.ToInt(hourOfDay))
 	}
 
 	if autoDeferOnceEnabled, ok := d.GetOk("auto_defer_once_enabled"); ok {
-		maintenanceWindowReq.AutoDeferOnceEnabled = pointy.Bool(autoDeferOnceEnabled.(bool))
+		params.AutoDeferOnceEnabled = pointy.Bool(autoDeferOnceEnabled.(bool))
 	}
 
-	_, err := conn.MaintenanceWindows.Update(ctx, projectID, maintenanceWindowReq)
+	_, _, err := connV2.MaintenanceWindowsApi.UpdateMaintenanceWindow(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceCreate, projectID, err))
 	}
 
 	if autoDeferValue := d.Get("auto_defer").(bool); autoDeferValue {
-		_, err := conn.MaintenanceWindows.AutoDefer(ctx, projectID)
+		_, err := connV2.MaintenanceWindowsApi.ToggleMaintenanceAutoDefer(ctx, projectID).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorMaintenanceAutoDefer, projectID, err))
 		}
@@ -173,37 +171,36 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get the client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	maintenanceWindowReq := &matlas.MaintenanceWindow{}
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	if d.HasChange("defer") {
-		_, err := conn.MaintenanceWindows.Defer(ctx, d.Id())
+		_, err := connV2.MaintenanceWindowsApi.DeferMaintenanceWindow(ctx, d.Id()).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorMaintenanceDefer, d.Id(), err))
 		}
 	}
 
+	params := new(admin.GroupMaintenanceWindow)
+
 	if d.HasChange("day_of_week") {
-		maintenanceWindowReq.DayOfWeek = cast.ToInt(d.Get("day_of_week"))
+		params.DayOfWeek = cast.ToInt(d.Get("day_of_week"))
 	}
 
 	if d.HasChange("hour_of_day") {
-		maintenanceWindowReq.HourOfDay = pointy.Int(cast.ToInt(d.Get("hour_of_day")))
+		params.HourOfDay = pointy.Int(cast.ToInt(d.Get("hour_of_day")))
 	}
 
 	if d.HasChange("auto_defer_once_enabled") {
-		maintenanceWindowReq.AutoDeferOnceEnabled = pointy.Bool(d.Get("auto_defer_once_enabled").(bool))
+		params.AutoDeferOnceEnabled = pointy.Bool(d.Get("auto_defer_once_enabled").(bool))
 	}
 
-	_, err := conn.MaintenanceWindows.Update(ctx, d.Id(), maintenanceWindowReq)
+	_, _, err := connV2.MaintenanceWindowsApi.UpdateMaintenanceWindow(ctx, d.Id(), params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceUpdate, d.Id(), err))
 	}
 
 	if d.HasChange("auto_defer") {
-		_, err := conn.MaintenanceWindows.AutoDefer(ctx, d.Id())
+		_, err := connV2.MaintenanceWindowsApi.ToggleMaintenanceAutoDefer(ctx, d.Id()).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorMaintenanceAutoDefer, d.Id(), err))
 		}
