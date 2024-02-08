@@ -105,7 +105,7 @@ func TestAccNetworkContainerRS_basicGCP(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configGCP(projectID, cidrBlock, providerNameGCP),
+				Config: configGCP(projectID, gcpCidrBlock, providerNameGCP),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &container),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
