@@ -154,8 +154,8 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
-		schedule, _, err := acc.Conn().BackupCompliancePolicy.Get(context.Background(), projectID)
-		if err != nil || schedule == nil {
+		policy, _, err := acc.ConnV2().CloudBackupsApi.GetDataProtectionSettings(context.Background(), projectID).Execute()
+		if err != nil || policy == nil {
 			return fmt.Errorf("backup compliance policy (%s) does not exist: %s", rs.Primary.ID, err)
 		}
 		return nil
@@ -172,8 +172,8 @@ func checkDestroy(s *terraform.State) error {
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
-		compliancePolicy, _, err := acc.Conn().BackupCompliancePolicy.Get(context.Background(), projectID)
-		if compliancePolicy != nil || err == nil {
+		policy, _, _ := acc.ConnV2().CloudBackupsApi.GetDataProtectionSettings(context.Background(), projectID).Execute()
+		if policy != nil {
 			return fmt.Errorf("Backup Compliance Policy (%s) still exists", rs.Primary.ID)
 		}
 	}
