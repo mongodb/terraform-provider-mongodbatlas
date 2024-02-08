@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/spf13/cast"
 )
 
 const dataSourceName = "mongodbatlas_maintenance_window.test"
@@ -29,9 +30,9 @@ func TestAccConfigDSMaintenanceWindow_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(dataSourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "day_of_week"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "hour_of_day"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "auto_defer_once_enabled"),
+					resource.TestCheckResourceAttr(dataSourceName, "day_of_week", cast.ToString(dayOfWeek)),
+					resource.TestCheckResourceAttr(dataSourceName, "hour_of_day", cast.ToString(hourOfDay)),
+					resource.TestCheckResourceAttr(dataSourceName, "auto_defer_once_enabled", "true"),
 				),
 			},
 		},

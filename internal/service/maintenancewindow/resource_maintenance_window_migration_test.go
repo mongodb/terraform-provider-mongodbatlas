@@ -28,8 +28,6 @@ func TestAccMigrationConfigMaintenanceWindow_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "day_of_week"),
-					resource.TestCheckResourceAttrSet(resourceName, "hour_of_day"),
 					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
 					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDay)),
 					resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
