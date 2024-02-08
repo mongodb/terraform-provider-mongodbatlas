@@ -95,7 +95,7 @@ func dataSourcePluralConfigBasicAWS(projectName, orgID, cidrBlock, providerName,
 		}
 
 		resource "mongodbatlas_network_container" "test" {
-			project_id   		 = "%s"
+			project_id   		 = mongodbatlas_project.test.id
 			atlas_cidr_block 	 = "%s"
 			provider_name		 = "%s"
 			region_name			 = "%s"
@@ -117,7 +117,7 @@ func dataSourcePluralConfigBasicAzure(projectName, orgID, cidrBlock, providerNam
 		}
 
 		resource "mongodbatlas_network_container" "test" {
-			project_id   		 = "%s"
+			project_id   		 = mongodbatlas_project.test.id
 			atlas_cidr_block     = "%s"
 			provider_name		 = "%s"
 			region			     = "%s"
@@ -138,7 +138,7 @@ func dataSourcePluralConfigBasicGCP(projectName, orgID, cidrBlock, providerName 
 		}
 		
 		resource "mongodbatlas_network_container" "test" {
-			project_id   		 = "%s"
+			project_id   		 = mongodbatlas_project.test.id
 			atlas_cidr_block     = "%s"
 			provider_name		 = "%s"
 		}
