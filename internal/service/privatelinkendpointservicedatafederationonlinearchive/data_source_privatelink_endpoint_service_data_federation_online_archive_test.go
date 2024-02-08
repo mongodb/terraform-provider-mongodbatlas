@@ -13,6 +13,8 @@ var (
 )
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_basic(t *testing.T) {
+	// Skip because private endpoints are deleted daily from dev environment
+	acc.SkipTestForCI(t)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
