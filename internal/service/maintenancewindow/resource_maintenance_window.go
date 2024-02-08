@@ -213,13 +213,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get the client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	_, err := conn.MaintenanceWindows.Reset(ctx, d.Id())
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	_, err := connV2.MaintenanceWindowsApi.ResetMaintenanceWindow(ctx, d.Id()).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceDelete, d.Id(), err))
 	}
-
 	return nil
 }
