@@ -6,12 +6,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/spf13/cast"
 )
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasMaintenanceWindowRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -41,33 +40,32 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasMaintenanceWindowRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	maintenance, _, err := conn.MaintenanceWindows.Get(ctx, projectID)
+	maintenance, _, err := connV2.MaintenanceWindowsApi.GetMaintenanceWindow(ctx, projectID).Execute()
 	if err != nil {
 		return diag.Errorf(errorMaintenanceRead, projectID, err)
 	}
 
-	if err := d.Set("day_of_week", maintenance.DayOfWeek); err != nil {
+	if err := d.Set("day_of_week", maintenance.GetDayOfWeek()); err != nil {
 		return diag.Errorf(errorMaintenanceRead, projectID, err)
 	}
 
-	if err := d.Set("hour_of_day", maintenance.HourOfDay); err != nil {
+	if err := d.Set("hour_of_day", maintenance.GetHourOfDay()); err != nil {
 		return diag.Errorf(errorMaintenanceRead, projectID, err)
 	}
 
-	if err := d.Set("number_of_deferrals", maintenance.NumberOfDeferrals); err != nil {
+	if err := d.Set("number_of_deferrals", maintenance.GetNumberOfDeferrals()); err != nil {
 		return diag.Errorf(errorMaintenanceRead, projectID, err)
 	}
 
-	if err := d.Set("start_asap", cast.ToBool(maintenance.StartASAP)); err != nil {
+	if err := d.Set("start_asap", maintenance.GetStartASAP()); err != nil {
 		return diag.Errorf(errorMaintenanceRead, projectID, err)
 	}
 
-	if err := d.Set("auto_defer_once_enabled", cast.ToBool(maintenance.AutoDeferOnceEnabled)); err != nil {
+	if err := d.Set("auto_defer_once_enabled", maintenance.GetAutoDeferOnceEnabled()); err != nil {
 		return diag.Errorf(errorMaintenanceRead, projectID, err)
 	}
 

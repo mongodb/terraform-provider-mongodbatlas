@@ -8,36 +8,38 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"github.com/spf13/cast"
 )
 
-func TestAccConfigDSMaintenanceWindow_basic(t *testing.T) {
-	var maintenance matlas.MaintenanceWindow
+const dataSourceName = "mongodbatlas_maintenance_window.test"
 
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	projectName := acctest.RandomWithPrefix("test-acc")
-	dayOfWeek := 7
-	hourOfDay := 3
+func TestAccConfigDSMaintenanceWindow_basic(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		dayOfWeek   = 7
+		hourOfDay   = 3
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDataSourceMaintenanceWindowConfig(orgID, projectName, dayOfWeek, hourOfDay),
+				Config: configDS(orgID, projectName, dayOfWeek, hourOfDay),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasMaintenanceWindowExists("mongodbatlas_maintenance_window.test", &maintenance),
-					resource.TestCheckResourceAttrSet("data.mongodbatlas_maintenance_window.test", "project_id"),
-					resource.TestCheckResourceAttrSet("data.mongodbatlas_maintenance_window.test", "day_of_week"),
-					resource.TestCheckResourceAttrSet("data.mongodbatlas_maintenance_window.test", "hour_of_day"),
-					resource.TestCheckResourceAttrSet("data.mongodbatlas_maintenance_window.test", "auto_defer_once_enabled"),
+					checkExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "day_of_week", cast.ToString(dayOfWeek)),
+					resource.TestCheckResourceAttr(dataSourceName, "hour_of_day", cast.ToString(hourOfDay)),
+					resource.TestCheckResourceAttr(dataSourceName, "auto_defer_once_enabled", "true"),
 				),
 			},
 		},
 	})
 }
 
-func testAccMongoDBAtlasDataSourceMaintenanceWindowConfig(orgID, projectName string, dayOfWeek, hourOfDay int) string {
+func configDS(orgID, projectName string, dayOfWeek, hourOfDay int) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q

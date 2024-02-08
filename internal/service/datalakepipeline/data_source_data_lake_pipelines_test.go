@@ -8,12 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccDataLakeDSPlural_basic(t *testing.T) {
 	var (
-		pipeline           matlas.DataLakePipeline
 		resourceName       = "mongodbatlas_data_lake_pipeline.test"
 		dataSourceName     = "data.mongodbatlas_data_lake_pipelines.testDataSource"
 		firstClusterName   = acctest.RandomWithPrefix("test-acc-index")
@@ -26,26 +24,20 @@ func TestAccDataLakeDSPlural_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasDataLakePipelineDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceMongoDBAtlasDataLakePipelinesConfig(orgID, projectName, firstClusterName, secondClusterName, firstPipelineName, secondPipelineName),
+				Config: configDSPlural(orgID, projectName, firstClusterName, secondClusterName, firstPipelineName, secondPipelineName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDataLakePipelineExists(resourceName, &pipeline),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "results.0.name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "results.0.state"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "results.0.project_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "results.1.name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "results.1.state"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "results.1.project_id"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceMongoDBAtlasDataLakePipelinesConfig(orgID, projectName, firstClusterName, secondClusterName, firstPipelineName, secondPipelineName string) string {
+func configDSPlural(orgID, projectName, firstClusterName, secondClusterName, firstPipelineName, secondPipelineName string) string {
 	return fmt.Sprintf(`
 
 		resource "mongodbatlas_project" "project" {

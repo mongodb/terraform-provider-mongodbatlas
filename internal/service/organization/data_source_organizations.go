@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"go.mongodb.org/atlas-sdk/v20231115005/admin"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
@@ -13,6 +13,7 @@ import (
 	"github.com/mwielbut/pointy"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -122,20 +123,6 @@ func dataSourceMongoDBAtlasOrganizationsRead(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func flattenOrganizationLinks(links []admin.Link) []map[string]any {
-	linksList := make([]map[string]any, 0)
-
-	for _, link := range links {
-		mLink := map[string]any{
-			"href": link.Href,
-			"rel":  link.Rel,
-		}
-		linksList = append(linksList, mLink)
-	}
-
-	return linksList
-}
-
 func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizations []admin.AtlasOrganization) []map[string]any {
 	var results []map[string]any
 
@@ -155,7 +142,7 @@ func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizati
 			"id":                         organization.Id,
 			"name":                       organization.Name,
 			"is_deleted":                 organization.IsDeleted,
-			"links":                      flattenOrganizationLinks(organization.GetLinks()),
+			"links":                      conversion.FlattenLinks(organization.GetLinks()),
 			"api_access_list_required":   settings.ApiAccessListRequired,
 			"multi_factor_auth_required": settings.MultiFactorAuthRequired,
 			"restrict_employee_access":   settings.RestrictEmployeeAccess,
