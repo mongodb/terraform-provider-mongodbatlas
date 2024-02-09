@@ -10,8 +10,9 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+const dataSourceName = "data.mongodbatlas_custom_dns_configuration_cluster_aws.test"
+
 func TestAccConfigDSCustomDNSConfigurationAWS_basic(t *testing.T) {
-	resourceName := "data.mongodbatlas_custom_dns_configuration_cluster_aws.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")
 
@@ -20,18 +21,18 @@ func TestAccConfigDSCustomDNSConfigurationAWS_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCustomDNSConfigurationAWSDataSourceConfig(orgID, projectName, true),
+				Config: configDS(orgID, projectName, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasCustomDNSConfigurationAWSExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
+					checkExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "enabled", "true"),
 				),
 			},
 		},
 	})
 }
 
-func testAccMongoDBAtlasCustomDNSConfigurationAWSDataSourceConfig(orgID, projectName string, enabled bool) string {
+func configDS(orgID, projectName string, enabled bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q
