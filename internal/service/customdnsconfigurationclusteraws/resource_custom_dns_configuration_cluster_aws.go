@@ -9,23 +9,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 const (
-	errorCustomDNSConfigurationCreate  = "error creating custom dns configuration cluster aws information: %s"
-	errorCustomDNSConfigurationRead    = "error getting custom dns configuration cluster aws information: %s"
-	errorCustomDNSConfigurationUpdate  = "error updating custom dns configuration cluster aws information: %s"
-	errorCustomDNSConfigurationDelete  = "error deleting custom dns configuration cluster aws (%s): %s"
-	errorCustomDNSConfigurationSetting = "error setting `%s` for custom dns configuration cluster aws (%s): %s"
+	errorCreate  = "error creating custom dns configuration cluster aws information: %s"
+	errorRead    = "error getting custom dns configuration cluster aws information: %s"
+	errorUpdate  = "error updating custom dns configuration cluster aws information: %s"
+	errorDelete  = "error deleting custom dns configuration cluster aws (%s): %s"
+	errorSetting = "error setting `%s` for custom dns configuration cluster aws (%s): %s"
 )
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasCustomDNSConfigurationCreate,
-		ReadContext:   resourceMongoDBAtlasCustomDNSConfigurationRead,
-		UpdateContext: resourceMongoDBAtlasCustomDNSConfigurationUpdate,
-		DeleteContext: resourceMongoDBAtlasCustomDNSConfigurationDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -43,74 +43,67 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasCustomDNSConfigurationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
-	orgID := d.Get("project_id").(string)
-
-	// Creating(Updating) the Custom DNS Configuration for Atlas Clusters on AWS
-	_, _, err := conn.CustomAWSDNS.Update(ctx, orgID,
-		&matlas.AWSCustomDNSSetting{
-			Enabled: d.Get("enabled").(bool),
-		})
-	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorCustomDNSConfigurationCreate, err))
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	projectID := d.Get("project_id").(string)
+	params := &admin.AWSCustomDNSEnabled{
+		Enabled: d.Get("enabled").(bool),
 	}
-
-	d.SetId(orgID)
-
-	return resourceMongoDBAtlasCustomDNSConfigurationRead(ctx, d, meta)
+	_, _, err := connV2.AWSClustersDNSApi.ToggleAWSCustomDNS(ctx, projectID, params).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorCreate, err))
+	}
+	d.SetId(projectID)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCustomDNSConfigurationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	dnsResp, resp, err := conn.CustomAWSDNS.Get(context.Background(), d.Id())
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	projectID := d.Id()
+	dnsResp, resp, err := connV2.AWSClustersDNSApi.GetAWSCustomDNS(context.Background(), projectID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
-
-		return diag.FromErr(fmt.Errorf(errorCustomDNSConfigurationRead, err))
+		return diag.FromErr(fmt.Errorf(errorRead, err))
 	}
-
-	if err = d.Set("enabled", dnsResp.Enabled); err != nil {
-		return diag.FromErr(fmt.Errorf(errorCustomDNSConfigurationSetting, "enabled", d.Id(), err))
+	if err = d.Set("enabled", dnsResp.GetEnabled()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorSetting, "enabled", projectID, err))
 	}
-
 	if err = d.Set("project_id", d.Id()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorCustomDNSConfigurationSetting, "project_id", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSetting, "project_id", projectID, err))
 	}
-
 	return nil
 }
 
-func resourceMongoDBAtlasCustomDNSConfigurationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	projectID := d.Id()
 
 	if d.HasChange("enabled") {
-		_, _, err := conn.CustomAWSDNS.Update(ctx, d.Id(), &matlas.AWSCustomDNSSetting{
+		params := &admin.AWSCustomDNSEnabled{
 			Enabled: d.Get("enabled").(bool),
-		})
+		}
+		_, _, err := connV2.AWSClustersDNSApi.ToggleAWSCustomDNS(ctx, projectID, params).Execute()
 		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorCustomDNSConfigurationUpdate, err))
+			return diag.FromErr(fmt.Errorf(errorUpdate, err))
 		}
 	}
 
-	return resourceMongoDBAtlasCustomDNSConfigurationRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCustomDNSConfigurationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	_, _, err := conn.CustomAWSDNS.Update(ctx, d.Id(), &matlas.AWSCustomDNSSetting{
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	projectID := d.Id()
+	params := &admin.AWSCustomDNSEnabled{
 		Enabled: false,
-	})
-	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorCustomDNSConfigurationDelete, d.Id(), err))
 	}
-
+	_, _, err := connV2.AWSClustersDNSApi.ToggleAWSCustomDNS(ctx, projectID, params).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorDelete, projectID, err))
+	}
 	d.SetId("")
-
 	return nil
 }
