@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -44,20 +45,16 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
-	orgID := d.Get("project_id").(string)
-
-	// Creating(Updating) the Custom DNS Configuration for Atlas Clusters on AWS
-	_, _, err := conn.CustomAWSDNS.Update(ctx, orgID,
-		&matlas.AWSCustomDNSSetting{
-			Enabled: d.Get("enabled").(bool),
-		})
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	projectID := d.Get("project_id").(string)
+	params := &admin.AWSCustomDNSEnabled{
+		Enabled: d.Get("enabled").(bool),
+	}
+	_, _, err := connV2.AWSClustersDNSApi.ToggleAWSCustomDNS(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, err))
 	}
-
-	d.SetId(orgID)
-
+	d.SetId(projectID)
 	return resourceRead(ctx, d, meta)
 }
 
