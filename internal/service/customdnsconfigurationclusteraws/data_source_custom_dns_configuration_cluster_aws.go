@@ -16,7 +16,6 @@ func DataSource() *schema.Resource {
 			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"enabled": {
 				Type:     schema.TypeBool,
@@ -27,21 +26,17 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasCustomDNSConfigurationAWSRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	customDNSSetting, _, err := conn.CustomAWSDNS.Get(ctx, projectID)
+	customDNSSetting, _, err := connV2.AWSClustersDNSApi.GetAWSCustomDNS(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorRead, err))
 	}
 
-	if err := d.Set("enabled", customDNSSetting.Enabled); err != nil {
+	if err := d.Set("enabled", customDNSSetting.GetEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSetting, "enabled", projectID, err))
 	}
-
 	d.SetId(projectID)
-
 	return nil
 }
