@@ -29,3 +29,9 @@ jobs:
           delete-branch: true
           branch: atlas-sdk-update
           body: Automatic update for MongoDB Atlas Go Client SDK
+      - name: Trigger Go proxy cache refresh
+        run: |
+          LATEST_SDK_TAG=$(curl -sSfL https://api.github.com/repos/mongodb/atlas-sdk-go/releases/latest | jq -r '.tag_name')
+          LATEST_SDK_RELEASE=$(echo "${LATEST_SDK_TAG}" | cut -d '.' -f 1)
+          curl "https://proxy.golang.org/go.mongodb.org/atlas-sdk/${LATEST_SDK_RELEASE}/@v/${LATEST_SDK_TAG}.info"
+  
