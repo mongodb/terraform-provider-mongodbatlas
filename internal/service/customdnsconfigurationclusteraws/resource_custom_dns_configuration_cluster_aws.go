@@ -62,26 +62,21 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	dnsResp, resp, err := conn.CustomAWSDNS.Get(context.Background(), d.Id())
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	dnsResp, resp, err := connV2.AWSClustersDNSApi.GetAWSCustomDNS(context.Background(), d.Id()).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
-
 		return diag.FromErr(fmt.Errorf(errorRead, err))
 	}
-
-	if err = d.Set("enabled", dnsResp.Enabled); err != nil {
+	if err = d.Set("enabled", dnsResp.GetEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSetting, "enabled", d.Id(), err))
 	}
-
 	if err = d.Set("project_id", d.Id()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSetting, "project_id", d.Id(), err))
 	}
-
 	return nil
 }
 

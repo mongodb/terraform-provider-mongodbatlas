@@ -29,12 +29,12 @@ func dataSourceMongoDBAtlasCustomDNSConfigurationAWSRead(ctx context.Context, d 
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	customDNSSetting, _, err := connV2.AWSClustersDNSApi.GetAWSCustomDNS(ctx, projectID).Execute()
+	dnsResp, _, err := connV2.AWSClustersDNSApi.GetAWSCustomDNS(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorRead, err))
 	}
 
-	if err := d.Set("enabled", customDNSSetting.GetEnabled()); err != nil {
+	if err := d.Set("enabled", dnsResp.GetEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSetting, "enabled", projectID, err))
 	}
 	d.SetId(projectID)
