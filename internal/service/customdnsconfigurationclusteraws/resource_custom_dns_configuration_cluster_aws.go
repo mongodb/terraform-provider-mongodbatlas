@@ -10,7 +10,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -60,7 +59,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	dnsResp, resp, err := connV2.AWSClustersDNSApi.GetAWSCustomDNS(context.Background(), d.Id()).Execute()
+	projectID := d.Id()
+	dnsResp, resp, err := connV2.AWSClustersDNSApi.GetAWSCustomDNS(context.Background(), projectID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -69,21 +69,23 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorRead, err))
 	}
 	if err = d.Set("enabled", dnsResp.GetEnabled()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorSetting, "enabled", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSetting, "enabled", projectID, err))
 	}
 	if err = d.Set("project_id", d.Id()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorSetting, "project_id", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSetting, "project_id", projectID, err))
 	}
 	return nil
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	projectID := d.Id()
 
 	if d.HasChange("enabled") {
-		_, _, err := conn.CustomAWSDNS.Update(ctx, d.Id(), &matlas.AWSCustomDNSSetting{
+		params := &admin.AWSCustomDNSEnabled{
 			Enabled: d.Get("enabled").(bool),
-		})
+		}
+		_, _, err := connV2.AWSClustersDNSApi.ToggleAWSCustomDNS(ctx, projectID, params).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, err))
 		}
@@ -93,16 +95,15 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	_, _, err := conn.CustomAWSDNS.Update(ctx, d.Id(), &matlas.AWSCustomDNSSetting{
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	projectID := d.Id()
+	params := &admin.AWSCustomDNSEnabled{
 		Enabled: false,
-	})
-	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorDelete, d.Id(), err))
 	}
-
+	_, _, err := connV2.AWSClustersDNSApi.ToggleAWSCustomDNS(ctx, projectID, params).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorDelete, projectID, err))
+	}
 	d.SetId("")
-
 	return nil
 }
