@@ -11,7 +11,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasCustomDNSConfigurationAWSRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -25,15 +25,13 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCustomDNSConfigurationAWSRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
-
 	dnsResp, _, err := connV2.AWSClustersDNSApi.GetAWSCustomDNS(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorRead, err))
 	}
-
 	if err := d.Set("enabled", dnsResp.GetEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSetting, "enabled", projectID, err))
 	}
