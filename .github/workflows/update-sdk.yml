@@ -19,6 +19,7 @@ jobs:
         run: |
           LATEST_SDK_TAG=$(curl -sSfL https://api.github.com/repos/mongodb/atlas-sdk-go/releases/latest | jq -r '.tag_name')
           LATEST_SDK_RELEASE=$(echo "${LATEST_SDK_TAG}" | cut -d '.' -f 1)
+          echo "tag: ${LATEST_SDK_TAG}, release: ${LATEST_SDK_RELEASE}"
           curl -sSfL "https://proxy.golang.org/go.mongodb.org/atlas-sdk/${LATEST_SDK_RELEASE}/@v/${LATEST_SDK_TAG}.info"
       - name: Update files
         run:  make tools update-atlas-sdk
