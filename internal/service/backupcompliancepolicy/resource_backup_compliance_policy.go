@@ -15,7 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupschedule"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 const (
@@ -27,12 +27,12 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasBackupCompliancePolicyCreate,
-		UpdateContext: resourceMongoDBAtlasBackupCompliancePolicyUpdate,
-		ReadContext:   resourceMongoDBAtlasBackupCompliancePolicyRead,
-		DeleteContext: resourceMongoDBAtlasBackupCompliancePolicyDelete,
+		CreateContext: resourceCreate,
+		UpdateContext: resourceUpdate,
+		ReadContext:   resourceRead,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasBackupCompliancePolicyImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -230,82 +230,72 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	backupPolicy := matlas.BackupCompliancePolicy{}
-	backupPolicyItem := matlas.ScheduledPolicyItem{}
-	var backupPoliciesItem []matlas.ScheduledPolicyItem
+	params := &admin.DataProtectionSettings20231001{
+		ProjectId:               conversion.StringPtr(projectID),
+		AuthorizedEmail:         d.Get("authorized_email").(string),
+		AuthorizedUserFirstName: d.Get("authorized_user_first_name").(string),
+		AuthorizedUserLastName:  d.Get("authorized_user_last_name").(string),
+		CopyProtectionEnabled:   pointy.Bool(d.Get("copy_protection_enabled").(bool)),
+		EncryptionAtRestEnabled: pointy.Bool(d.Get("encryption_at_rest_enabled").(bool)),
+		PitEnabled:              pointy.Bool(d.Get("pit_enabled").(bool)),
+		RestoreWindowDays:       pointy.Int(cast.ToInt(d.Get("restore_window_days"))),
+		OnDemandPolicyItem:      expandDemandBackupPolicyItem(d),
+	}
 
-	backupCompliancePolicyReq := &matlas.BackupCompliancePolicy{}
-
-	backupCompliancePolicyReq.ProjectID = projectID
-
-	backupCompliancePolicyReq.AuthorizedEmail = d.Get("authorized_email").(string)
-
-	backupCompliancePolicyReq.AuthorizedUserFirstName = d.Get("authorized_user_first_name").(string)
-
-	backupCompliancePolicyReq.AuthorizedUserLastName = d.Get("authorized_user_last_name").(string)
-
-	backupCompliancePolicyReq.CopyProtectionEnabled = pointy.Bool(d.Get("copy_protection_enabled").(bool))
-
-	backupCompliancePolicyReq.EncryptionAtRestEnabled = pointy.Bool(d.Get("encryption_at_rest_enabled").(bool))
-
-	backupCompliancePolicyReq.PitEnabled = pointy.Bool(d.Get("pit_enabled").(bool))
-
-	backupCompliancePolicyReq.RestoreWindowDays = pointy.Int64(cast.ToInt64(d.Get("restore_window_days")))
-
-	backupCompliancePolicyReq.OnDemandPolicyItem = *expandDemandBackupPolicyItem(d)
-
+	var backupPoliciesItem []admin.BackupComplianceScheduledPolicyItem
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
 		item := v.([]any)
 		itemObj := item[0].(map[string]any)
-		backupPolicyItem.FrequencyType = cloudbackupschedule.Hourly
-		backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
-		backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
-		backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
-		backupPoliciesItem = append(backupPoliciesItem, backupPolicyItem)
+		backupPoliciesItem = append(backupPoliciesItem, admin.BackupComplianceScheduledPolicyItem{
+			FrequencyType:     cloudbackupschedule.Hourly,
+			RetentionUnit:     itemObj["retention_unit"].(string),
+			FrequencyInterval: itemObj["frequency_interval"].(int),
+			RetentionValue:    itemObj["retention_value"].(int),
+		})
 	}
 	if v, ok := d.GetOk("policy_item_daily"); ok {
 		item := v.([]any)
 		itemObj := item[0].(map[string]any)
-		backupPolicyItem.FrequencyType = cloudbackupschedule.Daily
-		backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
-		backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
-		backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
-		backupPoliciesItem = append(backupPoliciesItem, backupPolicyItem)
+		backupPoliciesItem = append(backupPoliciesItem, admin.BackupComplianceScheduledPolicyItem{
+			FrequencyType:     cloudbackupschedule.Daily,
+			RetentionUnit:     itemObj["retention_unit"].(string),
+			FrequencyInterval: itemObj["frequency_interval"].(int),
+			RetentionValue:    itemObj["retention_value"].(int),
+		})
 	}
 	if v, ok := d.GetOk("policy_item_weekly"); ok {
 		items := v.([]any)
 		for _, s := range items {
 			itemObj := s.(map[string]any)
-			backupPolicyItem.FrequencyType = cloudbackupschedule.Weekly
-			backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
-			backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
-			backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
-			backupPoliciesItem = append(backupPoliciesItem, backupPolicyItem)
+			backupPoliciesItem = append(backupPoliciesItem, admin.BackupComplianceScheduledPolicyItem{
+				FrequencyType:     cloudbackupschedule.Weekly,
+				RetentionUnit:     itemObj["retention_unit"].(string),
+				FrequencyInterval: itemObj["frequency_interval"].(int),
+				RetentionValue:    itemObj["retention_value"].(int),
+			})
 		}
 	}
 	if v, ok := d.GetOk("policy_item_monthly"); ok {
 		items := v.([]any)
 		for _, s := range items {
 			itemObj := s.(map[string]any)
-			backupPolicyItem.FrequencyType = cloudbackupschedule.Monthly
-			backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
-			backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
-			backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
-			backupPoliciesItem = append(backupPoliciesItem, backupPolicyItem)
+			backupPoliciesItem = append(backupPoliciesItem, admin.BackupComplianceScheduledPolicyItem{
+				FrequencyType:     cloudbackupschedule.Monthly,
+				RetentionUnit:     itemObj["retention_unit"].(string),
+				FrequencyInterval: itemObj["frequency_interval"].(int),
+				RetentionValue:    itemObj["retention_value"].(int),
+			})
 		}
 	}
-
-	backupPolicy.ScheduledPolicyItems = backupPoliciesItem
 	if len(backupPoliciesItem) > 0 {
-		backupCompliancePolicyReq.ScheduledPolicyItems = backupPoliciesItem
+		params.ScheduledPolicyItems = &backupPoliciesItem
 	}
 
-	// there is not an entry point to create a backup compliance policy until it will use the update entry point
-	_, _, err := conn.BackupCompliancePolicy.Update(ctx, projectID, backupCompliancePolicyReq)
+	_, _, err := connV2.CloudBackupsApi.UpdateDataProtectionSettings(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicyUpdate, projectID, err))
 	}
@@ -314,83 +304,80 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 		"project_id": projectID,
 	}))
 
-	return resourceMongoDBAtlasBackupCompliancePolicyRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 
-	backupPolicy, resp, err := conn.BackupCompliancePolicy.Get(context.Background(), projectID)
+	policy, resp, err := connV2.CloudBackupsApi.GetDataProtectionSettings(ctx, projectID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
-
 		return diag.FromErr(fmt.Errorf(errorBackupPolicyRead, projectID, err))
 	}
 
-	if err := d.Set("authorized_email", backupPolicy.AuthorizedEmail); err != nil {
+	if err := d.Set("authorized_email", policy.GetAuthorizedEmail()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "authorized_email", projectID, err))
 	}
 
-	if err := d.Set("authorized_user_first_name", backupPolicy.AuthorizedUserFirstName); err != nil {
+	if err := d.Set("authorized_user_first_name", policy.GetAuthorizedUserFirstName()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "authorized_user_first_name", projectID, err))
 	}
 
-	if err := d.Set("authorized_user_last_name", backupPolicy.AuthorizedUserLastName); err != nil {
+	if err := d.Set("authorized_user_last_name", policy.GetAuthorizedUserLastName()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "authorized_user_last_name", projectID, err))
 	}
 
-	if err := d.Set("restore_window_days", backupPolicy.RestoreWindowDays); err != nil {
+	if err := d.Set("restore_window_days", policy.GetRestoreWindowDays()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "restore_window_days", projectID, err))
 	}
 
-	if err := d.Set("updated_date", backupPolicy.UpdatedDate); err != nil {
+	if err := d.Set("updated_date", conversion.TimePtrToStringPtr(policy.UpdatedDate)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "updated_date", projectID, err))
 	}
 
-	if err := d.Set("updated_user", backupPolicy.UpdatedUser); err != nil {
+	if err := d.Set("updated_user", policy.GetUpdatedUser()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "updated_user", projectID, err))
 	}
 
-	if err := d.Set("state", backupPolicy.State); err != nil {
+	if err := d.Set("state", policy.GetState()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "state", projectID, err))
 	}
 
-	if err := d.Set("copy_protection_enabled", backupPolicy.CopyProtectionEnabled); err != nil {
+	if err := d.Set("copy_protection_enabled", policy.GetCopyProtectionEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "copy_protection_enabled", projectID, err))
 	}
 
-	if err := d.Set("encryption_at_rest_enabled", backupPolicy.EncryptionAtRestEnabled); err != nil {
+	if err := d.Set("encryption_at_rest_enabled", policy.GetEncryptionAtRestEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "encryption_at_rest_enabled", projectID, err))
 	}
 
-	if err := d.Set("pit_enabled", backupPolicy.PitEnabled); err != nil {
+	if err := d.Set("pit_enabled", policy.GetPitEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "pit_enabled", projectID, err))
 	}
 
-	if err := d.Set("on_demand_policy_item", flattenOnDemandBackupPolicyItem(backupPolicy.OnDemandPolicyItem)); err != nil {
+	if err := d.Set("on_demand_policy_item", flattenOnDemandBackupPolicyItem(policy.GetOnDemandPolicyItem())); err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "scheduled_policy_items", projectID, err))
 	}
 
-	if err := d.Set("policy_item_hourly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.Hourly)); err != nil {
+	if err := d.Set("policy_item_hourly", flattenBackupPolicyItems(policy.GetScheduledPolicyItems(), cloudbackupschedule.Hourly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_hourly", projectID, err)
 	}
 
-	if err := d.Set("policy_item_daily", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.Daily)); err != nil {
+	if err := d.Set("policy_item_daily", flattenBackupPolicyItems(policy.GetScheduledPolicyItems(), cloudbackupschedule.Daily)); err != nil {
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_daily", projectID, err)
 	}
 
-	if err := d.Set("policy_item_weekly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.Weekly)); err != nil {
+	if err := d.Set("policy_item_weekly", flattenBackupPolicyItems(policy.GetScheduledPolicyItems(), cloudbackupschedule.Weekly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_weekly", projectID, err)
 	}
 
-	if err := d.Set("policy_item_monthly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.Monthly)); err != nil {
+	if err := d.Set("policy_item_monthly", flattenBackupPolicyItems(policy.GetScheduledPolicyItems(), cloudbackupschedule.Monthly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_monthly", projectID, err)
 	}
 
@@ -401,99 +388,94 @@ func resourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *sche
 	return nil
 }
 
-func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 
-	backupPolicy := matlas.BackupCompliancePolicy{}
-	backupPolicyItem := matlas.ScheduledPolicyItem{}
-	var backupPoliciesItem []matlas.ScheduledPolicyItem
-
-	backupCompliancePolicyUpdate := &matlas.BackupCompliancePolicy{}
-
-	backupCompliancePolicyUpdate.ProjectID = projectID
-
-	backupCompliancePolicyUpdate.AuthorizedEmail = d.Get("authorized_email").(string)
-
-	backupCompliancePolicyUpdate.AuthorizedUserFirstName = d.Get("authorized_user_first_name").(string)
-
-	backupCompliancePolicyUpdate.AuthorizedUserLastName = d.Get("authorized_user_last_name").(string)
+	params := &admin.DataProtectionSettings20231001{
+		ProjectId:               conversion.StringPtr(projectID),
+		AuthorizedEmail:         d.Get("authorized_email").(string),
+		AuthorizedUserFirstName: d.Get("authorized_user_first_name").(string),
+		AuthorizedUserLastName:  d.Get("authorized_user_last_name").(string),
+		OnDemandPolicyItem:      expandDemandBackupPolicyItem(d),
+	}
 
 	if d.HasChange("copy_protection_enabled") {
-		backupCompliancePolicyUpdate.CopyProtectionEnabled = pointy.Bool(d.Get("copy_protection_enabled").(bool))
+		params.CopyProtectionEnabled = pointy.Bool(d.Get("copy_protection_enabled").(bool))
 	}
 
 	if d.HasChange("encryption_at_rest_enabled") {
-		backupCompliancePolicyUpdate.CopyProtectionEnabled = pointy.Bool(d.Get("copy_protection_enabled").(bool))
+		params.EncryptionAtRestEnabled = pointy.Bool(d.Get("encryption_at_rest_enabled").(bool))
 	}
 
 	if d.HasChange("pit_enabled") {
-		backupCompliancePolicyUpdate.PitEnabled = pointy.Bool(d.Get("pit_enabled").(bool))
+		params.PitEnabled = pointy.Bool(d.Get("pit_enabled").(bool))
 	}
 
 	if d.HasChange("restore_window_days") {
-		backupCompliancePolicyUpdate.RestoreWindowDays = pointy.Int64(cast.ToInt64(d.Get("restore_window_days")))
+		params.RestoreWindowDays = pointy.Int(cast.ToInt(d.Get("restore_window_days")))
 	}
 
-	backupCompliancePolicyUpdate.OnDemandPolicyItem = *expandDemandBackupPolicyItem(d)
-
+	var backupPoliciesItem []admin.BackupComplianceScheduledPolicyItem
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
 		item := v.([]any)
 		itemObj := item[0].(map[string]any)
-		backupPolicyItem.FrequencyType = cloudbackupschedule.Hourly
-		backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
-		backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
-		backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
-		backupPoliciesItem = append(backupPoliciesItem, backupPolicyItem)
+		backupPoliciesItem = append(backupPoliciesItem, admin.BackupComplianceScheduledPolicyItem{
+			FrequencyType:     cloudbackupschedule.Hourly,
+			RetentionUnit:     itemObj["retention_unit"].(string),
+			FrequencyInterval: itemObj["frequency_interval"].(int),
+			RetentionValue:    itemObj["retention_value"].(int),
+		})
 	}
 	if v, ok := d.GetOk("policy_item_daily"); ok {
 		item := v.([]any)
 		itemObj := item[0].(map[string]any)
-		backupPolicyItem.FrequencyType = cloudbackupschedule.Daily
-		backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
-		backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
-		backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
-		backupPoliciesItem = append(backupPoliciesItem, backupPolicyItem)
+		backupPoliciesItem = append(backupPoliciesItem, admin.BackupComplianceScheduledPolicyItem{
+			FrequencyType:     cloudbackupschedule.Daily,
+			RetentionUnit:     itemObj["retention_unit"].(string),
+			FrequencyInterval: itemObj["frequency_interval"].(int),
+			RetentionValue:    itemObj["retention_value"].(int),
+		})
 	}
 	if v, ok := d.GetOk("policy_item_weekly"); ok {
 		items := v.([]any)
 		for _, s := range items {
 			itemObj := s.(map[string]any)
-			backupPolicyItem.FrequencyType = cloudbackupschedule.Weekly
-			backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
-			backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
-			backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
-			backupPoliciesItem = append(backupPoliciesItem, backupPolicyItem)
+			backupPoliciesItem = append(backupPoliciesItem, admin.BackupComplianceScheduledPolicyItem{
+				FrequencyType:     cloudbackupschedule.Weekly,
+				RetentionUnit:     itemObj["retention_unit"].(string),
+				FrequencyInterval: itemObj["frequency_interval"].(int),
+				RetentionValue:    itemObj["retention_value"].(int),
+			})
 		}
 	}
 	if v, ok := d.GetOk("policy_item_monthly"); ok {
 		items := v.([]any)
 		for _, s := range items {
 			itemObj := s.(map[string]any)
-			backupPolicyItem.FrequencyType = cloudbackupschedule.Monthly
-			backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
-			backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
-			backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
-			backupPoliciesItem = append(backupPoliciesItem, backupPolicyItem)
+			backupPoliciesItem = append(backupPoliciesItem, admin.BackupComplianceScheduledPolicyItem{
+				FrequencyType:     cloudbackupschedule.Monthly,
+				RetentionUnit:     itemObj["retention_unit"].(string),
+				FrequencyInterval: itemObj["frequency_interval"].(int),
+				RetentionValue:    itemObj["retention_value"].(int),
+			})
 		}
 	}
-
-	backupPolicy.ScheduledPolicyItems = backupPoliciesItem
 	if len(backupPoliciesItem) > 0 {
-		backupCompliancePolicyUpdate.ScheduledPolicyItems = backupPoliciesItem
+		params.ScheduledPolicyItems = &backupPoliciesItem
 	}
 
-	_, _, err := conn.BackupCompliancePolicy.Update(context.Background(), projectID, backupCompliancePolicyUpdate)
+	_, _, err := connV2.CloudBackupsApi.UpdateDataProtectionSettings(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicyUpdate, projectID, err))
 	}
 
-	return resourceMongoDBAtlasBackupCompliancePolicyRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasBackupCompliancePolicyDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// There is no resource to delete a backup compliance policy, it can only be updated.
 	log.Printf("[WARN] Note: Deleting a Backup Compliance Policy resource in Terraform does not remove the policy from your Atlas Project. " +
 		"To disable a Backup Compliance Policy, the security or legal representative specified for the Backup Compliance Policy must contact " +
@@ -503,17 +485,16 @@ func resourceMongoDBAtlasBackupCompliancePolicyDelete(ctx context.Context, d *sc
 	return nil
 }
 
-func resourceMongoDBAtlasBackupCompliancePolicyImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 1 {
 		return nil, errors.New("import format error: to import a Backup Compliance Policy use the format {project_id}")
 	}
-
 	projectID := parts[0]
 
-	_, _, err := conn.BackupCompliancePolicy.Get(ctx, projectID)
+	_, _, err := connV2.CloudBackupsApi.GetDataProtectionSettings(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorBackupPolicyRead, projectID, err)
 	}
@@ -529,30 +510,25 @@ func resourceMongoDBAtlasBackupCompliancePolicyImportState(ctx context.Context, 
 	return []*schema.ResourceData{d}, nil
 }
 
-func flattenOnDemandBackupPolicyItem(item matlas.PolicyItem) []map[string]any {
-	policyItems := make([]map[string]any, 0)
-
-	policyItems = append(policyItems, map[string]any{
-		"id":                 item.ID,
-		"frequency_interval": item.FrequencyInterval,
-		"frequency_type":     item.FrequencyType,
-		"retention_unit":     item.RetentionUnit,
-		"retention_value":    item.RetentionValue,
-	})
-
-	return policyItems
+func flattenOnDemandBackupPolicyItem(item admin.BackupComplianceOnDemandPolicyItem) []map[string]any {
+	return []map[string]any{
+		{
+			"id":                 item.GetId(),
+			"frequency_interval": item.GetFrequencyInterval(),
+			"frequency_type":     item.GetFrequencyType(),
+			"retention_unit":     item.GetRetentionUnit(),
+			"retention_value":    item.GetRetentionValue(),
+		},
+	}
 }
 
-func expandDemandBackupPolicyItem(d *schema.ResourceData) *matlas.PolicyItem {
-	var onDemand matlas.PolicyItem
-
+func expandDemandBackupPolicyItem(d *schema.ResourceData) *admin.BackupComplianceOnDemandPolicyItem {
 	if v, ok := d.GetOk("on_demand_policy_item"); ok {
 		demandItem := v.([]any)
 		if len(demandItem) > 0 {
 			demandItemMap := demandItem[0].(map[string]any)
-
-			onDemand = matlas.PolicyItem{
-				ID:                demandItemMap["id"].(string),
+			return &admin.BackupComplianceOnDemandPolicyItem{
+				Id:                conversion.StringPtr(demandItemMap["id"].(string)),
 				FrequencyInterval: demandItemMap["frequency_interval"].(int),
 				FrequencyType:     "ondemand",
 				RetentionUnit:     demandItemMap["retention_unit"].(string),
@@ -560,6 +536,22 @@ func expandDemandBackupPolicyItem(d *schema.ResourceData) *matlas.PolicyItem {
 			}
 		}
 	}
+	return nil
+}
 
-	return &onDemand
+func flattenBackupPolicyItems(items []admin.BackupComplianceScheduledPolicyItem, frequencyType string) []map[string]any {
+	policyItems := make([]map[string]any, 0)
+	for i := range items {
+		item := &items[i]
+		if frequencyType == item.FrequencyType {
+			policyItems = append(policyItems, map[string]any{
+				"id":                 item.GetId(),
+				"frequency_interval": item.GetFrequencyInterval(),
+				"frequency_type":     item.GetFrequencyType(),
+				"retention_unit":     item.GetRetentionUnit(),
+				"retention_value":    item.GetRetentionValue(),
+			})
+		}
+	}
+	return policyItems
 }

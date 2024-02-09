@@ -10,6 +10,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+const dataSourceName = "data.mongodbatlas_backup_compliance_policy.backup_policy"
+
 func TestAccGenericBackupDSBackupCompliancePolicy_basic(t *testing.T) {
 	projectName := fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -20,21 +22,21 @@ func TestAccGenericBackupDSBackupCompliancePolicy_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDataSourceBackupCompliancePolicyConfig(projectName, orgID, projectOwnerID),
+				Config: configDS(projectName, orgID, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasBackupCompliancePolicyExists("data.mongodbatlas_backup_compliance_policy.backup_policy"),
-					resource.TestCheckResourceAttr("mongodbatlas_backup_compliance_policy.backup_policy_res", "copy_protection_enabled", "false"),
-					resource.TestCheckResourceAttr("mongodbatlas_backup_compliance_policy.backup_policy_res", "encryption_at_rest_enabled", "false"),
-					resource.TestCheckResourceAttr("mongodbatlas_backup_compliance_policy.backup_policy_res", "authorized_email", "test@example.com"),
-					resource.TestCheckResourceAttr("mongodbatlas_backup_compliance_policy.backup_policy_res", "authorized_user_first_name", "First"),
-					resource.TestCheckResourceAttr("mongodbatlas_backup_compliance_policy.backup_policy_res", "authorized_user_last_name", "Last"),
+					checkExists(dataSourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "copy_protection_enabled", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "encryption_at_rest_enabled", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "authorized_email", "test@example.com"),
+					resource.TestCheckResourceAttr(dataSourceName, "authorized_user_first_name", "First"),
+					resource.TestCheckResourceAttr(dataSourceName, "authorized_user_last_name", "Last"),
 				),
 			},
 		},
 	})
 }
 
-func testAccMongoDBAtlasDataSourceBackupCompliancePolicyConfig(projectName, orgID, projectOwnerID string) string {
+func configDS(projectName, orgID, projectOwnerID string) string {
 	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + `
 
 		data "mongodbatlas_backup_compliance_policy" "backup_policy" {

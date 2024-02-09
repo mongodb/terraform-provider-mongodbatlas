@@ -11,12 +11,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupschedule"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasBackupCompliancePolicyRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -206,76 +205,75 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
-
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	backupPolicy, resp, err := conn.BackupCompliancePolicy.Get(ctx, projectID)
-	if resp != nil && resp.StatusCode == http.StatusNotFound || backupPolicy.ProjectID == "" {
+	policy, resp, err := connV2.CloudBackupsApi.GetDataProtectionSettings(ctx, projectID).Execute()
+	if resp != nil && resp.StatusCode == http.StatusNotFound || policy.GetProjectId() == "" {
 		return nil
 	}
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(cluster.ErrorSnapshotBackupPolicyRead, projectID, err))
 	}
 
-	if err := d.Set("authorized_email", backupPolicy.AuthorizedEmail); err != nil {
+	if err := d.Set("authorized_email", policy.GetAuthorizedEmail()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicySetting, "authorized_email", projectID, err))
 	}
 
-	if err := d.Set("authorized_user_first_name", backupPolicy.AuthorizedUserFirstName); err != nil {
+	if err := d.Set("authorized_user_first_name", policy.GetAuthorizedUserFirstName()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicySetting, "authorized_user_first_name", projectID, err))
 	}
 
-	if err := d.Set("authorized_user_last_name", backupPolicy.AuthorizedUserLastName); err != nil {
+	if err := d.Set("authorized_user_last_name", policy.GetAuthorizedUserLastName()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicySetting, "authorized_user_last_name", projectID, err))
 	}
 
-	if err := d.Set("state", backupPolicy.State); err != nil {
+	if err := d.Set("state", policy.GetState()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicySetting, "state", projectID, err))
 	}
 
-	if err := d.Set("restore_window_days", backupPolicy.RestoreWindowDays); err != nil {
+	if err := d.Set("restore_window_days", policy.GetRestoreWindowDays()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicySetting, "restore_window_days", projectID, err))
 	}
 
-	if err := d.Set("pit_enabled", backupPolicy.PitEnabled); err != nil {
+	if err := d.Set("pit_enabled", policy.GetPitEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicySetting, "pit_enabled", projectID, err))
 	}
 
-	if err := d.Set("copy_protection_enabled", backupPolicy.CopyProtectionEnabled); err != nil {
+	if err := d.Set("copy_protection_enabled", policy.GetCopyProtectionEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicySetting, "copy_protection_enabled", projectID, err))
 	}
 
-	if err := d.Set("encryption_at_rest_enabled", backupPolicy.EncryptionAtRestEnabled); err != nil {
+	if err := d.Set("encryption_at_rest_enabled", policy.GetEncryptionAtRestEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicySetting, "encryption_at_rest_enabled", projectID, err))
 	}
 
-	if err := d.Set("updated_date", backupPolicy.UpdatedDate); err != nil {
+	if err := d.Set("updated_date", conversion.TimePtrToStringPtr(policy.UpdatedDate)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicySetting, "updated_date", projectID, err))
 	}
 
-	if err := d.Set("updated_user", backupPolicy.UpdatedUser); err != nil {
+	if err := d.Set("updated_user", policy.GetUpdatedUser()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicySetting, "updated_user", projectID, err))
 	}
 
-	if err := d.Set("on_demand_policy_item", flattenOnDemandBackupPolicyItem(backupPolicy.OnDemandPolicyItem)); err != nil {
+	if err := d.Set("on_demand_policy_item", flattenOnDemandBackupPolicyItem(policy.GetOnDemandPolicyItem())); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicySetting, "policies", projectID, err))
 	}
 
-	if err := d.Set("policy_item_hourly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.Hourly)); err != nil {
+	if err := d.Set("policy_item_hourly", flattenBackupPolicyItems(policy.GetScheduledPolicyItems(), cloudbackupschedule.Hourly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_hourly", projectID, err)
 	}
 
-	if err := d.Set("policy_item_daily", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.Daily)); err != nil {
+	if err := d.Set("policy_item_daily", flattenBackupPolicyItems(policy.GetScheduledPolicyItems(), cloudbackupschedule.Daily)); err != nil {
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_daily", projectID, err)
 	}
 
-	if err := d.Set("policy_item_weekly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.Weekly)); err != nil {
+	if err := d.Set("policy_item_weekly", flattenBackupPolicyItems(policy.GetScheduledPolicyItems(), cloudbackupschedule.Weekly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_weekly", projectID, err)
 	}
 
-	if err := d.Set("policy_item_monthly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, cloudbackupschedule.Monthly)); err != nil {
+	if err := d.Set("policy_item_monthly", flattenBackupPolicyItems(policy.GetScheduledPolicyItems(), cloudbackupschedule.Monthly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_monthly", projectID, err)
 	}
 
@@ -284,20 +282,4 @@ func dataSourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *sc
 	}))
 
 	return nil
-}
-
-func flattenBackupPolicyItems(items []matlas.ScheduledPolicyItem, frequencyType string) []map[string]any {
-	policyItems := make([]map[string]any, 0)
-	for _, v := range items {
-		if frequencyType == v.FrequencyType {
-			policyItems = append(policyItems, map[string]any{
-				"id":                 v.ID,
-				"frequency_interval": v.FrequencyInterval,
-				"frequency_type":     v.FrequencyType,
-				"retention_unit":     v.RetentionUnit,
-				"retention_value":    v.RetentionValue,
-			})
-		}
-	}
-	return policyItems
 }
