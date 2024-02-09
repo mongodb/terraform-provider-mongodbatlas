@@ -13,7 +13,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasPrivateEndpointServiceServerlessLinkRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -62,48 +62,43 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasPrivateEndpointServiceServerlessLinkRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	instanceName := d.Get("instance_name").(string)
 	endpointID := d.Get("endpoint_id").(string)
 
-	serviceEndpoint, _, err := conn.ServerlessPrivateEndpoints.Get(ctx, projectID, instanceName, endpointID)
+	serviceEndpoint, _, err := connV2.ServerlessPrivateEndpointsApi.GetServerlessPrivateEndpoint(ctx, projectID, instanceName, endpointID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(privatelinkendpointservice.ErrorServiceEndpointRead, endpointID, err))
 	}
 
-	if err := d.Set("error_message", serviceEndpoint.ErrorMessage); err != nil {
+	if err := d.Set("error_message", serviceEndpoint.GetErrorMessage()); err != nil {
 		return diag.FromErr(fmt.Errorf(privatelinkendpointservice.ErrorEndpointSetting, "error_message", endpointID, err))
 	}
 
-	if err := d.Set("status", serviceEndpoint.Status); err != nil {
+	if err := d.Set("status", serviceEndpoint.GetStatus()); err != nil {
 		return diag.FromErr(fmt.Errorf(privatelinkendpointservice.ErrorEndpointSetting, "status", endpointID, err))
 	}
 
-	if err := d.Set("comment", serviceEndpoint.Comment); err != nil {
+	if err := d.Set("comment", serviceEndpoint.GetComment()); err != nil {
 		return diag.FromErr(fmt.Errorf(privatelinkendpointservice.ErrorEndpointSetting, "comment", endpointID, err))
 	}
 
-	if err := d.Set("error_message", serviceEndpoint.ErrorMessage); err != nil {
-		return diag.FromErr(fmt.Errorf(privatelinkendpointservice.ErrorEndpointSetting, "error_message", endpointID, err))
-	}
-
-	if err := d.Set("endpoint_service_name", serviceEndpoint.EndpointServiceName); err != nil {
+	if err := d.Set("endpoint_service_name", serviceEndpoint.GetEndpointServiceName()); err != nil {
 		return diag.FromErr(fmt.Errorf(privatelinkendpointservice.ErrorEndpointSetting, "endpoint_service_name", endpointID, err))
 	}
 
-	if err := d.Set("cloud_provider_endpoint_id", serviceEndpoint.CloudProviderEndpointID); err != nil {
+	if err := d.Set("cloud_provider_endpoint_id", serviceEndpoint.GetCloudProviderEndpointId()); err != nil {
 		return diag.FromErr(fmt.Errorf(privatelinkendpointservice.ErrorEndpointSetting, "cloud_provider_endpoint_id", endpointID, err))
 	}
 
-	if err := d.Set("private_link_service_resource_id", serviceEndpoint.PrivateLinkServiceResourceID); err != nil {
+	if err := d.Set("private_link_service_resource_id", serviceEndpoint.GetPrivateLinkServiceResourceId()); err != nil {
 		return diag.FromErr(fmt.Errorf(privatelinkendpointservice.ErrorEndpointSetting, "private_link_service_resource_id", endpointID, err))
 	}
 
-	if err := d.Set("private_endpoint_ip_address", serviceEndpoint.PrivateEndpointIPAddress); err != nil {
+	if err := d.Set("private_endpoint_ip_address", serviceEndpoint.GetPrivateEndpointIpAddress()); err != nil {
 		return diag.FromErr(fmt.Errorf(privatelinkendpointservice.ErrorEndpointSetting, "private_endpoint_ip_address", endpointID, err))
 	}
 
