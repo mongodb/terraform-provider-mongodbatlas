@@ -66,7 +66,7 @@ func (r *searchDeploymentRS) Create(ctx context.Context, req resource.CreateRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	deploymentResp, err := WaitSearchNodeStateTransition(ctx, projectID, clusterName, ServiceFromClient(connV2),
+	deploymentResp, err := WaitSearchNodeStateTransition(ctx, projectID, clusterName, connV2.AtlasSearchApi,
 		retryTimeConfig(createTimeout, minTimeoutCreateUpdate))
 	if err != nil {
 		resp.Diagnostics.AddError("error during search deployment creation", err.Error())
@@ -125,7 +125,7 @@ func (r *searchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	deploymentResp, err := WaitSearchNodeStateTransition(ctx, projectID, clusterName, ServiceFromClient(connV2),
+	deploymentResp, err := WaitSearchNodeStateTransition(ctx, projectID, clusterName, connV2.AtlasSearchApi,
 		retryTimeConfig(updateTimeout, minTimeoutCreateUpdate))
 	if err != nil {
 		resp.Diagnostics.AddError("error during search deployment update", err.Error())
@@ -159,7 +159,7 @@ func (r *searchDeploymentRS) Delete(ctx context.Context, req resource.DeleteRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if err := WaitSearchNodeDelete(ctx, projectID, clusterName, ServiceFromClient(connV2), retryTimeConfig(deleteTimeout, minTimeoutDelete)); err != nil {
+	if err := WaitSearchNodeDelete(ctx, projectID, clusterName, connV2.AtlasSearchApi, retryTimeConfig(deleteTimeout, minTimeoutDelete)); err != nil {
 		resp.Diagnostics.AddError("error during search deployment delete", err.Error())
 		return
 	}

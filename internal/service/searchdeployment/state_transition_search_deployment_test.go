@@ -10,9 +10,9 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mocksvc"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
+	"go.mongodb.org/atlas-sdk/v20231115006/test/mockery/mocksvc"
 )
 
 var (
@@ -73,15 +73,19 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			svc := mocksvc.NewDeploymentService(t)
+			api := mocksvc.NewAtlasSearchApi(t)
 			ctx := context.Background()
 			for _, resp := range tc.mockResponses {
-				svc.On("GetAtlasSearchDeployment", ctx, dummyProjectID, clusterName).Return(resp.get()...).Once()
+				req := admin.GetAtlasSearchDeploymentApiRequest{
+					ApiService: api,
+				}
+				api.On("GetAtlasSearchDeployment", ctx, dummyProjectID, clusterName).Return(req).Once()
+				api.On("GetAtlasSearchDeploymentExecute", req).Return(resp.get()...).Once()
 			}
-			resp, err := searchdeployment.WaitSearchNodeStateTransition(ctx, dummyProjectID, "Cluster0", svc, testTimeoutConfig)
+			resp, err := searchdeployment.WaitSearchNodeStateTransition(ctx, dummyProjectID, "Cluster0", api, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
 			assert.Equal(t, responseWithState(tc.expectedState), resp)
-			svc.AssertExpectations(t)
+			api.AssertExpectations(t)
 		})
 	}
 }
@@ -115,14 +119,18 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			svc := mocksvc.NewDeploymentService(t)
+			api := mocksvc.NewAtlasSearchApi(t)
 			ctx := context.Background()
 			for _, resp := range tc.mockResponses {
-				svc.On("GetAtlasSearchDeployment", ctx, dummyProjectID, clusterName).Return(resp.get()...).Once()
+				req := admin.GetAtlasSearchDeploymentApiRequest{
+					ApiService: api,
+				}
+				api.On("GetAtlasSearchDeployment", ctx, dummyProjectID, clusterName).Return(req).Once()
+				api.On("GetAtlasSearchDeploymentExecute", req).Return(resp.get()...).Once()
 			}
-			err := searchdeployment.WaitSearchNodeDelete(ctx, dummyProjectID, clusterName, svc, testTimeoutConfig)
+			err := searchdeployment.WaitSearchNodeDelete(ctx, dummyProjectID, clusterName, api, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
-			svc.AssertExpectations(t)
+			api.AssertExpectations(t)
 		})
 	}
 }
