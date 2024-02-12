@@ -66,6 +66,7 @@ jobs:
       encryption: ${{ steps.filter.outputs.encryption == 'true' || env.mustTrigger == 'true' }}
       serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
       data_lake: ${{ steps.filter.outputs.data_lake == 'true' || env.mustTrigger == 'true' }}
+      cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
     - uses: dorny/paths-filter@0bc4621a3135347011ad047f9ecf449bf72ce2bd
@@ -132,6 +133,8 @@ jobs:
             - 'internal/service/privatelinkendpointserviceserverless/*.go'
           data_lake:
             - 'internal/service/datalakepipeline/*.go'
+          cluster_outage_simulation:
+            - 'internal/service/clusteroutagesimulation/*.go'
   
   project: 
     needs: [ change-detection, get-provider-version ]
@@ -460,4 +463,27 @@ jobs:
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           TEST_REGEX: "^TestAccMigrationcDataLake"
+        run: make testacc
+  cluster_outage_simulation:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || inputs.test_group == 'cluster_outage_simulation' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.terraform_version }}
+          terraform_wrapper: false    
+      - name: Migration Tests
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
+          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
+          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
+          TEST_REGEX: "^TestAccMigrationOutageSimulationCluster"
         run: make testacc
