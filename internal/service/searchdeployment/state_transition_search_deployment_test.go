@@ -76,11 +76,7 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 			api := mocksvc.NewAtlasSearchApi(t)
 			ctx := context.Background()
 			for _, resp := range tc.mockResponses {
-				req := admin.GetAtlasSearchDeploymentApiRequest{
-					ApiService: api,
-				}
-				api.On("GetAtlasSearchDeployment", ctx, dummyProjectID, clusterName).Return(req).Once()
-				api.On("GetAtlasSearchDeploymentExecute", req).Return(resp.get()...).Once()
+				api.On("GetAtlasSearchDeployment", ctx, dummyProjectID, clusterName).Return(resp.get()...).Once()
 			}
 			resp, err := searchdeployment.WaitSearchNodeStateTransition(ctx, dummyProjectID, "Cluster0", api, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
@@ -122,11 +118,7 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 			api := mocksvc.NewAtlasSearchApi(t)
 			ctx := context.Background()
 			for _, resp := range tc.mockResponses {
-				req := admin.GetAtlasSearchDeploymentApiRequest{
-					ApiService: api,
-				}
-				api.On("GetAtlasSearchDeployment", ctx, dummyProjectID, clusterName).Return(req).Once()
-				api.On("GetAtlasSearchDeploymentExecute", req).Return(resp.get()...).Once()
+				api.On("GetAtlasSearchDeployment", ctx, dummyProjectID, clusterName).Return(resp.get()...).Once()
 			}
 			err := searchdeployment.WaitSearchNodeDelete(ctx, dummyProjectID, clusterName, api, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
