@@ -96,13 +96,11 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 }
 
 func flattenServerlessPrivateLinkEndpoints(privateLinks []admin.ServerlessTenantEndpoint) []map[string]any {
-	var results []map[string]any
-
 	if len(privateLinks) == 0 {
-		return results
+		return nil
 	}
 
-	results = make([]map[string]any, len(privateLinks))
+	results := make([]map[string]any, len(privateLinks))
 
 	for k := range privateLinks {
 		results[k] = map[string]any{
