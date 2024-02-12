@@ -21,10 +21,10 @@ func TestAccOutageSimulationClusterDS_SingleRegion_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasClusterOutageSimulationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigDSSingleRegion(projectName, orgID, clusterName),
+				Config: dataSourceConfigSingleRegion(projectName, orgID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
@@ -49,10 +49,10 @@ func TestAccOutageSimulationClusterDS_MultiRegion_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasClusterOutageSimulationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigDSMultiRegion(projectName, orgID, clusterName),
+				Config: dataSourceConfigMultiRegion(projectName, orgID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
@@ -66,7 +66,7 @@ func TestAccOutageSimulationClusterDS_MultiRegion_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigDSSingleRegion(projectName, orgID, clusterName string) string {
+func dataSourceConfigSingleRegion(projectName, orgID, clusterName string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_project" "outage_project" {
 		name   = "%s"
@@ -101,7 +101,7 @@ func testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigDSSingleRegion(pr
 	`, projectName, orgID, clusterName)
 }
 
-func testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigDSMultiRegion(projectName, orgID, clusterName string) string {
+func dataSourceConfigMultiRegion(projectName, orgID, clusterName string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_project" "outage_project" {
 		name   = "%s"
