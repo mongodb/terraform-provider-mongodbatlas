@@ -112,7 +112,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"RESERVATION_REQUESTED", "INITIATING", "DELETING"},
 		Target:     []string{"RESERVED", "FAILED", "DELETED", "AVAILABLE"},
-		Refresh:    resourceServiceEndpointServerlessRefreshFunc(ctx, connV2, projectID, instanceName, endpointID),
+		Refresh:    resourceRefreshFunc(ctx, connV2, projectID, instanceName, endpointID),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 5 * time.Second,
 		Delay:      5 * time.Minute,
@@ -126,7 +126,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	clusterConf := &retry.StateChangeConf{
 		Pending:    []string{"REPEATING", "PENDING"},
 		Target:     []string{"IDLE", "DELETED"},
-		Refresh:    resourceServerlessInstanceListRefreshFunc(ctx, projectID, connV2),
+		Refresh:    resourceListRefreshFunc(ctx, projectID, connV2),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 5 * time.Second,
 		Delay:      5 * time.Minute,
@@ -270,7 +270,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceServiceEndpointServerlessRefreshFunc(ctx context.Context, client *admin.APIClient, projectID, instanceName, endpointServiceID string) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, client *admin.APIClient, projectID, instanceName, endpointServiceID string) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		serverlessTenantEndpoint, resp, err := client.ServerlessPrivateEndpointsApi.GetServerlessPrivateEndpoint(ctx, projectID, instanceName, endpointServiceID).Execute()
 		if err != nil {
@@ -290,7 +290,7 @@ func resourceServiceEndpointServerlessRefreshFunc(ctx context.Context, client *a
 	}
 }
 
-func resourceServerlessInstanceListRefreshFunc(ctx context.Context, projectID string, client *admin.APIClient) retry.StateRefreshFunc {
+func resourceListRefreshFunc(ctx context.Context, projectID string, client *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		serverlessInstances, resp, err := client.ServerlessInstancesApi.ListServerlessInstances(ctx, projectID).Execute()
 
