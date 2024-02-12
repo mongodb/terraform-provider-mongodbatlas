@@ -2,17 +2,19 @@ package privatelinkendpointserviceserverless
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasPrivateLinkEndpointsServiceServerlessRead,
+		ReadContext: dataSourcePluralRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -24,12 +26,14 @@ func PluralDataSource() *schema.Resource {
 				ForceNew: true,
 			},
 			"page_num": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.17.0"),
+				Type:       schema.TypeInt,
+				Optional:   true,
 			},
 			"items_per_page": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.17.0"),
+				Type:       schema.TypeInt,
+				Optional:   true,
 			},
 			"results": {
 				Type:     schema.TypeList,
@@ -76,18 +80,12 @@ func PluralDataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasPrivateLinkEndpointsServiceServerlessRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	instanceName := d.Get("instance_name").(string)
 
-	options := &matlas.ListOptions{
-		PageNum:      d.Get("page_num").(int),
-		ItemsPerPage: d.Get("items_per_page").(int),
-	}
-
-	privateLinkEndpoints, _, err := conn.ServerlessPrivateEndpoints.List(ctx, projectID, instanceName, options)
+	privateLinkEndpoints, _, err := connV2.ServerlessPrivateEndpointsApi.ListServerlessPrivateEndpoints(ctx, projectID, instanceName).Execute()
 	if err != nil {
 		return diag.Errorf("error getting Serverless PrivateLink Endpoints Information: %s", err)
 	}
@@ -101,25 +99,23 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointsServiceServerlessRead(ctx context
 	return nil
 }
 
-func flattenServerlessPrivateLinkEndpoints(privateLinks []matlas.ServerlessPrivateEndpointConnection) []map[string]any {
-	var results []map[string]any
-
+func flattenServerlessPrivateLinkEndpoints(privateLinks []admin.ServerlessTenantEndpoint) []map[string]any {
 	if len(privateLinks) == 0 {
-		return results
+		return nil
 	}
 
-	results = make([]map[string]any, len(privateLinks))
+	results := make([]map[string]any, len(privateLinks))
 
 	for k := range privateLinks {
 		results[k] = map[string]any{
-			"endpoint_id":                      privateLinks[k].ID,
-			"endpoint_service_name":            privateLinks[k].EndpointServiceName,
-			"cloud_provider_endpoint_id":       privateLinks[k].CloudProviderEndpointID,
-			"private_link_service_resource_id": privateLinks[k].PrivateLinkServiceResourceID,
-			"private_endpoint_ip_address":      privateLinks[k].PrivateEndpointIPAddress,
-			"comment":                          privateLinks[k].Comment,
-			"error_message":                    privateLinks[k].ErrorMessage,
-			"status":                           privateLinks[k].Status,
+			"endpoint_id":                      privateLinks[k].GetId(),
+			"endpoint_service_name":            privateLinks[k].GetEndpointServiceName(),
+			"cloud_provider_endpoint_id":       privateLinks[k].GetCloudProviderEndpointId(),
+			"private_link_service_resource_id": privateLinks[k].GetPrivateLinkServiceResourceId(),
+			"private_endpoint_ip_address":      privateLinks[k].GetPrivateEndpointIpAddress(),
+			"comment":                          privateLinks[k].GetComment(),
+			"error_message":                    privateLinks[k].GetErrorMessage(),
+			"status":                           privateLinks[k].GetStatus(),
 		}
 	}
 

@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 const (
@@ -25,11 +25,11 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessRead,
-		DeleteWithoutTimeout: resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessDelete,
+		CreateWithoutTimeout: resourceCreate,
+		ReadWithoutTimeout:   resourceRead,
+		DeleteWithoutTimeout: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -86,28 +86,25 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	instanceName := d.Get("instance_name").(string)
 	endpointID := d.Get("endpoint_id").(string)
 
-	privateLink, _, err := conn.ServerlessPrivateEndpoints.Get(ctx, projectID, instanceName, endpointID)
+	_, _, err := connV2.ServerlessPrivateEndpointsApi.GetServerlessPrivateEndpoint(ctx, projectID, instanceName, endpointID).Execute()
 	if err != nil {
 		return diag.Errorf("error getting Serverless PrivateLink Endpoint Information: %s", err)
 	}
 
-	privateLink.Comment = d.Get("comment").(string)
-	privateLink.CloudProviderEndpointID = d.Get("cloud_provider_endpoint_id").(string)
-	privateLink.ProviderName = d.Get("provider_name").(string)
-	privateLink.PrivateLinkServiceResourceID = ""
-	privateLink.PrivateEndpointIPAddress = d.Get("private_endpoint_ip_address").(string)
-	privateLink.ID = ""
-	privateLink.Status = ""
-	privateLink.EndpointServiceName = ""
+	updateRequest := admin.ServerlessTenantEndpointUpdate{
+		Comment:                  conversion.StringPtr(d.Get("comment").(string)),
+		ProviderName:             d.Get("provider_name").(string),
+		CloudProviderEndpointId:  conversion.StringPtr(d.Get("cloud_provider_endpoint_id").(string)),
+		PrivateEndpointIpAddress: conversion.StringPtr(d.Get("private_endpoint_ip_address").(string)),
+	}
 
-	endPoint, _, err := conn.ServerlessPrivateEndpoints.Update(ctx, projectID, instanceName, endpointID, privateLink)
+	endPoint, _, err := connV2.ServerlessPrivateEndpointsApi.UpdateServerlessPrivateEndpoint(ctx, projectID, instanceName, endpointID, &updateRequest).Execute()
 	if err != nil {
 		return diag.Errorf(ErrorServerlessServiceEndpointAdd, endpointID, err)
 	}
@@ -115,12 +112,12 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate(ctx context.
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"RESERVATION_REQUESTED", "INITIATING", "DELETING"},
 		Target:     []string{"RESERVED", "FAILED", "DELETED", "AVAILABLE"},
-		Refresh:    resourceServiceEndpointServerlessRefreshFunc(ctx, conn, projectID, instanceName, endpointID),
+		Refresh:    resourceRefreshFunc(ctx, connV2, projectID, instanceName, endpointID),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 5 * time.Second,
 		Delay:      5 * time.Minute,
 	}
-	// Wait, catching any errors
+
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorServerlessServiceEndpointAdd, endpointID, err))
@@ -129,7 +126,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate(ctx context.
 	clusterConf := &retry.StateChangeConf{
 		Pending:    []string{"REPEATING", "PENDING"},
 		Target:     []string{"IDLE", "DELETED"},
-		Refresh:    resourceServerlessInstanceListRefreshFunc(ctx, projectID, conn),
+		Refresh:    resourceListRefreshFunc(ctx, projectID, connV2),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 5 * time.Second,
 		Delay:      5 * time.Minute,
@@ -143,35 +140,32 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate(ctx context.
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":    projectID,
 		"instance_name": instanceName,
-		"endpoint_id":   endPoint.ID,
+		"endpoint_id":   endPoint.GetId(),
 	}))
 
-	return resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	instanceName := ids["instance_name"]
 	endpointID := ids["endpoint_id"]
 
-	privateLinkResponse, _, err := conn.ServerlessPrivateEndpoints.Get(ctx, projectID, instanceName, endpointID)
+	privateLinkResponse, _, err := connV2.ServerlessPrivateEndpointsApi.GetServerlessPrivateEndpoint(ctx, projectID, instanceName, endpointID).Execute()
 	if err != nil {
-		// case 404
-		// deleted in the backend case
+		// case 404: deleted in the backend case
 		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "400") {
 			d.SetId("")
 			return nil
 		}
-
 		return diag.Errorf("error getting Serverless private link endpoint  information: %s", err)
 	}
 
-	privateLinkResponse.ProviderName = d.Get("provider_name").(string)
+	privateLinkResponse.ProviderName = conversion.StringPtr(d.Get("provider_name").(string))
 
-	if err := d.Set("endpoint_id", privateLinkResponse.ID); err != nil {
+	if err := d.Set("endpoint_id", privateLinkResponse.GetId()); err != nil {
 		return diag.Errorf("error setting `endpoint_id` for endpoint_id (%s): %s", d.Id(), err)
 	}
 
@@ -179,50 +173,47 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessRead(ctx context.Co
 		return diag.Errorf("error setting `instance Name` for endpoint_id (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("comment", privateLinkResponse.Comment); err != nil {
+	if err := d.Set("comment", privateLinkResponse.GetComment()); err != nil {
 		return diag.Errorf("error setting `comment` for endpoint_id (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("provider_name", privateLinkResponse.ProviderName); err != nil {
+	if err := d.Set("provider_name", privateLinkResponse.GetProviderName()); err != nil {
 		return diag.Errorf("error setting `provider_name` for endpoint_id (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("status", privateLinkResponse.Status); err != nil {
+	if err := d.Set("status", privateLinkResponse.GetStatus()); err != nil {
 		return diag.Errorf("error setting `status` for endpoint_id (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("cloud_provider_endpoint_id", privateLinkResponse.CloudProviderEndpointID); err != nil {
+	if err := d.Set("cloud_provider_endpoint_id", privateLinkResponse.GetCloudProviderEndpointId()); err != nil {
 		return diag.Errorf("error setting `cloud_provider_endpoint_id` for endpoint_id (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("private_link_service_resource_id", privateLinkResponse.PrivateLinkServiceResourceID); err != nil {
+	if err := d.Set("private_link_service_resource_id", privateLinkResponse.GetPrivateLinkServiceResourceId()); err != nil {
 		return diag.Errorf("error setting `private_link_service_resource_id` for endpoint_id (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("private_endpoint_ip_address", privateLinkResponse.PrivateEndpointIPAddress); err != nil {
+	if err := d.Set("private_endpoint_ip_address", privateLinkResponse.GetPrivateEndpointIpAddress()); err != nil {
 		return diag.Errorf("error setting `private_endpoint_ip_address` for endpoint_id (%s): %s", d.Id(), err)
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	instanceName := ids["instance_name"]
 	endpointID := ids["endpoint_id"]
 
-	_, _, err := conn.ServerlessPrivateEndpoints.Get(ctx, projectID, instanceName, endpointID)
+	_, _, err := connV2.ServerlessPrivateEndpointsApi.GetServerlessPrivateEndpoint(ctx, projectID, instanceName, endpointID).Execute()
 	if err != nil {
-		// case 404
-		// deleted in the backend case
+		// case 404: deleted in the backend case
 		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "400") {
 			d.SetId("")
 			return nil
 		}
-
 		return diag.Errorf(errorServerlessServiceEndpointDelete, endpointID, err)
 	}
 
@@ -231,8 +222,8 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessDelete(ctx context.
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	parts := strings.SplitN(d.Id(), "--", 3)
 	if len(parts) != 3 {
@@ -243,7 +234,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessImportState(ctx con
 	instanceName := parts[1]
 	endpointID := parts[2]
 
-	privateLinkResponse, _, err := conn.ServerlessPrivateEndpoints.Get(ctx, projectID, instanceName, endpointID)
+	privateLinkResponse, _, err := connV2.ServerlessPrivateEndpointsApi.GetServerlessPrivateEndpoint(ctx, projectID, instanceName, endpointID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import serverless private link endpoint (%s) in projectID (%s) , error: %s", endpointID, projectID, err)
 	}
@@ -260,7 +251,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessImportState(ctx con
 		log.Printf("[WARN] Error setting instance_name for (%s): %s", endpointID, err)
 	}
 
-	if privateLinkResponse.PrivateLinkServiceResourceID != "" {
+	if privateLinkResponse.GetPrivateLinkServiceResourceId() != "" {
 		if err := d.Set("provider_name", "AZURE"); err != nil {
 			log.Printf("[WARN] Error setting provider_name for (%s): %s", endpointID, err)
 		}
@@ -279,34 +270,35 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessImportState(ctx con
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceServiceEndpointServerlessRefreshFunc(ctx context.Context, client *matlas.Client, projectID, instanceName, endpointServiceID string) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, client *admin.APIClient, projectID, instanceName, endpointServiceID string) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		i, resp, err := client.ServerlessPrivateEndpoints.Get(ctx, projectID, instanceName, endpointServiceID)
+		serverlessTenantEndpoint, resp, err := client.ServerlessPrivateEndpointsApi.GetServerlessPrivateEndpoint(ctx, projectID, instanceName, endpointServiceID).Execute()
 		if err != nil {
-			if resp != nil && resp.StatusCode == 404 || resp.Response.StatusCode == 400 {
+			if resp != nil && resp.StatusCode == 404 || resp.StatusCode == 400 {
 				return "", "DELETED", nil
 			}
 
 			return nil, "", err
 		}
 
-		if i.Status != "AVAILABLE" {
-			return "", i.Status, nil
+		if serverlessTenantEndpoint.GetStatus() != "AVAILABLE" {
+			return "", serverlessTenantEndpoint.GetStatus(), nil
 		}
+		resultStatus := serverlessTenantEndpoint.GetStatus()
 
-		return i, i.Status, nil
+		return serverlessTenantEndpoint, resultStatus, nil
 	}
 }
 
-func resourceServerlessInstanceListRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) retry.StateRefreshFunc {
+func resourceListRefreshFunc(ctx context.Context, projectID string, client *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		c, resp, err := client.ServerlessInstances.List(ctx, projectID, nil)
+		serverlessInstances, resp, err := client.ServerlessInstancesApi.ListServerlessInstances(ctx, projectID).Execute()
 
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
 		}
 
-		if err != nil && c == nil && resp == nil {
+		if err != nil && serverlessInstances == nil && resp == nil {
 			return nil, "", err
 		} else if err != nil {
 			if resp.StatusCode == 404 {
@@ -318,12 +310,12 @@ func resourceServerlessInstanceListRefreshFunc(ctx context.Context, projectID st
 			return nil, "", err
 		}
 
-		for i := range c.Results {
-			if c.Results[i].StateName != "IDLE" {
-				return c.Results[i], "PENDING", nil
+		for i := range serverlessInstances.GetResults() {
+			if serverlessInstances.GetResults()[i].GetStateName() != "IDLE" {
+				return serverlessInstances.GetResults()[i], "PENDING", nil
 			}
 		}
 
-		return c, "IDLE", nil
+		return serverlessInstances, "IDLE", nil
 	}
 }
