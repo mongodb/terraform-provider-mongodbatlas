@@ -3,7 +3,6 @@ package cloudbackupsnapshot_test
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"testing"
 
@@ -12,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -73,13 +71,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if ids["snapshot_id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		log.Printf("[DEBUG] cloudBackupSnapshot ID: %s", ids["snapshot_id"])
-		requestParameters := &matlas.SnapshotReqPathParameters{
-			SnapshotID:  ids["snapshot_id"],
-			GroupID:     ids["project_id"],
-			ClusterName: ids["cluster_name"],
-		}
-		_, _, err := acc.Conn().CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
+		_, _, err := acc.ConnV2().CloudBackupsApi.GetReplicaSetBackup(context.Background(), ids["project_id"], ids["cluster_name"], ids["snapshot_id"]).Execute()
 		if err == nil {
 			return nil
 		}
@@ -94,12 +86,7 @@ func checkDestroy(s *terraform.State) error {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		requestParameters := &matlas.SnapshotReqPathParameters{
-			SnapshotID:  ids["snapshot_id"],
-			GroupID:     ids["project_id"],
-			ClusterName: ids["cluster_name"],
-		}
-		res, _, _ := acc.Conn().CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
+		res, _, _ := acc.ConnV2().CloudBackupsApi.GetReplicaSetBackup(context.Background(), ids["project_id"], ids["cluster_name"], ids["snapshot_id"]).Execute()
 		if res != nil {
 			return fmt.Errorf("cloudBackupSnapshot (%s) still exists", rs.Primary.Attributes["snapshot_id"])
 		}
