@@ -24,12 +24,14 @@ func PluralDataSource() *schema.Resource {
 				ForceNew: true,
 			},
 			"page_num": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Deprecated: "mongodbatlas_privatelink_endpoints_service_serverless now returns all existing privatelink endpoints. Pagination is not supported anymore",
+				Type:       schema.TypeInt,
+				Optional:   true,
 			},
 			"items_per_page": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Deprecated: "mongodbatlas_privatelink_endpoints_service_serverless now returns all existing privatelink endpoints. Pagination is not supported anymore",
+				Type:       schema.TypeInt,
+				Optional:   true,
 			},
 			"results": {
 				Type:     schema.TypeList,
