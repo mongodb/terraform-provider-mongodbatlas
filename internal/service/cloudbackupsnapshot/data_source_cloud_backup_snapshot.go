@@ -12,7 +12,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasCloudBackupSnapshotRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"snapshot_id": {
 				Type:     schema.TypeString,
@@ -101,7 +101,7 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCloudBackupSnapshotRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
