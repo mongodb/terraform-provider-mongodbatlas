@@ -155,7 +155,7 @@ func checkDestroy(s *terraform.State) error {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.Conn().ClusterOutageSimulation.GetOutageSimulation(context.Background(), ids["project_id"], ids["cluster_name"])
+		_, _, err := acc.ConnV2().ClusterOutageSimulationApi.GetOutageSimulation(context.Background(), ids["project_id"], ids["cluster_name"]).Execute()
 		if err == nil {
 			return fmt.Errorf("cluster outage simulation for project (%s) and cluster (%s) still exists", ids["project_id"], ids["cluster_name"])
 		}

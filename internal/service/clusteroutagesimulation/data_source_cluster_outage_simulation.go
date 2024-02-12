@@ -59,7 +59,7 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID, projectIDOk := d.GetOk("project_id")
 	clusterName, clusterNameOk := d.GetOk("cluster_name")
@@ -68,7 +68,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.Errorf("project_id and cluster_name must be configured")
 	}
 
-	outageSimulation, _, err := conn.ClusterOutageSimulation.GetOutageSimulation(ctx, projectID.(string), clusterName.(string))
+	outageSimulation, _, err := connV2.ClusterOutageSimulationApi.GetOutageSimulation(ctx, projectID.(string), clusterName.(string)).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterOutageSimulationRead, projectID, clusterName, err))
 	}

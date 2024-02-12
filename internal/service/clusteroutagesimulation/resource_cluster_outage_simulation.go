@@ -12,8 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mwielbut/pointy"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 const (
@@ -80,16 +79,16 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	requestBody := &matlas.ClusterOutageSimulationRequest{
+	requestBody := admin.ClusterOutageSimulation{
 		OutageFilters: newOutageFilters(d),
 	}
 
-	_, _, err := conn.ClusterOutageSimulation.StartOutageSimulation(ctx, projectID, clusterName, requestBody)
+	_, _, err := connV2.ClusterOutageSimulationApi.StartOutageSimulation(ctx, projectID, clusterName, &requestBody).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterOutageSimulationCreate, projectID, clusterName, err))
 	}
@@ -98,7 +97,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"START_REQUESTED", "STARTING"},
 		Target:     []string{"SIMULATING"},
-		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, conn),
+		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, connV2),
 		Timeout:    timeout,
 		MinTimeout: 1 * time.Minute,
 		Delay:      3 * time.Minute,
@@ -117,28 +116,28 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return resourceRead(ctx, d, meta)
 }
 
-func newOutageFilters(d *schema.ResourceData) []matlas.ClusterOutageSimulationOutageFilter {
-	outageFilters := make([]matlas.ClusterOutageSimulationOutageFilter, len(d.Get("outage_filters").([]any)))
+func newOutageFilters(d *schema.ResourceData) *[]admin.AtlasClusterOutageSimulationOutageFilter {
+	outageFilters := make([]admin.AtlasClusterOutageSimulationOutageFilter, len(d.Get("outage_filters").([]any)))
 
 	for k, v := range d.Get("outage_filters").([]any) {
 		a := v.(map[string]any)
-		outageFilters[k] = matlas.ClusterOutageSimulationOutageFilter{
-			CloudProvider: pointy.String(a["cloud_provider"].(string)),
-			RegionName:    pointy.String(a["region_name"].(string)),
-			Type:          pointy.String(defaultOutageFilterType),
+		outageFilters[k] = admin.AtlasClusterOutageSimulationOutageFilter{
+			CloudProvider: conversion.StringPtr(a["cloud_provider"].(string)),
+			RegionName:    conversion.StringPtr(a["region_name"].(string)),
+			Type:          conversion.StringPtr(defaultOutageFilterType),
 		}
 	}
 
-	return outageFilters
+	return &outageFilters
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	outageSimulation, resp, err := conn.ClusterOutageSimulation.GetOutageSimulation(ctx, projectID, clusterName)
+	outageSimulation, resp, err := connV2.ClusterOutageSimulationApi.GetOutageSimulation(ctx, projectID, clusterName).Execute()
 
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
@@ -161,13 +160,13 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	_, _, err := conn.ClusterOutageSimulation.EndOutageSimulation(ctx, projectID, clusterName)
+	_, _, err := connV2.ClusterOutageSimulationApi.EndOutageSimulation(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterOutageSimulationDelete, projectID, clusterName, err))
 	}
@@ -177,7 +176,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"RECOVERY_REQUESTED", "RECOVERING", "COMPLETE"},
 		Target:     []string{"DELETED"},
-		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, conn),
+		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, connV2),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
@@ -195,9 +194,9 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return diag.FromErr(fmt.Errorf("updating a Cluster Outage Simulation is not supported"))
 }
 
-func resourceRefreshFunc(ctx context.Context, clusterName, projectID string, client *matlas.Client) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, clusterName, projectID string, client *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		outageSimulation, resp, err := client.ClusterOutageSimulation.GetOutageSimulation(ctx, projectID, clusterName)
+		outageSimulation, resp, err := client.ClusterOutageSimulationApi.GetOutageSimulation(ctx, projectID, clusterName).Execute()
 
 		if err != nil {
 			if resp.StatusCode == 404 {
@@ -214,24 +213,24 @@ func resourceRefreshFunc(ctx context.Context, clusterName, projectID string, cli
 	}
 }
 
-func convertOutageSimulationToSchema(outageSimulation *matlas.ClusterOutageSimulation, d *schema.ResourceData) error {
-	if err := d.Set("state", outageSimulation.State); err != nil {
+func convertOutageSimulationToSchema(outageSimulation *admin.ClusterOutageSimulation, d *schema.ResourceData) error {
+	if err := d.Set("state", outageSimulation.GetState()); err != nil {
 		return fmt.Errorf(errorClusterOutageSimulationSetting, "state", err)
 	}
-	if err := d.Set("start_request_date", outageSimulation.StartRequestDate); err != nil {
+	if err := d.Set("start_request_date", outageSimulation.GetStartRequestDate()); err != nil {
 		return fmt.Errorf(errorClusterOutageSimulationSetting, "start_request_date", err)
 	}
-	if err := d.Set("simulation_id", outageSimulation.ID); err != nil {
+	if err := d.Set("simulation_id", outageSimulation.GetId()); err != nil {
 		return fmt.Errorf(errorClusterOutageSimulationSetting, "simulation_id", err)
 	}
-	if err := d.Set("project_id", outageSimulation.GroupID); err != nil {
+	if err := d.Set("project_id", outageSimulation.GetGroupId()); err != nil {
 		return fmt.Errorf(errorClusterOutageSimulationSetting, "project_id", err)
 	}
-	if err := d.Set("cluster_name", outageSimulation.ClusterName); err != nil {
+	if err := d.Set("cluster_name", outageSimulation.GetClusterName()); err != nil {
 		return fmt.Errorf(errorClusterOutageSimulationSetting, "cluster_name", err)
 	}
 
-	if outageFilters := convertOutageFiltersToSchema(outageSimulation.OutageFilters, d); outageFilters != nil {
+	if outageFilters := convertOutageFiltersToSchema(outageSimulation.GetOutageFilters(), d); outageFilters != nil {
 		if err := d.Set("outage_filters", outageFilters); err != nil {
 			return fmt.Errorf(errorClusterOutageSimulationSetting, "outage_filters", err)
 		}
@@ -239,13 +238,13 @@ func convertOutageSimulationToSchema(outageSimulation *matlas.ClusterOutageSimul
 	return nil
 }
 
-func convertOutageFiltersToSchema(outageFilters []matlas.ClusterOutageSimulationOutageFilter, d *schema.ResourceData) []map[string]any {
+func convertOutageFiltersToSchema(outageFilters []admin.AtlasClusterOutageSimulationOutageFilter, d *schema.ResourceData) []map[string]any {
 	outageFilterList := make([]map[string]any, 0)
 	for _, v := range outageFilters {
 		outageFilterList = append(outageFilterList, map[string]any{
-			"cloud_provider": v.CloudProvider,
-			"region_name":    v.RegionName,
-			"type":           v.Type,
+			"cloud_provider": v.GetCloudProvider(),
+			"region_name":    v.GetRegionName(),
+			"type":           v.GetType(),
 		})
 	}
 	return outageFilterList
