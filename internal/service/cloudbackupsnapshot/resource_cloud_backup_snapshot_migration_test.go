@@ -12,8 +12,7 @@ import (
 
 func TestAccMigrationBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 	var (
-		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterInfo     = acc.GetClusterInfo(orgID, true)
+		clusterInfo     = acc.GetClusterInfo(&acc.ClusterRequest{CloudBackup: true})
 		description     = "My description in my cluster"
 		retentionInDays = "4"
 		config          = configBasic(&clusterInfo, description, retentionInDays)

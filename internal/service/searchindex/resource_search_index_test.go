@@ -3,7 +3,6 @@ package searchindex_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -15,8 +14,7 @@ import (
 
 func TestAccSearchIndexRS_basic(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterInfo  = acc.GetClusterInfo(orgID, false)
+		clusterInfo  = acc.GetClusterInfo(nil)
 		indexName    = acctest.RandomWithPrefix("test-acc-index")
 		databaseName = acctest.RandomWithPrefix("test-acc-db")
 	)
@@ -55,8 +53,7 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 
 func TestAccSearchIndexRS_withSearchType(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterInfo  = acc.GetClusterInfo(orgID, false)
+		clusterInfo  = acc.GetClusterInfo(nil)
 		indexName    = acctest.RandomWithPrefix("test-acc-index")
 		databaseName = acctest.RandomWithPrefix("test-acc-db")
 	)
@@ -95,8 +92,7 @@ func TestAccSearchIndexRS_withSearchType(t *testing.T) {
 
 func TestAccSearchIndexRS_withMapping(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterInfo  = acc.GetClusterInfo(orgID, false)
+		clusterInfo  = acc.GetClusterInfo(nil)
 		indexName    = acctest.RandomWithPrefix("test-acc-index")
 		databaseName = acctest.RandomWithPrefix("test-acc-db")
 	)
@@ -140,8 +136,7 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 
 func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterInfo  = acc.GetClusterInfo(orgID, false)
+		clusterInfo  = acc.GetClusterInfo(nil)
 		indexName    = acctest.RandomWithPrefix("test-acc-index")
 		databaseName = acctest.RandomWithPrefix("test-acc-db")
 	)
@@ -189,8 +184,7 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 
 func TestAccSearchIndexRS_updatedToEmptySynonyms(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterInfo  = acc.GetClusterInfo(orgID, false)
+		clusterInfo  = acc.GetClusterInfo(nil)
 		indexName    = acctest.RandomWithPrefix("test-acc-index")
 		databaseName = acctest.RandomWithPrefix("test-acc-db")
 	)
@@ -222,8 +216,7 @@ func TestAccSearchIndexRS_updatedToEmptySynonyms(t *testing.T) {
 
 func TestAccSearchIndexRS_updatedToEmptyAnalyzers(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterInfo  = acc.GetClusterInfo(orgID, false)
+		clusterInfo  = acc.GetClusterInfo(nil)
 		indexName    = acctest.RandomWithPrefix("test-acc-index")
 		databaseName = acctest.RandomWithPrefix("test-acc-db")
 	)
@@ -252,8 +245,7 @@ func TestAccSearchIndexRS_updatedToEmptyAnalyzers(t *testing.T) {
 
 func TestAccSearchIndexRS_updatedToEmptyMappingsFields(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterInfo  = acc.GetClusterInfo(orgID, false)
+		clusterInfo  = acc.GetClusterInfo(nil)
 		indexName    = acctest.RandomWithPrefix("test-acc-index")
 		databaseName = acctest.RandomWithPrefix("test-acc-db")
 	)
@@ -282,8 +274,7 @@ func TestAccSearchIndexRS_updatedToEmptyMappingsFields(t *testing.T) {
 
 func TestAccSearchIndexRS_importBasic(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterInfo  = acc.GetClusterInfo(orgID, false)
+		clusterInfo  = acc.GetClusterInfo(nil)
 		indexName    = acctest.RandomWithPrefix("test-acc-index")
 		databaseName = acctest.RandomWithPrefix("test-acc-db")
 	)
@@ -314,8 +305,7 @@ func TestAccSearchIndexRS_importBasic(t *testing.T) {
 
 func TestAccSearchIndexRS_withVector(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterInfo  = acc.GetClusterInfo(orgID, false)
+		clusterInfo  = acc.GetClusterInfo(nil)
 		indexName    = acctest.RandomWithPrefix("test-acc-index")
 		databaseName = acctest.RandomWithPrefix("test-acc-db")
 	)
