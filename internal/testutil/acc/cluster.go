@@ -10,6 +10,7 @@ import (
 type ClusterRequest struct {
 	OrgID       string
 	CloudBackup bool
+	Geosharded  bool
 }
 
 type ClusterInfo struct {
@@ -40,6 +41,10 @@ func GetClusterInfo(req *ClusterRequest) ClusterInfo {
 	}
 	clusterName = acctest.RandomWithPrefix("test-acc")
 	projectName := acctest.RandomWithPrefix("test-acc")
+	clusterTypeStr := "REPLICASET"
+	if req.Geosharded {
+		clusterTypeStr = "GEOSHARDED"
+	}
 	clusterTerraformStr := fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			org_id = %[1]q
@@ -55,9 +60,10 @@ func GetClusterInfo(req *ClusterRequest) ClusterInfo {
 			provider_name               	= "AWS"
 			provider_instance_size_name 	= "M10"
 		
-			cluster_type = "REPLICASET"
+			cluster_type = %[5]q
 			replication_specs {
 				num_shards = 1
+				zone_name  = "Zone 1"
 				regions_config {
 					region_name     = "US_WEST_2"
 					electable_nodes = 3
@@ -66,7 +72,7 @@ func GetClusterInfo(req *ClusterRequest) ClusterInfo {
 				}
 			}
 		}
-	`, req.OrgID, projectName, clusterName, req.CloudBackup)
+	`, req.OrgID, projectName, clusterName, req.CloudBackup, clusterTypeStr)
 	return ClusterInfo{
 		ProjectIDStr:        "mongodbatlas_project.test.id",
 		ClusterName:         clusterName,

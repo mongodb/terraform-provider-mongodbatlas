@@ -15,14 +15,14 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
+const (
+	resourceName = "mongodbatlas_global_cluster_config.config"
+)
+
 func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
-	acc.SkipTestForCI(t) // needs to be fixed: "cloud_backup": conflicts with backup_enabled
 	var (
 		globalConfig admin.GeoSharding
-		resourceName = "mongodbatlas_global_cluster_config.config"
-		name         = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		clusterInfo  = acc.GetClusterInfo(&acc.ClusterRequest{Geosharded: true})
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -31,36 +31,35 @@ func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectName, name, "false", "false", "false"),
+				Config: configBasic(&clusterInfo, false, false),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &globalConfig),
-					resource.TestCheckResourceAttrSet(resourceName, "managed_namespaces.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.CA"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", name),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_custom_shard_key_hashed", "false"),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_shard_key_unique", "false"),
-					checkManagedNamepacesLenght(&globalConfig, 1),
 				),
 			},
 			{
-				Config: configBasic(orgID, projectName, name, "false", "true", "false"),
+				Config: configBasic(&clusterInfo, true, false),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &globalConfig),
+					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_custom_shard_key_hashed", "true"),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_shard_key_unique", "false"),
-					checkManagedNamepacesLenght(&globalConfig, 1),
 				),
 			},
 			{
-				Config: configBasic(orgID, projectName, name, "false", "false", "true"),
+				Config: configBasic(&clusterInfo, false, true),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &globalConfig),
+					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_custom_shard_key_hashed", "false"),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_shard_key_unique", "true"),
-					checkManagedNamepacesLenght(&globalConfig, 1),
 				),
 			},
 		},
@@ -71,7 +70,6 @@ func TestAccClusterRSGlobalCluster_WithAWSCluster(t *testing.T) {
 	acc.SkipTestForCI(t) // needs to be fixed: 404 (request "GROUP_NOT_FOUND") No group with ID
 	var (
 		globalConfig admin.GeoSharding
-		resourceName = "mongodbatlas_global_cluster_config.config"
 		name         = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
@@ -102,10 +100,9 @@ func TestAccClusterRSGlobalCluster_WithAWSCluster(t *testing.T) {
 func TestAccClusterRSGlobalCluster_importBasic(t *testing.T) {
 	acc.SkipTestForCI(t) // needs to be fixed: "cloud_backup": conflicts with backup_enabled
 	var (
-		resourceName = "mongodbatlas_global_cluster_config.config"
-		name         = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		name        = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -114,7 +111,7 @@ func TestAccClusterRSGlobalCluster_importBasic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectName, name, "false", "false", "false"),
+				Config: configBasicOld(orgID, projectName, name, "false", "false", "false"),
 			},
 			{
 				ResourceName:            resourceName,
@@ -277,7 +274,29 @@ func checkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func configBasic(orgID, projectName, name, backupEnabled, isCustomShard, isShardKeyUnique string) string {
+func configBasic(info *acc.ClusterInfo, isCustomShard, isShardKeyUnique bool) string {
+	return info.ClusterTerraformStr + fmt.Sprintf(`
+		resource "mongodbatlas_global_cluster_config" "config" {
+			cluster_name     = %[1]s
+			project_id       = %[2]s
+
+			managed_namespaces {
+				db               		   = "mydata"
+				collection       		   = "publishers"
+				custom_shard_key		   = "city"
+				is_custom_shard_key_hashed = %[3]t
+				is_shard_key_unique 	   = %[4]t
+			}
+
+			custom_zone_mappings {
+				location = "CA"
+				zone     = "Zone 1"
+			}
+		}
+	`, info.ClusterNameStr, info.ProjectIDStr, isCustomShard, isShardKeyUnique)
+}
+
+func configBasicOld(orgID, projectName, name, backupEnabled, isCustomShard, isShardKeyUnique string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "project" {
 			org_id = %[1]q
