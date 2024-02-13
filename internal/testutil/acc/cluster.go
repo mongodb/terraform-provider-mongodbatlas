@@ -9,6 +9,7 @@ import (
 
 type ClusterRequest struct {
 	OrgID       string
+	ExtraConfig string
 	CloudBackup bool
 	Geosharded  bool
 }
@@ -71,8 +72,10 @@ func GetClusterInfo(req *ClusterRequest) ClusterInfo {
 					read_only_nodes = 0
 				}
 			}
+
+			%[6]s
 		}
-	`, req.OrgID, projectName, clusterName, req.CloudBackup, clusterTypeStr)
+	`, req.OrgID, projectName, clusterName, req.CloudBackup, clusterTypeStr, req.ExtraConfig)
 	return ClusterInfo{
 		ProjectIDStr:        "mongodbatlas_project.test.id",
 		ClusterName:         clusterName,

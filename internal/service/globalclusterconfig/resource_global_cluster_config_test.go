@@ -12,11 +12,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-const (
-	resourceName   = "mongodbatlas_global_cluster_config.config"
-	dataSourceName = "data.mongodbatlas_global_cluster_config.config"
-)
-
 func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 	var (
 		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{Geosharded: true})
@@ -115,39 +110,8 @@ func TestAccClusterRSGlobalCluster_importBasic(t *testing.T) {
 
 func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{Geosharded: true})
+		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{Geosharded: true, ExtraConfig: zonesStr})
 	)
-
-	customZone := `
-  custom_zone_mappings {
-    location = "US"
-    zone     = "US"
-  }
-  custom_zone_mappings {
-    location = "IE"
-    zone     = "EU"
-  }
-  custom_zone_mappings {
-    location = "DE"
-    zone     = "DE"
-  }`
-	customZoneUpdated := `
-  custom_zone_mappings {
-    location = "US"
-    zone     = "US"
-  }
-  custom_zone_mappings {
-    location = "IE"
-    zone     = "EU"
-  }
-  custom_zone_mappings {
-    location = "DE"
-    zone     = "DE"
-  }
-  custom_zone_mappings {
-    location = "JP"
-    zone     = "JP"
-  }`
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -308,3 +272,84 @@ func configWithDBConfig(info *acc.ClusterInfo, zones string) string {
 		}
 	`, info.ClusterNameStr, info.ProjectIDStr, zones)
 }
+
+const (
+	resourceName   = "mongodbatlas_global_cluster_config.config"
+	dataSourceName = "data.mongodbatlas_global_cluster_config.config"
+
+	customZone = `
+		custom_zone_mappings {
+			location = "US"
+			zone     = "US"
+		}
+		custom_zone_mappings {
+			location = "IE"
+			zone     = "EU"
+		}
+		custom_zone_mappings {
+			location = "DE"
+			zone     = "DE"
+		}
+	`
+	customZoneUpdated = `
+		custom_zone_mappings {
+			location = "US"
+			zone     = "US"
+		}
+		custom_zone_mappings {
+			location = "IE"
+			zone     = "EU"
+		}
+		custom_zone_mappings {
+			location = "DE"
+			zone     = "DE"
+		}
+		custom_zone_mappings {
+			location = "JP"
+			zone     = "JP"
+		}
+	`
+
+	zonesStr = `
+		replication_specs {
+			zone_name  = "US"
+			num_shards = 1
+			regions_config {
+				region_name     = "US_EAST_1"
+				electable_nodes = 3
+				priority        = 7
+				read_only_nodes = 0
+			}
+		}
+		replication_specs {
+			zone_name  = "EU"
+			num_shards = 1
+			regions_config {
+				region_name     = "EU_WEST_1"
+				electable_nodes = 3
+				priority        = 7
+				read_only_nodes = 0
+			}
+		}
+		replication_specs {
+			zone_name  = "DE"
+			num_shards = 1
+			regions_config {
+				region_name     = "EU_NORTH_1"
+				electable_nodes = 3
+				priority        = 7
+				read_only_nodes = 0
+			}
+		}
+		replication_specs {
+			zone_name  = "JP"
+			num_shards = 1
+			regions_config {
+				region_name     = "AP_NORTHEAST_1"
+				electable_nodes = 3
+				priority        = 7
+				read_only_nodes = 0
+			}
+		}
+	`
+)
