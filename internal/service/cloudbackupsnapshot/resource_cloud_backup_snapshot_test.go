@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -23,8 +22,7 @@ func TestAccBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 		dataSourcePluralSimpleName     = "data.mongodbatlas_cloud_backup_snapshots.test"
 		dataSourcePluralPaginationName = "data.mongodbatlas_cloud_backup_snapshots.pagination"
 		orgID                          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName                    = acctest.RandomWithPrefix("test-acc")
-		clusterName                    = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		clusterInfo                    = acc.GetClusterInfo(orgID, true)
 		description                    = "My description in my cluster"
 		retentionInDays                = "4"
 	)
@@ -35,15 +33,15 @@ func TestAccBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectName, clusterName, description, retentionInDays),
+				Config: configBasic(&clusterInfo, description, retentionInDays),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttr(resourceName, "retention_in_days", retentionInDays),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttr(dataSourceName, "description", description),
 					resource.TestCheckResourceAttrSet(dataSourcePluralSimpleName, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralPaginationName, "results.#"),
@@ -104,50 +102,31 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func configBasic(orgID, projectName, clusterName, description, retentionInDays string) string {
-	return fmt.Sprintf(`
-resource "mongodbatlas_project" "backup_project" {
-	org_id = %[1]q
-	name   = %[2]q
-}
-resource "mongodbatlas_cluster" "my_cluster" {
-  project_id   = mongodbatlas_project.backup_project.id
-  name         = %[3]q
-  disk_size_gb = 10
+func configBasic(info *acc.ClusterInfo, description, retentionInDays string) string {
+	return info.ClusterTerraformStr + fmt.Sprintf(`
+		resource "mongodbatlas_cloud_backup_snapshot" "test" {
+			cluster_name     = %[1]s
+			project_id       = %[2]s
+			description       = %[3]q
+			retention_in_days = %[4]q
+		}
 
-  // Provider Settings "block"
-  provider_name               = "AWS"
-  provider_region_name        = "EU_CENTRAL_1"
-  provider_instance_size_name = "M10"
-  cloud_backup                = true //enable cloud backup snapshots
-}
+		data "mongodbatlas_cloud_backup_snapshot" "test" {
+			snapshot_id  = mongodbatlas_cloud_backup_snapshot.test.snapshot_id
+			cluster_name     = %[1]s
+			project_id       = %[2]s
+		}
 
-resource "mongodbatlas_cloud_backup_snapshot" "test" {
-  project_id        = mongodbatlas_cluster.my_cluster.project_id
-  cluster_name      = mongodbatlas_cluster.my_cluster.name
-  description       = %[4]q
-  retention_in_days = %[5]q
-}
+		data "mongodbatlas_cloud_backup_snapshots" "test" {
+			cluster_name     = %[1]s
+			project_id       = %[2]s
+		}
 
-data "mongodbatlas_cloud_backup_snapshot" "test" {
-	snapshot_id  = mongodbatlas_cloud_backup_snapshot.test.snapshot_id
-	project_id        = mongodbatlas_cluster.my_cluster.project_id
-	cluster_name      = mongodbatlas_cluster.my_cluster.name
-}
-
-data "mongodbatlas_cloud_backup_snapshots" "test" {
-	project_id        = mongodbatlas_cluster.my_cluster.project_id
-	cluster_name      = mongodbatlas_cluster.my_cluster.name
-}
-
-data "mongodbatlas_cloud_backup_snapshots" "pagination" {
-	project_id        = mongodbatlas_cluster.my_cluster.project_id
-	cluster_name      = mongodbatlas_cluster.my_cluster.name
-	page_num = 1
-	items_per_page = 5
-}
-
-
-
-	`, orgID, projectName, clusterName, description, retentionInDays)
+		data "mongodbatlas_cloud_backup_snapshots" "pagination" {
+			cluster_name     = %[1]s
+			project_id       = %[2]s
+			page_num = 1
+			items_per_page = 5
+		}
+	`, info.ClusterNameStr, info.ProjectIDStr, description, retentionInDays)
 }

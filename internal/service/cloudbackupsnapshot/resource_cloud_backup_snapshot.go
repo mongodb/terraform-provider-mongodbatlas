@@ -140,9 +140,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING"},
 		Target:     []string{"IDLE"},
 		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, d.Get("cluster_name").(string), d.Get("project_id").(string), advancedcluster.ServiceFromClient(conn)),
-		Timeout:    10 * time.Minute,
-		MinTimeout: 10 * time.Second,
-		Delay:      3 * time.Minute,
+		Timeout:    15 * time.Minute,
+		MinTimeout: 30 * time.Second,
 	}
 
 	// Wait, catching any errors
