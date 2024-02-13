@@ -217,7 +217,7 @@ func convertOutageSimulationToSchema(outageSimulation *admin.ClusterOutageSimula
 	if err := d.Set("state", outageSimulation.GetState()); err != nil {
 		return fmt.Errorf(errorClusterOutageSimulationSetting, "state", err)
 	}
-	if err := d.Set("start_request_date", conversion.TimeToString(outageSimulation.GetStartRequestDate())); err != nil {
+	if err := d.Set("start_request_date", conversion.TimePtrToStringPtr(outageSimulation.StartRequestDate)); err != nil {
 		return fmt.Errorf(errorClusterOutageSimulationSetting, "start_request_date", err)
 	}
 	if err := d.Set("simulation_id", outageSimulation.GetId()); err != nil {
