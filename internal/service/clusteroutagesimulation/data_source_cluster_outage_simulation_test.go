@@ -69,14 +69,14 @@ func TestAccOutageSimulationClusterDS_MultiRegion_basic(t *testing.T) {
 func dataSourceConfigSingleRegion(projectName, orgID, clusterName string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_project" "outage_project" {
-		name   = "%s"
-		org_id = "%s"
+		name   = %[1]q
+		org_id = %[2]q
 	}
 
 	resource "mongodbatlas_cluster" "atlas_cluster" {
 		project_id                  = mongodbatlas_project.outage_project.id
    		provider_name               = "AWS"
-   		name                        = "%s"
+   		name                        = %[3]q
    		backing_provider_name       = "AWS"
    		provider_region_name        = "US_EAST_1"
    		provider_instance_size_name = "M10"
@@ -104,13 +104,13 @@ func dataSourceConfigSingleRegion(projectName, orgID, clusterName string) string
 func dataSourceConfigMultiRegion(projectName, orgID, clusterName string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_project" "outage_project" {
-		name   = "%s"
-		org_id = "%s"
+		name   = %[1]q
+		org_id = %[2]q
 	}
 
 	resource "mongodbatlas_cluster" "atlas_cluster" {
 		project_id   = mongodbatlas_project.outage_project.id
-		name         = "%s"
+		name         = %[3]q
 		cluster_type = "REPLICASET"
 	  
 		provider_name               = "AWS"
