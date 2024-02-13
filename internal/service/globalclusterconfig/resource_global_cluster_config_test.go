@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 const (
@@ -21,8 +20,7 @@ const (
 
 func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 	var (
-		globalConfig admin.GeoSharding
-		clusterInfo  = acc.GetClusterInfo(&acc.ClusterRequest{Geosharded: true})
+		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{Geosharded: true})
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -33,7 +31,7 @@ func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 			{
 				Config: configBasic(&clusterInfo, false, false),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &globalConfig),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.CA"),
@@ -47,7 +45,7 @@ func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 			{
 				Config: configBasic(&clusterInfo, true, false),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &globalConfig),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_custom_shard_key_hashed", "true"),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_shard_key_unique", "false"),
@@ -56,7 +54,7 @@ func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 			{
 				Config: configBasic(&clusterInfo, false, true),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &globalConfig),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_custom_shard_key_hashed", "false"),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_shard_key_unique", "true"),
@@ -69,10 +67,9 @@ func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 func TestAccClusterRSGlobalCluster_WithAWSCluster(t *testing.T) {
 	acc.SkipTestForCI(t) // needs to be fixed: 404 (request "GROUP_NOT_FOUND") No group with ID
 	var (
-		globalConfig admin.GeoSharding
-		name         = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		name        = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -83,14 +80,13 @@ func TestAccClusterRSGlobalCluster_WithAWSCluster(t *testing.T) {
 			{
 				Config: configWithAWSCluster(orgID, projectName, name, "true"),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &globalConfig),
-					resource.TestCheckResourceAttrSet(resourceName, "managed_namespaces.#"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.CA"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", name),
-					checkManagedNamepacesLenght(&globalConfig, 1),
 				),
 			},
 		},
@@ -127,7 +123,6 @@ func TestAccClusterRSGlobalCluster_importBasic(t *testing.T) {
 func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 	acc.SkipTestForCI(t) // needs to be fixed: 404 (request "GROUP_NOT_FOUND") No group with ID, next steps should use the first project
 	var (
-		globalConfig admin.GeoSharding
 		resourceName = "mongodbatlas_global_cluster_config.test"
 		name         = acctest.RandomWithPrefix("test-acc-global")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -173,8 +168,8 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 			{
 				Config: configWithDBConfig(orgID, projectName, name, "false", customZone),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &globalConfig),
-					resource.TestCheckResourceAttrSet(resourceName, "managed_namespaces.#"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "5"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.US"),
@@ -182,14 +177,13 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.DE"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", name),
-					checkManagedNamepacesLenght(&globalConfig, 5),
 				),
 			},
 			{
 				Config: configWithDBConfig(orgID, projectName, name, "false", customZoneUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &globalConfig),
-					resource.TestCheckResourceAttrSet(resourceName, "managed_namespaces.#"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "5"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.US"),
@@ -198,7 +192,6 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.JP"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", name),
-					checkManagedNamepacesLenght(&globalConfig, 5),
 				),
 			},
 			{
@@ -212,7 +205,7 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 	})
 }
 
-func checkExists(resourceName string, globalConfig *admin.GeoSharding) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -222,10 +215,9 @@ func checkExists(resourceName string, globalConfig *admin.GeoSharding) resource.
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		globalConfigResp, _, err := acc.ConnV2().GlobalClustersApi.GetManagedNamespace(context.Background(), ids["project_id"], ids["cluster_name"]).Execute()
+		config, _, err := acc.ConnV2().GlobalClustersApi.GetManagedNamespace(context.Background(), ids["project_id"], ids["cluster_name"]).Execute()
 		if err == nil {
-			globalConfig = globalConfigResp
-			if len(globalConfig.GetCustomZoneMapping()) > 0 || len(globalConfig.GetManagedNamespaces()) > 0 {
+			if len(config.GetCustomZoneMapping()) > 0 || len(config.GetManagedNamespaces()) > 0 {
 				return nil
 			}
 		}
@@ -241,15 +233,6 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		return fmt.Sprintf("%s-%s", ids["project_id"], ids["cluster_name"]), nil
-	}
-}
-
-func checkManagedNamepacesLenght(globalCluster *admin.GeoSharding, managedNamespacesCount int) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if len(globalCluster.GetManagedNamespaces()) != managedNamespacesCount {
-			return fmt.Errorf("bad managed namespaces: %v", globalCluster.GetManagedNamespaces())
-		}
-		return nil
 	}
 }
 

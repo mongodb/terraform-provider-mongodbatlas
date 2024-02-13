@@ -6,14 +6,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
-	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 func TestAccMigrationClusterRSGlobalCluster_basic(t *testing.T) {
 	var (
-		globalConfig admin.GeoSharding
-		clusterInfo  = acc.GetClusterInfo(&acc.ClusterRequest{Geosharded: true})
-		config       = configBasic(&clusterInfo, false, false)
+		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{Geosharded: true})
+		config      = configBasic(&clusterInfo, false, false)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -24,7 +22,7 @@ func TestAccMigrationClusterRSGlobalCluster_basic(t *testing.T) {
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &globalConfig),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.CA"),
