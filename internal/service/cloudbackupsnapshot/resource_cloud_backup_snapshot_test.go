@@ -208,8 +208,8 @@ func configSharded(orgID, projectName, description, retentionInDays string) stri
 		}
 
 		resource "mongodbatlas_cloud_backup_snapshot" "test" {
-			project_id        = mongodbatlas_cluster.my_cluster.project_id
-			cluster_name      = mongodbatlas_cluster.my_cluster.name
+			project_id        = mongodbatlas_advanced_cluster.my_cluster.project_id
+			cluster_name      = mongodbatlas_advanced_cluster.my_cluster.name
 			description       = %[3]q
 			retention_in_days = %[4]q
 		}
