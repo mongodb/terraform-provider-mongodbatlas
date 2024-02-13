@@ -64,7 +64,7 @@ func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSGlobalCluster_WithAWSCluster(t *testing.T) {
+func TestAccClusterRSGlobalCluster_withAWSCluster(t *testing.T) {
 	acc.SkipTestForCI(t) // needs to be fixed: 404 (request "GROUP_NOT_FOUND") No group with ID
 	var (
 		name        = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
@@ -94,11 +94,8 @@ func TestAccClusterRSGlobalCluster_WithAWSCluster(t *testing.T) {
 }
 
 func TestAccClusterRSGlobalCluster_importBasic(t *testing.T) {
-	acc.SkipTestForCI(t) // needs to be fixed: "cloud_backup": conflicts with backup_enabled
 	var (
-		name        = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
+		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{Geosharded: true})
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -107,7 +104,7 @@ func TestAccClusterRSGlobalCluster_importBasic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasicOld(orgID, projectName, name, "false", "false", "false"),
+				Config: configBasic(&clusterInfo, false, false),
 			},
 			{
 				ResourceName:            resourceName,
@@ -277,68 +274,6 @@ func configBasic(info *acc.ClusterInfo, isCustomShard, isShardKeyUnique bool) st
 			}
 		}
 	`, info.ClusterNameStr, info.ProjectIDStr, isCustomShard, isShardKeyUnique)
-}
-
-func configBasicOld(orgID, projectName, name, backupEnabled, isCustomShard, isShardKeyUnique string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "project" {
-			org_id = %[1]q
-			name   = %[2]q
-		}
-		
-		resource "mongodbatlas_cluster" "test" {
-			project_id              = mongodbatlas_project.project.id
-			name                    = %[3]q
-			disk_size_gb            = 80
-			backup_enabled          = %[4]q
-			cloud_backup            = true
-			cluster_type            = "GEOSHARDED"
-
-			// Provider Settings "block"
-			provider_name               = "AWS"
- 			provider_instance_size_name = "M30"
-
-			replication_specs {
-				zone_name  = "Zone 1"
-				num_shards = 1
-				regions_config {
-					region_name     = "US_EAST_1"
-					electable_nodes = 3
-					priority        = 7
-					read_only_nodes = 0
-				}
-			}
-
-			replication_specs {
-				zone_name  = "Zone 2"
-				num_shards = 1
-				regions_config {
-					region_name     = "US_EAST_2"
-					electable_nodes = 3
-					priority        = 7
-					read_only_nodes = 0
-				}
-			}
-		}
-
-		resource "mongodbatlas_global_cluster_config" "config" {
-			project_id   = mongodbatlas_cluster.test.project_id
-			cluster_name = mongodbatlas_cluster.test.name
-
-			managed_namespaces {
-				db               		   = "mydata"
-				collection       		   = "publishers"
-				custom_shard_key		   = "city"
-				is_custom_shard_key_hashed = %[5]q
-				is_shard_key_unique 	   = %[6]q
-			}
-
-			custom_zone_mappings {
-				location = "CA"
-				zone     = "Zone 1"
-			}
-		}
-	`, orgID, projectName, name, backupEnabled, isCustomShard, isShardKeyUnique)
 }
 
 func configWithAWSCluster(orgID, projectName, name, backupEnabled string) string {
