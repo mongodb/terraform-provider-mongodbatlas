@@ -22,10 +22,10 @@ func TestAccClusterRSGlobalClusterDS_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasGlobalClusterDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDSMongoDBAtlasGlobalClusterConfig(orgID, projectName, name),
+				Config: configGlobalCluster(orgID, projectName, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "cluster_name"),
@@ -35,9 +35,8 @@ func TestAccClusterRSGlobalClusterDS_basic(t *testing.T) {
 	})
 }
 
-func testAccDSMongoDBAtlasGlobalClusterConfig(orgID, projectName, name string) string {
+func configGlobalCluster(orgID, projectName, name string) string {
 	return fmt.Sprintf(`
-
 	resource "mongodbatlas_project" "project" {
 		org_id = %[1]q
 		name   = %[2]q

@@ -28,12 +28,12 @@ func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasGlobalClusterDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasGlobalClusterConfig(orgID, projectName, name, "false", "false", "false"),
+				Config: configBasic(orgID, projectName, name, "false", "false", "false"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasGlobalClusterExists(resourceName, &globalConfig),
+					checkExists(resourceName, &globalConfig),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_namespaces.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
@@ -42,25 +42,25 @@ func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", name),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_custom_shard_key_hashed", "false"),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_shard_key_unique", "false"),
-					testAccCheckMongoDBAtlasGlobalClusterAttributes(&globalConfig, 1),
+					checkManagedNamepacesLenght(&globalConfig, 1),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasGlobalClusterConfig(orgID, projectName, name, "false", "true", "false"),
+				Config: configBasic(orgID, projectName, name, "false", "true", "false"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasGlobalClusterExists(resourceName, &globalConfig),
+					checkExists(resourceName, &globalConfig),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_custom_shard_key_hashed", "true"),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_shard_key_unique", "false"),
-					testAccCheckMongoDBAtlasGlobalClusterAttributes(&globalConfig, 1),
+					checkManagedNamepacesLenght(&globalConfig, 1),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasGlobalClusterConfig(orgID, projectName, name, "false", "false", "true"),
+				Config: configBasic(orgID, projectName, name, "false", "false", "true"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasGlobalClusterExists(resourceName, &globalConfig),
+					checkExists(resourceName, &globalConfig),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_custom_shard_key_hashed", "false"),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_shard_key_unique", "true"),
-					testAccCheckMongoDBAtlasGlobalClusterAttributes(&globalConfig, 1),
+					checkManagedNamepacesLenght(&globalConfig, 1),
 				),
 			},
 		},
@@ -80,19 +80,19 @@ func TestAccClusterRSGlobalCluster_WithAWSCluster(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasGlobalClusterDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasGlobalClusterWithAWSClusterConfig(orgID, projectName, name, "true"),
+				Config: configWithAWSCluster(orgID, projectName, name, "true"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasGlobalClusterExists(resourceName, &globalConfig),
+					checkExists(resourceName, &globalConfig),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_namespaces.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.CA"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", name),
-					testAccCheckMongoDBAtlasGlobalClusterAttributes(&globalConfig, 1),
+					checkManagedNamepacesLenght(&globalConfig, 1),
 				),
 			},
 		},
@@ -111,14 +111,14 @@ func TestAccClusterRSGlobalCluster_importBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasGlobalClusterDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasGlobalClusterConfig(orgID, projectName, name, "false", "false", "false"),
+				Config: configBasic(orgID, projectName, name, "false", "false", "false"),
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasGlobalClusterImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"custom_zone_mappings"},
@@ -171,12 +171,12 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasGlobalClusterDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasGlobalClusterWithDBConfig(orgID, projectName, name, "false", customZone),
+				Config: configWithDBConfig(orgID, projectName, name, "false", customZone),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasGlobalClusterExists(resourceName, &globalConfig),
+					checkExists(resourceName, &globalConfig),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_namespaces.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
@@ -185,13 +185,13 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.DE"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", name),
-					testAccCheckMongoDBAtlasGlobalClusterAttributes(&globalConfig, 5),
+					checkManagedNamepacesLenght(&globalConfig, 5),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasGlobalClusterWithDBConfig(orgID, projectName, name, "false", customZoneUpdated),
+				Config: configWithDBConfig(orgID, projectName, name, "false", customZoneUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasGlobalClusterExists(resourceName, &globalConfig),
+					checkExists(resourceName, &globalConfig),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_namespaces.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
@@ -201,12 +201,12 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.JP"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", name),
-					testAccCheckMongoDBAtlasGlobalClusterAttributes(&globalConfig, 5),
+					checkManagedNamepacesLenght(&globalConfig, 5),
 				),
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasGlobalClusterImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"custom_zone_mappings"},
@@ -215,7 +215,7 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasGlobalClusterExists(resourceName string, globalConfig *matlas.GlobalCluster) resource.TestCheckFunc {
+func checkExists(resourceName string, globalConfig *matlas.GlobalCluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -236,7 +236,7 @@ func testAccCheckMongoDBAtlasGlobalClusterExists(resourceName string, globalConf
 	}
 }
 
-func testAccCheckMongoDBAtlasGlobalClusterImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -247,7 +247,7 @@ func testAccCheckMongoDBAtlasGlobalClusterImportStateIDFunc(resourceName string)
 	}
 }
 
-func testAccCheckMongoDBAtlasGlobalClusterAttributes(globalCluster *matlas.GlobalCluster, managedNamespacesCount int) resource.TestCheckFunc {
+func checkManagedNamepacesLenght(globalCluster *matlas.GlobalCluster, managedNamespacesCount int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if len(globalCluster.ManagedNamespaces) != managedNamespacesCount {
 			return fmt.Errorf("bad managed namespaces: %v", globalCluster.ManagedNamespaces)
@@ -256,13 +256,12 @@ func testAccCheckMongoDBAtlasGlobalClusterAttributes(globalCluster *matlas.Globa
 	}
 }
 
-func testAccCheckMongoDBAtlasGlobalClusterDestroy(s *terraform.State) error {
+func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_global_cluster_config" {
 			continue
 		}
 
-		// Try to find the cluster
 		globalConfig, _, err := acc.Conn().GlobalClusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
 		if err != nil {
 			if strings.Contains(err.Error(), fmt.Sprintf("No cluster named %s exists in group %s", rs.Primary.Attributes["cluster_name"], rs.Primary.Attributes["project_id"])) {
@@ -278,7 +277,7 @@ func testAccCheckMongoDBAtlasGlobalClusterDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccMongoDBAtlasGlobalClusterConfig(orgID, projectName, name, backupEnabled, isCustomShard, isShardKeyUnique string) string {
+func configBasic(orgID, projectName, name, backupEnabled, isCustomShard, isShardKeyUnique string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "project" {
 			org_id = %[1]q
@@ -340,7 +339,7 @@ func testAccMongoDBAtlasGlobalClusterConfig(orgID, projectName, name, backupEnab
 	`, orgID, projectName, name, backupEnabled, isCustomShard, isShardKeyUnique)
 }
 
-func testAccMongoDBAtlasGlobalClusterWithAWSClusterConfig(orgID, projectName, name, backupEnabled string) string {
+func configWithAWSCluster(orgID, projectName, name, backupEnabled string) string {
 	return fmt.Sprintf(`
 
 		resource "mongodbatlas_project" "project" {
@@ -389,7 +388,7 @@ func testAccMongoDBAtlasGlobalClusterWithAWSClusterConfig(orgID, projectName, na
 	`, orgID, projectName, name, backupEnabled)
 }
 
-func testAccMongoDBAtlasGlobalClusterWithDBConfig(orgID, projectName, name, backupEnabled, zones string) string {
+func configWithDBConfig(orgID, projectName, name, backupEnabled, zones string) string {
 	return fmt.Sprintf(`
 
 resource "mongodbatlas_project" "project" {
