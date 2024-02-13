@@ -3,11 +3,9 @@ package globalclusterconfig_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -115,12 +113,8 @@ func TestAccClusterRSGlobalCluster_importBasic(t *testing.T) {
 }
 
 func TestAccClusterRSGlobalCluster_database(t *testing.T) {
-	acc.SkipTestForCI(t) // needs to be fixed: 404 (request "GROUP_NOT_FOUND") No group with ID, next steps should use the first project
 	var (
-		resourceName = "mongodbatlas_global_cluster_config.test"
-		name         = acctest.RandomWithPrefix("test-acc-global")
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{Geosharded: true})
 	)
 
 	customZone := `
@@ -160,7 +154,7 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithDBConfig(orgID, projectName, name, "false", customZone),
+				Config: configWithDBConfig(&clusterInfo, customZone),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "5"),
@@ -170,11 +164,11 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.IE"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.DE"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", name),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
 				),
 			},
 			{
-				Config: configWithDBConfig(orgID, projectName, name, "false", customZoneUpdated),
+				Config: configWithDBConfig(&clusterInfo, customZoneUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "5"),
@@ -185,7 +179,7 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.DE"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.JP"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", name),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
 				),
 			},
 			{
@@ -273,109 +267,38 @@ func configBasic(info *acc.ClusterInfo, isCustomShard, isShardKeyUnique bool) st
 	`, info.ClusterNameStr, info.ProjectIDStr, isCustomShard, isShardKeyUnique)
 }
 
-func configWithDBConfig(orgID, projectName, name, backupEnabled, zones string) string {
-	return fmt.Sprintf(`
+func configWithDBConfig(info *acc.ClusterInfo, zones string) string {
+	return info.ClusterTerraformStr + fmt.Sprintf(`
+		resource "mongodbatlas_global_cluster_config" "config" {
+			cluster_name     = %[1]s
+			project_id       = %[2]s
 
-resource "mongodbatlas_project" "project" {
-	org_id = %[1]q
-	name   = %[2]q
-}
-
-resource "mongodbatlas_database_user" "test" {
-  username           = "horizonv2-sg"
-  password           = "password testing something"
-  project_id         = mongodbatlas_project.project.id
-  auth_database_name = "admin"
-
-  roles {
-    role_name     = "readWrite"
-    database_name = "horizonv2-sg"
-  }
-}
-
-resource "mongodbatlas_cluster" "test" {
-  project_id   = mongodbatlas_project.project.id
-  name         = %[3]q
-  disk_size_gb = 80
-  cloud_backup = %[4]s
-  cluster_type = "GEOSHARDED"
-
-  // Provider Settings "block"
-  provider_name               = "AWS"
-  provider_instance_size_name = "M30"
-
-  replication_specs {
-    zone_name  = "US"
-    num_shards = 1
-    regions_config {
-      region_name     = "US_EAST_1"
-      electable_nodes = 3
-      priority        = 7
-      read_only_nodes = 0
-    }
-  }
-  replication_specs {
-    zone_name  = "EU"
-    num_shards = 1
-    regions_config {
-      region_name     = "EU_WEST_1"
-      electable_nodes = 3
-      priority        = 7
-      read_only_nodes = 0
-    }
-  }
-  replication_specs {
-    zone_name  = "DE"
-    num_shards = 1
-    regions_config {
-      region_name     = "EU_NORTH_1"
-      electable_nodes = 3
-      priority        = 7
-      read_only_nodes = 0
-    }
-  }
-  replication_specs {
-    zone_name  = "JP"
-    num_shards = 1
-    regions_config {
-      region_name     = "AP_NORTHEAST_1"
-      electable_nodes = 3
-      priority        = 7
-      read_only_nodes = 0
-    }
-  }
-}
-
-resource "mongodbatlas_global_cluster_config" "test" {
-  project_id = mongodbatlas_cluster.test.project_id
-  cluster_name = mongodbatlas_cluster.test.name
-
-  managed_namespaces {
-    db               = "horizonv2-sg"
-    collection       = "entitlements.entitlement"
-    custom_shard_key = "orgId"
-  }
-  managed_namespaces {
-    db               = "horizonv2-sg"
-    collection       = "entitlements.homesitemapping"
-    custom_shard_key = "orgId"
-  }
-  managed_namespaces {
-    db               = "horizonv2-sg"
-    collection       = "entitlements.site"
-    custom_shard_key = "orgId"
-  }
-  managed_namespaces {
-    db               = "horizonv2-sg"
-    collection       = "entitlements.userDesktopMapping"
-    custom_shard_key = "orgId"
-  }
-  managed_namespaces {
-    db               = "horizonv2-sg"
-    collection       = "session"
-    custom_shard_key = "orgId"
-  }
-  %[5]s
-}
-	`, orgID, projectName, name, backupEnabled, zones)
+			managed_namespaces {
+				db               = "horizonv2-sg"
+				collection       = "entitlements.entitlement"
+				custom_shard_key = "orgId"
+			}
+			managed_namespaces {
+				db               = "horizonv2-sg"
+				collection       = "entitlements.homesitemapping"
+				custom_shard_key = "orgId"
+			}
+			managed_namespaces {
+				db               = "horizonv2-sg"
+				collection       = "entitlements.site"
+				custom_shard_key = "orgId"
+			}
+			managed_namespaces {
+				db               = "horizonv2-sg"
+				collection       = "entitlements.userDesktopMapping"
+				custom_shard_key = "orgId"
+			}
+			managed_namespaces {
+				db               = "horizonv2-sg"
+				collection       = "session"
+				custom_shard_key = "orgId"
+			}
+			%[3]s
+		}
+	`, info.ClusterNameStr, info.ProjectIDStr, zones)
 }
