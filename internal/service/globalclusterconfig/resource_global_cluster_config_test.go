@@ -233,7 +233,7 @@ func checkDestroy(s *terraform.State) error {
 
 		globalConfig, _, err := acc.ConnV2().GlobalClustersApi.GetManagedNamespace(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
 		if err != nil {
-			if strings.Contains(err.Error(), fmt.Sprintf("No cluster named %s exists in group %s", rs.Primary.Attributes["cluster_name"], rs.Primary.Attributes["project_id"])) {
+			if strings.Contains(err.Error(), "GROUP_NOT_FOUND") {
 				return nil
 			}
 			return err
