@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	resourceName = "mongodbatlas_global_cluster_config.config"
+	resourceName   = "mongodbatlas_global_cluster_config.config"
+	dataSourceName = "data.mongodbatlas_global_cluster_config.config"
 )
 
 func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
@@ -264,6 +265,11 @@ func configBasic(info *acc.ClusterInfo, isCustomShard, isShardKeyUnique bool) st
 				zone     = "Zone 1"
 			}
 		}
+
+		data "mongodbatlas_global_cluster_config" "config" {
+			cluster_name     = %[1]s
+			project_id       = %[2]s
+		}	
 	`, info.ClusterNameStr, info.ProjectIDStr, isCustomShard, isShardKeyUnique)
 }
 
