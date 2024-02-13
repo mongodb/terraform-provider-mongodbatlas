@@ -12,13 +12,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 	acc.SkipTestForCI(t) // needs to be fixed: "cloud_backup": conflicts with backup_enabled
 	var (
-		globalConfig matlas.GlobalCluster
+		globalConfig admin.GeoSharding
 		resourceName = "mongodbatlas_global_cluster_config.config"
 		name         = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -70,7 +70,7 @@ func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 func TestAccClusterRSGlobalCluster_WithAWSCluster(t *testing.T) {
 	acc.SkipTestForCI(t) // needs to be fixed: 404 (request "GROUP_NOT_FOUND") No group with ID
 	var (
-		globalConfig matlas.GlobalCluster
+		globalConfig admin.GeoSharding
 		resourceName = "mongodbatlas_global_cluster_config.config"
 		name         = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -130,7 +130,7 @@ func TestAccClusterRSGlobalCluster_importBasic(t *testing.T) {
 func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 	acc.SkipTestForCI(t) // needs to be fixed: 404 (request "GROUP_NOT_FOUND") No group with ID, next steps should use the first project
 	var (
-		globalConfig matlas.GlobalCluster
+		globalConfig admin.GeoSharding
 		resourceName = "mongodbatlas_global_cluster_config.test"
 		name         = acctest.RandomWithPrefix("test-acc-global")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -215,7 +215,7 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 	})
 }
 
-func checkExists(resourceName string, globalConfig *matlas.GlobalCluster) resource.TestCheckFunc {
+func checkExists(resourceName string, globalConfig *admin.GeoSharding) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -225,10 +225,10 @@ func checkExists(resourceName string, globalConfig *matlas.GlobalCluster) resour
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		globalConfigResp, _, err := acc.Conn().GlobalClusters.Get(context.Background(), ids["project_id"], ids["cluster_name"])
+		globalConfigResp, _, err := acc.ConnV2().GlobalClustersApi.GetManagedNamespace(context.Background(), ids["project_id"], ids["cluster_name"]).Execute()
 		if err == nil {
-			*globalConfig = *globalConfigResp
-			if len(globalConfig.CustomZoneMapping) > 0 || len(globalConfig.ManagedNamespaces) > 0 {
+			globalConfig = globalConfigResp
+			if len(globalConfig.GetCustomZoneMapping()) > 0 || len(globalConfig.GetManagedNamespaces()) > 0 {
 				return nil
 			}
 		}
@@ -247,10 +247,10 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func checkManagedNamepacesLenght(globalCluster *matlas.GlobalCluster, managedNamespacesCount int) resource.TestCheckFunc {
+func checkManagedNamepacesLenght(globalCluster *admin.GeoSharding, managedNamespacesCount int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if len(globalCluster.ManagedNamespaces) != managedNamespacesCount {
-			return fmt.Errorf("bad managed namespaces: %v", globalCluster.ManagedNamespaces)
+		if len(globalCluster.GetManagedNamespaces()) != managedNamespacesCount {
+			return fmt.Errorf("bad managed namespaces: %v", globalCluster.GetManagedNamespaces())
 		}
 		return nil
 	}
@@ -262,7 +262,7 @@ func checkDestroy(s *terraform.State) error {
 			continue
 		}
 
-		globalConfig, _, err := acc.Conn().GlobalClusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
+		globalConfig, _, err := acc.ConnV2().GlobalClustersApi.GetManagedNamespace(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
 		if err != nil {
 			if strings.Contains(err.Error(), fmt.Sprintf("No cluster named %s exists in group %s", rs.Primary.Attributes["cluster_name"], rs.Primary.Attributes["project_id"])) {
 				return nil
@@ -270,7 +270,7 @@ func checkDestroy(s *terraform.State) error {
 			return err
 		}
 
-		if len(globalConfig.CustomZoneMapping) > 0 || len(globalConfig.ManagedNamespaces) > 0 {
+		if len(globalConfig.GetCustomZoneMapping()) > 0 || len(globalConfig.GetManagedNamespaces()) > 0 {
 			return fmt.Errorf("global cluster configuration for cluster(%s) still exists", rs.Primary.Attributes["cluster_name"])
 		}
 	}
