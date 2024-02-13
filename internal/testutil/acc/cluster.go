@@ -40,7 +40,6 @@ func GetClusterInfo(orgID string, cloudBackup bool) ClusterInfo {
 			name         									= %[3]q
 			cloud_backup         					= %[4]t
 			disk_size_gb 									= 10
-			backup_enabled               	= false
 			auto_scaling_disk_gb_enabled	= false
 			provider_name               	= "AWS"
 			provider_instance_size_name 	= "M10"
