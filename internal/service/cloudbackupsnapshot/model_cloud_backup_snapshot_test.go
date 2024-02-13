@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-test/deep"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshot"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 func TestSplitSnapshotImportID(t *testing.T) {
@@ -14,10 +14,10 @@ func TestSplitSnapshotImportID(t *testing.T) {
 		t.Errorf("splitSnapshotImportID returned error(%s), expected error=nil", err)
 	}
 
-	expected := &matlas.SnapshotReqPathParameters{
-		GroupID:     "5cf5a45a9ccf6400e60981b6",
+	expected := &admin.GetReplicaSetBackupApiParams{
+		GroupId:     "5cf5a45a9ccf6400e60981b6",
 		ClusterName: "projectname-environment-mongo-global-cluster",
-		SnapshotID:  "5cf5a45a9ccf6400e60981b7",
+		SnapshotId:  "5cf5a45a9ccf6400e60981b7",
 	}
 
 	if diff := deep.Equal(expected, got); diff != nil {

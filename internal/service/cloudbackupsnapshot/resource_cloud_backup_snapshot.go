@@ -256,53 +256,47 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
-
-	requestParameters := &matlas.SnapshotReqPathParameters{
-		SnapshotID:  ids["snapshot_id"],
-		GroupID:     ids["project_id"],
-		ClusterName: ids["cluster_name"],
-	}
-
-	_, err := conn.CloudProviderSnapshots.Delete(ctx, requestParameters)
+	groupID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+	snapshotID := ids["snapshot_id"]
+	_, _, err := connV2.CloudBackupsApi.DeleteReplicaSetBackup(ctx, groupID, clusterName, snapshotID).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error deleting a snapshot (%s): %s", ids["snapshot_id"], err))
+		return diag.FromErr(fmt.Errorf("error deleting a snapshot (%s): %s", snapshotID, err))
 	}
-
 	return nil
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
-	requestParameters, err := SplitSnapshotImportID(d.Id())
+	params, err := SplitSnapshotImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
-	u, _, err := conn.CloudProviderSnapshots.GetOneCloudProviderSnapshot(ctx, requestParameters)
+	snapshot, _, err := connV2.CloudBackupsApi.GetReplicaSetBackupWithParams(ctx, params).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import snapshot %s in project %s, error: %s", requestParameters.ClusterName, requestParameters.GroupID, err)
+		return nil, fmt.Errorf("couldn't import snapshot %s in project %s, error: %s", params.ClusterName, params.GroupId, err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"project_id":   requestParameters.GroupID,
-		"cluster_name": requestParameters.ClusterName,
-		"snapshot_id":  requestParameters.SnapshotID,
+		"project_id":   params.GroupId,
+		"cluster_name": params.ClusterName,
+		"snapshot_id":  params.SnapshotId,
 	}))
 
-	if err := d.Set("project_id", requestParameters.GroupID); err != nil {
-		log.Printf("[WARN] Error setting project_id for (%s): %s", requestParameters.SnapshotID, err)
+	if err := d.Set("project_id", params.GroupId); err != nil {
+		log.Printf("[WARN] Error setting project_id for (%s): %s", params.SnapshotId, err)
 	}
 
-	if err := d.Set("cluster_name", requestParameters.ClusterName); err != nil {
-		log.Printf("[WARN] Error setting cluster_name for (%s): %s", requestParameters.SnapshotID, err)
+	if err := d.Set("cluster_name", params.ClusterName); err != nil {
+		log.Printf("[WARN] Error setting cluster_name for (%s): %s", params.SnapshotId, err)
 	}
 
-	if err := d.Set("description", u.Description); err != nil {
-		log.Printf("[WARN] Error setting description for (%s): %s", requestParameters.SnapshotID, err)
+	if err := d.Set("description", snapshot.GetDescription()); err != nil {
+		log.Printf("[WARN] Error setting description for (%s): %s", params.SnapshotId, err)
 	}
 
 	return []*schema.ResourceData{d}, nil

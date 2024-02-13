@@ -4,21 +4,18 @@ import (
 	"errors"
 	"regexp"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
-func SplitSnapshotImportID(id string) (*matlas.SnapshotReqPathParameters, error) {
+func SplitSnapshotImportID(id string) (*admin.GetReplicaSetBackupApiParams, error) {
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([0-9a-fA-F]{24})$`)
-
 	parts := re.FindStringSubmatch(id)
-
 	if len(parts) != 4 {
 		return nil, errors.New("import format error: to import a snapshot, use the format {project_id}-{cluster_name}-{snapshot_id}")
 	}
-
-	return &matlas.SnapshotReqPathParameters{
-		GroupID:     parts[1],
+	return &admin.GetReplicaSetBackupApiParams{
+		GroupId:     parts[1],
 		ClusterName: parts[2],
-		SnapshotID:  parts[3],
+		SnapshotId:  parts[3],
 	}, nil
 }
