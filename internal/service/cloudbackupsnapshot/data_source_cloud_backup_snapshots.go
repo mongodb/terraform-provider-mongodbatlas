@@ -7,13 +7,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"github.com/mwielbut/pointy"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasCloudBackupSnapshotsRead,
+		ReadContext: dataSourcePluralRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -122,29 +124,27 @@ func PluralDataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCloudBackupSnapshotsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
-	requestParameters := &matlas.SnapshotReqPathParameters{
-		GroupID:     d.Get("project_id").(string),
-		ClusterName: d.Get("cluster_name").(string),
-	}
-	options := &matlas.ListOptions{
-		PageNum:      d.Get("page_num").(int),
-		ItemsPerPage: d.Get("items_per_page").(int),
+	params := &admin.ListReplicaSetBackupsApiParams{
+		GroupId:      d.Get("project_id").(string),
+		ClusterName:  d.Get("cluster_name").(string),
+		PageNum:      pointy.Int(d.Get("page_num").(int)),
+		ItemsPerPage: pointy.Int(d.Get("items_per_page").(int)),
 	}
 
-	cloudProviderSnapshots, _, err := conn.CloudProviderSnapshots.GetAllCloudProviderSnapshots(ctx, requestParameters, options)
+	snapshots, _, err := connV2.CloudBackupsApi.ListReplicaSetBackupsWithParams(ctx, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting cloudProviderSnapshots information: %s", err))
 	}
+	shards, _, _ := connV2.CloudBackupsApi.ListShardedClusterBackups(ctx, params.GroupId, params.ClusterName).Execute()
 
-	if err := d.Set("results", flattenCloudBackupSnapshots(cloudProviderSnapshots.Results)); err != nil {
+	if err := d.Set("results", flattenCloudBackupSnapshots(snapshots.GetResults(), shards)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
 
-	if err := d.Set("total_count", cloudProviderSnapshots.TotalCount); err != nil {
+	if err := d.Set("total_count", snapshots.GetTotalCount()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `total_count`: %s", err))
 	}
 
@@ -153,31 +153,36 @@ func dataSourceMongoDBAtlasCloudBackupSnapshotsRead(ctx context.Context, d *sche
 	return nil
 }
 
-func flattenCloudBackupSnapshots(cloudProviderSnapshots []*matlas.CloudProviderSnapshot) []map[string]any {
-	var results []map[string]any
-
-	if len(cloudProviderSnapshots) > 0 {
-		results = make([]map[string]any, len(cloudProviderSnapshots))
-
-		for k, cloudProviderSnapshot := range cloudProviderSnapshots {
-			results[k] = map[string]any{
-				"id":                 cloudProviderSnapshot.ID,
-				"created_at":         cloudProviderSnapshot.CreatedAt,
-				"description":        cloudProviderSnapshot.Description,
-				"expires_at":         cloudProviderSnapshot.ExpiresAt,
-				"master_key_uuid":    cloudProviderSnapshot.MasterKeyUUID,
-				"mongod_version":     cloudProviderSnapshot.MongodVersion,
-				"snapshot_type":      cloudProviderSnapshot.SnapshotType,
-				"status":             cloudProviderSnapshot.Status,
-				"storage_size_bytes": cloudProviderSnapshot.StorageSizeBytes,
-				"type":               cloudProviderSnapshot.Type,
-				"cloud_provider":     cloudProviderSnapshot.CloudProvider,
-				"members":            flattenCloudMembers(cloudProviderSnapshot.Members),
-				"replica_set_name":   cloudProviderSnapshot.ReplicaSetName,
-				"snapshot_ids":       cloudProviderSnapshot.SnapshotsIds,
+func flattenCloudBackupSnapshots(snapshots []admin.DiskBackupReplicaSet, shards *admin.PaginatedCloudBackupShardedClusterSnapshot) []map[string]any {
+	if len(snapshots) == 0 {
+		return nil
+	}
+	results := make([]map[string]any, len(snapshots))
+	for i := range snapshots {
+		snapshot := &snapshots[i]
+		results[i] = map[string]any{
+			"id":                 snapshot.GetId(),
+			"created_at":         conversion.TimePtrToStringPtr(snapshot.CreatedAt),
+			"expires_at":         conversion.TimePtrToStringPtr(snapshot.ExpiresAt),
+			"description":        snapshot.GetDescription(),
+			"master_key_uuid":    snapshot.GetMasterKeyUUID(),
+			"mongod_version":     snapshot.GetMongodVersion(),
+			"snapshot_type":      snapshot.GetSnapshotType(),
+			"status":             snapshot.GetStatus(),
+			"storage_size_bytes": snapshot.GetStorageSizeBytes(),
+			"type":               snapshot.GetType(),
+			"cloud_provider":     snapshot.GetCloudProvider(),
+			"replica_set_name":   snapshot.GetReplicaSetName(),
+		}
+		if shards != nil {
+			shardResults := shards.GetResults()
+			for j := range shardResults {
+				if shardResults[j].GetId() == snapshot.GetId() {
+					results[i]["members"] = flattenCloudMembers(shardResults[j].GetMembers())
+					results[i]["snapshot_ids"] = shardResults[j].GetSnapshotIds()
+				}
 			}
 		}
 	}
-
 	return results
 }

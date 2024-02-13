@@ -77,7 +77,7 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 func TestAccStreamRSStreamConnection_cluster(t *testing.T) {
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterInfo  = acc.GetClusterInfo(orgID)
+		clusterInfo  = acc.GetClusterInfo(orgID, false)
 		instanceName = acctest.RandomWithPrefix("test-acc-name")
 		resourceName = "mongodbatlas_stream_connection.test"
 	)

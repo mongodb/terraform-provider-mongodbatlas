@@ -16,7 +16,7 @@ type ClusterInfo struct {
 
 // GetClusterInfo is used to obtain a project and cluster configuration resource.
 // When `MONGODB_ATLAS_CLUSTER_NAME` and `MONGODB_ATLAS_PROJECT_ID` are defined, creation of resources is avoided. This is useful for local execution but not intended for CI executions.
-func GetClusterInfo(orgID string) ClusterInfo {
+func GetClusterInfo(orgID string, cloudBackup bool) ClusterInfo {
 	clusterName := os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	if clusterName != "" && projectID != "" {
@@ -38,8 +38,8 @@ func GetClusterInfo(orgID string) ClusterInfo {
 		resource "mongodbatlas_cluster" "test_cluster" {
 			project_id   									= mongodbatlas_project.test.id
 			name         									= %[3]q
+			cloud_backup         					= %[4]t
 			disk_size_gb 									= 10
-			backup_enabled               	= false
 			auto_scaling_disk_gb_enabled	= false
 			provider_name               	= "AWS"
 			provider_instance_size_name 	= "M10"
@@ -55,7 +55,7 @@ func GetClusterInfo(orgID string) ClusterInfo {
 				}
 			}
 		}
-	`, orgID, projectName, clusterName)
+	`, orgID, projectName, clusterName, cloudBackup)
 	return ClusterInfo{
 		ProjectIDStr:        "mongodbatlas_project.test.id",
 		ClusterName:         clusterName,

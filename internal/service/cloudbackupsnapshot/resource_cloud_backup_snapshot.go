@@ -2,11 +2,9 @@ package cloudbackupsnapshot
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -16,16 +14,17 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"github.com/mwielbut/pointy"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasCloudBackupSnapshotCreate,
-		ReadContext:   resourceMongoDBAtlasCloudBackupSnapshotRead,
-		DeleteContext: resourceMongoDBAtlasCloudBackupSnapshotDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasCloudBackupSnapshotImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -124,260 +123,209 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := conversion.DecodeStateID(d.Id())
-
-	requestParameters := &matlas.SnapshotReqPathParameters{
-		SnapshotID:  ids["snapshot_id"],
-		GroupID:     ids["project_id"],
-		ClusterName: ids["cluster_name"],
-	}
-
-	snapshot, resp, err := conn.CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
-	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			d.SetId("")
-			return nil
-		}
-
-		return diag.FromErr(fmt.Errorf("error getting snapshot Information: %s", err))
-	}
-
-	if err = d.Set("snapshot_id", snapshot.ID); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `snapshot_id` for snapshot (%s): %s", ids["snapshot_id"], err))
-	}
-
-	if err = d.Set("created_at", snapshot.CreatedAt); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `created_at` for snapshot (%s): %s", ids["snapshot_id"], err))
-	}
-
-	if err = d.Set("expires_at", snapshot.ExpiresAt); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `expires_at` for snapshot (%s): %s", ids["snapshot_id"], err))
-	}
-
-	if err = d.Set("master_key_uuid", snapshot.MasterKeyUUID); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `master_key_uuid` for snapshot (%s): %s", ids["snapshot_id"], err))
-	}
-
-	if err = d.Set("mongod_version", snapshot.MongodVersion); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `mongod_version` for snapshot (%s): %s", ids["snapshot_id"], err))
-	}
-
-	if err = d.Set("snapshot_type", snapshot.SnapshotType); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `snapshot_type` for snapshot (%s): %s", ids["snapshot_id"], err))
-	}
-
-	if err = d.Set("status", snapshot.Status); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `status` for snapshot (%s): %s", ids["snapshot_id"], err))
-	}
-
-	if err = d.Set("storage_size_bytes", snapshot.StorageSizeBytes); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `storage_size_bytes` for snapshot (%s): %s", ids["snapshot_id"], err))
-	}
-
-	if err = d.Set("type", snapshot.Type); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `type` for snapshot (%s): %s", ids["snapshot_id"], err))
-	}
-
-	if err = d.Set("cloud_provider", snapshot.CloudProvider); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `cloud_provider` for snapshot (%s): %s", ids["snapshot_id"], err))
-	}
-
-	if err = d.Set("members", flattenCloudMembers(snapshot.Members)); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `members` for snapshot (%s): %s", ids["snapshot_id"], err))
-	}
-
-	if err = d.Set("replica_set_name", snapshot.ReplicaSetName); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `replica_set_name` for snapshot (%s): %s", ids["snapshot_id"], err))
-	}
-
-	if err = d.Set("snapshot_ids", snapshot.SnapshotsIds); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `snapshot_ids` for snapshot (%s): %s", ids["snapshot_id"], err))
-	}
-
-	return nil
-}
-
-func resourceMongoDBAtlasCloudBackupSnapshotCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	requestParameters := &matlas.SnapshotReqPathParameters{
-		GroupID:     d.Get("project_id").(string),
-		ClusterName: d.Get("cluster_name").(string),
-	}
-
-	snapshotReq := &matlas.CloudProviderSnapshot{
-		Description:     d.Get("description").(string),
-		RetentionInDays: d.Get("retention_in_days").(int),
-	}
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	groupID := d.Get("project_id").(string)
+	clusterName := d.Get("cluster_name").(string)
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING"},
 		Target:     []string{"IDLE"},
 		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, d.Get("cluster_name").(string), d.Get("project_id").(string), advancedcluster.ServiceFromClient(conn)),
-		Timeout:    10 * time.Minute,
-		MinTimeout: 10 * time.Second,
-		Delay:      3 * time.Minute,
+		Timeout:    15 * time.Minute,
+		MinTimeout: 30 * time.Second,
 	}
-
-	// Wait, catching any errors
 	_, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	snapshot, _, err := conn.CloudProviderSnapshots.Create(ctx, requestParameters, snapshotReq)
+	params := &admin.DiskBackupOnDemandSnapshotRequest{
+		Description:     conversion.StringPtr(d.Get("description").(string)),
+		RetentionInDays: pointy.Int(d.Get("retention_in_days").(int)),
+	}
+	snapshot, _, err := connV2.CloudBackupsApi.TakeSnapshot(ctx, groupID, clusterName, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error taking a snapshot: %s", err))
 	}
 
-	requestParameters.SnapshotID = snapshot.ID
+	requestParams := &admin.GetReplicaSetBackupApiParams{
+		GroupId:     groupID,
+		ClusterName: clusterName,
+		SnapshotId:  snapshot.GetId(),
+	}
 
 	stateConf = &retry.StateChangeConf{
 		Pending:    []string{"queued", "inProgress"},
 		Target:     []string{"completed", "failed"},
-		Refresh:    resourceCloudBackupSnapshotRefreshFunc(ctx, requestParameters, conn),
+		Refresh:    resourceRefreshFunc(ctx, requestParams, connV2),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 60 * time.Second,
 		Delay:      1 * time.Minute,
 	}
-
-	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"project_id":   d.Get("project_id").(string),
-		"cluster_name": d.Get("cluster_name").(string),
-		"snapshot_id":  snapshot.ID,
+		"project_id":   groupID,
+		"cluster_name": clusterName,
+		"snapshot_id":  snapshot.GetId(),
 	}))
 
-	return resourceMongoDBAtlasCloudBackupSnapshotRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
+	groupID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+	snapshotID := ids["snapshot_id"]
 
-	requestParameters := &matlas.SnapshotReqPathParameters{
-		SnapshotID:  ids["snapshot_id"],
-		GroupID:     ids["project_id"],
-		ClusterName: ids["cluster_name"],
-	}
-
-	_, err := conn.CloudProviderSnapshots.Delete(ctx, requestParameters)
+	snapshot, resp, err := connV2.CloudBackupsApi.GetReplicaSetBackup(ctx, groupID, clusterName, snapshotID).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error deleting a snapshot (%s): %s", ids["snapshot_id"], err))
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+		return diag.FromErr(fmt.Errorf("error getting snapshot Information: %s", err))
 	}
 
+	if err = d.Set("snapshot_id", snapshot.GetId()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `snapshot_id` for snapshot (%s): %s", snapshotID, err))
+	}
+
+	if err = d.Set("created_at", conversion.TimePtrToStringPtr(snapshot.CreatedAt)); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `created_at` for snapshot (%s): %s", snapshotID, err))
+	}
+
+	if err = d.Set("expires_at", conversion.TimePtrToStringPtr(snapshot.ExpiresAt)); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `expires_at` for snapshot (%s): %s", snapshotID, err))
+	}
+
+	if err = d.Set("master_key_uuid", snapshot.GetMasterKeyUUID()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `master_key_uuid` for snapshot (%s): %s", snapshotID, err))
+	}
+
+	if err = d.Set("mongod_version", snapshot.GetMongodVersion()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `mongod_version` for snapshot (%s): %s", snapshotID, err))
+	}
+
+	if err = d.Set("snapshot_type", snapshot.GetSnapshotType()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `snapshot_type` for snapshot (%s): %s", snapshotID, err))
+	}
+
+	if err = d.Set("status", snapshot.GetStatus()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `status` for snapshot (%s): %s", snapshotID, err))
+	}
+
+	if err = d.Set("storage_size_bytes", snapshot.GetStorageSizeBytes()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `storage_size_bytes` for snapshot (%s): %s", snapshotID, err))
+	}
+
+	if err = d.Set("type", snapshot.GetType()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `type` for snapshot (%s): %s", snapshotID, err))
+	}
+
+	if err = d.Set("cloud_provider", snapshot.GetCloudProvider()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `cloud_provider` for snapshot (%s): %s", snapshotID, err))
+	}
+
+	if err = d.Set("replica_set_name", snapshot.GetReplicaSetName()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `replica_set_name` for snapshot (%s): %s", snapshotID, err))
+	}
+
+	sharded, _, _ := connV2.CloudBackupsApi.GetShardedClusterBackup(ctx, groupID, clusterName, snapshotID).Execute()
+	if sharded != nil {
+		if err = d.Set("members", flattenCloudMembers(sharded.GetMembers())); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting `members` for snapshot (%s): %s", snapshotID, err))
+		}
+
+		if err = d.Set("snapshot_ids", sharded.GetSnapshotIds()); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting `snapshot_ids` for snapshot (%s): %s", snapshotID, err))
+		}
+	}
 	return nil
 }
 
-func resourceCloudBackupSnapshotRefreshFunc(ctx context.Context, requestParameters *matlas.SnapshotReqPathParameters, client *matlas.Client) retry.StateRefreshFunc {
-	return func() (any, string, error) {
-		c, resp, err := client.CloudProviderSnapshots.GetOneCloudProviderSnapshot(ctx, requestParameters)
-
-		switch {
-		case err != nil:
-			return nil, "failed", err
-		case resp.StatusCode == http.StatusNotFound:
-			return "", "DELETED", nil
-		case c.Status == "failed":
-			return nil, c.Status, fmt.Errorf("error creating MongoDB snapshot(%s) status was: %s", requestParameters.SnapshotID, c.Status)
-		}
-
-		if c.Status != "" {
-			log.Printf("[DEBUG] status for MongoDB snapshot: %s: %s", requestParameters.SnapshotID, c.Status)
-		}
-
-		return c, c.Status, nil
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	ids := conversion.DecodeStateID(d.Id())
+	groupID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+	snapshotID := ids["snapshot_id"]
+	_, _, err := connV2.CloudBackupsApi.DeleteReplicaSetBackup(ctx, groupID, clusterName, snapshotID).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error deleting a snapshot (%s): %s", snapshotID, err))
 	}
+	return nil
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
-	requestParameters, err := SplitSnapshotImportID(d.Id())
+	params, err := SplitSnapshotImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
-	u, _, err := conn.CloudProviderSnapshots.GetOneCloudProviderSnapshot(ctx, requestParameters)
+	snapshot, _, err := connV2.CloudBackupsApi.GetReplicaSetBackupWithParams(ctx, params).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import snapshot %s in project %s, error: %s", requestParameters.ClusterName, requestParameters.GroupID, err)
+		return nil, fmt.Errorf("couldn't import snapshot %s in project %s, error: %s", params.ClusterName, params.GroupId, err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"project_id":   requestParameters.GroupID,
-		"cluster_name": requestParameters.ClusterName,
-		"snapshot_id":  requestParameters.SnapshotID,
+		"project_id":   params.GroupId,
+		"cluster_name": params.ClusterName,
+		"snapshot_id":  params.SnapshotId,
 	}))
 
-	if err := d.Set("project_id", requestParameters.GroupID); err != nil {
-		log.Printf("[WARN] Error setting project_id for (%s): %s", requestParameters.SnapshotID, err)
+	if err := d.Set("project_id", params.GroupId); err != nil {
+		log.Printf("[WARN] Error setting project_id for (%s): %s", params.SnapshotId, err)
 	}
 
-	if err := d.Set("cluster_name", requestParameters.ClusterName); err != nil {
-		log.Printf("[WARN] Error setting cluster_name for (%s): %s", requestParameters.SnapshotID, err)
+	if err := d.Set("cluster_name", params.ClusterName); err != nil {
+		log.Printf("[WARN] Error setting cluster_name for (%s): %s", params.SnapshotId, err)
 	}
 
-	if err := d.Set("description", u.Description); err != nil {
-		log.Printf("[WARN] Error setting description for (%s): %s", requestParameters.SnapshotID, err)
+	if err := d.Set("description", snapshot.GetDescription()); err != nil {
+		log.Printf("[WARN] Error setting description for (%s): %s", params.SnapshotId, err)
 	}
 
 	return []*schema.ResourceData{d}, nil
 }
 
-func SplitSnapshotImportID(id string) (*matlas.SnapshotReqPathParameters, error) {
-	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([0-9a-fA-F]{24})$`)
-
-	parts := re.FindStringSubmatch(id)
-
-	if len(parts) != 4 {
-		return nil, errors.New("import format error: to import a snapshot, use the format {project_id}-{cluster_name}-{snapshot_id}")
-	}
-
-	return &matlas.SnapshotReqPathParameters{
-		GroupID:     parts[1],
-		ClusterName: parts[2],
-		SnapshotID:  parts[3],
-	}, nil
-}
-
-func flattenCloudMember(apiObject *matlas.Member) map[string]any {
-	if apiObject == nil {
-		return nil
-	}
-
-	tfMap := map[string]any{}
-
-	tfMap["cloud_provider"] = apiObject.CloudProvider
-	tfMap["id"] = apiObject.ID
-	tfMap["replica_set_name"] = apiObject.ReplicaSetName
-
-	return tfMap
-}
-
-func flattenCloudMembers(apiObjects []*matlas.Member) []any {
-	if len(apiObjects) == 0 {
-		return nil
-	}
-
-	var tfList []any
-
-	for _, apiObject := range apiObjects {
-		if apiObject == nil {
-			continue
+func resourceRefreshFunc(ctx context.Context, requestParams *admin.GetReplicaSetBackupApiParams, connV2 *admin.APIClient) retry.StateRefreshFunc {
+	return func() (any, string, error) {
+		snapshot, resp, err := connV2.CloudBackupsApi.GetReplicaSetBackupWithParams(ctx, requestParams).Execute()
+		if err != nil {
+			return nil, "failed", err
 		}
-
-		tfList = append(tfList, flattenCloudMember(apiObject))
+		if resp.StatusCode == http.StatusNotFound {
+			return "", "DELETED", nil
+		}
+		status := snapshot.GetStatus()
+		if status == "failed" {
+			return nil, status, fmt.Errorf("error creating MongoDB snapshot(%s) status was: %s", requestParams.SnapshotId, status)
+		}
+		return snapshot, status, nil
 	}
+}
 
-	return tfList
+func flattenCloudMembers(members []admin.DiskBackupShardedClusterSnapshotMember) []map[string]any {
+	if len(members) == 0 {
+		return nil
+	}
+	ret := make([]map[string]any, 0)
+	for _, member := range members {
+		ret = append(ret, map[string]any{
+			"id":               member.GetId(),
+			"cloud_provider":   member.GetCloudProvider(),
+			"replica_set_name": member.GetReplicaSetName(),
+		})
+	}
+	return ret
 }

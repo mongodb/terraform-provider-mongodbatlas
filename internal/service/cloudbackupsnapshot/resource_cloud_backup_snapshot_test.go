@@ -3,57 +3,64 @@ package cloudbackupsnapshot_test
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"testing"
 
-	"github.com/go-test/deep"
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshot"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+)
+
+const (
+	resourceName   = "mongodbatlas_cloud_backup_snapshot.test"
+	dataSourceName = "data.mongodbatlas_cloud_backup_snapshot.test"
 )
 
 func TestAccBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 	var (
-		cloudBackupSnapshot               = matlas.CloudProviderSnapshot{}
-		resourceName                      = "mongodbatlas_cloud_backup_snapshot.test"
-		snapshotsDataSourceName           = "data.mongodbatlas_cloud_backup_snapshots.test"
-		snapshotsDataSourcePaginationName = "data.mongodbatlas_cloud_backup_snapshots.pagination"
-		dataSourceName                    = "data.mongodbatlas_cloud_backup_snapshot.test"
-		orgID                             = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName                       = acctest.RandomWithPrefix("test-acc")
-		clusterName                       = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-		description                       = "My description in my cluster"
-		retentionInDays                   = "4"
+		dataSourcePluralSimpleName     = "data.mongodbatlas_cloud_backup_snapshots.test"
+		dataSourcePluralPaginationName = "data.mongodbatlas_cloud_backup_snapshots.pagination"
+		orgID                          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		clusterInfo                    = acc.GetClusterInfo(orgID, true)
+		description                    = "My description in my cluster"
+		retentionInDays                = "4"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupSnapshotDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudBackupSnapshotConfig(orgID, projectName, clusterName, description, retentionInDays),
+				Config: configBasic(&clusterInfo, description, retentionInDays),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasCloudBackupSnapshotExists(resourceName, &cloudBackupSnapshot),
-					testAccCheckMongoDBAtlasCloudBackupSnapshotAttributes(&cloudBackupSnapshot, description),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "type", "replicaSet"),
+					resource.TestCheckResourceAttr(resourceName, "members.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "snapshot_ids.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "replica_set_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cloud_provider", "AWS"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttr(resourceName, "retention_in_days", retentionInDays),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "cluster_name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
-					resource.TestCheckResourceAttrSet(snapshotsDataSourceName, "results.#"),
-					resource.TestCheckResourceAttrSet(snapshotsDataSourcePaginationName, "results.#"),
+					resource.TestCheckResourceAttr(dataSourceName, "type", "replicaSet"),
+					resource.TestCheckResourceAttr(dataSourceName, "members.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "snapshot_ids.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(dataSourceName, "replica_set_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(dataSourceName, "cloud_provider", "AWS"),
+					resource.TestCheckResourceAttr(dataSourceName, "description", description),
+					resource.TestCheckResourceAttrSet(dataSourcePluralSimpleName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralPaginationName, "results.#"),
 				),
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasCloudBackupSnapshotImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"retention_in_days"},
@@ -62,7 +69,40 @@ func TestAccBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasCloudBackupSnapshotExists(resourceName string, cloudBackupSnapshot *matlas.CloudProviderSnapshot) resource.TestCheckFunc {
+func TestAccBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
+	var (
+		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName     = acctest.RandomWithPrefix("test-acc")
+		description     = "My description in my cluster"
+		retentionInDays = "4"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configSharded(orgID, projectName, description, retentionInDays),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "type", "shardedCluster"),
+					resource.TestCheckResourceAttrWith(resourceName, "members.#", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttrWith(resourceName, "snapshot_ids.#", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttr(resourceName, "description", description),
+					resource.TestCheckResourceAttr(resourceName, "retention_in_days", retentionInDays),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "type", "shardedCluster"),
+					resource.TestCheckResourceAttrWith(dataSourceName, "members.#", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttrWith(dataSourceName, "snapshot_ids.#", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttr(dataSourceName, "description", description)),
+			},
+		},
+	})
+}
+
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -72,15 +112,8 @@ func testAccCheckMongoDBAtlasCloudBackupSnapshotExists(resourceName string, clou
 		if ids["snapshot_id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		log.Printf("[DEBUG] cloudBackupSnapshot ID: %s", ids["snapshot_id"])
-		requestParameters := &matlas.SnapshotReqPathParameters{
-			SnapshotID:  ids["snapshot_id"],
-			GroupID:     ids["project_id"],
-			ClusterName: ids["cluster_name"],
-		}
-		res, _, err := acc.Conn().CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
+		_, _, err := acc.ConnV2().CloudBackupsApi.GetReplicaSetBackup(context.Background(), ids["project_id"], ids["cluster_name"], ids["snapshot_id"]).Execute()
 		if err == nil {
-			*cloudBackupSnapshot = *res
 			return nil
 		}
 
@@ -88,28 +121,16 @@ func testAccCheckMongoDBAtlasCloudBackupSnapshotExists(resourceName string, clou
 	}
 }
 
-func testAccCheckMongoDBAtlasCloudBackupSnapshotAttributes(cloudBackupSnapshot *matlas.CloudProviderSnapshot, description string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if cloudBackupSnapshot.Description != description {
-			return fmt.Errorf("bad cloudBackupSnapshot description: %s", cloudBackupSnapshot.Description)
-		}
-
+func checkDestroy(s *terraform.State) error {
+	if os.Getenv("MONGODB_ATLAS_CLUSTER_NAME") != "" {
 		return nil
 	}
-}
-
-func testAccCheckMongoDBAtlasCloudBackupSnapshotDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_cloud_backup_snapshot" {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		requestParameters := &matlas.SnapshotReqPathParameters{
-			SnapshotID:  ids["snapshot_id"],
-			GroupID:     ids["project_id"],
-			ClusterName: ids["cluster_name"],
-		}
-		res, _, _ := acc.Conn().CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
+		res, _, _ := acc.ConnV2().CloudBackupsApi.GetReplicaSetBackup(context.Background(), ids["project_id"], ids["cluster_name"], ids["snapshot_id"]).Execute()
 		if res != nil {
 			return fmt.Errorf("cloudBackupSnapshot (%s) still exists", rs.Primary.Attributes["snapshot_id"])
 		}
@@ -117,7 +138,7 @@ func testAccCheckMongoDBAtlasCloudBackupSnapshotDestroy(s *terraform.State) erro
 	return nil
 }
 
-func testAccCheckMongoDBAtlasCloudBackupSnapshotImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -128,71 +149,80 @@ func testAccCheckMongoDBAtlasCloudBackupSnapshotImportStateIDFunc(resourceName s
 	}
 }
 
-func testAccMongoDBAtlasCloudBackupSnapshotConfig(orgID, projectName, clusterName, description, retentionInDays string) string {
+func configBasic(info *acc.ClusterInfo, description, retentionInDays string) string {
+	return info.ClusterTerraformStr + fmt.Sprintf(`
+		resource "mongodbatlas_cloud_backup_snapshot" "test" {
+			cluster_name     = %[1]s
+			project_id       = %[2]s
+			description       = %[3]q
+			retention_in_days = %[4]q
+		}
+
+		data "mongodbatlas_cloud_backup_snapshot" "test" {
+			snapshot_id  = mongodbatlas_cloud_backup_snapshot.test.snapshot_id
+			cluster_name     = %[1]s
+			project_id       = %[2]s
+		}
+
+		data "mongodbatlas_cloud_backup_snapshots" "test" {
+			cluster_name     = %[1]s
+			project_id       = %[2]s
+		}
+
+		data "mongodbatlas_cloud_backup_snapshots" "pagination" {
+			cluster_name     = %[1]s
+			project_id       = %[2]s
+			page_num = 1
+			items_per_page = 5
+		}
+	`, info.ClusterNameStr, info.ProjectIDStr, description, retentionInDays)
+}
+
+func configSharded(orgID, projectName, description, retentionInDays string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_project" "backup_project" {
-	name   = %[2]q
-	org_id = %[1]q
-}
-resource "mongodbatlas_cluster" "my_cluster" {
-  project_id   = mongodbatlas_project.backup_project.id
-  name         = %[3]q
-  disk_size_gb = 10
+		resource "mongodbatlas_project" "backup_project" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
 
-  // Provider Settings "block"
-  provider_name               = "AWS"
-  provider_region_name        = "EU_CENTRAL_1"
-  provider_instance_size_name = "M10"
-  cloud_backup                = true //enable cloud backup snapshots
-}
+		resource "mongodbatlas_advanced_cluster" "my_cluster" {
+			project_id   = mongodbatlas_project.backup_project.id
+			name           = "ClusterSharded"
+			cluster_type   = "SHARDED"
+			backup_enabled = true
+		
+			replication_specs {
+				num_shards = 3
+		
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					analytics_specs {
+						instance_size = "M10"
+						node_count    = 1
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_EAST_1"
+				}
+		
+			}
+		}
 
-resource "mongodbatlas_cloud_backup_snapshot" "test" {
-  project_id        = mongodbatlas_cluster.my_cluster.project_id
-  cluster_name      = mongodbatlas_cluster.my_cluster.name
-  description       = %[4]q
-  retention_in_days = %[5]q
-}
+		resource "mongodbatlas_cloud_backup_snapshot" "test" {
+			project_id        = mongodbatlas_advanced_cluster.my_cluster.project_id
+			cluster_name      = mongodbatlas_advanced_cluster.my_cluster.name
+			description       = %[3]q
+			retention_in_days = %[4]q
+		}
 
-data "mongodbatlas_cloud_backup_snapshot" "test" {
-	snapshot_id  = mongodbatlas_cloud_backup_snapshot.test.snapshot_id
-	project_id        = mongodbatlas_cluster.my_cluster.project_id
-	cluster_name      = mongodbatlas_cluster.my_cluster.name
-}
+		data "mongodbatlas_cloud_backup_snapshot" "test" {
+			snapshot_id  = mongodbatlas_cloud_backup_snapshot.test.snapshot_id
+			project_id        = mongodbatlas_advanced_cluster.my_cluster.project_id
+			cluster_name      = mongodbatlas_advanced_cluster.my_cluster.name
+		}
 
-data "mongodbatlas_cloud_backup_snapshots" "test" {
-	project_id        = mongodbatlas_cluster.my_cluster.project_id
-	cluster_name      = mongodbatlas_cluster.my_cluster.name
-}
-
-data "mongodbatlas_cloud_backup_snapshots" "pagination" {
-	project_id        = mongodbatlas_cluster.my_cluster.project_id
-	cluster_name      = mongodbatlas_cluster.my_cluster.name
-	page_num = 1
-	items_per_page = 5
-}
-
-
-
-	`, orgID, projectName, clusterName, description, retentionInDays)
-}
-
-func TestResourceMongoDBAtlasCloudBackupSnapshot_snapshotID(t *testing.T) {
-	got, err := cloudbackupsnapshot.SplitSnapshotImportID("5cf5a45a9ccf6400e60981b6-projectname-environment-mongo-global-cluster-5cf5a45a9ccf6400e60981b7")
-	if err != nil {
-		t.Errorf("splitSnapshotImportID returned error(%s), expected error=nil", err)
-	}
-
-	expected := &matlas.SnapshotReqPathParameters{
-		GroupID:     "5cf5a45a9ccf6400e60981b6",
-		ClusterName: "projectname-environment-mongo-global-cluster",
-		SnapshotID:  "5cf5a45a9ccf6400e60981b7",
-	}
-
-	if diff := deep.Equal(expected, got); diff != nil {
-		t.Errorf("Bad splitSnapshotImportID return \n got = %#v\nwant = %#v \ndiff = %#v", expected, *got, diff)
-	}
-
-	if _, err := cloudbackupsnapshot.SplitSnapshotImportID("5cf5a45a9ccf6400e60981b6projectname-environment-mongo-global-cluster5cf5a45a9ccf6400e60981b7"); err == nil {
-		t.Error("splitSnapshotImportID expected to have error")
-	}
+	`, orgID, projectName, description, retentionInDays)
 }
