@@ -14,8 +14,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mwielbut/pointy"
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func Resource() *schema.Resource {
@@ -124,18 +124,10 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
-
-	requestParameters := &matlas.SnapshotReqPathParameters{
-		GroupID:     d.Get("project_id").(string),
-		ClusterName: d.Get("cluster_name").(string),
-	}
-
-	snapshotReq := &matlas.CloudProviderSnapshot{
-		Description:     d.Get("description").(string),
-		RetentionInDays: d.Get("retention_in_days").(int),
-	}
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	groupID := d.Get("project_id").(string)
+	clusterName := d.Get("cluster_name").(string)
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING"},
@@ -144,39 +136,43 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Timeout:    15 * time.Minute,
 		MinTimeout: 30 * time.Second,
 	}
-
-	// Wait, catching any errors
 	_, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	snapshot, _, err := conn.CloudProviderSnapshots.Create(ctx, requestParameters, snapshotReq)
+	params := &admin.DiskBackupOnDemandSnapshotRequest{
+		Description:     conversion.StringPtr(d.Get("description").(string)),
+		RetentionInDays: pointy.Int(d.Get("retention_in_days").(int)),
+	}
+	snapshot, _, err := connV2.CloudBackupsApi.TakeSnapshot(ctx, groupID, clusterName, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error taking a snapshot: %s", err))
 	}
 
-	requestParameters.SnapshotID = snapshot.ID
+	requestParams := &admin.GetReplicaSetBackupApiParams{
+		GroupId:     groupID,
+		ClusterName: clusterName,
+		SnapshotId:  snapshot.GetId(),
+	}
 
 	stateConf = &retry.StateChangeConf{
 		Pending:    []string{"queued", "inProgress"},
 		Target:     []string{"completed", "failed"},
-		Refresh:    resourceRefreshFunc(ctx, requestParameters, conn),
+		Refresh:    resourceRefreshFunc(ctx, requestParams, connV2),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 60 * time.Second,
 		Delay:      1 * time.Minute,
 	}
-
-	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"project_id":   d.Get("project_id").(string),
-		"cluster_name": d.Get("cluster_name").(string),
-		"snapshot_id":  snapshot.ID,
+		"project_id":   groupID,
+		"cluster_name": clusterName,
+		"snapshot_id":  snapshot.GetId(),
 	}))
 
 	return resourceRead(ctx, d, meta)
@@ -302,24 +298,20 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceRefreshFunc(ctx context.Context, requestParameters *matlas.SnapshotReqPathParameters, client *matlas.Client) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, requestParams *admin.GetReplicaSetBackupApiParams, connV2 *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		c, resp, err := client.CloudProviderSnapshots.GetOneCloudProviderSnapshot(ctx, requestParameters)
-
-		switch {
-		case err != nil:
+		snapshot, resp, err := connV2.CloudBackupsApi.GetReplicaSetBackupWithParams(ctx, requestParams).Execute()
+		if err != nil {
 			return nil, "failed", err
-		case resp.StatusCode == http.StatusNotFound:
+		}
+		if resp.StatusCode == http.StatusNotFound {
 			return "", "DELETED", nil
-		case c.Status == "failed":
-			return nil, c.Status, fmt.Errorf("error creating MongoDB snapshot(%s) status was: %s", requestParameters.SnapshotID, c.Status)
 		}
-
-		if c.Status != "" {
-			log.Printf("[DEBUG] status for MongoDB snapshot: %s: %s", requestParameters.SnapshotID, c.Status)
+		status := snapshot.GetStatus()
+		if status == "failed" {
+			return nil, status, fmt.Errorf("error creating MongoDB snapshot(%s) status was: %s", requestParams.SnapshotId, status)
 		}
-
-		return c, c.Status, nil
+		return snapshot, status, nil
 	}
 }
 
