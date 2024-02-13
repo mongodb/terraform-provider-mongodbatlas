@@ -48,6 +48,8 @@ func TestAccBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "retention_in_days", retentionInDays),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "type", "replicaSet"),
+					resource.TestCheckResourceAttr(dataSourceName, "members.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "snapshot_ids.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttr(dataSourceName, "replica_set_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttr(dataSourceName, "cloud_provider", "AWS"),
@@ -92,6 +94,8 @@ func TestAccBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "retention_in_days", retentionInDays),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "type", "shardedCluster"),
+					resource.TestCheckResourceAttrWith(dataSourceName, "members.#", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttrWith(dataSourceName, "snapshot_ids.#", acc.IntGreatThan(0)),
 					resource.TestCheckResourceAttr(dataSourceName, "description", description)),
 			},
 		},
@@ -212,6 +216,12 @@ func configSharded(orgID, projectName, description, retentionInDays string) stri
 			cluster_name      = mongodbatlas_advanced_cluster.my_cluster.name
 			description       = %[3]q
 			retention_in_days = %[4]q
+		}
+
+		data "mongodbatlas_cloud_backup_snapshot" "test" {
+			snapshot_id  = mongodbatlas_cloud_backup_snapshot.test.snapshot_id
+			project_id        = mongodbatlas_advanced_cluster.my_cluster.project_id
+			cluster_name      = mongodbatlas_advanced_cluster.my_cluster.name
 		}
 
 	`, orgID, projectName, description, retentionInDays)
