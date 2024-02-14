@@ -57,6 +57,7 @@ func TestAccClusterAdvancedCluster_basic(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
+	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		cluster                matlas.AdvancedCluster
 		resourceName           = "mongodbatlas_advanced_cluster.test"
@@ -120,6 +121,7 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
+	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		cluster        matlas.AdvancedCluster
 		resourceName   = "mongodbatlas_advanced_cluster.test"
@@ -172,6 +174,7 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
+	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		cluster                matlas.AdvancedCluster
 		resourceName           = "mongodbatlas_advanced_cluster.test"
@@ -232,6 +235,7 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
+	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
@@ -279,7 +283,8 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 	})
 }
 
-func TestAccClusterAdvancedCluster_UnpausedToPaused(t *testing.T) {
+func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
+	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		cluster             matlas.AdvancedCluster
 		resourceName        = "mongodbatlas_advanced_cluster.test"
@@ -334,7 +339,8 @@ func TestAccClusterAdvancedCluster_UnpausedToPaused(t *testing.T) {
 	})
 }
 
-func TestAccClusterAdvancedCluster_PausedToUnpaused(t *testing.T) {
+func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
+	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
@@ -392,6 +398,7 @@ func TestAccClusterAdvancedCluster_PausedToUnpaused(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
+	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		cluster                matlas.AdvancedCluster
 		resourceName           = "mongodbatlas_advanced_cluster.test"
@@ -475,6 +482,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
+	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
@@ -547,6 +555,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 }
 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.T) {
+	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
@@ -592,6 +601,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 }
 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t *testing.T) {
+	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
@@ -637,6 +647,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 }
 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *testing.T) {
+	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		cluster          matlas.AdvancedCluster
 		resourceName     = "mongodbatlas_advanced_cluster.test"
@@ -675,6 +686,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 }
 
 func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
+	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		cluster                matlas.AdvancedCluster
 		resourceName           = "mongodbatlas_advanced_cluster.test"

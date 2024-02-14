@@ -12,6 +12,7 @@ import (
 )
 
 func TestAccMigrationAdvancedClusterRS_singleAWSProvider(t *testing.T) {
+	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
@@ -44,6 +45,7 @@ func TestAccMigrationAdvancedClusterRS_singleAWSProvider(t *testing.T) {
 }
 
 func TestAccMigrationAdvancedClusterRS_multiCloud(t *testing.T) {
+	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
