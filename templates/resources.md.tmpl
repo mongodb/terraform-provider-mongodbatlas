@@ -1,7 +1,7 @@
 ---
 layout: "mongodbatlas"
 page_title: {{ if .Name }}"MongoDB Atlas: {{.Name}}{{ end }}"
-subcategory: {{ if .Type }}"docs_{{ .Name }}_{{.Type | lower}}"{{ end }}
+sidebar_current: {{ if .Type }}"docs-{{ .ProviderShortName }}-{{ $arr := split .Type " "}}{{ range $element := $arr }}{{ $element | lower}}{{ end }}{{ $name := slice (split .Name "_") 1 }}{{ range $element := $name }}-{{ $element | lower}}{{end}}"{{ end }}
 description: |-
     {{ if .Name }}"Provides a {{ .Name }} resource."{{ end }}
 ---
