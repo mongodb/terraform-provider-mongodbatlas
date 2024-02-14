@@ -13,3 +13,11 @@ func SkipTestForCI(tb testing.TB) {
 		tb.Skip()
 	}
 }
+
+// SkipInUnitTest is rarely needed, it is used in acc and mig tests to make sure that they don't run in unit test mode.
+func SkipInUnitTest(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("TF_ACC") == "" {
+		tb.Skip()
+	}
+}
