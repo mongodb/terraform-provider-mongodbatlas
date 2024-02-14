@@ -1,7 +1,7 @@
 ---
 layout: "mongodbatlas"
 page_title: "MongoDB Atlas: {{.Name}}"
-subcategory: "docs_{{ .Name }}_{{.Type | lower}}"
+sidebar_current: "docs-{{ .ProviderShortName }}-{{ $arr := split .Type " "}}{{ index $arr 0 | lower }}{{ index $arr 1 | lower }}-{{ $name := split .Name "_" }}{{ index $name 1 }}-{{ index $name 2 }}"
 description: |-
     "Provides a Search Deployment data source."
 ---
