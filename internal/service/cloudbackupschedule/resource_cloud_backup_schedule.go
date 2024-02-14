@@ -337,7 +337,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "restore_window_days", clusterName, err)
 	}
 
-	if err := d.Set("next_snapshot", backupPolicy.GetNextSnapshot()); err != nil {
+	if err := d.Set("next_snapshot", conversion.TimePtrToStringPtr(backupPolicy.NextSnapshot)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "next_snapshot", clusterName, err)
 	}
 
