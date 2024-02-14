@@ -769,7 +769,7 @@ func configAdvancedPolicies(orgID, projectName, clusterName string, p *admin.Dis
 				retention_value    = 4
 			}
 		}
-	`, orgID, projectName, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
+	`, orgID, projectName, clusterName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
 func configExportPolicies(orgID, projectName, clusterName, policyName, roleName, awsAccessKey, awsSecretKey, region string) string {
