@@ -12,7 +12,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasGlobalClusterRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -61,13 +61,12 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasGlobalClusterRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	globalCluster, resp, err := conn.GlobalClusters.Get(ctx, projectID, clusterName)
+	globalCluster, resp, err := connV2.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			return nil
@@ -76,11 +75,11 @@ func dataSourceMongoDBAtlasGlobalClusterRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
 	}
 
-	if err := d.Set("managed_namespaces", flattenManagedNamespaces(globalCluster.ManagedNamespaces)); err != nil {
+	if err := d.Set("managed_namespaces", flattenManagedNamespaces(globalCluster.GetManagedNamespaces())); err != nil {
 		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
 	}
 
-	if err := d.Set("custom_zone_mapping", globalCluster.CustomZoneMapping); err != nil {
+	if err := d.Set("custom_zone_mapping", globalCluster.GetCustomZoneMapping()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
 	}
 

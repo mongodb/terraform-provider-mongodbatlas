@@ -22,8 +22,7 @@ func TestAccBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 	var (
 		dataSourcePluralSimpleName     = "data.mongodbatlas_cloud_backup_snapshots.test"
 		dataSourcePluralPaginationName = "data.mongodbatlas_cloud_backup_snapshots.pagination"
-		orgID                          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterInfo                    = acc.GetClusterInfo(orgID, true)
+		clusterInfo                    = acc.GetClusterInfo(&acc.ClusterRequest{CloudBackup: true})
 		description                    = "My description in my cluster"
 		retentionInDays                = "4"
 	)
