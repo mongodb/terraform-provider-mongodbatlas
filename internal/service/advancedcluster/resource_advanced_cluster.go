@@ -25,33 +25,33 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-type acCtxKey string
-
 const (
-	errorClusterAdvancedCreate             = "error creating MongoDB ClusterAdvanced: %s"
-	errorClusterAdvancedRead               = "error reading MongoDB ClusterAdvanced (%s): %s"
-	errorClusterAdvancedDelete             = "error deleting MongoDB ClusterAdvanced (%s): %s"
-	errorClusterAdvancedUpdate             = "error updating MongoDB ClusterAdvanced (%s): %s"
-	errorAdvancedClusterAdvancedConfUpdate = "error updating Advanced Configuration Option form MongoDB Cluster (%s): %s"
-	errorAdvancedClusterAdvancedConfRead   = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
+	errorCreate       = "error creating advanced cluster: %s"
+	errorRead         = "error reading  advanced cluster (%s): %s"
+	errorDelete       = "error deleting advanced cluster (%s): %s"
+	errorUpdate       = "error updating advanced cluster (%s): %s"
+	errorConfigUpdate = "error updating advanced cluster configuration options (%s): %s"
+	errorConfigRead   = "error reading advanced cluster configuration options (%s): %s"
 )
+
+type acCtxKey string
 
 var upgradeRequestCtxKey acCtxKey = "upgradeRequest"
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasAdvancedClusterCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasAdvancedClusterRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasAdvancedClusterUpdateOrUpgrade,
-		DeleteWithoutTimeout: resourceMongoDBAtlasAdvancedClusterDelete,
+		CreateWithoutTimeout: resourceCreate,
+		ReadWithoutTimeout:   resourceRead,
+		UpdateWithoutTimeout: resourceUpdateOrUpgrade,
+		DeleteWithoutTimeout: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasAdvancedClusterImportState,
+			StateContext: resourceImport,
 		},
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
 			{
 				Type:    ResourceV0().CoreConfigSchema().ImpliedType(),
-				Upgrade: resourceMongoDBAtlasAdvancedClusterStateUpgradeV0,
+				Upgrade: resourceStateUpgradeV0,
 				Version: 0,
 			},
 		},
@@ -178,7 +178,7 @@ func Resource() *schema.Resource {
 							Required: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"analytics_specs": advancedClusterRegionConfigsSpecsSchema(),
+									"analytics_specs": schemaSpecs(),
 									"auto_scaling": {
 										Type:     schema.TypeList,
 										MaxItems: 1,
@@ -253,7 +253,7 @@ func Resource() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 									},
-									"electable_specs": advancedClusterRegionConfigsSpecsSchema(),
+									"electable_specs": schemaSpecs(),
 									"priority": {
 										Type:     schema.TypeInt,
 										Required: true,
@@ -263,7 +263,7 @@ func Resource() *schema.Resource {
 										Required:         true,
 										ValidateDiagFunc: StringIsUppercase(),
 									},
-									"read_only_specs": advancedClusterRegionConfigsSpecsSchema(),
+									"read_only_specs": schemaSpecs(),
 									"region_name": {
 										Type:             schema.TypeString,
 										Required:         true,
@@ -323,7 +323,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-func advancedClusterRegionConfigsSpecsSchema() *schema.Schema {
+func schemaSpecs() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		MaxItems: 1,
@@ -352,7 +352,7 @@ func advancedClusterRegionConfigsSpecsSchema() *schema.Schema {
 	}
 }
 
-func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	if v, ok := d.GetOk("accept_data_risks_and_force_replica_set_reconfig"); ok {
 		if v.(string) != "" {
 			return diag.FromErr(fmt.Errorf("accept_data_risks_and_force_replica_set_reconfig can not be set in creation, only in update"))
@@ -375,7 +375,7 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 	if _, ok := d.GetOk("bi_connector_config"); ok {
 		biConnector, err := ExpandBiConnectorConfig(d)
 		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorClusterAdvancedCreate, err))
+			return diag.FromErr(fmt.Errorf(errorCreate, err))
 		}
 		request.BiConnector = biConnector
 	}
@@ -420,14 +420,14 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 
 	cluster, _, err := conn.AdvancedClusters.Create(ctx, projectID, request)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterAdvancedCreate, err))
+		return diag.FromErr(fmt.Errorf(errorCreate, err))
 	}
 
 	timeout := d.Timeout(schema.TimeoutCreate)
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
 		Target:     []string{"IDLE"},
-		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
+		Refresh:    resourceRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
 		Timeout:    timeout,
 		MinTimeout: 1 * time.Minute,
 		Delay:      3 * time.Minute,
@@ -436,7 +436,7 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterAdvancedCreate, err))
+		return diag.FromErr(fmt.Errorf(errorCreate, err))
 	}
 
 	/*
@@ -450,7 +450,7 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 		if ok {
 			_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, cluster.Name, advancedConfReq)
 			if err != nil {
-				return diag.FromErr(fmt.Errorf(errorAdvancedClusterAdvancedConfUpdate, cluster.Name, err))
+				return diag.FromErr(fmt.Errorf(errorConfigUpdate, cluster.Name, err))
 			}
 		}
 	}
@@ -463,7 +463,7 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 
 		_, _, err = updateAdvancedCluster(ctx, conn, request, projectID, d.Get("name").(string), timeout)
 		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, d.Get("name").(string), err))
+			return diag.FromErr(fmt.Errorf(errorUpdate, d.Get("name").(string), err))
 		}
 	}
 
@@ -473,10 +473,10 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 		"cluster_name": cluster.Name,
 	}))
 
-	return resourceMongoDBAtlasAdvancedClusterRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
@@ -490,7 +490,7 @@ func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Reso
 			return nil
 		}
 
-		return diag.FromErr(fmt.Errorf(errorClusterAdvancedRead, clusterName, err))
+		return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 	}
 
 	log.Printf("[DEBUG] GET ClusterAdvanced %+v", cluster)
@@ -589,7 +589,7 @@ func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Reso
 	*/
 	processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, projectID, clusterName)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorAdvancedClusterAdvancedConfRead, clusterName, err))
+		return diag.FromErr(fmt.Errorf(errorConfigRead, clusterName, err))
 	}
 
 	if err := d.Set("advanced_configuration", FlattenProcessArgs(processArgs)); err != nil {
@@ -599,7 +599,7 @@ func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func resourceMongoDBAtlasAdvancedClusterUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	if upgradeRequest := getUpgradeRequest(d); upgradeRequest != nil {
 		upgradeCtx := context.WithValue(ctx, upgradeRequestCtxKey, upgradeRequest)
 		return resourceMongoDBAtlasAdvancedClusterUpgrade(upgradeCtx, d, meta)
@@ -623,7 +623,7 @@ func resourceMongoDBAtlasAdvancedClusterUpgrade(ctx context.Context, d *schema.R
 	upgradeResponse, _, err := UpgradeCluster(ctx, conn, upgradeRequest, projectID, clusterName, d.Timeout(schema.TimeoutUpdate))
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+		return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -632,7 +632,7 @@ func resourceMongoDBAtlasAdvancedClusterUpgrade(ctx context.Context, d *schema.R
 		"cluster_name": clusterName,
 	}))
 
-	return resourceMongoDBAtlasAdvancedClusterRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
 func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -718,7 +718,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
 				_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
 				if err != nil {
-					return diag.FromErr(fmt.Errorf(errorAdvancedClusterAdvancedConfUpdate, clusterName, err))
+					return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
 				}
 			}
 		}
@@ -730,14 +730,14 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 			_, resp, err := updateAdvancedCluster(ctx, conn, cluster, projectID, clusterName, timeout)
 			if err != nil {
 				if resp == nil || resp.StatusCode == 400 {
-					return retry.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+					return retry.NonRetryableError(fmt.Errorf(errorUpdate, clusterName, err))
 				}
-				return retry.RetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+				return retry.RetryableError(fmt.Errorf(errorUpdate, clusterName, err))
 			}
 			return nil
 		})
 		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 		}
 	}
 
@@ -748,14 +748,14 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 
 		_, _, err := updateAdvancedCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
 		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 		}
 	}
 
-	return resourceMongoDBAtlasAdvancedClusterRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAdvancedClusterDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
@@ -771,7 +771,7 @@ func resourceMongoDBAtlasAdvancedClusterDelete(ctx context.Context, d *schema.Re
 
 	_, err := conn.AdvancedClusters.Delete(ctx, projectID, clusterName, options)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterAdvancedDelete, clusterName, err))
+		return diag.FromErr(fmt.Errorf(errorDelete, clusterName, err))
 	}
 
 	log.Println("[INFO] Waiting for MongoDB ClusterAdvanced to be destroyed")
@@ -779,7 +779,7 @@ func resourceMongoDBAtlasAdvancedClusterDelete(ctx context.Context, d *schema.Re
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
 		Target:     []string{"DELETED"},
-		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, clusterName, projectID, conn),
+		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, conn),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute, // Wait 30 secs before starting
@@ -788,13 +788,13 @@ func resourceMongoDBAtlasAdvancedClusterDelete(ctx context.Context, d *schema.Re
 	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterAdvancedDelete, clusterName, err))
+		return diag.FromErr(fmt.Errorf(errorDelete, clusterName, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasAdvancedClusterImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	projectID, name, err := splitSClusterAdvancedImportID(d.Id())
@@ -1239,7 +1239,7 @@ func flattenAdvancedReplicationSpecAutoScaling(apiObject *matlas.AdvancedAutoSca
 	return tfList
 }
 
-func resourceClusterAdvancedRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		c, resp, err := client.AdvancedClusters.Get(ctx, projectID, name)
 
@@ -1323,7 +1323,7 @@ func updateAdvancedCluster(
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
-		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, name, projectID, conn),
+		Refresh:    resourceRefreshFunc(ctx, name, projectID, conn),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,

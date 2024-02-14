@@ -116,7 +116,7 @@ func DataSource() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"analytics_specs": advancedClusterRegionConfigsSpecsSchema(),
+									"analytics_specs": schemaSpecs(),
 									"auto_scaling": {
 										Type:     schema.TypeList,
 										Computed: true,
@@ -177,7 +177,7 @@ func DataSource() *schema.Resource {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
-									"electable_specs": advancedClusterRegionConfigsSpecsSchema(),
+									"electable_specs": schemaSpecs(),
 									"priority": {
 										Type:     schema.TypeInt,
 										Computed: true,
@@ -186,7 +186,7 @@ func DataSource() *schema.Resource {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
-									"read_only_specs": advancedClusterRegionConfigsSpecsSchema(),
+									"read_only_specs": schemaSpecs(),
 									"region_name": {
 										Type:     schema.TypeString,
 										Computed: true,
@@ -241,7 +241,7 @@ func dataSourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Re
 			return nil
 		}
 
-		return diag.FromErr(fmt.Errorf(errorClusterAdvancedRead, clusterName, err))
+		return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 	}
 
 	if err := d.Set("backup_enabled", cluster.BackupEnabled); err != nil {

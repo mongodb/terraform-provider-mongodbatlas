@@ -124,7 +124,7 @@ func PluralDataSource() *schema.Resource {
 										Computed: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
-												"analytics_specs": advancedClusterRegionConfigsSpecsSchema(),
+												"analytics_specs": schemaSpecs(),
 												"auto_scaling": {
 													Type:     schema.TypeList,
 													Computed: true,
@@ -185,7 +185,7 @@ func PluralDataSource() *schema.Resource {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
-												"electable_specs": advancedClusterRegionConfigsSpecsSchema(),
+												"electable_specs": schemaSpecs(),
 												"priority": {
 													Type:     schema.TypeInt,
 													Computed: true,
@@ -194,7 +194,7 @@ func PluralDataSource() *schema.Resource {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
-												"read_only_specs": advancedClusterRegionConfigsSpecsSchema(),
+												"read_only_specs": schemaSpecs(),
 												"region_name": {
 													Type:     schema.TypeString,
 													Computed: true,
