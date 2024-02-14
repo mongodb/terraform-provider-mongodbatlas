@@ -47,7 +47,7 @@ func CheckDestroyTeamAdvancedCluster(s *terraform.State) error {
 		}
 
 		// Try to find the cluster
-		_, _, err := Conn().AdvancedClusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
+		_, _, err := ConnV2().ClustersApi.GetCluster(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
 
 		if err == nil {
 			return fmt.Errorf("cluster (%s:%s) still exists", rs.Primary.Attributes["cluster_name"], rs.Primary.ID)
