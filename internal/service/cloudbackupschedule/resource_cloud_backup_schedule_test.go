@@ -27,16 +27,16 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudBackupScheduleConfigNoPolicies(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
+				Config: configNoPolicies(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
 					ReferenceHourOfDay:    pointy.Int64(3),
 					ReferenceMinuteOfHour: pointy.Int64(45),
 					RestoreWindowDays:     pointy.Int64(4),
 				}),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
@@ -55,13 +55,13 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "policy_item_monthly.#")),
 			},
 			{
-				Config: testAccMongoDBAtlasCloudBackupScheduleNewPoliciesConfig(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
+				Config: configNewPolicies(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
 					ReferenceHourOfDay:    pointy.Int64(0),
 					ReferenceMinuteOfHour: pointy.Int64(0),
 					RestoreWindowDays:     pointy.Int64(7),
 				}),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "0"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "0"),
@@ -93,13 +93,13 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasCloudBackupScheduleAdvancedPoliciesConfig(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
+				Config: configAdvancedPolicies(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
 					ReferenceHourOfDay:    pointy.Int64(0),
 					ReferenceMinuteOfHour: pointy.Int64(0),
 					RestoreWindowDays:     pointy.Int64(7),
 				}),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "0"),
@@ -157,9 +157,9 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudBackupScheduleExportPoliciesConfig(orgID, projectName, clusterName, policyName, roleName, awsAccessKey, awsSecretKey, region),
+				Config: configExportPolicies(orgID, projectName, clusterName, policyName, roleName, awsAccessKey, awsSecretKey, region),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "20"),
@@ -185,16 +185,16 @@ func TestAccBackupRSCloudBackupSchedule_onepolicy(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudBackupScheduleDefaultConfig(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
+				Config: configDefault(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
 					ReferenceHourOfDay:    pointy.Int64(3),
 					ReferenceMinuteOfHour: pointy.Int64(45),
 					RestoreWindowDays:     pointy.Int64(4),
 				}),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
@@ -218,13 +218,13 @@ func TestAccBackupRSCloudBackupSchedule_onepolicy(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasCloudBackupScheduleOnePolicyConfig(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
+				Config: configOnePolicy(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
 					ReferenceHourOfDay:    pointy.Int64(0),
 					ReferenceMinuteOfHour: pointy.Int64(0),
 					RestoreWindowDays:     pointy.Int64(7),
 				}),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "0"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "0"),
@@ -252,16 +252,16 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudBackupScheduleCopySettingsConfig(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
+				Config: configCopySettings(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
 					ReferenceHourOfDay:    pointy.Int64(3),
 					ReferenceMinuteOfHour: pointy.Int64(45),
 					RestoreWindowDays:     pointy.Int64(1),
 				}),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
@@ -301,16 +301,16 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudBackupScheduleDefaultConfig(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
+				Config: configDefault(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
 					ReferenceHourOfDay:    pointy.Int64(3),
 					ReferenceMinuteOfHour: pointy.Int64(45),
 					RestoreWindowDays:     pointy.Int64(4),
 				}),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
@@ -335,7 +335,7 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasCloudProviderSnapshotBackupPolicyImportStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -354,29 +354,29 @@ func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudBackupScheduleBasicConfig(orgID, projectName, clusterName, &matlas.PolicyItem{
+				Config: configBasic(orgID, projectName, clusterName, &matlas.PolicyItem{
 					FrequencyInterval: 1,
 					RetentionUnit:     "days",
 					RetentionValue:    1,
 				}),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "1")),
 			},
 			{
-				Config: testAccMongoDBAtlasCloudBackupScheduleBasicConfig(orgID, projectName, clusterName, &matlas.PolicyItem{
+				Config: configBasic(orgID, projectName, clusterName, &matlas.PolicyItem{
 					FrequencyInterval: 2,
 					RetentionUnit:     "days",
 					RetentionValue:    3,
 				}),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "2"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
@@ -385,7 +385,7 @@ func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasCloudProviderSnapshotBackupPolicyImportStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -393,7 +393,7 @@ func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName string) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -413,7 +413,7 @@ func testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName string) reso
 	}
 }
 
-func testAccCheckMongoDBAtlasCloudBackupScheduleDestroy(s *terraform.State) error {
+func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_cloud_backup_schedule" {
 			continue
@@ -433,7 +433,7 @@ func testAccCheckMongoDBAtlasCloudBackupScheduleDestroy(s *terraform.State) erro
 	return nil
 }
 
-func testAccMongoDBAtlasCloudBackupScheduleConfigNoPolicies(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+func configNoPolicies(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "backup_project" {
 			name   = %[2]q
@@ -466,7 +466,7 @@ func testAccMongoDBAtlasCloudBackupScheduleConfigNoPolicies(orgID, projectName, 
 	`, orgID, projectName, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
 }
 
-func testAccMongoDBAtlasCloudBackupScheduleDefaultConfig(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+func configDefault(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "backup_project" {
 			name   = %[2]q
@@ -520,7 +520,7 @@ func testAccMongoDBAtlasCloudBackupScheduleDefaultConfig(orgID, projectName, clu
 	`, orgID, projectName, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
 }
 
-func testAccMongoDBAtlasCloudBackupScheduleCopySettingsConfig(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+func configCopySettings(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "backup_project" {
 			name   = %[2]q
@@ -591,7 +591,7 @@ func testAccMongoDBAtlasCloudBackupScheduleCopySettingsConfig(orgID, projectName
 	`, orgID, projectName, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
 }
 
-func testAccMongoDBAtlasCloudBackupScheduleOnePolicyConfig(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+func configOnePolicy(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "backup_project" {
 			name   = %[2]q
@@ -625,7 +625,7 @@ func testAccMongoDBAtlasCloudBackupScheduleOnePolicyConfig(orgID, projectName, c
 	`, orgID, projectName, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
 }
 
-func testAccMongoDBAtlasCloudBackupScheduleNewPoliciesConfig(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+func configNewPolicies(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "backup_project" {
 			name   = %[2]q
@@ -679,7 +679,7 @@ func testAccMongoDBAtlasCloudBackupScheduleNewPoliciesConfig(orgID, projectName,
 	`, orgID, projectName, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
 }
 
-func testAccMongoDBAtlasCloudBackupScheduleBasicConfig(orgID, projectName, clusterName string, policy *matlas.PolicyItem) string {
+func configBasic(orgID, projectName, clusterName string, policy *matlas.PolicyItem) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_project" "backup_project" {
 	name   = %[2]q
@@ -714,7 +714,7 @@ data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 	`, orgID, projectName, clusterName, policy.FrequencyInterval, policy.RetentionUnit, policy.RetentionValue)
 }
 
-func testAccMongoDBAtlasCloudBackupScheduleAdvancedPoliciesConfig(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+func configAdvancedPolicies(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "backup_project" {
 			name   = %[2]q
@@ -773,7 +773,7 @@ func testAccMongoDBAtlasCloudBackupScheduleAdvancedPoliciesConfig(orgID, project
 	`, orgID, projectName, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
 }
 
-func testAccMongoDBAtlasCloudBackupScheduleExportPoliciesConfig(orgID, projectName, clusterName, policyName, roleName, awsAccessKey, awsSecretKey, region string) string {
+func configExportPolicies(orgID, projectName, clusterName, policyName, roleName, awsAccessKey, awsSecretKey, region string) string {
 	return fmt.Sprintf(`
 
 resource "mongodbatlas_project" "backup_project" {
@@ -896,7 +896,7 @@ EOF
 	`, orgID, projectName, clusterName, policyName, roleName, awsAccessKey, awsSecretKey, region)
 }
 
-func testAccCheckMongoDBAtlasCloudProviderSnapshotBackupPolicyImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

@@ -10,11 +10,9 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 )
 
-// Note: the schema is the same as dataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicy
-// see documentation at https://docs.atlas.mongodb.com/reference/api/cloud-backup/schedule/get-all-schedules/
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasCloudBackupScheduleRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -219,9 +217,7 @@ func DataSource() *schema.Resource {
 	}
 }
 
-// Almost the same as dataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicyRead
-// just do not save the update_snapshots because is not specified in the DS
-func dataSourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)

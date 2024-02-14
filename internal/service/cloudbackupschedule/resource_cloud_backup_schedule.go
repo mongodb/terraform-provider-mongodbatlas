@@ -27,16 +27,14 @@ const (
 	errorSnapshotBackupScheduleSetting = "error setting `%s` for Cloud Backup Schedule(%s): %s"
 )
 
-// https://docs.atlas.mongodb.com/reference/api/cloud-backup/schedule/modify-one-schedule/
-// same as resourceMongoDBAtlasCloudProviderSnapshotBackupPolicy
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasCloudBackupScheduleCreate,
-		ReadContext:   resourceMongoDBAtlasCloudBackupScheduleRead,
-		UpdateContext: resourceMongoDBAtlasCloudBackupScheduleUpdate,
-		DeleteContext: resourceMongoDBAtlasCloudBackupScheduleDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasCloudBackupScheduleImportState,
+			StateContext: resourceImport,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -281,7 +279,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasCloudBackupScheduleCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	var diags diag.Diagnostics
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -310,11 +308,10 @@ func resourceMongoDBAtlasCloudBackupScheduleCreate(ctx context.Context, d *schem
 		"cluster_name": clusterName,
 	}))
 
-	return resourceMongoDBAtlasCloudBackupScheduleRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	ids := conversion.DecodeStateID(d.Id())
@@ -385,7 +382,7 @@ func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.
 	return nil
 }
 
-func resourceMongoDBAtlasCloudBackupScheduleUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	ids := conversion.DecodeStateID(d.Id())
@@ -403,11 +400,10 @@ func resourceMongoDBAtlasCloudBackupScheduleUpdate(ctx context.Context, d *schem
 		return diag.Errorf(errorSnapshotBackupScheduleUpdate, err)
 	}
 
-	return resourceMongoDBAtlasCloudBackupScheduleRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCloudBackupScheduleDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -423,7 +419,7 @@ func resourceMongoDBAtlasCloudBackupScheduleDelete(ctx context.Context, d *schem
 	return nil
 }
 
-func resourceMongoDBAtlasCloudBackupScheduleImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
