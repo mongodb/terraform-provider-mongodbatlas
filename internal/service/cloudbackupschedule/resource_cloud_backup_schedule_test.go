@@ -11,8 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mwielbut/pointy"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
@@ -30,10 +29,10 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configNoPolicies(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
-					ReferenceHourOfDay:    pointy.Int64(3),
-					ReferenceMinuteOfHour: pointy.Int64(45),
-					RestoreWindowDays:     pointy.Int64(4),
+				Config: configNoPolicies(orgID, projectName, clusterName, &admin.DiskBackupSnapshotSchedule{
+					ReferenceHourOfDay:    conversion.IntPtr(3),
+					ReferenceMinuteOfHour: conversion.IntPtr(45),
+					RestoreWindowDays:     conversion.IntPtr(4),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
@@ -55,10 +54,10 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "policy_item_monthly.#")),
 			},
 			{
-				Config: configNewPolicies(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
-					ReferenceHourOfDay:    pointy.Int64(0),
-					ReferenceMinuteOfHour: pointy.Int64(0),
-					RestoreWindowDays:     pointy.Int64(7),
+				Config: configNewPolicies(orgID, projectName, clusterName, &admin.DiskBackupSnapshotSchedule{
+					ReferenceHourOfDay:    conversion.IntPtr(0),
+					ReferenceMinuteOfHour: conversion.IntPtr(0),
+					RestoreWindowDays:     conversion.IntPtr(7),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
@@ -93,10 +92,10 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configAdvancedPolicies(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
-					ReferenceHourOfDay:    pointy.Int64(0),
-					ReferenceMinuteOfHour: pointy.Int64(0),
-					RestoreWindowDays:     pointy.Int64(7),
+				Config: configAdvancedPolicies(orgID, projectName, clusterName, &admin.DiskBackupSnapshotSchedule{
+					ReferenceHourOfDay:    conversion.IntPtr(0),
+					ReferenceMinuteOfHour: conversion.IntPtr(0),
+					RestoreWindowDays:     conversion.IntPtr(7),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
@@ -188,10 +187,10 @@ func TestAccBackupRSCloudBackupSchedule_onepolicy(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configDefault(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
-					ReferenceHourOfDay:    pointy.Int64(3),
-					ReferenceMinuteOfHour: pointy.Int64(45),
-					RestoreWindowDays:     pointy.Int64(4),
+				Config: configDefault(orgID, projectName, clusterName, &admin.DiskBackupSnapshotSchedule{
+					ReferenceHourOfDay:    conversion.IntPtr(3),
+					ReferenceMinuteOfHour: conversion.IntPtr(45),
+					RestoreWindowDays:     conversion.IntPtr(4),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
@@ -218,10 +217,10 @@ func TestAccBackupRSCloudBackupSchedule_onepolicy(t *testing.T) {
 				),
 			},
 			{
-				Config: configOnePolicy(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
-					ReferenceHourOfDay:    pointy.Int64(0),
-					ReferenceMinuteOfHour: pointy.Int64(0),
-					RestoreWindowDays:     pointy.Int64(7),
+				Config: configOnePolicy(orgID, projectName, clusterName, &admin.DiskBackupSnapshotSchedule{
+					ReferenceHourOfDay:    conversion.IntPtr(0),
+					ReferenceMinuteOfHour: conversion.IntPtr(0),
+					RestoreWindowDays:     conversion.IntPtr(7),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
@@ -255,10 +254,10 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configCopySettings(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
-					ReferenceHourOfDay:    pointy.Int64(3),
-					ReferenceMinuteOfHour: pointy.Int64(45),
-					RestoreWindowDays:     pointy.Int64(1),
+				Config: configCopySettings(orgID, projectName, clusterName, &admin.DiskBackupSnapshotSchedule{
+					ReferenceHourOfDay:    conversion.IntPtr(3),
+					ReferenceMinuteOfHour: conversion.IntPtr(45),
+					RestoreWindowDays:     conversion.IntPtr(1),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
@@ -304,10 +303,10 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configDefault(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
-					ReferenceHourOfDay:    pointy.Int64(3),
-					ReferenceMinuteOfHour: pointy.Int64(45),
-					RestoreWindowDays:     pointy.Int64(4),
+				Config: configDefault(orgID, projectName, clusterName, &admin.DiskBackupSnapshotSchedule{
+					ReferenceHourOfDay:    conversion.IntPtr(3),
+					ReferenceMinuteOfHour: conversion.IntPtr(45),
+					RestoreWindowDays:     conversion.IntPtr(4),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
@@ -357,7 +356,7 @@ func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectName, clusterName, &matlas.PolicyItem{
+				Config: configBasic(orgID, projectName, clusterName, &admin.DiskBackupApiPolicyItem{
 					FrequencyInterval: 1,
 					RetentionUnit:     "days",
 					RetentionValue:    1,
@@ -370,7 +369,7 @@ func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "1")),
 			},
 			{
-				Config: configBasic(orgID, projectName, clusterName, &matlas.PolicyItem{
+				Config: configBasic(orgID, projectName, clusterName, &admin.DiskBackupApiPolicyItem{
 					FrequencyInterval: 2,
 					RetentionUnit:     "days",
 					RetentionValue:    3,
@@ -405,7 +404,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
 		clusterName := ids["cluster_name"]
-		schedule, _, err := acc.Conn().CloudProviderSnapshotBackupPolicies.Get(context.Background(), projectID, clusterName)
+		schedule, _, err := acc.ConnV2().CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
 		if err != nil || schedule == nil {
 			return fmt.Errorf("cloud Provider Snapshot Schedule (%s) does not exist: %s", rs.Primary.ID, err)
 		}
@@ -424,7 +423,7 @@ func checkDestroy(s *terraform.State) error {
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
 		clusterName := ids["cluster_name"]
-		schedule, _, err := acc.Conn().CloudProviderSnapshotBackupPolicies.Get(context.Background(), projectID, clusterName)
+		schedule, _, err := acc.ConnV2().CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
 		if schedule != nil || err == nil {
 			return fmt.Errorf("cloud Provider Snapshot Schedule (%s) still exists", rs.Primary.ID)
 		}
@@ -433,7 +432,7 @@ func checkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func configNoPolicies(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+func configNoPolicies(orgID, projectName, clusterName string, p *admin.DiskBackupSnapshotSchedule) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "backup_project" {
 			name   = %[2]q
@@ -463,10 +462,10 @@ func configNoPolicies(orgID, projectName, clusterName string, p *matlas.CloudPro
 			project_id   = mongodbatlas_cluster.my_cluster.project_id
 			cluster_name = mongodbatlas_cluster.my_cluster.name
 		 }	
-	`, orgID, projectName, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
+	`, orgID, projectName, clusterName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
-func configDefault(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+func configDefault(orgID, projectName, clusterName string, p *admin.DiskBackupSnapshotSchedule) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "backup_project" {
 			name   = %[2]q
@@ -517,10 +516,10 @@ func configDefault(orgID, projectName, clusterName string, p *matlas.CloudProvid
 			project_id   = mongodbatlas_cluster.my_cluster.project_id
 			cluster_name = mongodbatlas_cluster.my_cluster.name
 		 }	
-	`, orgID, projectName, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
+	`, orgID, projectName, clusterName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
-func configCopySettings(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+func configCopySettings(orgID, projectName, clusterName string, p *admin.DiskBackupSnapshotSchedule) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "backup_project" {
 			name   = %[2]q
@@ -588,10 +587,10 @@ func configCopySettings(orgID, projectName, clusterName string, p *matlas.CloudP
 				should_copy_oplogs = true
 			  }
 		}
-	`, orgID, projectName, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
+	`, orgID, projectName, clusterName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
-func configOnePolicy(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+func configOnePolicy(orgID, projectName, clusterName string, p *admin.DiskBackupSnapshotSchedule) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "backup_project" {
 			name   = %[2]q
@@ -622,10 +621,10 @@ func configOnePolicy(orgID, projectName, clusterName string, p *matlas.CloudProv
 				retention_value    = 1
 			}
 		}
-	`, orgID, projectName, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
+	`, orgID, projectName, clusterName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
-func configNewPolicies(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+func configNewPolicies(orgID, projectName, clusterName string, p *admin.DiskBackupSnapshotSchedule) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "backup_project" {
 			name   = %[2]q
@@ -676,10 +675,10 @@ func configNewPolicies(orgID, projectName, clusterName string, p *matlas.CloudPr
 			project_id   = mongodbatlas_cluster.my_cluster.project_id
 			cluster_name = mongodbatlas_cluster.my_cluster.name
 		 }	
-	`, orgID, projectName, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
+	`, orgID, projectName, clusterName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
-func configBasic(orgID, projectName, clusterName string, policy *matlas.PolicyItem) string {
+func configBasic(orgID, projectName, clusterName string, policy *admin.DiskBackupApiPolicyItem) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_project" "backup_project" {
 	name   = %[2]q
@@ -711,10 +710,10 @@ data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 	project_id   = mongodbatlas_cluster.my_cluster.project_id
 	cluster_name = mongodbatlas_cluster.my_cluster.name
 }	
-	`, orgID, projectName, clusterName, policy.FrequencyInterval, policy.RetentionUnit, policy.RetentionValue)
+	`, orgID, projectName, clusterName, policy.GetFrequencyInterval(), policy.GetRetentionUnit(), policy.GetRetentionValue())
 }
 
-func configAdvancedPolicies(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+func configAdvancedPolicies(orgID, projectName, clusterName string, p *admin.DiskBackupSnapshotSchedule) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "backup_project" {
 			name   = %[2]q

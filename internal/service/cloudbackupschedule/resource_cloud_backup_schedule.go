@@ -13,7 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 const (
@@ -231,7 +231,6 @@ func Resource() *schema.Resource {
 					},
 				},
 			},
-			// Optionals
 			"reference_hour_of_day": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -266,7 +265,6 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			// Only computed
 			"cluster_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -281,7 +279,7 @@ func Resource() *schema.Resource {
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	var diags diag.Diagnostics
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
@@ -289,7 +287,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	// MongoDB Atlas automatically generates a default backup policy for that cluster.
 	// As a result, we need to first delete the default policies to avoid having
 	// the infrastructure differs from the TF configuration file.
-	if _, _, err := conn.CloudProviderSnapshotBackupPolicies.Delete(ctx, projectID, clusterName); err != nil {
+	if _, _, err := connV2.CloudBackupsApi.DeleteAllBackupSchedules(ctx, projectID, clusterName).Execute(); err != nil {
 		diagWarning := diag.Diagnostic{
 			Severity: diag.Warning,
 			Summary:  "Error deleting default backup schedule",
@@ -298,7 +296,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		diags = append(diags, diagWarning)
 	}
 
-	if err := cloudBackupScheduleCreateOrUpdate(ctx, conn, d, projectID, clusterName); err != nil {
+	if err := cloudBackupScheduleCreateOrUpdate(ctx, connV2, d, projectID, clusterName); err != nil {
 		diags = append(diags, diag.Errorf(errorSnapshotBackupScheduleCreate, err)...)
 		return diags
 	}
@@ -312,38 +310,38 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	backupPolicy, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(context.Background(), projectID, clusterName)
+	backupPolicy, _, err := connV2.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
 	if err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
 	}
 
-	if err := d.Set("cluster_id", backupPolicy.ClusterID); err != nil {
+	if err := d.Set("cluster_id", backupPolicy.GetClusterId()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "cluster_id", clusterName, err)
 	}
 
-	if err := d.Set("reference_hour_of_day", backupPolicy.ReferenceHourOfDay); err != nil {
+	if err := d.Set("reference_hour_of_day", backupPolicy.GetReferenceHourOfDay()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "reference_hour_of_day", clusterName, err)
 	}
 
-	if err := d.Set("reference_minute_of_hour", backupPolicy.ReferenceMinuteOfHour); err != nil {
+	if err := d.Set("reference_minute_of_hour", backupPolicy.GetReferenceMinuteOfHour()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "reference_minute_of_hour", clusterName, err)
 	}
 
-	if err := d.Set("restore_window_days", backupPolicy.RestoreWindowDays); err != nil {
+	if err := d.Set("restore_window_days", backupPolicy.GetRestoreWindowDays()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "restore_window_days", clusterName, err)
 	}
 
-	if err := d.Set("next_snapshot", backupPolicy.NextSnapshot); err != nil {
+	if err := d.Set("next_snapshot", backupPolicy.GetNextSnapshot()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "next_snapshot", clusterName, err)
 	}
 
-	if err := d.Set("id_policy", backupPolicy.Policies[0].ID); err != nil {
+	if err := d.Set("id_policy", backupPolicy.GetPolicies()[0].GetId()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "id_policy", clusterName, err)
 	}
 
@@ -351,31 +349,31 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "export", clusterName, err)
 	}
 
-	if err := d.Set("auto_export_enabled", backupPolicy.AutoExportEnabled); err != nil {
+	if err := d.Set("auto_export_enabled", backupPolicy.GetAutoExportEnabled()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_export_enabled", clusterName, err)
 	}
 
-	if err := d.Set("use_org_and_group_names_in_export_prefix", backupPolicy.UseOrgAndGroupNamesInExportPrefix); err != nil {
+	if err := d.Set("use_org_and_group_names_in_export_prefix", backupPolicy.GetUseOrgAndGroupNamesInExportPrefix()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "use_org_and_group_names_in_export_prefix", clusterName, err)
 	}
 
-	if err := d.Set("policy_item_hourly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, Hourly)); err != nil {
+	if err := d.Set("policy_item_hourly", flattenPolicyItem(backupPolicy.GetPolicies()[0].GetPolicyItems(), Hourly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_hourly", clusterName, err)
 	}
 
-	if err := d.Set("policy_item_daily", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, Daily)); err != nil {
+	if err := d.Set("policy_item_daily", flattenPolicyItem(backupPolicy.GetPolicies()[0].GetPolicyItems(), Daily)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_daily", clusterName, err)
 	}
 
-	if err := d.Set("policy_item_weekly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, Weekly)); err != nil {
+	if err := d.Set("policy_item_weekly", flattenPolicyItem(backupPolicy.GetPolicies()[0].GetPolicyItems(), Weekly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_weekly", clusterName, err)
 	}
 
-	if err := d.Set("policy_item_monthly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, Monthly)); err != nil {
+	if err := d.Set("policy_item_monthly", flattenPolicyItem(backupPolicy.GetPolicies()[0].GetPolicyItems(), Monthly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_monthly", clusterName, err)
 	}
 
-	if err := d.Set("copy_settings", flattenCopySettings(backupPolicy.CopySettings)); err != nil {
+	if err := d.Set("copy_settings", flattenCopySettings(backupPolicy.GetCopySettings())); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_settings", clusterName, err)
 	}
 
@@ -383,7 +381,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -395,7 +393,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	err := cloudBackupScheduleCreateOrUpdate(ctx, conn, d, projectID, clusterName)
+	err := cloudBackupScheduleCreateOrUpdate(ctx, connV2, d, projectID, clusterName)
 	if err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleUpdate, err)
 	}
@@ -404,12 +402,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	_, _, err := conn.CloudProviderSnapshotBackupPolicies.Delete(ctx, projectID, clusterName)
+	_, _, err := connV2.CloudBackupsApi.DeleteAllBackupSchedules(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.Errorf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
@@ -420,7 +418,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {
@@ -430,7 +428,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	projectID := parts[0]
 	clusterName := parts[1]
 
-	_, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
+	_, _, err := connV2.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
 	}
@@ -451,22 +449,22 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client, d *schema.ResourceData, projectID, clusterName string) error {
-	policy := matlas.Policy{}
-	// Get policies items
-	resp, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
+func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APIClient, d *schema.ResourceData, projectID, clusterName string) error {
+	policy := admin.AdvancedDiskBackupSnapshotSchedulePolicy{}
+
+	resp, _, err := connV2.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		log.Printf("error getting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
-	} else if len(resp.Policies) == 1 {
-		policy.ID = resp.Policies[0].ID
+	} else if len(resp.GetPolicies()) == 1 {
+		policy.Id = resp.GetPolicies()[0].Id
 	}
 
-	req := &matlas.CloudProviderSnapshotBackupPolicy{}
-	policyItem := matlas.PolicyItem{}
-	var policiesItem []matlas.PolicyItem
-	export := matlas.Export{}
+	req := &admin.DiskBackupSnapshotSchedule{}
+	policyItem := admin.DiskBackupApiPolicyItem{}
+	var policiesItem []admin.DiskBackupApiPolicyItem
+	export := admin.AutoExportPolicy{}
 
-	req.CopySettings = []matlas.CopySetting{}
+	req.CopySettings = &[]admin.DiskBackupCopySetting{}
 	if v, ok := d.GetOk("copy_settings"); ok && len(v.([]any)) > 0 {
 		req.CopySettings = expandCopySettings(v.([]any))
 	}
@@ -474,7 +472,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
 		item := v.([]any)
 		itemObj := item[0].(map[string]any)
-		policyItem.ID = policyItemID(itemObj)
+		policyItem.Id = policyItemID(itemObj)
 		policyItem.FrequencyType = Hourly
 		policyItem.RetentionUnit = itemObj["retention_unit"].(string)
 		policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
@@ -484,7 +482,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 	if v, ok := d.GetOk("policy_item_daily"); ok {
 		item := v.([]any)
 		itemObj := item[0].(map[string]any)
-		policyItem.ID = policyItemID(itemObj)
+		policyItem.Id = policyItemID(itemObj)
 		policyItem.FrequencyType = Daily
 		policyItem.RetentionUnit = itemObj["retention_unit"].(string)
 		policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
@@ -495,7 +493,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		items := v.([]any)
 		for _, s := range items {
 			itemObj := s.(map[string]any)
-			policyItem.ID = policyItemID(itemObj)
+			policyItem.Id = policyItemID(itemObj)
 			policyItem.FrequencyType = Weekly
 			policyItem.RetentionUnit = itemObj["retention_unit"].(string)
 			policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
@@ -507,7 +505,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		items := v.([]any)
 		for _, s := range items {
 			itemObj := s.(map[string]any)
-			policyItem.ID = policyItemID(itemObj)
+			policyItem.Id = policyItemID(itemObj)
 			policyItem.FrequencyType = Monthly
 			policyItem.RetentionUnit = itemObj["retention_unit"].(string)
 			policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
@@ -517,14 +515,14 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 	}
 
 	if d.HasChange("auto_export_enabled") {
-		req.AutoExportEnabled = pointy.Bool(d.Get("auto_export_enabled").(bool))
+		req.AutoExportEnabled = conversion.Pointer[bool](d.Get("auto_export_enabled").(bool))
 	}
 
 	if v, ok := d.GetOk("export"); ok {
 		item := v.([]any)
 		itemObj := item[0].(map[string]any)
-		export.ExportBucketID = itemObj["export_bucket_id"].(string)
-		export.FrequencyType = itemObj["frequency_type"].(string)
+		export.ExportBucketId = conversion.StringPtr(itemObj["export_bucket_id"].(string))
+		export.FrequencyType = conversion.StringPtr(itemObj["frequency_type"].(string))
 		req.Export = nil
 		if autoExportEnabled := d.Get("auto_export_enabled"); autoExportEnabled != nil && autoExportEnabled.(bool) {
 			req.Export = &export
@@ -535,27 +533,27 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		req.UseOrgAndGroupNamesInExportPrefix = pointy.Bool(d.Get("use_org_and_group_names_in_export_prefix").(bool))
 	}
 
-	policy.PolicyItems = policiesItem
+	policy.PolicyItems = &policiesItem
 	if len(policiesItem) > 0 {
-		req.Policies = []matlas.Policy{policy}
+		req.Policies = &[]admin.AdvancedDiskBackupSnapshotSchedulePolicy{policy}
 	}
 
-	if v, ok := d.GetOkExists("reference_hour_of_day"); ok {
-		req.ReferenceHourOfDay = pointy.Int64(cast.ToInt64(v))
+	if v, ok := d.GetOk("reference_hour_of_day"); ok {
+		req.ReferenceHourOfDay = conversion.IntPtr(v.(int))
 	}
-	if v, ok := d.GetOkExists("reference_minute_of_hour"); ok {
-		req.ReferenceMinuteOfHour = pointy.Int64(cast.ToInt64(v))
+	if v, ok := d.GetOk("reference_minute_of_hour"); ok {
+		req.ReferenceMinuteOfHour = conversion.IntPtr(v.(int))
 	}
-	if v, ok := d.GetOkExists("restore_window_days"); ok {
-		req.RestoreWindowDays = pointy.Int64(cast.ToInt64(v))
+	if v, ok := d.GetOk("restore_window_days"); ok {
+		req.RestoreWindowDays = conversion.IntPtr(v.(int))
 	}
 
-	value := pointy.Bool(d.Get("update_snapshots").(bool))
+	value := conversion.Pointer[bool](d.Get("update_snapshots").(bool))
 	if *value {
 		req.UpdateSnapshots = value
 	}
 
-	_, _, err = conn.CloudProviderSnapshotBackupPolicies.Update(context.Background(), projectID, clusterName, req)
+	_, _, err = connV2.CloudBackupsApi.UpdateBackupSchedule(context.Background(), projectID, clusterName, req).Execute()
 	if err != nil {
 		return err
 	}
@@ -563,70 +561,70 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 	return nil
 }
 
-func flattenPolicyItem(items []matlas.PolicyItem, frequencyType string) []map[string]any {
+func flattenPolicyItem(items []admin.DiskBackupApiPolicyItem, frequencyType string) []map[string]any {
 	policyItems := make([]map[string]any, 0)
 	for _, v := range items {
-		if frequencyType == v.FrequencyType {
+		if frequencyType == v.GetFrequencyType() {
 			policyItems = append(policyItems, map[string]any{
-				"id":                 v.ID,
-				"frequency_interval": v.FrequencyInterval,
-				"frequency_type":     v.FrequencyType,
-				"retention_unit":     v.RetentionUnit,
-				"retention_value":    v.RetentionValue,
+				"id":                 v.GetId(),
+				"frequency_interval": v.GetFrequencyInterval(),
+				"frequency_type":     v.GetFrequencyType(),
+				"retention_unit":     v.GetRetentionUnit(),
+				"retention_value":    v.GetRetentionValue(),
 			})
 		}
 	}
-
 	return policyItems
 }
 
-func flattenExport(roles *matlas.CloudProviderSnapshotBackupPolicy) []map[string]any {
+func flattenExport(roles *admin.DiskBackupSnapshotSchedule) []map[string]any {
 	exportList := make([]map[string]any, 0)
-	emptyStruct := matlas.CloudProviderSnapshotBackupPolicy{}
-	if emptyStruct.Export != roles.Export {
+	emptyStruct := admin.DiskBackupSnapshotSchedule{}
+	if emptyStruct.GetExport() != roles.GetExport() {
 		exportList = append(exportList, map[string]any{
-			"frequency_type":   roles.Export.FrequencyType,
-			"export_bucket_id": roles.Export.ExportBucketID,
+			"frequency_type":   roles.Export.GetFrequencyType(),
+			"export_bucket_id": roles.Export.GetExportBucketId(),
 		})
 	}
 	return exportList
 }
 
-func flattenCopySettings(copySettingList []matlas.CopySetting) []map[string]any {
+func flattenCopySettings(copySettingList []admin.DiskBackupCopySetting) []map[string]any {
 	copySettings := make([]map[string]any, 0)
 	for _, v := range copySettingList {
 		copySettings = append(copySettings, map[string]any{
-			"cloud_provider":      v.CloudProvider,
-			"frequencies":         v.Frequencies,
-			"region_name":         v.RegionName,
-			"replication_spec_id": v.ReplicationSpecID,
-			"should_copy_oplogs":  v.ShouldCopyOplogs,
+			"cloud_provider":      v.GetCloudProvider(),
+			"frequencies":         v.GetFrequencies(),
+			"region_name":         v.GetRegionName(),
+			"replication_spec_id": v.GetReplicationSpecId(),
+			"should_copy_oplogs":  v.GetShouldCopyOplogs(),
 		})
 	}
 	return copySettings
 }
 
-func expandCopySetting(tfMap map[string]any) *matlas.CopySetting {
+func expandCopySetting(tfMap map[string]any) *admin.DiskBackupCopySetting {
 	if tfMap == nil {
 		return nil
 	}
 
-	copySetting := &matlas.CopySetting{
-		CloudProvider:     pointy.String(tfMap["cloud_provider"].(string)),
-		Frequencies:       conversion.ExpandStringList(tfMap["frequencies"].(*schema.Set).List()),
-		RegionName:        pointy.String(tfMap["region_name"].(string)),
-		ReplicationSpecID: pointy.String(tfMap["replication_spec_id"].(string)),
-		ShouldCopyOplogs:  pointy.Bool(tfMap["should_copy_oplogs"].(bool)),
+	frequencies := conversion.ExpandStringList(tfMap["frequencies"].(*schema.Set).List())
+	copySetting := &admin.DiskBackupCopySetting{
+		CloudProvider:     conversion.StringPtr(tfMap["cloud_provider"].(string)),
+		Frequencies:       &frequencies,
+		RegionName:        conversion.StringPtr(tfMap["region_name"].(string)),
+		ReplicationSpecId: conversion.StringPtr(tfMap["replication_spec_id"].(string)),
+		ShouldCopyOplogs:  conversion.Pointer[bool](tfMap["should_copy_oplogs"].(bool)),
 	}
 	return copySetting
 }
 
-func expandCopySettings(tfList []any) []matlas.CopySetting {
+func expandCopySettings(tfList []any) *[]admin.DiskBackupCopySetting {
 	if len(tfList) == 0 {
 		return nil
 	}
 
-	var copySettings []matlas.CopySetting
+	var copySettings []admin.DiskBackupCopySetting
 
 	for _, tfMapRaw := range tfList {
 		tfMap, ok := tfMapRaw.(map[string]any)
@@ -636,17 +634,17 @@ func expandCopySettings(tfList []any) []matlas.CopySetting {
 		apiObject := expandCopySetting(tfMap)
 		copySettings = append(copySettings, *apiObject)
 	}
-	return copySettings
+	return &copySettings
 }
 
-func policyItemID(policyState map[string]any) string {
+func policyItemID(policyState map[string]any) *string {
 	// if the policyItem has the ID field, this is the update operation
 	// we return the ID that was stored in the TF state
 	if val, ok := policyState["id"]; ok {
 		if id, ok := val.(string); ok {
-			return id
+			return &id
 		}
 	}
 
-	return ""
+	return conversion.StringPtr("")
 }

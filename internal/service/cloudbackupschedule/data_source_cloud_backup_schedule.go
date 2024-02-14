@@ -218,64 +218,64 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	backupPolicy, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
+	backupPolicy, _, err := connV2.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.Errorf(cluster.ErrorSnapshotBackupPolicyRead, clusterName, err)
 	}
 
-	if err := d.Set("cluster_id", backupPolicy.ClusterID); err != nil {
+	if err := d.Set("cluster_id", backupPolicy.GetClusterId()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "cluster_id", clusterName, err)
 	}
 
-	if err := d.Set("reference_hour_of_day", backupPolicy.ReferenceHourOfDay); err != nil {
+	if err := d.Set("reference_hour_of_day", backupPolicy.GetReferenceHourOfDay()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "reference_hour_of_day", clusterName, err)
 	}
 
-	if err := d.Set("reference_minute_of_hour", backupPolicy.ReferenceMinuteOfHour); err != nil {
+	if err := d.Set("reference_minute_of_hour", backupPolicy.GetReferenceMinuteOfHour()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "reference_minute_of_hour", clusterName, err)
 	}
 
-	if err := d.Set("restore_window_days", backupPolicy.RestoreWindowDays); err != nil {
+	if err := d.Set("restore_window_days", backupPolicy.GetRestoreWindowDays()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "restore_window_days", clusterName, err)
 	}
 
-	if err := d.Set("next_snapshot", backupPolicy.NextSnapshot); err != nil {
+	if err := d.Set("next_snapshot", backupPolicy.GetNextSnapshot()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "next_snapshot", clusterName, err)
 	}
-	if err := d.Set("use_org_and_group_names_in_export_prefix", backupPolicy.UseOrgAndGroupNamesInExportPrefix); err != nil {
+	if err := d.Set("use_org_and_group_names_in_export_prefix", backupPolicy.GetUseOrgAndGroupNamesInExportPrefix()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "use_org_and_group_names_in_export_prefix", clusterName, err)
 	}
-	if err := d.Set("auto_export_enabled", backupPolicy.AutoExportEnabled); err != nil {
+	if err := d.Set("auto_export_enabled", backupPolicy.GetAutoExportEnabled()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_export_enabled", clusterName, err)
 	}
-	if err := d.Set("id_policy", backupPolicy.Policies[0].ID); err != nil {
+	if err := d.Set("id_policy", backupPolicy.GetPolicies()[0].GetId()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "id_policy", clusterName, err)
 	}
 	if err := d.Set("export", flattenExport(backupPolicy)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_export_enabled", clusterName, err)
 	}
-	if err := d.Set("policy_item_hourly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, Hourly)); err != nil {
+	if err := d.Set("policy_item_hourly", flattenPolicyItem(backupPolicy.GetPolicies()[0].GetPolicyItems(), Hourly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_hourly", clusterName, err)
 	}
 
-	if err := d.Set("policy_item_daily", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, Daily)); err != nil {
+	if err := d.Set("policy_item_daily", flattenPolicyItem(backupPolicy.GetPolicies()[0].GetPolicyItems(), Daily)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_daily", clusterName, err)
 	}
 
-	if err := d.Set("policy_item_weekly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, Weekly)); err != nil {
+	if err := d.Set("policy_item_weekly", flattenPolicyItem(backupPolicy.GetPolicies()[0].GetPolicyItems(), Weekly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_weekly", clusterName, err)
 	}
 
-	if err := d.Set("policy_item_monthly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, Monthly)); err != nil {
+	if err := d.Set("policy_item_monthly", flattenPolicyItem(backupPolicy.GetPolicies()[0].GetPolicyItems(), Monthly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_monthly", clusterName, err)
 	}
 
-	if err := d.Set("copy_settings", flattenCopySettings(backupPolicy.CopySettings)); err != nil {
+	if err := d.Set("copy_settings", flattenCopySettings(backupPolicy.GetCopySettings())); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_settings", clusterName, err)
 	}
 
