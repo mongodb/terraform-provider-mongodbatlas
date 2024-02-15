@@ -63,8 +63,8 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	orgID := d.Get("org_id").(string)
 	params := &admin.ListApiKeysApiParams{
-		PageNum:      conversion.IntPtr(d.Get("page_num").(int)),
-		ItemsPerPage: conversion.IntPtr(d.Get("items_per_page").(int)),
+		PageNum:      conversion.Pointer[int](d.Get("page_num").(int)),
+		ItemsPerPage: conversion.Pointer[int](d.Get("items_per_page").(int)),
 		OrgId:        orgID,
 	}
 

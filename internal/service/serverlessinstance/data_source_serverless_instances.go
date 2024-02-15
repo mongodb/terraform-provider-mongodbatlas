@@ -38,7 +38,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.Errorf("project_id must be configured")
 	}
 	options := &admin.ListServerlessInstancesApiParams{
-		ItemsPerPage: conversion.IntPtr(500),
+		ItemsPerPage: conversion.Pointer[int](500),
 		IncludeCount: conversion.Pointer(true),
 		GroupId:      projectID.(string),
 	}
@@ -59,7 +59,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 
 func getServerlessList(ctx context.Context, connV2 *admin.APIClient, options *admin.ListServerlessInstancesApiParams, obtainedItemsCount int) ([]admin.ServerlessInstanceDescription, error) {
 	if options.PageNum == nil {
-		options.PageNum = conversion.IntPtr(1)
+		options.PageNum = conversion.Pointer[int](1)
 	} else {
 		*options.PageNum++
 	}

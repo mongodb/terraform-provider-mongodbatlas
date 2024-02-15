@@ -446,7 +446,7 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 			name: "Successful API call",
 			mockResponses: AdvancedClusterDescriptionResponse{
 				AdvancedClusterDescription: &admin.PaginatedAdvancedClusterDescription{
-					TotalCount: conversion.IntPtr(2),
+					TotalCount: conversion.Pointer[int](2),
 					Results: &[]admin.AdvancedClusterDescription{
 						{StateName: conversion.StringPtr("IDLE")},
 						{StateName: conversion.StringPtr("DELETING")},

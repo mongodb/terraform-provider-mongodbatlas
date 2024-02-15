@@ -617,7 +617,7 @@ func newReadPreference(storeFromConfMap map[string]any) *admin.DataLakeAtlasStor
 	readPreferenceFromConfMap := readPreferenceFromConf[0].(map[string]any)
 	return &admin.DataLakeAtlasStoreReadPreference{
 		Mode:                conversion.StringPtr(readPreferenceFromConfMap["mode"].(string)),
-		MaxStalenessSeconds: conversion.IntPtr(readPreferenceFromConfMap["max_staleness_seconds"].(int)),
+		MaxStalenessSeconds: conversion.Pointer[int](readPreferenceFromConfMap["max_staleness_seconds"].(int)),
 		TagSets:             newTagSets(readPreferenceFromConfMap),
 	}
 }
@@ -654,7 +654,7 @@ func newDataFederationDatabase(d *schema.ResourceData) *[]admin.DataLakeDatabase
 		storageDBFromConfMap := storageDBFromConf.(map[string]any)
 		dbs[i] = admin.DataLakeDatabaseInstance{
 			Name:                   conversion.StringPtr(storageDBFromConfMap["name"].(string)),
-			MaxWildcardCollections: conversion.IntPtr(storageDBFromConfMap["max_wildcard_collections"].(int)),
+			MaxWildcardCollections: conversion.Pointer[int](storageDBFromConfMap["max_wildcard_collections"].(int)),
 			Collections:            newDataFederationCollections(storageDBFromConfMap),
 		}
 	}

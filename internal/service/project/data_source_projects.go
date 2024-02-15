@@ -177,8 +177,8 @@ func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &stateModel)...)
 
 	projectParams := &admin.ListProjectsApiParams{
-		PageNum:      conversion.IntPtr(int(stateModel.PageNum.ValueInt64())),
-		ItemsPerPage: conversion.IntPtr(int(stateModel.ItemsPerPage.ValueInt64())),
+		PageNum:      conversion.Pointer[int](int(stateModel.PageNum.ValueInt64())),
+		ItemsPerPage: conversion.Pointer[int](int(stateModel.ItemsPerPage.ValueInt64())),
 	}
 	projectsRes, _, err := connV2.ProjectsApi.ListProjectsWithParams(ctx, projectParams).Execute()
 	if err != nil {

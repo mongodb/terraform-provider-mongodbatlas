@@ -146,14 +146,14 @@ func TestTeamsDataSourceSDKToTFModel(t *testing.T) {
 		{
 			name: "TeamRole",
 			paginatedTeamRole: &admin.PaginatedTeamRole{
-				TotalCount: conversion.IntPtr(0),
+				TotalCount: conversion.Pointer[int](0),
 			}, // not setting explicitly expected result because we expect it to be nil
 		},
 		{
 			name: "Complete TeamRole",
 			paginatedTeamRole: &admin.PaginatedTeamRole{
 				Results:    &teamRolesSDK,
-				TotalCount: conversion.IntPtr(1),
+				TotalCount: conversion.Pointer[int](1),
 			},
 			expectedTFModel: teamsDSTF,
 		},
@@ -201,7 +201,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 			projectProps: project.AdditionalProperties{
 				Teams: &admin.PaginatedTeamRole{
 					Results:    &teamRolesSDK,
-					TotalCount: conversion.IntPtr(1),
+					TotalCount: conversion.Pointer[int](1),
 				},
 				Settings:    &projectSettingsSDK,
 				IPAddresses: &IPAddressesSDK,
@@ -252,7 +252,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 			projectProps: project.AdditionalProperties{
 				Teams: &admin.PaginatedTeamRole{
 					Results:    &teamRolesSDK,
-					TotalCount: conversion.IntPtr(1),
+					TotalCount: conversion.Pointer[int](1),
 				},
 				Settings:    &projectSettingsSDK,
 				IPAddresses: &IPAddressesSDK,

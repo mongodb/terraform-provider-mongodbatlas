@@ -74,8 +74,8 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	orgID := d.Get("org_id").(string)
 	apiKeyID := d.Get("api_key_id").(string)
 	params := &admin.ListApiKeyAccessListsEntriesApiParams{
-		PageNum:      conversion.IntPtr(d.Get("page_num").(int)),
-		ItemsPerPage: conversion.IntPtr(d.Get("items_per_page").(int)),
+		PageNum:      conversion.Pointer[int](d.Get("page_num").(int)),
+		ItemsPerPage: conversion.Pointer[int](d.Get("items_per_page").(int)),
 		OrgId:        orgID,
 		ApiUserId:    apiKeyID,
 	}

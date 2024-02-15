@@ -19,9 +19,9 @@ var (
 	updating = "UPDATING"
 	idle     = "IDLE"
 	unknown  = ""
-	sc400    = conversion.IntPtr(400)
-	sc500    = conversion.IntPtr(500)
-	sc503    = conversion.IntPtr(503)
+	sc400    = conversion.Pointer[int](400)
+	sc500    = conversion.Pointer[int](500)
+	sc503    = conversion.Pointer[int](503)
 )
 
 type testCase struct {
