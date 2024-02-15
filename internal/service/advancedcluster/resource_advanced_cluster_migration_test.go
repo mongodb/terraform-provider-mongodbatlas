@@ -24,7 +24,8 @@ func TestAccMigrationAdvancedCluster_basic(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
