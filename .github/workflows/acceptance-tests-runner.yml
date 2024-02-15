@@ -123,7 +123,7 @@ jobs:
     outputs:
       cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation == 'true' || env.mustTrigger == 'true' }}
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
-      cluster: false # TEMPORARY, WILL BE REVERTED BEFORE MERGE
+      cluster: ${{ steps.filter.outputs.cluster == 'true' || env.mustTrigger == 'true' }}
       search_deployment: false # TEMPORARY, WILL BE REVERTED BEFORE MERGE
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
       generic: ${{ steps.filter.outputs.generic == 'true' || env.mustTrigger == 'true' }}
