@@ -226,20 +226,6 @@ func flattenLabels(l []matlas.Label) []map[string]any {
 	return labels
 }
 
-func flattenTags(l *[]*matlas.Tag) []map[string]any {
-	if l == nil {
-		return []map[string]any{}
-	}
-	tags := make([]map[string]any, len(*l))
-	for i, v := range *l {
-		tags[i] = map[string]any{
-			"key":   v.Key,
-			"value": v.Value,
-		}
-	}
-	return tags
-}
-
 func flattenConnectionStrings(connectionStrings *matlas.ConnectionStrings) []map[string]any {
 	connections := make([]map[string]any, 0)
 
