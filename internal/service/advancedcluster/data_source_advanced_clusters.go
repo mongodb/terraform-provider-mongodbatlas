@@ -299,7 +299,7 @@ func flattenAdvancedClusters(ctx context.Context, conn *matlas.Client, connV2 *a
 			"connection_strings":             flattenConnectionStrings(clusterOld.ConnectionStrings),
 			"disk_size_gb":                   cluster.GetDiskSizeGB(),
 			"encryption_at_rest_provider":    cluster.GetEncryptionAtRestProvider(),
-			"labels":                         flattenLabels(clusterOld.Labels),
+			"labels":                         flattenLabels(cluster.GetLabels()),
 			"tags":                           conversion.FlattenTags(cluster.GetTags()),
 			"mongo_db_major_version":         cluster.GetMongoDBMajorVersion(),
 			"mongo_db_version":               cluster.GetMongoDBVersion(),

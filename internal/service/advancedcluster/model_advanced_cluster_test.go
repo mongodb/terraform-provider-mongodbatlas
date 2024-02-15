@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/go-test/deep"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mocksvc"
 	"github.com/stretchr/testify/assert"
@@ -24,29 +23,6 @@ type Result struct {
 	response any
 	error    error
 	state    string
-}
-
-func TestRemoveLabel(t *testing.T) {
-	toRemove := matlas.Label{Key: "To Remove", Value: "To remove value"}
-
-	expected := []matlas.Label{
-		{Key: "Name", Value: "Test"},
-		{Key: "Version", Value: "1.0"},
-		{Key: "Type", Value: "testing"},
-	}
-
-	labels := []matlas.Label{
-		{Key: "Name", Value: "Test"},
-		{Key: "Version", Value: "1.0"},
-		{Key: "To Remove", Value: "To remove value"},
-		{Key: "Type", Value: "testing"},
-	}
-
-	got := advancedcluster.RemoveLabel(labels, toRemove)
-
-	if diff := deep.Equal(expected, got); diff != nil {
-		t.Fatalf("Bad removeLabel return \n got = %#v\nwant = %#v \ndiff = %#v", got, expected, diff)
-	}
 }
 
 func TestResourceClusterRefreshFunc(t *testing.T) {

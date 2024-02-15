@@ -25,6 +25,7 @@ const (
 	ErrorAdvancedConfRead          = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
 	ErrorClusterAdvancedSetting    = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
 	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
+	ignoreLabel                    = "Infrastructure Tool"
 )
 
 var (
@@ -62,25 +63,6 @@ var (
 		},
 	}
 )
-
-func RemoveLabel(list []matlas.Label, item matlas.Label) []matlas.Label {
-	var pos int
-
-	for _, v := range list {
-		if reflect.DeepEqual(v, item) {
-			list = append(list[:pos], list[pos+1:]...)
-
-			if pos > 0 {
-				pos--
-			}
-
-			continue
-		}
-		pos++
-	}
-
-	return list
-}
 
 func ContainsLabelOrKey(list []matlas.Label, item matlas.Label) bool {
 	for _, v := range list {
@@ -211,17 +193,19 @@ func FormatMongoDBMajorVersion(val any) string {
 	if strings.Contains(val.(string), ".") {
 		return val.(string)
 	}
-
 	return fmt.Sprintf("%.1f", cast.ToFloat32(val))
 }
 
-func flattenLabels(l []matlas.Label) []map[string]any {
-	labels := make([]map[string]any, len(l))
-	for i, v := range l {
-		labels[i] = map[string]any{
-			"key":   v.Key,
-			"value": v.Value,
+func flattenLabels(l []admin.ComponentLabel) []map[string]string {
+	labels := make([]map[string]string, 0, len(l))
+	for _, item := range l {
+		if item.GetKey() == ignoreLabel {
+			continue
 		}
+		labels = append(labels, map[string]string{
+			"key":   item.GetKey(),
+			"value": item.GetValue(),
+		})
 	}
 	return labels
 }

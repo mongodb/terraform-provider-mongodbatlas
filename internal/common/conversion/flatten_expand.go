@@ -6,10 +6,10 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
-func FlattenLinks(links []admin.Link) []map[string]any {
-	ret := make([]map[string]any, len(links))
+func FlattenLinks(links []admin.Link) []map[string]string {
+	ret := make([]map[string]string, len(links))
 	for i, link := range links {
-		ret[i] = map[string]any{
+		ret[i] = map[string]string{
 			"href": link.GetHref(),
 			"rel":  link.GetRel(),
 		}
@@ -17,10 +17,10 @@ func FlattenLinks(links []admin.Link) []map[string]any {
 	return ret
 }
 
-func FlattenTags(tags []admin.ResourceTag) []map[string]any {
-	ret := make([]map[string]any, len(tags))
+func FlattenTags(tags []admin.ResourceTag) []map[string]string {
+	ret := make([]map[string]string, len(tags))
 	for i, tag := range tags {
-		ret[i] = map[string]any{
+		ret[i] = map[string]string{
 			"key":   tag.GetKey(),
 			"value": tag.GetValue(),
 		}

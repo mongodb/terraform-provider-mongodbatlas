@@ -526,7 +526,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "encryption_at_rest_provider", clusterName, err))
 	}
 
-	if err := d.Set("labels", flattenLabels(RemoveLabel(clusterOld.Labels, defaultLabel))); err != nil {
+	if err := d.Set("labels", flattenLabels(cluster.GetLabels())); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "labels", clusterName, err))
 	}
 
