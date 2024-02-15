@@ -25,35 +25,18 @@ var (
 	}
 )
 
-func CheckClusterDestroy(s *terraform.State) error {
+func CheckDestroyCluster(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_cluster" {
+		if rs.Type != "mongodbatlas_cluster" && rs.Type != "mongodbatlas_advanced_cluster" {
 			continue
 		}
-
-		// Try to find the cluster
-		_, _, err := Conn().Clusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
+		projectID := rs.Primary.Attributes["project_id"]
+		clusterName := rs.Primary.Attributes["cluster_name"]
+		_, _, err := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute()
 		if err == nil {
-			return fmt.Errorf("cluster (%s:%s) still exists", rs.Primary.Attributes["cluster_name"], rs.Primary.ID)
+			return fmt.Errorf("cluster (%s:%s) still exists", clusterName, rs.Primary.ID)
 		}
 	}
-	return nil
-}
-
-func CheckDestroyTeamAdvancedCluster(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_advanced_cluster" {
-			continue
-		}
-
-		// Try to find the cluster
-		_, _, err := ConnV2().ClustersApi.GetCluster(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
-
-		if err == nil {
-			return fmt.Errorf("cluster (%s:%s) still exists", rs.Primary.Attributes["cluster_name"], rs.Primary.ID)
-		}
-	}
-
 	return nil
 }
 

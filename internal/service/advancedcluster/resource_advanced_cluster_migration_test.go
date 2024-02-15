@@ -24,7 +24,7 @@ func TestAccMigrationAdvancedClusterRS_singleAWSProvider(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
-		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
+		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
@@ -57,7 +57,7 @@ func TestAccMigrationAdvancedClusterRS_multiCloud(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
-		CheckDestroy: acc.CheckDestroyTeamAdvancedCluster,
+		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),

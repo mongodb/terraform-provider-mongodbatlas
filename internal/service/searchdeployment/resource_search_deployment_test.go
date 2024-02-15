@@ -137,7 +137,7 @@ func checkDestroy(state *terraform.State) error {
 	if projectDestroyedErr := acc.CheckDestroyProject(state); projectDestroyedErr != nil {
 		return projectDestroyedErr
 	}
-	if clusterDestroyedErr := acc.CheckDestroyTeamAdvancedCluster(state); clusterDestroyedErr != nil {
+	if clusterDestroyedErr := acc.CheckDestroyCluster(state); clusterDestroyedErr != nil {
 		return clusterDestroyedErr
 	}
 	for _, rs := range state.RootModule().Resources {
