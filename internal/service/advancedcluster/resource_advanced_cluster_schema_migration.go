@@ -49,7 +49,7 @@ func ResourceV0() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"connection_strings": ClusterConnectionStringsSchema(),
+			"connection_strings": SchemaConnectionStrings(),
 			"create_date": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -222,7 +222,7 @@ func ResourceV0() *schema.Resource {
 				Default:      "LTS",
 				ValidateFunc: validation.StringInSlice([]string{"LTS", "CONTINUOUS"}, false),
 			},
-			"advanced_configuration": ClusterAdvancedConfigurationSchema(),
+			"advanced_configuration": SchemaAdvancedConfig(),
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(3 * time.Hour),

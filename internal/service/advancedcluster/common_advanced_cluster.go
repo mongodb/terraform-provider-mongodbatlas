@@ -391,7 +391,7 @@ func ExpandLabelSliceFromSetSchema(d *schema.ResourceData) []matlas.Label {
 	return res
 }
 
-func ClusterAdvancedConfigurationSchemaComputed() *schema.Schema {
+func SchemaAdvancedConfigDS() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Computed: true,
@@ -446,7 +446,7 @@ func ClusterAdvancedConfigurationSchemaComputed() *schema.Schema {
 	}
 }
 
-func ClusterConnectionStringsSchema() *schema.Schema {
+func SchemaConnectionStrings() *schema.Schema {
 	return &schema.Schema{
 		Type:       schema.TypeList,
 		Computed:   true,
@@ -520,7 +520,7 @@ func ClusterConnectionStringsSchema() *schema.Schema {
 	}
 }
 
-func ClusterAdvancedConfigurationSchema() *schema.Schema {
+func SchemaAdvancedConfig() *schema.Schema {
 	return &schema.Schema{
 		Type:       schema.TypeList,
 		Optional:   true,

@@ -99,7 +99,7 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"connection_strings": ClusterConnectionStringsSchema(),
+			"connection_strings": SchemaConnectionStrings(),
 			"create_date": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -308,7 +308,7 @@ func Resource() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"LTS", "CONTINUOUS"}, false),
 			},
-			"advanced_configuration": ClusterAdvancedConfigurationSchema(),
+			"advanced_configuration": SchemaAdvancedConfig(),
 			"accept_data_risks_and_force_replica_set_reconfig": {
 				Type:        schema.TypeString,
 				Optional:    true,

@@ -16,7 +16,7 @@ import (
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasAdvancedClustersRead,
+		ReadContext: dataSourcePluralRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -27,7 +27,7 @@ func PluralDataSource() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"advanced_configuration": ClusterAdvancedConfigurationSchemaComputed(),
+						"advanced_configuration": SchemaAdvancedConfigDS(),
 						"backup_enabled": {
 							Type:     schema.TypeBool,
 							Computed: true,
@@ -54,7 +54,7 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"connection_strings": ClusterConnectionStringsSchema(),
+						"connection_strings": SchemaConnectionStrings(),
 						"create_date": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -240,7 +240,7 @@ func PluralDataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasAdvancedClustersRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)

@@ -113,7 +113,7 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"connection_strings": advancedcluster.ClusterConnectionStringsSchema(),
+			"connection_strings": advancedcluster.SchemaConnectionStrings(),
 			"disk_size_gb": {
 				Type:     schema.TypeFloat,
 				Optional: true,
@@ -306,7 +306,7 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"advanced_configuration": advancedcluster.ClusterAdvancedConfigurationSchema(),
+			"advanced_configuration": advancedcluster.SchemaAdvancedConfig(),
 			"labels": {
 				Type:       schema.TypeSet,
 				Optional:   true,

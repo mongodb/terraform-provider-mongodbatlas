@@ -13,13 +13,13 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasAdvancedClusterRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"advanced_configuration": ClusterAdvancedConfigurationSchemaComputed(),
+			"advanced_configuration": SchemaAdvancedConfigDS(),
 			"backup_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -46,7 +46,7 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"connection_strings": ClusterConnectionStringsSchema(),
+			"connection_strings": SchemaConnectionStrings(),
 			"create_date": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -229,7 +229,7 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
