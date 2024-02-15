@@ -795,30 +795,30 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID, name, err := splitSClusterAdvancedImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
-	u, _, err := conn.AdvancedClusters.Get(ctx, *projectID, *name)
+	cluster, _, err := connV2.ClustersApi.GetCluster(ctx, *projectID, *name).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import cluster %s in project %s, error: %s", *name, *projectID, err)
 	}
 
-	if err := d.Set("project_id", u.GroupID); err != nil {
-		log.Printf(ErrorClusterAdvancedSetting, "project_id", u.ID, err)
+	if err := d.Set("project_id", cluster.GetGroupId()); err != nil {
+		log.Printf(ErrorClusterAdvancedSetting, "project_id", cluster.GetId(), err)
 	}
 
-	if err := d.Set("name", u.Name); err != nil {
-		log.Printf(ErrorClusterAdvancedSetting, "name", u.ID, err)
+	if err := d.Set("name", cluster.GetName()); err != nil {
+		log.Printf(ErrorClusterAdvancedSetting, "name", cluster.GetId(), err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"cluster_id":   u.ID,
+		"cluster_id":   cluster.GetId(),
 		"project_id":   *projectID,
-		"cluster_name": u.Name,
+		"cluster_name": cluster.GetName(),
 	}))
 
 	return []*schema.ResourceData{d}, nil
