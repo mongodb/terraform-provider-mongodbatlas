@@ -472,7 +472,9 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
 		item := v.([]any)
 		itemObj := item[0].(map[string]any)
-		policyItem.Id = policyItemID(itemObj)
+		if policyID := policyItemID(itemObj); *policyID != "" {
+			policyItem.Id = policyID
+		}
 		policyItem.FrequencyType = Hourly
 		policyItem.RetentionUnit = itemObj["retention_unit"].(string)
 		policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
@@ -482,7 +484,9 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 	if v, ok := d.GetOk("policy_item_daily"); ok {
 		item := v.([]any)
 		itemObj := item[0].(map[string]any)
-		policyItem.Id = policyItemID(itemObj)
+		if policyID := policyItemID(itemObj); *policyID != "" {
+			policyItem.Id = policyID
+		}
 		policyItem.FrequencyType = Daily
 		policyItem.RetentionUnit = itemObj["retention_unit"].(string)
 		policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
@@ -493,7 +497,9 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 		items := v.([]any)
 		for _, s := range items {
 			itemObj := s.(map[string]any)
-			policyItem.Id = policyItemID(itemObj)
+			if policyID := policyItemID(itemObj); *policyID != "" {
+				policyItem.Id = policyID
+			}
 			policyItem.FrequencyType = Weekly
 			policyItem.RetentionUnit = itemObj["retention_unit"].(string)
 			policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
@@ -505,7 +511,9 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 		items := v.([]any)
 		for _, s := range items {
 			itemObj := s.(map[string]any)
-			policyItem.Id = policyItemID(itemObj)
+			if policyID := policyItemID(itemObj); *policyID != "" {
+				policyItem.Id = policyID
+			}
 			policyItem.FrequencyType = Monthly
 			policyItem.RetentionUnit = itemObj["retention_unit"].(string)
 			policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
@@ -646,5 +654,5 @@ func policyItemID(policyState map[string]any) *string {
 		}
 	}
 
-	return conversion.StringPtr("")
+	return nil
 }
