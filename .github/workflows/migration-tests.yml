@@ -55,19 +55,19 @@ jobs:
       mustTrigger: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_group == '')  }}
     outputs:
       project: ${{ steps.filter.outputs.project == 'true' || env.mustTrigger == 'true' }}
-      config: ${{ steps.filter.outputs.config == 'true' || env.mustTrigger == 'true' }}
+      config: false # TEMPORARY, WILL BE REVERTED BEFORE MERGE
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
-      backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
+      backup: false # TEMPORARY, WILL BE REVERTED BEFORE MERGE
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
       federated: ${{ steps.filter.outputs.federated == 'true' || env.mustTrigger == 'true' }}
-      search_deployment: ${{ steps.filter.outputs.search_deployment == 'true' || env.mustTrigger == 'true' }}
+      search_deployment: false # TEMPORARY, WILL BE REVERTED BEFORE MERGE
       generic: ${{ steps.filter.outputs.generic == 'true' || env.mustTrigger == 'true' }}
       network: ${{ steps.filter.outputs.network == 'true' || env.mustTrigger == 'true' }}
       encryption: ${{ steps.filter.outputs.encryption == 'true' || env.mustTrigger == 'true' }}
       serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
       data_lake: ${{ steps.filter.outputs.data_lake == 'true' || env.mustTrigger == 'true' }}
       cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation == 'true' || env.mustTrigger == 'true' }}
-      cluster: ${{ steps.filter.outputs.cluster == 'true' || env.mustTrigger == 'true' }}
+      cluster: false # TEMPORARY, WILL BE REVERTED BEFORE MERGE
     steps:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
     - uses: dorny/paths-filter@0bc4621a3135347011ad047f9ecf449bf72ce2bd

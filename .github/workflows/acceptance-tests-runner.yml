@@ -123,15 +123,15 @@ jobs:
     outputs:
       cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation == 'true' || env.mustTrigger == 'true' }}
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
-      cluster: ${{ steps.filter.outputs.cluster == 'true' || env.mustTrigger == 'true' }}
-      search_deployment: ${{ steps.filter.outputs.search_deployment == 'true' || env.mustTrigger == 'true' }}
+      cluster: false # TEMPORARY, WILL BE REVERTED BEFORE MERGE
+      search_deployment: false # TEMPORARY, WILL BE REVERTED BEFORE MERGE
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
       generic: ${{ steps.filter.outputs.generic == 'true' || env.mustTrigger == 'true' }}
-      backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
+      backup: false # TEMPORARY, WILL BE REVERTED BEFORE MERGE
       project: ${{ steps.filter.outputs.project == 'true' || env.mustTrigger == 'true' }}
       serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
       network: ${{ steps.filter.outputs.network == 'true' || env.mustTrigger == 'true' }}
-      config: ${{ steps.filter.outputs.config == 'true' || env.mustTrigger == 'true' }}
+      config: false # TEMPORARY, WILL BE REVERTED BEFORE MERGE
       assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
       event_trigger: ${{ steps.filter.outputs.event_trigger == 'true' || env.mustTrigger == 'true' }}
       search_index: ${{ steps.filter.outputs.search_index == 'true' || env.mustTrigger == 'true' }}
