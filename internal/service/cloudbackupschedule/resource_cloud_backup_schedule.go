@@ -546,13 +546,13 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 		req.Policies = &[]admin.AdvancedDiskBackupSnapshotSchedulePolicy{policy}
 	}
 
-	if v, ok := d.GetOk("reference_hour_of_day"); ok {
+	if v, ok := d.GetOkExists("reference_hour_of_day"); ok {
 		req.ReferenceHourOfDay = conversion.IntPtr(v.(int))
 	}
-	if v, ok := d.GetOk("reference_minute_of_hour"); ok {
+	if v, ok := d.GetOkExists("reference_minute_of_hour"); ok {
 		req.ReferenceMinuteOfHour = conversion.IntPtr(v.(int))
 	}
-	if v, ok := d.GetOk("restore_window_days"); ok {
+	if v, ok := d.GetOkExists("restore_window_days"); ok {
 		req.RestoreWindowDays = conversion.IntPtr(v.(int))
 	}
 
