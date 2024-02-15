@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"reflect"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -33,6 +32,8 @@ const (
 	errorAdvancedConfUpdate       = "error updating Advanced Configuration Option form MongoDB Cluster (%s): %s"
 	ErrorSnapshotBackupPolicyRead = "error getting a Cloud Provider Snapshot Backup Policy for the cluster(%s): %s"
 )
+
+var defaultLabel = matlas.Label{Key: "Infrastructure Tool", Value: "MongoDB Atlas Terraform Provider"}
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
@@ -485,21 +486,21 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if _, ok := d.GetOk("bi_connector_config"); ok {
-		biConnector, err := advancedcluster.ExpandBiConnectorConfig(d)
+		biConnector, err := expandBiConnectorConfig(d)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterCreate, err))
 		}
 		clusterRequest.BiConnector = biConnector
 	}
 
-	if advancedcluster.ContainsLabelOrKey(advancedcluster.ExpandLabelSliceFromSetSchema(d), advancedcluster.DefaultLabel) {
+	if advancedcluster.ContainsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
 		return diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
 	}
 
-	clusterRequest.Labels = append(advancedcluster.ExpandLabelSliceFromSetSchema(d), advancedcluster.DefaultLabel)
+	clusterRequest.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
 
 	if _, ok := d.GetOk("tags"); ok {
-		tagsSlice := advancedcluster.ExpandTagSliceFromSetSchema(d)
+		tagsSlice := expandTagSliceFromSetSchema(d)
 		clusterRequest.Tags = &tagsSlice
 	}
 
@@ -556,7 +557,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	*/
 	ac, ok := d.GetOk("advanced_configuration")
 	if aclist, ok1 := ac.([]any); ok1 && len(aclist) > 0 {
-		advancedConfReq := advancedcluster.ExpandProcessArgs(d, aclist[0].(map[string]any))
+		advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any))
 
 		if ok {
 			_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, cluster.Name, advancedConfReq)
@@ -642,7 +643,7 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "cluster_type", clusterName, err))
 	}
 
-	if err := d.Set("connection_strings", advancedcluster.FlattenConnectionStrings(cluster.ConnectionStrings)); err != nil {
+	if err := d.Set("connection_strings", flattenConnectionStrings(cluster.ConnectionStrings)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "connection_strings", clusterName, err))
 	}
 
@@ -701,7 +702,7 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "termination_protection_enabled", clusterName, err))
 	}
 
-	if err := d.Set("bi_connector_config", advancedcluster.FlattenBiConnectorConfig(cluster.BiConnector)); err != nil {
+	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(cluster.BiConnector)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "bi_connector_config", clusterName, err))
 	}
 
@@ -717,11 +718,11 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "replication_factor", clusterName, err))
 	}
 
-	if err := d.Set("labels", advancedcluster.FlattenLabels(advancedcluster.RemoveLabel(cluster.Labels, advancedcluster.DefaultLabel))); err != nil {
+	if err := d.Set("labels", flattenLabels(removeLabel(cluster.Labels, defaultLabel))); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "labels", clusterName, err))
 	}
 
-	if err := d.Set("tags", advancedcluster.FlattenTags(cluster.Tags)); err != nil {
+	if err := d.Set("tags", flattenTags(cluster.Tags)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "tags", clusterName, err))
 	}
 
@@ -790,7 +791,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if d.HasChange("bi_connector_config") {
-		cluster.BiConnector, _ = advancedcluster.ExpandBiConnectorConfig(d)
+		cluster.BiConnector, _ = expandBiConnectorConfig(d)
 	}
 
 	// If at least one of the provider settings argument has changed, expand all provider settings
@@ -892,15 +893,15 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if d.HasChange("labels") {
-		if advancedcluster.ContainsLabelOrKey(advancedcluster.ExpandLabelSliceFromSetSchema(d), advancedcluster.DefaultLabel) {
+		if advancedcluster.ContainsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
 			return diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
 		}
 
-		cluster.Labels = append(advancedcluster.ExpandLabelSliceFromSetSchema(d), advancedcluster.DefaultLabel)
+		cluster.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
 	}
 
 	if d.HasChange("tags") {
-		tagsSlice := advancedcluster.ExpandTagSliceFromSetSchema(d)
+		tagsSlice := expandTagSliceFromSetSchema(d)
 		cluster.Tags = &tagsSlice
 	}
 
@@ -923,7 +924,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	if d.HasChange("advanced_configuration") {
 		ac := d.Get("advanced_configuration")
 		if aclist, ok1 := ac.([]any); ok1 && len(aclist) > 0 {
-			advancedConfReq := advancedcluster.ExpandProcessArgs(d, aclist[0].(map[string]any))
+			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any))
 			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
 				argResp, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
 				if err != nil {
@@ -1111,237 +1112,10 @@ func getInstanceSizeToInt(instanceSize string) int {
 	return cast.ToInt(num) // if the string is empty it always return 0
 }
 
-func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, error) {
-	var (
-		region, _          = conversion.ValRegion(d.Get("provider_region_name"))
-		minInstanceSize    = getInstanceSizeToInt(d.Get("provider_auto_scaling_compute_min_instance_size").(string))
-		maxInstanceSize    = getInstanceSizeToInt(d.Get("provider_auto_scaling_compute_max_instance_size").(string))
-		instanceSize       = getInstanceSizeToInt(d.Get("provider_instance_size_name").(string))
-		compute            *matlas.Compute
-		autoScalingEnabled = d.Get("auto_scaling_compute_enabled").(bool)
-		providerName       = cast.ToString(d.Get("provider_name"))
-	)
-
-	if minInstanceSize != 0 && autoScalingEnabled {
-		if instanceSize < minInstanceSize {
-			return nil, fmt.Errorf("`provider_auto_scaling_compute_min_instance_size` must be lower than `provider_instance_size_name`")
-		}
-
-		compute = &matlas.Compute{
-			MinInstanceSize: d.Get("provider_auto_scaling_compute_min_instance_size").(string),
-		}
-	}
-
-	if maxInstanceSize != 0 && autoScalingEnabled {
-		if instanceSize > maxInstanceSize {
-			return nil, fmt.Errorf("`provider_auto_scaling_compute_max_instance_size` must be higher than `provider_instance_size_name`")
-		}
-
-		if compute == nil {
-			compute = &matlas.Compute{}
-		}
-		compute.MaxInstanceSize = d.Get("provider_auto_scaling_compute_max_instance_size").(string)
-	}
-
-	providerSettings := &matlas.ProviderSettings{
-		InstanceSizeName: cast.ToString(d.Get("provider_instance_size_name")),
-		ProviderName:     providerName,
-		RegionName:       region,
-		VolumeType:       cast.ToString(d.Get("provider_volume_type")),
-	}
-
-	if d.HasChange("provider_disk_type_name") {
-		_, newdiskTypeName := d.GetChange("provider_disk_type_name")
-		diskTypeName := cast.ToString(newdiskTypeName)
-		if diskTypeName != "" { // ensure disk type is not included in request if attribute is removed, prevents errors in NVME intances
-			providerSettings.DiskTypeName = diskTypeName
-		}
-	}
-
-	if providerName == "TENANT" {
-		providerSettings.BackingProviderName = cast.ToString(d.Get("backing_provider_name"))
-	}
-
-	if autoScalingEnabled {
-		providerSettings.AutoScaling = &matlas.AutoScaling{Compute: compute}
-	}
-
-	if d.Get("provider_name") == "AWS" {
-		// Check if the Provider Disk IOS sets in the Terraform configuration and if the instance size name is not NVME.
-		// If it didn't, the MongoDB Atlas server would set it to the default for the amount of storage.
-		if v, ok := d.GetOk("provider_disk_iops"); ok && !strings.Contains(providerSettings.InstanceSizeName, "NVME") {
-			providerSettings.DiskIOPS = pointy.Int64(cast.ToInt64(v))
-		}
-
-		providerSettings.EncryptEBSVolume = pointy.Bool(true)
-	}
-
-	return providerSettings, nil
-}
-
-func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSettings, clusterName string) {
-	if settings.ProviderName == "TENANT" {
-		if err := d.Set("backing_provider_name", settings.BackingProviderName); err != nil {
-			log.Printf(advancedcluster.ErrorClusterSetting, "backing_provider_name", clusterName, err)
-		}
-	}
-
-	if settings.DiskIOPS != nil && *settings.DiskIOPS != 0 {
-		if err := d.Set("provider_disk_iops", *settings.DiskIOPS); err != nil {
-			log.Printf(advancedcluster.ErrorClusterSetting, "provider_disk_iops", clusterName, err)
-		}
-	}
-
-	if err := d.Set("provider_disk_type_name", settings.DiskTypeName); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "provider_disk_type_name", clusterName, err)
-	}
-
-	if settings.EncryptEBSVolume != nil {
-		if err := d.Set("provider_encrypt_ebs_volume_flag", *settings.EncryptEBSVolume); err != nil {
-			log.Printf(advancedcluster.ErrorClusterSetting, "provider_encrypt_ebs_volume_flag", clusterName, err)
-		}
-	}
-
-	if err := d.Set("provider_instance_size_name", settings.InstanceSizeName); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "provider_instance_size_name", clusterName, err)
-	}
-
-	if err := d.Set("provider_name", settings.ProviderName); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "provider_name", clusterName, err)
-	}
-
-	if err := d.Set("provider_region_name", settings.RegionName); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "provider_region_name", clusterName, err)
-	}
-
-	if err := d.Set("provider_volume_type", settings.VolumeType); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "provider_volume_type", clusterName, err)
-	}
-}
-
 func isUpgradeRequired(d *schema.ResourceData) bool {
 	currentSize, updatedSize := d.GetChange("provider_instance_size_name")
 
 	return currentSize != updatedSize && advancedcluster.IsSharedTier(currentSize.(string))
-}
-
-func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, error) {
-	rSpecs := make([]matlas.ReplicationSpec, 0)
-
-	vRSpecs, okRSpecs := d.GetOk("replication_specs")
-	vPRName, okPRName := d.GetOk("provider_region_name")
-
-	if okRSpecs {
-		for _, s := range vRSpecs.(*schema.Set).List() {
-			spec := s.(map[string]any)
-
-			replaceRegion := ""
-			originalRegion := ""
-			id := ""
-
-			if okPRName && d.Get("provider_name").(string) == "GCP" && cast.ToString(d.Get("cluster_type")) == "REPLICASET" {
-				if d.HasChange("provider_region_name") {
-					replaceRegion = vPRName.(string)
-					original, _ := d.GetChange("provider_region_name")
-					originalRegion = original.(string)
-				}
-			}
-
-			if d.HasChange("replication_specs") {
-				// Get original and new object
-				var oldSpecs map[string]any
-				original, _ := d.GetChange("replication_specs")
-				for _, s := range original.(*schema.Set).List() {
-					oldSpecs = s.(map[string]any)
-					if spec["zone_name"].(string) == cast.ToString(oldSpecs["zone_name"]) {
-						id = oldSpecs["id"].(string)
-						break
-					}
-				}
-				// If there was an item before and after then use the same id assuming it's the same replication spec
-				if id == "" && oldSpecs != nil && len(vRSpecs.(*schema.Set).List()) == 1 && len(original.(*schema.Set).List()) == 1 {
-					id = oldSpecs["id"].(string)
-				}
-			}
-
-			regionsConfig, err := expandRegionsConfig(spec["regions_config"].(*schema.Set).List(), originalRegion, replaceRegion)
-			if err != nil {
-				return rSpecs, err
-			}
-
-			rSpec := matlas.ReplicationSpec{
-				ID:            id,
-				NumShards:     pointy.Int64(cast.ToInt64(spec["num_shards"])),
-				ZoneName:      cast.ToString(spec["zone_name"]),
-				RegionsConfig: regionsConfig,
-			}
-			rSpecs = append(rSpecs, rSpec)
-		}
-	}
-
-	return rSpecs, nil
-}
-
-func flattenReplicationSpecs(rSpecs []matlas.ReplicationSpec) []map[string]any {
-	specs := make([]map[string]any, 0)
-
-	for _, rSpec := range rSpecs {
-		spec := map[string]any{
-			"id":             rSpec.ID,
-			"num_shards":     rSpec.NumShards,
-			"zone_name":      cast.ToString(rSpec.ZoneName),
-			"regions_config": flattenRegionsConfig(rSpec.RegionsConfig),
-		}
-		specs = append(specs, spec)
-	}
-
-	return specs
-}
-
-func expandRegionsConfig(regions []any, originalRegion, replaceRegion string) (map[string]matlas.RegionsConfig, error) {
-	regionsConfig := make(map[string]matlas.RegionsConfig)
-
-	for _, r := range regions {
-		region := r.(map[string]any)
-
-		r, err := conversion.ValRegion(region["region_name"])
-		if err != nil {
-			return regionsConfig, err
-		}
-
-		if replaceRegion != "" && r == originalRegion {
-			r, err = conversion.ValRegion(replaceRegion)
-		}
-		if err != nil {
-			return regionsConfig, err
-		}
-
-		regionsConfig[r] = matlas.RegionsConfig{
-			AnalyticsNodes: pointy.Int64(cast.ToInt64(region["analytics_nodes"])),
-			ElectableNodes: pointy.Int64(cast.ToInt64(region["electable_nodes"])),
-			Priority:       pointy.Int64(cast.ToInt64(region["priority"])),
-			ReadOnlyNodes:  pointy.Int64(cast.ToInt64(region["read_only_nodes"])),
-		}
-	}
-
-	return regionsConfig, nil
-}
-
-func flattenRegionsConfig(regionsConfig map[string]matlas.RegionsConfig) []map[string]any {
-	regions := make([]map[string]any, 0)
-
-	for regionName, regionConfig := range regionsConfig {
-		region := map[string]any{
-			"region_name":     regionName,
-			"priority":        regionConfig.Priority,
-			"analytics_nodes": regionConfig.AnalyticsNodes,
-			"electable_nodes": regionConfig.ElectableNodes,
-			"read_only_nodes": regionConfig.ReadOnlyNodes,
-		}
-		regions = append(regions, region)
-	}
-
-	return regions
 }
 
 func resourceClusterCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta any) error {
@@ -1506,78 +1280,6 @@ func computedCloudProviderSnapshotBackupPolicySchema() *schema.Schema {
 					},
 				},
 			},
-		},
-	}
-}
-
-func flattenCloudProviderSnapshotBackupPolicy(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, projectID, clusterName string) ([]map[string]any, error) {
-	backupPolicy, res, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
-	if err != nil {
-		if res.StatusCode == http.StatusNotFound ||
-			strings.Contains(err.Error(), "BACKUP_CONFIG_NOT_FOUND") ||
-			strings.Contains(err.Error(), "Not Found") ||
-			strings.Contains(err.Error(), "404") {
-			return []map[string]any{}, nil
-		}
-
-		return []map[string]any{}, fmt.Errorf(ErrorSnapshotBackupPolicyRead, clusterName, err)
-	}
-
-	return []map[string]any{
-		{
-			"cluster_id":               backupPolicy.ClusterID,
-			"cluster_name":             backupPolicy.ClusterName,
-			"next_snapshot":            backupPolicy.NextSnapshot,
-			"reference_hour_of_day":    backupPolicy.ReferenceHourOfDay,
-			"reference_minute_of_hour": backupPolicy.ReferenceMinuteOfHour,
-			"restore_window_days":      backupPolicy.RestoreWindowDays,
-			"update_snapshots":         cast.ToBool(backupPolicy.UpdateSnapshots),
-			"policies":                 flattenPolicies(backupPolicy.Policies),
-		},
-	}, nil
-}
-
-func flattenPolicies(policies []matlas.Policy) []map[string]any {
-	actionList := make([]map[string]any, 0)
-	for _, v := range policies {
-		actionList = append(actionList, map[string]any{
-			"id":          v.ID,
-			"policy_item": flattenPolicyItems(v.PolicyItems),
-		})
-	}
-
-	return actionList
-}
-
-func flattenPolicyItems(items []matlas.PolicyItem) []map[string]any {
-	policyItems := make([]map[string]any, 0)
-	for _, v := range items {
-		policyItems = append(policyItems, map[string]any{
-			"id":                 v.ID,
-			"frequency_interval": v.FrequencyInterval,
-			"frequency_type":     v.FrequencyType,
-			"retention_unit":     v.RetentionUnit,
-			"retention_value":    v.RetentionValue,
-		})
-	}
-
-	return policyItems
-}
-
-func flattenProcessArgs(p *matlas.ProcessArgs) []map[string]any {
-	return []map[string]any{
-		{
-			"default_read_concern":                 p.DefaultReadConcern,
-			"default_write_concern":                p.DefaultWriteConcern,
-			"fail_index_key_too_long":              cast.ToBool(p.FailIndexKeyTooLong),
-			"javascript_enabled":                   cast.ToBool(p.JavascriptEnabled),
-			"minimum_enabled_tls_protocol":         p.MinimumEnabledTLSProtocol,
-			"no_table_scan":                        cast.ToBool(p.NoTableScan),
-			"oplog_size_mb":                        p.OplogSizeMB,
-			"oplog_min_retention_hours":            p.OplogMinRetentionHours,
-			"sample_size_bi_connector":             p.SampleSizeBIConnector,
-			"sample_refresh_interval_bi_connector": p.SampleRefreshIntervalBIConnector,
-			"transaction_lifetime_limit_seconds":   p.TransactionLifetimeLimitSeconds,
 		},
 	}
 }

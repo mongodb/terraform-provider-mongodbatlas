@@ -372,7 +372,7 @@ func dataSourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "cluster_type", clusterName, err))
 	}
 
-	if err := d.Set("connection_strings", advancedcluster.FlattenConnectionStrings(cluster.ConnectionStrings)); err != nil {
+	if err := d.Set("connection_strings", flattenConnectionStrings(cluster.ConnectionStrings)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "connection_strings", clusterName, err))
 	}
 
@@ -423,7 +423,7 @@ func dataSourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "state_name", clusterName, err))
 	}
 
-	if err := d.Set("bi_connector_config", advancedcluster.FlattenBiConnectorConfig(cluster.BiConnector)); err != nil {
+	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(cluster.BiConnector)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "bi_connector_config", clusterName, err))
 	}
 
@@ -439,11 +439,11 @@ func dataSourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "replication_factor", clusterName, err))
 	}
 
-	if err := d.Set("labels", advancedcluster.FlattenLabels(cluster.Labels)); err != nil {
+	if err := d.Set("labels", flattenLabels(cluster.Labels)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "labels", clusterName, err))
 	}
 
-	if err := d.Set("tags", advancedcluster.FlattenTags(cluster.Tags)); err != nil {
+	if err := d.Set("tags", flattenTags(cluster.Tags)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "tags", clusterName, err))
 	}
 

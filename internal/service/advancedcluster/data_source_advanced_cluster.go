@@ -250,7 +250,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "backup_enabled", clusterName, err))
 	}
 
-	if err := d.Set("bi_connector_config", FlattenBiConnectorConfig(clusterOld.BiConnector)); err != nil {
+	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(clusterOld.BiConnector)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "bi_connector_config", clusterName, err))
 	}
 
@@ -258,7 +258,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "cluster_type", clusterName, err))
 	}
 
-	if err := d.Set("connection_strings", FlattenConnectionStrings(clusterOld.ConnectionStrings)); err != nil {
+	if err := d.Set("connection_strings", flattenConnectionStrings(clusterOld.ConnectionStrings)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "connection_strings", clusterName, err))
 	}
 
@@ -274,11 +274,11 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "encryption_at_rest_provider", clusterName, err))
 	}
 
-	if err := d.Set("labels", FlattenLabels(RemoveLabel(clusterOld.Labels, DefaultLabel))); err != nil {
+	if err := d.Set("labels", flattenLabels(RemoveLabel(clusterOld.Labels, defaultLabel))); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "labels", clusterName, err))
 	}
 
-	if err := d.Set("tags", FlattenTags(&clusterOld.Tags)); err != nil {
+	if err := d.Set("tags", flattenTags(&clusterOld.Tags)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "tags", clusterName, err))
 	}
 

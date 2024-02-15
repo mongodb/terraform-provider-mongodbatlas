@@ -373,7 +373,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		request.BackupEnabled = pointy.Bool(v.(bool))
 	}
 	if _, ok := d.GetOk("bi_connector_config"); ok {
-		biConnector, err := ExpandBiConnectorConfig(d)
+		biConnector, err := expandBiConnectorConfig(d)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorCreate, err))
 		}
@@ -386,13 +386,13 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		request.EncryptionAtRestProvider = v.(string)
 	}
 
-	if _, ok := d.GetOk("labels"); ok && ContainsLabelOrKey(ExpandLabelSliceFromSetSchema(d), DefaultLabel) {
+	if _, ok := d.GetOk("labels"); ok && ContainsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
 		return diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
 	}
-	request.Labels = append(ExpandLabelSliceFromSetSchema(d), DefaultLabel)
+	request.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
 
 	if _, ok := d.GetOk("tags"); ok {
-		request.Tags = ExpandTagSliceFromSetSchema(d)
+		request.Tags = expandTagSliceFromSetSchema(d)
 	}
 	if v, ok := d.GetOk("mongo_db_major_version"); ok {
 		request.MongoDBMajorVersion = FormatMongoDBMajorVersion(v.(string))
@@ -445,7 +445,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	*/
 	ac, ok := d.GetOk("advanced_configuration")
 	if aclist, ok1 := ac.([]any); ok1 && len(aclist) > 0 {
-		advancedConfReq := ExpandProcessArgs(d, aclist[0].(map[string]any))
+		advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any))
 
 		if ok {
 			_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, cluster.Name, advancedConfReq)
@@ -502,7 +502,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "backup_enabled", clusterName, err))
 	}
 
-	if err := d.Set("bi_connector_config", FlattenBiConnectorConfig(clusterOld.BiConnector)); err != nil {
+	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(clusterOld.BiConnector)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "bi_connector_config", clusterName, err))
 	}
 
@@ -510,7 +510,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "cluster_type", clusterName, err))
 	}
 
-	if err := d.Set("connection_strings", FlattenConnectionStrings(clusterOld.ConnectionStrings)); err != nil {
+	if err := d.Set("connection_strings", flattenConnectionStrings(clusterOld.ConnectionStrings)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "connection_strings", clusterName, err))
 	}
 
@@ -526,11 +526,11 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "encryption_at_rest_provider", clusterName, err))
 	}
 
-	if err := d.Set("labels", FlattenLabels(RemoveLabel(clusterOld.Labels, DefaultLabel))); err != nil {
+	if err := d.Set("labels", flattenLabels(RemoveLabel(clusterOld.Labels, defaultLabel))); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "labels", clusterName, err))
 	}
 
-	if err := d.Set("tags", FlattenTags(&clusterOld.Tags)); err != nil {
+	if err := d.Set("tags", flattenTags(&clusterOld.Tags)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "tags", clusterName, err))
 	}
 
@@ -645,7 +645,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	}
 
 	if d.HasChange("bi_connector_config") {
-		cluster.BiConnector, _ = ExpandBiConnectorConfig(d)
+		cluster.BiConnector, _ = expandBiConnectorConfig(d)
 	}
 
 	if d.HasChange("cluster_type") {
@@ -661,15 +661,15 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	}
 
 	if d.HasChange("labels") {
-		if ContainsLabelOrKey(ExpandLabelSliceFromSetSchema(d), DefaultLabel) {
+		if ContainsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
 			return diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
 		}
 
-		cluster.Labels = append(ExpandLabelSliceFromSetSchema(d), DefaultLabel)
+		cluster.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
 	}
 
 	if d.HasChange("tags") {
-		cluster.Tags = ExpandTagSliceFromSetSchema(d)
+		cluster.Tags = expandTagSliceFromSetSchema(d)
 	}
 
 	if d.HasChange("mongo_db_major_version") {
@@ -709,7 +709,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	if d.HasChange("advanced_configuration") {
 		ac := d.Get("advanced_configuration")
 		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
-			advancedConfReq := ExpandProcessArgs(d, aclist[0].(map[string]any))
+			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any))
 			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
 				_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
 				if err != nil {

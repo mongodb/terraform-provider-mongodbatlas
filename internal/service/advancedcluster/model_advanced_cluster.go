@@ -28,7 +28,7 @@ const (
 )
 
 var (
-	DefaultLabel = matlas.Label{Key: "Infrastructure Tool", Value: "MongoDB Atlas Terraform Provider"}
+	defaultLabel = matlas.Label{Key: "Infrastructure Tool", Value: "MongoDB Atlas Terraform Provider"}
 	DSTagsSchema = schema.Schema{
 		Type:     schema.TypeSet,
 		Computed: true,
@@ -215,7 +215,7 @@ func FormatMongoDBMajorVersion(val any) string {
 	return fmt.Sprintf("%.1f", cast.ToFloat32(val))
 }
 
-func FlattenLabels(l []matlas.Label) []map[string]any {
+func flattenLabels(l []matlas.Label) []map[string]any {
 	labels := make([]map[string]any, len(l))
 	for i, v := range l {
 		labels[i] = map[string]any{
@@ -223,11 +223,10 @@ func FlattenLabels(l []matlas.Label) []map[string]any {
 			"value": v.Value,
 		}
 	}
-
 	return labels
 }
 
-func FlattenTags(l *[]*matlas.Tag) []map[string]any {
+func flattenTags(l *[]*matlas.Tag) []map[string]any {
 	if l == nil {
 		return []map[string]any{}
 	}
@@ -241,7 +240,7 @@ func FlattenTags(l *[]*matlas.Tag) []map[string]any {
 	return tags
 }
 
-func FlattenConnectionStrings(connectionStrings *matlas.ConnectionStrings) []map[string]any {
+func flattenConnectionStrings(connectionStrings *matlas.ConnectionStrings) []map[string]any {
 	connections := make([]map[string]any, 0)
 
 	connections = append(connections, map[string]any{
@@ -255,7 +254,7 @@ func FlattenConnectionStrings(connectionStrings *matlas.ConnectionStrings) []map
 	return connections
 }
 
-func FlattenBiConnectorConfig(biConnector *matlas.BiConnector) []any {
+func flattenBiConnectorConfig(biConnector *matlas.BiConnector) []any {
 	return []any{
 		map[string]any{
 			"enabled":         *biConnector.Enabled,
@@ -264,7 +263,7 @@ func FlattenBiConnectorConfig(biConnector *matlas.BiConnector) []any {
 	}
 }
 
-func ExpandBiConnectorConfig(d *schema.ResourceData) (*matlas.BiConnector, error) {
+func expandBiConnectorConfig(d *schema.ResourceData) (*matlas.BiConnector, error) {
 	var biConnector matlas.BiConnector
 
 	if v, ok := d.GetOk("bi_connector_config"); ok {
@@ -284,7 +283,7 @@ func ExpandBiConnectorConfig(d *schema.ResourceData) (*matlas.BiConnector, error
 	return &biConnector, nil
 }
 
-func ExpandTagSliceFromSetSchema(d *schema.ResourceData) []*matlas.Tag {
+func expandTagSliceFromSetSchema(d *schema.ResourceData) []*matlas.Tag {
 	list := d.Get("tags").(*schema.Set)
 	res := make([]*matlas.Tag, list.Len())
 	for i, val := range list.List() {
@@ -318,7 +317,7 @@ func flattenProcessArgs(p *admin.ClusterDescriptionProcessArgs) []map[string]any
 	}
 }
 
-func ExpandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.ProcessArgs {
+func expandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.ProcessArgs {
 	res := &matlas.ProcessArgs{}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.default_read_concern"); ok {
@@ -380,7 +379,7 @@ func ExpandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.Process
 	return res
 }
 
-func ExpandLabelSliceFromSetSchema(d *schema.ResourceData) []matlas.Label {
+func expandLabelSliceFromSetSchema(d *schema.ResourceData) []matlas.Label {
 	list := d.Get("labels").(*schema.Set)
 	res := make([]matlas.Label, list.Len())
 
