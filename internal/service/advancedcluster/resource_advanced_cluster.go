@@ -477,13 +477,14 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	cluster, resp, err := conn.AdvancedClusters.Get(ctx, projectID, clusterName)
+	cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+	clusterOld, _, _ := conn.AdvancedClusters.Get(ctx, projectID, clusterName)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -493,69 +494,67 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 	}
 
-	log.Printf("[DEBUG] GET ClusterAdvanced %+v", cluster)
-
-	if err := d.Set("cluster_id", cluster.ID); err != nil {
+	if err := d.Set("cluster_id", cluster.GetId()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "cluster_id", clusterName, err))
 	}
 
-	if err := d.Set("backup_enabled", cluster.BackupEnabled); err != nil {
+	if err := d.Set("backup_enabled", cluster.GetBackupEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "backup_enabled", clusterName, err))
 	}
 
-	if err := d.Set("bi_connector_config", FlattenBiConnectorConfig(cluster.BiConnector)); err != nil {
+	if err := d.Set("bi_connector_config", FlattenBiConnectorConfig(clusterOld.BiConnector)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "bi_connector_config", clusterName, err))
 	}
 
-	if err := d.Set("cluster_type", cluster.ClusterType); err != nil {
+	if err := d.Set("cluster_type", cluster.GetClusterType()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "cluster_type", clusterName, err))
 	}
 
-	if err := d.Set("connection_strings", FlattenConnectionStrings(cluster.ConnectionStrings)); err != nil {
+	if err := d.Set("connection_strings", FlattenConnectionStrings(clusterOld.ConnectionStrings)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "connection_strings", clusterName, err))
 	}
 
-	if err := d.Set("create_date", cluster.CreateDate); err != nil {
+	if err := d.Set("create_date", conversion.TimePtrToStringPtr(cluster.CreateDate)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "create_date", clusterName, err))
 	}
 
-	if err := d.Set("disk_size_gb", cluster.DiskSizeGB); err != nil {
+	if err := d.Set("disk_size_gb", cluster.GetDiskSizeGB()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
 	}
 
-	if err := d.Set("encryption_at_rest_provider", cluster.EncryptionAtRestProvider); err != nil {
+	if err := d.Set("encryption_at_rest_provider", cluster.GetEncryptionAtRestProvider()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "encryption_at_rest_provider", clusterName, err))
 	}
 
-	if err := d.Set("labels", FlattenLabels(RemoveLabel(cluster.Labels, DefaultLabel))); err != nil {
+	if err := d.Set("labels", FlattenLabels(RemoveLabel(clusterOld.Labels, DefaultLabel))); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "labels", clusterName, err))
 	}
 
-	if err := d.Set("tags", FlattenTags(&cluster.Tags)); err != nil {
+	if err := d.Set("tags", FlattenTags(&clusterOld.Tags)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "tags", clusterName, err))
 	}
 
-	if err := d.Set("mongo_db_major_version", cluster.MongoDBMajorVersion); err != nil {
+	if err := d.Set("mongo_db_major_version", cluster.GetMongoDBMajorVersion()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "mongo_db_major_version", clusterName, err))
 	}
 
-	if err := d.Set("mongo_db_version", cluster.MongoDBVersion); err != nil {
+	if err := d.Set("mongo_db_version", cluster.GetMongoDBVersion()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "mongo_db_version", clusterName, err))
 	}
 
-	if err := d.Set("name", cluster.Name); err != nil {
+	if err := d.Set("name", cluster.GetName()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "name", clusterName, err))
 	}
 
-	if err := d.Set("paused", cluster.Paused); err != nil {
+	if err := d.Set("paused", cluster.GetPaused()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "paused", clusterName, err))
 	}
 
-	if err := d.Set("pit_enabled", cluster.PitEnabled); err != nil {
+	if err := d.Set("pit_enabled", cluster.GetPitEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "pit_enabled", clusterName, err))
 	}
 
-	replicationSpecs, err := flattenAdvancedReplicationSpecs(ctx, cluster.ReplicationSpecs, d.Get("replication_specs").([]any), d, conn)
+	replicationSpecs, err := flattenAdvancedReplicationSpecs(ctx, clusterOld.ReplicationSpecs, d.Get("replication_specs").([]any), d, conn)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 	}
@@ -564,38 +563,34 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 	}
 
-	if err := d.Set("root_cert_type", cluster.RootCertType); err != nil {
+	if err := d.Set("root_cert_type", cluster.GetRootCertType()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "state_name", clusterName, err))
 	}
 
-	if err := d.Set("state_name", cluster.StateName); err != nil {
+	if err := d.Set("state_name", cluster.GetStateName()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "state_name", clusterName, err))
 	}
 
-	if err := d.Set("termination_protection_enabled", cluster.TerminationProtectionEnabled); err != nil {
+	if err := d.Set("termination_protection_enabled", cluster.GetTerminationProtectionEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "termination_protection_enabled", clusterName, err))
 	}
 
-	if err := d.Set("version_release_system", cluster.VersionReleaseSystem); err != nil {
+	if err := d.Set("version_release_system", cluster.GetVersionReleaseSystem()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "version_release_system", clusterName, err))
 	}
 
-	if err := d.Set("accept_data_risks_and_force_replica_set_reconfig", cluster.AcceptDataRisksAndForceReplicaSetReconfig); err != nil {
+	if err := d.Set("accept_data_risks_and_force_replica_set_reconfig", conversion.TimePtrToStringPtr(cluster.AcceptDataRisksAndForceReplicaSetReconfig)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "accept_data_risks_and_force_replica_set_reconfig", clusterName, err))
 	}
 
-	/*
-		Get the advaced configuration options and set up to the terraform state
-	*/
-	processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, projectID, clusterName)
+	processArgsOld, _, err := conn.Clusters.GetProcessArgs(ctx, projectID, clusterName)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorConfigRead, clusterName, err))
 	}
 
-	if err := d.Set("advanced_configuration", FlattenProcessArgs(processArgs)); err != nil {
+	if err := d.Set("advanced_configuration", FlattenProcessArgs(processArgsOld)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "advanced_configuration", clusterName, err))
 	}
-
 	return nil
 }
 
