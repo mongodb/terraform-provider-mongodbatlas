@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -241,8 +242,8 @@ func PluralDataSource() *schema.Resource {
 }
 
 func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	d.SetId(id.UniqueId())
 
@@ -255,18 +256,18 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.FromErr(fmt.Errorf("error reading advanced cluster list for project(%s): %s", projectID, err))
 	}
 
-	if err := d.Set("results", flattenAdvancedClusters(ctx, conn, clusters.Results, d)); err != nil {
+	if err := d.Set("results", flattenAdvancedClusters(ctx, conn, connV2, clusters.Results, d)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "results", d.Id(), err))
 	}
 
 	return nil
 }
 
-func flattenAdvancedClusters(ctx context.Context, conn *matlas.Client, clusters []*matlas.AdvancedCluster, d *schema.ResourceData) []map[string]any {
+func flattenAdvancedClusters(ctx context.Context, conn *matlas.Client, connV2 *admin.APIClient, clusters []*matlas.AdvancedCluster, d *schema.ResourceData) []map[string]any {
 	results := make([]map[string]any, 0)
 
 	for i := range clusters {
-		processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, clusters[i].GroupID, clusters[i].Name)
+		processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, clusters[i].GroupID, clusters[i].Name).Execute()
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
 		}
@@ -276,7 +277,7 @@ func flattenAdvancedClusters(ctx context.Context, conn *matlas.Client, clusters 
 		}
 
 		result := map[string]any{
-			"advanced_configuration":         FlattenProcessArgs(processArgs),
+			"advanced_configuration":         flattenProcessArgs(processArgs),
 			"backup_enabled":                 clusters[i].BackupEnabled,
 			"bi_connector_config":            FlattenBiConnectorConfig(clusters[i].BiConnector),
 			"cluster_type":                   clusters[i].ClusterType,

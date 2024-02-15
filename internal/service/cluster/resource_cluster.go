@@ -757,7 +757,7 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, clusterName, err))
 	}
 
-	if err := d.Set("advanced_configuration", advancedcluster.FlattenProcessArgs(processArgs)); err != nil {
+	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "advanced_configuration", clusterName, err))
 	}
 
@@ -1562,4 +1562,22 @@ func flattenPolicyItems(items []matlas.PolicyItem) []map[string]any {
 	}
 
 	return policyItems
+}
+
+func flattenProcessArgs(p *matlas.ProcessArgs) []map[string]any {
+	return []map[string]any{
+		{
+			"default_read_concern":                 p.DefaultReadConcern,
+			"default_write_concern":                p.DefaultWriteConcern,
+			"fail_index_key_too_long":              cast.ToBool(p.FailIndexKeyTooLong),
+			"javascript_enabled":                   cast.ToBool(p.JavascriptEnabled),
+			"minimum_enabled_tls_protocol":         p.MinimumEnabledTLSProtocol,
+			"no_table_scan":                        cast.ToBool(p.NoTableScan),
+			"oplog_size_mb":                        p.OplogSizeMB,
+			"oplog_min_retention_hours":            p.OplogMinRetentionHours,
+			"sample_size_bi_connector":             p.SampleSizeBIConnector,
+			"sample_refresh_interval_bi_connector": p.SampleRefreshIntervalBIConnector,
+			"transaction_lifetime_limit_seconds":   p.TransactionLifetimeLimitSeconds,
+		},
+	}
 }

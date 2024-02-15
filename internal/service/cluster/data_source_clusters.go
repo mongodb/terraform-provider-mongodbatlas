@@ -372,7 +372,7 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 			containerID = getContainerID(containers, &clusters[i])
 		}
 		result := map[string]any{
-			"advanced_configuration":                  advancedcluster.FlattenProcessArgs(processArgs),
+			"advanced_configuration":                  flattenProcessArgs(processArgs),
 			"auto_scaling_compute_enabled":            clusters[i].AutoScaling.Compute.Enabled,
 			"auto_scaling_compute_scale_down_enabled": clusters[i].AutoScaling.Compute.ScaleDownEnabled,
 			"auto_scaling_disk_gb_enabled":            clusters[i].AutoScaling.DiskGBEnabled,

@@ -325,12 +325,12 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "version_release_system", clusterName, err))
 	}
 
-	processArgsOld, _, err := conn.Clusters.GetProcessArgs(ctx, projectID, clusterName)
+	processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorAdvancedConfRead, clusterName, err))
 	}
 
-	if err := d.Set("advanced_configuration", FlattenProcessArgs(processArgsOld)); err != nil {
+	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "advanced_configuration", clusterName, err))
 	}
 

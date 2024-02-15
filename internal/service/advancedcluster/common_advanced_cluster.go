@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -296,20 +297,23 @@ func ExpandTagSliceFromSetSchema(d *schema.ResourceData) []*matlas.Tag {
 	return res
 }
 
-func FlattenProcessArgs(p *matlas.ProcessArgs) []any {
-	return []any{
-		map[string]any{
-			"default_read_concern":                 p.DefaultReadConcern,
-			"default_write_concern":                p.DefaultWriteConcern,
-			"fail_index_key_too_long":              cast.ToBool(p.FailIndexKeyTooLong),
-			"javascript_enabled":                   cast.ToBool(p.JavascriptEnabled),
-			"minimum_enabled_tls_protocol":         p.MinimumEnabledTLSProtocol,
-			"no_table_scan":                        cast.ToBool(p.NoTableScan),
-			"oplog_size_mb":                        p.OplogSizeMB,
-			"oplog_min_retention_hours":            p.OplogMinRetentionHours,
-			"sample_size_bi_connector":             p.SampleSizeBIConnector,
-			"sample_refresh_interval_bi_connector": p.SampleRefreshIntervalBIConnector,
-			"transaction_lifetime_limit_seconds":   p.TransactionLifetimeLimitSeconds,
+func flattenProcessArgs(p *admin.ClusterDescriptionProcessArgs) []map[string]any {
+	if p == nil {
+		return nil
+	}
+	return []map[string]any{
+		{
+			"default_read_concern":                 p.GetDefaultReadConcern(),
+			"default_write_concern":                p.GetDefaultWriteConcern(),
+			"fail_index_key_too_long":              p.GetFailIndexKeyTooLong(),
+			"javascript_enabled":                   p.GetJavascriptEnabled(),
+			"minimum_enabled_tls_protocol":         p.GetMinimumEnabledTlsProtocol(),
+			"no_table_scan":                        p.GetNoTableScan(),
+			"oplog_size_mb":                        p.GetOplogSizeMB(),
+			"oplog_min_retention_hours":            p.GetOplogMinRetentionHours(),
+			"sample_size_bi_connector":             p.GetSampleSizeBIConnector(),
+			"sample_refresh_interval_bi_connector": p.GetSampleRefreshIntervalBIConnector(),
+			"transaction_lifetime_limit_seconds":   p.GetTransactionLifetimeLimitSeconds(),
 		},
 	}
 }
