@@ -3,7 +3,6 @@ package advancedcluster_test
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"regexp"
 	"testing"
@@ -20,7 +19,6 @@ import (
 func TestAccClusterAdvancedCluster_basic(t *testing.T) {
 	// TEMPORARY: to delete, based on TestAccClusterAdvancedCluster_basicTenant
 	var (
-		cluster                matlas.AdvancedCluster
 		resourceName           = "mongodbatlas_advanced_cluster.test"
 		dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
 		dataSourceClustersName = "data.mongodbatlas_advanced_clusters.test"
@@ -37,7 +35,7 @@ func TestAccClusterAdvancedCluster_basic(t *testing.T) {
 			{
 				Config: configTenant(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -58,7 +56,6 @@ func TestAccClusterAdvancedCluster_basic(t *testing.T) {
 func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		cluster                matlas.AdvancedCluster
 		resourceName           = "mongodbatlas_advanced_cluster.test"
 		dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
 		dataSourceClustersName = "data.mongodbatlas_advanced_clusters.test"
@@ -76,7 +73,7 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 			{
 				Config: configTenant(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -93,7 +90,7 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 			{
 				Config: configTenant(orgID, projectName, rNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -120,7 +117,6 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		cluster        matlas.AdvancedCluster
 		resourceName   = "mongodbatlas_advanced_cluster.test"
 		dataSourceName = fmt.Sprintf("data.%s", resourceName)
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -136,7 +132,7 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 			{
 				Config: configSingleProvider(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
@@ -149,7 +145,7 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 			{
 				Config: configMultiCloud(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
@@ -171,7 +167,6 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		cluster                matlas.AdvancedCluster
 		resourceName           = "mongodbatlas_advanced_cluster.test"
 		dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
 		dataSourceClustersName = "data.mongodbatlas_advanced_clusters.test"
@@ -189,7 +184,7 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 			{
 				Config: configMultiCloud(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
@@ -204,7 +199,7 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 			{
 				Config: configMultiCloud(orgID, projectName, rNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
@@ -230,7 +225,6 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
@@ -246,7 +240,7 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 			{
 				Config: configMultiCloudSharded(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -256,7 +250,7 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 			{
 				Config: configMultiCloudSharded(orgID, projectName, rNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -277,7 +271,6 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		cluster             matlas.AdvancedCluster
 		resourceName        = "mongodbatlas_advanced_cluster.test"
 		orgID               = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName         = acctest.RandomWithPrefix("test-acc")
@@ -294,7 +287,7 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 			{
 				Config: configSingleProviderPaused(orgID, projectName, rName, false, instanceSize),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -305,7 +298,7 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 			{
 				Config: configSingleProviderPaused(orgID, projectName, rName, true, instanceSize),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -331,7 +324,6 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
@@ -347,7 +339,7 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 			{
 				Config: configSingleProviderPaused(orgID, projectName, rName, true, instanceSize),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -358,7 +350,7 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 			{
 				Config: configSingleProviderPaused(orgID, projectName, rName, false, instanceSize),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -387,7 +379,6 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		cluster                matlas.AdvancedCluster
 		resourceName           = "mongodbatlas_advanced_cluster.test"
 		dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
 		dataSourceNameClusters = "data.mongodbatlas_advanced_clusters.test"
@@ -429,7 +420,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			{
 				Config: configAdvanced(orgID, projectName, rName, processArgs),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
@@ -448,7 +439,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			{
 				Config: configAdvanced(orgID, projectName, rNameUpdated, processArgsUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
@@ -471,7 +462,6 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
@@ -508,7 +498,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 			{
 				Config: configAdvancedDefaultWrite(orgID, projectName, rName, processArgs),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "1"),
@@ -524,7 +514,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 			{
 				Config: configAdvancedDefaultWrite(orgID, projectName, rNameUpdated, processArgsUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "majority"),
@@ -544,7 +534,6 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
@@ -568,7 +557,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 			{
 				Config: configReplicationSpecsAutoScaling(orgID, projectName, rName, autoScaling),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "false"),
@@ -577,7 +566,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 			{
 				Config: configReplicationSpecsAutoScaling(orgID, projectName, rNameUpdated, autoScalingUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "true"),
@@ -590,7 +579,6 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
@@ -614,7 +602,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 			{
 				Config: configReplicationSpecsAnalyticsAutoScaling(orgID, projectName, rName, autoScaling),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "false"),
@@ -623,7 +611,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 			{
 				Config: configReplicationSpecsAnalyticsAutoScaling(orgID, projectName, rNameUpdated, autoScalingUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "true"),
@@ -636,7 +624,6 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		cluster          matlas.AdvancedCluster
 		resourceName     = "mongodbatlas_advanced_cluster.test"
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName      = acctest.RandomWithPrefix("test-acc")
@@ -653,7 +640,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 			{
 				Config: configMultiZoneWithShards(orgID, projectName, rName, numShards, numShards),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.num_shards", "1"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.1.num_shards", "1"),
@@ -662,7 +649,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 			{
 				Config: configMultiZoneWithShards(orgID, projectName, rName, numShardsUpdated, numShards),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.num_shards", "2"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.1.num_shards", "1"),
@@ -675,7 +662,6 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		cluster                matlas.AdvancedCluster
 		resourceName           = "mongodbatlas_advanced_cluster.test"
 		dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
 		dataSourceClustersName = "data.mongodbatlas_advanced_clusters.test"
@@ -692,7 +678,7 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 			{
 				Config: configWithTags(orgID, projectName, rName, []matlas.Tag{}),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
@@ -713,7 +699,7 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 					},
 				}),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
@@ -736,7 +722,7 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 					},
 				}),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
@@ -752,7 +738,7 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 	})
 }
 
-func checkExists(resourceName string, cluster *matlas.AdvancedCluster) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -762,9 +748,7 @@ func checkExists(resourceName string, cluster *matlas.AdvancedCluster) resource.
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		log.Printf("[DEBUG] projectID: %s, name %s", ids["project_id"], ids["cluster_name"])
-		if clusterResp, _, err := acc.Conn().AdvancedClusters.Get(context.Background(), ids["project_id"], ids["cluster_name"]); err == nil {
-			*cluster = *clusterResp
+		if _, _, err := acc.ConnV2().ClustersApi.GetCluster(context.Background(), ids["project_id"], ids["cluster_name"]).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("cluster(%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.ID)

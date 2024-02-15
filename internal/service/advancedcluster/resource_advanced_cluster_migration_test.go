@@ -8,13 +8,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccMigrationAdvancedClusterRS_singleAWSProvider(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
@@ -30,7 +28,7 @@ func TestAccMigrationAdvancedClusterRS_singleAWSProvider(t *testing.T) {
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
@@ -46,7 +44,6 @@ func TestAccMigrationAdvancedClusterRS_singleAWSProvider(t *testing.T) {
 func TestAccMigrationAdvancedClusterRS_multiCloud(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
@@ -62,7 +59,7 @@ func TestAccMigrationAdvancedClusterRS_multiCloud(t *testing.T) {
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
