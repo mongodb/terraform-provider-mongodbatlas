@@ -30,9 +30,9 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configNoPolicies(orgID, projectName, clusterName, &admin.DiskBackupSnapshotSchedule{
-					ReferenceHourOfDay:    conversion.IntPtr(3),
-					ReferenceMinuteOfHour: conversion.IntPtr(45),
-					RestoreWindowDays:     conversion.IntPtr(4),
+					ReferenceHourOfDay:    conversion.Pointer[int](3),
+					ReferenceMinuteOfHour: conversion.Pointer[int](45),
+					RestoreWindowDays:     conversion.Pointer[int](4),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
@@ -55,9 +55,9 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 			},
 			{
 				Config: configNewPolicies(orgID, projectName, clusterName, &admin.DiskBackupSnapshotSchedule{
-					ReferenceHourOfDay:    conversion.IntPtr(0),
-					ReferenceMinuteOfHour: conversion.IntPtr(0),
-					RestoreWindowDays:     conversion.IntPtr(7),
+					ReferenceHourOfDay:    conversion.Pointer[int](0),
+					ReferenceMinuteOfHour: conversion.Pointer[int](0),
+					RestoreWindowDays:     conversion.Pointer[int](7),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
@@ -93,9 +93,9 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 			},
 			{
 				Config: configAdvancedPolicies(orgID, projectName, clusterName, &admin.DiskBackupSnapshotSchedule{
-					ReferenceHourOfDay:    conversion.IntPtr(0),
-					ReferenceMinuteOfHour: conversion.IntPtr(0),
-					RestoreWindowDays:     conversion.IntPtr(7),
+					ReferenceHourOfDay:    conversion.Pointer[int](0),
+					ReferenceMinuteOfHour: conversion.Pointer[int](0),
+					RestoreWindowDays:     conversion.Pointer[int](7),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
@@ -188,9 +188,9 @@ func TestAccBackupRSCloudBackupSchedule_onepolicy(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configDefault(orgID, projectName, clusterName, &admin.DiskBackupSnapshotSchedule{
-					ReferenceHourOfDay:    conversion.IntPtr(3),
-					ReferenceMinuteOfHour: conversion.IntPtr(45),
-					RestoreWindowDays:     conversion.IntPtr(4),
+					ReferenceHourOfDay:    conversion.Pointer[int](3),
+					ReferenceMinuteOfHour: conversion.Pointer[int](45),
+					RestoreWindowDays:     conversion.Pointer[int](4),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
@@ -218,9 +218,9 @@ func TestAccBackupRSCloudBackupSchedule_onepolicy(t *testing.T) {
 			},
 			{
 				Config: configOnePolicy(orgID, projectName, clusterName, &admin.DiskBackupSnapshotSchedule{
-					ReferenceHourOfDay:    conversion.IntPtr(0),
-					ReferenceMinuteOfHour: conversion.IntPtr(0),
-					RestoreWindowDays:     conversion.IntPtr(7),
+					ReferenceHourOfDay:    conversion.Pointer[int](0),
+					ReferenceMinuteOfHour: conversion.Pointer[int](0),
+					RestoreWindowDays:     conversion.Pointer[int](7),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
@@ -255,9 +255,9 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configCopySettings(orgID, projectName, clusterName, &admin.DiskBackupSnapshotSchedule{
-					ReferenceHourOfDay:    conversion.IntPtr(3),
-					ReferenceMinuteOfHour: conversion.IntPtr(45),
-					RestoreWindowDays:     conversion.IntPtr(1),
+					ReferenceHourOfDay:    conversion.Pointer[int](3),
+					ReferenceMinuteOfHour: conversion.Pointer[int](45),
+					RestoreWindowDays:     conversion.Pointer[int](1),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
@@ -304,9 +304,9 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configDefault(orgID, projectName, clusterName, &admin.DiskBackupSnapshotSchedule{
-					ReferenceHourOfDay:    conversion.IntPtr(3),
-					ReferenceMinuteOfHour: conversion.IntPtr(45),
-					RestoreWindowDays:     conversion.IntPtr(4),
+					ReferenceHourOfDay:    conversion.Pointer[int](3),
+					ReferenceMinuteOfHour: conversion.Pointer[int](45),
+					RestoreWindowDays:     conversion.Pointer[int](4),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
