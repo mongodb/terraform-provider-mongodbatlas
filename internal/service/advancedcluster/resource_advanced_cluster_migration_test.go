@@ -13,11 +13,10 @@ import (
 func TestAccMigrationAdvancedCluster_basic(t *testing.T) {
 	// TEMPORARY: to delete, based on TestAccClusterAdvancedCluster_basicTenant
 	var (
-		resourceName = "mongodbatlas_advanced_cluster.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		rName        = acctest.RandomWithPrefix("test-acc")
-		config       = configTenant(orgID, projectName, rName)
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		rName       = acctest.RandomWithPrefix("test-acc")
+		config      = configTenant(orgID, projectName, rName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -43,11 +42,10 @@ func TestAccMigrationAdvancedCluster_basic(t *testing.T) {
 func TestAccMigrationAdvancedCluster_singleAWSProvider(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		resourceName = "mongodbatlas_advanced_cluster.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		rName        = acctest.RandomWithPrefix("test-acc")
-		config       = configSingleProvider(orgID, projectName, rName)
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		rName       = acctest.RandomWithPrefix("test-acc")
+		config      = configSingleProvider(orgID, projectName, rName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -74,11 +72,10 @@ func TestAccMigrationAdvancedCluster_singleAWSProvider(t *testing.T) {
 func TestAccMigrationAdvancedCluster_multiCloud(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		resourceName = "mongodbatlas_advanced_cluster.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		rName        = acctest.RandomWithPrefix("test-acc")
-		config       = configMultiCloud(orgID, projectName, rName)
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		rName       = acctest.RandomWithPrefix("test-acc")
+		config      = configMultiCloud(orgID, projectName, rName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

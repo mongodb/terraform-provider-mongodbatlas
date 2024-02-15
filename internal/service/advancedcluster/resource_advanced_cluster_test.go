@@ -16,15 +16,18 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
+const (
+	resourceName         = "mongodbatlas_advanced_cluster.test"
+	dataSourceName       = "data.mongodbatlas_advanced_cluster.test"
+	dataSourcePluralName = "data.mongodbatlas_advanced_clusters.test"
+)
+
 func TestAccClusterAdvancedCluster_basic(t *testing.T) {
 	// TEMPORARY: to delete, based on TestAccClusterAdvancedCluster_basicTenant
 	var (
-		resourceName           = "mongodbatlas_advanced_cluster.test"
-		dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
-		dataSourceClustersName = "data.mongodbatlas_advanced_clusters.test"
-		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName            = acctest.RandomWithPrefix("test-acc")
-		rName                  = acctest.RandomWithPrefix("test-acc")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		rName       = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -43,10 +46,10 @@ func TestAccClusterAdvancedCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "termination_protection_enabled"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", rName),
 					resource.TestCheckResourceAttr(dataSourceName, "termination_protection_enabled", "false"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.name"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.termination_protection_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.termination_protection_enabled"),
 				),
 			},
 		},
@@ -56,13 +59,10 @@ func TestAccClusterAdvancedCluster_basic(t *testing.T) {
 func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		resourceName           = "mongodbatlas_advanced_cluster.test"
-		dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
-		dataSourceClustersName = "data.mongodbatlas_advanced_clusters.test"
-		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName            = acctest.RandomWithPrefix("test-acc")
-		rName                  = acctest.RandomWithPrefix("test-acc")
-		rNameUpdated           = acctest.RandomWithPrefix("test-acc")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		rName        = acctest.RandomWithPrefix("test-acc")
+		rNameUpdated = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -81,10 +81,10 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "termination_protection_enabled"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", rName),
 					resource.TestCheckResourceAttr(dataSourceName, "termination_protection_enabled", "false"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.name"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.termination_protection_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.termination_protection_enabled"),
 				),
 			},
 			{
@@ -98,10 +98,10 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", rNameUpdated),
 					resource.TestCheckResourceAttr(dataSourceName, "termination_protection_enabled", "false"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.name"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.termination_protection_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.termination_protection_enabled"),
 				),
 			},
 			{
@@ -117,7 +117,6 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		resourceName   = "mongodbatlas_advanced_cluster.test"
 		dataSourceName = fmt.Sprintf("data.%s", resourceName)
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName    = acctest.RandomWithPrefix("test-acc")
@@ -167,13 +166,10 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		resourceName           = "mongodbatlas_advanced_cluster.test"
-		dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
-		dataSourceClustersName = "data.mongodbatlas_advanced_clusters.test"
-		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName            = acctest.RandomWithPrefix("test-acc")
-		rName                  = acctest.RandomWithPrefix("test-acc")
-		rNameUpdated           = acctest.RandomWithPrefix("test-acc")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		rName        = acctest.RandomWithPrefix("test-acc")
+		rNameUpdated = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -190,9 +186,9 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.name"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", rName),
 				),
 			},
@@ -205,9 +201,9 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
-					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.name"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", rNameUpdated),
 				),
 			},
@@ -225,7 +221,6 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		resourceName = "mongodbatlas_advanced_cluster.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		rName        = acctest.RandomWithPrefix("test-acc")
@@ -271,7 +266,6 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		resourceName        = "mongodbatlas_advanced_cluster.test"
 		orgID               = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName         = acctest.RandomWithPrefix("test-acc")
 		rName               = acctest.RandomWithPrefix("test-acc")
@@ -324,7 +318,6 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		resourceName = "mongodbatlas_advanced_cluster.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		rName        = acctest.RandomWithPrefix("test-acc")
@@ -379,14 +372,11 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		resourceName           = "mongodbatlas_advanced_cluster.test"
-		dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
-		dataSourceNameClusters = "data.mongodbatlas_advanced_clusters.test"
-		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName            = acctest.RandomWithPrefix("test-acc")
-		rName                  = acctest.RandomWithPrefix("test-acc")
-		rNameUpdated           = acctest.RandomWithPrefix("test-acc")
-		processArgs            = &matlas.ProcessArgs{
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		rName        = acctest.RandomWithPrefix("test-acc")
+		rNameUpdated = acctest.RandomWithPrefix("test-acc")
+		processArgs  = &matlas.ProcessArgs{
 			DefaultReadConcern:               "available",
 			DefaultWriteConcern:              "1",
 			FailIndexKeyTooLong:              pointy.Bool(false),
@@ -431,9 +421,9 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.transaction_lifetime_limit_seconds", "300"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", rName),
-					resource.TestCheckResourceAttrSet(dataSourceNameClusters, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourceNameClusters, "results.0.replication_specs.#"),
-					resource.TestCheckResourceAttrSet(dataSourceNameClusters, "results.0.name"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
 				),
 			},
 			{
@@ -450,9 +440,9 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.transaction_lifetime_limit_seconds", "300"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", rNameUpdated),
-					resource.TestCheckResourceAttrSet(dataSourceNameClusters, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourceNameClusters, "results.0.replication_specs.#"),
-					resource.TestCheckResourceAttrSet(dataSourceNameClusters, "results.0.name"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
 				),
 			},
 		},
@@ -462,7 +452,6 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		resourceName = "mongodbatlas_advanced_cluster.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		rName        = acctest.RandomWithPrefix("test-acc")
@@ -534,7 +523,6 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		resourceName = "mongodbatlas_advanced_cluster.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		rName        = acctest.RandomWithPrefix("test-acc")
@@ -579,7 +567,6 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		resourceName = "mongodbatlas_advanced_cluster.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		rName        = acctest.RandomWithPrefix("test-acc")
@@ -624,7 +611,6 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		resourceName     = "mongodbatlas_advanced_cluster.test"
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName      = acctest.RandomWithPrefix("test-acc")
 		rName            = acctest.RandomWithPrefix("test-acc")
@@ -662,12 +648,9 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		resourceName           = "mongodbatlas_advanced_cluster.test"
-		dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
-		dataSourceClustersName = "data.mongodbatlas_advanced_clusters.test"
-		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName            = acctest.RandomWithPrefix("test-acc")
-		rName                  = acctest.RandomWithPrefix("test-acc")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		rName       = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -684,7 +667,7 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.#", "0"),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.tags.#", "0"),
 				),
 			},
 			{
@@ -709,9 +692,9 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "2"),
 					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", acc.ClusterTagsMap1),
 					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", acc.ClusterTagsMap2),
-					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", acc.ClusterTagsMap1),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", acc.ClusterTagsMap2),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourcePluralName, "results.0.tags.*", acc.ClusterTagsMap1),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourcePluralName, "results.0.tags.*", acc.ClusterTagsMap2),
 				),
 			},
 			{
@@ -730,8 +713,8 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", acc.ClusterTagsMap3),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", acc.ClusterTagsMap3),
-					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", acc.ClusterTagsMap3),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourcePluralName, "results.0.tags.*", acc.ClusterTagsMap3),
 				),
 			},
 		},
