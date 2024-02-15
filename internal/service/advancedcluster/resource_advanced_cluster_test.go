@@ -571,7 +571,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 					checkExists(resourceName, &cluster),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					testAccCheckMongoDBAtlasAdvancedClusterScaling(&cluster, *autoScaling.Compute.Enabled),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "false"),
 				),
 			},
 			{
@@ -580,7 +580,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 					checkExists(resourceName, &cluster),
 					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					testAccCheckMongoDBAtlasAdvancedClusterScaling(&cluster, *autoScalingUpdated.Compute.Enabled),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "true"),
 				),
 			},
 		},
@@ -617,7 +617,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 					checkExists(resourceName, &cluster),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					testAccCheckMongoDBAtlasAdvancedClusterAnalyticsScaling(&cluster, *autoScaling.Compute.Enabled),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "false"),
 				),
 			},
 			{
@@ -626,7 +626,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 					checkExists(resourceName, &cluster),
 					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					testAccCheckMongoDBAtlasAdvancedClusterAnalyticsScaling(&cluster, *autoScalingUpdated.Compute.Enabled),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "true"),
 				),
 			},
 		},
@@ -768,26 +768,6 @@ func checkExists(resourceName string, cluster *matlas.AdvancedCluster) resource.
 			return nil
 		}
 		return fmt.Errorf("cluster(%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.ID)
-	}
-}
-
-func testAccCheckMongoDBAtlasAdvancedClusterScaling(cluster *matlas.AdvancedCluster, computeEnabled bool) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if *cluster.ReplicationSpecs[0].RegionConfigs[0].AutoScaling.Compute.Enabled != computeEnabled {
-			return fmt.Errorf("compute_enabled: %d", cluster.ReplicationSpecs[0].RegionConfigs[0].AutoScaling.Compute.Enabled)
-		}
-
-		return nil
-	}
-}
-
-func testAccCheckMongoDBAtlasAdvancedClusterAnalyticsScaling(cluster *matlas.AdvancedCluster, computeEnabled bool) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if *cluster.ReplicationSpecs[0].RegionConfigs[0].AnalyticsAutoScaling.Compute.Enabled != computeEnabled {
-			return fmt.Errorf("compute_enabled: %d", cluster.ReplicationSpecs[0].RegionConfigs[0].AnalyticsAutoScaling.Compute.Enabled)
-		}
-
-		return nil
 	}
 }
 
