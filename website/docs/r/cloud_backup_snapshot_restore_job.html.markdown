@@ -143,7 +143,7 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 * `delivery_type_config.oplog_ts` - Optional setting for **pointInTime** configuration. Timestamp in the number of seconds that have elapsed since the UNIX epoch from which to you want to restore this snapshot. This is the first part of an Oplog timestamp.
 * `delivery_type_config.oplog_inc` - Optional setting for **pointInTime** configuration. Oplog operation number from which to you want to restore this snapshot. This is the second part of an Oplog timestamp. Used in conjunction with `oplog_ts`.
 * `delivery_type_config.point_in_time_utc_seconds` - Optional setting for **pointInTime** configuration. Timestamp in the number of seconds that have elapsed since the UNIX epoch from which you want to restore this snapshot. Used instead of oplog settings.
-* `snapshot_id` - Unique identifier of the snapshot to restore. This field is **required** if `delivery_type_config` is set to either `automated` or `download`. It can be omitted for `pointInTime`.
+* `snapshot_id` - Optional setting for **pointInTime** configuration. Unique identifier of the snapshot to restore. 
 
 ### Download
 Atlas provides a URL to download a .tar.gz of the snapshot with snapshotId. 
