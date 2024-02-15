@@ -31,7 +31,6 @@ func TestAccMigrationAdvancedClusterRS_singleAWSProvider(t *testing.T) {
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
@@ -64,7 +63,6 @@ func TestAccMigrationAdvancedClusterRS_multiCloud(t *testing.T) {
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),

@@ -38,7 +38,6 @@ func TestAccClusterAdvancedCluster_basic(t *testing.T) {
 				Config: configTenant(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -78,7 +77,6 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 				Config: configTenant(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -96,7 +94,6 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 				Config: configTenant(orgID, projectName, rNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -140,7 +137,6 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 				Config: configSingleProvider(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
@@ -154,7 +150,6 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 				Config: configMultiCloud(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
@@ -195,7 +190,6 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 				Config: configMultiCloud(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
@@ -211,7 +205,6 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 				Config: configMultiCloud(orgID, projectName, rNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
@@ -254,7 +247,6 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 				Config: configMultiCloudSharded(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -265,7 +257,6 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 				Config: configMultiCloudSharded(orgID, projectName, rNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -304,7 +295,6 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 				Config: configSingleProviderPaused(orgID, projectName, rName, false, instanceSize),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -316,7 +306,6 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 				Config: configSingleProviderPaused(orgID, projectName, rName, true, instanceSize),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -359,7 +348,6 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 				Config: configSingleProviderPaused(orgID, projectName, rName, true, instanceSize),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -371,7 +359,6 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 				Config: configSingleProviderPaused(orgID, projectName, rName, false, instanceSize),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -443,7 +430,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 				Config: configAdvanced(orgID, projectName, rName, processArgs),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
@@ -462,7 +449,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 				Config: configAdvanced(orgID, projectName, rNameUpdated, processArgsUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
+					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
@@ -522,7 +509,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 				Config: configAdvancedDefaultWrite(orgID, projectName, rName, processArgs),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
@@ -538,7 +525,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 				Config: configAdvancedDefaultWrite(orgID, projectName, rNameUpdated, processArgsUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
+					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "majority"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
@@ -582,7 +569,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 				Config: configReplicationSpecsAutoScaling(orgID, projectName, rName, autoScaling),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					testAccCheckMongoDBAtlasAdvancedClusterScaling(&cluster, *autoScaling.Compute.Enabled),
 				),
@@ -591,7 +578,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 				Config: configReplicationSpecsAutoScaling(orgID, projectName, rNameUpdated, autoScalingUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
+					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					testAccCheckMongoDBAtlasAdvancedClusterScaling(&cluster, *autoScalingUpdated.Compute.Enabled),
 				),
@@ -628,7 +615,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 				Config: configReplicationSpecsAnalyticsAutoScaling(orgID, projectName, rName, autoScaling),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					testAccCheckMongoDBAtlasAdvancedClusterAnalyticsScaling(&cluster, *autoScaling.Compute.Enabled),
 				),
@@ -637,7 +624,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 				Config: configReplicationSpecsAnalyticsAutoScaling(orgID, projectName, rNameUpdated, autoScalingUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
+					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					testAccCheckMongoDBAtlasAdvancedClusterAnalyticsScaling(&cluster, *autoScalingUpdated.Compute.Enabled),
 				),
@@ -667,7 +654,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 				Config: configMultiZoneWithShards(orgID, projectName, rName, numShards, numShards),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.num_shards", "1"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.1.num_shards", "1"),
 				),
@@ -676,7 +663,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 				Config: configMultiZoneWithShards(orgID, projectName, rName, numShardsUpdated, numShards),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.num_shards", "2"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.1.num_shards", "1"),
 				),
@@ -706,7 +693,7 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 				Config: configWithTags(orgID, projectName, rName, []matlas.Tag{}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
@@ -727,7 +714,7 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "2"),
@@ -750,7 +737,7 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "1"),
@@ -781,16 +768,6 @@ func checkExists(resourceName string, cluster *matlas.AdvancedCluster) resource.
 			return nil
 		}
 		return fmt.Errorf("cluster(%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.ID)
-	}
-}
-
-func testAccCheckMongoDBAtlasAdvancedClusterAttributes(cluster *matlas.AdvancedCluster, name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if cluster.Name != name {
-			return fmt.Errorf("bad name: %s", cluster.Name)
-		}
-
-		return nil
 	}
 }
 
