@@ -404,8 +404,8 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
 		clusterName := ids["cluster_name"]
-		schedule, _, err := acc.ConnV2().CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
-		if err != nil || schedule == nil {
+		_, _, err := acc.ConnV2().CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
+		if err != nil {
 			return fmt.Errorf("cloud Provider Snapshot Schedule (%s) does not exist: %s", rs.Primary.ID, err)
 		}
 		return nil
@@ -423,8 +423,8 @@ func checkDestroy(s *terraform.State) error {
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
 		clusterName := ids["cluster_name"]
-		schedule, _, err := acc.ConnV2().CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
-		if schedule != nil || err == nil {
+		_, _, err := acc.ConnV2().CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
+		if err == nil {
 			return fmt.Errorf("cloud Provider Snapshot Schedule (%s) still exists", rs.Primary.ID)
 		}
 	}
