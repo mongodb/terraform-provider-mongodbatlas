@@ -16,7 +16,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mocksvc"
-	"github.com/mwielbut/pointy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
@@ -111,14 +110,14 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 		awsKms = admin.AWSKMSConfiguration{
-			Enabled:             pointy.Bool(true),
+			Enabled:             conversion.Pointer(true),
 			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:              conversion.StringPtr(os.Getenv("AWS_REGION")),
 			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
 		}
 
 		awsKmsUpdated = admin.AWSKMSConfiguration{
-			Enabled:             pointy.Bool(true),
+			Enabled:             conversion.Pointer(true),
 			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:              conversion.StringPtr(os.Getenv("AWS_REGION")),
 			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
@@ -173,7 +172,7 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 		azureKeyVault = admin.AzureKeyVault{
-			Enabled:           pointy.Bool(true),
+			Enabled:           conversion.Pointer(true),
 			ClientID:          conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
 			AzureEnvironment:  conversion.StringPtr("AZURE"),
 			SubscriptionID:    conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
@@ -185,7 +184,7 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 		}
 
 		azureKeyVaultUpdated = admin.AzureKeyVault{
-			Enabled:           pointy.Bool(true),
+			Enabled:           conversion.Pointer(true),
 			ClientID:          conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID_UPDATED")),
 			AzureEnvironment:  conversion.StringPtr("AZURE"),
 			SubscriptionID:    conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
@@ -243,13 +242,13 @@ func TestAccEncryptionAtRest_basicGCP(t *testing.T) {
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 		googleCloudKms = admin.GoogleCloudKMS{
-			Enabled:              pointy.Bool(true),
+			Enabled:              conversion.Pointer(true),
 			ServiceAccountKey:    conversion.StringPtr(os.Getenv("GCP_SERVICE_ACCOUNT_KEY")),
 			KeyVersionResourceID: conversion.StringPtr(os.Getenv("GCP_KEY_VERSION_RESOURCE_ID")),
 		}
 
 		googleCloudKmsUpdated = admin.GoogleCloudKMS{
-			Enabled:              pointy.Bool(true),
+			Enabled:              conversion.Pointer(true),
 			ServiceAccountKey:    conversion.StringPtr(os.Getenv("GCP_SERVICE_ACCOUNT_KEY_UPDATED")),
 			KeyVersionResourceID: conversion.StringPtr(os.Getenv("GCP_KEY_VERSION_RESOURCE_ID_UPDATED")),
 		}
@@ -299,7 +298,7 @@ func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 		roleName     = acctest.RandomWithPrefix("test-aws-role")
 
 		awsKms = admin.AWSKMSConfiguration{
-			Enabled:             pointy.Bool(true),
+			Enabled:             conversion.Pointer(true),
 			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:              conversion.StringPtr(os.Getenv("AWS_REGION")),
 		}

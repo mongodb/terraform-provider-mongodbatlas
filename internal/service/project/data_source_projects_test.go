@@ -19,18 +19,18 @@ func TestAccProjectDSProjects_basic(t *testing.T) {
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIdsWithMinCount(t, 2) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 2) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectsConfigWithDS(projectName, orgID,
 					[]*admin.TeamRole{
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
 							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(1)),
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(1)),
 							RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
@@ -54,18 +54,18 @@ func TestAccProjectDSProjects_withPagination(t *testing.T) {
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIdsWithMinCount(t, 2) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 2) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectsConfigWithPagination(projectName, orgID,
 					[]*admin.TeamRole{
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
 							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(1)),
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(1)),
 							RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},

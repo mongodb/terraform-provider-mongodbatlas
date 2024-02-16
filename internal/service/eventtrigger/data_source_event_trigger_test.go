@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mwielbut/pointy"
 	"go.mongodb.org/realm/realm"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -25,14 +25,14 @@ func TestAccEventTriggerDS_basic(t *testing.T) {
 		Name:       acctest.RandomWithPrefix("test-acc"),
 		Type:       "DATABASE",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
-		Disabled:   pointy.Bool(false),
+		Disabled:   conversion.Pointer(false),
 		Config: &realm.EventTriggerConfig{
 			OperationTypes: []string{"INSERT", "UPDATE"},
 			Database:       "sample_airbnb",
 			Collection:     "listingsAndReviews",
 			ServiceID:      os.Getenv("MONGODB_REALM_SERVICE_ID"),
-			FullDocument:   pointy.Bool(false),
-			Unordered:      pointy.Bool(true),
+			FullDocument:   conversion.Pointer(false),
+			Unordered:      conversion.Pointer(true),
 		},
 	}
 

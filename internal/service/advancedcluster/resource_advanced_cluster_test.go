@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -365,26 +364,26 @@ func TestAccClusterAdvancedCluster_advancedConf(t *testing.T) {
 		processArgs            = &matlas.ProcessArgs{
 			DefaultReadConcern:               "available",
 			DefaultWriteConcern:              "1",
-			FailIndexKeyTooLong:              pointy.Bool(false),
-			JavascriptEnabled:                pointy.Bool(true),
+			FailIndexKeyTooLong:              conversion.Pointer(false),
+			JavascriptEnabled:                conversion.Pointer(true),
 			MinimumEnabledTLSProtocol:        "TLS1_1",
-			NoTableScan:                      pointy.Bool(false),
-			OplogSizeMB:                      pointy.Int64(1000),
-			SampleRefreshIntervalBIConnector: pointy.Int64(310),
-			SampleSizeBIConnector:            pointy.Int64(110),
-			TransactionLifetimeLimitSeconds:  pointy.Int64(300),
+			NoTableScan:                      conversion.Pointer(false),
+			OplogSizeMB:                      conversion.Pointer[int64](1000),
+			SampleRefreshIntervalBIConnector: conversion.Pointer[int64](310),
+			SampleSizeBIConnector:            conversion.Pointer[int64](110),
+			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 		}
 		processArgsUpdated = &matlas.ProcessArgs{
 			DefaultReadConcern:               "available",
 			DefaultWriteConcern:              "0",
-			FailIndexKeyTooLong:              pointy.Bool(false),
-			JavascriptEnabled:                pointy.Bool(true),
+			FailIndexKeyTooLong:              conversion.Pointer(false),
+			JavascriptEnabled:                conversion.Pointer(true),
 			MinimumEnabledTLSProtocol:        "TLS1_2",
-			NoTableScan:                      pointy.Bool(false),
-			OplogSizeMB:                      pointy.Int64(1000),
-			SampleRefreshIntervalBIConnector: pointy.Int64(310),
-			SampleSizeBIConnector:            pointy.Int64(110),
-			TransactionLifetimeLimitSeconds:  pointy.Int64(300),
+			NoTableScan:                      conversion.Pointer(false),
+			OplogSizeMB:                      conversion.Pointer[int64](1000),
+			SampleRefreshIntervalBIConnector: conversion.Pointer[int64](310),
+			SampleSizeBIConnector:            conversion.Pointer[int64](110),
+			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 		}
 	)
 
@@ -446,23 +445,23 @@ func TestAccClusterAdvancedCluster_DefaultWrite(t *testing.T) {
 		processArgs  = &matlas.ProcessArgs{
 			DefaultReadConcern:               "available",
 			DefaultWriteConcern:              "1",
-			JavascriptEnabled:                pointy.Bool(true),
+			JavascriptEnabled:                conversion.Pointer(true),
 			MinimumEnabledTLSProtocol:        "TLS1_1",
-			NoTableScan:                      pointy.Bool(false),
-			OplogSizeMB:                      pointy.Int64(1000),
-			SampleRefreshIntervalBIConnector: pointy.Int64(310),
-			SampleSizeBIConnector:            pointy.Int64(110),
+			NoTableScan:                      conversion.Pointer(false),
+			OplogSizeMB:                      conversion.Pointer[int64](1000),
+			SampleRefreshIntervalBIConnector: conversion.Pointer[int64](310),
+			SampleSizeBIConnector:            conversion.Pointer[int64](110),
 		}
 		processArgsUpdated = &matlas.ProcessArgs{
 			DefaultReadConcern:               "available",
 			DefaultWriteConcern:              "majority",
-			JavascriptEnabled:                pointy.Bool(true),
+			JavascriptEnabled:                conversion.Pointer(true),
 			MinimumEnabledTLSProtocol:        "TLS1_2",
-			NoTableScan:                      pointy.Bool(false),
-			OplogSizeMB:                      pointy.Int64(1000),
-			SampleRefreshIntervalBIConnector: pointy.Int64(310),
-			SampleSizeBIConnector:            pointy.Int64(110),
-			TransactionLifetimeLimitSeconds:  pointy.Int64(300),
+			NoTableScan:                      conversion.Pointer(false),
+			OplogSizeMB:                      conversion.Pointer[int64](1000),
+			SampleRefreshIntervalBIConnector: conversion.Pointer[int64](310),
+			SampleSizeBIConnector:            conversion.Pointer[int64](110),
+			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 		}
 	)
 
@@ -516,12 +515,12 @@ func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *testing.
 		rName        = acctest.RandomWithPrefix("test-acc")
 		rNameUpdated = acctest.RandomWithPrefix("test-acc")
 		autoScaling  = &matlas.AutoScaling{
-			Compute:       &matlas.Compute{Enabled: pointy.Bool(false), MaxInstanceSize: ""},
-			DiskGBEnabled: pointy.Bool(true),
+			Compute:       &matlas.Compute{Enabled: conversion.Pointer(false), MaxInstanceSize: ""},
+			DiskGBEnabled: conversion.Pointer(true),
 		}
 		autoScalingUpdated = &matlas.AutoScaling{
-			Compute:       &matlas.Compute{Enabled: pointy.Bool(true), MaxInstanceSize: "M20"},
-			DiskGBEnabled: pointy.Bool(true),
+			Compute:       &matlas.Compute{Enabled: conversion.Pointer(true), MaxInstanceSize: "M20"},
+			DiskGBEnabled: conversion.Pointer(true),
 		}
 	)
 
@@ -561,12 +560,12 @@ func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAnalyticsAutoScaling(t 
 		rName        = acctest.RandomWithPrefix("test-acc")
 		rNameUpdated = acctest.RandomWithPrefix("test-acc")
 		autoScaling  = &matlas.AutoScaling{
-			Compute:       &matlas.Compute{Enabled: pointy.Bool(false), MaxInstanceSize: ""},
-			DiskGBEnabled: pointy.Bool(true),
+			Compute:       &matlas.Compute{Enabled: conversion.Pointer(false), MaxInstanceSize: ""},
+			DiskGBEnabled: conversion.Pointer(true),
 		}
 		autoScalingUpdated = &matlas.AutoScaling{
-			Compute:       &matlas.Compute{Enabled: pointy.Bool(true), MaxInstanceSize: "M20"},
-			DiskGBEnabled: pointy.Bool(true),
+			Compute:       &matlas.Compute{Enabled: conversion.Pointer(true), MaxInstanceSize: "M20"},
+			DiskGBEnabled: conversion.Pointer(true),
 		}
 	)
 

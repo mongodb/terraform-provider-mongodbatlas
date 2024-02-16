@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	"go.mongodb.org/realm/realm"
 )
@@ -227,7 +226,7 @@ func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.Reso
 	}
 
 	if v, ok := d.GetOk("disabled"); ok {
-		eventTriggerReq.Disabled = pointy.Bool(v.(bool))
+		eventTriggerReq.Disabled = conversion.Pointer(v.(bool))
 	}
 
 	eventTriggerConfig := &realm.EventTriggerConfig{}
@@ -281,10 +280,10 @@ func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.Reso
 		eventTriggerConfig.Project = cast.ToStringMap(v)
 	}
 	if v, ok := d.GetOk("config_full_document"); ok {
-		eventTriggerConfig.FullDocument = pointy.Bool(v.(bool))
+		eventTriggerConfig.FullDocument = conversion.Pointer(v.(bool))
 	}
 	if v, ok := d.GetOk("config_full_document_before"); ok {
-		eventTriggerConfig.FullDocumentBeforeChange = pointy.Bool(v.(bool))
+		eventTriggerConfig.FullDocumentBeforeChange = conversion.Pointer(v.(bool))
 	}
 	if oksch {
 		eventTriggerConfig.Schedule = sche.(string)
@@ -295,7 +294,7 @@ func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.Reso
 	}
 
 	if v, ok := d.GetOk("unordered"); ok {
-		eventTriggerConfig.Unordered = pointy.Bool(v.(bool))
+		eventTriggerConfig.Unordered = conversion.Pointer(v.(bool))
 	}
 
 	eventTriggerReq.Config = eventTriggerConfig
@@ -425,7 +424,7 @@ func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.Reso
 	eventTriggerConfig := &realm.EventTriggerConfig{}
 
 	if d.HasChange("disabled") {
-		eventReq.Disabled = pointy.Bool(d.Get("disabled").(bool))
+		eventReq.Disabled = conversion.Pointer(d.Get("disabled").(bool))
 	}
 	if typeTrigger == "DATABASE" {
 		eventTriggerConfig.OperationTypes = cast.ToStringSlice(d.Get("config_operation_types"))
@@ -434,9 +433,9 @@ func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.Reso
 		eventTriggerConfig.ServiceID = d.Get("config_service_id").(string)
 		eventTriggerConfig.Match = cast.ToStringMap(d.Get("config_match").(string))
 		eventTriggerConfig.Project = cast.ToStringMap(d.Get("config_project").(string))
-		eventTriggerConfig.FullDocument = pointy.Bool(d.Get("config_full_document").(bool))
-		eventTriggerConfig.FullDocumentBeforeChange = pointy.Bool(d.Get("config_full_document_before").(bool))
-		eventTriggerConfig.Unordered = pointy.Bool(d.Get("unordered").(bool))
+		eventTriggerConfig.FullDocument = conversion.Pointer(d.Get("config_full_document").(bool))
+		eventTriggerConfig.FullDocumentBeforeChange = conversion.Pointer(d.Get("config_full_document_before").(bool))
+		eventTriggerConfig.Unordered = conversion.Pointer(d.Get("unordered").(bool))
 	}
 	if typeTrigger == "AUTHENTICATION" {
 		eventTriggerConfig.OperationType = d.Get("config_operation_type").(string)

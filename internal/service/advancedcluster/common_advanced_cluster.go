@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mwielbut/pointy"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -326,11 +326,11 @@ func ExpandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.Process
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.fail_index_key_too_long"); ok {
-		res.FailIndexKeyTooLong = pointy.Bool(cast.ToBool(p["fail_index_key_too_long"]))
+		res.FailIndexKeyTooLong = conversion.Pointer(cast.ToBool(p["fail_index_key_too_long"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.javascript_enabled"); ok {
-		res.JavascriptEnabled = pointy.Bool(cast.ToBool(p["javascript_enabled"]))
+		res.JavascriptEnabled = conversion.Pointer(cast.ToBool(p["javascript_enabled"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.minimum_enabled_tls_protocol"); ok {
@@ -338,20 +338,20 @@ func ExpandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.Process
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.no_table_scan"); ok {
-		res.NoTableScan = pointy.Bool(cast.ToBool(p["no_table_scan"]))
+		res.NoTableScan = conversion.Pointer(cast.ToBool(p["no_table_scan"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.sample_size_bi_connector"); ok {
-		res.SampleSizeBIConnector = pointy.Int64(cast.ToInt64(p["sample_size_bi_connector"]))
+		res.SampleSizeBIConnector = conversion.Pointer(cast.ToInt64(p["sample_size_bi_connector"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.sample_refresh_interval_bi_connector"); ok {
-		res.SampleRefreshIntervalBIConnector = pointy.Int64(cast.ToInt64(p["sample_refresh_interval_bi_connector"]))
+		res.SampleRefreshIntervalBIConnector = conversion.Pointer(cast.ToInt64(p["sample_refresh_interval_bi_connector"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.oplog_size_mb"); ok {
 		if sizeMB := cast.ToInt64(p["oplog_size_mb"]); sizeMB != 0 {
-			res.OplogSizeMB = pointy.Int64(cast.ToInt64(p["oplog_size_mb"]))
+			res.OplogSizeMB = conversion.Pointer(cast.ToInt64(p["oplog_size_mb"]))
 		} else {
 			log.Printf(ErrorClusterSetting, `oplog_size_mb`, "", cast.ToString(sizeMB))
 		}
@@ -359,7 +359,7 @@ func ExpandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.Process
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.oplog_min_retention_hours"); ok {
 		if minRetentionHours := cast.ToFloat64(p["oplog_min_retention_hours"]); minRetentionHours >= 0 {
-			res.OplogMinRetentionHours = pointy.Float64(cast.ToFloat64(p["oplog_min_retention_hours"]))
+			res.OplogMinRetentionHours = conversion.Pointer(cast.ToFloat64(p["oplog_min_retention_hours"]))
 		} else {
 			log.Printf(ErrorClusterSetting, `oplog_min_retention_hours`, "", cast.ToString(minRetentionHours))
 		}
@@ -367,7 +367,7 @@ func ExpandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.Process
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.transaction_lifetime_limit_seconds"); ok {
 		if transactionLifetimeLimitSeconds := cast.ToInt64(p["transaction_lifetime_limit_seconds"]); transactionLifetimeLimitSeconds > 0 {
-			res.TransactionLifetimeLimitSeconds = pointy.Int64(cast.ToInt64(p["transaction_lifetime_limit_seconds"]))
+			res.TransactionLifetimeLimitSeconds = conversion.Pointer(cast.ToInt64(p["transaction_lifetime_limit_seconds"]))
 		} else {
 			log.Printf(ErrorClusterSetting, `transaction_lifetime_limit_seconds`, "", cast.ToString(transactionLifetimeLimitSeconds))
 		}

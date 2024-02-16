@@ -19,7 +19,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 	"golang.org/x/exp/slices"
@@ -370,7 +369,7 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 	}
 
 	if v, ok := d.GetOk("backup_enabled"); ok {
-		request.BackupEnabled = pointy.Bool(v.(bool))
+		request.BackupEnabled = conversion.Pointer(v.(bool))
 	}
 	if _, ok := d.GetOk("bi_connector_config"); ok {
 		biConnector, err := ExpandBiConnectorConfig(d)
@@ -380,7 +379,7 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 		request.BiConnector = biConnector
 	}
 	if v, ok := d.GetOk("disk_size_gb"); ok {
-		request.DiskSizeGB = pointy.Float64(v.(float64))
+		request.DiskSizeGB = conversion.Pointer(v.(float64))
 	}
 	if v, ok := d.GetOk("encryption_at_rest_provider"); ok {
 		request.EncryptionAtRestProvider = v.(string)
@@ -398,13 +397,13 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 		request.MongoDBMajorVersion = FormatMongoDBMajorVersion(v.(string))
 	}
 	if v, ok := d.GetOk("pit_enabled"); ok {
-		request.PitEnabled = pointy.Bool(v.(bool))
+		request.PitEnabled = conversion.Pointer(v.(bool))
 	}
 	if v, ok := d.GetOk("root_cert_type"); ok {
 		request.RootCertType = v.(string)
 	}
 	if v, ok := d.GetOk("termination_protection_enabled"); ok {
-		request.TerminationProtectionEnabled = pointy.Bool(v.(bool))
+		request.TerminationProtectionEnabled = conversion.Pointer(v.(bool))
 	}
 	if v, ok := d.GetOk("version_release_system"); ok {
 		request.VersionReleaseSystem = v.(string)
@@ -458,7 +457,7 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 	// To pause a cluster
 	if v := d.Get("paused").(bool); v {
 		request = &matlas.AdvancedCluster{
-			Paused: pointy.Bool(v),
+			Paused: conversion.Pointer(v),
 		}
 
 		_, _, err = updateAdvancedCluster(ctx, conn, request, projectID, d.Get("name").(string), timeout)
@@ -646,7 +645,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	clusterChangeDetect := new(matlas.AdvancedCluster)
 
 	if d.HasChange("backup_enabled") {
-		cluster.BackupEnabled = pointy.Bool(d.Get("backup_enabled").(bool))
+		cluster.BackupEnabled = conversion.Pointer(d.Get("backup_enabled").(bool))
 	}
 
 	if d.HasChange("bi_connector_config") {
@@ -658,7 +657,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	}
 
 	if d.HasChange("disk_size_gb") {
-		cluster.DiskSizeGB = pointy.Float64(d.Get("disk_size_gb").(float64))
+		cluster.DiskSizeGB = conversion.Pointer(d.Get("disk_size_gb").(float64))
 	}
 
 	if d.HasChange("encryption_at_rest_provider") {
@@ -682,7 +681,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	}
 
 	if d.HasChange("pit_enabled") {
-		cluster.PitEnabled = pointy.Bool(d.Get("pit_enabled").(bool))
+		cluster.PitEnabled = conversion.Pointer(d.Get("pit_enabled").(bool))
 	}
 
 	if d.HasChange("replication_specs") {
@@ -694,7 +693,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	}
 
 	if d.HasChange("termination_protection_enabled") {
-		cluster.TerminationProtectionEnabled = pointy.Bool(d.Get("termination_protection_enabled").(bool))
+		cluster.TerminationProtectionEnabled = conversion.Pointer(d.Get("termination_protection_enabled").(bool))
 	}
 
 	if d.HasChange("version_release_system") {
@@ -706,7 +705,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	}
 
 	if d.HasChange("paused") && !d.Get("paused").(bool) {
-		cluster.Paused = pointy.Bool(d.Get("paused").(bool))
+		cluster.Paused = conversion.Pointer(d.Get("paused").(bool))
 	}
 
 	timeout := d.Timeout(schema.TimeoutUpdate)
@@ -743,7 +742,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 
 	if d.Get("paused").(bool) {
 		clusterRequest := &matlas.AdvancedCluster{
-			Paused: pointy.Bool(true),
+			Paused: conversion.Pointer(true),
 		}
 
 		_, _, err := updateAdvancedCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
@@ -765,7 +764,7 @@ func resourceMongoDBAtlasAdvancedClusterDelete(ctx context.Context, d *schema.Re
 	var options *matlas.DeleteAdvanceClusterOptions
 	if v, ok := d.GetOkExists("retain_backups_enabled"); ok {
 		options = &matlas.DeleteAdvanceClusterOptions{
-			RetainBackups: pointy.Bool(v.(bool)),
+			RetainBackups: conversion.Pointer(v.(bool)),
 		}
 	}
 
@@ -886,7 +885,7 @@ func expandRegionConfig(tfMap map[string]any) *matlas.AdvancedRegionConfig {
 
 	providerName := tfMap["provider_name"].(string)
 	apiObject := &matlas.AdvancedRegionConfig{
-		Priority:     pointy.Int(cast.ToInt(tfMap["priority"])),
+		Priority:     conversion.Pointer(cast.ToInt(tfMap["priority"])),
 		ProviderName: providerName,
 		RegionName:   tfMap["region_name"].(string),
 	}
@@ -946,7 +945,7 @@ func expandRegionConfigSpec(tfList []any, providerName string) *matlas.Specs {
 
 	if providerName == "AWS" {
 		if v, ok := tfMap["disk_iops"]; ok && v.(int) > 0 {
-			apiObject.DiskIOPS = pointy.Int64(cast.ToInt64(v.(int)))
+			apiObject.DiskIOPS = conversion.Pointer(cast.ToInt64(v.(int)))
 		}
 		if v, ok := tfMap["ebs_volume_type"]; ok {
 			apiObject.EbsVolumeType = v.(string)
@@ -956,7 +955,7 @@ func expandRegionConfigSpec(tfList []any, providerName string) *matlas.Specs {
 		apiObject.InstanceSize = v.(string)
 	}
 	if v, ok := tfMap["node_count"]; ok {
-		apiObject.NodeCount = pointy.Int(v.(int))
+		apiObject.NodeCount = conversion.Pointer(v.(int))
 	}
 
 	return apiObject
@@ -974,13 +973,13 @@ func expandRegionConfigAutoScaling(tfList []any) *matlas.AdvancedAutoScaling {
 	compute := &matlas.Compute{}
 
 	if v, ok := tfMap["disk_gb_enabled"]; ok {
-		diskGB.Enabled = pointy.Bool(v.(bool))
+		diskGB.Enabled = conversion.Pointer(v.(bool))
 	}
 	if v, ok := tfMap["compute_enabled"]; ok {
-		compute.Enabled = pointy.Bool(v.(bool))
+		compute.Enabled = conversion.Pointer(v.(bool))
 	}
 	if v, ok := tfMap["compute_scale_down_enabled"]; ok {
-		compute.ScaleDownEnabled = pointy.Bool(v.(bool))
+		compute.ScaleDownEnabled = conversion.Pointer(v.(bool))
 	}
 	if v, ok := tfMap["compute_min_instance_size"]; ok {
 		value := compute.ScaleDownEnabled
@@ -1011,19 +1010,19 @@ func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *matlas.Advan
 	tfMap["num_shards"] = apiObject.NumShards
 	tfMap["id"] = apiObject.ID
 	if tfMapObject != nil {
-		object, containerIds, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.RegionConfigs, tfMapObject["region_configs"].([]any), d, conn)
+		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.RegionConfigs, tfMapObject["region_configs"].([]any), d, conn)
 		if err != nil {
 			return nil, err
 		}
 		tfMap["region_configs"] = object
-		tfMap["container_id"] = containerIds
+		tfMap["container_id"] = containerIDs
 	} else {
-		object, containerIds, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.RegionConfigs, nil, d, conn)
+		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.RegionConfigs, nil, d, conn)
 		if err != nil {
 			return nil, err
 		}
 		tfMap["region_configs"] = object
-		tfMap["container_id"] = containerIds
+		tfMap["container_id"] = containerIDs
 	}
 	tfMap["zone_name"] = apiObject.ZoneName
 
@@ -1149,7 +1148,7 @@ func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, apiObjects
 	}
 
 	var tfList []map[string]any
-	containerIds := make(map[string]string)
+	containerIDs := make(map[string]string)
 
 	for i, apiObject := range apiObjects {
 		if apiObject == nil {
@@ -1171,12 +1170,12 @@ func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, apiObjects
 			}
 			if result := getAdvancedClusterContainerID(containers, apiObject); result != "" {
 				// Will print as "providerName:regionName" = "containerId" in terraform show
-				containerIds[fmt.Sprintf("%s:%s", apiObject.ProviderName, apiObject.RegionName)] = result
+				containerIDs[fmt.Sprintf("%s:%s", apiObject.ProviderName, apiObject.RegionName)] = result
 			}
 		}
 	}
 
-	return tfList, containerIds, nil
+	return tfList, containerIDs, nil
 }
 
 func flattenAdvancedReplicationSpecRegionConfigSpec(apiObject *matlas.Specs, providerName string, tfMapObjects []any) []map[string]any {
