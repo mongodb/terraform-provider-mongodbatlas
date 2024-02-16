@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mwielbut/pointy"
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
@@ -64,7 +63,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	auditingReq := &admin.AuditLog{}
 
 	if auditAuth, ok := d.GetOk("audit_authorization_success"); ok {
-		auditingReq.AuditAuthorizationSuccess = pointy.Bool(auditAuth.(bool))
+		auditingReq.AuditAuthorizationSuccess = conversion.Pointer(auditAuth.(bool))
 	}
 
 	if auditFilter, ok := d.GetOk("audit_filter"); ok {
@@ -72,7 +71,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if enabled, ok := d.GetOk("enabled"); ok {
-		auditingReq.Enabled = pointy.Bool(enabled.(bool))
+		auditingReq.Enabled = conversion.Pointer(enabled.(bool))
 	}
 
 	_, _, err := connV2.AuditingApi.UpdateAuditingConfiguration(ctx, projectID, auditingReq).Execute()
@@ -120,7 +119,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	auditingReq := &admin.AuditLog{}
 
 	if d.HasChange("audit_authorization_success") {
-		auditingReq.AuditAuthorizationSuccess = pointy.Bool((d.Get("audit_authorization_success").(bool)))
+		auditingReq.AuditAuthorizationSuccess = conversion.Pointer((d.Get("audit_authorization_success").(bool)))
 	}
 
 	if d.HasChange("audit_filter") {
@@ -128,7 +127,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("enabled") {
-		auditingReq.Enabled = pointy.Bool(d.Get("enabled").(bool))
+		auditingReq.Enabled = conversion.Pointer(d.Get("enabled").(bool))
 	}
 
 	_, _, err := connV2.AuditingApi.UpdateAuditingConfiguration(ctx, d.Id(), auditingReq).Execute()
@@ -142,7 +141,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	auditingReq := &admin.AuditLog{
-		Enabled: pointy.Bool(false),
+		Enabled: conversion.Pointer(false),
 	}
 	_, _, err := connV2.AuditingApi.UpdateAuditingConfiguration(ctx, d.Id(), auditingReq).Execute()
 	if err != nil {

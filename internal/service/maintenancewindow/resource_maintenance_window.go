@@ -7,8 +7,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
@@ -106,11 +106,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if hourOfDay, ok := d.GetOk("hour_of_day"); ok {
-		params.HourOfDay = pointy.Int(cast.ToInt(hourOfDay))
+		params.HourOfDay = conversion.Pointer(cast.ToInt(hourOfDay))
 	}
 
 	if autoDeferOnceEnabled, ok := d.GetOk("auto_defer_once_enabled"); ok {
-		params.AutoDeferOnceEnabled = pointy.Bool(autoDeferOnceEnabled.(bool))
+		params.AutoDeferOnceEnabled = conversion.Pointer(autoDeferOnceEnabled.(bool))
 	}
 
 	_, _, err := connV2.MaintenanceWindowsApi.UpdateMaintenanceWindow(ctx, projectID, params).Execute()
@@ -189,11 +189,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("hour_of_day") {
-		params.HourOfDay = pointy.Int(cast.ToInt(d.Get("hour_of_day")))
+		params.HourOfDay = conversion.Pointer(cast.ToInt(d.Get("hour_of_day")))
 	}
 
 	if d.HasChange("auto_defer_once_enabled") {
-		params.AutoDeferOnceEnabled = pointy.Bool(d.Get("auto_defer_once_enabled").(bool))
+		params.AutoDeferOnceEnabled = conversion.Pointer(d.Get("auto_defer_once_enabled").(bool))
 	}
 
 	_, _, err := connV2.MaintenanceWindowsApi.UpdateMaintenanceWindow(ctx, projectID, params).Execute()

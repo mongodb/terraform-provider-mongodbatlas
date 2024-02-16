@@ -53,8 +53,8 @@ func TestAccMigrationProjectRS_withNoProps(t *testing.T) {
 }
 
 func TestAccMigrationProjectRS_withTeams(t *testing.T) {
-	var teamsIds = strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
-	if len(teamsIds) < 2 {
+	var teamsIDs = strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
+	if len(teamsIDs) < 2 {
 		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
 	}
 
@@ -67,11 +67,11 @@ func TestAccMigrationProjectRS_withTeams(t *testing.T) {
 		configWithTeams = acc.ConfigProject(projectName, orgID,
 			[]*admin.TeamRole{
 				{
-					TeamId:    &teamsIds[0],
+					TeamId:    &teamsIDs[0],
 					RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 				},
 				{
-					TeamId:    &teamsIds[1],
+					TeamId:    &teamsIDs[1],
 					RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 				},
 			})

@@ -10,7 +10,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
-	"github.com/mwielbut/pointy"
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
@@ -21,7 +20,7 @@ func TestAccMigrationEncryptionAtRest_basicAWS(t *testing.T) {
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 		awsKms = admin.AWSKMSConfiguration{
-			Enabled:             pointy.Bool(true),
+			Enabled:             conversion.Pointer(true),
 			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:              conversion.StringPtr(os.Getenv("AWS_REGION")),
 			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
@@ -68,7 +67,7 @@ func TestAccMigrationEncryptionAtRest_withRole_basicAWS(t *testing.T) {
 		roleName     = acctest.RandomWithPrefix("test-aws-role")
 
 		awsKms = admin.AWSKMSConfiguration{
-			Enabled:             pointy.Bool(true),
+			Enabled:             conversion.Pointer(true),
 			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:              conversion.StringPtr(os.Getenv("AWS_REGION")),
 		}
@@ -111,7 +110,7 @@ func TestAccMigrationEncryptionAtRest_basicAzure(t *testing.T) {
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 		azureKeyVault = admin.AzureKeyVault{
-			Enabled:           pointy.Bool(true),
+			Enabled:           conversion.Pointer(true),
 			ClientID:          conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
 			AzureEnvironment:  conversion.StringPtr("AZURE"),
 			SubscriptionID:    conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
@@ -160,7 +159,7 @@ func TestAccMigrationEncryptionAtRest_basicGCP(t *testing.T) {
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 		googleCloudKms = admin.GoogleCloudKMS{
-			Enabled:              pointy.Bool(true),
+			Enabled:              conversion.Pointer(true),
 			ServiceAccountKey:    conversion.StringPtr(os.Getenv("GCP_SERVICE_ACCOUNT_KEY")),
 			KeyVersionResourceID: conversion.StringPtr(os.Getenv("GCP_KEY_VERSION_RESOURCE_ID")),
 		}
@@ -200,7 +199,7 @@ func TestAccMigrationEncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 		awsKms = admin.AWSKMSConfiguration{
-			Enabled:             pointy.Bool(true),
+			Enabled:             conversion.Pointer(true),
 			AccessKeyID:         conversion.StringPtr(os.Getenv("AWS_ACCESS_KEY_ID")),
 			SecretAccessKey:     conversion.StringPtr(os.Getenv("AWS_SECRET_ACCESS_KEY")),
 			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),

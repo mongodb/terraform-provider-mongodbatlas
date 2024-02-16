@@ -14,7 +14,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"github.com/mwielbut/pointy"
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
@@ -143,7 +142,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	params := &admin.DiskBackupOnDemandSnapshotRequest{
 		Description:     conversion.StringPtr(d.Get("description").(string)),
-		RetentionInDays: pointy.Int(d.Get("retention_in_days").(int)),
+		RetentionInDays: conversion.Pointer(d.Get("retention_in_days").(int)),
 	}
 	snapshot, _, err := connV2.CloudBackupsApi.TakeSnapshot(ctx, groupID, clusterName, params).Execute()
 	if err != nil {
