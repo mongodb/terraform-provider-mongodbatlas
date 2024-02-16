@@ -9,15 +9,13 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20231115006/admin"
-
 	"github.com/go-test/deep"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 const (
