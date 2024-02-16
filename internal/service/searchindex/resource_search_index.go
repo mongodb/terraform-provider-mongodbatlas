@@ -284,7 +284,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 				"index_id":     indexID,
 			}))
 			d.SetId("")
-			return diag.FromErr(fmt.Errorf("error creating index in cluster (%s): %s", clusterName, err))
+			return diag.FromErr(fmt.Errorf("error updating index in cluster (%s). mongodbatlas_search_index resource was not deleted : %s", clusterName, err))
 		}
 	}
 
