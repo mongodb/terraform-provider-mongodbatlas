@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mwielbut/pointy"
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
@@ -130,8 +129,8 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	params := &admin.ListReplicaSetBackupsApiParams{
 		GroupId:      d.Get("project_id").(string),
 		ClusterName:  d.Get("cluster_name").(string),
-		PageNum:      pointy.Int(d.Get("page_num").(int)),
-		ItemsPerPage: pointy.Int(d.Get("items_per_page").(int)),
+		PageNum:      conversion.Pointer(d.Get("page_num").(int)),
+		ItemsPerPage: conversion.Pointer(d.Get("items_per_page").(int)),
 	}
 
 	snapshots, _, err := connV2.CloudBackupsApi.ListReplicaSetBackupsWithParams(ctx, params).Execute()

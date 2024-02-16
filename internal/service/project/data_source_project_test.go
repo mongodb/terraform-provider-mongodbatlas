@@ -21,18 +21,18 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIdsWithMinCount(t, 2) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 2) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectDSByIDUsingRS(acc.ConfigProject(projectName, orgID,
 					[]*admin.TeamRole{
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
 							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(1)),
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(1)),
 							RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
@@ -54,19 +54,19 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIdsWithMinCount(t, 2) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 2) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(acc.ConfigProject(projectName, orgID,
 					[]*admin.TeamRole{
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
 							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
 
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(1)),
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(1)),
 							RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
@@ -87,19 +87,19 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIdsWithMinCount(t, 2) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 2) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(acc.ConfigProject(projectName, orgID,
 					[]*admin.TeamRole{
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
 							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
 
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(1)),
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(1)),
 							RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},

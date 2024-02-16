@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -226,11 +225,11 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.Process
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.fail_index_key_too_long"); ok {
-		res.FailIndexKeyTooLong = pointy.Bool(cast.ToBool(p["fail_index_key_too_long"]))
+		res.FailIndexKeyTooLong = conversion.Pointer(cast.ToBool(p["fail_index_key_too_long"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.javascript_enabled"); ok {
-		res.JavascriptEnabled = pointy.Bool(cast.ToBool(p["javascript_enabled"]))
+		res.JavascriptEnabled = conversion.Pointer(cast.ToBool(p["javascript_enabled"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.minimum_enabled_tls_protocol"); ok {
@@ -238,20 +237,20 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.Process
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.no_table_scan"); ok {
-		res.NoTableScan = pointy.Bool(cast.ToBool(p["no_table_scan"]))
+		res.NoTableScan = conversion.Pointer(cast.ToBool(p["no_table_scan"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.sample_size_bi_connector"); ok {
-		res.SampleSizeBIConnector = pointy.Int64(cast.ToInt64(p["sample_size_bi_connector"]))
+		res.SampleSizeBIConnector = conversion.Pointer(cast.ToInt64(p["sample_size_bi_connector"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.sample_refresh_interval_bi_connector"); ok {
-		res.SampleRefreshIntervalBIConnector = pointy.Int64(cast.ToInt64(p["sample_refresh_interval_bi_connector"]))
+		res.SampleRefreshIntervalBIConnector = conversion.Pointer(cast.ToInt64(p["sample_refresh_interval_bi_connector"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.oplog_size_mb"); ok {
 		if sizeMB := cast.ToInt64(p["oplog_size_mb"]); sizeMB != 0 {
-			res.OplogSizeMB = pointy.Int64(cast.ToInt64(p["oplog_size_mb"]))
+			res.OplogSizeMB = conversion.Pointer(cast.ToInt64(p["oplog_size_mb"]))
 		} else {
 			log.Printf(advancedcluster.ErrorClusterSetting, `oplog_size_mb`, "", cast.ToString(sizeMB))
 		}
@@ -259,7 +258,7 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.Process
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.oplog_min_retention_hours"); ok {
 		if minRetentionHours := cast.ToFloat64(p["oplog_min_retention_hours"]); minRetentionHours >= 0 {
-			res.OplogMinRetentionHours = pointy.Float64(cast.ToFloat64(p["oplog_min_retention_hours"]))
+			res.OplogMinRetentionHours = conversion.Pointer(cast.ToFloat64(p["oplog_min_retention_hours"]))
 		} else {
 			log.Printf(advancedcluster.ErrorClusterSetting, `oplog_min_retention_hours`, "", cast.ToString(minRetentionHours))
 		}
@@ -267,7 +266,7 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.Process
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.transaction_lifetime_limit_seconds"); ok {
 		if transactionLifetimeLimitSeconds := cast.ToInt64(p["transaction_lifetime_limit_seconds"]); transactionLifetimeLimitSeconds > 0 {
-			res.TransactionLifetimeLimitSeconds = pointy.Int64(cast.ToInt64(p["transaction_lifetime_limit_seconds"]))
+			res.TransactionLifetimeLimitSeconds = conversion.Pointer(cast.ToInt64(p["transaction_lifetime_limit_seconds"]))
 		} else {
 			log.Printf(advancedcluster.ErrorClusterSetting, `transaction_lifetime_limit_seconds`, "", cast.ToString(transactionLifetimeLimitSeconds))
 		}
@@ -337,7 +336,7 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 
 			rSpec := matlas.ReplicationSpec{
 				ID:            id,
-				NumShards:     pointy.Int64(cast.ToInt64(spec["num_shards"])),
+				NumShards:     conversion.Pointer(cast.ToInt64(spec["num_shards"])),
 				ZoneName:      cast.ToString(spec["zone_name"]),
 				RegionsConfig: regionsConfig,
 			}
@@ -383,10 +382,10 @@ func expandRegionsConfig(regions []any, originalRegion, replaceRegion string) (m
 		}
 
 		regionsConfig[r] = matlas.RegionsConfig{
-			AnalyticsNodes: pointy.Int64(cast.ToInt64(region["analytics_nodes"])),
-			ElectableNodes: pointy.Int64(cast.ToInt64(region["electable_nodes"])),
-			Priority:       pointy.Int64(cast.ToInt64(region["priority"])),
-			ReadOnlyNodes:  pointy.Int64(cast.ToInt64(region["read_only_nodes"])),
+			AnalyticsNodes: conversion.Pointer(cast.ToInt64(region["analytics_nodes"])),
+			ElectableNodes: conversion.Pointer(cast.ToInt64(region["electable_nodes"])),
+			Priority:       conversion.Pointer(cast.ToInt64(region["priority"])),
+			ReadOnlyNodes:  conversion.Pointer(cast.ToInt64(region["read_only_nodes"])),
 		}
 	}
 
@@ -469,10 +468,10 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 		// Check if the Provider Disk IOS sets in the Terraform configuration and if the instance size name is not NVME.
 		// If it didn't, the MongoDB Atlas server would set it to the default for the amount of storage.
 		if v, ok := d.GetOk("provider_disk_iops"); ok && !strings.Contains(providerSettings.InstanceSizeName, "NVME") {
-			providerSettings.DiskIOPS = pointy.Int64(cast.ToInt64(v))
+			providerSettings.DiskIOPS = conversion.Pointer(cast.ToInt64(v))
 		}
 
-		providerSettings.EncryptEBSVolume = pointy.Bool(true)
+		providerSettings.EncryptEBSVolume = conversion.Pointer(true)
 	}
 
 	return providerSettings, nil

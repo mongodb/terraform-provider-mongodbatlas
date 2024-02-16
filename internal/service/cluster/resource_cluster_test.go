@@ -16,7 +16,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	clustersvc "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -136,14 +135,14 @@ func TestAccClusterRSCluster_basic_Partial_AdvancedConf(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasClusterConfigAdvancedConf(orgID, projectName, name, "false", &matlas.ProcessArgs{
-					FailIndexKeyTooLong:              pointy.Bool(false),
-					JavascriptEnabled:                pointy.Bool(true),
+					FailIndexKeyTooLong:              conversion.Pointer(false),
+					JavascriptEnabled:                conversion.Pointer(true),
 					MinimumEnabledTLSProtocol:        "TLS1_1",
-					NoTableScan:                      pointy.Bool(false),
-					OplogSizeMB:                      pointy.Int64(1000),
-					SampleRefreshIntervalBIConnector: pointy.Int64(310),
-					SampleSizeBIConnector:            pointy.Int64(110),
-					TransactionLifetimeLimitSeconds:  pointy.Int64(300),
+					NoTableScan:                      conversion.Pointer(false),
+					OplogSizeMB:                      conversion.Pointer[int64](1000),
+					SampleRefreshIntervalBIConnector: conversion.Pointer[int64](310),
+					SampleSizeBIConnector:            conversion.Pointer[int64](110),
+					TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
@@ -209,14 +208,14 @@ func TestAccClusterRSCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 				Config: testAccMongoDBAtlasClusterConfigAdvancedConfDefaultWriteRead(orgID, projectName, name, "false", &matlas.ProcessArgs{
 					DefaultReadConcern:               "available",
 					DefaultWriteConcern:              "1",
-					FailIndexKeyTooLong:              pointy.Bool(false),
-					JavascriptEnabled:                pointy.Bool(true),
+					FailIndexKeyTooLong:              conversion.Pointer(false),
+					JavascriptEnabled:                conversion.Pointer(true),
 					MinimumEnabledTLSProtocol:        "TLS1_1",
-					NoTableScan:                      pointy.Bool(false),
-					OplogSizeMB:                      pointy.Int64(1000),
-					SampleRefreshIntervalBIConnector: pointy.Int64(310),
-					SampleSizeBIConnector:            pointy.Int64(110),
-					TransactionLifetimeLimitSeconds:  pointy.Int64(300),
+					NoTableScan:                      conversion.Pointer(false),
+					OplogSizeMB:                      conversion.Pointer[int64](1000),
+					SampleRefreshIntervalBIConnector: conversion.Pointer[int64](310),
+					SampleSizeBIConnector:            conversion.Pointer[int64](110),
+					TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
@@ -272,14 +271,14 @@ func TestAccClusterRSCluster_emptyAdvancedConf(t *testing.T) {
 			},
 			{
 				Config: testAccMongoDBAtlasClusterConfigAdvancedConf(orgID, projectName, name, "false", &matlas.ProcessArgs{
-					FailIndexKeyTooLong:              pointy.Bool(false),
-					JavascriptEnabled:                pointy.Bool(true),
+					FailIndexKeyTooLong:              conversion.Pointer(false),
+					JavascriptEnabled:                conversion.Pointer(true),
 					MinimumEnabledTLSProtocol:        "TLS1_1",
-					NoTableScan:                      pointy.Bool(false),
-					OplogSizeMB:                      pointy.Int64(1000),
-					SampleRefreshIntervalBIConnector: pointy.Int64(310),
-					SampleSizeBIConnector:            pointy.Int64(110),
-					TransactionLifetimeLimitSeconds:  pointy.Int64(300),
+					NoTableScan:                      conversion.Pointer(false),
+					OplogSizeMB:                      conversion.Pointer[int64](1000),
+					SampleRefreshIntervalBIConnector: conversion.Pointer[int64](310),
+					SampleSizeBIConnector:            conversion.Pointer[int64](110),
+					TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
@@ -312,14 +311,14 @@ func TestAccClusterRSCluster_basicAdvancedConf(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasClusterConfigAdvancedConf(orgID, projectName, name, "false", &matlas.ProcessArgs{
-					FailIndexKeyTooLong:              pointy.Bool(false),
-					JavascriptEnabled:                pointy.Bool(true),
+					FailIndexKeyTooLong:              conversion.Pointer(false),
+					JavascriptEnabled:                conversion.Pointer(true),
 					MinimumEnabledTLSProtocol:        "TLS1_2",
-					NoTableScan:                      pointy.Bool(true),
-					OplogSizeMB:                      pointy.Int64(1000),
-					SampleRefreshIntervalBIConnector: pointy.Int64(310),
-					SampleSizeBIConnector:            pointy.Int64(110),
-					TransactionLifetimeLimitSeconds:  pointy.Int64(300),
+					NoTableScan:                      conversion.Pointer(true),
+					OplogSizeMB:                      conversion.Pointer[int64](1000),
+					SampleRefreshIntervalBIConnector: conversion.Pointer[int64](310),
+					SampleSizeBIConnector:            conversion.Pointer[int64](110),
+					TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
@@ -336,14 +335,14 @@ func TestAccClusterRSCluster_basicAdvancedConf(t *testing.T) {
 			},
 			{
 				Config: testAccMongoDBAtlasClusterConfigAdvancedConf(orgID, projectName, name, "false", &matlas.ProcessArgs{
-					FailIndexKeyTooLong:              pointy.Bool(false),
-					JavascriptEnabled:                pointy.Bool(false),
+					FailIndexKeyTooLong:              conversion.Pointer(false),
+					JavascriptEnabled:                conversion.Pointer(false),
 					MinimumEnabledTLSProtocol:        "TLS1_1",
-					NoTableScan:                      pointy.Bool(false),
-					OplogSizeMB:                      pointy.Int64(990),
-					SampleRefreshIntervalBIConnector: pointy.Int64(0),
-					SampleSizeBIConnector:            pointy.Int64(0),
-					TransactionLifetimeLimitSeconds:  pointy.Int64(60),
+					NoTableScan:                      conversion.Pointer(false),
+					OplogSizeMB:                      conversion.Pointer[int64](990),
+					SampleRefreshIntervalBIConnector: conversion.Pointer[int64](0),
+					SampleSizeBIConnector:            conversion.Pointer[int64](0),
+					TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](60),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),

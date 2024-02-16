@@ -19,7 +19,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -389,7 +388,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	autoScaling := &matlas.AutoScaling{
-		DiskGBEnabled: pointy.Bool(d.Get("auto_scaling_disk_gb_enabled").(bool)),
+		DiskGBEnabled: conversion.Pointer(d.Get("auto_scaling_disk_gb_enabled").(bool)),
 		Compute: &matlas.Compute{
 			Enabled:          &computeEnabled,
 			ScaleDownEnabled: &scaleDownEnabled,
@@ -425,7 +424,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	tenantDisksize := pointy.Float64(0)
+	tenantDisksize := conversion.Pointer[float64](0.0)
 	if providerName == "TENANT" {
 		autoScaling = nil
 
@@ -475,14 +474,14 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 		Name:                     d.Get("name").(string),
 		EncryptionAtRestProvider: d.Get("encryption_at_rest_provider").(string),
 		ClusterType:              clusterType,
-		BackupEnabled:            pointy.Bool(d.Get("backup_enabled").(bool)),
-		PitEnabled:               pointy.Bool(d.Get("pit_enabled").(bool)),
+		BackupEnabled:            conversion.Pointer(d.Get("backup_enabled").(bool)),
+		PitEnabled:               conversion.Pointer(d.Get("pit_enabled").(bool)),
 		AutoScaling:              autoScaling,
 		ProviderSettings:         providerSettings,
 		ReplicationSpecs:         replicationSpecs,
 	}
 	if v, ok := d.GetOk("cloud_backup"); ok {
-		clusterRequest.ProviderBackupEnabled = pointy.Bool(v.(bool))
+		clusterRequest.ProviderBackupEnabled = conversion.Pointer(v.(bool))
 	}
 
 	if _, ok := d.GetOk("bi_connector_config"); ok {
@@ -505,7 +504,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if v, ok := d.GetOk("disk_size_gb"); ok {
-		clusterRequest.DiskSizeGB = pointy.Float64(v.(float64))
+		clusterRequest.DiskSizeGB = conversion.Pointer(v.(float64))
 	}
 	if cast.ToFloat64(tenantDisksize) != 0 {
 		clusterRequest.DiskSizeGB = tenantDisksize
@@ -515,15 +514,15 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if r, ok := d.GetOk("replication_factor"); ok {
-		clusterRequest.ReplicationFactor = pointy.Int64(cast.ToInt64(r))
+		clusterRequest.ReplicationFactor = conversion.Pointer(cast.ToInt64(r))
 	}
 
 	if n, ok := d.GetOk("num_shards"); ok {
-		clusterRequest.NumShards = pointy.Int64(cast.ToInt64(n))
+		clusterRequest.NumShards = conversion.Pointer(cast.ToInt64(n))
 	}
 
 	if v, ok := d.GetOk("termination_protection_enabled"); ok {
-		clusterRequest.TerminationProtectionEnabled = pointy.Bool(v.(bool))
+		clusterRequest.TerminationProtectionEnabled = conversion.Pointer(v.(bool))
 	}
 
 	if v, ok := d.GetOk("version_release_system"); ok {
@@ -570,7 +569,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	// To pause a cluster
 	if v := d.Get("paused").(bool); v {
 		clusterRequest = &matlas.Cluster{
-			Paused: pointy.Bool(v),
+			Paused: conversion.Pointer(v),
 		}
 
 		_, _, err = updateCluster(ctx, conn, clusterRequest, projectID, d.Get("name").(string), timeout)
@@ -833,15 +832,15 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	cluster.AutoScaling = &matlas.AutoScaling{Compute: &matlas.Compute{}}
 
 	if d.HasChange("auto_scaling_disk_gb_enabled") {
-		cluster.AutoScaling.DiskGBEnabled = pointy.Bool(d.Get("auto_scaling_disk_gb_enabled").(bool))
+		cluster.AutoScaling.DiskGBEnabled = conversion.Pointer(d.Get("auto_scaling_disk_gb_enabled").(bool))
 	}
 
 	if d.HasChange("auto_scaling_compute_enabled") {
-		cluster.AutoScaling.Compute.Enabled = pointy.Bool(d.Get("auto_scaling_compute_enabled").(bool))
+		cluster.AutoScaling.Compute.Enabled = conversion.Pointer(d.Get("auto_scaling_compute_enabled").(bool))
 	}
 
 	if d.HasChange("auto_scaling_compute_scale_down_enabled") {
-		cluster.AutoScaling.Compute.ScaleDownEnabled = pointy.Bool(d.Get("auto_scaling_compute_scale_down_enabled").(bool))
+		cluster.AutoScaling.Compute.ScaleDownEnabled = conversion.Pointer(d.Get("auto_scaling_compute_scale_down_enabled").(bool))
 	}
 
 	if d.HasChange("encryption_at_rest_provider") {
@@ -857,27 +856,27 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if d.HasChange("backup_enabled") {
-		cluster.BackupEnabled = pointy.Bool(d.Get("backup_enabled").(bool))
+		cluster.BackupEnabled = conversion.Pointer(d.Get("backup_enabled").(bool))
 	}
 
 	if d.HasChange("disk_size_gb") {
-		cluster.DiskSizeGB = pointy.Float64(d.Get("disk_size_gb").(float64))
+		cluster.DiskSizeGB = conversion.Pointer(d.Get("disk_size_gb").(float64))
 	}
 
 	if d.HasChange("cloud_backup") {
-		cluster.ProviderBackupEnabled = pointy.Bool(d.Get("cloud_backup").(bool))
+		cluster.ProviderBackupEnabled = conversion.Pointer(d.Get("cloud_backup").(bool))
 	}
 
 	if d.HasChange("pit_enabled") {
-		cluster.PitEnabled = pointy.Bool(d.Get("pit_enabled").(bool))
+		cluster.PitEnabled = conversion.Pointer(d.Get("pit_enabled").(bool))
 	}
 
 	if d.HasChange("replication_factor") {
-		cluster.ReplicationFactor = pointy.Int64(cast.ToInt64(d.Get("replication_factor")))
+		cluster.ReplicationFactor = conversion.Pointer(cast.ToInt64(d.Get("replication_factor")))
 	}
 
 	if d.HasChange("num_shards") {
-		cluster.NumShards = pointy.Int64(cast.ToInt64(d.Get("num_shards")))
+		cluster.NumShards = conversion.Pointer(cast.ToInt64(d.Get("num_shards")))
 	}
 
 	if d.HasChange("version_release_system") {
@@ -889,7 +888,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if d.HasChange("termination_protection_enabled") {
-		cluster.TerminationProtectionEnabled = pointy.Bool(d.Get("termination_protection_enabled").(bool))
+		cluster.TerminationProtectionEnabled = conversion.Pointer(d.Get("termination_protection_enabled").(bool))
 	}
 
 	if d.HasChange("labels") {
@@ -908,12 +907,12 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	// when Provider instance type changes this argument must be passed explicitly in patch request
 	if d.HasChange("provider_instance_size_name") {
 		if _, ok := d.GetOk("cloud_backup"); ok {
-			cluster.ProviderBackupEnabled = pointy.Bool(d.Get("cloud_backup").(bool))
+			cluster.ProviderBackupEnabled = conversion.Pointer(d.Get("cloud_backup").(bool))
 		}
 	}
 
 	if d.HasChange("paused") && !d.Get("paused").(bool) {
-		cluster.Paused = pointy.Bool(d.Get("paused").(bool))
+		cluster.Paused = conversion.Pointer(d.Get("paused").(bool))
 	}
 
 	timeout := d.Timeout(schema.TimeoutUpdate)
@@ -953,7 +952,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 
 			if didErrOnPausedCluster(err) {
 				clusterRequest := &matlas.Cluster{
-					Paused: pointy.Bool(false),
+					Paused: conversion.Pointer(false),
 				}
 
 				_, _, err = updateCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
@@ -973,7 +972,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 
 	if d.Get("paused").(bool) && !advancedcluster.IsSharedTier(d.Get("provider_instance_size_name").(string)) {
 		clusterRequest := &matlas.Cluster{
-			Paused: pointy.Bool(true),
+			Paused: conversion.Pointer(true),
 		}
 
 		_, _, err := updateCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
@@ -1026,7 +1025,7 @@ func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceDa
 	var options *matlas.DeleteAdvanceClusterOptions
 	if v, ok := d.GetOkExists("retain_backups_enabled"); ok {
 		options = &matlas.DeleteAdvanceClusterOptions{
-			RetainBackups: pointy.Bool(v.(bool)),
+			RetainBackups: conversion.Pointer(v.(bool)),
 		}
 	}
 

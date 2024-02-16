@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -70,7 +69,7 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 			Actions: []matlas.Action{{
 				Action: "INSERT",
 				Resources: []matlas.Resource{{
-					DB: pointy.String(fmt.Sprintf("b_test-acc-ddb_name-%s", acctest.RandString(5))),
+					DB: conversion.Pointer(fmt.Sprintf("b_test-acc-ddb_name-%s", acctest.RandString(5))),
 				}},
 			}},
 		},
@@ -79,7 +78,7 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 			Actions: []matlas.Action{{
 				Action: "SERVER_STATUS",
 				Resources: []matlas.Resource{{
-					Cluster: pointy.Bool(true),
+					Cluster: conversion.Pointer(true),
 				}},
 			}},
 		},
@@ -90,7 +89,7 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 		Actions: []matlas.Action{{
 			Action: "UPDATE",
 			Resources: []matlas.Resource{{
-				DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+				DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 			}},
 		}},
 	}
@@ -101,7 +100,7 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 			Actions: []matlas.Action{{
 				Action: "FIND",
 				Resources: []matlas.Resource{{
-					DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+					DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 				}},
 			}},
 		},
@@ -110,7 +109,7 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 			Actions: []matlas.Action{{
 				Action: "CONN_POOL_STATS",
 				Resources: []matlas.Resource{{
-					Cluster: pointy.Bool(true),
+					Cluster: conversion.Pointer(true),
 				}},
 			}},
 		},
@@ -121,7 +120,7 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 		Actions: []matlas.Action{{
 			Action: "REMOVE",
 			Resources: []matlas.Resource{{
-				DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+				DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 			}},
 		}},
 	}
@@ -212,10 +211,10 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 				Action: "REMOVE",
 				Resources: []matlas.Resource{
 					{
-						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 					{
-						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -223,7 +222,7 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 				Action: "FIND",
 				Resources: []matlas.Resource{
 					{
-						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -237,10 +236,10 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 				Action: "UPDATE",
 				Resources: []matlas.Resource{
 					{
-						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 					{
-						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -248,7 +247,7 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 				Action: "INSERT",
 				Resources: []matlas.Resource{
 					{
-						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -268,7 +267,7 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 				Action: "UPDATE",
 				Resources: []matlas.Resource{
 					{
-						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -276,10 +275,10 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 				Action: "FIND",
 				Resources: []matlas.Resource{
 					{
-						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 					{
-						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -287,10 +286,10 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 				Action: "INSERT",
 				Resources: []matlas.Resource{
 					{
-						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 					{
-						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -304,7 +303,7 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 				Action: "REMOVE",
 				Resources: []matlas.Resource{
 					{
-						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -451,10 +450,10 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 				Action: "REMOVE",
 				Resources: []matlas.Resource{
 					{
-						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 					{
-						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -462,7 +461,7 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 				Action: "FIND",
 				Resources: []matlas.Resource{
 					{
-						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -476,7 +475,7 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 				Action: "UPDATE",
 				Resources: []matlas.Resource{
 					{
-						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -484,10 +483,10 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 				Action: "FIND",
 				Resources: []matlas.Resource{
 					{
-						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 					{
-						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -495,10 +494,10 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 				Action: "INSERT",
 				Resources: []matlas.Resource{
 					{
-						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 					{
-						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},

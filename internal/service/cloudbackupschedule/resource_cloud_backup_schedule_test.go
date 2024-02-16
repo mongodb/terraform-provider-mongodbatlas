@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -31,9 +30,9 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudBackupScheduleConfigNoPolicies(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
-					ReferenceHourOfDay:    pointy.Int64(3),
-					ReferenceMinuteOfHour: pointy.Int64(45),
-					RestoreWindowDays:     pointy.Int64(4),
+					ReferenceHourOfDay:    conversion.Pointer[int64](3),
+					ReferenceMinuteOfHour: conversion.Pointer[int64](45),
+					RestoreWindowDays:     conversion.Pointer[int64](4),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
@@ -56,9 +55,9 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 			},
 			{
 				Config: testAccMongoDBAtlasCloudBackupScheduleNewPoliciesConfig(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
-					ReferenceHourOfDay:    pointy.Int64(0),
-					ReferenceMinuteOfHour: pointy.Int64(0),
-					RestoreWindowDays:     pointy.Int64(7),
+					ReferenceHourOfDay:    conversion.Pointer[int64](0),
+					ReferenceMinuteOfHour: conversion.Pointer[int64](0),
+					RestoreWindowDays:     conversion.Pointer[int64](7),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
@@ -94,9 +93,9 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 			},
 			{
 				Config: testAccMongoDBAtlasCloudBackupScheduleAdvancedPoliciesConfig(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
-					ReferenceHourOfDay:    pointy.Int64(0),
-					ReferenceMinuteOfHour: pointy.Int64(0),
-					RestoreWindowDays:     pointy.Int64(7),
+					ReferenceHourOfDay:    conversion.Pointer[int64](0),
+					ReferenceMinuteOfHour: conversion.Pointer[int64](0),
+					RestoreWindowDays:     conversion.Pointer[int64](7),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
@@ -189,9 +188,9 @@ func TestAccBackupRSCloudBackupSchedule_onepolicy(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudBackupScheduleDefaultConfig(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
-					ReferenceHourOfDay:    pointy.Int64(3),
-					ReferenceMinuteOfHour: pointy.Int64(45),
-					RestoreWindowDays:     pointy.Int64(4),
+					ReferenceHourOfDay:    conversion.Pointer[int64](3),
+					ReferenceMinuteOfHour: conversion.Pointer[int64](45),
+					RestoreWindowDays:     conversion.Pointer[int64](4),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
@@ -219,9 +218,9 @@ func TestAccBackupRSCloudBackupSchedule_onepolicy(t *testing.T) {
 			},
 			{
 				Config: testAccMongoDBAtlasCloudBackupScheduleOnePolicyConfig(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
-					ReferenceHourOfDay:    pointy.Int64(0),
-					ReferenceMinuteOfHour: pointy.Int64(0),
-					RestoreWindowDays:     pointy.Int64(7),
+					ReferenceHourOfDay:    conversion.Pointer[int64](0),
+					ReferenceMinuteOfHour: conversion.Pointer[int64](0),
+					RestoreWindowDays:     conversion.Pointer[int64](7),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
@@ -256,9 +255,9 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudBackupScheduleCopySettingsConfig(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
-					ReferenceHourOfDay:    pointy.Int64(3),
-					ReferenceMinuteOfHour: pointy.Int64(45),
-					RestoreWindowDays:     pointy.Int64(1),
+					ReferenceHourOfDay:    conversion.Pointer[int64](3),
+					ReferenceMinuteOfHour: conversion.Pointer[int64](45),
+					RestoreWindowDays:     conversion.Pointer[int64](1),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
@@ -305,9 +304,9 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudBackupScheduleDefaultConfig(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
-					ReferenceHourOfDay:    pointy.Int64(3),
-					ReferenceMinuteOfHour: pointy.Int64(45),
-					RestoreWindowDays:     pointy.Int64(4),
+					ReferenceHourOfDay:    conversion.Pointer[int64](3),
+					ReferenceMinuteOfHour: conversion.Pointer[int64](45),
+					RestoreWindowDays:     conversion.Pointer[int64](4),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),

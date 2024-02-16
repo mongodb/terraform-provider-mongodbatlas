@@ -59,7 +59,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teams"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/thirdpartyintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/x509authenticationdatabaseuser"
-	"github.com/mwielbut/pointy"
 )
 
 var (
@@ -323,7 +322,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (any, diag.D
 func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 	diagnostics := []diag.Diagnostic{}
 
-	mongodbgovCloud := pointy.Bool(d.Get("is_mongodbgov_cloud").(bool))
+	mongodbgovCloud := conversion.Pointer(d.Get("is_mongodbgov_cloud").(bool))
 	if *mongodbgovCloud {
 		if err := d.Set("base_url", MongodbGovCloudURL); err != nil {
 			return append(diagnostics, diag.FromErr(err)...)

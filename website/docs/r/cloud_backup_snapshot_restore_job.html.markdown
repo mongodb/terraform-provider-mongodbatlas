@@ -134,7 +134,6 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 
 * `project_id` - (Required) The unique identifier of the project for the Atlas cluster whose snapshot you want to restore.
 * `cluster_name` - (Required) The name of the Atlas cluster whose snapshot you want to restore.
-* `snapshot_id` - (Required) Unique identifier of the snapshot to restore.
 * `delivery_type_config` - (Required) Type of restore job to create. Possible configurations are: **download**, **automated**, or **pointInTime** only one must be set it in ``true``.
 * `delivery_type_config.automated` - Set to `true` to use the automated configuration.
 * `delivery_type_config.download` - Set to `true` to use the download configuration.
@@ -144,6 +143,7 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 * `delivery_type_config.oplog_ts` - Optional setting for **pointInTime** configuration. Timestamp in the number of seconds that have elapsed since the UNIX epoch from which to you want to restore this snapshot. This is the first part of an Oplog timestamp.
 * `delivery_type_config.oplog_inc` - Optional setting for **pointInTime** configuration. Oplog operation number from which to you want to restore this snapshot. This is the second part of an Oplog timestamp. Used in conjunction with `oplog_ts`.
 * `delivery_type_config.point_in_time_utc_seconds` - Optional setting for **pointInTime** configuration. Timestamp in the number of seconds that have elapsed since the UNIX epoch from which you want to restore this snapshot. Used instead of oplog settings.
+* `snapshot_id` - Optional setting for **pointInTime** configuration. Unique identifier of the snapshot to restore. 
 
 ### Download
 Atlas provides a URL to download a .tar.gz of the snapshot with snapshotId. 

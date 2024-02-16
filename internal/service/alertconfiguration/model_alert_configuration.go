@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mwielbut/pointy"
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
@@ -29,7 +28,7 @@ func NewNotificationList(list []TfNotificationModel) (*[]admin.AlertsNotificatio
 			ChannelName:              n.ChannelName.ValueStringPointer(),
 			DatadogApiKey:            n.DatadogAPIKey.ValueStringPointer(),
 			DatadogRegion:            n.DatadogRegion.ValueStringPointer(),
-			DelayMin:                 pointy.Int(int(n.DelayMin.ValueInt64())),
+			DelayMin:                 conversion.Pointer(int(n.DelayMin.ValueInt64())),
 			EmailAddress:             n.EmailAddress.ValueStringPointer(),
 			EmailEnabled:             n.EmailEnabled.ValueBoolPointer(),
 			IntervalMin:              conversion.Int64PtrToIntPtr(n.IntervalMin.ValueInt64Pointer()),
@@ -64,7 +63,7 @@ func NewThreshold(tfThresholdConfigSlice []TfThresholdConfigModel) *admin.Greate
 	return &admin.GreaterThanRawThreshold{
 		Operator:  v.Operator.ValueStringPointer(),
 		Units:     v.Units.ValueStringPointer(),
-		Threshold: pointy.Int(int(v.Threshold.ValueFloat64())),
+		Threshold: conversion.Pointer(int(v.Threshold.ValueFloat64())),
 	}
 }
 

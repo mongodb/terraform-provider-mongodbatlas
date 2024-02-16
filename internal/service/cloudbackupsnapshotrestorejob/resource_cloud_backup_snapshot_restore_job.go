@@ -37,7 +37,7 @@ func Resource() *schema.Resource {
 			},
 			"snapshot_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 			},
 			"delivery_type_config": {
@@ -354,11 +354,11 @@ func validateDeliveryType(dt []any) error {
 			return fmt.Errorf("%q target_project_id must be set", key)
 		}
 	} else {
-		if targetClusterName, ok := v["target_cluster_name"]; ok && len(targetClusterName.(string)) > 0 {
+		if targetClusterName, ok := v["target_cluster_name"]; ok && targetClusterName.(string) != "" {
 			return fmt.Errorf("%q it's not necessary implement target_cluster_name when you are using download delivery type", key)
 		}
 
-		if targetProjectID, ok := v["target_project_id"]; ok && len(targetProjectID.(string)) > 0 {
+		if targetProjectID, ok := v["target_project_id"]; ok && targetProjectID.(string) != "" {
 			return fmt.Errorf("%q it's not necessary implement target_project_id when you are using download delivery type", key)
 		}
 	}

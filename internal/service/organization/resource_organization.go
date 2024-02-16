@@ -10,8 +10,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mwielbut/pointy"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -241,7 +239,7 @@ func resourceMongoDBAtlasOrganizationDelete(ctx context.Context, d *schema.Resou
 func newCreateOrganizationRequest(d *schema.ResourceData) *admin.CreateOrganizationRequest {
 	createRequest := &admin.CreateOrganizationRequest{
 		Name:       d.Get("name").(string),
-		OrgOwnerId: pointy.String(d.Get("org_owner_id").(string)),
+		OrgOwnerId: conversion.Pointer(d.Get("org_owner_id").(string)),
 
 		ApiKey: &admin.CreateAtlasOrganizationApiKey{
 			Roles: conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List()),
@@ -258,9 +256,9 @@ func newCreateOrganizationRequest(d *schema.ResourceData) *admin.CreateOrganizat
 
 func newOrganizationSettings(d *schema.ResourceData) *admin.OrganizationSettings {
 	return &admin.OrganizationSettings{
-		ApiAccessListRequired:   pointy.Bool(d.Get("api_access_list_required").(bool)),
-		MultiFactorAuthRequired: pointy.Bool(d.Get("multi_factor_auth_required").(bool)),
-		RestrictEmployeeAccess:  pointy.Bool(d.Get("restrict_employee_access").(bool)),
+		ApiAccessListRequired:   conversion.Pointer(d.Get("api_access_list_required").(bool)),
+		MultiFactorAuthRequired: conversion.Pointer(d.Get("multi_factor_auth_required").(bool)),
+		RestrictEmployeeAccess:  conversion.Pointer(d.Get("restrict_employee_access").(bool)),
 	}
 }
 

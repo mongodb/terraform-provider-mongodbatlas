@@ -68,27 +68,27 @@ func PreCheckAtlasUsername(tb testing.TB) {
 	}
 }
 
-func PreCheckProjectTeamsIdsWithMinCount(tb testing.TB, minTeamsCount int) {
+func PreCheckProjectTeamsIDsWithMinCount(tb testing.TB, minTeamsCount int) {
 	tb.Helper()
 	envVar := os.Getenv("MONGODB_ATLAS_TEAMS_IDS")
 	if envVar == "" {
 		tb.Fatal("`MONGODB_ATLAS_TEAMS_IDS` must be set for Projects acceptance testing")
 		return
 	}
-	teamsIds := strings.Split(envVar, ",")
-	if count := len(teamsIds); count < minTeamsCount {
+	teamsIDs := strings.Split(envVar, ",")
+	if count := len(teamsIDs); count < minTeamsCount {
 		tb.Fatalf("`MONGODB_ATLAS_TEAMS_IDS` must have at least %d team ids for this acceptance testing, has %d", minTeamsCount, count)
 	}
 }
 
-func GetProjectTeamsIdsWithPos(pos int) string {
+func GetProjectTeamsIDsWithPos(pos int) string {
 	envVar := os.Getenv("MONGODB_ATLAS_TEAMS_IDS")
-	teamsIds := strings.Split(envVar, ",")
-	count := len(teamsIds)
+	teamsIDs := strings.Split(envVar, ",")
+	count := len(teamsIDs)
 	if envVar == "" || pos >= count {
 		return ""
 	}
-	return teamsIds[pos]
+	return teamsIDs[pos]
 }
 
 func PreCheckGov(tb testing.TB) {
