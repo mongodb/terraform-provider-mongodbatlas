@@ -3,8 +3,6 @@ package acc
 import (
 	"fmt"
 	"os"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
 type ClusterRequest struct {
@@ -40,8 +38,8 @@ func GetClusterInfo(req *ClusterRequest) ClusterInfo {
 			ClusterTerraformStr: "",
 		}
 	}
-	clusterName = acctest.RandomWithPrefix("test-acc")
-	projectName := acctest.RandomWithPrefix("test-acc")
+	projectName := RandomProjectName()
+	clusterName = RandomClusterName()
 	clusterTypeStr := "REPLICASET"
 	if req.Geosharded {
 		clusterTypeStr = "GEOSHARDED"

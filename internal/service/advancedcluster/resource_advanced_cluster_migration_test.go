@@ -4,7 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
@@ -14,9 +13,9 @@ func TestAccMigrationAdvancedCluster_basic(t *testing.T) {
 	// TEMPORARY: to delete, based on TestAccClusterAdvancedCluster_basicTenant
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
-		rName       = acctest.RandomWithPrefix("test-acc")
-		config      = configTenant(orgID, projectName, rName)
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+		config      = configTenant(orgID, projectName, clusterName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -29,7 +28,7 @@ func TestAccMigrationAdvancedCluster_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "termination_protection_enabled"),
@@ -44,9 +43,9 @@ func TestAccMigrationAdvancedCluster_singleAWSProvider(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
-		rName       = acctest.RandomWithPrefix("test-acc")
-		config      = configSingleProvider(orgID, projectName, rName)
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+		config      = configSingleProvider(orgID, projectName, clusterName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -59,7 +58,7 @@ func TestAccMigrationAdvancedCluster_singleAWSProvider(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
@@ -74,9 +73,9 @@ func TestAccMigrationAdvancedCluster_multiCloud(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
-		rName       = acctest.RandomWithPrefix("test-acc")
-		config      = configMultiCloud(orgID, projectName, rName)
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+		config      = configMultiCloud(orgID, projectName, clusterName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -89,7 +88,7 @@ func TestAccMigrationAdvancedCluster_multiCloud(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),

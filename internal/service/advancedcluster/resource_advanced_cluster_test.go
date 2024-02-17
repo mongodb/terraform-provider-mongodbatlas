@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -25,8 +24,8 @@ func TestAccClusterAdvancedCluster_basic(t *testing.T) {
 	// TEMPORARY: to delete, based on TestAccClusterAdvancedCluster_basicTenant
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
-		rName       = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -35,15 +34,15 @@ func TestAccClusterAdvancedCluster_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configTenant(orgID, projectName, rName),
+				Config: configTenant(orgID, projectName, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "termination_protection_enabled"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", rName),
+					resource.TestCheckResourceAttr(dataSourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(dataSourceName, "termination_protection_enabled", "false"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
@@ -58,10 +57,10 @@ func TestAccClusterAdvancedCluster_basic(t *testing.T) {
 func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		rName        = acctest.RandomWithPrefix("test-acc")
-		rNameUpdated = acctest.RandomWithPrefix("test-acc")
+		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName        = acc.RandomProjectName()
+		clusterName        = acc.RandomClusterName()
+		clusterNameUpdated = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -70,15 +69,15 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configTenant(orgID, projectName, rName),
+				Config: configTenant(orgID, projectName, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "termination_protection_enabled"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", rName),
+					resource.TestCheckResourceAttr(dataSourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(dataSourceName, "termination_protection_enabled", "false"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
@@ -87,15 +86,15 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 				),
 			},
 			{
-				Config: configTenant(orgID, projectName, rNameUpdated),
+				Config: configTenant(orgID, projectName, clusterNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", rNameUpdated),
+					resource.TestCheckResourceAttr(dataSourceName, "name", clusterNameUpdated),
 					resource.TestCheckResourceAttr(dataSourceName, "termination_protection_enabled", "false"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
@@ -118,8 +117,8 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 	var (
 		dataSourceName = fmt.Sprintf("data.%s", resourceName)
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acctest.RandomWithPrefix("test-acc")
-		rName          = acctest.RandomWithPrefix("test-acc")
+		projectName    = acc.RandomProjectName()
+		clusterName    = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -128,11 +127,11 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configSingleProvider(orgID, projectName, rName),
+				Config: configSingleProvider(orgID, projectName, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
@@ -141,11 +140,11 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 				),
 			},
 			{
-				Config: configMultiCloud(orgID, projectName, rName),
+				Config: configMultiCloud(orgID, projectName, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
@@ -165,10 +164,10 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		rName        = acctest.RandomWithPrefix("test-acc")
-		rNameUpdated = acctest.RandomWithPrefix("test-acc")
+		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName        = acc.RandomProjectName()
+		clusterName        = acc.RandomClusterName()
+		clusterNameUpdated = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -177,33 +176,33 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configMultiCloud(orgID, projectName, rName),
+				Config: configMultiCloud(orgID, projectName, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", rName),
+					resource.TestCheckResourceAttr(dataSourceName, "name", clusterName),
 				),
 			},
 			{
-				Config: configMultiCloud(orgID, projectName, rNameUpdated),
+				Config: configMultiCloud(orgID, projectName, clusterNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", rNameUpdated),
+					resource.TestCheckResourceAttr(dataSourceName, "name", clusterNameUpdated),
 				),
 			},
 			{
@@ -220,10 +219,10 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		rName        = acctest.RandomWithPrefix("test-acc")
-		rNameUpdated = acctest.RandomWithPrefix("test-acc")
+		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName        = acc.RandomProjectName()
+		clusterName        = acc.RandomClusterName()
+		clusterNameUpdated = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -232,21 +231,21 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configMultiCloudSharded(orgID, projectName, rName),
+				Config: configMultiCloudSharded(orgID, projectName, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 				),
 			},
 			{
-				Config: configMultiCloudSharded(orgID, projectName, rNameUpdated),
+				Config: configMultiCloudSharded(orgID, projectName, clusterNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 				),
@@ -266,8 +265,8 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		orgID               = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName         = acctest.RandomWithPrefix("test-acc")
-		rName               = acctest.RandomWithPrefix("test-acc")
+		projectName         = acc.RandomProjectName()
+		clusterName         = acc.RandomClusterName()
 		instanceSize        = "M10"
 		anotherInstanceSize = "M20"
 	)
@@ -278,29 +277,29 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configSingleProviderPaused(orgID, projectName, rName, false, instanceSize),
+				Config: configSingleProviderPaused(orgID, projectName, clusterName, false, instanceSize),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
 				),
 			},
 			{
-				Config: configSingleProviderPaused(orgID, projectName, rName, true, instanceSize),
+				Config: configSingleProviderPaused(orgID, projectName, clusterName, true, instanceSize),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
 				),
 			},
 			{
-				Config:      configSingleProviderPaused(orgID, projectName, rName, true, anotherInstanceSize),
+				Config:      configSingleProviderPaused(orgID, projectName, clusterName, true, anotherInstanceSize),
 				ExpectError: regexp.MustCompile("CANNOT_UPDATE_PAUSED_CLUSTER"),
 			},
 			{
@@ -318,8 +317,8 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		rName        = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
+		clusterName  = acc.RandomClusterName()
 		instanceSize = "M10"
 	)
 
@@ -329,33 +328,33 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configSingleProviderPaused(orgID, projectName, rName, true, instanceSize),
+				Config: configSingleProviderPaused(orgID, projectName, clusterName, true, instanceSize),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
 				),
 			},
 			{
-				Config: configSingleProviderPaused(orgID, projectName, rName, false, instanceSize),
+				Config: configSingleProviderPaused(orgID, projectName, clusterName, false, instanceSize),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
 				),
 			},
 			{
-				Config:      configSingleProviderPaused(orgID, projectName, rName, true, instanceSize),
+				Config:      configSingleProviderPaused(orgID, projectName, clusterName, true, instanceSize),
 				ExpectError: regexp.MustCompile("CANNOT_PAUSE_RECENTLY_RESUMED_CLUSTER"),
 			},
 			{
-				Config: configSingleProviderPaused(orgID, projectName, rName, false, instanceSize),
+				Config: configSingleProviderPaused(orgID, projectName, clusterName, false, instanceSize),
 			},
 			{
 				ResourceName:            resourceName,
@@ -371,11 +370,11 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		rName        = acctest.RandomWithPrefix("test-acc")
-		rNameUpdated = acctest.RandomWithPrefix("test-acc")
-		processArgs  = &matlas.ProcessArgs{
+		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName        = acc.RandomProjectName()
+		clusterName        = acc.RandomClusterName()
+		clusterNameUpdated = acc.RandomClusterName()
+		processArgs        = &matlas.ProcessArgs{
 			DefaultReadConcern:               "available",
 			DefaultWriteConcern:              "1",
 			FailIndexKeyTooLong:              conversion.Pointer(false),
@@ -407,10 +406,10 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdvanced(orgID, projectName, rName, processArgs),
+				Config: configAdvanced(orgID, projectName, clusterName, processArgs),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
@@ -419,17 +418,17 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.transaction_lifetime_limit_seconds", "300"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", rName),
+					resource.TestCheckResourceAttr(dataSourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
 				),
 			},
 			{
-				Config: configAdvanced(orgID, projectName, rNameUpdated, processArgsUpdated),
+				Config: configAdvanced(orgID, projectName, clusterNameUpdated, processArgsUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
@@ -438,7 +437,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.transaction_lifetime_limit_seconds", "300"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", rNameUpdated),
+					resource.TestCheckResourceAttr(dataSourceName, "name", clusterNameUpdated),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
@@ -451,11 +450,11 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		rName        = acctest.RandomWithPrefix("test-acc")
-		rNameUpdated = acctest.RandomWithPrefix("test-acc")
-		processArgs  = &matlas.ProcessArgs{
+		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName        = acc.RandomProjectName()
+		clusterName        = acc.RandomClusterName()
+		clusterNameUpdated = acc.RandomClusterName()
+		processArgs        = &matlas.ProcessArgs{
 			DefaultReadConcern:               "available",
 			DefaultWriteConcern:              "1",
 			JavascriptEnabled:                conversion.Pointer(true),
@@ -484,10 +483,10 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdvancedDefaultWrite(orgID, projectName, rName, processArgs),
+				Config: configAdvancedDefaultWrite(orgID, projectName, clusterName, processArgs),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
@@ -500,10 +499,10 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 				),
 			},
 			{
-				Config: configAdvancedDefaultWrite(orgID, projectName, rNameUpdated, processArgsUpdated),
+				Config: configAdvancedDefaultWrite(orgID, projectName, clusterNameUpdated, processArgsUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "majority"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
@@ -522,11 +521,11 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		rName        = acctest.RandomWithPrefix("test-acc")
-		rNameUpdated = acctest.RandomWithPrefix("test-acc")
-		autoScaling  = &matlas.AutoScaling{
+		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName        = acc.RandomProjectName()
+		clusterName        = acc.RandomClusterName()
+		clusterNameUpdated = acc.RandomClusterName()
+		autoScaling        = &matlas.AutoScaling{
 			Compute:       &matlas.Compute{Enabled: conversion.Pointer(false), MaxInstanceSize: ""},
 			DiskGBEnabled: conversion.Pointer(true),
 		}
@@ -542,19 +541,19 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicationSpecsAutoScaling(orgID, projectName, rName, autoScaling),
+				Config: configReplicationSpecsAutoScaling(orgID, projectName, clusterName, autoScaling),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "false"),
 				),
 			},
 			{
-				Config: configReplicationSpecsAutoScaling(orgID, projectName, rNameUpdated, autoScalingUpdated),
+				Config: configReplicationSpecsAutoScaling(orgID, projectName, clusterNameUpdated, autoScalingUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "true"),
 				),
@@ -566,11 +565,11 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		rName        = acctest.RandomWithPrefix("test-acc")
-		rNameUpdated = acctest.RandomWithPrefix("test-acc")
-		autoScaling  = &matlas.AutoScaling{
+		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName        = acc.RandomProjectName()
+		clusterName        = acc.RandomClusterName()
+		clusterNameUpdated = acc.RandomClusterName()
+		autoScaling        = &matlas.AutoScaling{
 			Compute:       &matlas.Compute{Enabled: conversion.Pointer(false), MaxInstanceSize: ""},
 			DiskGBEnabled: conversion.Pointer(true),
 		}
@@ -586,19 +585,19 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicationSpecsAnalyticsAutoScaling(orgID, projectName, rName, autoScaling),
+				Config: configReplicationSpecsAnalyticsAutoScaling(orgID, projectName, clusterName, autoScaling),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "false"),
 				),
 			},
 			{
-				Config: configReplicationSpecsAnalyticsAutoScaling(orgID, projectName, rNameUpdated, autoScalingUpdated),
+				Config: configReplicationSpecsAnalyticsAutoScaling(orgID, projectName, clusterNameUpdated, autoScalingUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "true"),
 				),
@@ -611,8 +610,8 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName      = acctest.RandomWithPrefix("test-acc")
-		rName            = acctest.RandomWithPrefix("test-acc")
+		projectName      = acc.RandomProjectName()
+		clusterName      = acc.RandomClusterName()
 		numShards        = "1"
 		numShardsUpdated = "2"
 	)
@@ -623,19 +622,19 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configMultiZoneWithShards(orgID, projectName, rName, numShards, numShards),
+				Config: configMultiZoneWithShards(orgID, projectName, clusterName, numShards, numShards),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.num_shards", "1"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.1.num_shards", "1"),
 				),
 			},
 			{
-				Config: configMultiZoneWithShards(orgID, projectName, rName, numShardsUpdated, numShards),
+				Config: configMultiZoneWithShards(orgID, projectName, clusterName, numShardsUpdated, numShards),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.num_shards", "2"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.1.num_shards", "1"),
 				),
@@ -648,8 +647,8 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
-		rName       = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -658,19 +657,19 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithTags(orgID, projectName, rName, []matlas.Tag{}),
+				Config: configWithTags(orgID, projectName, clusterName, []matlas.Tag{}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "0"),
 					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.tags.#", "0"),
 				),
 			},
 			{
-				Config: configWithTags(orgID, projectName, rName, []matlas.Tag{
+				Config: configWithTags(orgID, projectName, clusterName, []matlas.Tag{
 					{
 						Key:   "key 1",
 						Value: "value 1",
@@ -682,9 +681,9 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "2"),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", acc.ClusterTagsMap1),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", acc.ClusterTagsMap2),
@@ -697,7 +696,7 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithTags(orgID, projectName, rName, []matlas.Tag{
+				Config: configWithTags(orgID, projectName, clusterName, []matlas.Tag{
 					{
 						Key:   "key 3",
 						Value: "value 3",
@@ -705,9 +704,9 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", acc.ClusterTagsMap3),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "1"),
