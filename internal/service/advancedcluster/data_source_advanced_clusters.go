@@ -293,7 +293,7 @@ func flattenAdvancedClusters(ctx context.Context, conn *matlas.Client, connV2 *a
 		result := map[string]any{
 			"advanced_configuration":         flattenProcessArgs(processArgs),
 			"backup_enabled":                 cluster.GetBackupEnabled(),
-			"bi_connector_config":            flattenBiConnectorConfig(clusterOld.BiConnector),
+			"bi_connector_config":            flattenBiConnectorConfig(cluster.GetBiConnector()),
 			"cluster_type":                   cluster.GetClusterType(),
 			"create_date":                    conversion.TimePtrToStringPtr(cluster.CreateDate),
 			"connection_strings":             flattenConnectionStrings(clusterOld.ConnectionStrings),

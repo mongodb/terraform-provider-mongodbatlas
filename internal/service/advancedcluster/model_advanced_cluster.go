@@ -224,11 +224,11 @@ func flattenConnectionStrings(connectionStrings *matlas.ConnectionStrings) []map
 	return connections
 }
 
-func flattenBiConnectorConfig(biConnector *matlas.BiConnector) []any {
+func flattenBiConnectorConfig(biConnector admin.BiConnector) []any {
 	return []any{
 		map[string]any{
-			"enabled":         *biConnector.Enabled,
-			"read_preference": biConnector.ReadPreference,
+			"enabled":         biConnector.GetEnabled(),
+			"read_preference": biConnector.GetReadPreference(),
 		},
 	}
 }
