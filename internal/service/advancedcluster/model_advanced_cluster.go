@@ -7,6 +7,7 @@ import (
 	"hash/crc32"
 	"log"
 	"reflect"
+	"slices"
 	"strings"
 	"time"
 
@@ -63,6 +64,218 @@ var (
 		},
 	}
 )
+
+func SchemaAdvancedConfigDS() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"default_read_concern": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"default_write_concern": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"fail_index_key_too_long": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+				"javascript_enabled": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+				"minimum_enabled_tls_protocol": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"no_table_scan": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+				"oplog_size_mb": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"sample_size_bi_connector": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"sample_refresh_interval_bi_connector": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"oplog_min_retention_hours": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"transaction_lifetime_limit_seconds": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func SchemaConnectionStrings() *schema.Schema {
+	return &schema.Schema{
+		Type:       schema.TypeList,
+		Computed:   true,
+		ConfigMode: schema.SchemaConfigModeAttr,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"standard": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"standard_srv": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"private": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"private_srv": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"private_endpoint": {
+					Type:       schema.TypeList,
+					Computed:   true,
+					ConfigMode: schema.SchemaConfigModeAttr,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"connection_string": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"endpoints": {
+								Type:       schema.TypeList,
+								Computed:   true,
+								ConfigMode: schema.SchemaConfigModeAttr,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"endpoint_id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"provider_name": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"region": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+									},
+								},
+							},
+							"srv_connection_string": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"srv_shard_optimized_connection_string": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"type": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func SchemaAdvancedConfig() *schema.Schema {
+	return &schema.Schema{
+		Type:       schema.TypeList,
+		Optional:   true,
+		Computed:   true,
+		ConfigMode: schema.SchemaConfigModeAttr,
+		MaxItems:   1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"default_read_concern": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+				"default_write_concern": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+				"fail_index_key_too_long": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+				"javascript_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+				"minimum_enabled_tls_protocol": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+				"no_table_scan": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+				"oplog_size_mb": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+				"oplog_min_retention_hours": {
+					Type:     schema.TypeInt,
+					Optional: true,
+				},
+				"sample_size_bi_connector": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+				"sample_refresh_interval_bi_connector": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+				"transaction_lifetime_limit_seconds": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func StringIsUppercase() schema.SchemaValidateDiagFunc {
+	return func(v any, p cty.Path) diag.Diagnostics {
+		value := v.(string)
+		var diags diag.Diagnostics
+		if value != strings.ToUpper(value) {
+			diagError := diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("The provided string '%q' must be uppercase.", value),
+			}
+			diags = append(diags, diagError)
+		}
+		return diags
+	}
+}
 
 func ContainsLabelOrKey(list []matlas.Label, item matlas.Label) bool {
 	for _, v := range list {
@@ -311,6 +524,76 @@ func flattenProcessArgs(p *admin.ClusterDescriptionProcessArgs) []map[string]any
 	}
 }
 
+func flattenAdvancedReplicationSpecs(ctx context.Context, rawAPIObjects []*matlas.AdvancedReplicationSpec, tfMapObjects []any,
+	d *schema.ResourceData, conn *matlas.Client) ([]map[string]any, error) {
+	var apiObjects []*matlas.AdvancedReplicationSpec
+
+	for _, advancedReplicationSpec := range rawAPIObjects {
+		if advancedReplicationSpec != nil {
+			apiObjects = append(apiObjects, advancedReplicationSpec)
+		}
+	}
+
+	if len(apiObjects) == 0 {
+		return nil, nil
+	}
+
+	tfList := make([]map[string]any, len(apiObjects))
+	wasAPIObjectUsed := make([]bool, len(apiObjects))
+
+	for i := 0; i < len(tfList); i++ {
+		var tfMapObject map[string]any
+
+		if len(tfMapObjects) > i {
+			tfMapObject = tfMapObjects[i].(map[string]any)
+		}
+
+		for j := 0; j < len(apiObjects); j++ {
+			if wasAPIObjectUsed[j] {
+				continue
+			}
+
+			if !doesAdvancedReplicationSpecMatchAPI(tfMapObject, apiObjects[j]) {
+				continue
+			}
+
+			advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, apiObjects[j], tfMapObject, d, conn)
+
+			if err != nil {
+				return nil, err
+			}
+
+			tfList[i] = advancedReplicationSpec
+			wasAPIObjectUsed[j] = true
+			break
+		}
+	}
+
+	for i, tfo := range tfList {
+		var tfMapObject map[string]any
+
+		if tfo != nil {
+			continue
+		}
+
+		if len(tfMapObjects) > i {
+			tfMapObject = tfMapObjects[i].(map[string]any)
+		}
+
+		j := slices.IndexFunc(wasAPIObjectUsed, func(isUsed bool) bool { return !isUsed })
+		advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, apiObjects[j], tfMapObject, d, conn)
+
+		if err != nil {
+			return nil, err
+		}
+
+		tfList[i] = advancedReplicationSpec
+		wasAPIObjectUsed[j] = true
+	}
+
+	return tfList, nil
+}
+
 func expandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.ProcessArgs {
 	res := &matlas.ProcessArgs{}
 
@@ -386,216 +669,4 @@ func expandLabelSliceFromSetSchema(d *schema.ResourceData) []matlas.Label {
 	}
 
 	return res
-}
-
-func SchemaAdvancedConfigDS() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Computed: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"default_read_concern": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"default_write_concern": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"fail_index_key_too_long": {
-					Type:     schema.TypeBool,
-					Computed: true,
-				},
-				"javascript_enabled": {
-					Type:     schema.TypeBool,
-					Computed: true,
-				},
-				"minimum_enabled_tls_protocol": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"no_table_scan": {
-					Type:     schema.TypeBool,
-					Computed: true,
-				},
-				"oplog_size_mb": {
-					Type:     schema.TypeInt,
-					Computed: true,
-				},
-				"sample_size_bi_connector": {
-					Type:     schema.TypeInt,
-					Computed: true,
-				},
-				"sample_refresh_interval_bi_connector": {
-					Type:     schema.TypeInt,
-					Computed: true,
-				},
-				"oplog_min_retention_hours": {
-					Type:     schema.TypeInt,
-					Computed: true,
-				},
-				"transaction_lifetime_limit_seconds": {
-					Type:     schema.TypeInt,
-					Computed: true,
-				},
-			},
-		},
-	}
-}
-
-func SchemaConnectionStrings() *schema.Schema {
-	return &schema.Schema{
-		Type:       schema.TypeList,
-		Computed:   true,
-		ConfigMode: schema.SchemaConfigModeAttr,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"standard": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"standard_srv": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"private": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"private_srv": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"private_endpoint": {
-					Type:       schema.TypeList,
-					Computed:   true,
-					ConfigMode: schema.SchemaConfigModeAttr,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"connection_string": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
-							"endpoints": {
-								Type:       schema.TypeList,
-								Computed:   true,
-								ConfigMode: schema.SchemaConfigModeAttr,
-								Elem: &schema.Resource{
-									Schema: map[string]*schema.Schema{
-										"endpoint_id": {
-											Type:     schema.TypeString,
-											Computed: true,
-										},
-										"provider_name": {
-											Type:     schema.TypeString,
-											Computed: true,
-										},
-										"region": {
-											Type:     schema.TypeString,
-											Computed: true,
-										},
-									},
-								},
-							},
-							"srv_connection_string": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
-							"srv_shard_optimized_connection_string": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
-							"type": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
-func SchemaAdvancedConfig() *schema.Schema {
-	return &schema.Schema{
-		Type:       schema.TypeList,
-		Optional:   true,
-		Computed:   true,
-		ConfigMode: schema.SchemaConfigModeAttr,
-		MaxItems:   1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"default_read_concern": {
-					Type:     schema.TypeString,
-					Optional: true,
-					Computed: true,
-				},
-				"default_write_concern": {
-					Type:     schema.TypeString,
-					Optional: true,
-					Computed: true,
-				},
-				"fail_index_key_too_long": {
-					Type:     schema.TypeBool,
-					Optional: true,
-					Computed: true,
-				},
-				"javascript_enabled": {
-					Type:     schema.TypeBool,
-					Optional: true,
-					Computed: true,
-				},
-				"minimum_enabled_tls_protocol": {
-					Type:     schema.TypeString,
-					Optional: true,
-					Computed: true,
-				},
-				"no_table_scan": {
-					Type:     schema.TypeBool,
-					Optional: true,
-					Computed: true,
-				},
-				"oplog_size_mb": {
-					Type:     schema.TypeInt,
-					Optional: true,
-					Computed: true,
-				},
-				"oplog_min_retention_hours": {
-					Type:     schema.TypeInt,
-					Optional: true,
-				},
-				"sample_size_bi_connector": {
-					Type:     schema.TypeInt,
-					Optional: true,
-					Computed: true,
-				},
-				"sample_refresh_interval_bi_connector": {
-					Type:     schema.TypeInt,
-					Optional: true,
-					Computed: true,
-				},
-				"transaction_lifetime_limit_seconds": {
-					Type:     schema.TypeInt,
-					Optional: true,
-					Computed: true,
-				},
-			},
-		},
-	}
-}
-
-func StringIsUppercase() schema.SchemaValidateDiagFunc {
-	return func(v any, p cty.Path) diag.Diagnostics {
-		value := v.(string)
-		var diags diag.Diagnostics
-		if value != strings.ToUpper(value) {
-			diagError := diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("The provided string '%q' must be uppercase.", value),
-			}
-			diags = append(diags, diagError)
-		}
-		return diags
-	}
 }
