@@ -78,7 +78,6 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
-	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		dataSourceName = fmt.Sprintf("data.%s", resourceName)
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -227,7 +226,6 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
-	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		orgID               = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName         = acc.RandomProjectName()
@@ -279,7 +277,6 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
-	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acc.RandomProjectName()
@@ -484,7 +481,6 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 }
 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.T) {
-	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName        = acc.RandomProjectName()
@@ -609,7 +605,6 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 }
 
 func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
-	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
