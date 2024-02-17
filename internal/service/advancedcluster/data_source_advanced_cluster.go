@@ -258,7 +258,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "cluster_type", clusterName, err))
 	}
 
-	if err := d.Set("connection_strings", flattenConnectionStrings(clusterOld.ConnectionStrings)); err != nil {
+	if err := d.Set("connection_strings", flattenConnectionStrings(cluster.GetConnectionStrings())); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "connection_strings", clusterName, err))
 	}
 

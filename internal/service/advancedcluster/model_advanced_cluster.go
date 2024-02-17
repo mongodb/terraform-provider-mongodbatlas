@@ -210,23 +210,47 @@ func flattenLabels(l []admin.ComponentLabel) []map[string]string {
 	return labels
 }
 
-func flattenConnectionStrings(connectionStrings *matlas.ConnectionStrings) []map[string]any {
-	connections := make([]map[string]any, 0)
-
-	connections = append(connections, map[string]any{
-		"standard":         connectionStrings.Standard,
-		"standard_srv":     connectionStrings.StandardSrv,
-		"private":          connectionStrings.Private,
-		"private_srv":      connectionStrings.PrivateSrv,
-		"private_endpoint": flattenPrivateEndpoint(connectionStrings.PrivateEndpoint),
-	})
-
-	return connections
+func flattenConnectionStrings(str admin.ClusterConnectionStrings) []map[string]any {
+	return []map[string]any{
+		{
+			"standard":         str.GetStandard(),
+			"standard_srv":     str.GetStandardSrv(),
+			"private":          str.GetPrivate(),
+			"private_srv":      str.GetPrivateSrv(),
+			"private_endpoint": flattenPrivateEndpoint(str.GetPrivateEndpoint()),
+		},
+	}
 }
 
-func flattenBiConnectorConfig(biConnector admin.BiConnector) []any {
-	return []any{
-		map[string]any{
+func flattenPrivateEndpoint(privateEndpoints []admin.ClusterDescriptionConnectionStringsPrivateEndpoint) []map[string]any {
+	endpoints := make([]map[string]any, 0, len(privateEndpoints))
+	for _, endpoint := range privateEndpoints {
+		endpoints = append(endpoints, map[string]any{
+			"connection_string":                     endpoint.GetConnectionString(),
+			"srv_connection_string":                 endpoint.GetSrvConnectionString(),
+			"srv_shard_optimized_connection_string": endpoint.GetSrvShardOptimizedConnectionString(),
+			"type":                                  endpoint.GetType(),
+			"endpoints":                             flattenEndpoints(endpoint.GetEndpoints()),
+		})
+	}
+	return endpoints
+}
+
+func flattenEndpoints(listEndpoints []admin.ClusterDescriptionConnectionStringsPrivateEndpointEndpoint) []map[string]any {
+	endpoints := make([]map[string]any, 0, len(listEndpoints))
+	for _, endpoint := range listEndpoints {
+		endpoints = append(endpoints, map[string]any{
+			"region":        endpoint.GetRegion(),
+			"provider_name": endpoint.GetProviderName(),
+			"endpoint_id":   endpoint.GetEndpointId(),
+		})
+	}
+	return endpoints
+}
+
+func flattenBiConnectorConfig(biConnector admin.BiConnector) []map[string]any {
+	return []map[string]any{
+		{
 			"enabled":         biConnector.GetEnabled(),
 			"read_preference": biConnector.GetReadPreference(),
 		},
@@ -559,32 +583,6 @@ func SchemaAdvancedConfig() *schema.Schema {
 			},
 		},
 	}
-}
-
-func flattenPrivateEndpoint(privateEndpoints []matlas.PrivateEndpoint) []map[string]any {
-	endpoints := make([]map[string]any, 0)
-	for _, endpoint := range privateEndpoints {
-		endpoints = append(endpoints, map[string]any{
-			"connection_string":                     endpoint.ConnectionString,
-			"srv_connection_string":                 endpoint.SRVConnectionString,
-			"srv_shard_optimized_connection_string": endpoint.SRVShardOptimizedConnectionString,
-			"endpoints":                             flattenEndpoints(endpoint.Endpoints),
-			"type":                                  endpoint.Type,
-		})
-	}
-	return endpoints
-}
-
-func flattenEndpoints(listEndpoints []matlas.Endpoint) []map[string]any {
-	endpoints := make([]map[string]any, 0)
-	for _, endpoint := range listEndpoints {
-		endpoints = append(endpoints, map[string]any{
-			"region":        endpoint.Region,
-			"provider_name": endpoint.ProviderName,
-			"endpoint_id":   endpoint.EndpointID,
-		})
-	}
-	return endpoints
 }
 
 func StringIsUppercase() schema.SchemaValidateDiagFunc {
