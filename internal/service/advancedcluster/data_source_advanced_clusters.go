@@ -13,7 +13,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -243,49 +242,33 @@ func PluralDataSource() *schema.Resource {
 }
 
 func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	d.SetId(id.UniqueId())
 
 	list, resp, err := connV2.ClustersApi.ListClusters(ctx, projectID).Execute()
-	listOld, _, _ := conn.AdvancedClusters.List(ctx, projectID, nil)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
 		return diag.FromErr(fmt.Errorf("error reading advanced cluster list for project(%s): %s", projectID, err))
 	}
-	if len(list.GetResults()) == 0 || len(listOld.Results) == 0 {
-		return nil
-	}
-
-	if err := d.Set("results", flattenAdvancedClusters(ctx, conn, connV2, list.GetResults(), listOld.Results, d)); err != nil {
+	if err := d.Set("results", flattenAdvancedClusters(ctx, connV2, list.GetResults(), d)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "results", d.Id(), err))
 	}
 
 	return nil
 }
 
-func flattenAdvancedClusters(ctx context.Context, conn *matlas.Client, connV2 *admin.APIClient, clusters []admin.AdvancedClusterDescription, clustersOld []*matlas.AdvancedCluster, d *schema.ResourceData) []map[string]any {
+func flattenAdvancedClusters(ctx context.Context, connV2 *admin.APIClient, clusters []admin.AdvancedClusterDescription, d *schema.ResourceData) []map[string]any {
 	results := make([]map[string]any, 0, len(clusters))
 	for i := range clusters {
 		cluster := &clusters[i]
-		var clusterOld *matlas.AdvancedCluster
-		for j := range clustersOld {
-			if clustersOld[j].ID == cluster.GetId() {
-				clusterOld = clustersOld[j]
-				break
-			}
-		}
-		if clusterOld == nil {
-			continue
-		}
 		processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
 		}
-		replicationSpecs, err := flattenAdvancedReplicationSpecs(ctx, clusterOld.ReplicationSpecs, nil, d, conn)
+		replicationSpecs, err := flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), nil, d, connV2)
 		if err != nil {
 			log.Printf("[WARN] Error setting `replication_specs` for the cluster(%s): %s", cluster.GetId(), err)
 		}

@@ -475,14 +475,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
 	cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-	clusterOld, _, _ := conn.AdvancedClusters.Get(ctx, projectID, clusterName)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -552,7 +550,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "pit_enabled", clusterName, err))
 	}
 
-	replicationSpecs, err := flattenAdvancedReplicationSpecs(ctx, clusterOld.ReplicationSpecs, d.Get("replication_specs").([]any), d, conn)
+	replicationSpecs, err := flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), d.Get("replication_specs").([]any), d, connV2)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 	}
@@ -994,174 +992,6 @@ func expandRegionConfigAutoScaling(tfList []any) *matlas.AdvancedAutoScaling {
 	return advancedAutoScaling
 }
 
-func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *matlas.AdvancedReplicationSpec, tfMapObject map[string]any,
-	d *schema.ResourceData, conn *matlas.Client) (map[string]any, error) {
-	if apiObject == nil {
-		return nil, nil
-	}
-
-	tfMap := map[string]any{}
-	tfMap["num_shards"] = apiObject.NumShards
-	tfMap["id"] = apiObject.ID
-	if tfMapObject != nil {
-		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.RegionConfigs, tfMapObject["region_configs"].([]any), d, conn)
-		if err != nil {
-			return nil, err
-		}
-		tfMap["region_configs"] = object
-		tfMap["container_id"] = containerIDs
-	} else {
-		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.RegionConfigs, nil, d, conn)
-		if err != nil {
-			return nil, err
-		}
-		tfMap["region_configs"] = object
-		tfMap["container_id"] = containerIDs
-	}
-	tfMap["zone_name"] = apiObject.ZoneName
-
-	return tfMap, nil
-}
-
-func doesAdvancedReplicationSpecMatchAPI(tfObject map[string]any, apiObject *matlas.AdvancedReplicationSpec) bool {
-	return tfObject["id"] == apiObject.ID || (tfObject["id"] == nil && tfObject["zone_name"] == apiObject.ZoneName)
-}
-
-func flattenAdvancedReplicationSpecRegionConfig(apiObject *matlas.AdvancedRegionConfig, tfMapObject map[string]any) map[string]any {
-	if apiObject == nil {
-		return nil
-	}
-
-	tfMap := map[string]any{}
-	if tfMapObject != nil {
-		if v, ok := tfMapObject["analytics_specs"]; ok && len(v.([]any)) > 0 {
-			tfMap["analytics_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.AnalyticsSpecs, apiObject.ProviderName, tfMapObject["analytics_specs"].([]any))
-		}
-		if v, ok := tfMapObject["electable_specs"]; ok && len(v.([]any)) > 0 {
-			tfMap["electable_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ElectableSpecs, apiObject.ProviderName, tfMapObject["electable_specs"].([]any))
-		}
-		if v, ok := tfMapObject["read_only_specs"]; ok && len(v.([]any)) > 0 {
-			tfMap["read_only_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ReadOnlySpecs, apiObject.ProviderName, tfMapObject["read_only_specs"].([]any))
-		}
-		if v, ok := tfMapObject["auto_scaling"]; ok && len(v.([]any)) > 0 {
-			tfMap["auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AutoScaling)
-		}
-		if v, ok := tfMapObject["analytics_auto_scaling"]; ok && len(v.([]any)) > 0 {
-			tfMap["analytics_auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AnalyticsAutoScaling)
-		}
-	} else {
-		tfMap["analytics_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.AnalyticsSpecs, apiObject.ProviderName, nil)
-		tfMap["electable_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ElectableSpecs, apiObject.ProviderName, nil)
-		tfMap["read_only_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ReadOnlySpecs, apiObject.ProviderName, nil)
-		tfMap["auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AutoScaling)
-		tfMap["analytics_auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AnalyticsAutoScaling)
-	}
-
-	tfMap["region_name"] = apiObject.RegionName
-	tfMap["provider_name"] = apiObject.ProviderName
-	tfMap["backing_provider_name"] = apiObject.BackingProviderName
-	tfMap["priority"] = apiObject.Priority
-
-	return tfMap
-}
-
-func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, apiObjects []*matlas.AdvancedRegionConfig, tfMapObjects []any,
-	d *schema.ResourceData, conn *matlas.Client) (tfResult []map[string]any, containersIDs map[string]string, err error) {
-	if len(apiObjects) == 0 {
-		return nil, nil, nil
-	}
-
-	var tfList []map[string]any
-	containerIDs := make(map[string]string)
-
-	for i, apiObject := range apiObjects {
-		if apiObject == nil {
-			continue
-		}
-
-		if len(tfMapObjects) > i {
-			tfMapObject := tfMapObjects[i].(map[string]any)
-			tfList = append(tfList, flattenAdvancedReplicationSpecRegionConfig(apiObject, tfMapObject))
-		} else {
-			tfList = append(tfList, flattenAdvancedReplicationSpecRegionConfig(apiObject, nil))
-		}
-
-		if apiObject.ProviderName != "TENANT" {
-			containers, _, err := conn.Containers.List(ctx, d.Get("project_id").(string),
-				&matlas.ContainersListOptions{ProviderName: apiObject.ProviderName})
-			if err != nil {
-				return nil, nil, err
-			}
-			if result := getAdvancedClusterContainerID(containers, apiObject); result != "" {
-				// Will print as "providerName:regionName" = "containerId" in terraform show
-				containerIDs[fmt.Sprintf("%s:%s", apiObject.ProviderName, apiObject.RegionName)] = result
-			}
-		}
-	}
-
-	return tfList, containerIDs, nil
-}
-
-func flattenAdvancedReplicationSpecRegionConfigSpec(apiObject *matlas.Specs, providerName string, tfMapObjects []any) []map[string]any {
-	if apiObject == nil {
-		return nil
-	}
-	var tfList []map[string]any
-
-	tfMap := map[string]any{}
-
-	if len(tfMapObjects) > 0 {
-		tfMapObject := tfMapObjects[0].(map[string]any)
-
-		if providerName == "AWS" {
-			if cast.ToInt64(apiObject.DiskIOPS) > 0 {
-				tfMap["disk_iops"] = apiObject.DiskIOPS
-			}
-			if v, ok := tfMapObject["ebs_volume_type"]; ok && v.(string) != "" {
-				tfMap["ebs_volume_type"] = apiObject.EbsVolumeType
-			}
-		}
-		if _, ok := tfMapObject["node_count"]; ok {
-			tfMap["node_count"] = apiObject.NodeCount
-		}
-		if v, ok := tfMapObject["instance_size"]; ok && v.(string) != "" {
-			tfMap["instance_size"] = apiObject.InstanceSize
-			tfList = append(tfList, tfMap)
-		}
-	} else {
-		tfMap["disk_iops"] = apiObject.DiskIOPS
-		tfMap["ebs_volume_type"] = apiObject.EbsVolumeType
-		tfMap["node_count"] = apiObject.NodeCount
-		tfMap["instance_size"] = apiObject.InstanceSize
-		tfList = append(tfList, tfMap)
-	}
-
-	return tfList
-}
-
-func flattenAdvancedReplicationSpecAutoScaling(apiObject *matlas.AdvancedAutoScaling) []map[string]any {
-	if apiObject == nil {
-		return nil
-	}
-
-	var tfList []map[string]any
-
-	tfMap := map[string]any{}
-	if apiObject.DiskGB != nil {
-		tfMap["disk_gb_enabled"] = apiObject.DiskGB.Enabled
-	}
-	if apiObject.Compute != nil {
-		tfMap["compute_enabled"] = apiObject.Compute.Enabled
-		tfMap["compute_scale_down_enabled"] = apiObject.Compute.ScaleDownEnabled
-		tfMap["compute_min_instance_size"] = apiObject.Compute.MinInstanceSize
-		tfMap["compute_max_instance_size"] = apiObject.Compute.MaxInstanceSize
-	}
-
-	tfList = append(tfList, tfMap)
-
-	return tfList
-}
-
 func resourceRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		c, resp, err := client.AdvancedClusters.Get(ctx, projectID, name)
@@ -1259,22 +1089,4 @@ func updateAdvancedCluster(
 	}
 
 	return cluster, resp, nil
-}
-
-func getAdvancedClusterContainerID(containers []matlas.Container, cluster *matlas.AdvancedRegionConfig) string {
-	if len(containers) != 0 {
-		for i := range containers {
-			if cluster.ProviderName == "GCP" {
-				return containers[i].ID
-			}
-
-			if containers[i].ProviderName == cluster.ProviderName &&
-				containers[i].Region == cluster.RegionName || // For Azure
-				containers[i].RegionName == cluster.RegionName { // For AWS
-				return containers[i].ID
-			}
-		}
-	}
-
-	return ""
 }

@@ -231,14 +231,11 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("name").(string)
 
 	cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-	clusterOld, _, _ := conn.AdvancedClusters.Get(ctx, projectID, clusterName)
-
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			return nil
@@ -302,7 +299,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "pit_enabled", clusterName, err))
 	}
 
-	replicationSpecs, err := flattenAdvancedReplicationSpecs(ctx, clusterOld.ReplicationSpecs, d.Get("replication_specs").(*schema.Set).List(), d, conn)
+	replicationSpecs, err := flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), d.Get("replication_specs").(*schema.Set).List(), d, connV2)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 	}

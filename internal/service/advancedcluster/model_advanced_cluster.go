@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/spf13/cast"
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
@@ -524,16 +525,8 @@ func flattenProcessArgs(p *admin.ClusterDescriptionProcessArgs) []map[string]any
 	}
 }
 
-func flattenAdvancedReplicationSpecs(ctx context.Context, rawAPIObjects []*matlas.AdvancedReplicationSpec, tfMapObjects []any,
-	d *schema.ResourceData, conn *matlas.Client) ([]map[string]any, error) {
-	var apiObjects []*matlas.AdvancedReplicationSpec
-
-	for _, advancedReplicationSpec := range rawAPIObjects {
-		if advancedReplicationSpec != nil {
-			apiObjects = append(apiObjects, advancedReplicationSpec)
-		}
-	}
-
+func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin.ReplicationSpec, tfMapObjects []any,
+	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
 	if len(apiObjects) == 0 {
 		return nil, nil
 	}
@@ -553,11 +546,11 @@ func flattenAdvancedReplicationSpecs(ctx context.Context, rawAPIObjects []*matla
 				continue
 			}
 
-			if !doesAdvancedReplicationSpecMatchAPI(tfMapObject, apiObjects[j]) {
+			if !doesAdvancedReplicationSpecMatchAPI(tfMapObject, &apiObjects[j]) {
 				continue
 			}
 
-			advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, apiObjects[j], tfMapObject, d, conn)
+			advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, &apiObjects[j], tfMapObject, d, connV2)
 
 			if err != nil {
 				return nil, err
@@ -581,7 +574,7 @@ func flattenAdvancedReplicationSpecs(ctx context.Context, rawAPIObjects []*matla
 		}
 
 		j := slices.IndexFunc(wasAPIObjectUsed, func(isUsed bool) bool { return !isUsed })
-		advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, apiObjects[j], tfMapObject, d, conn)
+		advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, &apiObjects[j], tfMapObject, d, connV2)
 
 		if err != nil {
 			return nil, err
@@ -592,6 +585,197 @@ func flattenAdvancedReplicationSpecs(ctx context.Context, rawAPIObjects []*matla
 	}
 
 	return tfList, nil
+}
+
+func doesAdvancedReplicationSpecMatchAPI(tfObject map[string]any, apiObject *admin.ReplicationSpec) bool {
+	return tfObject["id"] == apiObject.GetId() || (tfObject["id"] == nil && tfObject["zone_name"] == apiObject.GetZoneName())
+}
+
+func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.ReplicationSpec, tfMapObject map[string]any,
+	d *schema.ResourceData, connV2 *admin.APIClient) (map[string]any, error) {
+	if apiObject == nil {
+		return nil, nil
+	}
+
+	tfMap := map[string]any{}
+	tfMap["num_shards"] = apiObject.GetNumShards()
+	tfMap["id"] = apiObject.GetId()
+	if tfMapObject != nil {
+		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.GetRegionConfigs(), tfMapObject["region_configs"].([]any), d, connV2)
+		if err != nil {
+			return nil, err
+		}
+		tfMap["region_configs"] = object
+		tfMap["container_id"] = containerIDs
+	} else {
+		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.GetRegionConfigs(), nil, d, connV2)
+		if err != nil {
+			return nil, err
+		}
+		tfMap["region_configs"] = object
+		tfMap["container_id"] = containerIDs
+	}
+	tfMap["zone_name"] = apiObject.GetZoneName()
+
+	return tfMap, nil
+}
+
+func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, apiObjects []admin.CloudRegionConfig, tfMapObjects []any,
+	d *schema.ResourceData, connV2 *admin.APIClient) (tfResult []map[string]any, containersIDs map[string]string, err error) {
+	if len(apiObjects) == 0 {
+		return nil, nil, nil
+	}
+
+	var tfList []map[string]any
+	containerIDs := make(map[string]string)
+
+	for i := range apiObjects {
+		apiObject := apiObjects[i]
+		if len(tfMapObjects) > i {
+			tfMapObject := tfMapObjects[i].(map[string]any)
+			tfList = append(tfList, flattenAdvancedReplicationSpecRegionConfig(&apiObject, tfMapObject))
+		} else {
+			tfList = append(tfList, flattenAdvancedReplicationSpecRegionConfig(&apiObject, nil))
+		}
+
+		if apiObject.GetProviderName() != "TENANT" {
+			params := &admin.ListPeeringContainerByCloudProviderApiParams{
+				GroupId:      d.Get("project_id").(string),
+				ProviderName: apiObject.ProviderName,
+			}
+			containers, _, err := connV2.NetworkPeeringApi.ListPeeringContainerByCloudProviderWithParams(ctx, params).Execute()
+			if err != nil {
+				return nil, nil, err
+			}
+			if result := getAdvancedClusterContainerID(containers.GetResults(), &apiObject); result != "" {
+				// Will print as "providerName:regionName" = "containerId" in terraform show
+				containerIDs[fmt.Sprintf("%s:%s", apiObject.GetProviderName(), apiObject.GetRegionName())] = result
+			}
+		}
+	}
+	return tfList, containerIDs, nil
+}
+
+func flattenAdvancedReplicationSpecRegionConfig(apiObject *admin.CloudRegionConfig, tfMapObject map[string]any) map[string]any {
+	if apiObject == nil {
+		return nil
+	}
+
+	tfMap := map[string]any{}
+	if tfMapObject != nil {
+		if v, ok := tfMapObject["analytics_specs"]; ok && len(v.([]any)) > 0 {
+			tfMap["analytics_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.AnalyticsSpecs, apiObject.GetProviderName(), tfMapObject["analytics_specs"].([]any))
+		}
+		if v, ok := tfMapObject["electable_specs"]; ok && len(v.([]any)) > 0 {
+			tfMap["electable_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(hwSpecToDedicatedHwSpec(apiObject.ElectableSpecs), apiObject.GetProviderName(), tfMapObject["electable_specs"].([]any))
+		}
+		if v, ok := tfMapObject["read_only_specs"]; ok && len(v.([]any)) > 0 {
+			tfMap["read_only_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ReadOnlySpecs, apiObject.GetProviderName(), tfMapObject["read_only_specs"].([]any))
+		}
+		if v, ok := tfMapObject["auto_scaling"]; ok && len(v.([]any)) > 0 {
+			tfMap["auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AutoScaling)
+		}
+		if v, ok := tfMapObject["analytics_auto_scaling"]; ok && len(v.([]any)) > 0 {
+			tfMap["analytics_auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AnalyticsAutoScaling)
+		}
+	} else {
+		tfMap["analytics_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.AnalyticsSpecs, apiObject.GetProviderName(), nil)
+		tfMap["electable_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(hwSpecToDedicatedHwSpec(apiObject.ElectableSpecs), apiObject.GetProviderName(), nil)
+		tfMap["read_only_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ReadOnlySpecs, apiObject.GetProviderName(), nil)
+		tfMap["auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AutoScaling)
+		tfMap["analytics_auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AnalyticsAutoScaling)
+	}
+
+	tfMap["region_name"] = apiObject.GetRegionName()
+	tfMap["provider_name"] = apiObject.GetProviderName()
+	tfMap["backing_provider_name"] = apiObject.GetBackingProviderName()
+	tfMap["priority"] = apiObject.GetPriority()
+
+	return tfMap
+}
+
+func hwSpecToDedicatedHwSpec(apiObject *admin.HardwareSpec) *admin.DedicatedHardwareSpec {
+	if apiObject == nil {
+		return nil
+	}
+	return &admin.DedicatedHardwareSpec{
+		NodeCount:     apiObject.NodeCount,
+		DiskIOPS:      apiObject.DiskIOPS,
+		EbsVolumeType: apiObject.EbsVolumeType,
+		InstanceSize:  apiObject.InstanceSize,
+	}
+}
+
+func flattenAdvancedReplicationSpecRegionConfigSpec(apiObject *admin.DedicatedHardwareSpec, providerName string, tfMapObjects []any) []map[string]any {
+	if apiObject == nil {
+		return nil
+	}
+	var tfList []map[string]any
+
+	tfMap := map[string]any{}
+
+	if len(tfMapObjects) > 0 {
+		tfMapObject := tfMapObjects[0].(map[string]any)
+
+		if providerName == "AWS" {
+			if cast.ToInt64(apiObject.GetDiskIOPS()) > 0 {
+				tfMap["disk_iops"] = apiObject.GetDiskIOPS()
+			}
+			if v, ok := tfMapObject["ebs_volume_type"]; ok && v.(string) != "" {
+				tfMap["ebs_volume_type"] = apiObject.GetEbsVolumeType()
+			}
+		}
+		if _, ok := tfMapObject["node_count"]; ok {
+			tfMap["node_count"] = apiObject.GetNodeCount()
+		}
+		if v, ok := tfMapObject["instance_size"]; ok && v.(string) != "" {
+			tfMap["instance_size"] = apiObject.GetInstanceSize()
+			tfList = append(tfList, tfMap)
+		}
+	} else {
+		tfMap["disk_iops"] = apiObject.GetDiskIOPS()
+		tfMap["ebs_volume_type"] = apiObject.GetEbsVolumeType()
+		tfMap["node_count"] = apiObject.GetNodeCount()
+		tfMap["instance_size"] = apiObject.GetInstanceSize()
+		tfList = append(tfList, tfMap)
+	}
+	return tfList
+}
+
+func flattenAdvancedReplicationSpecAutoScaling(apiObject *admin.AdvancedAutoScalingSettings) []map[string]any {
+	if apiObject == nil {
+		return nil
+	}
+	var tfList []map[string]any
+	tfMap := map[string]any{}
+	if apiObject.DiskGB != nil {
+		tfMap["disk_gb_enabled"] = apiObject.DiskGB.GetEnabled()
+	}
+	if apiObject.Compute != nil {
+		tfMap["compute_enabled"] = apiObject.Compute.GetEnabled()
+		tfMap["compute_scale_down_enabled"] = apiObject.Compute.GetScaleDownEnabled()
+		tfMap["compute_min_instance_size"] = apiObject.Compute.GetMinInstanceSize()
+		tfMap["compute_max_instance_size"] = apiObject.Compute.GetMaxInstanceSize()
+	}
+	tfList = append(tfList, tfMap)
+	return tfList
+}
+
+func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cluster *admin.CloudRegionConfig) string {
+	if len(containers) == 0 {
+		return ""
+	}
+	for i := range containers {
+		if cluster.GetProviderName() == constant.GCP {
+			return containers[i].GetId()
+		}
+		if containers[i].GetProviderName() == cluster.GetProviderName() &&
+			containers[i].GetRegion() == cluster.GetRegionName() || // For Azure
+			containers[i].GetRegionName() == cluster.GetRegionName() { // For AWS
+			return containers[i].GetId()
+		}
+	}
+	return ""
 }
 
 func expandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.ProcessArgs {
