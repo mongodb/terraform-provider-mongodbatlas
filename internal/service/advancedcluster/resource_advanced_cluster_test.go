@@ -20,42 +20,7 @@ const (
 	dataSourcePluralName = "data.mongodbatlas_advanced_clusters.test"
 )
 
-func TestAccClusterAdvancedCluster_basic(t *testing.T) {
-	// TEMPORARY: to delete, based on TestAccClusterAdvancedCluster_basicTenant
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		clusterName = acc.RandomClusterName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: configTenant(orgID, projectName, clusterName),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "termination_protection_enabled"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(dataSourceName, "termination_protection_enabled", "false"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.termination_protection_enabled"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
-	acc.SkipTestForCI(t) // TEMPORARY, DON'T MERGE
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName        = acc.RandomProjectName()
