@@ -803,69 +803,7 @@ func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cl
 	return ""
 }
 
-func expandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.ProcessArgs {
-	res := &matlas.ProcessArgs{}
-
-	if _, ok := d.GetOkExists("advanced_configuration.0.default_read_concern"); ok {
-		res.DefaultReadConcern = cast.ToString(p["default_read_concern"])
-	}
-
-	if _, ok := d.GetOkExists("advanced_configuration.0.default_write_concern"); ok {
-		res.DefaultWriteConcern = cast.ToString(p["default_write_concern"])
-	}
-
-	if _, ok := d.GetOkExists("advanced_configuration.0.fail_index_key_too_long"); ok {
-		res.FailIndexKeyTooLong = conversion.Pointer(cast.ToBool(p["fail_index_key_too_long"]))
-	}
-
-	if _, ok := d.GetOkExists("advanced_configuration.0.javascript_enabled"); ok {
-		res.JavascriptEnabled = conversion.Pointer(cast.ToBool(p["javascript_enabled"]))
-	}
-
-	if _, ok := d.GetOkExists("advanced_configuration.0.minimum_enabled_tls_protocol"); ok {
-		res.MinimumEnabledTLSProtocol = cast.ToString(p["minimum_enabled_tls_protocol"])
-	}
-
-	if _, ok := d.GetOkExists("advanced_configuration.0.no_table_scan"); ok {
-		res.NoTableScan = conversion.Pointer(cast.ToBool(p["no_table_scan"]))
-	}
-
-	if _, ok := d.GetOkExists("advanced_configuration.0.sample_size_bi_connector"); ok {
-		res.SampleSizeBIConnector = conversion.Pointer(cast.ToInt64(p["sample_size_bi_connector"]))
-	}
-
-	if _, ok := d.GetOkExists("advanced_configuration.0.sample_refresh_interval_bi_connector"); ok {
-		res.SampleRefreshIntervalBIConnector = conversion.Pointer(cast.ToInt64(p["sample_refresh_interval_bi_connector"]))
-	}
-
-	if _, ok := d.GetOkExists("advanced_configuration.0.oplog_size_mb"); ok {
-		if sizeMB := cast.ToInt64(p["oplog_size_mb"]); sizeMB != 0 {
-			res.OplogSizeMB = conversion.Pointer(cast.ToInt64(p["oplog_size_mb"]))
-		} else {
-			log.Printf(ErrorClusterSetting, `oplog_size_mb`, "", cast.ToString(sizeMB))
-		}
-	}
-
-	if _, ok := d.GetOkExists("advanced_configuration.0.oplog_min_retention_hours"); ok {
-		if minRetentionHours := cast.ToFloat64(p["oplog_min_retention_hours"]); minRetentionHours >= 0 {
-			res.OplogMinRetentionHours = conversion.Pointer(cast.ToFloat64(p["oplog_min_retention_hours"]))
-		} else {
-			log.Printf(ErrorClusterSetting, `oplog_min_retention_hours`, "", cast.ToString(minRetentionHours))
-		}
-	}
-
-	if _, ok := d.GetOkExists("advanced_configuration.0.transaction_lifetime_limit_seconds"); ok {
-		if transactionLifetimeLimitSeconds := cast.ToInt64(p["transaction_lifetime_limit_seconds"]); transactionLifetimeLimitSeconds > 0 {
-			res.TransactionLifetimeLimitSeconds = conversion.Pointer(cast.ToInt64(p["transaction_lifetime_limit_seconds"]))
-		} else {
-			log.Printf(ErrorClusterSetting, `transaction_lifetime_limit_seconds`, "", cast.ToString(transactionLifetimeLimitSeconds))
-		}
-	}
-
-	return res
-}
-
-func expandProcessArgsV2(d *schema.ResourceData, p map[string]any) *admin.ClusterDescriptionProcessArgs {
+func expandProcessArgs(d *schema.ResourceData, p map[string]any) *admin.ClusterDescriptionProcessArgs {
 	res := new(admin.ClusterDescriptionProcessArgs)
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.default_read_concern"); ok {

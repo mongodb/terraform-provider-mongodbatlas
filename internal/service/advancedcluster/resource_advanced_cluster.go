@@ -438,7 +438,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if ac, ok := d.GetOk("advanced_configuration"); ok {
 		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
-			params := expandProcessArgsV2(d, aclist[0].(map[string]any))
+			params := expandProcessArgs(d, aclist[0].(map[string]any))
 			_, _, err := connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.GetName(), params).Execute()
 			if err != nil {
 				return diag.FromErr(fmt.Errorf(errorConfigUpdate, cluster.GetName(), err))
@@ -584,13 +584,13 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	if upgradeRequest := getUpgradeRequest(d); upgradeRequest != nil {
 		upgradeCtx := context.WithValue(ctx, upgradeRequestCtxKey, upgradeRequest)
-		return resourceMongoDBAtlasAdvancedClusterUpgrade(upgradeCtx, d, meta)
+		return resourceUpgrade(upgradeCtx, d, meta)
 	}
 
-	return resourceMongoDBAtlasAdvancedClusterUpdate(ctx, d, meta)
+	return resourceUpdate(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAdvancedClusterUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -617,9 +617,9 @@ func resourceMongoDBAtlasAdvancedClusterUpgrade(ctx context.Context, d *schema.R
 	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -696,9 +696,9 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	if d.HasChange("advanced_configuration") {
 		ac := d.Get("advanced_configuration")
 		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
-			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any))
-			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
-				_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
+			params := expandProcessArgs(d, aclist[0].(map[string]any))
+			if !reflect.DeepEqual(*params, admin.ClusterDescriptionProcessArgs{}) {
+				_, _, err := connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, params).Execute()
 				if err != nil {
 					return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
 				}
