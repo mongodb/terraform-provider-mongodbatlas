@@ -64,7 +64,7 @@ jobs:
       generic: ${{ steps.filter.outputs.generic == 'true' || env.mustTrigger == 'true' }}
       network: false # TEMPORARY, WILL BE REVERTED BEFORE MERGE
       encryption: ${{ steps.filter.outputs.encryption == 'true' || env.mustTrigger == 'true' }}
-      serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
+      serverless: false # TEMPORARY, WILL BE REVERTED BEFORE MERGE
       data_lake: ${{ steps.filter.outputs.data_lake == 'true' || env.mustTrigger == 'true' }}
       cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation == 'true' || env.mustTrigger == 'true' }}
       cluster: false # TEMPORARY, WILL BE REVERTED BEFORE MERGE

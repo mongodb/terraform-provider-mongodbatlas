@@ -129,7 +129,7 @@ jobs:
       generic: ${{ steps.filter.outputs.generic == 'true' || env.mustTrigger == 'true' }}
       backup: false # TEMPORARY, WILL BE REVERTED BEFORE MERGE
       project: ${{ steps.filter.outputs.project == 'true' || env.mustTrigger == 'true' }}
-      serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
+      serverless: false # TEMPORARY, WILL BE REVERTED BEFORE MERGE
       network: false # TEMPORARY, WILL BE REVERTED BEFORE MERGE
       config: false # TEMPORARY, WILL BE REVERTED BEFORE MERGE
       assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
