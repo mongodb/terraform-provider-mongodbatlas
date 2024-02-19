@@ -59,7 +59,6 @@ jobs:
       terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
       ref: ${{ inputs.ref }}
       test_group: ${{ inputs.test_group }}
-      atlas_cloud_env: ${{ inputs.atlas_cloud_env }}
       aws_region_federation: ${{ vars.AWS_REGION_FEDERATION }}
       mongodb_atlas_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_ORG_ID_CLOUD_QA || vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
       mongodb_atlas_org_id_network: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_ORG_ID_CLOUD_QA || vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV_NETWORK }}
