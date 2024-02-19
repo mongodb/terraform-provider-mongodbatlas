@@ -21,7 +21,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -368,7 +367,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	params := &admin.AdvancedClusterDescription{
 		Name:             conversion.StringPtr(cast.ToString(d.Get("name"))),
 		ClusterType:      conversion.StringPtr(cast.ToString(d.Get("cluster_type"))),
-		ReplicationSpecs: expandAdvancedReplicationSpecsV2(d.Get("replication_specs").([]any)),
+		ReplicationSpecs: expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any)),
 	}
 
 	if v, ok := d.GetOk("backup_enabled"); ok {
@@ -668,7 +667,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("replication_specs") {
-		cluster.ReplicationSpecs = expandAdvancedReplicationSpecsV2(d.Get("replication_specs").([]any))
+		cluster.ReplicationSpecs = expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any))
 	}
 
 	if d.HasChange("root_cert_type") {
@@ -859,7 +858,7 @@ func replicationSpecsHashSet(v any) int {
 	return schema.HashString(buf.String())
 }
 
-func getUpgradeRequest(d *schema.ResourceData) *matlas.Cluster {
+func getUpgradeRequest(d *schema.ResourceData) *admin.LegacyAtlasTenantClusterUpgradeRequest {
 	if !d.HasChange("replication_specs") {
 		return nil
 	}
@@ -868,21 +867,21 @@ func getUpgradeRequest(d *schema.ResourceData) *matlas.Cluster {
 	currentSpecs := expandAdvancedReplicationSpecs(cs.([]any))
 	updatedSpecs := expandAdvancedReplicationSpecs(us.([]any))
 
-	if len(currentSpecs) != 1 || len(updatedSpecs) != 1 || len(currentSpecs[0].RegionConfigs) != 1 || len(updatedSpecs[0].RegionConfigs) != 1 {
+	if currentSpecs == nil || updatedSpecs == nil || len(*currentSpecs) != 1 || len(*updatedSpecs) != 1 || len((*currentSpecs)[0].GetRegionConfigs()) != 1 || len((*updatedSpecs)[0].GetRegionConfigs()) != 1 {
 		return nil
 	}
 
-	currentRegion := currentSpecs[0].RegionConfigs[0]
-	updatedRegion := updatedSpecs[0].RegionConfigs[0]
-	currentSize := currentRegion.ElectableSpecs.InstanceSize
+	currentRegion := (*currentSpecs)[0].GetRegionConfigs()[0]
+	updatedRegion := (*updatedSpecs)[0].GetRegionConfigs()[0]
+	currentSize := conversion.SafeString(currentRegion.ElectableSpecs.InstanceSize)
 
 	if currentRegion.ElectableSpecs.InstanceSize == updatedRegion.ElectableSpecs.InstanceSize || !IsSharedTier(currentSize) {
 		return nil
 	}
 
-	return &matlas.Cluster{
-		ProviderSettings: &matlas.ProviderSettings{
-			ProviderName:     updatedRegion.ProviderName,
+	return &admin.LegacyAtlasTenantClusterUpgradeRequest{
+		ProviderSettings: &admin.ClusterProviderSettings{
+			ProviderName:     updatedRegion.GetProviderName(),
 			InstanceSizeName: updatedRegion.ElectableSpecs.InstanceSize,
 			RegionName:       updatedRegion.RegionName,
 		},
