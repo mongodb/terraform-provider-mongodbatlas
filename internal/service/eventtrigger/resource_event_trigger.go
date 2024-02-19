@@ -241,7 +241,7 @@ func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.Reso
 
 	if typeTrigger == "DATABASE" {
 		if !okCots || !okD || !okSI {
-			return diag.FromErr(fmt.Errorf("`config_operation_types`, `config_database`,`config_collection`,`config_service_id` must be provided if type is DATABASE"))
+			return diag.FromErr(fmt.Errorf("`config_operation_types`, `config_database`,`config_service_id` must be provided if type is DATABASE"))
 		}
 	}
 	if typeTrigger == "AUTHENTICATION" {
