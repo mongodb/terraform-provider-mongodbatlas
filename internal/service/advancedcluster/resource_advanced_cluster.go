@@ -25,12 +25,17 @@ import (
 )
 
 const (
-	errorCreate       = "error creating advanced cluster: %s"
-	errorRead         = "error reading  advanced cluster (%s): %s"
-	errorDelete       = "error deleting advanced cluster (%s): %s"
-	errorUpdate       = "error updating advanced cluster (%s): %s"
-	errorConfigUpdate = "error updating advanced cluster configuration options (%s): %s"
-	errorConfigRead   = "error reading advanced cluster configuration options (%s): %s"
+	errorCreate                    = "error creating advanced cluster: %s"
+	errorRead                      = "error reading  advanced cluster (%s): %s"
+	errorDelete                    = "error deleting advanced cluster (%s): %s"
+	errorUpdate                    = "error updating advanced cluster (%s): %s"
+	errorConfigUpdate              = "error updating advanced cluster configuration options (%s): %s"
+	errorConfigRead                = "error reading advanced cluster configuration options (%s): %s"
+	ErrorClusterSetting            = "error setting `%s` for MongoDB Cluster (%s): %s"
+	ErrorAdvancedConfRead          = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
+	ErrorClusterAdvancedSetting    = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
+	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
+	ignoreLabel                    = "Infrastructure Tool"
 )
 
 type acCtxKey string
@@ -357,10 +362,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf("accept_data_risks_and_force_replica_set_reconfig can not be set in creation, only in update"))
 		}
 	}
-
-	conn := meta.(*config.MongoDBClient).Atlas
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-
 	projectID := d.Get("project_id").(string)
 
 	params := &admin.AdvancedClusterDescription{
@@ -373,7 +375,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params.BackupEnabled = conversion.Pointer(v.(bool))
 	}
 	if _, ok := d.GetOk("bi_connector_config"); ok {
-		params.BiConnector = expandBiConnectorConfigV2(d)
+		params.BiConnector = expandBiConnectorConfig(d)
 	}
 	if v, ok := d.GetOk("disk_size_gb"); ok {
 		params.DiskSizeGB = conversion.Pointer(v.(float64))
@@ -383,9 +385,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if _, ok := d.GetOk("labels"); ok {
-		labels, err := expandLabelSliceFromSetSchemaV2(d)
+		labels, err := expandLabelSliceFromSetSchema(d)
 		if err != nil {
-			return nil
+			return err
 		}
 		params.Labels = &labels
 	}
@@ -425,7 +427,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
 		Target:     []string{"IDLE"},
-		Refresh:    resourceRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
+		Refresh:    resourceRefreshFunc(ctx, d.Get("name").(string), projectID, connV2),
 		Timeout:    timeout,
 		MinTimeout: 1 * time.Minute,
 		Delay:      3 * time.Minute,
@@ -447,11 +449,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if v := d.Get("paused").(bool); v {
-		request := &matlas.AdvancedCluster{
+		request := &admin.AdvancedClusterDescription{
 			Paused: conversion.Pointer(v),
 		}
-
-		_, _, err = updateAdvancedCluster(ctx, conn, request, projectID, d.Get("name").(string), timeout)
+		_, _, err = updateAdvancedCluster(ctx, connV2, request, projectID, d.Get("name").(string), timeout)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, d.Get("name").(string), err))
 		}
@@ -618,25 +619,24 @@ func resourceUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	cluster := new(matlas.AdvancedCluster)
-	clusterChangeDetect := new(matlas.AdvancedCluster)
+	cluster := new(admin.AdvancedClusterDescription)
+	clusterChangeDetect := new(admin.AdvancedClusterDescription)
 
 	if d.HasChange("backup_enabled") {
 		cluster.BackupEnabled = conversion.Pointer(d.Get("backup_enabled").(bool))
 	}
 
 	if d.HasChange("bi_connector_config") {
-		cluster.BiConnector, _ = expandBiConnectorConfig(d)
+		cluster.BiConnector = expandBiConnectorConfig(d)
 	}
 
 	if d.HasChange("cluster_type") {
-		cluster.ClusterType = d.Get("cluster_type").(string)
+		cluster.ClusterType = conversion.StringPtr(d.Get("cluster_type").(string))
 	}
 
 	if d.HasChange("disk_size_gb") {
@@ -644,23 +644,23 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("encryption_at_rest_provider") {
-		cluster.EncryptionAtRestProvider = d.Get("encryption_at_rest_provider").(string)
+		cluster.EncryptionAtRestProvider = conversion.StringPtr(d.Get("encryption_at_rest_provider").(string))
 	}
 
 	if d.HasChange("labels") {
-		if ContainsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
-			return diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
+		labels, err := expandLabelSliceFromSetSchema(d)
+		if err != nil {
+			return err
 		}
-
-		cluster.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
+		cluster.Labels = &labels
 	}
 
 	if d.HasChange("tags") {
-		cluster.Tags = expandTagSliceFromSetSchema(d)
+		cluster.Tags = conversion.ExpandTagsFromSetSchema(d)
 	}
 
 	if d.HasChange("mongo_db_major_version") {
-		cluster.MongoDBMajorVersion = FormatMongoDBMajorVersion(d.Get("mongo_db_major_version"))
+		cluster.MongoDBMajorVersion = conversion.StringPtr(FormatMongoDBMajorVersion(d.Get("mongo_db_major_version")))
 	}
 
 	if d.HasChange("pit_enabled") {
@@ -668,11 +668,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("replication_specs") {
-		cluster.ReplicationSpecs = expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any))
+		cluster.ReplicationSpecs = expandAdvancedReplicationSpecsV2(d.Get("replication_specs").([]any))
 	}
 
 	if d.HasChange("root_cert_type") {
-		cluster.RootCertType = d.Get("root_cert_type").(string)
+		cluster.RootCertType = conversion.StringPtr(d.Get("root_cert_type").(string))
 	}
 
 	if d.HasChange("termination_protection_enabled") {
@@ -680,11 +680,15 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("version_release_system") {
-		cluster.VersionReleaseSystem = d.Get("version_release_system").(string)
+		cluster.VersionReleaseSystem = conversion.StringPtr(d.Get("version_release_system").(string))
 	}
 
 	if d.HasChange("accept_data_risks_and_force_replica_set_reconfig") {
-		cluster.AcceptDataRisksAndForceReplicaSetReconfig = d.Get("accept_data_risks_and_force_replica_set_reconfig").(string)
+		t, ok := conversion.StringToTime(d.Get("accept_data_risks_and_force_replica_set_reconfig").(string))
+		if !ok {
+			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, "accept_data_risks_and_force_replica_set_reconfig time format is incorrect"))
+		}
+		cluster.AcceptDataRisksAndForceReplicaSetReconfig = &t
 	}
 
 	if d.HasChange("paused") && !d.Get("paused").(bool) {
@@ -709,7 +713,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	// Has changes
 	if !reflect.DeepEqual(cluster, clusterChangeDetect) {
 		err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-			_, resp, err := updateAdvancedCluster(ctx, conn, cluster, projectID, clusterName, timeout)
+			_, resp, err := updateAdvancedCluster(ctx, connV2, cluster, projectID, clusterName, timeout)
 			if err != nil {
 				if resp == nil || resp.StatusCode == 400 {
 					return retry.NonRetryableError(fmt.Errorf(errorUpdate, clusterName, err))
@@ -724,11 +728,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.Get("paused").(bool) {
-		clusterRequest := &matlas.AdvancedCluster{
+		clusterRequest := &admin.AdvancedClusterDescription{
 			Paused: conversion.Pointer(true),
 		}
-
-		_, _, err := updateAdvancedCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
+		_, _, err := updateAdvancedCluster(ctx, connV2, clusterRequest, projectID, clusterName, timeout)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 		}
@@ -738,7 +741,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -762,7 +764,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
 		Target:     []string{"DELETED"},
-		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, conn),
+		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, connV2),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute, // Wait 30 secs before starting
@@ -822,15 +824,14 @@ func splitSClusterAdvancedImportID(id string) (projectID, clusterName *string, e
 	return
 }
 
-func resourceRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, name, projectID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		c, resp, err := client.AdvancedClusters.Get(ctx, projectID, name)
-
+		cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, name).Execute()
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
 		}
 
-		if err != nil && c == nil && resp == nil {
+		if err != nil && cluster == nil && resp == nil {
 			return nil, "", err
 		}
 
@@ -844,11 +845,8 @@ func resourceRefreshFunc(ctx context.Context, name, projectID string, client *ma
 			return nil, "", err
 		}
 
-		if c.StateName != "" {
-			log.Printf("[DEBUG] status for MongoDB cluster: %s: %s", name, c.StateName)
-		}
-
-		return c, c.StateName, nil
+		state := cluster.GetStateName()
+		return cluster, state, nil
 	}
 }
 
@@ -893,12 +891,12 @@ func getUpgradeRequest(d *schema.ResourceData) *matlas.Cluster {
 
 func updateAdvancedCluster(
 	ctx context.Context,
-	conn *matlas.Client,
-	request *matlas.AdvancedCluster,
+	connV2 *admin.APIClient,
+	request *admin.AdvancedClusterDescription,
 	projectID, name string,
 	timeout time.Duration,
-) (*matlas.AdvancedCluster, *matlas.Response, error) {
-	cluster, resp, err := conn.AdvancedClusters.Update(ctx, projectID, name, request)
+) (*admin.AdvancedClusterDescription, *http.Response, error) {
+	cluster, resp, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, name, request).Execute()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -906,13 +904,12 @@ func updateAdvancedCluster(
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
-		Refresh:    resourceRefreshFunc(ctx, name, projectID, conn),
+		Refresh:    resourceRefreshFunc(ctx, name, projectID, connV2),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
 	}
 
-	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return nil, nil, err

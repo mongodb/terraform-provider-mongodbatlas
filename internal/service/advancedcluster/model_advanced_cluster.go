@@ -22,16 +22,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-const (
-	ErrorClusterSetting            = "error setting `%s` for MongoDB Cluster (%s): %s"
-	ErrorAdvancedConfRead          = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
-	ErrorClusterAdvancedSetting    = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
-	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
-	ignoreLabel                    = "Infrastructure Tool"
-)
-
 var (
-	defaultLabel = matlas.Label{Key: "Infrastructure Tool", Value: "MongoDB Atlas Terraform Provider"}
 	DSTagsSchema = schema.Schema{
 		Type:     schema.TypeSet,
 		Computed: true,
@@ -471,27 +462,7 @@ func flattenBiConnectorConfig(biConnector admin.BiConnector) []map[string]any {
 	}
 }
 
-func expandBiConnectorConfig(d *schema.ResourceData) (*matlas.BiConnector, error) {
-	var biConnector matlas.BiConnector
-
-	if v, ok := d.GetOk("bi_connector_config"); ok {
-		biConn := v.([]any)
-		if len(biConn) > 0 {
-			biConnMap := biConn[0].(map[string]any)
-
-			enabled := cast.ToBool(biConnMap["enabled"])
-
-			biConnector = matlas.BiConnector{
-				Enabled:        &enabled,
-				ReadPreference: cast.ToString(biConnMap["read_preference"]),
-			}
-		}
-	}
-
-	return &biConnector, nil
-}
-
-func expandBiConnectorConfigV2(d *schema.ResourceData) *admin.BiConnector {
+func expandBiConnectorConfig(d *schema.ResourceData) *admin.BiConnector {
 	if v, ok := d.GetOk("bi_connector_config"); ok {
 		if biConn := v.([]any); len(biConn) > 0 {
 			biConnMap := biConn[0].(map[string]any)
@@ -502,19 +473,6 @@ func expandBiConnectorConfigV2(d *schema.ResourceData) *admin.BiConnector {
 		}
 	}
 	return nil
-}
-
-func expandTagSliceFromSetSchema(d *schema.ResourceData) []*matlas.Tag {
-	list := d.Get("tags").(*schema.Set)
-	res := make([]*matlas.Tag, list.Len())
-	for i, val := range list.List() {
-		v := val.(map[string]any)
-		res[i] = &matlas.Tag{
-			Key:   v["key"].(string),
-			Value: v["value"].(string),
-		}
-	}
-	return res
 }
 
 func flattenProcessArgs(p *admin.ClusterDescriptionProcessArgs) []map[string]any {
@@ -865,21 +823,7 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any) *admin.ClusterD
 	return res
 }
 
-func expandLabelSliceFromSetSchema(d *schema.ResourceData) []matlas.Label {
-	list := d.Get("labels").(*schema.Set)
-	res := make([]matlas.Label, list.Len())
-
-	for i, val := range list.List() {
-		v := val.(map[string]any)
-		res[i] = matlas.Label{
-			Key:   v["key"].(string),
-			Value: v["value"].(string),
-		}
-	}
-	return res
-}
-
-func expandLabelSliceFromSetSchemaV2(d *schema.ResourceData) ([]admin.ComponentLabel, diag.Diagnostics) {
+func expandLabelSliceFromSetSchema(d *schema.ResourceData) ([]admin.ComponentLabel, diag.Diagnostics) {
 	list := d.Get("labels").(*schema.Set)
 	res := make([]admin.ComponentLabel, list.Len())
 	for i, val := range list.List() {
