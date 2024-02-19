@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"reflect"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -538,7 +539,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
 		Target:     []string{"IDLE"},
-		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, d.Get("name").(string), projectID, advancedcluster.ServiceFromClient(conn)),
+		Refresh:    ResourceClusterRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
 		Timeout:    timeout,
 		MinTimeout: 1 * time.Minute,
 		Delay:      3 * time.Minute,
@@ -1039,7 +1040,7 @@ func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceDa
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
 		Target:     []string{"DELETED"},
-		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, clusterName, projectID, advancedcluster.ServiceFromClient(conn)),
+		Refresh:    ResourceClusterRefreshFunc(ctx, clusterName, projectID, conn),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute, // Wait 30 secs before starting
@@ -1186,7 +1187,7 @@ func updateCluster(ctx context.Context, conn *matlas.Client, request *matlas.Clu
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
-		Refresh:    advancedcluster.ResourceClusterRefreshFunc(ctx, name, projectID, advancedcluster.ServiceFromClient(conn)),
+		Refresh:    ResourceClusterRefreshFunc(ctx, name, projectID, conn),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
@@ -1280,5 +1281,33 @@ func computedCloudProviderSnapshotBackupPolicySchema() *schema.Schema {
 				},
 			},
 		},
+	}
+}
+
+func ResourceClusterRefreshFunc(ctx context.Context, name, projectID string, conn *matlas.Client) retry.StateRefreshFunc {
+	return func() (any, string, error) {
+		c, resp, err := conn.Clusters.Get(ctx, projectID, name)
+
+		if err != nil && strings.Contains(err.Error(), "reset by peer") {
+			return nil, "REPEATING", nil
+		}
+
+		if err != nil && c == nil && resp == nil {
+			return nil, "", err
+		} else if err != nil {
+			if resp.StatusCode == 404 {
+				return "", "DELETED", nil
+			}
+			if resp.StatusCode == 503 {
+				return "", "PENDING", nil
+			}
+			return nil, "", err
+		}
+
+		if c.StateName != "" {
+			log.Printf("[DEBUG] status for MongoDB cluster: %s: %s", name, c.StateName)
+		}
+
+		return c, c.StateName, nil
 	}
 }
