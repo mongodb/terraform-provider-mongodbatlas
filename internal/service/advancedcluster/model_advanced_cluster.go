@@ -491,6 +491,19 @@ func expandBiConnectorConfig(d *schema.ResourceData) (*matlas.BiConnector, error
 	return &biConnector, nil
 }
 
+func expandBiConnectorConfigV2(d *schema.ResourceData) *admin.BiConnector {
+	if v, ok := d.GetOk("bi_connector_config"); ok {
+		if biConn := v.([]any); len(biConn) > 0 {
+			biConnMap := biConn[0].(map[string]any)
+			return &admin.BiConnector{
+				Enabled:        conversion.Pointer(cast.ToBool(biConnMap["enabled"])),
+				ReadPreference: conversion.StringPtr(cast.ToString(biConnMap["read_preference"])),
+			}
+		}
+	}
+	return nil
+}
+
 func expandTagSliceFromSetSchema(d *schema.ResourceData) []*matlas.Tag {
 	list := d.Get("tags").(*schema.Set)
 	res := make([]*matlas.Tag, list.Len())
@@ -706,6 +719,18 @@ func hwSpecToDedicatedHwSpec(apiObject *admin.HardwareSpec) *admin.DedicatedHard
 	}
 }
 
+func dedicatedHwSpecToHwSpec(apiObject *admin.DedicatedHardwareSpec) *admin.HardwareSpec {
+	if apiObject == nil {
+		return nil
+	}
+	return &admin.HardwareSpec{
+		NodeCount:     apiObject.NodeCount,
+		DiskIOPS:      apiObject.DiskIOPS,
+		EbsVolumeType: apiObject.EbsVolumeType,
+		InstanceSize:  apiObject.InstanceSize,
+	}
+}
+
 func flattenAdvancedReplicationSpecRegionConfigSpec(apiObject *admin.DedicatedHardwareSpec, providerName string, tfMapObjects []any) []map[string]any {
 	if apiObject == nil {
 		return nil
@@ -851,6 +876,305 @@ func expandLabelSliceFromSetSchema(d *schema.ResourceData) []matlas.Label {
 			Value: v["value"].(string),
 		}
 	}
-
 	return res
+}
+
+func expandLabelSliceFromSetSchemaV2(d *schema.ResourceData) ([]admin.ComponentLabel, diag.Diagnostics) {
+	list := d.Get("labels").(*schema.Set)
+	res := make([]admin.ComponentLabel, list.Len())
+	for i, val := range list.List() {
+		v := val.(map[string]any)
+		key := v["key"].(string)
+		if key == ignoreLabel {
+			return nil, diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
+		}
+		res[i] = admin.ComponentLabel{
+			Key:   conversion.StringPtr(key),
+			Value: conversion.StringPtr(v["value"].(string)),
+		}
+	}
+	return res, nil
+}
+
+func expandAdvancedReplicationSpecs(tfList []any) []*matlas.AdvancedReplicationSpec {
+	if len(tfList) == 0 {
+		return nil
+	}
+
+	var apiObjects []*matlas.AdvancedReplicationSpec
+
+	for _, tfMapRaw := range tfList {
+		tfMap, ok := tfMapRaw.(map[string]any)
+
+		if !ok {
+			continue
+		}
+
+		apiObject := expandAdvancedReplicationSpec(tfMap)
+
+		apiObjects = append(apiObjects, apiObject)
+	}
+
+	return apiObjects
+}
+
+func expandAdvancedReplicationSpecsV2(tfList []any) *[]admin.ReplicationSpec {
+	if len(tfList) == 0 {
+		return nil
+	}
+	var apiObjects []admin.ReplicationSpec
+	for _, tfMapRaw := range tfList {
+		tfMap, ok := tfMapRaw.(map[string]any)
+		if !ok || tfMap == nil {
+			continue
+		}
+		apiObject := expandAdvancedReplicationSpecV2(tfMap)
+		apiObjects = append(apiObjects, *apiObject)
+	}
+	return &apiObjects
+}
+
+func expandAdvancedReplicationSpec(tfMap map[string]any) *matlas.AdvancedReplicationSpec {
+	if tfMap == nil {
+		return nil
+	}
+
+	apiObject := &matlas.AdvancedReplicationSpec{
+		NumShards:     tfMap["num_shards"].(int),
+		ZoneName:      tfMap["zone_name"].(string),
+		RegionConfigs: expandRegionConfigs(tfMap["region_configs"].([]any)),
+	}
+
+	if tfMap["id"].(string) != "" {
+		apiObject.ID = tfMap["id"].(string)
+	}
+
+	return apiObject
+}
+
+func expandAdvancedReplicationSpecV2(tfMap map[string]any) *admin.ReplicationSpec {
+	apiObject := &admin.ReplicationSpec{
+		NumShards:     conversion.Pointer(tfMap["num_shards"].(int)),
+		ZoneName:      conversion.StringPtr(tfMap["zone_name"].(string)),
+		RegionConfigs: expandRegionConfigsV2(tfMap["region_configs"].([]any)),
+	}
+	if tfMap["id"].(string) != "" {
+		apiObject.Id = conversion.StringPtr(tfMap["id"].(string))
+	}
+	return apiObject
+}
+
+func expandRegionConfigs(tfList []any) []*matlas.AdvancedRegionConfig {
+	if len(tfList) == 0 {
+		return nil
+	}
+
+	var apiObjects []*matlas.AdvancedRegionConfig
+
+	for _, tfMapRaw := range tfList {
+		tfMap, ok := tfMapRaw.(map[string]any)
+
+		if !ok {
+			continue
+		}
+
+		apiObject := expandRegionConfig(tfMap)
+
+		apiObjects = append(apiObjects, apiObject)
+	}
+
+	return apiObjects
+}
+
+func expandRegionConfigsV2(tfList []any) *[]admin.CloudRegionConfig {
+	if len(tfList) == 0 {
+		return nil
+	}
+	var apiObjects []admin.CloudRegionConfig
+	for _, tfMapRaw := range tfList {
+		tfMap, ok := tfMapRaw.(map[string]any)
+		if !ok || tfMap == nil {
+			continue
+		}
+		apiObject := expandRegionConfigV2(tfMap)
+		apiObjects = append(apiObjects, *apiObject)
+	}
+
+	return &apiObjects
+}
+
+func expandRegionConfig(tfMap map[string]any) *matlas.AdvancedRegionConfig {
+	providerName := tfMap["provider_name"].(string)
+	apiObject := &matlas.AdvancedRegionConfig{
+		Priority:     conversion.Pointer(cast.ToInt(tfMap["priority"])),
+		ProviderName: providerName,
+		RegionName:   tfMap["region_name"].(string),
+	}
+
+	if v, ok := tfMap["analytics_specs"]; ok && len(v.([]any)) > 0 {
+		apiObject.AnalyticsSpecs = expandRegionConfigSpec(v.([]any), providerName)
+	}
+	if v, ok := tfMap["electable_specs"]; ok && len(v.([]any)) > 0 {
+		apiObject.ElectableSpecs = expandRegionConfigSpec(v.([]any), providerName)
+	}
+	if v, ok := tfMap["read_only_specs"]; ok && len(v.([]any)) > 0 {
+		apiObject.ReadOnlySpecs = expandRegionConfigSpec(v.([]any), providerName)
+	}
+	if v, ok := tfMap["auto_scaling"]; ok && len(v.([]any)) > 0 {
+		apiObject.AutoScaling = expandRegionConfigAutoScaling(v.([]any))
+	}
+	if v, ok := tfMap["analytics_auto_scaling"]; ok && len(v.([]any)) > 0 {
+		apiObject.AnalyticsAutoScaling = expandRegionConfigAutoScaling(v.([]any))
+	}
+	if v, ok := tfMap["backing_provider_name"]; ok {
+		apiObject.BackingProviderName = v.(string)
+	}
+
+	return apiObject
+}
+
+func expandRegionConfigV2(tfMap map[string]any) *admin.CloudRegionConfig {
+	providerName := tfMap["provider_name"].(string)
+	apiObject := &admin.CloudRegionConfig{
+		Priority:     conversion.Pointer(cast.ToInt(tfMap["priority"])),
+		ProviderName: conversion.StringPtr(providerName),
+		RegionName:   conversion.StringPtr(tfMap["region_name"].(string)),
+	}
+
+	if v, ok := tfMap["analytics_specs"]; ok && len(v.([]any)) > 0 {
+		apiObject.AnalyticsSpecs = expandRegionConfigSpecV2(v.([]any), providerName)
+	}
+	if v, ok := tfMap["electable_specs"]; ok && len(v.([]any)) > 0 {
+		apiObject.ElectableSpecs = dedicatedHwSpecToHwSpec(expandRegionConfigSpecV2(v.([]any), providerName))
+	}
+	if v, ok := tfMap["read_only_specs"]; ok && len(v.([]any)) > 0 {
+		apiObject.ReadOnlySpecs = expandRegionConfigSpecV2(v.([]any), providerName)
+	}
+	if v, ok := tfMap["auto_scaling"]; ok && len(v.([]any)) > 0 {
+		apiObject.AutoScaling = expandRegionConfigAutoScalingV2(v.([]any))
+	}
+	if v, ok := tfMap["analytics_auto_scaling"]; ok && len(v.([]any)) > 0 {
+		apiObject.AnalyticsAutoScaling = expandRegionConfigAutoScalingV2(v.([]any))
+	}
+	if v, ok := tfMap["backing_provider_name"]; ok {
+		apiObject.BackingProviderName = conversion.StringPtr(v.(string))
+	}
+	return apiObject
+}
+
+func expandRegionConfigSpec(tfList []any, providerName string) *matlas.Specs {
+	if tfList == nil && len(tfList) > 0 {
+		return nil
+	}
+
+	tfMap, _ := tfList[0].(map[string]any)
+
+	apiObject := &matlas.Specs{}
+
+	if providerName == "AWS" {
+		if v, ok := tfMap["disk_iops"]; ok && v.(int) > 0 {
+			apiObject.DiskIOPS = conversion.Pointer(cast.ToInt64(v.(int)))
+		}
+		if v, ok := tfMap["ebs_volume_type"]; ok {
+			apiObject.EbsVolumeType = v.(string)
+		}
+	}
+	if v, ok := tfMap["instance_size"]; ok {
+		apiObject.InstanceSize = v.(string)
+	}
+	if v, ok := tfMap["node_count"]; ok {
+		apiObject.NodeCount = conversion.Pointer(v.(int))
+	}
+
+	return apiObject
+}
+
+func expandRegionConfigSpecV2(tfList []any, providerName string) *admin.DedicatedHardwareSpec {
+	tfMap, _ := tfList[0].(map[string]any)
+	apiObject := new(admin.DedicatedHardwareSpec)
+	if providerName == "AWS" {
+		if v, ok := tfMap["disk_iops"]; ok && v.(int) > 0 {
+			apiObject.DiskIOPS = conversion.Pointer(v.(int))
+		}
+		if v, ok := tfMap["ebs_volume_type"]; ok {
+			apiObject.EbsVolumeType = conversion.StringPtr(v.(string))
+		}
+	}
+	if v, ok := tfMap["instance_size"]; ok {
+		apiObject.InstanceSize = conversion.StringPtr(v.(string))
+	}
+	if v, ok := tfMap["node_count"]; ok {
+		apiObject.NodeCount = conversion.Pointer(v.(int))
+	}
+	return apiObject
+}
+
+func expandRegionConfigAutoScaling(tfList []any) *matlas.AdvancedAutoScaling {
+	if tfList == nil && len(tfList) > 0 {
+		return nil
+	}
+
+	tfMap, _ := tfList[0].(map[string]any)
+
+	advancedAutoScaling := &matlas.AdvancedAutoScaling{}
+	diskGB := &matlas.DiskGB{}
+	compute := &matlas.Compute{}
+
+	if v, ok := tfMap["disk_gb_enabled"]; ok {
+		diskGB.Enabled = conversion.Pointer(v.(bool))
+	}
+	if v, ok := tfMap["compute_enabled"]; ok {
+		compute.Enabled = conversion.Pointer(v.(bool))
+	}
+	if v, ok := tfMap["compute_scale_down_enabled"]; ok {
+		compute.ScaleDownEnabled = conversion.Pointer(v.(bool))
+	}
+	if v, ok := tfMap["compute_min_instance_size"]; ok {
+		value := compute.ScaleDownEnabled
+		if *value {
+			compute.MinInstanceSize = v.(string)
+		}
+	}
+	if v, ok := tfMap["compute_max_instance_size"]; ok {
+		value := compute.Enabled
+		if *value {
+			compute.MaxInstanceSize = v.(string)
+		}
+	}
+
+	advancedAutoScaling.DiskGB = diskGB
+	advancedAutoScaling.Compute = compute
+
+	return advancedAutoScaling
+}
+
+func expandRegionConfigAutoScalingV2(tfList []any) *admin.AdvancedAutoScalingSettings {
+	tfMap, _ := tfList[0].(map[string]any)
+	settings := admin.AdvancedAutoScalingSettings{
+		DiskGB:  new(admin.DiskGBAutoScaling),
+		Compute: new(admin.AdvancedComputeAutoScaling),
+	}
+
+	if v, ok := tfMap["disk_gb_enabled"]; ok {
+		settings.DiskGB.Enabled = conversion.Pointer(v.(bool))
+	}
+	if v, ok := tfMap["compute_enabled"]; ok {
+		settings.Compute.Enabled = conversion.Pointer(v.(bool))
+	}
+	if v, ok := tfMap["compute_scale_down_enabled"]; ok {
+		settings.Compute.ScaleDownEnabled = conversion.Pointer(v.(bool))
+	}
+	if v, ok := tfMap["compute_min_instance_size"]; ok {
+		value := settings.Compute.ScaleDownEnabled
+		if *value {
+			settings.Compute.MinInstanceSize = conversion.StringPtr(v.(string))
+		}
+	}
+	if v, ok := tfMap["compute_max_instance_size"]; ok {
+		value := settings.Compute.Enabled
+		if *value {
+			settings.Compute.MaxInstanceSize = conversion.StringPtr(v.(string))
+		}
+	}
+	return &settings
 }

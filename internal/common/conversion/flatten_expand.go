@@ -28,7 +28,7 @@ func FlattenTags(tags []admin.ResourceTag) []map[string]string {
 	return ret
 }
 
-func ExpandTagsFromSetSchema(d *schema.ResourceData) []admin.ResourceTag {
+func ExpandTagsFromSetSchema(d *schema.ResourceData) *[]admin.ResourceTag {
 	list := d.Get("tags").(*schema.Set)
 	ret := make([]admin.ResourceTag, list.Len())
 	for i, item := range list.List() {
@@ -38,7 +38,7 @@ func ExpandTagsFromSetSchema(d *schema.ResourceData) []admin.ResourceTag {
 			Value: StringPtr(tag["value"].(string)),
 		}
 	}
-	return ret
+	return &ret
 }
 
 func ExpandStringList(list []any) (res []string) {

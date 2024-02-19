@@ -20,6 +20,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -358,65 +359,64 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 
-	request := &matlas.AdvancedCluster{
-		Name:             d.Get("name").(string),
-		ClusterType:      cast.ToString(d.Get("cluster_type")),
-		ReplicationSpecs: expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any)),
+	params := &admin.AdvancedClusterDescription{
+		Name:             conversion.StringPtr(cast.ToString(d.Get("name"))),
+		ClusterType:      conversion.StringPtr(cast.ToString(d.Get("cluster_type"))),
+		ReplicationSpecs: expandAdvancedReplicationSpecsV2(d.Get("replication_specs").([]any)),
 	}
 
 	if v, ok := d.GetOk("backup_enabled"); ok {
-		request.BackupEnabled = conversion.Pointer(v.(bool))
+		params.BackupEnabled = conversion.Pointer(v.(bool))
 	}
 	if _, ok := d.GetOk("bi_connector_config"); ok {
-		biConnector, err := expandBiConnectorConfig(d)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorCreate, err))
-		}
-		request.BiConnector = biConnector
+		params.BiConnector = expandBiConnectorConfigV2(d)
 	}
 	if v, ok := d.GetOk("disk_size_gb"); ok {
-		request.DiskSizeGB = conversion.Pointer(v.(float64))
+		params.DiskSizeGB = conversion.Pointer(v.(float64))
 	}
 	if v, ok := d.GetOk("encryption_at_rest_provider"); ok {
-		request.EncryptionAtRestProvider = v.(string)
+		params.EncryptionAtRestProvider = conversion.StringPtr(v.(string))
 	}
 
-	if _, ok := d.GetOk("labels"); ok && ContainsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
-		return diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
+	if _, ok := d.GetOk("labels"); ok {
+		labels, err := expandLabelSliceFromSetSchemaV2(d)
+		if err != nil {
+			return nil
+		}
+		params.Labels = &labels
 	}
-	request.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
 
 	if _, ok := d.GetOk("tags"); ok {
-		request.Tags = expandTagSliceFromSetSchema(d)
+		params.Tags = conversion.ExpandTagsFromSetSchema(d)
 	}
 	if v, ok := d.GetOk("mongo_db_major_version"); ok {
-		request.MongoDBMajorVersion = FormatMongoDBMajorVersion(v.(string))
+		params.MongoDBMajorVersion = conversion.StringPtr(FormatMongoDBMajorVersion(v.(string)))
 	}
 	if v, ok := d.GetOk("pit_enabled"); ok {
-		request.PitEnabled = conversion.Pointer(v.(bool))
+		params.PitEnabled = conversion.Pointer(v.(bool))
 	}
 	if v, ok := d.GetOk("root_cert_type"); ok {
-		request.RootCertType = v.(string)
+		params.RootCertType = conversion.StringPtr(v.(string))
 	}
 	if v, ok := d.GetOk("termination_protection_enabled"); ok {
-		request.TerminationProtectionEnabled = conversion.Pointer(v.(bool))
+		params.TerminationProtectionEnabled = conversion.Pointer(v.(bool))
 	}
 	if v, ok := d.GetOk("version_release_system"); ok {
-		request.VersionReleaseSystem = v.(string)
+		params.VersionReleaseSystem = conversion.StringPtr(v.(string))
 	}
 
-	// We need to validate the oplog_size_mb attr of the advanced configuration option to show the error
-	// before that the cluster is created
+	// Validate oplog_size_mb to show the error before the cluster is created.
 	if oplogSizeMB, ok := d.GetOkExists("advanced_configuration.0.oplog_size_mb"); ok {
 		if cast.ToInt64(oplogSizeMB) <= 0 {
 			return diag.FromErr(fmt.Errorf("`advanced_configuration.oplog_size_mb` cannot be <= 0"))
 		}
 	}
 
-	cluster, _, err := conn.AdvancedClusters.Create(ctx, projectID, request)
+	cluster, _, err := connV2.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, err))
 	}
@@ -431,31 +431,23 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Delay:      3 * time.Minute,
 	}
 
-	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, err))
 	}
 
-	/*
-		So far, the cluster has created correctly, so we need to set up
-		the advanced configuration option to attach it
-	*/
-	ac, ok := d.GetOk("advanced_configuration")
-	if aclist, ok1 := ac.([]any); ok1 && len(aclist) > 0 {
-		advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any))
-
-		if ok {
-			_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, cluster.Name, advancedConfReq)
+	if ac, ok := d.GetOk("advanced_configuration"); ok {
+		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
+			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any))
+			_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, cluster.GetName(), advancedConfReq)
 			if err != nil {
-				return diag.FromErr(fmt.Errorf(errorConfigUpdate, cluster.Name, err))
+				return diag.FromErr(fmt.Errorf(errorConfigUpdate, cluster.GetName(), err))
 			}
 		}
 	}
 
-	// To pause a cluster
 	if v := d.Get("paused").(bool); v {
-		request = &matlas.AdvancedCluster{
+		request := &matlas.AdvancedCluster{
 			Paused: conversion.Pointer(v),
 		}
 
@@ -466,9 +458,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"cluster_id":   cluster.ID,
+		"cluster_id":   cluster.GetId(),
 		"project_id":   projectID,
-		"cluster_name": cluster.Name,
+		"cluster_name": cluster.GetName(),
 	}))
 
 	return resourceRead(ctx, d, meta)
@@ -486,7 +478,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			d.SetId("")
 			return nil
 		}
-
 		return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 	}
 
@@ -828,168 +819,6 @@ func splitSClusterAdvancedImportID(id string) (projectID, clusterName *string, e
 	clusterName = &parts[2]
 
 	return
-}
-
-func expandAdvancedReplicationSpec(tfMap map[string]any) *matlas.AdvancedReplicationSpec {
-	if tfMap == nil {
-		return nil
-	}
-
-	apiObject := &matlas.AdvancedReplicationSpec{
-		NumShards:     tfMap["num_shards"].(int),
-		ZoneName:      tfMap["zone_name"].(string),
-		RegionConfigs: expandRegionConfigs(tfMap["region_configs"].([]any)),
-	}
-
-	if tfMap["id"].(string) != "" {
-		apiObject.ID = tfMap["id"].(string)
-	}
-
-	return apiObject
-}
-
-func expandAdvancedReplicationSpecs(tfList []any) []*matlas.AdvancedReplicationSpec {
-	if len(tfList) == 0 {
-		return nil
-	}
-
-	var apiObjects []*matlas.AdvancedReplicationSpec
-
-	for _, tfMapRaw := range tfList {
-		tfMap, ok := tfMapRaw.(map[string]any)
-
-		if !ok {
-			continue
-		}
-
-		apiObject := expandAdvancedReplicationSpec(tfMap)
-
-		apiObjects = append(apiObjects, apiObject)
-	}
-
-	return apiObjects
-}
-
-func expandRegionConfig(tfMap map[string]any) *matlas.AdvancedRegionConfig {
-	if tfMap == nil {
-		return nil
-	}
-
-	providerName := tfMap["provider_name"].(string)
-	apiObject := &matlas.AdvancedRegionConfig{
-		Priority:     conversion.Pointer(cast.ToInt(tfMap["priority"])),
-		ProviderName: providerName,
-		RegionName:   tfMap["region_name"].(string),
-	}
-
-	if v, ok := tfMap["analytics_specs"]; ok && len(v.([]any)) > 0 {
-		apiObject.AnalyticsSpecs = expandRegionConfigSpec(v.([]any), providerName)
-	}
-	if v, ok := tfMap["electable_specs"]; ok && len(v.([]any)) > 0 {
-		apiObject.ElectableSpecs = expandRegionConfigSpec(v.([]any), providerName)
-	}
-	if v, ok := tfMap["read_only_specs"]; ok && len(v.([]any)) > 0 {
-		apiObject.ReadOnlySpecs = expandRegionConfigSpec(v.([]any), providerName)
-	}
-	if v, ok := tfMap["auto_scaling"]; ok && len(v.([]any)) > 0 {
-		apiObject.AutoScaling = expandRegionConfigAutoScaling(v.([]any))
-	}
-	if v, ok := tfMap["analytics_auto_scaling"]; ok && len(v.([]any)) > 0 {
-		apiObject.AnalyticsAutoScaling = expandRegionConfigAutoScaling(v.([]any))
-	}
-	if v, ok := tfMap["backing_provider_name"]; ok {
-		apiObject.BackingProviderName = v.(string)
-	}
-
-	return apiObject
-}
-
-func expandRegionConfigs(tfList []any) []*matlas.AdvancedRegionConfig {
-	if len(tfList) == 0 {
-		return nil
-	}
-
-	var apiObjects []*matlas.AdvancedRegionConfig
-
-	for _, tfMapRaw := range tfList {
-		tfMap, ok := tfMapRaw.(map[string]any)
-
-		if !ok {
-			continue
-		}
-
-		apiObject := expandRegionConfig(tfMap)
-
-		apiObjects = append(apiObjects, apiObject)
-	}
-
-	return apiObjects
-}
-
-func expandRegionConfigSpec(tfList []any, providerName string) *matlas.Specs {
-	if tfList == nil && len(tfList) > 0 {
-		return nil
-	}
-
-	tfMap, _ := tfList[0].(map[string]any)
-
-	apiObject := &matlas.Specs{}
-
-	if providerName == "AWS" {
-		if v, ok := tfMap["disk_iops"]; ok && v.(int) > 0 {
-			apiObject.DiskIOPS = conversion.Pointer(cast.ToInt64(v.(int)))
-		}
-		if v, ok := tfMap["ebs_volume_type"]; ok {
-			apiObject.EbsVolumeType = v.(string)
-		}
-	}
-	if v, ok := tfMap["instance_size"]; ok {
-		apiObject.InstanceSize = v.(string)
-	}
-	if v, ok := tfMap["node_count"]; ok {
-		apiObject.NodeCount = conversion.Pointer(v.(int))
-	}
-
-	return apiObject
-}
-
-func expandRegionConfigAutoScaling(tfList []any) *matlas.AdvancedAutoScaling {
-	if tfList == nil && len(tfList) > 0 {
-		return nil
-	}
-
-	tfMap, _ := tfList[0].(map[string]any)
-
-	advancedAutoScaling := &matlas.AdvancedAutoScaling{}
-	diskGB := &matlas.DiskGB{}
-	compute := &matlas.Compute{}
-
-	if v, ok := tfMap["disk_gb_enabled"]; ok {
-		diskGB.Enabled = conversion.Pointer(v.(bool))
-	}
-	if v, ok := tfMap["compute_enabled"]; ok {
-		compute.Enabled = conversion.Pointer(v.(bool))
-	}
-	if v, ok := tfMap["compute_scale_down_enabled"]; ok {
-		compute.ScaleDownEnabled = conversion.Pointer(v.(bool))
-	}
-	if v, ok := tfMap["compute_min_instance_size"]; ok {
-		value := compute.ScaleDownEnabled
-		if *value {
-			compute.MinInstanceSize = v.(string)
-		}
-	}
-	if v, ok := tfMap["compute_max_instance_size"]; ok {
-		value := compute.Enabled
-		if *value {
-			compute.MaxInstanceSize = v.(string)
-		}
-	}
-
-	advancedAutoScaling.DiskGB = diskGB
-	advancedAutoScaling.Compute = compute
-
-	return advancedAutoScaling
 }
 
 func resourceRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
