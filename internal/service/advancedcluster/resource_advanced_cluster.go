@@ -738,20 +738,21 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	var options *matlas.DeleteAdvanceClusterOptions
+	params := &admin.DeleteClusterApiParams{
+		GroupId:     projectID,
+		ClusterName: clusterName,
+	}
 	if v, ok := d.GetOkExists("retain_backups_enabled"); ok {
-		options = &matlas.DeleteAdvanceClusterOptions{
-			RetainBackups: conversion.Pointer(v.(bool)),
-		}
+		params.RetainBackups = conversion.Pointer(v.(bool))
 	}
 
-	_, err := conn.AdvancedClusters.Delete(ctx, projectID, clusterName, options)
+	_, err := connV2.ClustersApi.DeleteClusterWithParams(ctx, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorDelete, clusterName, err))
 	}
