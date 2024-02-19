@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 const (
@@ -333,28 +333,28 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		projectName        = acc.RandomProjectName()
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
-		processArgs        = &matlas.ProcessArgs{
-			DefaultReadConcern:               "available",
-			DefaultWriteConcern:              "1",
+		processArgs        = &admin.ClusterDescriptionProcessArgs{
+			DefaultReadConcern:               conversion.StringPtr("available"),
+			DefaultWriteConcern:              conversion.StringPtr("1"),
 			FailIndexKeyTooLong:              conversion.Pointer(false),
 			JavascriptEnabled:                conversion.Pointer(true),
-			MinimumEnabledTLSProtocol:        "TLS1_1",
+			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
 			NoTableScan:                      conversion.Pointer(false),
-			OplogSizeMB:                      conversion.Pointer[int64](1000),
-			SampleRefreshIntervalBIConnector: conversion.Pointer[int64](310),
-			SampleSizeBIConnector:            conversion.Pointer[int64](110),
+			OplogSizeMB:                      conversion.Pointer(1000),
+			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
+			SampleSizeBIConnector:            conversion.Pointer(110),
 			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 		}
-		processArgsUpdated = &matlas.ProcessArgs{
-			DefaultReadConcern:               "available",
-			DefaultWriteConcern:              "0",
+		processArgsUpdated = &admin.ClusterDescriptionProcessArgs{
+			DefaultReadConcern:               conversion.StringPtr("available"),
+			DefaultWriteConcern:              conversion.StringPtr("0"),
 			FailIndexKeyTooLong:              conversion.Pointer(false),
 			JavascriptEnabled:                conversion.Pointer(true),
-			MinimumEnabledTLSProtocol:        "TLS1_2",
+			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
 			NoTableScan:                      conversion.Pointer(false),
-			OplogSizeMB:                      conversion.Pointer[int64](1000),
-			SampleRefreshIntervalBIConnector: conversion.Pointer[int64](310),
-			SampleSizeBIConnector:            conversion.Pointer[int64](110),
+			OplogSizeMB:                      conversion.Pointer(1000),
+			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
+			SampleSizeBIConnector:            conversion.Pointer(110),
 			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 		}
 	)
@@ -412,25 +412,25 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 		projectName        = acc.RandomProjectName()
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
-		processArgs        = &matlas.ProcessArgs{
-			DefaultReadConcern:               "available",
-			DefaultWriteConcern:              "1",
+		processArgs        = &admin.ClusterDescriptionProcessArgs{
+			DefaultReadConcern:               conversion.StringPtr("available"),
+			DefaultWriteConcern:              conversion.StringPtr("1"),
 			JavascriptEnabled:                conversion.Pointer(true),
-			MinimumEnabledTLSProtocol:        "TLS1_1",
+			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
 			NoTableScan:                      conversion.Pointer(false),
-			OplogSizeMB:                      conversion.Pointer[int64](1000),
-			SampleRefreshIntervalBIConnector: conversion.Pointer[int64](310),
-			SampleSizeBIConnector:            conversion.Pointer[int64](110),
+			OplogSizeMB:                      conversion.Pointer(1000),
+			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
+			SampleSizeBIConnector:            conversion.Pointer(110),
 		}
-		processArgsUpdated = &matlas.ProcessArgs{
-			DefaultReadConcern:               "available",
-			DefaultWriteConcern:              "majority",
+		processArgsUpdated = &admin.ClusterDescriptionProcessArgs{
+			DefaultReadConcern:               conversion.StringPtr("available"),
+			DefaultWriteConcern:              conversion.StringPtr("majority"),
 			JavascriptEnabled:                conversion.Pointer(true),
-			MinimumEnabledTLSProtocol:        "TLS1_2",
+			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
 			NoTableScan:                      conversion.Pointer(false),
-			OplogSizeMB:                      conversion.Pointer[int64](1000),
-			SampleRefreshIntervalBIConnector: conversion.Pointer[int64](310),
-			SampleSizeBIConnector:            conversion.Pointer[int64](110),
+			OplogSizeMB:                      conversion.Pointer(1000),
+			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
+			SampleSizeBIConnector:            conversion.Pointer(110),
 			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 		}
 	)
@@ -482,13 +482,13 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 		projectName        = acc.RandomProjectName()
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
-		autoScaling        = &matlas.AutoScaling{
-			Compute:       &matlas.Compute{Enabled: conversion.Pointer(false), MaxInstanceSize: ""},
-			DiskGBEnabled: conversion.Pointer(true),
+		autoScaling        = &admin.AdvancedAutoScalingSettings{
+			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(false), MaxInstanceSize: conversion.StringPtr("")},
+			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
 		}
-		autoScalingUpdated = &matlas.AutoScaling{
-			Compute:       &matlas.Compute{Enabled: conversion.Pointer(true), MaxInstanceSize: "M20"},
-			DiskGBEnabled: conversion.Pointer(true),
+		autoScalingUpdated = &admin.AdvancedAutoScalingSettings{
+			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(true), MaxInstanceSize: conversion.StringPtr("M20")},
+			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
 		}
 	)
 
@@ -525,13 +525,13 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 		projectName        = acc.RandomProjectName()
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
-		autoScaling        = &matlas.AutoScaling{
-			Compute:       &matlas.Compute{Enabled: conversion.Pointer(false), MaxInstanceSize: ""},
-			DiskGBEnabled: conversion.Pointer(true),
+		autoScaling        = &admin.AdvancedAutoScalingSettings{
+			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(false), MaxInstanceSize: conversion.StringPtr("")},
+			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
 		}
-		autoScalingUpdated = &matlas.AutoScaling{
-			Compute:       &matlas.Compute{Enabled: conversion.Pointer(true), MaxInstanceSize: "M20"},
-			DiskGBEnabled: conversion.Pointer(true),
+		autoScalingUpdated = &admin.AdvancedAutoScalingSettings{
+			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(true), MaxInstanceSize: conversion.StringPtr("M20")},
+			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
 		}
 	)
 
@@ -611,7 +611,7 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithTags(orgID, projectName, clusterName, []matlas.Tag{}),
+				Config: configWithTags(orgID, projectName, clusterName, nil),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
@@ -623,14 +623,14 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithTags(orgID, projectName, clusterName, []matlas.Tag{
+				Config: configWithTags(orgID, projectName, clusterName, []admin.ResourceTag{
 					{
-						Key:   "key 1",
-						Value: "value 1",
+						Key:   conversion.StringPtr("key 1"),
+						Value: conversion.StringPtr("value 1"),
 					},
 					{
-						Key:   "key 2",
-						Value: "value 2",
+						Key:   conversion.StringPtr("key 2"),
+						Value: conversion.StringPtr("value 2"),
 					},
 				}),
 				Check: resource.ComposeTestCheckFunc(
@@ -650,10 +650,10 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithTags(orgID, projectName, clusterName, []matlas.Tag{
+				Config: configWithTags(orgID, projectName, clusterName, []admin.ResourceTag{
 					{
-						Key:   "key 3",
-						Value: "value 3",
+						Key:   conversion.StringPtr("key 3"),
+						Value: conversion.StringPtr("value 3"),
 					},
 				}),
 				Check: resource.ComposeTestCheckFunc(
@@ -725,7 +725,7 @@ data "mongodbatlas_advanced_clusters" "test" {
 	`, orgID, projectName, name)
 }
 
-func configWithTags(orgID, projectName, name string, tags []matlas.Tag) string {
+func configWithTags(orgID, projectName, name string, tags []admin.ResourceTag) string {
 	var tagsConf string
 	for _, label := range tags {
 		tagsConf += fmt.Sprintf(`
@@ -733,7 +733,7 @@ func configWithTags(orgID, projectName, name string, tags []matlas.Tag) string {
 				key   = "%s"
 				value = "%s"
 			}
-		`, label.Key, label.Value)
+		`, label.GetKey(), label.GetValue())
 	}
 
 	return fmt.Sprintf(`
@@ -933,7 +933,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 	`, orgID, projectName, name, paused, instanceSize)
 }
 
-func configAdvanced(orgID, projectName, name string, p *matlas.ProcessArgs) string {
+func configAdvanced(orgID, projectName, name string, p *admin.ClusterDescriptionProcessArgs) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_project" "cluster_project" {
 	name   = %[2]q
@@ -981,11 +981,11 @@ data "mongodbatlas_advanced_clusters" "test" {
 }
 
 	`, orgID, projectName, name,
-		*p.FailIndexKeyTooLong, *p.JavascriptEnabled, p.MinimumEnabledTLSProtocol, *p.NoTableScan,
-		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector, *p.TransactionLifetimeLimitSeconds)
+		p.GetFailIndexKeyTooLong(), p.GetJavascriptEnabled(), p.GetMinimumEnabledTlsProtocol(), p.GetNoTableScan(),
+		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p.GetTransactionLifetimeLimitSeconds())
 }
 
-func configAdvancedDefaultWrite(orgID, projectName, name string, p *matlas.ProcessArgs) string {
+func configAdvancedDefaultWrite(orgID, projectName, name string, p *admin.ClusterDescriptionProcessArgs) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_project" "cluster_project" {
 	name   = %[2]q
@@ -1024,11 +1024,11 @@ resource "mongodbatlas_advanced_cluster" "test" {
   }
 }
 
-	`, orgID, projectName, name, *p.JavascriptEnabled, p.MinimumEnabledTLSProtocol, *p.NoTableScan,
-		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector, p.DefaultReadConcern, p.DefaultWriteConcern)
+	`, orgID, projectName, name, p.GetJavascriptEnabled(), p.GetMinimumEnabledTlsProtocol(), p.GetNoTableScan(),
+		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p.GetDefaultReadConcern(), p.GetDefaultWriteConcern())
 }
 
-func configReplicationSpecsAutoScaling(orgID, projectName, name string, p *matlas.AutoScaling) string {
+func configReplicationSpecsAutoScaling(orgID, projectName, name string, p *admin.AdvancedAutoScalingSettings) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_project" "cluster_project" {
 	name   = %[2]q
@@ -1063,10 +1063,10 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 }
 
-	`, orgID, projectName, name, *p.Compute.Enabled, *p.DiskGBEnabled, p.Compute.MaxInstanceSize)
+	`, orgID, projectName, name, p.Compute.GetEnabled(), p.DiskGB.GetEnabled(), p.Compute.GetMaxInstanceSize())
 }
 
-func configReplicationSpecsAnalyticsAutoScaling(orgID, projectName, name string, p *matlas.AutoScaling) string {
+func configReplicationSpecsAnalyticsAutoScaling(orgID, projectName, name string, p *admin.AdvancedAutoScalingSettings) string {
 	return fmt.Sprintf(`
 
 resource "mongodbatlas_project" "cluster_project" {
@@ -1103,7 +1103,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 }
 
-	`, orgID, projectName, name, *p.Compute.Enabled, *p.DiskGBEnabled, p.Compute.MaxInstanceSize)
+	`, orgID, projectName, name, p.Compute.GetEnabled(), p.DiskGB.GetEnabled(), p.Compute.GetMaxInstanceSize())
 }
 
 func configMultiZoneWithShards(orgID, projectName, name, numShardsFirstZone, numShardsSecondZone string) string {
