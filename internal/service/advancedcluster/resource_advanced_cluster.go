@@ -438,8 +438,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if ac, ok := d.GetOk("advanced_configuration"); ok {
 		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
-			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any))
-			_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, cluster.GetName(), advancedConfReq)
+			params := expandProcessArgsV2(d, aclist[0].(map[string]any))
+			_, _, err := connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.GetName(), params).Execute()
 			if err != nil {
 				return diag.FromErr(fmt.Errorf(errorConfigUpdate, cluster.GetName(), err))
 			}
