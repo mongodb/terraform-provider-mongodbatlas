@@ -1059,10 +1059,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
       region_name   = "EU_WEST_1"
     }
   }
-
-
 }
-
 	`, orgID, projectName, name, p.Compute.GetEnabled(), p.DiskGB.GetEnabled(), p.Compute.GetMaxInstanceSize())
 }
 
