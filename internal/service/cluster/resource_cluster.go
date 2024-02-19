@@ -493,7 +493,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 		clusterRequest.BiConnector = biConnector
 	}
 
-	if advancedcluster.ContainsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
+	if containsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
 		return diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
 	}
 
@@ -893,7 +893,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if d.HasChange("labels") {
-		if advancedcluster.ContainsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
+		if containsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
 			return diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
 		}
 
@@ -935,7 +935,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if isUpgradeRequired(d) {
-		updatedCluster, _, err := advancedcluster.UpgradeCluster(ctx, conn, cluster, projectID, clusterName, timeout)
+		updatedCluster, _, err := upgradeCluster(ctx, conn, cluster, projectID, clusterName, timeout)
 
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
@@ -1310,4 +1310,30 @@ func ResourceClusterRefreshFunc(ctx context.Context, name, projectID string, con
 
 		return c, c.StateName, nil
 	}
+}
+
+func upgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cluster, projectID, name string, timeout time.Duration) (*matlas.Cluster, *matlas.Response, error) {
+	request.Name = name
+
+	cluster, resp, err := conn.Clusters.Upgrade(ctx, projectID, request)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
+		Target:     []string{"IDLE"},
+		Refresh:    ResourceClusterRefreshFunc(ctx, name, projectID, conn),
+		Timeout:    timeout,
+		MinTimeout: 30 * time.Second,
+		Delay:      1 * time.Minute,
+	}
+
+	// Wait, catching any errors
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return cluster, resp, nil
 }

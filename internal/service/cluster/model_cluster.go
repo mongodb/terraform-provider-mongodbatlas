@@ -516,3 +516,13 @@ func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSe
 		log.Printf(advancedcluster.ErrorClusterSetting, "provider_volume_type", clusterName, err)
 	}
 }
+
+func containsLabelOrKey(list []matlas.Label, item matlas.Label) bool {
+	for _, v := range list {
+		if reflect.DeepEqual(v, item) || v.Key == item.Key {
+			return true
+		}
+	}
+
+	return false
+}

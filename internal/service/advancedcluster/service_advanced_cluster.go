@@ -2,33 +2,29 @@ package advancedcluster
 
 import (
 	"context"
+	"net/http"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 type ClusterService interface {
-	Get(ctx context.Context, groupID, clusterName string) (*matlas.Cluster, *matlas.Response, error)
-	List(ctx context.Context, groupID string, options *matlas.ListOptions) (*matlas.AdvancedClustersResponse, *matlas.Response, error)
-	GetAdvancedCluster(ctx context.Context, groupID, clusterName string) (*matlas.AdvancedCluster, *matlas.Response, error)
+	Get(ctx context.Context, groupID, clusterName string) (*admin.AdvancedClusterDescription, *http.Response, error)
+	List(ctx context.Context, options *admin.ListClustersApiParams) (*admin.PaginatedAdvancedClusterDescription, *http.Response, error)
 }
 
 type ClusterServiceFromClient struct {
-	client *matlas.Client
+	client *admin.APIClient
 }
 
-func (a *ClusterServiceFromClient) Get(ctx context.Context, groupID, clusterName string) (*matlas.Cluster, *matlas.Response, error) {
-	return a.client.Clusters.Get(ctx, groupID, clusterName)
+func (a *ClusterServiceFromClient) Get(ctx context.Context, groupID, clusterName string) (*admin.AdvancedClusterDescription, *http.Response, error) {
+	return a.client.ClustersApi.GetCluster(ctx, groupID, clusterName).Execute()
 }
 
-func (a *ClusterServiceFromClient) GetAdvancedCluster(ctx context.Context, groupID, clusterName string) (*matlas.AdvancedCluster, *matlas.Response, error) {
-	return a.client.AdvancedClusters.Get(ctx, groupID, clusterName)
+func (a *ClusterServiceFromClient) List(ctx context.Context, options *admin.ListClustersApiParams) (*admin.PaginatedAdvancedClusterDescription, *http.Response, error) {
+	return a.client.ClustersApi.ListClustersWithParams(ctx, options).Execute()
 }
 
-func (a *ClusterServiceFromClient) List(ctx context.Context, groupID string, options *matlas.ListOptions) (*matlas.AdvancedClustersResponse, *matlas.Response, error) {
-	return a.client.AdvancedClusters.List(ctx, groupID, options)
-}
-
-func ServiceFromClient(client *matlas.Client) ClusterService {
+func ServiceFromClient(client *admin.APIClient) ClusterService {
 	return &ClusterServiceFromClient{
 		client: client,
 	}

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"hash/crc32"
 	"log"
-	"reflect"
+	"net/http"
 	"slices"
 	"strings"
 	"time"
@@ -269,16 +269,6 @@ func StringIsUppercase() schema.SchemaValidateDiagFunc {
 	}
 }
 
-func ContainsLabelOrKey(list []matlas.Label, item matlas.Label) bool {
-	for _, v := range list {
-		if reflect.DeepEqual(v, item) || v.Key == item.Key {
-			return true
-		}
-	}
-
-	return false
-}
-
 func HashFunctionForKeyValuePair(v any) int {
 	var buf bytes.Buffer
 	m := v.(map[string]any)
@@ -308,10 +298,10 @@ func IsSharedTier(instanceSize string) bool {
 	return instanceSize == "M0" || instanceSize == "M2" || instanceSize == "M5"
 }
 
-func UpgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cluster, projectID, name string, timeout time.Duration) (*matlas.Cluster, *matlas.Response, error) {
+func UpgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin.LegacyAtlasTenantClusterUpgradeRequest, projectID, name string, timeout time.Duration) (*admin.LegacyAtlasCluster, *http.Response, error) {
 	request.Name = name
 
-	cluster, resp, err := conn.Clusters.Upgrade(ctx, projectID, request)
+	cluster, resp, err := connV2.ClustersApi.UpgradeSharedCluster(ctx, projectID, request).Execute()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -319,7 +309,7 @@ func UpgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cl
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
-		Refresh:    ResourceClusterRefreshFunc(ctx, name, projectID, ServiceFromClient(conn)),
+		Refresh:    UpgradeRefreshFunc(ctx, name, projectID, ServiceFromClient(connV2)),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
@@ -334,15 +324,15 @@ func UpgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cl
 	return cluster, resp, nil
 }
 
-func ResourceClusterRefreshFunc(ctx context.Context, name, projectID string, client ClusterService) retry.StateRefreshFunc {
+func UpgradeRefreshFunc(ctx context.Context, name, projectID string, client ClusterService) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		c, resp, err := client.Get(ctx, projectID, name)
+		cluster, resp, err := client.Get(ctx, projectID, name)
 
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
 		}
 
-		if err != nil && c == nil && resp == nil {
+		if err != nil && cluster == nil && resp == nil {
 			return nil, "", err
 		} else if err != nil {
 			if resp.StatusCode == 404 {
@@ -354,17 +344,17 @@ func ResourceClusterRefreshFunc(ctx context.Context, name, projectID string, cli
 			return nil, "", err
 		}
 
-		if c.StateName != "" {
-			log.Printf("[DEBUG] status for MongoDB cluster: %s: %s", name, c.StateName)
-		}
-
-		return c, c.StateName, nil
+		state := cluster.GetStateName()
+		return cluster, state, nil
 	}
 }
 
 func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, client ClusterService) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		clusters, resp, err := client.List(ctx, projectID, nil)
+		params := &admin.ListClustersApiParams{
+			GroupId: projectID,
+		}
+		clusters, resp, err := client.List(ctx, params)
 
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
@@ -384,12 +374,12 @@ func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID strin
 			return nil, "", err
 		}
 
-		for i := range clusters.Results {
-			if clusters.Results[i].StateName != "IDLE" {
-				return clusters.Results[i], "PENDING", nil
+		for i := range clusters.GetResults() {
+			cluster := clusters.GetResults()[i]
+			if cluster.GetStateName() != "IDLE" {
+				return cluster, "PENDING", nil
 			}
 		}
-
 		return clusters, "IDLE", nil
 	}
 }
