@@ -484,7 +484,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 		clusterCount = "0"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIdsWithMinCount(t, 3) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 3) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
@@ -492,11 +492,11 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 				Config: acc.ConfigProject(projectName, orgID,
 					[]*admin.TeamRole{
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
 							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(1)),
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(1)),
 							RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
@@ -515,15 +515,15 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 				Config: acc.ConfigProject(projectName, orgID,
 					[]*admin.TeamRole{
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
 							RoleNames: &[]string{"GROUP_OWNER"},
 						},
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(1)),
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(1)),
 							RoleNames: &[]string{"GROUP_DATA_ACCESS_READ_WRITE"},
 						},
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(2)),
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(2)),
 							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 					},
@@ -542,11 +542,11 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 
 					[]*admin.TeamRole{
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
 							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_READ_ONLY"},
 						},
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(1)),
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(1)),
 							RoleNames: &[]string{"GROUP_OWNER", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 					},
@@ -712,12 +712,12 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 		clusterCount    = "0"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIdsWithMinCount(t, 1) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 1) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectWithUpdatedRole(projectName, orgID, acc.GetProjectTeamsIdsWithPos(0), roleName),
+				Config: acc.ConfigProjectWithUpdatedRole(projectName, orgID, acc.GetProjectTeamsIDsWithPos(0), roleName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -725,7 +725,7 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigProjectWithUpdatedRole(projectName, orgID, acc.GetProjectTeamsIdsWithPos(0), roleNameUpdated),
+				Config: acc.ConfigProjectWithUpdatedRole(projectName, orgID, acc.GetProjectTeamsIDsWithPos(0), roleNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -743,7 +743,7 @@ func TestAccProjectRSProject_updatedToEmptyRoles(t *testing.T) {
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIdsWithMinCount(t, 1) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 1) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
@@ -751,7 +751,7 @@ func TestAccProjectRSProject_updatedToEmptyRoles(t *testing.T) {
 				Config: acc.ConfigProject(projectName, orgID,
 					[]*admin.TeamRole{
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIdsWithPos(0)),
+							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
 							RoleNames: &[]string{"GROUP_OWNER", "GROUP_READ_ONLY"},
 						},
 					},
@@ -760,7 +760,7 @@ func TestAccProjectRSProject_updatedToEmptyRoles(t *testing.T) {
 					acc.CheckProjectExists(resourceName, &group),
 					acc.CheckProjectAttributes(&group, projectName),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "teams.0.team_id", acc.GetProjectTeamsIdsWithPos(0)),
+					resource.TestCheckResourceAttr(resourceName, "teams.0.team_id", acc.GetProjectTeamsIDsWithPos(0)),
 					resource.TestCheckResourceAttr(resourceName, "teams.0.role_names.#", "2"),
 					resource.TestCheckTypeSetElemAttr(resourceName, "teams.0.role_names.*", "GROUP_OWNER"),
 					resource.TestCheckTypeSetElemAttr(resourceName, "teams.0.role_names.*", "GROUP_READ_ONLY"),

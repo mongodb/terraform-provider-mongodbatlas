@@ -546,7 +546,7 @@ func resourceNetworkPeeringRefreshFunc(ctx context.Context, peerID, projectID, c
 
 		status := c.Status
 
-		if len(c.StatusName) > 0 {
+		if c.StatusName != "" {
 			status = c.StatusName
 		}
 

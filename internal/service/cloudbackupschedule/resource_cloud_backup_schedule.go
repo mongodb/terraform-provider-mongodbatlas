@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
@@ -523,7 +522,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 	}
 
 	if d.HasChange("auto_export_enabled") {
-		req.AutoExportEnabled = conversion.Pointer[bool](d.Get("auto_export_enabled").(bool))
+		req.AutoExportEnabled = conversion.Pointer(d.Get("auto_export_enabled").(bool))
 	}
 
 	if v, ok := d.GetOk("export"); ok {
@@ -538,7 +537,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 	}
 
 	if d.HasChange("use_org_and_group_names_in_export_prefix") {
-		req.UseOrgAndGroupNamesInExportPrefix = pointy.Bool(d.Get("use_org_and_group_names_in_export_prefix").(bool))
+		req.UseOrgAndGroupNamesInExportPrefix = conversion.Pointer(d.Get("use_org_and_group_names_in_export_prefix").(bool))
 	}
 
 	policy.PolicyItems = &policiesItem
@@ -547,16 +546,16 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 	}
 
 	if v, ok := d.GetOkExists("reference_hour_of_day"); ok {
-		req.ReferenceHourOfDay = conversion.Pointer[int](v.(int))
+		req.ReferenceHourOfDay = conversion.Pointer(v.(int))
 	}
 	if v, ok := d.GetOkExists("reference_minute_of_hour"); ok {
-		req.ReferenceMinuteOfHour = conversion.Pointer[int](v.(int))
+		req.ReferenceMinuteOfHour = conversion.Pointer(v.(int))
 	}
 	if v, ok := d.GetOkExists("restore_window_days"); ok {
-		req.RestoreWindowDays = conversion.Pointer[int](v.(int))
+		req.RestoreWindowDays = conversion.Pointer(v.(int))
 	}
 
-	value := conversion.Pointer[bool](d.Get("update_snapshots").(bool))
+	value := conversion.Pointer(d.Get("update_snapshots").(bool))
 	if *value {
 		req.UpdateSnapshots = value
 	}
@@ -618,11 +617,11 @@ func expandCopySetting(tfMap map[string]any) *admin.DiskBackupCopySetting {
 
 	frequencies := conversion.ExpandStringList(tfMap["frequencies"].(*schema.Set).List())
 	copySetting := &admin.DiskBackupCopySetting{
-		CloudProvider:     conversion.StringPtr(tfMap["cloud_provider"].(string)),
+		CloudProvider:     conversion.Pointer(tfMap["cloud_provider"].(string)),
 		Frequencies:       &frequencies,
-		RegionName:        conversion.StringPtr(tfMap["region_name"].(string)),
-		ReplicationSpecId: conversion.StringPtr(tfMap["replication_spec_id"].(string)),
-		ShouldCopyOplogs:  conversion.Pointer[bool](tfMap["should_copy_oplogs"].(bool)),
+		RegionName:        conversion.Pointer(tfMap["region_name"].(string)),
+		ReplicationSpecId: conversion.Pointer(tfMap["replication_spec_id"].(string)),
+		ShouldCopyOplogs:  conversion.Pointer(tfMap["should_copy_oplogs"].(bool)),
 	}
 	return copySetting
 }

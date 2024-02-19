@@ -15,7 +15,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"github.com/mwielbut/pointy"
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
@@ -133,14 +132,14 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	serverlessBackupOptions := &admin.ClusterServerlessBackupOptions{
-		ServerlessContinuousBackupEnabled: pointy.Bool(d.Get("continuous_backup_enabled").(bool)),
+		ServerlessContinuousBackupEnabled: conversion.Pointer(d.Get("continuous_backup_enabled").(bool)),
 	}
 
 	params := &admin.ServerlessInstanceDescriptionCreate{
 		Name:                         name,
 		ProviderSettings:             serverlessProviderSettings,
 		ServerlessBackupOptions:      serverlessBackupOptions,
-		TerminationProtectionEnabled: pointy.Bool(d.Get("termination_protection_enabled").(bool)),
+		TerminationProtectionEnabled: conversion.Pointer(d.Get("termination_protection_enabled").(bool)),
 	}
 
 	if _, ok := d.GetOk("tags"); ok {
@@ -254,12 +253,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if d.HasChange("termination_protection_enabled") || d.HasChange("continuous_backup_enabled") || d.HasChange("tags") {
 		serverlessBackupOptions := &admin.ClusterServerlessBackupOptions{
-			ServerlessContinuousBackupEnabled: pointy.Bool(d.Get("continuous_backup_enabled").(bool)),
+			ServerlessContinuousBackupEnabled: conversion.Pointer(d.Get("continuous_backup_enabled").(bool)),
 		}
 
 		params := &admin.ServerlessInstanceDescriptionUpdate{
 			ServerlessBackupOptions:      serverlessBackupOptions,
-			TerminationProtectionEnabled: pointy.Bool(d.Get("termination_protection_enabled").(bool)),
+			TerminationProtectionEnabled: conversion.Pointer(d.Get("termination_protection_enabled").(bool)),
 		}
 
 		if d.HasChange("tags") {

@@ -13,7 +13,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupschedule"
-	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
@@ -239,10 +238,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		AuthorizedEmail:         d.Get("authorized_email").(string),
 		AuthorizedUserFirstName: d.Get("authorized_user_first_name").(string),
 		AuthorizedUserLastName:  d.Get("authorized_user_last_name").(string),
-		CopyProtectionEnabled:   pointy.Bool(d.Get("copy_protection_enabled").(bool)),
-		EncryptionAtRestEnabled: pointy.Bool(d.Get("encryption_at_rest_enabled").(bool)),
-		PitEnabled:              pointy.Bool(d.Get("pit_enabled").(bool)),
-		RestoreWindowDays:       pointy.Int(cast.ToInt(d.Get("restore_window_days"))),
+		CopyProtectionEnabled:   conversion.Pointer(d.Get("copy_protection_enabled").(bool)),
+		EncryptionAtRestEnabled: conversion.Pointer(d.Get("encryption_at_rest_enabled").(bool)),
+		PitEnabled:              conversion.Pointer(d.Get("pit_enabled").(bool)),
+		RestoreWindowDays:       conversion.Pointer(cast.ToInt(d.Get("restore_window_days"))),
 		OnDemandPolicyItem:      expandDemandBackupPolicyItem(d),
 	}
 
@@ -403,19 +402,19 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("copy_protection_enabled") {
-		params.CopyProtectionEnabled = pointy.Bool(d.Get("copy_protection_enabled").(bool))
+		params.CopyProtectionEnabled = conversion.Pointer(d.Get("copy_protection_enabled").(bool))
 	}
 
 	if d.HasChange("encryption_at_rest_enabled") {
-		params.EncryptionAtRestEnabled = pointy.Bool(d.Get("encryption_at_rest_enabled").(bool))
+		params.EncryptionAtRestEnabled = conversion.Pointer(d.Get("encryption_at_rest_enabled").(bool))
 	}
 
 	if d.HasChange("pit_enabled") {
-		params.PitEnabled = pointy.Bool(d.Get("pit_enabled").(bool))
+		params.PitEnabled = conversion.Pointer(d.Get("pit_enabled").(bool))
 	}
 
 	if d.HasChange("restore_window_days") {
-		params.RestoreWindowDays = pointy.Int(cast.ToInt(d.Get("restore_window_days")))
+		params.RestoreWindowDays = conversion.Pointer(cast.ToInt(d.Get("restore_window_days")))
 	}
 
 	var backupPoliciesItem []admin.BackupComplianceScheduledPolicyItem

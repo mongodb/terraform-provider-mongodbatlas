@@ -10,8 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mwielbut/pointy"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -99,9 +97,9 @@ func dataSourceMongoDBAtlasOrganizationsRead(ctx context.Context, d *schema.Reso
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	organizationOptions := &admin.ListOrganizationsApiParams{
-		PageNum:      pointy.Int(d.Get("page_num").(int)),
-		ItemsPerPage: pointy.Int(d.Get("items_per_page").(int)),
-		Name:         pointy.String(d.Get("name").(string)),
+		PageNum:      conversion.Pointer(d.Get("page_num").(int)),
+		ItemsPerPage: conversion.Pointer(d.Get("items_per_page").(int)),
+		Name:         conversion.Pointer(d.Get("name").(string)),
 	}
 
 	organizations, _, err := conn.OrganizationsApi.ListOrganizationsWithParams(ctx, organizationOptions).Execute()

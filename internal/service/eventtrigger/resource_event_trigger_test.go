@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mwielbut/pointy"
 	"go.mongodb.org/realm/realm"
 )
 
@@ -28,20 +27,20 @@ func TestAccEventTrigger_basic(t *testing.T) {
 		Name:       acctest.RandomWithPrefix("test-acc"),
 		Type:       "DATABASE",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
-		Disabled:   pointy.Bool(false),
+		Disabled:   conversion.Pointer(false),
 		Config: &realm.EventTriggerConfig{
 			OperationTypes: []string{"INSERT", "UPDATE"},
 			Database:       "sample_airbnb",
 			Collection:     "listingsAndReviews",
 			ServiceID:      os.Getenv("MONGODB_REALM_SERVICE_ID"),
-			FullDocument:   pointy.Bool(false),
+			FullDocument:   conversion.Pointer(false),
 		},
 	}
 	eventUpdated := realm.EventTriggerRequest{
 		Name:       acctest.RandomWithPrefix("test-acc"),
 		Type:       "DATABASE",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
-		Disabled:   pointy.Bool(false),
+		Disabled:   conversion.Pointer(false),
 		Config: &realm.EventTriggerConfig{
 			OperationTypes: []string{"INSERT", "UPDATE", "DELETE"},
 			Database:       "sample_airbnb",
@@ -93,26 +92,26 @@ func TestAccEventTriggerDatabase_eventProccesor(t *testing.T) {
 		Name:       acctest.RandomWithPrefix("test-acc"),
 		Type:       "DATABASE",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
-		Disabled:   pointy.Bool(false),
+		Disabled:   conversion.Pointer(false),
 		Config: &realm.EventTriggerConfig{
 			OperationTypes: []string{"INSERT", "UPDATE"},
 			Database:       "sample_airbnb",
 			Collection:     "listingsAndReviews",
 			ServiceID:      os.Getenv("MONGODB_REALM_SERVICE_ID"),
-			FullDocument:   pointy.Bool(false),
+			FullDocument:   conversion.Pointer(false),
 		},
 	}
 	eventUpdated := realm.EventTriggerRequest{
 		Name:       acctest.RandomWithPrefix("test-acc"),
 		Type:       "DATABASE",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
-		Disabled:   pointy.Bool(false),
+		Disabled:   conversion.Pointer(false),
 		Config: &realm.EventTriggerConfig{
 			OperationTypes: []string{"INSERT", "UPDATE", "DELETE"},
 			Database:       "sample_airbnb",
 			Collection:     "listingsAndReviews",
 			ServiceID:      os.Getenv("MONGODB_REALM_SERVICE_ID"),
-			FullDocument:   pointy.Bool(false),
+			FullDocument:   conversion.Pointer(false),
 		},
 	}
 
@@ -157,7 +156,7 @@ func TestAccEventTriggerAuth_basic(t *testing.T) {
 		Name:       acctest.RandomWithPrefix("test-acc"),
 		Type:       "AUTHENTICATION",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
-		Disabled:   pointy.Bool(false),
+		Disabled:   conversion.Pointer(false),
 		Config: &realm.EventTriggerConfig{
 			OperationType: "LOGIN",
 			Providers:     []string{"anon-user", "local-userpass"},
@@ -167,7 +166,7 @@ func TestAccEventTriggerAuth_basic(t *testing.T) {
 		Name:       acctest.RandomWithPrefix("test-acc"),
 		Type:       "AUTHENTICATION",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
-		Disabled:   pointy.Bool(false),
+		Disabled:   conversion.Pointer(false),
 		Config: &realm.EventTriggerConfig{
 			OperationTypes: []string{"INSERT", "UPDATE", "DELETE"},
 			OperationType:  "LOGIN",
@@ -218,7 +217,7 @@ func TestAccEventTriggerAuth_eventProcessor(t *testing.T) {
 		Name:       acctest.RandomWithPrefix("test-acc"),
 		Type:       "AUTHENTICATION",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
-		Disabled:   pointy.Bool(false),
+		Disabled:   conversion.Pointer(false),
 		Config: &realm.EventTriggerConfig{
 			OperationType: "LOGIN",
 			Providers:     []string{"anon-user", "local-userpass"},
@@ -228,7 +227,7 @@ func TestAccEventTriggerAuth_eventProcessor(t *testing.T) {
 		Name:       acctest.RandomWithPrefix("test-acc"),
 		Type:       "AUTHENTICATION",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
-		Disabled:   pointy.Bool(false),
+		Disabled:   conversion.Pointer(false),
 		Config: &realm.EventTriggerConfig{
 			OperationTypes: []string{"INSERT", "UPDATE", "DELETE"},
 			OperationType:  "LOGIN",
@@ -277,7 +276,7 @@ func TestAccEventTriggerSchedule_basic(t *testing.T) {
 		Name:       acctest.RandomWithPrefix("test-acc"),
 		Type:       "SCHEDULED",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
-		Disabled:   pointy.Bool(false),
+		Disabled:   conversion.Pointer(false),
 		Config: &realm.EventTriggerConfig{
 			Schedule: "* * * * *",
 		},
@@ -286,7 +285,7 @@ func TestAccEventTriggerSchedule_basic(t *testing.T) {
 		Name:       acctest.RandomWithPrefix("test-acc"),
 		Type:       "SCHEDULED",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
-		Disabled:   pointy.Bool(false),
+		Disabled:   conversion.Pointer(false),
 		Config: &realm.EventTriggerConfig{
 			Schedule: "* * * * *",
 		},
@@ -335,7 +334,7 @@ func TestAccEventTriggerSchedule_eventProcessor(t *testing.T) {
 		Name:       acctest.RandomWithPrefix("test-acc"),
 		Type:       "SCHEDULED",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
-		Disabled:   pointy.Bool(false),
+		Disabled:   conversion.Pointer(false),
 		Config: &realm.EventTriggerConfig{
 			Schedule: "* * * * *",
 		},
@@ -344,7 +343,7 @@ func TestAccEventTriggerSchedule_eventProcessor(t *testing.T) {
 		Name:       acctest.RandomWithPrefix("test-acc"),
 		Type:       "SCHEDULED",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
-		Disabled:   pointy.Bool(false),
+		Disabled:   conversion.Pointer(false),
 		Config: &realm.EventTriggerConfig{
 			Schedule: "* * * * *",
 		},
@@ -391,7 +390,7 @@ func TestAccEventTriggerFunction_basic(t *testing.T) {
 		Name:       acctest.RandomWithPrefix("test-acc"),
 		Type:       "SCHEDULED",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
-		Disabled:   pointy.Bool(false),
+		Disabled:   conversion.Pointer(false),
 		Config: &realm.EventTriggerConfig{
 			Schedule: "0 8 * * *",
 		},
@@ -400,7 +399,7 @@ func TestAccEventTriggerFunction_basic(t *testing.T) {
 		Name:       acctest.RandomWithPrefix("test-acc"),
 		Type:       "SCHEDULED",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
-		Disabled:   pointy.Bool(false),
+		Disabled:   conversion.Pointer(false),
 		Config: &realm.EventTriggerConfig{
 			Schedule: "0 8 * * *",
 		},
