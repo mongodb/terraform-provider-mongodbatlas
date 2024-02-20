@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -15,7 +14,7 @@ var (
 
 func TestAccNetworkContainerDS_basicAWS(t *testing.T) {
 	var (
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -36,7 +35,7 @@ func TestAccNetworkContainerDS_basicAWS(t *testing.T) {
 
 func TestAccNetworkContainerDS_basicAzure(t *testing.T) {
 	var (
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -57,7 +56,7 @@ func TestAccNetworkContainerDS_basicAzure(t *testing.T) {
 
 func TestAccNetworkContainerDS_basicGCP(t *testing.T) {
 	var (
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },

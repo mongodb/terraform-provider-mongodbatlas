@@ -5,17 +5,18 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 func TestAccConfigDSAPIKeys_basic(t *testing.T) {
-	resourceName := "mongodbatlas_api_key.test"
-	dataSourceName := "data.mongodbatlas_api_keys.test"
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	description := fmt.Sprintf("test-acc-api_key-%s", acctest.RandString(5))
-	roleName := "ORG_MEMBER"
+	var (
+		resourceName   = "mongodbatlas_api_key.test"
+		dataSourceName = "data.mongodbatlas_api_keys.test"
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		description    = acc.RandomName()
+		roleName       = "ORG_MEMBER"
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },

@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -14,7 +13,7 @@ const dataSourceName = "data.mongodbatlas_custom_dns_configuration_cluster_aws.t
 
 func TestAccConfigDSCustomDNSConfigurationAWS_basic(t *testing.T) {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	projectName := acctest.RandomWithPrefix("test-acc")
+	projectName := acc.RandomProjectName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },

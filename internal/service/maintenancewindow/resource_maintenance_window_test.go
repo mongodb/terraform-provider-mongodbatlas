@@ -7,7 +7,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -19,7 +18,7 @@ const resourceName = "mongodbatlas_maintenance_window.test"
 func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 	var (
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName      = acctest.RandomWithPrefix("test-acc")
+		projectName      = acc.RandomProjectName()
 		dayOfWeek        = 7
 		hourOfDay        = 3
 		dayOfWeekUpdated = 4
@@ -57,7 +56,7 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 func TestAccConfigRSMaintenanceWindow_importBasic(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 		dayOfWeek   = 1
 		hourOfDay   = 3
 	)
@@ -90,7 +89,7 @@ func TestAccConfigRSMaintenanceWindow_importBasic(t *testing.T) {
 func TestAccConfigRSMaintenanceWindow_autoDeferActivated(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 		dayOfWeek   = 7
 		hourOfDay   = 3
 	)

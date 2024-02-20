@@ -1,11 +1,9 @@
 package projectapikey_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -14,8 +12,8 @@ func TestAccMigrationConfigRSProjectAPIKey_RemovingOptionalRootProjectID(t *test
 	var (
 		resourceName = "mongodbatlas_project_api_key.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		description  = fmt.Sprintf("test-acc-project-api_key-%s", acctest.RandString(5))
+		projectName  = acc.RandomProjectName()
+		description  = acc.RandomName()
 		roleName     = "GROUP_OWNER"
 	)
 

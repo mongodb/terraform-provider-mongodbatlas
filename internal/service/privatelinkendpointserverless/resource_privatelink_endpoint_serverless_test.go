@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -17,8 +16,8 @@ func TestAccServerlessPrivateLinkEndpoint_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint_serverless.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc-serverless")
-		instanceName = "serverlessplink"
+		projectName  = acc.RandomProjectName()
+		instanceName = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -41,8 +40,8 @@ func TestAccServerlessPrivateLinkEndpoint_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint_serverless.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc-serverless")
-		instanceName = "serverlessimport"
+		projectName  = acc.RandomProjectName()
+		instanceName = acc.RandomClusterName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },

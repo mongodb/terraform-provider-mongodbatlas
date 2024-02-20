@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -17,9 +16,9 @@ func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 	var (
 		dbUser       admin.CloudDatabaseUser
 		resourceName = "mongodbatlas_database_user.basic_ds"
-		username     = acctest.RandomWithPrefix("dbUser")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
+		username     = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -70,7 +69,7 @@ func TestAccConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 		username     = "CN=ellen@example.com,OU=users,DC=example,DC=com"
 		x509Type     = "CUSTOMER"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -98,10 +97,10 @@ func TestAccConfigRSDatabaseUser_withX509TypeManaged(t *testing.T) {
 	var (
 		dbUser       admin.CloudDatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
-		username     = acctest.RandomWithPrefix("test-acc")
 		x509Type     = "MANAGED"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
+		username     = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -131,7 +130,7 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 		resourceName = "mongodbatlas_database_user.test"
 		username     = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -161,7 +160,7 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType_import(t *testing.T) {
 		resourceName = "mongodbatlas_database_user.test"
 		username     = os.Getenv("TEST_DB_USER_IAM_ARN")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 	)
 
 	if username == "" {
@@ -200,9 +199,9 @@ func TestAccConfigRSDatabaseUser_withLabels(t *testing.T) {
 	var (
 		dbUser       admin.CloudDatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
-		username     = acctest.RandomWithPrefix("test-acc")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
+		username     = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -280,10 +279,10 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 	var (
 		dbUser       admin.CloudDatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
-		username     = acctest.RandomWithPrefix("test-acc-user")
-		password     = acctest.RandomWithPrefix("test-acc-pass")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
+		username     = acc.RandomName()
+		password     = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -345,11 +344,11 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 	var (
 		dbUser       admin.CloudDatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
-		username     = acctest.RandomWithPrefix("test-acc-user")
-		password     = acctest.RandomWithPrefix("test-acc-pass")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		clusterName  = acctest.RandomWithPrefix("test-acc-clu")
+		projectName  = acc.RandomProjectName()
+		clusterName  = acc.RandomClusterName()
+		username     = acc.RandomName()
+		password     = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -413,11 +412,11 @@ func TestAccConfigRSDatabaseUser_updateToEmptyScopes(t *testing.T) {
 	var (
 		dbUser       admin.CloudDatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
-		username     = acctest.RandomWithPrefix("test-acc-user")
-		password     = acctest.RandomWithPrefix("test-acc-pass")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		clusterName  = acctest.RandomWithPrefix("test-acc-clu")
+		projectName  = acc.RandomProjectName()
+		clusterName  = acc.RandomClusterName()
+		username     = acc.RandomName()
+		password     = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -472,9 +471,9 @@ func TestAccConfigRSDatabaseUser_updateToEmptyLabels(t *testing.T) {
 	var (
 		dbUser       admin.CloudDatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
-		username     = acctest.RandomWithPrefix("test-acc")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
+		username     = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -523,7 +522,7 @@ func TestAccConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
 		resourceName = "mongodbatlas_database_user.test"
 		username     = "CN=david@example.com,OU=users,DC=example,DC=com"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -549,10 +548,10 @@ func TestAccConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
 
 func TestAccConfigRSDatabaseUser_importBasic(t *testing.T) {
 	var (
-		username     = fmt.Sprintf("test-username-%s", acctest.RandString(5))
 		resourceName = "mongodbatlas_database_user.basic_ds"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
+		username     = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -588,7 +587,7 @@ func TestAccConfigRSDatabaseUser_importX509TypeCustomer(t *testing.T) {
 		username     = "CN=ellen@example.com,OU=users,DC=example,DC=com"
 		x509Type     = "CUSTOMER"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -625,7 +624,7 @@ func TestAccConfigRSDatabaseUser_importLDAPAuthType(t *testing.T) {
 		resourceName = "mongodbatlas_database_user.test"
 		username     = "CN=david@example.com,OU=users,DC=example,DC=com"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

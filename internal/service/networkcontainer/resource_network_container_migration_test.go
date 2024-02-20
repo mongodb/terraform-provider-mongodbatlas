@@ -3,7 +3,6 @@ package networkcontainer_test
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
@@ -11,7 +10,7 @@ import (
 
 func TestAccMigrationNetworkContainerRS_basicAWS(t *testing.T) {
 	var (
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 		configAWS   = configAWS(projectName, orgID, cidrBlock, providerNameAws, "US_EAST_1")
 	)
 
@@ -29,14 +28,14 @@ func TestAccMigrationNetworkContainerRS_basicAWS(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 				),
 			},
-			mig.TestStep(configAWS),
+			mig.TestStepCheckEmptyPlan(configAWS),
 		},
 	})
 }
 
 func TestAccMigrationNetworkContainerRS_basicAzure(t *testing.T) {
 	var (
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 		configAzure = configAzure(projectName, orgID, cidrBlock, providerNameAzure)
 	)
 
@@ -54,14 +53,14 @@ func TestAccMigrationNetworkContainerRS_basicAzure(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 				),
 			},
-			mig.TestStep(configAzure),
+			mig.TestStepCheckEmptyPlan(configAzure),
 		},
 	})
 }
 
 func TestAccMigrationNetworkContainerRS_basicGCP(t *testing.T) {
 	var (
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 		configGCP   = configGCP(projectName, orgID, gcpCidrBlock, providerNameGCP)
 	)
 
@@ -79,7 +78,7 @@ func TestAccMigrationNetworkContainerRS_basicGCP(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 				),
 			},
-			mig.TestStep(configGCP),
+			mig.TestStepCheckEmptyPlan(configGCP),
 		},
 	})
 }

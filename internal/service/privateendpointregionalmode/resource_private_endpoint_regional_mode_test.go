@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -20,18 +19,15 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_conn(t *testing.T) {
 		endpointResourceSuffix = "atlasple"
 		resourceSuffix         = "atlasrm"
 		resourceName           = fmt.Sprintf("mongodbatlas_private_endpoint_regional_mode.%s", resourceSuffix)
-
-		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
-		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
-
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		providerName = "AWS"
-		region       = os.Getenv("AWS_REGION")
-
-		clusterName         = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
-		clusterResourceName = "global_cluster"
+		awsAccessKey           = os.Getenv("AWS_ACCESS_KEY_ID")
+		awsSecretKey           = os.Getenv("AWS_SECRET_ACCESS_KEY")
+		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectID              = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectName            = acc.RandomProjectName()
+		providerName           = "AWS"
+		region                 = os.Getenv("AWS_REGION")
+		clusterName            = acc.RandomClusterName()
+		clusterResourceName    = "global_cluster"
 	)
 
 	clusterResource := acc.ConfigClusterGlobal(clusterResourceName, orgID, projectName, clusterName, "false")
