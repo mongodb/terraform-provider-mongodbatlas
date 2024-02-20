@@ -722,8 +722,8 @@ func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cl
 	return ""
 }
 
-func expandProcessArgs(d *schema.ResourceData, p map[string]any) *admin.ClusterDescriptionProcessArgs {
-	res := new(admin.ClusterDescriptionProcessArgs)
+func expandProcessArgs(d *schema.ResourceData, p map[string]any) admin.ClusterDescriptionProcessArgs {
+	res := admin.ClusterDescriptionProcessArgs{}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.default_read_concern"); ok {
 		res.DefaultReadConcern = conversion.StringPtr(cast.ToString(p["default_read_concern"]))
@@ -780,7 +780,6 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any) *admin.ClusterD
 			log.Printf(ErrorClusterSetting, `transaction_lifetime_limit_seconds`, "", cast.ToString(transactionLifetimeLimitSeconds))
 		}
 	}
-
 	return res
 }
 
