@@ -683,11 +683,13 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("accept_data_risks_and_force_replica_set_reconfig") {
-		t, ok := conversion.StringToTime(d.Get("accept_data_risks_and_force_replica_set_reconfig").(string))
-		if !ok {
-			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, "accept_data_risks_and_force_replica_set_reconfig time format is incorrect"))
+		if strTime := d.Get("accept_data_risks_and_force_replica_set_reconfig").(string); strTime != "" {
+			t, ok := conversion.StringToTime(strTime)
+			if !ok {
+				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, "accept_data_risks_and_force_replica_set_reconfig time format is incorrect"))
+			}
+			cluster.AcceptDataRisksAndForceReplicaSetReconfig = &t
 		}
-		cluster.AcceptDataRisksAndForceReplicaSetReconfig = &t
 	}
 
 	if d.HasChange("paused") && !d.Get("paused").(bool) {
