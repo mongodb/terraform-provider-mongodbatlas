@@ -1,15 +1,12 @@
 package onlinearchive_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
@@ -21,13 +18,14 @@ func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing
 		resourceName              = "mongodbatlas_cluster.online_archive_test"
 		onlineArchiveResourceName = "mongodbatlas_online_archive.users_archive"
 		orgID                     = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName               = acctest.RandomWithPrefix("test-acc")
-		name                      = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		projectName               = acc.RandomProjectName()
+		clusterName               = acc.RandomClusterName()
 		deleteExpirationDays      = 0
 	)
 	if mig.IsProviderVersionAtLeast("1.12.2") {
 		deleteExpirationDays = 7
 	}
+	config := configWithDailySchedule(orgID, projectName, clusterName, 1, deleteExpirationDays)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
@@ -35,28 +33,19 @@ func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configFirstStep(orgID, projectName, name),
+				Config:            configFirstStep(orgID, projectName, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					populateWithSampleData(resourceName, &cluster),
 				),
 			},
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configWithDailySchedule(orgID, projectName, name, 1, deleteExpirationDays),
+				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "partition_fields.0.field_name", "last_review"),
 				),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configWithDailySchedule(orgID, projectName, name, 1, deleteExpirationDays),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }

@@ -2,22 +2,23 @@ package advancedcluster_test
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"testing"
 
-	"github.com/go-test/deep"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mocksvc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 var (
 	dummyClusterName = "clusterName"
 	dummyProjectID   = "projectId"
-	genericError     = matlas.NewArgError("error", "generic")
-	advancedClusters = []*matlas.AdvancedCluster{{StateName: "NOT IDLE"}}
+	errGeneric       = errors.New("generic")
+	advancedClusters = []admin.AdvancedClusterDescription{{StateName: conversion.StringPtr("NOT IDLE")}}
 )
 
 type Result struct {
@@ -26,33 +27,10 @@ type Result struct {
 	state    string
 }
 
-func TestRemoveLabel(t *testing.T) {
-	toRemove := matlas.Label{Key: "To Remove", Value: "To remove value"}
-
-	expected := []matlas.Label{
-		{Key: "Name", Value: "Test"},
-		{Key: "Version", Value: "1.0"},
-		{Key: "Type", Value: "testing"},
-	}
-
-	labels := []matlas.Label{
-		{Key: "Name", Value: "Test"},
-		{Key: "Version", Value: "1.0"},
-		{Key: "To Remove", Value: "To remove value"},
-		{Key: "Type", Value: "testing"},
-	}
-
-	got := advancedcluster.RemoveLabel(labels, toRemove)
-
-	if diff := deep.Equal(expected, got); diff != nil {
-		t.Fatalf("Bad removeLabel return \n got = %#v\nwant = %#v \ndiff = %#v", got, expected, diff)
-	}
-}
-
-func TestResourceClusterRefreshFunc(t *testing.T) {
+func TestUpgradeRefreshFunc(t *testing.T) {
 	testCases := []struct {
-		mockCluster    *matlas.Cluster
-		mockResponse   *matlas.Response
+		mockCluster    *admin.AdvancedClusterDescription
+		mockResponse   *http.Response
 		expectedResult Result
 		mockError      error
 		name           string
@@ -60,7 +38,7 @@ func TestResourceClusterRefreshFunc(t *testing.T) {
 	}{
 		{
 			name:          "Error in the API call: reset by peer",
-			mockError:     matlas.NewArgError("error", "reset by peer"),
+			mockError:     errors.New("reset by peer"),
 			expectedError: false,
 			expectedResult: Result{
 				response: nil,
@@ -70,18 +48,18 @@ func TestResourceClusterRefreshFunc(t *testing.T) {
 		},
 		{
 			name:          "Generic error in the API call",
-			mockError:     genericError,
+			mockError:     errGeneric,
 			expectedError: true,
 			expectedResult: Result{
 				response: nil,
 				state:    "",
-				error:    genericError,
+				error:    errGeneric,
 			},
 		},
 		{
 			name:          "Error in the API call: HTTP 404",
-			mockError:     genericError,
-			mockResponse:  &matlas.Response{Response: &http.Response{StatusCode: 404}, Links: nil, Raw: nil},
+			mockError:     errGeneric,
+			mockResponse:  &http.Response{StatusCode: 404},
 			expectedError: false,
 			expectedResult: Result{
 				response: "",
@@ -91,8 +69,8 @@ func TestResourceClusterRefreshFunc(t *testing.T) {
 		},
 		{
 			name:          "Error in the API call: HTTP 503",
-			mockError:     genericError,
-			mockResponse:  &matlas.Response{Response: &http.Response{StatusCode: 503}, Links: nil, Raw: nil},
+			mockError:     errGeneric,
+			mockResponse:  &http.Response{StatusCode: 503},
 			expectedError: false,
 			expectedResult: Result{
 				response: "",
@@ -102,22 +80,22 @@ func TestResourceClusterRefreshFunc(t *testing.T) {
 		},
 		{
 			name:          "Error in the API call: Neither HTTP 503 or 404",
-			mockError:     genericError,
-			mockResponse:  &matlas.Response{Response: &http.Response{StatusCode: 400}, Links: nil, Raw: nil},
+			mockError:     errGeneric,
+			mockResponse:  &http.Response{StatusCode: 400},
 			expectedError: true,
 			expectedResult: Result{
 				response: nil,
 				state:    "",
-				error:    genericError,
+				error:    errGeneric,
 			},
 		},
 		{
 			name:          "Successful",
-			mockCluster:   &matlas.Cluster{StateName: "stateName"},
-			mockResponse:  &matlas.Response{Response: &http.Response{StatusCode: 200}, Links: nil, Raw: nil},
+			mockCluster:   &admin.AdvancedClusterDescription{StateName: conversion.StringPtr("stateName")},
+			mockResponse:  &http.Response{StatusCode: 200},
 			expectedError: false,
 			expectedResult: Result{
-				response: &matlas.Cluster{StateName: "stateName"},
+				response: &admin.AdvancedClusterDescription{StateName: conversion.StringPtr("stateName")},
 				state:    "stateName",
 				error:    nil,
 			},
@@ -130,7 +108,7 @@ func TestResourceClusterRefreshFunc(t *testing.T) {
 
 			testObject.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError)
 
-			result, stateName, err := advancedcluster.ResourceClusterRefreshFunc(context.Background(), dummyClusterName, dummyProjectID, testObject)()
+			result, stateName, err := advancedcluster.UpgradeRefreshFunc(context.Background(), dummyClusterName, dummyProjectID, testObject)()
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
 			}
@@ -177,8 +155,8 @@ func TestStringIsUppercase(t *testing.T) {
 
 func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 	testCases := []struct {
-		mockCluster    *matlas.AdvancedClustersResponse
-		mockResponse   *matlas.Response
+		mockCluster    *admin.PaginatedAdvancedClusterDescription
+		mockResponse   *http.Response
 		expectedResult Result
 		mockError      error
 		name           string
@@ -186,7 +164,7 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 	}{
 		{
 			name:          "Error in the API call: reset by peer",
-			mockError:     matlas.NewArgError("error", "reset by peer"),
+			mockError:     errors.New("reset by peer"),
 			expectedError: false,
 			expectedResult: Result{
 				response: nil,
@@ -196,18 +174,18 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 		},
 		{
 			name:          "Generic error in the API call",
-			mockError:     genericError,
+			mockError:     errGeneric,
 			expectedError: true,
 			expectedResult: Result{
 				response: nil,
 				state:    "",
-				error:    genericError,
+				error:    errGeneric,
 			},
 		},
 		{
 			name:          "Error in the API call: HTTP 404",
-			mockError:     genericError,
-			mockResponse:  &matlas.Response{Response: &http.Response{StatusCode: 404}, Links: nil, Raw: nil},
+			mockError:     errGeneric,
+			mockResponse:  &http.Response{StatusCode: 404},
 			expectedError: false,
 			expectedResult: Result{
 				response: "",
@@ -217,8 +195,8 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 		},
 		{
 			name:          "Error in the API call: HTTP 503",
-			mockError:     genericError,
-			mockResponse:  &matlas.Response{Response: &http.Response{StatusCode: 503}, Links: nil, Raw: nil},
+			mockError:     errGeneric,
+			mockResponse:  &http.Response{StatusCode: 503},
 			expectedError: false,
 			expectedResult: Result{
 				response: "",
@@ -228,19 +206,19 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 		},
 		{
 			name:          "Error in the API call: Neither HTTP 503 or 404",
-			mockError:     genericError,
-			mockResponse:  &matlas.Response{Response: &http.Response{StatusCode: 400}, Links: nil, Raw: nil},
+			mockError:     errGeneric,
+			mockResponse:  &http.Response{StatusCode: 400},
 			expectedError: true,
 			expectedResult: Result{
 				response: nil,
 				state:    "",
-				error:    genericError,
+				error:    errGeneric,
 			},
 		},
 		{
 			name:          "Successful but with at least one cluster not idle",
-			mockCluster:   &matlas.AdvancedClustersResponse{Results: advancedClusters},
-			mockResponse:  &matlas.Response{Response: &http.Response{StatusCode: 200}, Links: nil, Raw: nil},
+			mockCluster:   &admin.PaginatedAdvancedClusterDescription{Results: &advancedClusters},
+			mockResponse:  &http.Response{StatusCode: 200},
 			expectedError: false,
 			expectedResult: Result{
 				response: advancedClusters[0],
@@ -250,11 +228,11 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 		},
 		{
 			name:          "Successful",
-			mockCluster:   &matlas.AdvancedClustersResponse{},
-			mockResponse:  &matlas.Response{Response: &http.Response{StatusCode: 200}, Links: nil, Raw: nil},
+			mockCluster:   &admin.PaginatedAdvancedClusterDescription{},
+			mockResponse:  &http.Response{StatusCode: 200},
 			expectedError: false,
 			expectedResult: Result{
-				response: &matlas.AdvancedClustersResponse{},
+				response: &admin.PaginatedAdvancedClusterDescription{},
 				state:    "IDLE",
 				error:    nil,
 			},

@@ -143,8 +143,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if _, ok := d.GetOk("tags"); ok {
-		tags := conversion.ExpandTagsFromSetSchema(d)
-		params.Tags = &tags
+		params.Tags = conversion.ExpandTagsFromSetSchema(d)
 	}
 
 	_, _, err := connV2.ServerlessInstancesApi.CreateServerlessInstance(ctx, projectID, params).Execute()
@@ -262,8 +261,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 
 		if d.HasChange("tags") {
-			tags := conversion.ExpandTagsFromSetSchema(d)
-			params.Tags = &tags
+			params.Tags = conversion.ExpandTagsFromSetSchema(d)
 		}
 
 		_, _, err := connV2.ServerlessInstancesApi.UpdateServerlessInstance(ctx, projectID, instanceName, params).Execute()

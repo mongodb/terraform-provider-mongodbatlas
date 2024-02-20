@@ -6,9 +6,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 func TestAccMigrationAdvancedCluster_empty_advancedConfig(t *testing.T) {
+	acc.SkipInUnitTest(t) // needed because TF test infra is not used
 	v0State := map[string]any{
 		"project_id":   "test-id",
 		"name":         "test-cluster",
@@ -61,6 +63,7 @@ func TestAccMigrationAdvancedCluster_empty_advancedConfig(t *testing.T) {
 }
 
 func TestAccMigrationAdvancedCluster_v0StateUpgrade_ReplicationSpecs(t *testing.T) {
+	acc.SkipInUnitTest(t) // needed because TF test infra is not used
 	v0State := map[string]any{
 		"project_id":     "test-id",
 		"name":           "test-cluster",

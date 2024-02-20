@@ -5,17 +5,19 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 func TestAccConfigDSCustomDBRole_basic(t *testing.T) {
-	resourceName := "mongodbatlas_custom_db_role.test"
-	dataSourceName := "data.mongodbatlas_custom_db_role.test"
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	projectName := acctest.RandomWithPrefix("test-acc")
-	roleName := fmt.Sprintf("test-acc-custom_role-%s", acctest.RandString(5))
+	var (
+		resourceName   = "mongodbatlas_custom_db_role.test"
+		dataSourceName = "data.mongodbatlas_custom_db_role.test"
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acc.RandomProjectName()
+		roleName       = acc.RandomName()
+		databaseName   = acc.RandomClusterName()
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -23,7 +25,7 @@ func TestAccConfigDSCustomDBRole_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyNetworkPeering,
 		Steps: []resource.TestStep{
 			{
-				Config: configDS(orgID, projectName, roleName, "INSERT", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+				Config: configDS(orgID, projectName, roleName, "INSERT", databaseName),
 				Check: resource.ComposeTestCheckFunc(
 					// Test for Resource
 					checkExists(resourceName),

@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -19,9 +18,9 @@ func TestAccConfigRSTeam_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_teams.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-		updatedName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 		usernames    = []string{os.Getenv("MONGODB_ATLAS_USERNAME")}
+		name         = acc.RandomName()
+		updatedName  = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -65,7 +64,7 @@ func TestAccConfigRSTeam_importBasic(t *testing.T) {
 		resourceName = "mongodbatlas_teams.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		username     = os.Getenv("MONGODB_ATLAS_USERNAME")
-		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		name         = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -19,9 +18,9 @@ func TestAccConfigRSCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		policyName      = acctest.RandomWithPrefix("tf-acc")
-		roleName        = acctest.RandomWithPrefix("tf-acc")
-		roleNameUpdated = acctest.RandomWithPrefix("tf-acc")
+		policyName      = acc.RandomName()
+		roleName        = acc.RandomName()
+		roleNameUpdated = acc.RandomName()
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -45,10 +44,10 @@ func TestAccConfigRSCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
 func TestAccConfigRSCloudProviderAccessAuthorizationAzure_basic(t *testing.T) {
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName        = acctest.RandomWithPrefix("tf-acc")
 		atlasAzureAppID    = os.Getenv("AZURE_ATLAS_APP_ID")
 		servicePrincipalID = os.Getenv("AZURE_SERVICE_PRINCIPAL_ID")
 		tenantID           = os.Getenv("AZURE_TENANT_ID")
+		projectName        = acc.RandomProjectName()
 	)
 
 	resource.Test(t, resource.TestCase{

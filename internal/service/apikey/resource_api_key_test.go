@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -17,8 +16,8 @@ func TestAccConfigRSAPIKey_basic(t *testing.T) {
 	var (
 		resourceName      = "mongodbatlas_api_key.test"
 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		description       = fmt.Sprintf("test-acc-api_key-%s", acctest.RandString(5))
-		descriptionUpdate = fmt.Sprintf("test-acc-api_key-%s", acctest.RandString(5))
+		description       = acc.RandomName()
+		descriptionUpdate = acc.RandomName()
 		roleName          = "ORG_MEMBER"
 		roleNameUpdated   = "ORG_BILLING_ADMIN"
 	)
@@ -52,7 +51,7 @@ func TestAccConfigRSAPIKey_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_api_key.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		description  = fmt.Sprintf("test-acc-import-api_key-%s", acctest.RandString(5))
+		description  = acc.RandomName()
 		roleName     = "ORG_MEMBER"
 	)
 

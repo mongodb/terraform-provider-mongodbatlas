@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -24,12 +23,11 @@ func TestAccBackupRSCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
 		snapshotsDataSourcePaginationName = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.pagination"
 		dataSourceName                    = "data.mongodbatlas_cloud_backup_snapshot_restore_job.test"
 		orgID                             = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName                       = acctest.RandomWithPrefix("test-snapshot-acc")
-		targetProjectName                 = acctest.RandomWithPrefix("test-acc")
-		clusterName                       = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		projectName                       = acc.RandomProjectName()
+		clusterName                       = acc.RandomClusterName()
 		description                       = fmt.Sprintf("My description in %s", clusterName)
 		retentionInDays                   = "1"
-		targetClusterName                 = fmt.Sprintf("test-acc-target-%s", acctest.RandString(10))
+		targetClusterName                 = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -38,7 +36,7 @@ func TestAccBackupRSCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigAutomated(orgID, projectName, clusterName, description, retentionInDays, targetProjectName, targetClusterName),
+				Config: testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigAutomated(orgID, projectName, clusterName, description, retentionInDays, targetClusterName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobExists(resourceName, &cloudBackupSnapshotRestoreJob),
 					testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobAttributes(&cloudBackupSnapshotRestoreJob, "automated"),
@@ -65,8 +63,8 @@ func TestAccBackupRSCloudBackupSnapshotRestoreJob_basicDownload(t *testing.T) {
 		cloudBackupSnapshotRestoreJob = matlas.CloudProviderSnapshotRestoreJob{}
 		resourceName                  = "mongodbatlas_cloud_backup_snapshot_restore_job.test"
 		orgID                         = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName                   = acctest.RandomWithPrefix("test-acc")
-		clusterName                   = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		projectName                   = acc.RandomProjectName()
+		clusterName                   = acc.RandomClusterName()
 		description                   = fmt.Sprintf("My description in %s", clusterName)
 		retentionInDays               = "1"
 		useSnapshotID                 = true
@@ -97,9 +95,9 @@ func TestAccBackupRSCloudBackupSnapshotRestoreJobWithPointTime_basic(t *testing.
 	acc.SkipTestForCI(t)
 	var (
 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName       = acctest.RandomWithPrefix("test-acc")
-		targetProjectName = acctest.RandomWithPrefix("test-acc-target")
-		clusterName       = acctest.RandomWithPrefix("test-acc")
+		projectName       = acc.RandomProjectName()
+		targetProjectName = acc.RandomProjectName()
+		clusterName       = acc.RandomClusterName()
 		description       = fmt.Sprintf("My description in %s", clusterName)
 		retentionInDays   = "1"
 		timeUtc           = int64(1)
@@ -181,14 +179,13 @@ func testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobImportStateIDFunc(reso
 	}
 }
 
-func testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigAutomated(orgID, projectName, clusterName, description, retentionInDays, targetProjectName, targetClusterName string) string {
+func testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigAutomated(orgID, projectName, clusterName, description, retentionInDays, targetClusterName string) string {
 	return fmt.Sprintf(`
 
 resource "mongodbatlas_project" "backup_project" {
-	name   = %[2]q
 	org_id = %[1]q
+	name   = %[2]q
 }
-
 
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = mongodbatlas_project.backup_project.id
@@ -203,7 +200,7 @@ resource "mongodbatlas_cluster" "my_cluster" {
 
 resource "mongodbatlas_cluster" "targer_cluster" {
 	project_id   = mongodbatlas_project.backup_project.id
-	name         = %[7]q
+	name         = %[6]q
 	
 	// Provider Settings "block"
 	provider_name               = "AWS"
@@ -249,7 +246,7 @@ data "mongodbatlas_cloud_backup_snapshot_restore_jobs" "pagination" {
 	items_per_page = 5
 }
 
-	`, orgID, projectName, clusterName, description, retentionInDays, targetProjectName, targetClusterName)
+	`, orgID, projectName, clusterName, description, retentionInDays, targetClusterName)
 }
 
 func testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigDownload(orgID, projectName, clusterName, description, retentionInDays string, useSnapshotID bool) string {
@@ -296,13 +293,13 @@ func testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigPointInTime(orgID, pr
 	return fmt.Sprintf(`
 
 resource "mongodbatlas_project" "backup_project" {
-	name   = %[2]q
 	org_id = %[1]q
+	name   = %[2]q
 }
 
 resource "mongodbatlas_project" "target_project" {
-	name   = %[6]q
 	org_id = %[1]q
+	name   = %[6]q
 }
 
 resource "mongodbatlas_cluster" "target_cluster" {

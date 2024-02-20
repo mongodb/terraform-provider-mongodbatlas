@@ -4,7 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
@@ -38,7 +37,7 @@ func TestAccMigrationBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "retention_in_days", retentionInDays),
 				),
 			},
-			mig.TestStep(config),
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
@@ -46,7 +45,7 @@ func TestAccMigrationBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 func TestAccMigrationBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
 	var (
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName     = acctest.RandomWithPrefix("test-acc")
+		projectName     = acc.RandomProjectName()
 		description     = "My description in my cluster"
 		retentionInDays = "4"
 		config          = configSharded(orgID, projectName, description, retentionInDays)
@@ -69,7 +68,7 @@ func TestAccMigrationBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "retention_in_days", retentionInDays),
 				),
 			},
-			mig.TestStep(config),
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }

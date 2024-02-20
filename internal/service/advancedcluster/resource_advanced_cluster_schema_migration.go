@@ -49,7 +49,7 @@ func ResourceV0() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"connection_strings": ClusterConnectionStringsSchema(),
+			"connection_strings": SchemaConnectionStrings(),
 			"create_date": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -129,7 +129,7 @@ func ResourceV0() *schema.Resource {
 							Required: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"analytics_specs": advancedClusterRegionConfigsSpecsSchema(),
+									"analytics_specs": schemaSpecs(),
 									"auto_scaling": {
 										Type:     schema.TypeList,
 										MaxItems: 1,
@@ -169,7 +169,7 @@ func ResourceV0() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 									},
-									"electable_specs": advancedClusterRegionConfigsSpecsSchema(),
+									"electable_specs": schemaSpecs(),
 									"priority": {
 										Type:     schema.TypeInt,
 										Required: true,
@@ -178,7 +178,7 @@ func ResourceV0() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 									},
-									"read_only_specs": advancedClusterRegionConfigsSpecsSchema(),
+									"read_only_specs": schemaSpecs(),
 									"region_name": {
 										Type:     schema.TypeString,
 										Required: true,
@@ -222,7 +222,7 @@ func ResourceV0() *schema.Resource {
 				Default:      "LTS",
 				ValidateFunc: validation.StringInSlice([]string{"LTS", "CONTINUOUS"}, false),
 			},
-			"advanced_configuration": ClusterAdvancedConfigurationSchema(),
+			"advanced_configuration": SchemaAdvancedConfig(),
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(3 * time.Hour),
@@ -232,7 +232,7 @@ func ResourceV0() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasAdvancedClusterStateUpgradeV0(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
+func resourceStateUpgradeV0(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 	return MigrateBIConnectorConfig(rawState), nil
 }
 

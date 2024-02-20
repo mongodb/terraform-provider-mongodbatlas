@@ -7,9 +7,7 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -18,7 +16,7 @@ func TestAccMigrationConfigRSAlertConfiguration_withNotificationsMetricThreshold
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		alert        = &admin.GroupAlertsConfig{}
 		config       = configBasicRS(orgID, projectName, true)
 	)
@@ -36,16 +34,7 @@ func TestAccMigrationConfigRSAlertConfiguration_withNotificationsMetricThreshold
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "2"),
 				),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   config,
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
@@ -54,7 +43,7 @@ func TestAccMigrationConfigRSAlertConfiguration_withThreshold(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		alert        = &admin.GroupAlertsConfig{}
 		config       = configWithThresholdUpdated(orgID, projectName, true, 1)
 	)
@@ -74,16 +63,7 @@ func TestAccMigrationConfigRSAlertConfiguration_withThreshold(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "threshold_config.#", "1"),
 				),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   config,
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
@@ -92,7 +72,7 @@ func TestAccMigrationConfigRSAlertConfiguration_withEmptyOptionalBlocks(t *testi
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		alert        = &admin.GroupAlertsConfig{}
 		config       = configWithEmptyOptionalBlocks(orgID, projectName)
 	)
@@ -113,16 +93,7 @@ func TestAccMigrationConfigRSAlertConfiguration_withEmptyOptionalBlocks(t *testi
 					resource.TestCheckResourceAttr(resourceName, "metric_threshold_config.#", "0"),
 				),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   config,
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
@@ -131,7 +102,7 @@ func TestAccMigrationConfigRSAlertConfiguration_withMultipleMatchers(t *testing.
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		alert        = &admin.GroupAlertsConfig{}
 		config       = configWithMatchers(orgID, projectName, true, false, true,
 			map[string]interface{}{
@@ -159,16 +130,7 @@ func TestAccMigrationConfigRSAlertConfiguration_withMultipleMatchers(t *testing.
 					resource.TestCheckResourceAttr(resourceName, "matcher.#", "2"),
 				),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   config,
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
@@ -177,7 +139,7 @@ func TestAccMigrationConfigRSAlertConfiguration_withEmptyOptionalAttributes(t *t
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		alert        = &admin.GroupAlertsConfig{}
 		config       = configWithEmptyOptionalAttributes(orgID, projectName)
 	)
@@ -195,16 +157,7 @@ func TestAccMigrationConfigRSAlertConfiguration_withEmptyOptionalAttributes(t *t
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
 				),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   config,
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }

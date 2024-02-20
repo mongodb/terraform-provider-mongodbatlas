@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
@@ -16,7 +15,7 @@ func TestAccConfigDSAlertConfiguration_basic(t *testing.T) {
 		alert          = &admin.GroupAlertsConfig{}
 		dataSourceName = "data.mongodbatlas_alert_configuration.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acctest.RandomWithPrefix("test-acc")
+		projectName    = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -45,7 +44,7 @@ func TestAccConfigDSAlertConfiguration_withThreshold(t *testing.T) {
 		alert          = &admin.GroupAlertsConfig{}
 		dataSourceName = "data.mongodbatlas_alert_configuration.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acctest.RandomWithPrefix("test-acc")
+		projectName    = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -74,7 +73,7 @@ func TestAccConfigDSAlertConfiguration_withOutput(t *testing.T) {
 		alert          = &admin.GroupAlertsConfig{}
 		dataSourceName = "data.mongodbatlas_alert_configuration.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acctest.RandomWithPrefix("test-acc")
+		projectName    = acc.RandomProjectName()
 		outputLabel    = "resource_import"
 	)
 
@@ -107,7 +106,7 @@ func TestAccConfigDSAlertConfiguration_withPagerDuty(t *testing.T) {
 		alert          = &admin.GroupAlertsConfig{}
 		dataSourceName = "data.mongodbatlas_alert_configuration.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acctest.RandomWithPrefix("test-acc")
+		projectName    = acc.RandomProjectName()
 		serviceKey     = dummy32CharKey
 	)
 
