@@ -14,13 +14,14 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
+var (
+	resourceName   = "mongodbatlas_cloud_backup_schedule.schedule_test"
+	dataSourceName = "data.mongodbatlas_cloud_backup_schedule.schedule_test"
+)
+
 func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 	var (
-		resourceName   = "mongodbatlas_cloud_backup_schedule.schedule_test"
-		dataSourceName = "data.mongodbatlas_cloud_backup_schedule.schedule_test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acctest.RandomWithPrefix("test-acc")
-		clusterName    = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{CloudBackup: true})
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -29,14 +30,14 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configNoPolicies(orgID, projectName, clusterName, &admin.DiskBackupSnapshotSchedule{
+				Config: configNoPolicies(&clusterInfo, &admin.DiskBackupSnapshotSchedule{
 					ReferenceHourOfDay:    conversion.Pointer(3),
 					ReferenceMinuteOfHour: conversion.Pointer(45),
 					RestoreWindowDays:     conversion.Pointer(4),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
@@ -44,7 +45,7 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "reference_hour_of_day"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "reference_minute_of_hour"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "restore_window_days"),
@@ -54,14 +55,14 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "policy_item_monthly.#")),
 			},
 			{
-				Config: configNewPolicies(orgID, projectName, clusterName, &admin.DiskBackupSnapshotSchedule{
+				Config: configNewPolicies(&clusterInfo, &admin.DiskBackupSnapshotSchedule{
 					ReferenceHourOfDay:    conversion.Pointer(0),
 					ReferenceMinuteOfHour: conversion.Pointer(0),
 					RestoreWindowDays:     conversion.Pointer(7),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "0"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "0"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "7"),
@@ -85,21 +86,21 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.frequency_interval", "5"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_unit", "months"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_value", "3"),
-					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "reference_hour_of_day"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "reference_minute_of_hour"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "restore_window_days"),
 				),
 			},
 			{
-				Config: configAdvancedPolicies(orgID, projectName, clusterName, &admin.DiskBackupSnapshotSchedule{
+				Config: configAdvancedPolicies(&clusterInfo, &admin.DiskBackupSnapshotSchedule{
 					ReferenceHourOfDay:    conversion.Pointer(0),
 					ReferenceMinuteOfHour: conversion.Pointer(0),
 					RestoreWindowDays:     conversion.Pointer(7),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "0"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "0"),
@@ -139,7 +140,6 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
-		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
@@ -173,12 +173,11 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 		},
 	})
 }
-func TestAccBackupRSCloudBackupSchedule_onepolicy(t *testing.T) {
+func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		clusterName = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -242,10 +241,9 @@ func TestAccBackupRSCloudBackupSchedule_onepolicy(t *testing.T) {
 
 func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		clusterName = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -291,10 +289,9 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 }
 func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		clusterName = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -344,10 +341,9 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 
 func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		clusterName = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -432,37 +428,22 @@ func checkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func configNoPolicies(orgID, projectName, clusterName string, p *admin.DiskBackupSnapshotSchedule) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "backup_project" {
-			name   = %[2]q
-			org_id = %[1]q
-		}
-		resource "mongodbatlas_cluster" "my_cluster" {
-			project_id   = mongodbatlas_project.backup_project.id
-			name         = %[3]q
-
-			// Provider Settings "block"
-			provider_name               = "AWS"
-			provider_region_name        = "EU_CENTRAL_1"
-			provider_instance_size_name = "M10"
-			cloud_backup     = true //enable cloud provider snapshots
-		}
-
+func configNoPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule) string {
+	return info.ClusterTerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
-			project_id   = mongodbatlas_cluster.my_cluster.project_id
-			cluster_name = mongodbatlas_cluster.my_cluster.name
+			cluster_name     = %[1]s
+			project_id       = %[2]s
 
-			reference_hour_of_day    = %[4]d
-			reference_minute_of_hour = %[5]d
-			restore_window_days      = %[6]d
+			reference_hour_of_day    = %[3]d
+			reference_minute_of_hour = %[4]d
+			restore_window_days      = %[5]d
 		}
 
 		data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
-			project_id   = mongodbatlas_cluster.my_cluster.project_id
-			cluster_name = mongodbatlas_cluster.my_cluster.name
-		 }	
-	`, orgID, projectName, clusterName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
+			cluster_name     = %[1]s
+			project_id       = %[2]s
+		}	
+	`, info.ClusterNameStr, info.ProjectIDStr, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
 func configDefault(orgID, projectName, clusterName string, p *admin.DiskBackupSnapshotSchedule) string {
@@ -624,30 +605,15 @@ func configOnePolicy(orgID, projectName, clusterName string, p *admin.DiskBackup
 	`, orgID, projectName, clusterName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
-func configNewPolicies(orgID, projectName, clusterName string, p *admin.DiskBackupSnapshotSchedule) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "backup_project" {
-			name   = %[2]q
-			org_id = %[1]q
-		}
-		resource "mongodbatlas_cluster" "my_cluster" {
-			project_id   = mongodbatlas_project.backup_project.id
-			name         = %[3]q
-
-			// Provider Settings "block"
-			provider_name               = "AWS"
-			provider_region_name        = "EU_CENTRAL_1"
-			provider_instance_size_name = "M10"
-			cloud_backup     = true //enable cloud provider snapshots
-		}
-
+func configNewPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule) string {
+	return info.ClusterTerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
-			project_id   = mongodbatlas_cluster.my_cluster.project_id
-			cluster_name = mongodbatlas_cluster.my_cluster.name
+			cluster_name     = %[1]s
+			project_id       = %[2]s
 
-			reference_hour_of_day    = %[4]d
-			reference_minute_of_hour = %[5]d
-			restore_window_days      = %[6]d
+			reference_hour_of_day    = %[3]d
+			reference_minute_of_hour = %[4]d
+			restore_window_days      = %[5]d
 
 			policy_item_hourly {
 				frequency_interval = 2
@@ -672,10 +638,10 @@ func configNewPolicies(orgID, projectName, clusterName string, p *admin.DiskBack
 		}
 
 		data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
-			project_id   = mongodbatlas_cluster.my_cluster.project_id
-			cluster_name = mongodbatlas_cluster.my_cluster.name
+			cluster_name     = %[1]s
+			project_id       = %[2]s
 		 }	
-	`, orgID, projectName, clusterName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
+	`, info.ClusterNameStr, info.ProjectIDStr, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
 func configBasic(orgID, projectName, clusterName string, policy *admin.DiskBackupApiPolicyItem) string {
@@ -713,30 +679,16 @@ data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 	`, orgID, projectName, clusterName, policy.GetFrequencyInterval(), policy.GetRetentionUnit(), policy.GetRetentionValue())
 }
 
-func configAdvancedPolicies(orgID, projectName, clusterName string, p *admin.DiskBackupSnapshotSchedule) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "backup_project" {
-			name   = %[2]q
-			org_id = %[1]q
-		}
-		resource "mongodbatlas_cluster" "my_cluster" {
-			project_id   = mongodbatlas_project.backup_project.id
-			name         = %[3]q
-
-			// Provider Settings "block"
-			provider_name               = "AWS"
-			provider_region_name        = "EU_CENTRAL_1"
-			provider_instance_size_name = "M10"
-			cloud_backup     = true //enable cloud provider snapshots
-		}
-
+func configAdvancedPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule) string {
+	return info.ClusterTerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
-			project_id   = mongodbatlas_cluster.my_cluster.project_id
-			cluster_name = mongodbatlas_cluster.my_cluster.name
+			cluster_name     = %[1]s
+			project_id       = %[2]s
+
 			auto_export_enabled = false
-			reference_hour_of_day    = %[4]d
-			reference_minute_of_hour = %[5]d
-			restore_window_days      = %[6]d
+			reference_hour_of_day    = %[3]d
+			reference_minute_of_hour = %[4]d
+			restore_window_days      = %[5]d
 
 			policy_item_hourly {
 				frequency_interval = 2
@@ -769,7 +721,7 @@ func configAdvancedPolicies(orgID, projectName, clusterName string, p *admin.Dis
 				retention_value    = 4
 			}
 		}
-	`, orgID, projectName, clusterName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
+	`, info.ClusterNameStr, info.ProjectIDStr, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
 func configExportPolicies(orgID, projectName, clusterName, policyName, roleName, awsAccessKey, awsSecretKey, region string) string {

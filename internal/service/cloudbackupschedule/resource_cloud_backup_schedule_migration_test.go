@@ -13,11 +13,10 @@ import (
 
 func TestAccMigrationBackupRSCloudBackupSchedule_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-		config       = configBasic(orgID, projectName, clusterName, &admin.DiskBackupApiPolicyItem{
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		clusterName = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		config      = configBasic(orgID, projectName, clusterName, &admin.DiskBackupApiPolicyItem{
 			FrequencyInterval: 1,
 			RetentionUnit:     "days",
 			RetentionValue:    1,
