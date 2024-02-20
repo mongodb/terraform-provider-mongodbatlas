@@ -33,7 +33,7 @@ func TestAccMigrationAdvancedCluster_singleAWSProvider(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 				),
 			},
-			mig.TestStep(config),
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
@@ -62,7 +62,7 @@ func TestAccMigrationAdvancedCluster_multiCloud(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 				),
 			},
-			mig.TestStep(config),
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
