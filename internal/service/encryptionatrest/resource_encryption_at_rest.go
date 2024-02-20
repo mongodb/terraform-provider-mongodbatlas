@@ -221,7 +221,7 @@ func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 	if encryptionAtRestPlan.AzureKeyVaultConfig != nil {
 		encryptionAtRestReq.AzureKeyVault = NewAtlasAzureKeyVault(encryptionAtRestPlan.AzureKeyVaultConfig)
 	}
-	if encryptionAtRestPlan.AzureKeyVaultConfig != nil {
+	if encryptionAtRestPlan.GoogleCloudKmsConfig != nil {
 		encryptionAtRestReq.GoogleCloudKms = NewAtlasGcpKms(encryptionAtRestPlan.GoogleCloudKmsConfig)
 	}
 
