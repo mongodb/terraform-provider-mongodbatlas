@@ -3,14 +3,13 @@ package acc
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 func CheckDestroySearchIndex(state *terraform.State) error {
-	if os.Getenv("MONGODB_ATLAS_CLUSTER_NAME") != "" {
+	if ExistingClusterUsed() {
 		return nil
 	}
 	for _, rs := range state.RootModule().Resources {
