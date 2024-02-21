@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -141,10 +140,10 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-		policyName   = acctest.RandomWithPrefix("test-acc")
-		roleName     = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
+		clusterName  = acc.RandomClusterName()
+		policyName   = acc.RandomName()
+		roleName     = acc.RandomName()
 		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
 		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
 		region       = os.Getenv("AWS_REGION")
@@ -176,8 +175,8 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
-		clusterName = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -242,8 +241,8 @@ func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
-		clusterName = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -290,8 +289,8 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
-		clusterName = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -342,8 +341,8 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
-		clusterName = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

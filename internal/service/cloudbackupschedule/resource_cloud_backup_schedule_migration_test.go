@@ -1,12 +1,11 @@
 package cloudbackupschedule_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
@@ -14,8 +13,8 @@ import (
 func TestAccMigrationBackupRSCloudBackupSchedule_basic(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
-		clusterName = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
 		config      = configBasic(orgID, projectName, clusterName, &admin.DiskBackupApiPolicyItem{
 			FrequencyInterval: 1,
 			RetentionUnit:     "days",
@@ -42,7 +41,7 @@ func TestAccMigrationBackupRSCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "policy_item_monthly.#"),
 				),
 			},
-			mig.TestStep(config),
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
