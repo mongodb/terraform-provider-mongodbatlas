@@ -191,7 +191,7 @@ For more information on configuring and managing programmatic API Keys see the [
 | 1.3.x | 2022-09-21 | 2024-09-30 | 2024-09-30 |
 | 1.2.x | 2022-05-18 | 2024-05-31 | 2024-05-31 |
 
-For the safety of our users, we require only consuming versions of HashiCorp Terraform Version that are currently receiving Security / Maintenance Updates. For more details see [Support Period and End-of-Life (EOL) Policy](https://support.hashicorp.com/hc/en-us/articles/360021185113-Support-Period-and-End-of-Life-EOL-Policy).   
+For the safety of our users, we require only consuming versions of HashiCorp Terraform that are currently receiving Security / Maintenance Updates. For more details see [Support Period and End-of-Life (EOL) Policy](https://support.hashicorp.com/hc/en-us/articles/360021185113-Support-Period-and-End-of-Life-EOL-Policy).   
 For latest HashiCorp Terraform versions see [here](https://endoflife.date/terraform ).
 
 ## Supported OS and Architectures
