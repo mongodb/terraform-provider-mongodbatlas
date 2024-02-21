@@ -34,7 +34,7 @@ func TestAccMigrationOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "state"),
 				),
 			},
-			mig.TestStep(config),
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
@@ -64,7 +64,7 @@ func TestAccMigrationOutageSimulationCluster_MultiRegion_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "state"),
 				),
 			},
-			mig.TestStep(config),
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }

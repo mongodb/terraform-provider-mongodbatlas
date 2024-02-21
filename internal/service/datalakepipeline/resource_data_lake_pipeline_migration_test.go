@@ -32,7 +32,7 @@ func TestAccMigrationcDataLakePipeline_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "state", "ACTIVE"),
 				),
 			},
-			mig.TestStep(config),
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }

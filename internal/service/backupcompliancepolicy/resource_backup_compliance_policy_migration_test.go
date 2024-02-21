@@ -34,7 +34,7 @@ func TestAccMigrationGenericBackupRSBackupCompliancePolicy_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "7"),
 				),
 			},
-			mig.TestStep(config),
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
