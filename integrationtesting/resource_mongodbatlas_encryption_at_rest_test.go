@@ -93,7 +93,6 @@ func TestResourceEncryptionAtRestAws(t *testing.T) {
 		projectName = acc.RandomProjectName()
 		publicKey   = mongoSecrets.PublicKey
 		privateKey  = mongoSecrets.PrivateKey
-
 		awsAccess   = awsSecrets.AccessKey
 		awsSecret   = awsSecrets.SecretKey
 		awsCustomer = awsSecrets.CustomerMasterKey
