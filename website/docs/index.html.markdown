@@ -179,9 +179,8 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
 
 For more information on configuring and managing programmatic API Keys see the [MongoDB Atlas Documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html).
 
-## HashiCorp Terraform Version Requirement
-- [HashiCorp Terraform Version](https://www.terraform.io/downloads.html) Compatibility Matrix
-  
+## [HashiCorp Terraform Version](https://www.terraform.io/downloads.html) Compatibility Matrix
+ 
 | HashiCorp Terraform Release | HashiCorp Terraform Release Date  | HashiCorp Terraform Full Support End Date  | MongoDB Atlas Support End Date |
 |:-------:|:------------:|:------------:|:------------:|
 | 1.7.x | 2024-01-17 | 2026-01-31 | 2026-01-31 |
