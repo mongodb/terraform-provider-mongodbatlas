@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
@@ -14,8 +14,8 @@ func TestAccMigrationServerlessPrivateLinkEndpointService_basic(t *testing.T) {
 		resourceName   = "mongodbatlas_privatelink_endpoint_service_serverless.test"
 		datasourceName = "data.mongodbatlas_privatelink_endpoint_service_serverless.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acctest.RandomWithPrefix("test-acc-serverless")
-		instanceName   = acctest.RandomWithPrefix("test-acc-serverless")
+		projectName    = acc.RandomProjectName()
+		instanceName   = acc.RandomClusterName()
 		commentOrigin  = "this is a comment for serverless private link endpoint"
 		config         = configBasic(orgID, projectName, instanceName, commentOrigin)
 	)
@@ -34,7 +34,7 @@ func TestAccMigrationServerlessPrivateLinkEndpointService_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(datasourceName, "comment", commentOrigin),
 				),
 			},
-			mig.TestStep(config),
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }

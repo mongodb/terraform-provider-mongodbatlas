@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
@@ -16,9 +15,7 @@ import (
 )
 
 func TestAccConfigDSAtlasUsers_ByOrgID(t *testing.T) {
-	if os.Getenv("TF_ACC") == "" { // needed while fetchOrgUsers is called from the test
-		t.Skip()
-	}
+	acc.SkipInUnitTest(t) // needed while fetchOrgUsers is called from the test
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -42,7 +39,7 @@ func TestAccConfigDSAtlasUsers_ByOrgID(t *testing.T) {
 func TestAccConfigDSAtlasUsers_ByProjectID(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
-		projectName    = acctest.RandomWithPrefix("test-acc")
+		projectName    = acc.RandomProjectName()
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 	)
@@ -75,7 +72,7 @@ func TestAccConfigDSAtlasUsers_ByTeamID(t *testing.T) {
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		username       = os.Getenv("MONGODB_ATLAS_USERNAME")
-		teamName       = acctest.RandomWithPrefix("team-name")
+		teamName       = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -107,7 +104,7 @@ func TestAccConfigDSAtlasUsers_UsingPagination(t *testing.T) {
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		username       = os.Getenv("MONGODB_ATLAS_USERNAME")
-		teamName       = acctest.RandomWithPrefix("team-name")
+		teamName       = acc.RandomName()
 		pageNum        = 2
 		itemsPerPage   = 1
 	)

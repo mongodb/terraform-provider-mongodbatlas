@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -16,8 +15,8 @@ func TestAccSearchDeployment_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_search_deployment.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc-search-dep")
-		clusterName  = acctest.RandomWithPrefix("test-acc-search-dep")
+		projectName  = acc.RandomProjectName()
+		clusterName  = acc.RandomClusterName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -137,7 +136,7 @@ func checkDestroy(state *terraform.State) error {
 	if projectDestroyedErr := acc.CheckDestroyProject(state); projectDestroyedErr != nil {
 		return projectDestroyedErr
 	}
-	if clusterDestroyedErr := acc.CheckDestroyTeamAdvancedCluster(state); clusterDestroyedErr != nil {
+	if clusterDestroyedErr := acc.CheckDestroyCluster(state); clusterDestroyedErr != nil {
 		return clusterDestroyedErr
 	}
 	for _, rs := range state.RootModule().Resources {

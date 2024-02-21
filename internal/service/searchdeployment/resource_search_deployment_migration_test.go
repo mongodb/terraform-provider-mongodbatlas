@@ -4,9 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -15,10 +13,11 @@ func TestAccMigrationSearchDeployment_basic(t *testing.T) {
 	var (
 		resourceName    = "mongodbatlas_search_deployment.test"
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName     = acctest.RandomWithPrefix("test-acc-search-dep")
-		clusterName     = acctest.RandomWithPrefix("test-acc-search-dep")
+		projectName     = acc.RandomProjectName()
+		clusterName     = acc.RandomClusterName()
 		instanceSize    = "S30_HIGHCPU_NVME"
 		searchNodeCount = 3
+		config          = configBasic(orgID, projectName, clusterName, instanceSize, searchNodeCount)
 	)
 	mig.SkipIfVersionBelow(t, "1.13.0")
 	resource.ParallelTest(t, resource.TestCase{
@@ -27,18 +26,10 @@ func TestAccMigrationSearchDeployment_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configBasic(orgID, projectName, clusterName, instanceSize, searchNodeCount),
+				Config:            config,
 				Check:             resource.ComposeTestCheckFunc(searchNodeChecks(resourceName, clusterName, instanceSize, searchNodeCount)...),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configBasic(orgID, projectName, clusterName, instanceSize, searchNodeCount),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }

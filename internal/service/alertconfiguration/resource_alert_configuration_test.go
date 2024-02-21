@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -20,7 +19,7 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		alert        = &admin.GroupAlertsConfig{}
 	)
 
@@ -52,7 +51,7 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 func TestAccConfigRSAlertConfiguration_withEmptyMetricThresholdConfig(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -71,7 +70,7 @@ func TestAccConfigRSAlertConfiguration_withEmptyMatcherMetricThresholdConfig(t *
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		alert        = &admin.GroupAlertsConfig{}
 	)
 
@@ -95,7 +94,7 @@ func TestAccConfigRSAlertConfiguration_withNotifications(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		alert        = &admin.GroupAlertsConfig{}
 	)
 
@@ -126,7 +125,7 @@ func TestAccConfigRSAlertConfiguration_withMatchers(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		alert        = &admin.GroupAlertsConfig{}
 	)
 
@@ -177,7 +176,7 @@ func TestAccConfigRSAlertConfiguration_withMetricUpdated(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		alert        = &admin.GroupAlertsConfig{}
 	)
 
@@ -208,7 +207,7 @@ func TestAccConfigRSAlertConfiguration_withThresholdUpdated(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		alert        = &admin.GroupAlertsConfig{}
 	)
 
@@ -247,7 +246,7 @@ func TestAccConfigRSAlertConfiguration_withoutRoles(t *testing.T) {
 		alert        = &admin.GroupAlertsConfig{}
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -271,7 +270,7 @@ func TestAccConfigRSAlertConfiguration_withoutOptionalAttributes(t *testing.T) {
 		alert        = &admin.GroupAlertsConfig{}
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -293,7 +292,7 @@ func TestAccConfigRSAlertConfiguration_withoutOptionalAttributes(t *testing.T) {
 func TestAccConfigRSAlertConfiguration_importBasic(t *testing.T) {
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		resourceName = "mongodbatlas_alert_configuration.test"
 	)
 
@@ -319,7 +318,7 @@ func TestAccConfigRSAlertConfiguration_importBasic(t *testing.T) {
 func TestAccConfigRSAlertConfiguration_importIncorrectId(t *testing.T) {
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		resourceName = "mongodbatlas_alert_configuration.test"
 	)
 
@@ -344,7 +343,7 @@ func TestAccConfigRSAlertConfiguration_importIncorrectId(t *testing.T) {
 func TestAccConfigRSAlertConfiguration_importConfigNotifications(t *testing.T) {
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		resourceName = "mongodbatlas_alert_configuration.test"
 	)
 
@@ -376,7 +375,7 @@ func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		serviceKey   = dummy32CharKey
 		alert        = &admin.GroupAlertsConfig{}
 	)
@@ -408,7 +407,7 @@ func TestAccConfigRSAlertConfiguration_updatePagerDutyWithNotifierId(t *testing.
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		serviceKey   = dummy32CharKey
 		notifierID   = "651dd9336afac13e1c112222"
 		alert        = &admin.GroupAlertsConfig{}
@@ -444,7 +443,7 @@ func TestAccConfigRSAlertConfiguration_withDataDog(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		ddAPIKey     = dummy32CharKey
 		ddRegion     = "US"
 		alert        = &admin.GroupAlertsConfig{}
@@ -470,7 +469,7 @@ func TestAccConfigRSAlertConfiguration_withPagerDuty(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		serviceKey   = dummy32CharKey
 		alert        = &admin.GroupAlertsConfig{}
 	)
@@ -495,7 +494,7 @@ func TestAccConfigRSAlertConfiguration_withOpsGenie(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		apiKey       = dummy36CharKey
 		alert        = &admin.GroupAlertsConfig{}
 	)
@@ -520,7 +519,7 @@ func TestAccConfigRSAlertConfiguration_withVictorOps(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		apiKey       = dummy36CharKey
 		alert        = &admin.GroupAlertsConfig{}
 	)

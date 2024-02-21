@@ -20,8 +20,8 @@ func TestAccConfigRSProjectAPIKey_Basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project_api_key.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		description  = fmt.Sprintf("test-acc-project-api_key-%s", acctest.RandString(5))
+		projectName  = acc.RandomProjectName()
+		description  = acc.RandomName()
 		roleName     = "GROUP_OWNER"
 	)
 
@@ -46,8 +46,8 @@ func TestAccConfigRSProjectAPIKey_BasicWithLegacyRootProjectID(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project_api_key.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		description  = fmt.Sprintf("test-acc-project-api_key-%s", acctest.RandString(5))
+		projectName  = acc.RandomProjectName()
+		description  = acc.RandomName()
 		roleName     = "GROUP_OWNER"
 	)
 
@@ -73,9 +73,9 @@ func TestAccConfigRSProjectAPIKey_ChangingSingleProject(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project_api_key.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName1 = acctest.RandomWithPrefix("test-acc")
-		projectName2 = acctest.RandomWithPrefix("test-acc")
-		description  = fmt.Sprintf("test-acc-project-api_key-%s", acctest.RandString(5))
+		projectName1 = acc.RandomProjectName()
+		projectName2 = acc.RandomProjectName()
+		description  = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -107,8 +107,8 @@ func TestAccConfigRSProjectAPIKey_RemovingOptionalRootProjectID(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project_api_key.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		description  = fmt.Sprintf("test-acc-project-api_key-%s", acctest.RandString(5))
+		projectName  = acc.RandomProjectName()
+		description  = acc.RandomName()
 		roleName     = "GROUP_OWNER"
 	)
 
@@ -144,8 +144,8 @@ func TestAccConfigRSProjectAPIKey_Multiple(t *testing.T) {
 		dataSourceName  = "data.mongodbatlas_project_api_key.test"
 		dataSourcesName = "data.mongodbatlas_project_api_keys.test"
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName     = acctest.RandomWithPrefix("test-acc")
-		description     = fmt.Sprintf("test-acc-project-api_key-%s", acctest.RandString(5))
+		projectName     = acc.RandomProjectName()
+		description     = acc.RandomName()
 		roleName        = "GROUP_OWNER"
 	)
 
@@ -177,9 +177,9 @@ func TestAccConfigRSProjectAPIKey_UpdateDescription(t *testing.T) {
 	var (
 		resourceName       = "mongodbatlas_project_api_key.test"
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName        = acctest.RandomWithPrefix("test-acc")
-		description        = fmt.Sprintf("test-acc-project-api_key-%s", acctest.RandString(5))
-		updatedDescription = fmt.Sprintf("test-acc-project-api_key-updated-%s", acctest.RandString(5))
+		projectName        = acc.RandomProjectName()
+		description        = acc.RandomName()
+		updatedDescription = acc.RandomName()
 		roleName           = "GROUP_OWNER"
 	)
 
@@ -210,8 +210,8 @@ func TestAccConfigRSProjectAPIKey_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project_api_key.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		description  = fmt.Sprintf("test-acc-import-project-api_key-%s", acctest.RandString(5))
+		projectName  = acc.RandomProjectName()
+		description  = acc.RandomName()
 		roleName     = "GROUP_OWNER"
 	)
 
@@ -274,9 +274,9 @@ func TestAccConfigRSProjectAPIKey_DeleteProjectAndAssignment(t *testing.T) {
 	var (
 		resourceName      = "mongodbatlas_project_api_key.test"
 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName       = acctest.RandomWithPrefix("test-acc")
-		secondProjectName = acctest.RandomWithPrefix("test-acc")
-		description       = fmt.Sprintf("%s-%s", "test-acc-project", acctest.RandString(5))
+		projectName       = acc.RandomProjectName()
+		secondProjectName = acc.RandomProjectName()
+		description       = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -338,7 +338,7 @@ func testAccCheckMongoDBAtlasProjectAPIKeyDestroy(s *terraform.State) error {
 func TestAccConfigRSProjectAPIKey_Invalid_Role(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 		description = projectName
 		roleName    = "INVALID_ROLE"
 	)

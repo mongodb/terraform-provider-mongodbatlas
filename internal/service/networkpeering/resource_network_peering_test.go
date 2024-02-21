@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -28,7 +27,7 @@ func TestAccNetworkNetworkPeering_basicAWS(t *testing.T) {
 		awsAccountID         = os.Getenv("AWS_ACCOUNT_ID")
 		awsRegion            = os.Getenv("AWS_REGION")
 		providerName         = "AWS"
-		projectName          = acctest.RandomWithPrefix("test-acc-project-aws")
+		projectName          = acc.RandomProjectName()
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -117,7 +116,7 @@ func TestAccNetworkRSNetworkPeering_basicGCP(t *testing.T) {
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		providerName = "GCP"
 		gcpProjectID = os.Getenv("GCP_PROJECT_ID")
-		networkName  = fmt.Sprintf("test-acc-name-%s", acctest.RandString(5))
+		networkName  = acc.RandomName()
 	)
 
 	resource.Test(t, resource.TestCase{

@@ -29,7 +29,7 @@ func TestAccNetworkContainerRS_basicAWS(t *testing.T) {
 	var (
 		randIntUpdated   = acctest.RandIntRange(0, 255)
 		cidrBlockUpdated = fmt.Sprintf("10.8.%d.0/24", randIntUpdated)
-		projectName      = acctest.RandomWithPrefix("test-acc")
+		projectName      = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -63,7 +63,7 @@ func TestAccNetworkContainerRS_basicAzure(t *testing.T) {
 	var (
 		randIntUpdated   = acctest.RandIntRange(0, 255)
 		cidrBlockUpdated = fmt.Sprintf("192.168.%d.0/24", randIntUpdated)
-		projectName      = acctest.RandomWithPrefix("test-acc")
+		projectName      = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -97,7 +97,7 @@ func TestAccNetworkContainerRS_basicGCP(t *testing.T) {
 	var (
 		randIntUpdated   = acctest.RandIntRange(0, 255)
 		cidrBlockUpdated = fmt.Sprintf("10.%d.0.0/18", randIntUpdated)
-		projectName      = acctest.RandomWithPrefix("test-acc")
+		projectName      = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -129,7 +129,7 @@ func TestAccNetworkContainerRS_basicGCP(t *testing.T) {
 
 func TestAccNetworkContainerRS_WithRegionsGCP(t *testing.T) {
 	var (
-		projectName             = acctest.RandomWithPrefix("test-acc")
+		projectName             = acc.RandomProjectName()
 		gcpWithRegionsCidrBlock = fmt.Sprintf("10.%d.0.0/21", randInt)
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -158,7 +158,7 @@ func TestAccNetworkContainerRS_WithRegionsGCP(t *testing.T) {
 
 func TestAccNetworkContainerRS_importBasic(t *testing.T) {
 	var (
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },

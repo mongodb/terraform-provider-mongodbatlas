@@ -10,13 +10,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasAdvancedClustersRead,
+		ReadContext: dataSourcePluralRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -27,7 +28,7 @@ func PluralDataSource() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"advanced_configuration": ClusterAdvancedConfigurationSchemaComputed(),
+						"advanced_configuration": SchemaAdvancedConfigDS(),
 						"backup_enabled": {
 							Type:     schema.TypeBool,
 							Computed: true,
@@ -54,7 +55,7 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"connection_strings": ClusterConnectionStringsSchema(),
+						"connection_strings": SchemaConnectionStrings(),
 						"create_date": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -124,7 +125,7 @@ func PluralDataSource() *schema.Resource {
 										Computed: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
-												"analytics_specs": advancedClusterRegionConfigsSpecsSchema(),
+												"analytics_specs": schemaSpecs(),
 												"auto_scaling": {
 													Type:     schema.TypeList,
 													Computed: true,
@@ -185,7 +186,7 @@ func PluralDataSource() *schema.Resource {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
-												"electable_specs": advancedClusterRegionConfigsSpecsSchema(),
+												"electable_specs": schemaSpecs(),
 												"priority": {
 													Type:     schema.TypeInt,
 													Computed: true,
@@ -194,7 +195,7 @@ func PluralDataSource() *schema.Resource {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
-												"read_only_specs": advancedClusterRegionConfigsSpecsSchema(),
+												"read_only_specs": schemaSpecs(),
 												"region_name": {
 													Type:     schema.TypeString,
 													Computed: true,
@@ -240,65 +241,61 @@ func PluralDataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasAdvancedClustersRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	d.SetId(id.UniqueId())
 
-	clusters, resp, err := conn.AdvancedClusters.List(ctx, projectID, nil)
+	list, resp, err := connV2.ClustersApi.ListClusters(ctx, projectID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
-
 		return diag.FromErr(fmt.Errorf("error reading advanced cluster list for project(%s): %s", projectID, err))
 	}
-
-	if err := d.Set("results", flattenAdvancedClusters(ctx, conn, clusters.Results, d)); err != nil {
+	if err := d.Set("results", flattenAdvancedClusters(ctx, connV2, list.GetResults(), d)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "results", d.Id(), err))
 	}
 
 	return nil
 }
 
-func flattenAdvancedClusters(ctx context.Context, conn *matlas.Client, clusters []*matlas.AdvancedCluster, d *schema.ResourceData) []map[string]any {
-	results := make([]map[string]any, 0)
-
+func flattenAdvancedClusters(ctx context.Context, connV2 *admin.APIClient, clusters []admin.AdvancedClusterDescription, d *schema.ResourceData) []map[string]any {
+	results := make([]map[string]any, 0, len(clusters))
 	for i := range clusters {
-		processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, clusters[i].GroupID, clusters[i].Name)
+		cluster := &clusters[i]
+		processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
 		if err != nil {
-			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
+			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
 		}
-		replicationSpecs, err := flattenAdvancedReplicationSpecs(ctx, clusters[i].ReplicationSpecs, nil, d, conn)
+		replicationSpecs, err := flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), nil, d, connV2)
 		if err != nil {
-			log.Printf("[WARN] Error setting `replication_specs` for the cluster(%s): %s", clusters[i].ID, err)
+			log.Printf("[WARN] Error setting `replication_specs` for the cluster(%s): %s", cluster.GetId(), err)
 		}
 
 		result := map[string]any{
-			"advanced_configuration":         FlattenProcessArgs(processArgs),
-			"backup_enabled":                 clusters[i].BackupEnabled,
-			"bi_connector_config":            FlattenBiConnectorConfig(clusters[i].BiConnector),
-			"cluster_type":                   clusters[i].ClusterType,
-			"create_date":                    clusters[i].CreateDate,
-			"connection_strings":             FlattenConnectionStrings(clusters[i].ConnectionStrings),
-			"disk_size_gb":                   clusters[i].DiskSizeGB,
-			"encryption_at_rest_provider":    clusters[i].EncryptionAtRestProvider,
-			"labels":                         FlattenLabels(clusters[i].Labels),
-			"tags":                           FlattenTags(&clusters[i].Tags),
-			"mongo_db_major_version":         clusters[i].MongoDBMajorVersion,
-			"mongo_db_version":               clusters[i].MongoDBVersion,
-			"name":                           clusters[i].Name,
-			"paused":                         clusters[i].Paused,
-			"pit_enabled":                    clusters[i].PitEnabled,
+			"advanced_configuration":         flattenProcessArgs(processArgs),
+			"backup_enabled":                 cluster.GetBackupEnabled(),
+			"bi_connector_config":            flattenBiConnectorConfig(cluster.GetBiConnector()),
+			"cluster_type":                   cluster.GetClusterType(),
+			"create_date":                    conversion.TimePtrToStringPtr(cluster.CreateDate),
+			"connection_strings":             flattenConnectionStrings(cluster.GetConnectionStrings()),
+			"disk_size_gb":                   cluster.GetDiskSizeGB(),
+			"encryption_at_rest_provider":    cluster.GetEncryptionAtRestProvider(),
+			"labels":                         flattenLabels(cluster.GetLabels()),
+			"tags":                           conversion.FlattenTags(cluster.GetTags()),
+			"mongo_db_major_version":         cluster.GetMongoDBMajorVersion(),
+			"mongo_db_version":               cluster.GetMongoDBVersion(),
+			"name":                           cluster.GetName(),
+			"paused":                         cluster.GetPaused(),
+			"pit_enabled":                    cluster.GetPitEnabled(),
 			"replication_specs":              replicationSpecs,
-			"root_cert_type":                 clusters[i].RootCertType,
-			"state_name":                     clusters[i].StateName,
-			"termination_protection_enabled": clusters[i].TerminationProtectionEnabled,
-			"version_release_system":         clusters[i].VersionReleaseSystem,
+			"root_cert_type":                 cluster.GetRootCertType(),
+			"state_name":                     cluster.GetStateName(),
+			"termination_protection_enabled": cluster.GetTerminationProtectionEnabled(),
+			"version_release_system":         cluster.GetVersionReleaseSystem(),
 		}
 		results = append(results, result)
 	}
-
 	return results
 }

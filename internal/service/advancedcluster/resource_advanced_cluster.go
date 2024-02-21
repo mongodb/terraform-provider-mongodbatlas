@@ -20,37 +20,41 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
-	"golang.org/x/exp/slices"
+	"go.mongodb.org/atlas-sdk/v20231115006/admin"
+)
+
+const (
+	errorCreate                    = "error creating advanced cluster: %s"
+	errorRead                      = "error reading  advanced cluster (%s): %s"
+	errorDelete                    = "error deleting advanced cluster (%s): %s"
+	errorUpdate                    = "error updating advanced cluster (%s): %s"
+	errorConfigUpdate              = "error updating advanced cluster configuration options (%s): %s"
+	errorConfigRead                = "error reading advanced cluster configuration options (%s): %s"
+	ErrorClusterSetting            = "error setting `%s` for MongoDB Cluster (%s): %s"
+	ErrorAdvancedConfRead          = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
+	ErrorClusterAdvancedSetting    = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
+	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
+	ignoreLabel                    = "Infrastructure Tool"
 )
 
 type acCtxKey string
-
-const (
-	errorClusterAdvancedCreate             = "error creating MongoDB ClusterAdvanced: %s"
-	errorClusterAdvancedRead               = "error reading MongoDB ClusterAdvanced (%s): %s"
-	errorClusterAdvancedDelete             = "error deleting MongoDB ClusterAdvanced (%s): %s"
-	errorClusterAdvancedUpdate             = "error updating MongoDB ClusterAdvanced (%s): %s"
-	errorAdvancedClusterAdvancedConfUpdate = "error updating Advanced Configuration Option form MongoDB Cluster (%s): %s"
-	errorAdvancedClusterAdvancedConfRead   = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
-)
 
 var upgradeRequestCtxKey acCtxKey = "upgradeRequest"
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasAdvancedClusterCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasAdvancedClusterRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasAdvancedClusterUpdateOrUpgrade,
-		DeleteWithoutTimeout: resourceMongoDBAtlasAdvancedClusterDelete,
+		CreateWithoutTimeout: resourceCreate,
+		ReadWithoutTimeout:   resourceRead,
+		UpdateWithoutTimeout: resourceUpdateOrUpgrade,
+		DeleteWithoutTimeout: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasAdvancedClusterImportState,
+			StateContext: resourceImport,
 		},
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
 			{
 				Type:    ResourceV0().CoreConfigSchema().ImpliedType(),
-				Upgrade: resourceMongoDBAtlasAdvancedClusterStateUpgradeV0,
+				Upgrade: resourceStateUpgradeV0,
 				Version: 0,
 			},
 		},
@@ -98,7 +102,7 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"connection_strings": ClusterConnectionStringsSchema(),
+			"connection_strings": SchemaConnectionStrings(),
 			"create_date": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -177,7 +181,7 @@ func Resource() *schema.Resource {
 							Required: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"analytics_specs": advancedClusterRegionConfigsSpecsSchema(),
+									"analytics_specs": schemaSpecs(),
 									"auto_scaling": {
 										Type:     schema.TypeList,
 										MaxItems: 1,
@@ -252,7 +256,7 @@ func Resource() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 									},
-									"electable_specs": advancedClusterRegionConfigsSpecsSchema(),
+									"electable_specs": schemaSpecs(),
 									"priority": {
 										Type:     schema.TypeInt,
 										Required: true,
@@ -262,7 +266,7 @@ func Resource() *schema.Resource {
 										Required:         true,
 										ValidateDiagFunc: StringIsUppercase(),
 									},
-									"read_only_specs": advancedClusterRegionConfigsSpecsSchema(),
+									"read_only_specs": schemaSpecs(),
 									"region_name": {
 										Type:             schema.TypeString,
 										Required:         true,
@@ -307,7 +311,7 @@ func Resource() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"LTS", "CONTINUOUS"}, false),
 			},
-			"advanced_configuration": ClusterAdvancedConfigurationSchema(),
+			"advanced_configuration": SchemaAdvancedConfig(),
 			"accept_data_risks_and_force_replica_set_reconfig": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -322,7 +326,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-func advancedClusterRegionConfigsSpecsSchema() *schema.Schema {
+func schemaSpecs() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		MaxItems: 1,
@@ -351,210 +355,193 @@ func advancedClusterRegionConfigsSpecsSchema() *schema.Schema {
 	}
 }
 
-func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	if v, ok := d.GetOk("accept_data_risks_and_force_replica_set_reconfig"); ok {
 		if v.(string) != "" {
 			return diag.FromErr(fmt.Errorf("accept_data_risks_and_force_replica_set_reconfig can not be set in creation, only in update"))
 		}
 	}
-
-	conn := meta.(*config.MongoDBClient).Atlas
-
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	request := &matlas.AdvancedCluster{
-		Name:             d.Get("name").(string),
-		ClusterType:      cast.ToString(d.Get("cluster_type")),
+	params := &admin.AdvancedClusterDescription{
+		Name:             conversion.StringPtr(cast.ToString(d.Get("name"))),
+		ClusterType:      conversion.StringPtr(cast.ToString(d.Get("cluster_type"))),
 		ReplicationSpecs: expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any)),
 	}
 
 	if v, ok := d.GetOk("backup_enabled"); ok {
-		request.BackupEnabled = conversion.Pointer(v.(bool))
+		params.BackupEnabled = conversion.Pointer(v.(bool))
 	}
 	if _, ok := d.GetOk("bi_connector_config"); ok {
-		biConnector, err := ExpandBiConnectorConfig(d)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorClusterAdvancedCreate, err))
-		}
-		request.BiConnector = biConnector
+		params.BiConnector = expandBiConnectorConfig(d)
 	}
 	if v, ok := d.GetOk("disk_size_gb"); ok {
-		request.DiskSizeGB = conversion.Pointer(v.(float64))
+		params.DiskSizeGB = conversion.Pointer(v.(float64))
 	}
 	if v, ok := d.GetOk("encryption_at_rest_provider"); ok {
-		request.EncryptionAtRestProvider = v.(string)
+		params.EncryptionAtRestProvider = conversion.StringPtr(v.(string))
 	}
 
-	if _, ok := d.GetOk("labels"); ok && ContainsLabelOrKey(ExpandLabelSliceFromSetSchema(d), DefaultLabel) {
-		return diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
+	if _, ok := d.GetOk("labels"); ok {
+		labels, err := expandLabelSliceFromSetSchema(d)
+		if err != nil {
+			return err
+		}
+		params.Labels = &labels
 	}
-	request.Labels = append(ExpandLabelSliceFromSetSchema(d), DefaultLabel)
 
 	if _, ok := d.GetOk("tags"); ok {
-		request.Tags = ExpandTagSliceFromSetSchema(d)
+		params.Tags = conversion.ExpandTagsFromSetSchema(d)
 	}
 	if v, ok := d.GetOk("mongo_db_major_version"); ok {
-		request.MongoDBMajorVersion = FormatMongoDBMajorVersion(v.(string))
+		params.MongoDBMajorVersion = conversion.StringPtr(FormatMongoDBMajorVersion(v.(string)))
 	}
 	if v, ok := d.GetOk("pit_enabled"); ok {
-		request.PitEnabled = conversion.Pointer(v.(bool))
+		params.PitEnabled = conversion.Pointer(v.(bool))
 	}
 	if v, ok := d.GetOk("root_cert_type"); ok {
-		request.RootCertType = v.(string)
+		params.RootCertType = conversion.StringPtr(v.(string))
 	}
 	if v, ok := d.GetOk("termination_protection_enabled"); ok {
-		request.TerminationProtectionEnabled = conversion.Pointer(v.(bool))
+		params.TerminationProtectionEnabled = conversion.Pointer(v.(bool))
 	}
 	if v, ok := d.GetOk("version_release_system"); ok {
-		request.VersionReleaseSystem = v.(string)
+		params.VersionReleaseSystem = conversion.StringPtr(v.(string))
 	}
 
-	// We need to validate the oplog_size_mb attr of the advanced configuration option to show the error
-	// before that the cluster is created
+	// Validate oplog_size_mb to show the error before the cluster is created.
 	if oplogSizeMB, ok := d.GetOkExists("advanced_configuration.0.oplog_size_mb"); ok {
 		if cast.ToInt64(oplogSizeMB) <= 0 {
 			return diag.FromErr(fmt.Errorf("`advanced_configuration.oplog_size_mb` cannot be <= 0"))
 		}
 	}
 
-	cluster, _, err := conn.AdvancedClusters.Create(ctx, projectID, request)
+	cluster, _, err := connV2.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterAdvancedCreate, err))
+		return diag.FromErr(fmt.Errorf(errorCreate, err))
 	}
 
 	timeout := d.Timeout(schema.TimeoutCreate)
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
 		Target:     []string{"IDLE"},
-		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
+		Refresh:    resourceRefreshFunc(ctx, d.Get("name").(string), projectID, connV2),
 		Timeout:    timeout,
 		MinTimeout: 1 * time.Minute,
 		Delay:      3 * time.Minute,
 	}
 
-	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterAdvancedCreate, err))
+		return diag.FromErr(fmt.Errorf(errorCreate, err))
 	}
 
-	/*
-		So far, the cluster has created correctly, so we need to set up
-		the advanced configuration option to attach it
-	*/
-	ac, ok := d.GetOk("advanced_configuration")
-	if aclist, ok1 := ac.([]any); ok1 && len(aclist) > 0 {
-		advancedConfReq := ExpandProcessArgs(d, aclist[0].(map[string]any))
-
-		if ok {
-			_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, cluster.Name, advancedConfReq)
+	if ac, ok := d.GetOk("advanced_configuration"); ok {
+		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
+			params := expandProcessArgs(d, aclist[0].(map[string]any))
+			_, _, err := connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.GetName(), &params).Execute()
 			if err != nil {
-				return diag.FromErr(fmt.Errorf(errorAdvancedClusterAdvancedConfUpdate, cluster.Name, err))
+				return diag.FromErr(fmt.Errorf(errorConfigUpdate, cluster.GetName(), err))
 			}
 		}
 	}
 
-	// To pause a cluster
 	if v := d.Get("paused").(bool); v {
-		request = &matlas.AdvancedCluster{
+		request := &admin.AdvancedClusterDescription{
 			Paused: conversion.Pointer(v),
 		}
-
-		_, _, err = updateAdvancedCluster(ctx, conn, request, projectID, d.Get("name").(string), timeout)
+		_, _, err = updateAdvancedCluster(ctx, connV2, request, projectID, d.Get("name").(string), timeout)
 		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, d.Get("name").(string), err))
+			return diag.FromErr(fmt.Errorf(errorUpdate, d.Get("name").(string), err))
 		}
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"cluster_id":   cluster.ID,
+		"cluster_id":   cluster.GetId(),
 		"project_id":   projectID,
-		"cluster_name": cluster.Name,
+		"cluster_name": cluster.GetName(),
 	}))
 
-	return resourceMongoDBAtlasAdvancedClusterRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	cluster, resp, err := conn.AdvancedClusters.Get(ctx, projectID, clusterName)
+	cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
-
-		return diag.FromErr(fmt.Errorf(errorClusterAdvancedRead, clusterName, err))
+		return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 	}
 
-	log.Printf("[DEBUG] GET ClusterAdvanced %+v", cluster)
-
-	if err := d.Set("cluster_id", cluster.ID); err != nil {
+	if err := d.Set("cluster_id", cluster.GetId()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "cluster_id", clusterName, err))
 	}
 
-	if err := d.Set("backup_enabled", cluster.BackupEnabled); err != nil {
+	if err := d.Set("backup_enabled", cluster.GetBackupEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "backup_enabled", clusterName, err))
 	}
 
-	if err := d.Set("bi_connector_config", FlattenBiConnectorConfig(cluster.BiConnector)); err != nil {
+	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(cluster.GetBiConnector())); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "bi_connector_config", clusterName, err))
 	}
 
-	if err := d.Set("cluster_type", cluster.ClusterType); err != nil {
+	if err := d.Set("cluster_type", cluster.GetClusterType()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "cluster_type", clusterName, err))
 	}
 
-	if err := d.Set("connection_strings", FlattenConnectionStrings(cluster.ConnectionStrings)); err != nil {
+	if err := d.Set("connection_strings", flattenConnectionStrings(cluster.GetConnectionStrings())); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "connection_strings", clusterName, err))
 	}
 
-	if err := d.Set("create_date", cluster.CreateDate); err != nil {
+	if err := d.Set("create_date", conversion.TimePtrToStringPtr(cluster.CreateDate)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "create_date", clusterName, err))
 	}
 
-	if err := d.Set("disk_size_gb", cluster.DiskSizeGB); err != nil {
+	if err := d.Set("disk_size_gb", cluster.GetDiskSizeGB()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
 	}
 
-	if err := d.Set("encryption_at_rest_provider", cluster.EncryptionAtRestProvider); err != nil {
+	if err := d.Set("encryption_at_rest_provider", cluster.GetEncryptionAtRestProvider()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "encryption_at_rest_provider", clusterName, err))
 	}
 
-	if err := d.Set("labels", FlattenLabels(RemoveLabel(cluster.Labels, DefaultLabel))); err != nil {
+	if err := d.Set("labels", flattenLabels(cluster.GetLabels())); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "labels", clusterName, err))
 	}
 
-	if err := d.Set("tags", FlattenTags(&cluster.Tags)); err != nil {
+	if err := d.Set("tags", conversion.FlattenTags(cluster.GetTags())); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "tags", clusterName, err))
 	}
 
-	if err := d.Set("mongo_db_major_version", cluster.MongoDBMajorVersion); err != nil {
+	if err := d.Set("mongo_db_major_version", cluster.GetMongoDBMajorVersion()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "mongo_db_major_version", clusterName, err))
 	}
 
-	if err := d.Set("mongo_db_version", cluster.MongoDBVersion); err != nil {
+	if err := d.Set("mongo_db_version", cluster.GetMongoDBVersion()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "mongo_db_version", clusterName, err))
 	}
 
-	if err := d.Set("name", cluster.Name); err != nil {
+	if err := d.Set("name", cluster.GetName()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "name", clusterName, err))
 	}
 
-	if err := d.Set("paused", cluster.Paused); err != nil {
+	if err := d.Set("paused", cluster.GetPaused()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "paused", clusterName, err))
 	}
 
-	if err := d.Set("pit_enabled", cluster.PitEnabled); err != nil {
+	if err := d.Set("pit_enabled", cluster.GetPitEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "pit_enabled", clusterName, err))
 	}
 
-	replicationSpecs, err := flattenAdvancedReplicationSpecs(ctx, cluster.ReplicationSpecs, d.Get("replication_specs").([]any), d, conn)
+	replicationSpecs, err := flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), d.Get("replication_specs").([]any), d, connV2)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 	}
@@ -563,97 +550,92 @@ func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 	}
 
-	if err := d.Set("root_cert_type", cluster.RootCertType); err != nil {
+	if err := d.Set("root_cert_type", cluster.GetRootCertType()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "state_name", clusterName, err))
 	}
 
-	if err := d.Set("state_name", cluster.StateName); err != nil {
+	if err := d.Set("state_name", cluster.GetStateName()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "state_name", clusterName, err))
 	}
 
-	if err := d.Set("termination_protection_enabled", cluster.TerminationProtectionEnabled); err != nil {
+	if err := d.Set("termination_protection_enabled", cluster.GetTerminationProtectionEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "termination_protection_enabled", clusterName, err))
 	}
 
-	if err := d.Set("version_release_system", cluster.VersionReleaseSystem); err != nil {
+	if err := d.Set("version_release_system", cluster.GetVersionReleaseSystem()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "version_release_system", clusterName, err))
 	}
 
-	if err := d.Set("accept_data_risks_and_force_replica_set_reconfig", cluster.AcceptDataRisksAndForceReplicaSetReconfig); err != nil {
+	if err := d.Set("accept_data_risks_and_force_replica_set_reconfig", conversion.TimePtrToStringPtr(cluster.AcceptDataRisksAndForceReplicaSetReconfig)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "accept_data_risks_and_force_replica_set_reconfig", clusterName, err))
 	}
 
-	/*
-		Get the advaced configuration options and set up to the terraform state
-	*/
-	processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, projectID, clusterName)
+	processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorAdvancedClusterAdvancedConfRead, clusterName, err))
+		return diag.FromErr(fmt.Errorf(errorConfigRead, clusterName, err))
 	}
 
-	if err := d.Set("advanced_configuration", FlattenProcessArgs(processArgs)); err != nil {
+	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "advanced_configuration", clusterName, err))
 	}
-
 	return nil
 }
 
-func resourceMongoDBAtlasAdvancedClusterUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	if upgradeRequest := getUpgradeRequest(d); upgradeRequest != nil {
 		upgradeCtx := context.WithValue(ctx, upgradeRequestCtxKey, upgradeRequest)
-		return resourceMongoDBAtlasAdvancedClusterUpgrade(upgradeCtx, d, meta)
+		return resourceUpgrade(upgradeCtx, d, meta)
 	}
 
-	return resourceMongoDBAtlasAdvancedClusterUpdate(ctx, d, meta)
+	return resourceUpdate(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAdvancedClusterUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	upgradeRequest := ctx.Value(upgradeRequestCtxKey).(*matlas.Cluster)
+	upgradeRequest := ctx.Value(upgradeRequestCtxKey).(*admin.LegacyAtlasTenantClusterUpgradeRequest)
 
 	if upgradeRequest == nil {
 		return diag.FromErr(fmt.Errorf("upgrade called without %s in ctx", string(upgradeRequestCtxKey)))
 	}
 
-	upgradeResponse, _, err := UpgradeCluster(ctx, conn, upgradeRequest, projectID, clusterName, d.Timeout(schema.TimeoutUpdate))
+	upgradeResponse, _, err := upgradeCluster(ctx, connV2, upgradeRequest, projectID, clusterName, d.Timeout(schema.TimeoutUpdate))
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+		return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"cluster_id":   upgradeResponse.ID,
+		"cluster_id":   upgradeResponse.GetId(),
 		"project_id":   projectID,
 		"cluster_name": clusterName,
 	}))
 
-	return resourceMongoDBAtlasAdvancedClusterRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	cluster := new(matlas.AdvancedCluster)
-	clusterChangeDetect := new(matlas.AdvancedCluster)
+	cluster := new(admin.AdvancedClusterDescription)
+	clusterChangeDetect := new(admin.AdvancedClusterDescription)
 
 	if d.HasChange("backup_enabled") {
 		cluster.BackupEnabled = conversion.Pointer(d.Get("backup_enabled").(bool))
 	}
 
 	if d.HasChange("bi_connector_config") {
-		cluster.BiConnector, _ = ExpandBiConnectorConfig(d)
+		cluster.BiConnector = expandBiConnectorConfig(d)
 	}
 
 	if d.HasChange("cluster_type") {
-		cluster.ClusterType = d.Get("cluster_type").(string)
+		cluster.ClusterType = conversion.StringPtr(d.Get("cluster_type").(string))
 	}
 
 	if d.HasChange("disk_size_gb") {
@@ -661,23 +643,23 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	}
 
 	if d.HasChange("encryption_at_rest_provider") {
-		cluster.EncryptionAtRestProvider = d.Get("encryption_at_rest_provider").(string)
+		cluster.EncryptionAtRestProvider = conversion.StringPtr(d.Get("encryption_at_rest_provider").(string))
 	}
 
 	if d.HasChange("labels") {
-		if ContainsLabelOrKey(ExpandLabelSliceFromSetSchema(d), DefaultLabel) {
-			return diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
+		labels, err := expandLabelSliceFromSetSchema(d)
+		if err != nil {
+			return err
 		}
-
-		cluster.Labels = append(ExpandLabelSliceFromSetSchema(d), DefaultLabel)
+		cluster.Labels = &labels
 	}
 
 	if d.HasChange("tags") {
-		cluster.Tags = ExpandTagSliceFromSetSchema(d)
+		cluster.Tags = conversion.ExpandTagsFromSetSchema(d)
 	}
 
 	if d.HasChange("mongo_db_major_version") {
-		cluster.MongoDBMajorVersion = FormatMongoDBMajorVersion(d.Get("mongo_db_major_version"))
+		cluster.MongoDBMajorVersion = conversion.StringPtr(FormatMongoDBMajorVersion(d.Get("mongo_db_major_version")))
 	}
 
 	if d.HasChange("pit_enabled") {
@@ -689,7 +671,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	}
 
 	if d.HasChange("root_cert_type") {
-		cluster.RootCertType = d.Get("root_cert_type").(string)
+		cluster.RootCertType = conversion.StringPtr(d.Get("root_cert_type").(string))
 	}
 
 	if d.HasChange("termination_protection_enabled") {
@@ -697,11 +679,17 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	}
 
 	if d.HasChange("version_release_system") {
-		cluster.VersionReleaseSystem = d.Get("version_release_system").(string)
+		cluster.VersionReleaseSystem = conversion.StringPtr(d.Get("version_release_system").(string))
 	}
 
 	if d.HasChange("accept_data_risks_and_force_replica_set_reconfig") {
-		cluster.AcceptDataRisksAndForceReplicaSetReconfig = d.Get("accept_data_risks_and_force_replica_set_reconfig").(string)
+		if strTime := d.Get("accept_data_risks_and_force_replica_set_reconfig").(string); strTime != "" {
+			t, ok := conversion.StringToTime(strTime)
+			if !ok {
+				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, "accept_data_risks_and_force_replica_set_reconfig time format is incorrect"))
+			}
+			cluster.AcceptDataRisksAndForceReplicaSetReconfig = &t
+		}
 	}
 
 	if d.HasChange("paused") && !d.Get("paused").(bool) {
@@ -713,11 +701,11 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	if d.HasChange("advanced_configuration") {
 		ac := d.Get("advanced_configuration")
 		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
-			advancedConfReq := ExpandProcessArgs(d, aclist[0].(map[string]any))
-			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
-				_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
+			params := expandProcessArgs(d, aclist[0].(map[string]any))
+			if !reflect.DeepEqual(params, admin.ClusterDescriptionProcessArgs{}) {
+				_, _, err := connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params).Execute()
 				if err != nil {
-					return diag.FromErr(fmt.Errorf(errorAdvancedClusterAdvancedConfUpdate, clusterName, err))
+					return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
 				}
 			}
 		}
@@ -726,51 +714,50 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	// Has changes
 	if !reflect.DeepEqual(cluster, clusterChangeDetect) {
 		err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-			_, resp, err := updateAdvancedCluster(ctx, conn, cluster, projectID, clusterName, timeout)
+			_, resp, err := updateAdvancedCluster(ctx, connV2, cluster, projectID, clusterName, timeout)
 			if err != nil {
 				if resp == nil || resp.StatusCode == 400 {
-					return retry.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+					return retry.NonRetryableError(fmt.Errorf(errorUpdate, clusterName, err))
 				}
-				return retry.RetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+				return retry.RetryableError(fmt.Errorf(errorUpdate, clusterName, err))
 			}
 			return nil
 		})
 		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 		}
 	}
 
 	if d.Get("paused").(bool) {
-		clusterRequest := &matlas.AdvancedCluster{
+		clusterRequest := &admin.AdvancedClusterDescription{
 			Paused: conversion.Pointer(true),
 		}
-
-		_, _, err := updateAdvancedCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
+		_, _, err := updateAdvancedCluster(ctx, connV2, clusterRequest, projectID, clusterName, timeout)
 		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 		}
 	}
 
-	return resourceMongoDBAtlasAdvancedClusterRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAdvancedClusterDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	var options *matlas.DeleteAdvanceClusterOptions
+	params := &admin.DeleteClusterApiParams{
+		GroupId:     projectID,
+		ClusterName: clusterName,
+	}
 	if v, ok := d.GetOkExists("retain_backups_enabled"); ok {
-		options = &matlas.DeleteAdvanceClusterOptions{
-			RetainBackups: conversion.Pointer(v.(bool)),
-		}
+		params.RetainBackups = conversion.Pointer(v.(bool))
 	}
 
-	_, err := conn.AdvancedClusters.Delete(ctx, projectID, clusterName, options)
+	_, err := connV2.ClustersApi.DeleteClusterWithParams(ctx, params).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterAdvancedDelete, clusterName, err))
+		return diag.FromErr(fmt.Errorf(errorDelete, clusterName, err))
 	}
 
 	log.Println("[INFO] Waiting for MongoDB ClusterAdvanced to be destroyed")
@@ -778,7 +765,7 @@ func resourceMongoDBAtlasAdvancedClusterDelete(ctx context.Context, d *schema.Re
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
 		Target:     []string{"DELETED"},
-		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, clusterName, projectID, conn),
+		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, connV2),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute, // Wait 30 secs before starting
@@ -787,40 +774,66 @@ func resourceMongoDBAtlasAdvancedClusterDelete(ctx context.Context, d *schema.Re
 	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterAdvancedDelete, clusterName, err))
+		return diag.FromErr(fmt.Errorf(errorDelete, clusterName, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasAdvancedClusterImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID, name, err := splitSClusterAdvancedImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
-	u, _, err := conn.AdvancedClusters.Get(ctx, *projectID, *name)
+	cluster, _, err := connV2.ClustersApi.GetCluster(ctx, *projectID, *name).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import cluster %s in project %s, error: %s", *name, *projectID, err)
 	}
 
-	if err := d.Set("project_id", u.GroupID); err != nil {
-		log.Printf(ErrorClusterAdvancedSetting, "project_id", u.ID, err)
+	if err := d.Set("project_id", cluster.GetGroupId()); err != nil {
+		log.Printf(ErrorClusterAdvancedSetting, "project_id", cluster.GetId(), err)
 	}
 
-	if err := d.Set("name", u.Name); err != nil {
-		log.Printf(ErrorClusterAdvancedSetting, "name", u.ID, err)
+	if err := d.Set("name", cluster.GetName()); err != nil {
+		log.Printf(ErrorClusterAdvancedSetting, "name", cluster.GetId(), err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"cluster_id":   u.ID,
+		"cluster_id":   cluster.GetId(),
 		"project_id":   *projectID,
-		"cluster_name": u.Name,
+		"cluster_name": cluster.GetName(),
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin.LegacyAtlasTenantClusterUpgradeRequest, projectID, name string, timeout time.Duration) (*admin.LegacyAtlasCluster, *http.Response, error) {
+	request.Name = name
+
+	cluster, resp, err := connV2.ClustersApi.UpgradeSharedCluster(ctx, projectID, request).Execute()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
+		Target:     []string{"IDLE"},
+		Refresh:    UpgradeRefreshFunc(ctx, name, projectID, ServiceFromClient(connV2)),
+		Timeout:    timeout,
+		MinTimeout: 30 * time.Second,
+		Delay:      1 * time.Minute,
+	}
+
+	// Wait, catching any errors
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return cluster, resp, nil
 }
 
 func splitSClusterAdvancedImportID(id string) (projectID, clusterName *string, err error) {
@@ -838,415 +851,14 @@ func splitSClusterAdvancedImportID(id string) (projectID, clusterName *string, e
 	return
 }
 
-func expandAdvancedReplicationSpec(tfMap map[string]any) *matlas.AdvancedReplicationSpec {
-	if tfMap == nil {
-		return nil
-	}
-
-	apiObject := &matlas.AdvancedReplicationSpec{
-		NumShards:     tfMap["num_shards"].(int),
-		ZoneName:      tfMap["zone_name"].(string),
-		RegionConfigs: expandRegionConfigs(tfMap["region_configs"].([]any)),
-	}
-
-	if tfMap["id"].(string) != "" {
-		apiObject.ID = tfMap["id"].(string)
-	}
-
-	return apiObject
-}
-
-func expandAdvancedReplicationSpecs(tfList []any) []*matlas.AdvancedReplicationSpec {
-	if len(tfList) == 0 {
-		return nil
-	}
-
-	var apiObjects []*matlas.AdvancedReplicationSpec
-
-	for _, tfMapRaw := range tfList {
-		tfMap, ok := tfMapRaw.(map[string]any)
-
-		if !ok {
-			continue
-		}
-
-		apiObject := expandAdvancedReplicationSpec(tfMap)
-
-		apiObjects = append(apiObjects, apiObject)
-	}
-
-	return apiObjects
-}
-
-func expandRegionConfig(tfMap map[string]any) *matlas.AdvancedRegionConfig {
-	if tfMap == nil {
-		return nil
-	}
-
-	providerName := tfMap["provider_name"].(string)
-	apiObject := &matlas.AdvancedRegionConfig{
-		Priority:     conversion.Pointer(cast.ToInt(tfMap["priority"])),
-		ProviderName: providerName,
-		RegionName:   tfMap["region_name"].(string),
-	}
-
-	if v, ok := tfMap["analytics_specs"]; ok && len(v.([]any)) > 0 {
-		apiObject.AnalyticsSpecs = expandRegionConfigSpec(v.([]any), providerName)
-	}
-	if v, ok := tfMap["electable_specs"]; ok && len(v.([]any)) > 0 {
-		apiObject.ElectableSpecs = expandRegionConfigSpec(v.([]any), providerName)
-	}
-	if v, ok := tfMap["read_only_specs"]; ok && len(v.([]any)) > 0 {
-		apiObject.ReadOnlySpecs = expandRegionConfigSpec(v.([]any), providerName)
-	}
-	if v, ok := tfMap["auto_scaling"]; ok && len(v.([]any)) > 0 {
-		apiObject.AutoScaling = expandRegionConfigAutoScaling(v.([]any))
-	}
-	if v, ok := tfMap["analytics_auto_scaling"]; ok && len(v.([]any)) > 0 {
-		apiObject.AnalyticsAutoScaling = expandRegionConfigAutoScaling(v.([]any))
-	}
-	if v, ok := tfMap["backing_provider_name"]; ok {
-		apiObject.BackingProviderName = v.(string)
-	}
-
-	return apiObject
-}
-
-func expandRegionConfigs(tfList []any) []*matlas.AdvancedRegionConfig {
-	if len(tfList) == 0 {
-		return nil
-	}
-
-	var apiObjects []*matlas.AdvancedRegionConfig
-
-	for _, tfMapRaw := range tfList {
-		tfMap, ok := tfMapRaw.(map[string]any)
-
-		if !ok {
-			continue
-		}
-
-		apiObject := expandRegionConfig(tfMap)
-
-		apiObjects = append(apiObjects, apiObject)
-	}
-
-	return apiObjects
-}
-
-func expandRegionConfigSpec(tfList []any, providerName string) *matlas.Specs {
-	if tfList == nil && len(tfList) > 0 {
-		return nil
-	}
-
-	tfMap, _ := tfList[0].(map[string]any)
-
-	apiObject := &matlas.Specs{}
-
-	if providerName == "AWS" {
-		if v, ok := tfMap["disk_iops"]; ok && v.(int) > 0 {
-			apiObject.DiskIOPS = conversion.Pointer(cast.ToInt64(v.(int)))
-		}
-		if v, ok := tfMap["ebs_volume_type"]; ok {
-			apiObject.EbsVolumeType = v.(string)
-		}
-	}
-	if v, ok := tfMap["instance_size"]; ok {
-		apiObject.InstanceSize = v.(string)
-	}
-	if v, ok := tfMap["node_count"]; ok {
-		apiObject.NodeCount = conversion.Pointer(v.(int))
-	}
-
-	return apiObject
-}
-
-func expandRegionConfigAutoScaling(tfList []any) *matlas.AdvancedAutoScaling {
-	if tfList == nil && len(tfList) > 0 {
-		return nil
-	}
-
-	tfMap, _ := tfList[0].(map[string]any)
-
-	advancedAutoScaling := &matlas.AdvancedAutoScaling{}
-	diskGB := &matlas.DiskGB{}
-	compute := &matlas.Compute{}
-
-	if v, ok := tfMap["disk_gb_enabled"]; ok {
-		diskGB.Enabled = conversion.Pointer(v.(bool))
-	}
-	if v, ok := tfMap["compute_enabled"]; ok {
-		compute.Enabled = conversion.Pointer(v.(bool))
-	}
-	if v, ok := tfMap["compute_scale_down_enabled"]; ok {
-		compute.ScaleDownEnabled = conversion.Pointer(v.(bool))
-	}
-	if v, ok := tfMap["compute_min_instance_size"]; ok {
-		value := compute.ScaleDownEnabled
-		if *value {
-			compute.MinInstanceSize = v.(string)
-		}
-	}
-	if v, ok := tfMap["compute_max_instance_size"]; ok {
-		value := compute.Enabled
-		if *value {
-			compute.MaxInstanceSize = v.(string)
-		}
-	}
-
-	advancedAutoScaling.DiskGB = diskGB
-	advancedAutoScaling.Compute = compute
-
-	return advancedAutoScaling
-}
-
-func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *matlas.AdvancedReplicationSpec, tfMapObject map[string]any,
-	d *schema.ResourceData, conn *matlas.Client) (map[string]any, error) {
-	if apiObject == nil {
-		return nil, nil
-	}
-
-	tfMap := map[string]any{}
-	tfMap["num_shards"] = apiObject.NumShards
-	tfMap["id"] = apiObject.ID
-	if tfMapObject != nil {
-		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.RegionConfigs, tfMapObject["region_configs"].([]any), d, conn)
-		if err != nil {
-			return nil, err
-		}
-		tfMap["region_configs"] = object
-		tfMap["container_id"] = containerIDs
-	} else {
-		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.RegionConfigs, nil, d, conn)
-		if err != nil {
-			return nil, err
-		}
-		tfMap["region_configs"] = object
-		tfMap["container_id"] = containerIDs
-	}
-	tfMap["zone_name"] = apiObject.ZoneName
-
-	return tfMap, nil
-}
-
-func doesAdvancedReplicationSpecMatchAPI(tfObject map[string]any, apiObject *matlas.AdvancedReplicationSpec) bool {
-	return tfObject["id"] == apiObject.ID || (tfObject["id"] == nil && tfObject["zone_name"] == apiObject.ZoneName)
-}
-
-func flattenAdvancedReplicationSpecs(ctx context.Context, rawAPIObjects []*matlas.AdvancedReplicationSpec, tfMapObjects []any,
-	d *schema.ResourceData, conn *matlas.Client) ([]map[string]any, error) {
-	var apiObjects []*matlas.AdvancedReplicationSpec
-
-	for _, advancedReplicationSpec := range rawAPIObjects {
-		if advancedReplicationSpec != nil {
-			apiObjects = append(apiObjects, advancedReplicationSpec)
-		}
-	}
-
-	if len(apiObjects) == 0 {
-		return nil, nil
-	}
-
-	tfList := make([]map[string]any, len(apiObjects))
-	wasAPIObjectUsed := make([]bool, len(apiObjects))
-
-	for i := 0; i < len(tfList); i++ {
-		var tfMapObject map[string]any
-
-		if len(tfMapObjects) > i {
-			tfMapObject = tfMapObjects[i].(map[string]any)
-		}
-
-		for j := 0; j < len(apiObjects); j++ {
-			if wasAPIObjectUsed[j] {
-				continue
-			}
-
-			if !doesAdvancedReplicationSpecMatchAPI(tfMapObject, apiObjects[j]) {
-				continue
-			}
-
-			advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, apiObjects[j], tfMapObject, d, conn)
-
-			if err != nil {
-				return nil, err
-			}
-
-			tfList[i] = advancedReplicationSpec
-			wasAPIObjectUsed[j] = true
-			break
-		}
-	}
-
-	for i, tfo := range tfList {
-		var tfMapObject map[string]any
-
-		if tfo != nil {
-			continue
-		}
-
-		if len(tfMapObjects) > i {
-			tfMapObject = tfMapObjects[i].(map[string]any)
-		}
-
-		j := slices.IndexFunc(wasAPIObjectUsed, func(isUsed bool) bool { return !isUsed })
-		advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, apiObjects[j], tfMapObject, d, conn)
-
-		if err != nil {
-			return nil, err
-		}
-
-		tfList[i] = advancedReplicationSpec
-		wasAPIObjectUsed[j] = true
-	}
-
-	return tfList, nil
-}
-
-func flattenAdvancedReplicationSpecRegionConfig(apiObject *matlas.AdvancedRegionConfig, tfMapObject map[string]any) map[string]any {
-	if apiObject == nil {
-		return nil
-	}
-
-	tfMap := map[string]any{}
-	if tfMapObject != nil {
-		if v, ok := tfMapObject["analytics_specs"]; ok && len(v.([]any)) > 0 {
-			tfMap["analytics_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.AnalyticsSpecs, apiObject.ProviderName, tfMapObject["analytics_specs"].([]any))
-		}
-		if v, ok := tfMapObject["electable_specs"]; ok && len(v.([]any)) > 0 {
-			tfMap["electable_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ElectableSpecs, apiObject.ProviderName, tfMapObject["electable_specs"].([]any))
-		}
-		if v, ok := tfMapObject["read_only_specs"]; ok && len(v.([]any)) > 0 {
-			tfMap["read_only_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ReadOnlySpecs, apiObject.ProviderName, tfMapObject["read_only_specs"].([]any))
-		}
-		if v, ok := tfMapObject["auto_scaling"]; ok && len(v.([]any)) > 0 {
-			tfMap["auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AutoScaling)
-		}
-		if v, ok := tfMapObject["analytics_auto_scaling"]; ok && len(v.([]any)) > 0 {
-			tfMap["analytics_auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AnalyticsAutoScaling)
-		}
-	} else {
-		tfMap["analytics_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.AnalyticsSpecs, apiObject.ProviderName, nil)
-		tfMap["electable_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ElectableSpecs, apiObject.ProviderName, nil)
-		tfMap["read_only_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ReadOnlySpecs, apiObject.ProviderName, nil)
-		tfMap["auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AutoScaling)
-		tfMap["analytics_auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AnalyticsAutoScaling)
-	}
-
-	tfMap["region_name"] = apiObject.RegionName
-	tfMap["provider_name"] = apiObject.ProviderName
-	tfMap["backing_provider_name"] = apiObject.BackingProviderName
-	tfMap["priority"] = apiObject.Priority
-
-	return tfMap
-}
-
-func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, apiObjects []*matlas.AdvancedRegionConfig, tfMapObjects []any,
-	d *schema.ResourceData, conn *matlas.Client) (tfResult []map[string]any, containersIDs map[string]string, err error) {
-	if len(apiObjects) == 0 {
-		return nil, nil, nil
-	}
-
-	var tfList []map[string]any
-	containerIDs := make(map[string]string)
-
-	for i, apiObject := range apiObjects {
-		if apiObject == nil {
-			continue
-		}
-
-		if len(tfMapObjects) > i {
-			tfMapObject := tfMapObjects[i].(map[string]any)
-			tfList = append(tfList, flattenAdvancedReplicationSpecRegionConfig(apiObject, tfMapObject))
-		} else {
-			tfList = append(tfList, flattenAdvancedReplicationSpecRegionConfig(apiObject, nil))
-		}
-
-		if apiObject.ProviderName != "TENANT" {
-			containers, _, err := conn.Containers.List(ctx, d.Get("project_id").(string),
-				&matlas.ContainersListOptions{ProviderName: apiObject.ProviderName})
-			if err != nil {
-				return nil, nil, err
-			}
-			if result := getAdvancedClusterContainerID(containers, apiObject); result != "" {
-				// Will print as "providerName:regionName" = "containerId" in terraform show
-				containerIDs[fmt.Sprintf("%s:%s", apiObject.ProviderName, apiObject.RegionName)] = result
-			}
-		}
-	}
-
-	return tfList, containerIDs, nil
-}
-
-func flattenAdvancedReplicationSpecRegionConfigSpec(apiObject *matlas.Specs, providerName string, tfMapObjects []any) []map[string]any {
-	if apiObject == nil {
-		return nil
-	}
-	var tfList []map[string]any
-
-	tfMap := map[string]any{}
-
-	if len(tfMapObjects) > 0 {
-		tfMapObject := tfMapObjects[0].(map[string]any)
-
-		if providerName == "AWS" {
-			if cast.ToInt64(apiObject.DiskIOPS) > 0 {
-				tfMap["disk_iops"] = apiObject.DiskIOPS
-			}
-			if v, ok := tfMapObject["ebs_volume_type"]; ok && v.(string) != "" {
-				tfMap["ebs_volume_type"] = apiObject.EbsVolumeType
-			}
-		}
-		if _, ok := tfMapObject["node_count"]; ok {
-			tfMap["node_count"] = apiObject.NodeCount
-		}
-		if v, ok := tfMapObject["instance_size"]; ok && v.(string) != "" {
-			tfMap["instance_size"] = apiObject.InstanceSize
-			tfList = append(tfList, tfMap)
-		}
-	} else {
-		tfMap["disk_iops"] = apiObject.DiskIOPS
-		tfMap["ebs_volume_type"] = apiObject.EbsVolumeType
-		tfMap["node_count"] = apiObject.NodeCount
-		tfMap["instance_size"] = apiObject.InstanceSize
-		tfList = append(tfList, tfMap)
-	}
-
-	return tfList
-}
-
-func flattenAdvancedReplicationSpecAutoScaling(apiObject *matlas.AdvancedAutoScaling) []map[string]any {
-	if apiObject == nil {
-		return nil
-	}
-
-	var tfList []map[string]any
-
-	tfMap := map[string]any{}
-	if apiObject.DiskGB != nil {
-		tfMap["disk_gb_enabled"] = apiObject.DiskGB.Enabled
-	}
-	if apiObject.Compute != nil {
-		tfMap["compute_enabled"] = apiObject.Compute.Enabled
-		tfMap["compute_scale_down_enabled"] = apiObject.Compute.ScaleDownEnabled
-		tfMap["compute_min_instance_size"] = apiObject.Compute.MinInstanceSize
-		tfMap["compute_max_instance_size"] = apiObject.Compute.MaxInstanceSize
-	}
-
-	tfList = append(tfList, tfMap)
-
-	return tfList
-}
-
-func resourceClusterAdvancedRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, name, projectID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		c, resp, err := client.AdvancedClusters.Get(ctx, projectID, name)
-
+		cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, name).Execute()
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
 		}
 
-		if err != nil && c == nil && resp == nil {
+		if err != nil && cluster == nil && resp == nil {
 			return nil, "", err
 		}
 
@@ -1260,11 +872,8 @@ func resourceClusterAdvancedRefreshFunc(ctx context.Context, name, projectID str
 			return nil, "", err
 		}
 
-		if c.StateName != "" {
-			log.Printf("[DEBUG] status for MongoDB cluster: %s: %s", name, c.StateName)
-		}
-
-		return c, c.StateName, nil
+		state := cluster.GetStateName()
+		return cluster, state, nil
 	}
 }
 
@@ -1277,7 +886,7 @@ func replicationSpecsHashSet(v any) int {
 	return schema.HashString(buf.String())
 }
 
-func getUpgradeRequest(d *schema.ResourceData) *matlas.Cluster {
+func getUpgradeRequest(d *schema.ResourceData) *admin.LegacyAtlasTenantClusterUpgradeRequest {
 	if !d.HasChange("replication_specs") {
 		return nil
 	}
@@ -1286,21 +895,21 @@ func getUpgradeRequest(d *schema.ResourceData) *matlas.Cluster {
 	currentSpecs := expandAdvancedReplicationSpecs(cs.([]any))
 	updatedSpecs := expandAdvancedReplicationSpecs(us.([]any))
 
-	if len(currentSpecs) != 1 || len(updatedSpecs) != 1 || len(currentSpecs[0].RegionConfigs) != 1 || len(updatedSpecs[0].RegionConfigs) != 1 {
+	if currentSpecs == nil || updatedSpecs == nil || len(*currentSpecs) != 1 || len(*updatedSpecs) != 1 || len((*currentSpecs)[0].GetRegionConfigs()) != 1 || len((*updatedSpecs)[0].GetRegionConfigs()) != 1 {
 		return nil
 	}
 
-	currentRegion := currentSpecs[0].RegionConfigs[0]
-	updatedRegion := updatedSpecs[0].RegionConfigs[0]
-	currentSize := currentRegion.ElectableSpecs.InstanceSize
+	currentRegion := (*currentSpecs)[0].GetRegionConfigs()[0]
+	updatedRegion := (*updatedSpecs)[0].GetRegionConfigs()[0]
+	currentSize := conversion.SafeString(currentRegion.ElectableSpecs.InstanceSize)
 
 	if currentRegion.ElectableSpecs.InstanceSize == updatedRegion.ElectableSpecs.InstanceSize || !IsSharedTier(currentSize) {
 		return nil
 	}
 
-	return &matlas.Cluster{
-		ProviderSettings: &matlas.ProviderSettings{
-			ProviderName:     updatedRegion.ProviderName,
+	return &admin.LegacyAtlasTenantClusterUpgradeRequest{
+		ProviderSettings: &admin.ClusterProviderSettings{
+			ProviderName:     updatedRegion.GetProviderName(),
 			InstanceSizeName: updatedRegion.ElectableSpecs.InstanceSize,
 			RegionName:       updatedRegion.RegionName,
 		},
@@ -1309,12 +918,12 @@ func getUpgradeRequest(d *schema.ResourceData) *matlas.Cluster {
 
 func updateAdvancedCluster(
 	ctx context.Context,
-	conn *matlas.Client,
-	request *matlas.AdvancedCluster,
+	connV2 *admin.APIClient,
+	request *admin.AdvancedClusterDescription,
 	projectID, name string,
 	timeout time.Duration,
-) (*matlas.AdvancedCluster, *matlas.Response, error) {
-	cluster, resp, err := conn.AdvancedClusters.Update(ctx, projectID, name, request)
+) (*admin.AdvancedClusterDescription, *http.Response, error) {
+	cluster, resp, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, name, request).Execute()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1322,35 +931,16 @@ func updateAdvancedCluster(
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
-		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, name, projectID, conn),
+		Refresh:    resourceRefreshFunc(ctx, name, projectID, connV2),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
 	}
 
-	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	return cluster, resp, nil
-}
-
-func getAdvancedClusterContainerID(containers []matlas.Container, cluster *matlas.AdvancedRegionConfig) string {
-	if len(containers) != 0 {
-		for i := range containers {
-			if cluster.ProviderName == "GCP" {
-				return containers[i].ID
-			}
-
-			if containers[i].ProviderName == cluster.ProviderName &&
-				containers[i].Region == cluster.RegionName || // For Azure
-				containers[i].RegionName == cluster.RegionName { // For AWS
-				return containers[i].ID
-			}
-		}
-	}
-
-	return ""
 }

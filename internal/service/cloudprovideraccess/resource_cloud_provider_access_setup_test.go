@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -20,7 +19,7 @@ func TestAccConfigRSCloudProviderAccessSetupAWS_basic(t *testing.T) {
 		resourceName   = "mongodbatlas_cloud_provider_access_setup.test"
 		dataSourceName = "data.mongodbatlas_cloud_provider_access_setup.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acctest.RandomWithPrefix("test-acc")
+		projectName    = acc.RandomProjectName()
 		targetRole     = matlas.CloudProviderAccessRole{}
 	)
 
@@ -48,7 +47,7 @@ func TestAccConfigRSCloudProviderAccessSetupAWS_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cloud_provider_access_setup.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		targetRole   = matlas.CloudProviderAccessRole{}
 	)
 
@@ -86,7 +85,7 @@ func TestAccConfigRSCloudProviderAccessSetupAzure_basic(t *testing.T) {
 		atlasAzureAppID    = os.Getenv("AZURE_ATLAS_APP_ID")
 		servicePrincipalID = os.Getenv("AZURE_SERVICE_PRINCIPAL_ID")
 		tenantID           = os.Getenv("AZURE_TENANT_ID")
-		projectName        = acctest.RandomWithPrefix("test-acc")
+		projectName        = acc.RandomProjectName()
 		targetRole         = matlas.CloudProviderAccessRole{}
 	)
 

@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -20,9 +19,11 @@ const resourceName = "mongodbatlas_custom_db_role.test"
 
 func TestAccConfigRSCustomDBRoles_Basic(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
-		roleName    = fmt.Sprintf("test-acc-custom_role-%s", acctest.RandString(5))
+		orgID         = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName   = acc.RandomProjectName()
+		roleName      = acc.RandomName()
+		databaseName1 = acc.RandomClusterName()
+		databaseName2 = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -31,7 +32,7 @@ func TestAccConfigRSCustomDBRoles_Basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectName, roleName, "INSERT", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+				Config: configBasic(orgID, projectName, roleName, "INSERT", databaseName1),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -42,7 +43,7 @@ func TestAccConfigRSCustomDBRoles_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic(orgID, projectName, roleName, "UPDATE", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+				Config: configBasic(orgID, projectName, roleName, "UPDATE", databaseName2),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -57,24 +58,26 @@ func TestAccConfigRSCustomDBRoles_Basic(t *testing.T) {
 }
 
 func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
-	testRoleResourceName := "mongodbatlas_custom_db_role.test_role"
-	InheritedRoleResourceNameOne := "mongodbatlas_custom_db_role.inherited_role_one"
-	InheritedRoleResourceNameTwo := "mongodbatlas_custom_db_role.inherited_role_two"
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	projectName := acctest.RandomWithPrefix("test-acc")
+	var (
+		testRoleResourceName         = "mongodbatlas_custom_db_role.test_role"
+		InheritedRoleResourceNameOne = "mongodbatlas_custom_db_role.inherited_role_one"
+		InheritedRoleResourceNameTwo = "mongodbatlas_custom_db_role.inherited_role_two"
+		orgID                        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName                  = acc.RandomProjectName()
+	)
 
 	inheritRole := []matlas.CustomDBRole{
 		{
-			RoleName: fmt.Sprintf("test-acc-INHERITED_ROLE-%s", acctest.RandString(5)),
+			RoleName: acc.RandomName(),
 			Actions: []matlas.Action{{
 				Action: "INSERT",
 				Resources: []matlas.Resource{{
-					DB: conversion.Pointer(fmt.Sprintf("b_test-acc-ddb_name-%s", acctest.RandString(5))),
+					DB: conversion.Pointer(acc.RandomClusterName()),
 				}},
 			}},
 		},
 		{
-			RoleName: fmt.Sprintf("test-acc-INHERITED_ROLE-%s", acctest.RandString(5)),
+			RoleName: acc.RandomName(),
 			Actions: []matlas.Action{{
 				Action: "SERVER_STATUS",
 				Resources: []matlas.Resource{{
@@ -85,11 +88,11 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 	}
 
 	testRole := &matlas.CustomDBRole{
-		RoleName: fmt.Sprintf("test-acc-TEST_ROLE-%s", acctest.RandString(5)),
+		RoleName: acc.RandomName(),
 		Actions: []matlas.Action{{
 			Action: "UPDATE",
 			Resources: []matlas.Resource{{
-				DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+				DB: conversion.Pointer(acc.RandomClusterName()),
 			}},
 		}},
 	}
@@ -100,7 +103,7 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 			Actions: []matlas.Action{{
 				Action: "FIND",
 				Resources: []matlas.Resource{{
-					DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+					DB: conversion.Pointer(acc.RandomClusterName()),
 				}},
 			}},
 		},
@@ -120,7 +123,7 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 		Actions: []matlas.Action{{
 			Action: "REMOVE",
 			Resources: []matlas.Resource{{
-				DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+				DB: conversion.Pointer(acc.RandomClusterName()),
 			}},
 		}},
 	}
@@ -201,20 +204,20 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 		testRoleResourceName      = "mongodbatlas_custom_db_role.test_role"
 		InheritedRoleResourceName = "mongodbatlas_custom_db_role.inherited_role"
 		orgID                     = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName               = acctest.RandomWithPrefix("test-acc")
+		projectName               = acc.RandomProjectName()
 	)
 
 	inheritRole := &matlas.CustomDBRole{
-		RoleName: fmt.Sprintf("test-acc-INHERITED_ROLE-%s", acctest.RandString(5)),
+		RoleName: acc.RandomName(),
 		Actions: []matlas.Action{
 			{
 				Action: "REMOVE",
 				Resources: []matlas.Resource{
 					{
-						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(acc.RandomClusterName()),
 					},
 					{
-						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(acc.RandomClusterName()),
 					},
 				},
 			},
@@ -222,7 +225,7 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 				Action: "FIND",
 				Resources: []matlas.Resource{
 					{
-						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(acc.RandomClusterName()),
 					},
 				},
 			},
@@ -230,16 +233,16 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 	}
 
 	testRole := &matlas.CustomDBRole{
-		RoleName: fmt.Sprintf("test-acc-TEST_ROLE-%s", acctest.RandString(5)),
+		RoleName: acc.RandomName(),
 		Actions: []matlas.Action{
 			{
 				Action: "UPDATE",
 				Resources: []matlas.Resource{
 					{
-						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(acc.RandomClusterName()),
 					},
 					{
-						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(acc.RandomClusterName()),
 					},
 				},
 			},
@@ -247,7 +250,7 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 				Action: "INSERT",
 				Resources: []matlas.Resource{
 					{
-						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(acc.RandomClusterName()),
 					},
 				},
 			},
@@ -267,7 +270,7 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 				Action: "UPDATE",
 				Resources: []matlas.Resource{
 					{
-						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(acc.RandomClusterName()),
 					},
 				},
 			},
@@ -275,10 +278,10 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 				Action: "FIND",
 				Resources: []matlas.Resource{
 					{
-						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(acc.RandomClusterName()),
 					},
 					{
-						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(acc.RandomClusterName()),
 					},
 				},
 			},
@@ -286,10 +289,10 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 				Action: "INSERT",
 				Resources: []matlas.Resource{
 					{
-						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(acc.RandomClusterName()),
 					},
 					{
-						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(acc.RandomClusterName()),
 					},
 				},
 			},
@@ -303,7 +306,7 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 				Action: "REMOVE",
 				Resources: []matlas.Resource{
 					{
-						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(acc.RandomClusterName()),
 					},
 				},
 			},
@@ -375,7 +378,7 @@ func TestAccConfigRSCustomDBRoles_MultipleResources(t *testing.T) {
 
 	for i := 0; i < 5; i++ {
 		roleName := fmt.Sprintf("test-acc-custom_role-%d", i)
-		projectName := acctest.RandomWithPrefix("test-acc")
+		projectName := acc.RandomProjectName()
 		t.Run(roleName, func(t *testing.T) {
 			resource.ParallelTest(t, resource.TestCase{
 				PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -383,7 +386,7 @@ func TestAccConfigRSCustomDBRoles_MultipleResources(t *testing.T) {
 				CheckDestroy:             checkDestroy,
 				Steps: []resource.TestStep{
 					{
-						Config: configBasic(orgID, projectName, roleName, "INSERT", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						Config: configBasic(orgID, projectName, roleName, "INSERT", acc.RandomClusterName()),
 						Check: resource.ComposeTestCheckFunc(
 							checkExists(resourceName),
 							resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -402,9 +405,9 @@ func TestAccConfigRSCustomDBRoles_MultipleResources(t *testing.T) {
 func TestAccConfigRSCustomDBRoles_importBasic(t *testing.T) {
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		roleName     = fmt.Sprintf("test-acc-custom_role-%s", acctest.RandString(5))
-		databaseName = fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))
+		projectName  = acc.RandomProjectName()
+		roleName     = acc.RandomName()
+		databaseName = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -440,20 +443,20 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 		testRoleResourceName      = "mongodbatlas_custom_db_role.test_role"
 		InheritedRoleResourceName = "mongodbatlas_custom_db_role.inherited_role"
 		orgID                     = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName               = acctest.RandomWithPrefix("test-acc")
+		projectName               = acc.RandomProjectName()
 	)
 
 	inheritRole := &matlas.CustomDBRole{
-		RoleName: fmt.Sprintf("test-acc-INHERITED_ROLE-%s", acctest.RandString(5)),
+		RoleName: acc.RandomName(),
 		Actions: []matlas.Action{
 			{
 				Action: "REMOVE",
 				Resources: []matlas.Resource{
 					{
-						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(acc.RandomClusterName()),
 					},
 					{
-						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(acc.RandomClusterName()),
 					},
 				},
 			},
@@ -461,7 +464,7 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 				Action: "FIND",
 				Resources: []matlas.Resource{
 					{
-						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(acc.RandomClusterName()),
 					},
 				},
 			},
@@ -475,7 +478,7 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 				Action: "UPDATE",
 				Resources: []matlas.Resource{
 					{
-						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(acc.RandomClusterName()),
 					},
 				},
 			},
@@ -483,10 +486,10 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 				Action: "FIND",
 				Resources: []matlas.Resource{
 					{
-						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(acc.RandomClusterName()),
 					},
 					{
-						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(acc.RandomClusterName()),
 					},
 				},
 			},
@@ -494,10 +497,10 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 				Action: "INSERT",
 				Resources: []matlas.Resource{
 					{
-						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(acc.RandomClusterName()),
 					},
 					{
-						DB: conversion.Pointer(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						DB: conversion.Pointer(acc.RandomClusterName()),
 					},
 				},
 			},
@@ -505,7 +508,7 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 	}
 
 	testRole := &matlas.CustomDBRole{
-		RoleName: fmt.Sprintf("test-acc-TEST_ROLE-%s", acctest.RandString(5)),
+		RoleName: acc.RandomName(),
 		InheritedRoles: []matlas.InheritedRole{
 			{
 				Role: inheritRole.RoleName,

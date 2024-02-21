@@ -5,28 +5,39 @@ import (
 	"time"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestTimeToStringWithoutNanos(t *testing.T) {
+func TestTimeWithoutNanos(t *testing.T) {
 	inputTime := time.Date(2023, time.July, 18, 16, 12, 23, 0, time.UTC)
 	expectedOutput := "2023-07-18T16:12:23Z"
 
 	result := conversion.TimeToString(inputTime)
+	assert.Equal(t, expectedOutput, result)
 
-	if result != expectedOutput {
-		t.Errorf("TimeToString(%v) = %v; want %v", inputTime, result, expectedOutput)
-	}
+	expectedTime, ok := conversion.StringToTime(result)
+	assert.True(t, ok)
+	assert.Equal(t, expectedTime, inputTime)
 }
 
-func TestTimeToStringWithNanos(t *testing.T) {
+func TestTimeWithNanos(t *testing.T) {
 	inputTime := time.Date(2023, time.July, 18, 16, 12, 23, 456_000_000, time.UTC)
 	expectedOutput := "2023-07-18T16:12:23.456Z"
 
 	result := conversion.TimeToString(inputTime)
+	assert.Equal(t, expectedOutput, result)
 
-	if result != expectedOutput {
-		t.Errorf("TimeToString(%v) = %v; want %v", inputTime, result, expectedOutput)
-	}
+	expectedTime, ok := conversion.StringToTime(result)
+	assert.True(t, ok)
+	assert.Equal(t, expectedTime, inputTime)
+}
+
+func TestStringToTimeInvalid(t *testing.T) {
+	_, ok := conversion.StringToTime("")
+	assert.False(t, ok)
+
+	_, ok = conversion.StringToTime("123")
+	assert.False(t, ok)
 }
 
 func TestIsStringPresent(t *testing.T) {

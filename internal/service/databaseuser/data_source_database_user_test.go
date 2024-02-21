@@ -5,20 +5,20 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
 )
 
 func TestAccConfigDSDatabaseUser_basic(t *testing.T) {
-	var dbUser admin.CloudDatabaseUser
-
-	resourceName := "data.mongodbatlas_database_user.test"
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	projectName := acctest.RandomWithPrefix("test-acc")
-	roleName := "atlasAdmin"
-	username := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	var (
+		dbUser       admin.CloudDatabaseUser
+		resourceName = "data.mongodbatlas_database_user.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		roleName     = "atlasAdmin"
+		projectName  = acc.RandomProjectName()
+		username     = acc.RandomName()
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },

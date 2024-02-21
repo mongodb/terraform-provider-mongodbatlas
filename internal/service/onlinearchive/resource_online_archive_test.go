@@ -11,7 +11,6 @@ import (
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -26,25 +25,25 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 		onlineArchiveDataSourceName  = "data.mongodbatlas_online_archive.read_archive"
 		onlineArchivesDataSourceName = "data.mongodbatlas_online_archives.all"
 		orgID                        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName                  = acctest.RandomWithPrefix("test-acc")
-		name                         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		projectName                  = acc.RandomProjectName()
+		clusterName                  = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckClusterDestroy,
+		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
 				// We need this step to pupulate the cluster with Sample Data
 				// The online archive won't work if the cluster does not have data
-				Config: configFirstStep(orgID, projectName, name),
+				Config: configFirstStep(orgID, projectName, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					populateWithSampleData(resourceName, &cluster),
 				),
 			},
 			{
-				Config: configWithDailySchedule(orgID, projectName, name, 1, 7),
+				Config: configWithDailySchedule(orgID, projectName, clusterName, 1, 7),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -60,7 +59,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithDailySchedule(orgID, projectName, name, 2, 8),
+				Config: configWithDailySchedule(orgID, projectName, clusterName, 2, 8),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -76,7 +75,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccBackupRSOnlineArchiveConfigWithWeeklySchedule(orgID, projectName, name, 2),
+				Config: testAccBackupRSOnlineArchiveConfigWithWeeklySchedule(orgID, projectName, clusterName, 2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -89,7 +88,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(orgID, projectName, name, 2),
+				Config: testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(orgID, projectName, clusterName, 2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -102,7 +101,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithoutSchedule(orgID, projectName, name),
+				Config: configWithoutSchedule(orgID, projectName, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -111,7 +110,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithoutSchedule(orgID, projectName, name),
+				Config: configWithoutSchedule(orgID, projectName, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "partition_fields.0.field_name", "last_review"),
 				),
@@ -126,25 +125,25 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 		resourceName              = "mongodbatlas_cluster.online_archive_test"
 		onlineArchiveResourceName = "mongodbatlas_online_archive.users_archive"
 		orgID                     = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName               = acctest.RandomWithPrefix("test-acc")
-		name                      = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		projectName               = acc.RandomProjectName()
+		clusterName               = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckClusterDestroy,
+		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
 				// We need this step to pupulate the cluster with Sample Data
 				// The online archive won't work if the cluster does not have data
-				Config: configFirstStep(orgID, projectName, name),
+				Config: configFirstStep(orgID, projectName, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					populateWithSampleData(resourceName, &cluster),
 				),
 			},
 			{
-				Config: configWithoutSchedule(orgID, projectName, name),
+				Config: configWithoutSchedule(orgID, projectName, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -152,7 +151,7 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithDailySchedule(orgID, projectName, name, 1, 1),
+				Config: configWithDailySchedule(orgID, projectName, clusterName, 1, 1),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -175,8 +174,8 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 		onlineArchiveResourceName   = "mongodbatlas_online_archive.users_archive"
 		onlineArchiveDataSourceName = "data.mongodbatlas_online_archive.read_archive"
 		orgID                       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName                 = acctest.RandomWithPrefix("test-acc")
-		name                        = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		projectName                 = acc.RandomProjectName()
+		clusterName                 = acc.RandomClusterName()
 		cloudProvider               = "AWS"
 		processRegion               = "US_EAST_1"
 	)
@@ -184,18 +183,18 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckClusterDestroy,
+		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
 				// We need this step to pupulate the cluster with Sample Data
 				// The online archive won't work if the cluster does not have data
-				Config: configFirstStep(orgID, projectName, name),
+				Config: configFirstStep(orgID, projectName, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					populateWithSampleData(resourceName, &cluster),
 				),
 			},
 			{
-				Config: configWithDataProcessRegion(orgID, projectName, name, cloudProvider, processRegion),
+				Config: configWithDataProcessRegion(orgID, projectName, clusterName, cloudProvider, processRegion),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.cloud_provider", cloudProvider),
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.region", processRegion),
@@ -204,11 +203,11 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 				),
 			},
 			{
-				Config:      configWithDataProcessRegion(orgID, projectName, name, cloudProvider, "AP_SOUTH_1"),
+				Config:      configWithDataProcessRegion(orgID, projectName, clusterName, cloudProvider, "AP_SOUTH_1"),
 				ExpectError: regexp.MustCompile("data_process_region can't be modified"),
 			},
 			{
-				Config: configWithoutSchedule(orgID, projectName, name),
+				Config: configWithoutSchedule(orgID, projectName, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.cloud_provider", cloudProvider),
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.region", processRegion),
@@ -221,18 +220,18 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 func TestAccBackupRSOnlineArchiveInvalidProcessRegion(t *testing.T) {
 	var (
 		orgID         = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName   = acctest.RandomWithPrefix("test-acc")
-		name          = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		projectName   = acc.RandomProjectName()
+		clusterName   = acc.RandomClusterName()
 		cloudProvider = "AWS"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckClusterDestroy,
+		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      configWithDataProcessRegion(orgID, projectName, name, cloudProvider, "UNKNOWN"),
+				Config:      configWithDataProcessRegion(orgID, projectName, clusterName, cloudProvider, "UNKNOWN"),
 				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 		},
@@ -491,7 +490,7 @@ func configFirstStep(orgID, projectName, clusterName string) string {
 		}
 		labels {
 			key   = "Owner"
-			value = "acctest"
+			value = "test"
 		}
 	}
 
