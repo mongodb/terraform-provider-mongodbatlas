@@ -133,7 +133,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if d.HasChange("name") {
 		_, _, err := connV2.TeamsApi.RenameTeam(ctx, orgID, teamID,
-			&admin.Team{Name: d.Get("name").(string)},
+			&admin.TeamUpdate{Name: d.Get("name").(string)},
 		).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorTeamUpdate, err))
