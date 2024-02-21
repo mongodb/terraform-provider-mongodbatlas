@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.21.6
 
 require (
-	github.com/aws/aws-sdk-go v1.50.17
+	github.com/aws/aws-sdk-go v1.50.22
 	github.com/go-test/deep v1.1.0
 	github.com/gruntwork-io/terratest v0.46.11
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
@@ -28,7 +28,6 @@ require (
 	go.mongodb.org/atlas-sdk/v20231001002 v20231001002.0.0
 	go.mongodb.org/atlas-sdk/v20231115006 v20231115006.0.0
 	go.mongodb.org/realm v0.1.0
-	golang.org/x/exp v0.0.0-20230809150735-7b3493d9a819
 )
 
 require (
@@ -128,6 +127,7 @@ require (
 	github.com/zclconf/go-cty-yaml v1.0.2 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.18.0 // indirect
+	golang.org/x/exp v0.0.0-20230809150735-7b3493d9a819 // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/net v0.18.0 // indirect
 	golang.org/x/oauth2 v0.14.0 // indirect
