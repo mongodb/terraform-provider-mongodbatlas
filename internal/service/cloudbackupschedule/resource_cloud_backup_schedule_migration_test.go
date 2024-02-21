@@ -1,10 +1,10 @@
 package cloudbackupschedule_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 	"go.mongodb.org/atlas-sdk/v20231115006/admin"
@@ -12,13 +12,11 @@ import (
 
 func TestAccMigrationBackupRSCloudBackupSchedule_basic(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		clusterName = acc.RandomClusterName()
-		config      = configBasic(orgID, projectName, clusterName, &admin.DiskBackupApiPolicyItem{
-			FrequencyInterval: 1,
-			RetentionUnit:     "days",
-			RetentionValue:    1,
+		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{CloudBackup: true})
+		config      = configNewPolicies(&clusterInfo, &admin.DiskBackupSnapshotSchedule{
+			ReferenceHourOfDay:    conversion.Pointer(0),
+			ReferenceMinuteOfHour: conversion.Pointer(0),
+			RestoreWindowDays:     conversion.Pointer(7),
 		})
 	)
 
@@ -31,14 +29,15 @@ func TestAccMigrationBackupRSCloudBackupSchedule_basic(t *testing.T) {
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
-					resource.TestCheckResourceAttrSet(resourceName, "reference_hour_of_day"),
-					resource.TestCheckResourceAttrSet(resourceName, "reference_minute_of_hour"),
-					resource.TestCheckResourceAttrSet(resourceName, "restore_window_days"),
-					resource.TestCheckResourceAttrSet(resourceName, "policy_item_hourly.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "policy_item_daily.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "policy_item_weekly.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "policy_item_monthly.#"),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "0"),
+					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "0"),
+					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "7"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "1"),
 				),
 			},
 			mig.TestStepCheckEmptyPlan(config),

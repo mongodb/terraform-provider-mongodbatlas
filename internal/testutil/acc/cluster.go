@@ -3,13 +3,16 @@ package acc
 import (
 	"fmt"
 	"os"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 )
 
 type ClusterRequest struct {
-	OrgID       string
-	ExtraConfig string
-	CloudBackup bool
-	Geosharded  bool
+	OrgID        string
+	ProviderName string
+	ExtraConfig  string
+	CloudBackup  bool
+	Geosharded   bool
 }
 
 type ClusterInfo struct {
@@ -27,6 +30,9 @@ func GetClusterInfo(req *ClusterRequest) ClusterInfo {
 	}
 	if req.OrgID == "" {
 		req.OrgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
+	}
+	if req.ProviderName == "" {
+		req.ProviderName = constant.AWS
 	}
 	clusterName := os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -56,10 +62,10 @@ func GetClusterInfo(req *ClusterRequest) ClusterInfo {
 			cloud_backup         					= %[4]t
 			disk_size_gb 									= 10
 			auto_scaling_disk_gb_enabled	= false
-			provider_name               	= "AWS"
+			provider_name               	= %[5]q
 			provider_instance_size_name 	= "M10"
 		
-			cluster_type = %[5]q
+			cluster_type = %[6]q
 			replication_specs {
 				num_shards = 1
 				zone_name  = "Zone 1"
@@ -70,10 +76,9 @@ func GetClusterInfo(req *ClusterRequest) ClusterInfo {
 					read_only_nodes = 0
 				}
 			}
-
-			%[6]s
+			%[7]s
 		}
-	`, req.OrgID, projectName, clusterName, req.CloudBackup, clusterTypeStr, req.ExtraConfig)
+	`, req.OrgID, projectName, clusterName, req.CloudBackup, req.ProviderName, clusterTypeStr, req.ExtraConfig)
 	return ClusterInfo{
 		ProjectIDStr:        "mongodbatlas_project.test.id",
 		ClusterName:         clusterName,
