@@ -60,7 +60,6 @@ func GetClusterInfo(req *ClusterRequest) ClusterInfo {
 			project_id   									= mongodbatlas_project.test.id
 			name         									= %[3]q
 			cloud_backup         					= %[4]t
-			disk_size_gb 									= 10
 			auto_scaling_disk_gb_enabled	= false
 			provider_name               	= %[5]q
 			provider_instance_size_name 	= "M10"
