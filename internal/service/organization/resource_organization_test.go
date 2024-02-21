@@ -9,7 +9,6 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
@@ -24,8 +23,8 @@ func TestAccConfigRSOrganization_Basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_organization.test"
 		orgOwnerID   = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
-		name         = fmt.Sprintf("test-acc-organization-%s", acctest.RandString(5))
-		updatedName  = fmt.Sprintf("test-acc-organization-updated-%s", acctest.RandString(5))
+		name         = acc.RandomName()
+		updatedName  = acc.RandomName()
 		description  = "test Key for Acceptance tests"
 		roleName     = "ORG_OWNER"
 	)
@@ -65,7 +64,7 @@ func TestAccConfigRSOrganization_BasicAccess(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		orgOwnerID  = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
-		name        = fmt.Sprintf("test-acc-organization-%s", acctest.RandString(5))
+		name        = acc.RandomName()
 		description = "test Key for Acceptance tests"
 		roleName    = "ORG_BILLING_ADMIN"
 	)
@@ -88,7 +87,7 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_organization.test"
 		orgOwnerID   = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
-		name         = fmt.Sprintf("test-acc-organization-%s", acctest.RandString(5))
+		name         = acc.RandomName()
 		description  = "test Key for Acceptance tests"
 		roleName     = "ORG_OWNER"
 

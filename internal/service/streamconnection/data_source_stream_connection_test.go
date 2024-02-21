@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -13,9 +12,9 @@ import (
 func TestAccStreamDSStreamConnection_kafkaPlaintext(t *testing.T) {
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acctest.RandomWithPrefix("test-acc-stream")
-		instanceName   = acctest.RandomWithPrefix("test-acc-instance")
-		dataSourceName = "data.mongodbatlas_stream_connection.test"
+		projectName    = acc.RandomProjectName()
+		instanceName   = acc.RandomName()
+		dataSourceName = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },
@@ -33,8 +32,8 @@ func TestAccStreamDSStreamConnection_kafkaPlaintext(t *testing.T) {
 func TestAccStreamDSStreamConnection_kafkaSSL(t *testing.T) {
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acctest.RandomWithPrefix("test-acc-stream")
-		instanceName   = acctest.RandomWithPrefix("test-acc-instance")
+		projectName    = acc.RandomProjectName()
+		instanceName   = acc.RandomName()
 		dataSourceName = "data.mongodbatlas_stream_connection.test"
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -52,9 +51,9 @@ func TestAccStreamDSStreamConnection_kafkaSSL(t *testing.T) {
 
 func TestAccStreamDSStreamConnection_cluster(t *testing.T) {
 	var (
-		clusterInfo    = acc.GetClusterInfo(nil)
-		instanceName   = acctest.RandomWithPrefix("test-acc-name")
 		dataSourceName = "data.mongodbatlas_stream_connection.test"
+		clusterInfo    = acc.GetClusterInfo(nil)
+		instanceName   = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },

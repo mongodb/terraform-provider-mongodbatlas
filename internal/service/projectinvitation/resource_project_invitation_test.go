@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -19,7 +18,7 @@ func TestAccProjectRSProjectInvitation_basic(t *testing.T) {
 		resourceName = "mongodbatlas_project_invitation.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acc.RandomProjectName()
-		name         = fmt.Sprintf("test-acc-%s@mongodb.com", acctest.RandString(10))
+		name         = acc.RandomEmail()
 		initialRole  = []string{"GROUP_OWNER"}
 		updateRoles  = []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_CLUSTER_MANAGER"}
 	)
@@ -61,7 +60,7 @@ func TestAccProjectRSProjectInvitation_importBasic(t *testing.T) {
 		resourceName = "mongodbatlas_project_invitation.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acc.RandomProjectName()
-		name         = fmt.Sprintf("test-acc-%s@mongodb.com", acctest.RandString(10))
+		name         = acc.RandomEmail()
 		initialRole  = []string{"GROUP_OWNER"}
 	)
 

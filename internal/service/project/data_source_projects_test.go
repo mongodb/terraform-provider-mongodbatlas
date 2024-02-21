@@ -7,7 +7,6 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -15,8 +14,8 @@ import (
 
 func TestAccProjectDSProjects_basic(t *testing.T) {
 	var (
-		projectName = fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
 	)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 2) },
@@ -50,9 +49,10 @@ func TestAccProjectDSProjects_basic(t *testing.T) {
 
 func TestAccProjectDSProjects_withPagination(t *testing.T) {
 	var (
-		projectName = fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
 	)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 2) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,

@@ -7,7 +7,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -18,10 +17,10 @@ var DummyCACert string
 
 func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc-stream")
-		instanceName = acctest.RandomWithPrefix("test-acc-name")
 		resourceName = "mongodbatlas_stream_connection.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acc.RandomProjectName()
+		instanceName = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },
@@ -49,10 +48,10 @@ func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 
 func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc-stream")
-		instanceName = acctest.RandomWithPrefix("test-acc-name")
 		resourceName = "mongodbatlas_stream_connection.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acc.RandomProjectName()
+		instanceName = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },
@@ -76,9 +75,9 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 
 func TestAccStreamRSStreamConnection_cluster(t *testing.T) {
 	var (
-		clusterInfo  = acc.GetClusterInfo(nil)
-		instanceName = acctest.RandomWithPrefix("test-acc-name")
 		resourceName = "mongodbatlas_stream_connection.test"
+		clusterInfo  = acc.GetClusterInfo(nil)
+		instanceName = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },

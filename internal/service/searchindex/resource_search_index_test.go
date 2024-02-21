@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -15,8 +14,8 @@ import (
 func TestAccSearchIndexRS_basic(t *testing.T) {
 	var (
 		clusterInfo  = acc.GetClusterInfo(nil)
-		indexName    = acctest.RandomWithPrefix("test-acc-index")
-		databaseName = acctest.RandomWithPrefix("test-acc-db")
+		indexName    = acc.RandomName()
+		databaseName = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -54,8 +53,8 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 func TestAccSearchIndexRS_withSearchType(t *testing.T) {
 	var (
 		clusterInfo  = acc.GetClusterInfo(nil)
-		indexName    = acctest.RandomWithPrefix("test-acc-index")
-		databaseName = acctest.RandomWithPrefix("test-acc-db")
+		indexName    = acc.RandomName()
+		databaseName = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -93,8 +92,8 @@ func TestAccSearchIndexRS_withSearchType(t *testing.T) {
 func TestAccSearchIndexRS_withMapping(t *testing.T) {
 	var (
 		clusterInfo  = acc.GetClusterInfo(nil)
-		indexName    = acctest.RandomWithPrefix("test-acc-index")
-		databaseName = acctest.RandomWithPrefix("test-acc-db")
+		indexName    = acc.RandomName()
+		databaseName = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -137,8 +136,8 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 	var (
 		clusterInfo  = acc.GetClusterInfo(nil)
-		indexName    = acctest.RandomWithPrefix("test-acc-index")
-		databaseName = acctest.RandomWithPrefix("test-acc-db")
+		indexName    = acc.RandomName()
+		databaseName = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -185,8 +184,8 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 func TestAccSearchIndexRS_updatedToEmptySynonyms(t *testing.T) {
 	var (
 		clusterInfo  = acc.GetClusterInfo(nil)
-		indexName    = acctest.RandomWithPrefix("test-acc-index")
-		databaseName = acctest.RandomWithPrefix("test-acc-db")
+		indexName    = acc.RandomName()
+		databaseName = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -217,8 +216,8 @@ func TestAccSearchIndexRS_updatedToEmptySynonyms(t *testing.T) {
 func TestAccSearchIndexRS_updatedToEmptyAnalyzers(t *testing.T) {
 	var (
 		clusterInfo  = acc.GetClusterInfo(nil)
-		indexName    = acctest.RandomWithPrefix("test-acc-index")
-		databaseName = acctest.RandomWithPrefix("test-acc-db")
+		indexName    = acc.RandomName()
+		databaseName = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -246,8 +245,8 @@ func TestAccSearchIndexRS_updatedToEmptyAnalyzers(t *testing.T) {
 func TestAccSearchIndexRS_updatedToEmptyMappingsFields(t *testing.T) {
 	var (
 		clusterInfo  = acc.GetClusterInfo(nil)
-		indexName    = acctest.RandomWithPrefix("test-acc-index")
-		databaseName = acctest.RandomWithPrefix("test-acc-db")
+		indexName    = acc.RandomName()
+		databaseName = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -275,8 +274,8 @@ func TestAccSearchIndexRS_updatedToEmptyMappingsFields(t *testing.T) {
 func TestAccSearchIndexRS_importBasic(t *testing.T) {
 	var (
 		clusterInfo  = acc.GetClusterInfo(nil)
-		indexName    = acctest.RandomWithPrefix("test-acc-index")
-		databaseName = acctest.RandomWithPrefix("test-acc-db")
+		indexName    = acc.RandomName()
+		databaseName = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -306,8 +305,8 @@ func TestAccSearchIndexRS_importBasic(t *testing.T) {
 func TestAccSearchIndexRS_withVector(t *testing.T) {
 	var (
 		clusterInfo  = acc.GetClusterInfo(nil)
-		indexName    = acctest.RandomWithPrefix("test-acc-index")
-		databaseName = acctest.RandomWithPrefix("test-acc-db")
+		indexName    = acc.RandomName()
+		databaseName = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

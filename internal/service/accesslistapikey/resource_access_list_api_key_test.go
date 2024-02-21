@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -18,7 +17,7 @@ func TestAccProjectRSAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 		resourceName     = "mongodbatlas_access_list_api_key.test"
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		ipAddress        = acc.RandomIP(179, 154, 226)
-		description      = fmt.Sprintf("test-acc-access_list-api_key-%s", acctest.RandString(5))
+		description      = acc.RandomName()
 		updatedIPAddress = acc.RandomIP(179, 154, 228)
 	)
 
@@ -52,7 +51,7 @@ func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock(t *testing.T) {
 		resourceName     = "mongodbatlas_access_list_api_key.test"
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		cidrBlock        = acc.RandomIP(179, 154, 226) + "/32"
-		description      = fmt.Sprintf("test-acc-access_list-api_key-%s", acctest.RandString(5))
+		description      = acc.RandomName()
 		updatedCIDRBlock = acc.RandomIP(179, 154, 228) + "/32"
 	)
 
@@ -86,7 +85,7 @@ func TestAccProjectRSAccessListAPIKey_importBasic(t *testing.T) {
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		ipAddress    = acc.RandomIP(179, 154, 226)
 		resourceName = "mongodbatlas_access_list_api_key.test"
-		description  = fmt.Sprintf("test-acc-access_list-api_key-%s", acctest.RandString(5))
+		description  = acc.RandomName()
 	)
 
 	resource.Test(t, resource.TestCase{

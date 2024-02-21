@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -66,17 +65,18 @@ func TestAccProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 }
 
 func TestAccProjectDSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
-	resourceName := "mongodbatlas_project_ip_access_list.test"
-	projectName := acctest.RandomWithPrefix("test-acc-project-ds-aws")
-	vpcID := os.Getenv("AWS_VPC_ID")
-	vpcCIDRBlock := os.Getenv("AWS_VPC_CIDR_BLOCK")
-	awsAccountID := os.Getenv("AWS_ACCOUNT_ID")
-	awsRegion := os.Getenv("AWS_REGION")
-	providerName := "AWS"
-
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	awsSGroup := os.Getenv("AWS_SECURITY_GROUP_1")
-	comment := fmt.Sprintf("TestAcc for awsSecurityGroup (%s)", awsSGroup)
+	var (
+		resourceName = "mongodbatlas_project_ip_access_list.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		vpcID        = os.Getenv("AWS_VPC_ID")
+		vpcCIDRBlock = os.Getenv("AWS_VPC_CIDR_BLOCK")
+		awsAccountID = os.Getenv("AWS_ACCOUNT_ID")
+		awsRegion    = os.Getenv("AWS_REGION")
+		awsSGroup    = os.Getenv("AWS_SECURITY_GROUP_1")
+		providerName = "AWS"
+		projectName  = acc.RandomProjectName()
+		comment      = fmt.Sprintf("TestAcc for awsSecurityGroup (%s)", awsSGroup)
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },

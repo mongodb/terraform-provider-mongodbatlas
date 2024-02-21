@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -15,7 +14,7 @@ func TestAccConfigDSAccesslistAPIKeys_basic(t *testing.T) {
 		resourceName   = "mongodbatlas_access_list_api_key.test"
 		dataSourceName = "data.mongodbatlas_access_list_api_keys.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		description    = fmt.Sprintf("test-acc-accesslist-api_keys-%s", acctest.RandString(5))
+		description    = acc.RandomName()
 		ipAddress      = acc.RandomIP(179, 154, 226)
 	)
 

@@ -100,7 +100,7 @@ func TestAccGenericX509AuthDBUser_importBasic(t *testing.T) {
 func TestAccGenericX509AuthDBUser_withDatabaseUser(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		username    = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		username    = acc.RandomName()
 		months      = acctest.RandIntRange(1, 24)
 		projectName = acc.RandomProjectName()
 	)

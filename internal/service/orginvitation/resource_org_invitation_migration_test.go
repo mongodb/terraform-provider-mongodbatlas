@@ -1,11 +1,9 @@
 package orginvitation_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
@@ -15,7 +13,7 @@ func TestAccMigrationConfigOrgInvitation_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_org_invitation.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		name         = fmt.Sprintf("test-acc-%s@mongodb.com", acctest.RandString(10))
+		name         = acc.RandomEmail()
 		roles        = []string{"ORG_GROUP_CREATOR", "ORG_BILLING_ADMIN"}
 		config       = configBasic(orgID, name, roles)
 	)

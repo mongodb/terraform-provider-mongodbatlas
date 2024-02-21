@@ -8,7 +8,6 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -18,9 +17,10 @@ import (
 func TestAccMigrationProjectRS_withNoProps(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project.test"
-		projectName  = acctest.RandomWithPrefix("test-acc-migration")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acc.RandomProjectName()
 	)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyProject,
@@ -61,8 +61,8 @@ func TestAccMigrationProjectRS_withTeams(t *testing.T) {
 	var (
 		project         admin.Group
 		resourceName    = "mongodbatlas_project.test"
-		projectName     = acctest.RandomWithPrefix("test-acc-teams")
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName     = acc.RandomProjectName()
 		clusterCount    = "0"
 		configWithTeams = acc.ConfigProject(projectName, orgID,
 			[]*admin.TeamRole{
@@ -110,9 +110,9 @@ func TestAccMigrationProjectRS_withFalseDefaultSettings(t *testing.T) {
 	var (
 		project         admin.Group
 		resourceName    = "mongodbatlas_project.test"
-		projectName     = acctest.RandomWithPrefix("tf-acc-project")
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID  = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+		projectName     = acc.RandomProjectName()
 		configWithTeams = acc.ConfigProjectWithFalseDefaultSettings(projectName, orgID, projectOwnerID)
 	)
 
@@ -147,8 +147,8 @@ func TestAccMigrationProjectRS_withFalseDefaultSettings(t *testing.T) {
 func TestAccMigrationProjectRS_withLimits(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project.test"
-		projectName  = acctest.RandomWithPrefix("tf-acc-project")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acc.RandomProjectName()
 		config       = acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
 			{
 				Name:  "atlas.project.deployment.clusters",

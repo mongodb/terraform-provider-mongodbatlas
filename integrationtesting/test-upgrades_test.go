@@ -23,13 +23,12 @@ func TestUpgradeNetworkContainerRegionsGCP(t *testing.T) {
 	t.Parallel()
 
 	var (
-		randInt        = acctest.RandIntRange(0, 255)
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		atlasCIDRBlock = fmt.Sprintf("10.%d.0.0/18", randInt)
-		providerName   = "GCP"
 		publicKey      = os.Getenv("MONGODB_ATLAS_PUBLIC_KEY")
 		privateKey     = os.Getenv("MONGODB_ATLAS_PRIVATE_KEY")
+		providerName   = "GCP"
+		atlasCIDRBlock = fmt.Sprintf("10.%d.0.0/18", acctest.RandIntRange(0, 255))
 	)
 	// Construct the terraform options with default retryable errors to handle the most common
 	// retryable errors in terraform testing.
@@ -542,7 +541,7 @@ func TestUpgradeCloudBackupPolicies(t *testing.T) {
 		projectName = acc.RandomProjectName()
 		publicKey   = os.Getenv("MONGODB_ATLAS_PUBLIC_KEY")
 		privateKey  = os.Getenv("MONGODB_ATLAS_PRIVATE_KEY")
-		clusterName = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		clusterName = acc.RandomClusterName()
 	)
 	// Construct the terraform options with default retryable errors to handle the most common
 	// retryable errors in terraform testing.
@@ -800,7 +799,7 @@ func TestUpgradeCloudBackupSnapshot(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
-		clusterName = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		clusterName = acc.RandomClusterName()
 	)
 	// Construct the terraform options with default retryable errors to handle the most common
 	// retryable errors in terraform testing.

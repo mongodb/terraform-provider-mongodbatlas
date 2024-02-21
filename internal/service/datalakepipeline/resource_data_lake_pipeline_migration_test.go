@@ -4,7 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
@@ -13,9 +12,9 @@ import (
 func TestAccMigrationcDataLakePipeline_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_data_lake_pipeline.test"
-		clusterName  = acctest.RandomWithPrefix("test-acc-index")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acc.RandomProjectName()
+		clusterName  = acc.RandomClusterName()
 		name         = acc.RandomName()
 		config       = configBasic(orgID, projectName, clusterName, name)
 	)

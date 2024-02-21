@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -238,8 +237,8 @@ func TestAccConfigRSProjectAPIKey_RecreateWhenDeletedExternally(t *testing.T) {
 		resourceName      = "mongodbatlas_project_api_key.test"
 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName       = acc.RandomProjectName()
-		descriptionPrefix = "test-acc-project-to-delete-api-key"
-		description       = fmt.Sprintf("%s-%s", descriptionPrefix, acctest.RandString(5))
+		descriptionPrefix = "test-acc-delete-api-key-"
+		description       = descriptionPrefix + acc.RandomName()
 		roleName          = "GROUP_OWNER"
 	)
 

@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -14,11 +13,11 @@ func TestAccDataLakeDSPlural_basic(t *testing.T) {
 	var (
 		resourceName       = "mongodbatlas_data_lake_pipeline.test"
 		dataSourceName     = "data.mongodbatlas_data_lake_pipelines.testDataSource"
-		firstClusterName   = acctest.RandomWithPrefix("test-acc-index")
-		secondClusterName  = acctest.RandomWithPrefix("test-acc-index")
-		firstPipelineName  = acctest.RandomWithPrefix("test-acc-index")
-		secondPipelineName = acctest.RandomWithPrefix("test-acc-index")
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		firstClusterName   = acc.RandomClusterName()
+		secondClusterName  = acc.RandomClusterName()
+		firstPipelineName  = acc.RandomName()
+		secondPipelineName = acc.RandomName()
 		projectName        = acc.RandomProjectName()
 	)
 
