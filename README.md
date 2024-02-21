@@ -17,7 +17,17 @@ Bugs should be filed under the Issues section of this repo.
 Feature requests can be submitted at https://feedback.mongodb.com/forums/924145-atlas - just select the Terraform plugin as the category or vote for an already suggested feature.
 
 ## Requirements
-- [Terraform Version](https://www.terraform.io/downloads.html) While we support minimum of HashiCorp Terraform version 1.0+ (as we have migrated to [Plugin Protocol Version 6](https://developer.hashicorp.com/terraform/plugin/terraform-plugin-protocol#protocol-version-6)), for your safety we strongly recommend only consuming versions of Terraform that are currently receiving Security/Maintenance Updates. For latest Terraform versions see: https://endoflife.date/terraform 
+- [HashiCorp Terraform Version](https://www.terraform.io/downloads.html)  
+| HashiCorp Terraform Release | HashiCorp Terraform Release Date  | HashiCorp Terraform Full Support End Date  | MongoDB Atlas Support End Date |
+|-------|------------|------------|------------|
+| 1.7.x | 2024-01-17 | 2026-01-31 | 2026-01-31 |
+| 1.6.x | 2023-10-04 | 2025-10-31 | 2025-10-31 |
+| 1.5.x | 2023-06-12 | 2025-06-30 | 2025-06-30 |
+| 1.4.x | 2023-03-08 | 2025-03-31 | 2025-03-31 |
+| 1.3.x | 2022-09-21 | 2024-09-30 | 2024-09-30 |
+| 1.2.x | 2022-05-18 | 2024-05-31 | 2024-05-31 |
+For safety of our users, we require only consuming versions of HashiCorp Terraform that are currently receiving Security/Maintenance Updates. For latest HashiCorp Terraform versions see: https://endoflife.date/terraform 
+
 - [Go Version](https://golang.org/doc/install) 1.21 (to build the provider plugin)
 
 ## Using the Provider
