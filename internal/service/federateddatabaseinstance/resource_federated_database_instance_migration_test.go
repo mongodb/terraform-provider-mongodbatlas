@@ -4,7 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -15,8 +14,8 @@ func TestAccMigrationFederatedDatabaseInstance_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_federated_database_instance.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		name         = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
+		name         = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

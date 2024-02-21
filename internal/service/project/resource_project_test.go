@@ -477,11 +477,10 @@ const resourceName = "mongodbatlas_project.test"
 
 func TestAccProjectRSProject_basic(t *testing.T) {
 	var (
-		group admin.Group
-
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		group        admin.Group
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		clusterCount = "0"
+		projectName  = acc.RandomProjectName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 3) },
@@ -567,9 +566,9 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 func TestAccProjectRSProject_withProjectOwner(t *testing.T) {
 	var (
 		group          admin.Group
-		projectName    = acctest.RandomWithPrefix("test-acc")
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+		projectName    = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -739,7 +738,7 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 func TestAccProjectRSProject_updatedToEmptyRoles(t *testing.T) {
 	var (
 		group       admin.Group
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{

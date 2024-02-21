@@ -13,11 +13,13 @@ import (
 )
 
 func TestAccMigrationProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T) {
-	dataSourceName := "data.mongodbatlas_project_ip_access_list.test"
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	projectName := acctest.RandomWithPrefix("test-acc")
-	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
-	comment := fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
+	var (
+		dataSourceName = "data.mongodbatlas_project_ip_access_list.test"
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acc.RandomProjectName()
+		ipAddress      = fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
+		comment        = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { mig.PreCheckBasic(t) },
@@ -48,11 +50,13 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T)
 }
 
 func TestAccMigrationProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
-	dataSourceName := "data.mongodbatlas_project_ip_access_list.test"
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	projectName := acctest.RandomWithPrefix("test-acc")
-	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
-	comment := fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
+	var (
+		dataSourceName = "data.mongodbatlas_project_ip_access_list.test"
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acc.RandomProjectName()
+		cidrBlock      = fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
+		comment        = fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { mig.PreCheckBasic(t) },

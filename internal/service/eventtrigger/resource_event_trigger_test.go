@@ -7,7 +7,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -24,7 +23,7 @@ func TestAccEventTrigger_basic(t *testing.T) {
 		eventResp    = realm.EventTrigger{}
 	)
 	event := realm.EventTriggerRequest{
-		Name:       acctest.RandomWithPrefix("test-acc"),
+		Name:       acc.RandomName(),
 		Type:       "DATABASE",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
 		Disabled:   conversion.Pointer(false),
@@ -37,7 +36,7 @@ func TestAccEventTrigger_basic(t *testing.T) {
 		},
 	}
 	eventUpdated := realm.EventTriggerRequest{
-		Name:       acctest.RandomWithPrefix("test-acc"),
+		Name:       acc.RandomName(),
 		Type:       "DATABASE",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
 		Disabled:   conversion.Pointer(false),
@@ -89,7 +88,7 @@ func TestAccEventTriggerDatabase_eventProccesor(t *testing.T) {
 		eventResp               = realm.EventTrigger{}
 	)
 	event := realm.EventTriggerRequest{
-		Name:       acctest.RandomWithPrefix("test-acc"),
+		Name:       acc.RandomName(),
 		Type:       "DATABASE",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
 		Disabled:   conversion.Pointer(false),
@@ -102,7 +101,7 @@ func TestAccEventTriggerDatabase_eventProccesor(t *testing.T) {
 		},
 	}
 	eventUpdated := realm.EventTriggerRequest{
-		Name:       acctest.RandomWithPrefix("test-acc"),
+		Name:       acc.RandomName(),
 		Type:       "DATABASE",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
 		Disabled:   conversion.Pointer(false),
@@ -153,7 +152,7 @@ func TestAccEventTriggerAuth_basic(t *testing.T) {
 		eventResp    = realm.EventTrigger{}
 	)
 	event := realm.EventTriggerRequest{
-		Name:       acctest.RandomWithPrefix("test-acc"),
+		Name:       acc.RandomName(),
 		Type:       "AUTHENTICATION",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
 		Disabled:   conversion.Pointer(false),
@@ -163,7 +162,7 @@ func TestAccEventTriggerAuth_basic(t *testing.T) {
 		},
 	}
 	eventUpdated := realm.EventTriggerRequest{
-		Name:       acctest.RandomWithPrefix("test-acc"),
+		Name:       acc.RandomName(),
 		Type:       "AUTHENTICATION",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
 		Disabled:   conversion.Pointer(false),
@@ -214,7 +213,7 @@ func TestAccEventTriggerAuth_eventProcessor(t *testing.T) {
 		eventResp               = realm.EventTrigger{}
 	)
 	event := realm.EventTriggerRequest{
-		Name:       acctest.RandomWithPrefix("test-acc"),
+		Name:       acc.RandomName(),
 		Type:       "AUTHENTICATION",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
 		Disabled:   conversion.Pointer(false),
@@ -224,7 +223,7 @@ func TestAccEventTriggerAuth_eventProcessor(t *testing.T) {
 		},
 	}
 	eventUpdated := realm.EventTriggerRequest{
-		Name:       acctest.RandomWithPrefix("test-acc"),
+		Name:       acc.RandomName(),
 		Type:       "AUTHENTICATION",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
 		Disabled:   conversion.Pointer(false),
@@ -273,7 +272,7 @@ func TestAccEventTriggerSchedule_basic(t *testing.T) {
 		eventResp    = realm.EventTrigger{}
 	)
 	event := realm.EventTriggerRequest{
-		Name:       acctest.RandomWithPrefix("test-acc"),
+		Name:       acc.RandomName(),
 		Type:       "SCHEDULED",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
 		Disabled:   conversion.Pointer(false),
@@ -282,7 +281,7 @@ func TestAccEventTriggerSchedule_basic(t *testing.T) {
 		},
 	}
 	eventUpdated := realm.EventTriggerRequest{
-		Name:       acctest.RandomWithPrefix("test-acc"),
+		Name:       acc.RandomName(),
 		Type:       "SCHEDULED",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
 		Disabled:   conversion.Pointer(false),
@@ -331,7 +330,7 @@ func TestAccEventTriggerSchedule_eventProcessor(t *testing.T) {
 		eventResp               = realm.EventTrigger{}
 	)
 	event := realm.EventTriggerRequest{
-		Name:       acctest.RandomWithPrefix("test-acc"),
+		Name:       acc.RandomName(),
 		Type:       "SCHEDULED",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
 		Disabled:   conversion.Pointer(false),
@@ -340,7 +339,7 @@ func TestAccEventTriggerSchedule_eventProcessor(t *testing.T) {
 		},
 	}
 	eventUpdated := realm.EventTriggerRequest{
-		Name:       acctest.RandomWithPrefix("test-acc"),
+		Name:       acc.RandomName(),
 		Type:       "SCHEDULED",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
 		Disabled:   conversion.Pointer(false),
@@ -387,7 +386,7 @@ func TestAccEventTriggerFunction_basic(t *testing.T) {
 		eventResp    = realm.EventTrigger{}
 	)
 	event := realm.EventTriggerRequest{
-		Name:       acctest.RandomWithPrefix("test-acc"),
+		Name:       acc.RandomName(),
 		Type:       "SCHEDULED",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
 		Disabled:   conversion.Pointer(false),
@@ -396,7 +395,7 @@ func TestAccEventTriggerFunction_basic(t *testing.T) {
 		},
 	}
 	eventUpdated := realm.EventTriggerRequest{
-		Name:       acctest.RandomWithPrefix("test-acc"),
+		Name:       acc.RandomName(),
 		Type:       "SCHEDULED",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
 		Disabled:   conversion.Pointer(false),

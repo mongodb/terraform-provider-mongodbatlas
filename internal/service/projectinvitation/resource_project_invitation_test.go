@@ -18,7 +18,7 @@ func TestAccProjectRSProjectInvitation_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project_invitation.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		name         = fmt.Sprintf("test-acc-%s@mongodb.com", acctest.RandString(10))
 		initialRole  = []string{"GROUP_OWNER"}
 		updateRoles  = []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_CLUSTER_MANAGER"}
@@ -60,7 +60,7 @@ func TestAccProjectRSProjectInvitation_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project_invitation.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		name         = fmt.Sprintf("test-acc-%s@mongodb.com", acctest.RandString(10))
 		initialRole  = []string{"GROUP_OWNER"}
 	)

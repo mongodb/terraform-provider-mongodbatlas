@@ -15,7 +15,7 @@ func TestAccProjectDSProjectInvitation_basic(t *testing.T) {
 	var (
 		dataSourceName = "mongodbatlas_project_invitation.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acctest.RandomWithPrefix("test-acc")
+		projectName    = acc.RandomProjectName()
 		name           = fmt.Sprintf("test-acc-%s@mongodb.com", acctest.RandString(10))
 		initialRole    = []string{"GROUP_OWNER"}
 	)

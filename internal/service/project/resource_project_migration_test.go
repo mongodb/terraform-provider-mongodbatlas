@@ -194,7 +194,7 @@ func TestAccMigrationProjectRS_withLimits(t *testing.T) {
 func TestAccMigrationProjectRSProjectIPAccesslist_withSettingIPAddress(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_access_list.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	projectName := acctest.RandomWithPrefix("test-acc")
+	projectName := acc.RandomProjectName()
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
 
@@ -228,11 +228,13 @@ func TestAccMigrationProjectRSProjectIPAccesslist_withSettingIPAddress(t *testin
 }
 
 func TestAccMigrationProjectRSProjectIPAccessList_withSettingCIDRBlock(t *testing.T) {
-	resourceName := "mongodbatlas_project_ip_access_list.test"
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	projectName := acctest.RandomWithPrefix("test-acc")
-	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
-	comment := fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
+	var (
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		resourceName = "mongodbatlas_project_ip_access_list.test"
+		projectName  = acc.RandomProjectName()
+		cidrBlock    = fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
+		comment      = fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
@@ -264,11 +266,13 @@ func TestAccMigrationProjectRSProjectIPAccessList_withSettingCIDRBlock(t *testin
 }
 
 func TestAccMigrationProjectRSProjectIPAccessList_withMultipleSetting(t *testing.T) {
-	resourceName := "mongodbatlas_project_ip_access_list.test_1"
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	projectName := acctest.RandomWithPrefix("test-acc")
-	const ipWhiteListCount = 20
-	accessList := make([]map[string]string, 0)
+	var (
+		resourceName     = "mongodbatlas_project_ip_access_list.test_1"
+		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		accessList       = make([]map[string]string, 0)
+		ipWhiteListCount = 20
+		projectName      = acc.RandomProjectName()
+	)
 
 	for i := 0; i < ipWhiteListCount; i++ {
 		entry := make(map[string]string)

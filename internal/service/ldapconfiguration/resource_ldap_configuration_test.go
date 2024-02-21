@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -19,12 +18,12 @@ func TestAccLDAPConfiguration_basic(t *testing.T) {
 		ldapConfiguration matlas.LDAPConfiguration
 		resourceName      = "mongodbatlas_ldap_configuration.test"
 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName       = acctest.RandomWithPrefix("test-acc")
-		authEnabled       = true
 		hostname          = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
 		username          = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
 		password          = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
 		port              = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
+		authEnabled       = true
+		projectName       = acc.RandomProjectName()
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -55,8 +54,8 @@ func TestAccLDAPConfiguration_withVerify_CACertificateComplete(t *testing.T) {
 		resourceName       = "mongodbatlas_ldap_configuration.test"
 		resourceVerifyName = "mongodbatlas_ldap_verify.test"
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName        = acctest.RandomWithPrefix("test-acc")
-		clusterName        = acctest.RandomWithPrefix("test-acc")
+		projectName        = acc.RandomProjectName()
+		clusterName        = acc.RandomClusterName()
 		hostname           = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
 		username           = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
 		password           = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
@@ -103,12 +102,12 @@ func TestAccLDAPConfiguration_importBasic(t *testing.T) {
 		ldapConf     = matlas.LDAPConfiguration{}
 		resourceName = "mongodbatlas_ldap_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		authEnabled  = true
 		hostname     = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
 		username     = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
 		password     = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
 		port         = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
+		authEnabled  = true
+		projectName  = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

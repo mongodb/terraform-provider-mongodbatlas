@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -21,7 +20,7 @@ func TestAccEventTriggerDSPlural_basic(t *testing.T) {
 		eventResp    = realm.EventTrigger{}
 	)
 	event := realm.EventTriggerRequest{
-		Name:       acctest.RandomWithPrefix("test-acc"),
+		Name:       acc.RandomName(),
 		Type:       "DATABASE",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
 		Disabled:   conversion.Pointer(false),

@@ -19,8 +19,9 @@ func TestAccDataLakeDSPlural_basic(t *testing.T) {
 		firstPipelineName  = acctest.RandomWithPrefix("test-acc-index")
 		secondPipelineName = acctest.RandomWithPrefix("test-acc-index")
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName        = acctest.RandomWithPrefix("test-acc")
+		projectName        = acc.RandomProjectName()
 	)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,

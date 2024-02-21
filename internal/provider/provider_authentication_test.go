@@ -4,7 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"go.mongodb.org/atlas-sdk/v20231115007/admin"
@@ -13,7 +12,7 @@ import (
 func TestAccSTSAssumeRole_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project.test"
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		clusterCount = "0"
 	)

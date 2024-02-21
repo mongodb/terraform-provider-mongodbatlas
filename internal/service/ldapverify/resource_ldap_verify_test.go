@@ -9,8 +9,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/spf13/cast"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
-
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -21,8 +19,8 @@ func TestAccLDAPVerify_basic(t *testing.T) {
 		ldapVerify   matlas.LDAPConfiguration
 		resourceName = "mongodbatlas_ldap_verify.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		clusterName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
+		clusterName  = acc.RandomClusterName()
 		hostname     = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
 		username     = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
 		password     = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
@@ -56,8 +54,8 @@ func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
 		ldapVerify    matlas.LDAPConfiguration
 		resourceName  = "mongodbatlas_ldap_verify.test"
 		orgID         = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName   = acctest.RandomWithPrefix("test-acc")
-		clusterName   = acctest.RandomWithPrefix("test-acc")
+		projectName   = acc.RandomProjectName()
+		clusterName   = acc.RandomClusterName()
 		hostname      = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
 		username      = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
 		password      = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
@@ -98,8 +96,8 @@ func TestAccLDAPVerify_importBasic(t *testing.T) {
 		ldapConf     = matlas.LDAPConfiguration{}
 		resourceName = "mongodbatlas_ldap_verify.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		clusterName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
+		clusterName  = acc.RandomClusterName()
 		hostname     = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
 		username     = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
 		password     = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")

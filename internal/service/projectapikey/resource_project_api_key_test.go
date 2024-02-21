@@ -237,7 +237,7 @@ func TestAccConfigRSProjectAPIKey_RecreateWhenDeletedExternally(t *testing.T) {
 	var (
 		resourceName      = "mongodbatlas_project_api_key.test"
 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName       = acctest.RandomWithPrefix("test-acc")
+		projectName       = acc.RandomProjectName()
 		descriptionPrefix = "test-acc-project-to-delete-api-key"
 		description       = fmt.Sprintf("%s-%s", descriptionPrefix, acctest.RandString(5))
 		roleName          = "GROUP_OWNER"

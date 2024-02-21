@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/spf13/cast"
@@ -17,12 +16,12 @@ func TestAccLDAPConfigurationDS_basic(t *testing.T) {
 		ldapConfiguration matlas.LDAPConfiguration
 		resourceName      = "mongodbatlas_ldap_configuration.test"
 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName       = acctest.RandomWithPrefix("test-acc")
 		hostname          = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
 		username          = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
 		password          = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
-		authEnabled       = true
 		port              = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
+		authEnabled       = true
+		projectName       = acc.RandomProjectName()
 	)
 
 	resource.Test(t, resource.TestCase{
