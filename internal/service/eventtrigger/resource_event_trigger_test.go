@@ -52,25 +52,25 @@ func TestAccEventTrigger_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigDatabase(projectID, appID, `"INSERT", "UPDATE"`, &event, false, false),
+				Config: configDatabaseTrigger(projectID, appID, `"INSERT", "UPDATE"`, &event, false, false),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					checkExists(resourceName, &eventResp),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigDatabase(projectID, appID, `"INSERT", "UPDATE", "DELETE"`, &eventUpdated, true, true),
+				Config: configDatabaseTrigger(projectID, appID, `"INSERT", "UPDATE", "DELETE"`, &eventUpdated, true, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					checkExists(resourceName, &eventResp),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasEventTriggerImportStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -78,7 +78,53 @@ func TestAccEventTrigger_basic(t *testing.T) {
 	})
 }
 
-func TestAccEventTriggerDatabase_eventProccesor(t *testing.T) {
+func TestAccEventTrigger_databaseNoCollection(t *testing.T) {
+	acc.SkipTestForCI(t)
+	var (
+		resourceName = "mongodbatlas_event_trigger.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		appID        = os.Getenv("MONGODB_REALM_APP_ID")
+		eventResp    = realm.EventTrigger{}
+	)
+	event := realm.EventTriggerRequest{
+		Name:       acctest.RandomWithPrefix("test-acc"),
+		Type:       "DATABASE",
+		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
+		Disabled:   conversion.Pointer(false),
+		Config: &realm.EventTriggerConfig{
+			OperationTypes: []string{"INSERT", "UPDATE"},
+			Database:       "sample_airbnb",
+			Collection:     "listingsAndReviews",
+			ServiceID:      os.Getenv("MONGODB_REALM_SERVICE_ID"),
+			FullDocument:   conversion.Pointer(false),
+		},
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configDatabaseNoCollectionTrigger(projectID, appID, `"INSERT", "UPDATE"`, &event),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName, &eventResp),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "config_database", event.Config.Database),
+					resource.TestCheckResourceAttr(resourceName, "config_collection", ""),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccEventTrigger_databaseEventProccesor(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		resourceName            = "mongodbatlas_event_trigger.test"
@@ -118,25 +164,25 @@ func TestAccEventTriggerDatabase_eventProccesor(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigDatabaseEP(projectID, appID, `"INSERT", "UPDATE"`, eventBridgeAwsAccountID, eventBridgeAwsRegion, &event),
+				Config: configDatabaseEPTrigger(projectID, appID, `"INSERT", "UPDATE"`, eventBridgeAwsAccountID, eventBridgeAwsRegion, &event),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					checkExists(resourceName, &eventResp),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigDatabaseEP(projectID, appID, `"INSERT", "UPDATE", "DELETE"`, eventBridgeAwsAccountID, eventBridgeAwsRegion, &eventUpdated),
+				Config: configDatabaseEPTrigger(projectID, appID, `"INSERT", "UPDATE", "DELETE"`, eventBridgeAwsAccountID, eventBridgeAwsRegion, &eventUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					checkExists(resourceName, &eventResp),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasEventTriggerImportStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -144,7 +190,7 @@ func TestAccEventTriggerDatabase_eventProccesor(t *testing.T) {
 	})
 }
 
-func TestAccEventTriggerAuth_basic(t *testing.T) {
+func TestAccEventTrigger_authBasic(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
@@ -177,25 +223,25 @@ func TestAccEventTriggerAuth_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigAuthentication(projectID, appID, `"anon-user", "local-userpass"`, &event),
+				Config: configAuthenticationTrigger(projectID, appID, `"anon-user", "local-userpass"`, &event),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					checkExists(resourceName, &eventResp),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigAuthentication(projectID, appID, `"anon-user", "local-userpass", "api-key"`, &eventUpdated),
+				Config: configAuthenticationTrigger(projectID, appID, `"anon-user", "local-userpass", "api-key"`, &eventUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					checkExists(resourceName, &eventResp),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasEventTriggerImportStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -203,7 +249,7 @@ func TestAccEventTriggerAuth_basic(t *testing.T) {
 	})
 }
 
-func TestAccEventTriggerAuth_eventProcessor(t *testing.T) {
+func TestAccEventTrigger_authEventProcessor(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		resourceName            = "mongodbatlas_event_trigger.test"
@@ -238,25 +284,25 @@ func TestAccEventTriggerAuth_eventProcessor(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigAuthenticationEP(projectID, appID, `"anon-user", "local-userpass"`, eventBridgeAwsAccountID, eventBridgeAwsRegion, &event),
+				Config: configAuthenticationEPTrigger(projectID, appID, `"anon-user", "local-userpass"`, eventBridgeAwsAccountID, eventBridgeAwsRegion, &event),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					checkExists(resourceName, &eventResp),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigAuthenticationEP(projectID, appID, `"anon-user", "local-userpass", "api-key"`, eventBridgeAwsAccountID, eventBridgeAwsRegion, &eventUpdated),
+				Config: configAuthenticationEPTrigger(projectID, appID, `"anon-user", "local-userpass", "api-key"`, eventBridgeAwsAccountID, eventBridgeAwsRegion, &eventUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					checkExists(resourceName, &eventResp),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasEventTriggerImportStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -264,7 +310,7 @@ func TestAccEventTriggerAuth_eventProcessor(t *testing.T) {
 	})
 }
 
-func TestAccEventTriggerSchedule_basic(t *testing.T) {
+func TestAccEventTrigger_scheduleBasic(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
@@ -294,25 +340,25 @@ func TestAccEventTriggerSchedule_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigSchedule(projectID, appID, &event),
+				Config: configScheduleTrigger(projectID, appID, &event),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					checkExists(resourceName, &eventResp),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigSchedule(projectID, appID, &eventUpdated),
+				Config: configScheduleTrigger(projectID, appID, &eventUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					checkExists(resourceName, &eventResp),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasEventTriggerImportStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -320,7 +366,7 @@ func TestAccEventTriggerSchedule_basic(t *testing.T) {
 	})
 }
 
-func TestAccEventTriggerSchedule_eventProcessor(t *testing.T) {
+func TestAccEventTrigger_scheduleEventProcessor(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		resourceName            = "mongodbatlas_event_trigger.test"
@@ -352,25 +398,25 @@ func TestAccEventTriggerSchedule_eventProcessor(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigScheduleEP(projectID, appID, eventBridgeAwsAccountID, eventBridgeAwsRegion, &event),
+				Config: configScheduleEPTrigger(projectID, appID, eventBridgeAwsAccountID, eventBridgeAwsRegion, &event),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					checkExists(resourceName, &eventResp),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigScheduleEP(projectID, appID, eventBridgeAwsAccountID, eventBridgeAwsRegion, &eventUpdated),
+				Config: configScheduleEPTrigger(projectID, appID, eventBridgeAwsAccountID, eventBridgeAwsRegion, &eventUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					checkExists(resourceName, &eventResp),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasEventTriggerImportStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -378,7 +424,7 @@ func TestAccEventTriggerSchedule_eventProcessor(t *testing.T) {
 	})
 }
 
-func TestAccEventTriggerFunction_basic(t *testing.T) {
+func TestAccEventTrigger_functionBasic(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
@@ -408,25 +454,25 @@ func TestAccEventTriggerFunction_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasEventTriggerFunctionConfig(projectID, appID, &event),
+				Config: configScheduleTrigger(projectID, appID, &event),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					checkExists(resourceName, &eventResp),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasEventTriggerFunctionConfig(projectID, appID, &eventUpdated),
+				Config: configScheduleTrigger(projectID, appID, &eventUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					checkExists(resourceName, &eventResp),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasEventTriggerImportStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -434,7 +480,7 @@ func TestAccEventTriggerFunction_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasEventTriggerExists(resourceName string, eventTrigger *realm.EventTrigger) resource.TestCheckFunc {
+func checkExists(resourceName string, eventTrigger *realm.EventTrigger) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ctx := context.Background()
 		conn, err := acc.MongoDBClient.GetRealmClient(ctx)
@@ -465,7 +511,7 @@ func testAccCheckMongoDBAtlasEventTriggerExists(resourceName string, eventTrigge
 	}
 }
 
-func testAccCheckMongoDBAtlasEventTriggerDestroy(s *terraform.State) error {
+func checkDestroy(s *terraform.State) error {
 	ctx := context.Background()
 	conn, err := acc.MongoDBClient.GetRealmClient(ctx)
 	if err != nil {
@@ -489,7 +535,7 @@ func testAccCheckMongoDBAtlasEventTriggerDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckMongoDBAtlasEventTriggerImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -500,7 +546,7 @@ func testAccCheckMongoDBAtlasEventTriggerImportStateIDFunc(resourceName string) 
 	}
 }
 
-func testAccMongoDBAtlasEventTriggerDatabaseConfigDatabase(projectID, appID, operationTypes string, eventTrigger *realm.EventTriggerRequest, fullDoc, fullDocBefore bool) string {
+func configDatabaseTrigger(projectID, appID, operationTypes string, eventTrigger *realm.EventTriggerRequest, fullDoc, fullDocBefore bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_event_trigger" "test" {
 			project_id = %[1]q
@@ -528,7 +574,25 @@ func testAccMongoDBAtlasEventTriggerDatabaseConfigDatabase(projectID, appID, ope
 		eventTrigger.Config.ServiceID, fullDoc, fullDocBefore)
 }
 
-func testAccMongoDBAtlasEventTriggerDatabaseConfigDatabaseEP(projectID, appID, operationTypes, awsAccID, awsRegion string, eventTrigger *realm.EventTriggerRequest) string {
+func configDatabaseNoCollectionTrigger(projectID, appID, operationTypes string, eventTrigger *realm.EventTriggerRequest) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_event_trigger" "test" {
+			project_id = %[1]q
+			app_id = %[2]q
+			name = %[3]q
+			type = %[4]q
+			function_id = %[5]q
+			disabled = %[6]t
+			config_operation_types = [%[7]s]
+			config_database = %[8]q
+			config_service_id = %[9]q
+			config_full_document = false
+		}
+	`, projectID, appID, eventTrigger.Name, eventTrigger.Type, eventTrigger.FunctionID, *eventTrigger.Disabled, operationTypes,
+		eventTrigger.Config.Database, eventTrigger.Config.ServiceID)
+}
+
+func configDatabaseEPTrigger(projectID, appID, operationTypes, awsAccID, awsRegion string, eventTrigger *realm.EventTriggerRequest) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_event_trigger" "test" {
 			project_id = %[1]q
@@ -554,7 +618,7 @@ func testAccMongoDBAtlasEventTriggerDatabaseConfigDatabaseEP(projectID, appID, o
 		eventTrigger.Config.ServiceID, awsAccID, awsRegion)
 }
 
-func testAccMongoDBAtlasEventTriggerDatabaseConfigAuthentication(projectID, appID, providers string, eventTrigger *realm.EventTriggerRequest) string {
+func configAuthenticationTrigger(projectID, appID, providers string, eventTrigger *realm.EventTriggerRequest) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_event_trigger" "test" {
 			project_id = %[1]q
@@ -570,7 +634,7 @@ func testAccMongoDBAtlasEventTriggerDatabaseConfigAuthentication(projectID, appI
 		eventTrigger.Config.OperationType, providers)
 }
 
-func testAccMongoDBAtlasEventTriggerDatabaseConfigAuthenticationEP(projectID, appID, providers, awsAccID, awsRegion string, eventTrigger *realm.EventTriggerRequest) string {
+func configAuthenticationEPTrigger(projectID, appID, providers, awsAccID, awsRegion string, eventTrigger *realm.EventTriggerRequest) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_event_trigger" "test" {
 			project_id = %[1]q
@@ -591,7 +655,7 @@ func testAccMongoDBAtlasEventTriggerDatabaseConfigAuthenticationEP(projectID, ap
 		awsAccID, awsRegion)
 }
 
-func testAccMongoDBAtlasEventTriggerDatabaseConfigSchedule(projectID, appID string, eventTrigger *realm.EventTriggerRequest) string {
+func configScheduleTrigger(projectID, appID string, eventTrigger *realm.EventTriggerRequest) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_event_trigger" "test" {
 			project_id = %[1]q
@@ -606,7 +670,7 @@ func testAccMongoDBAtlasEventTriggerDatabaseConfigSchedule(projectID, appID stri
 		eventTrigger.Config.Schedule)
 }
 
-func testAccMongoDBAtlasEventTriggerDatabaseConfigScheduleEP(projectID, appID, awsAccID, awsRegion string, eventTrigger *realm.EventTriggerRequest) string {
+func configScheduleEPTrigger(projectID, appID, awsAccID, awsRegion string, eventTrigger *realm.EventTriggerRequest) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_event_trigger" "test" {
 			project_id = %[1]q
@@ -624,19 +688,4 @@ func testAccMongoDBAtlasEventTriggerDatabaseConfigScheduleEP(projectID, appID, a
 		}
 	`, projectID, appID, eventTrigger.Name, eventTrigger.Type, *eventTrigger.Disabled, eventTrigger.Config.Schedule,
 		awsAccID, awsRegion)
-}
-
-func testAccMongoDBAtlasEventTriggerFunctionConfig(projectID, appID string, eventTrigger *realm.EventTriggerRequest) string {
-	return fmt.Sprintf(`
-resource "mongodbatlas_event_trigger" "test" {
-  project_id      = %[1]q
-  app_id          = %[2]q
-  name            = %[3]q
-  type            = %[4]q
-  function_id     = %[5]q
-  disabled        = %[6]t
-  config_schedule = %[7]q
-}
-	`, projectID, appID, eventTrigger.Name, eventTrigger.Type, eventTrigger.FunctionID,
-		*eventTrigger.Disabled, eventTrigger.Config.Schedule)
 }
