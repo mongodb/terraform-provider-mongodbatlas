@@ -180,16 +180,19 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
 For more information on configuring and managing programmatic API Keys see the [MongoDB Atlas Documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html).
 
 ## HashiCorp Terraform Version Requirement
-- [HashiCorp Terraform Version](https://www.terraform.io/downloads.html)  
+- [HashiCorp Terraform Version](https://www.terraform.io/downloads.html) Compatibility Matrix
+  
 | HashiCorp Terraform Release | HashiCorp Terraform Release Date  | HashiCorp Terraform Full Support End Date  | MongoDB Atlas Support End Date |
-|-------|------------|------------|------------|
+|:-------:|:------------:|:------------:|:------------:|
 | 1.7.x | 2024-01-17 | 2026-01-31 | 2026-01-31 |
 | 1.6.x | 2023-10-04 | 2025-10-31 | 2025-10-31 |
 | 1.5.x | 2023-06-12 | 2025-06-30 | 2025-06-30 |
 | 1.4.x | 2023-03-08 | 2025-03-31 | 2025-03-31 |
 | 1.3.x | 2022-09-21 | 2024-09-30 | 2024-09-30 |
 | 1.2.x | 2022-05-18 | 2024-05-31 | 2024-05-31 |
-For safety of our users, we require only consuming versions of HashiCorp Terraform that are currently receiving Security/Maintenance Updates. For latest HashiCorp Terraform versions see: https://endoflife.date/terraform 
+
+For the safety of our users, we require only consuming versions of HashiCorp Terraform Version that are currently receiving Security / Maintenance Updates. For more details see [Support Period and End-of-Life (EOL) Policy](https://support.hashicorp.com/hc/en-us/articles/360021185113-Support-Period-and-End-of-Life-EOL-Policy).   
+For latest HashiCorp Terraform versions see [here](https://endoflife.date/terraform ).
 
 ## Supported OS and Architectures
 As per [HashiCorp's recommendations](https://developer.hashicorp.com/terraform/registry/providers/os-arch), we fully support the following operating system / architecture combinations:
