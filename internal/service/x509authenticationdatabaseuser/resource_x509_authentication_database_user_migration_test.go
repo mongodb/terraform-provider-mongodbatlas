@@ -4,7 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -13,9 +12,9 @@ import (
 
 func TestAccMigrationGenericX509AuthDBUser_basic(t *testing.T) {
 	var (
-		username    = acctest.RandomWithPrefix("test-acc")
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
+		username    = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -52,7 +51,7 @@ func TestAccMigrationGenericX509AuthDBUser_withCustomerX509(t *testing.T) {
 	var (
 		cas         = os.Getenv("CA_CERT")
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

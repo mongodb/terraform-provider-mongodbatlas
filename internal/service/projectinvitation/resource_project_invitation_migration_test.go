@@ -1,11 +1,9 @@
 package projectinvitation_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -16,8 +14,8 @@ func TestAccMigrationProjectInvitation_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project_invitation.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		name         = fmt.Sprintf("test-acc-%s@mongodb.com", acctest.RandString(10))
+		projectName  = acc.RandomProjectName()
+		name         = acc.RandomEmail()
 		roles        = []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_CLUSTER_MANAGER"}
 	)
 

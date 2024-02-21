@@ -6,11 +6,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-// TestStep is being deprecated in favor of TestStepCheckEmptyPlan
-func TestStep(config string) resource.TestStep {
-	return TestStepCheckEmptyPlan(config)
-}
-
 func TestStepCheckEmptyPlan(config string) resource.TestStep {
 	return resource.TestStep{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,

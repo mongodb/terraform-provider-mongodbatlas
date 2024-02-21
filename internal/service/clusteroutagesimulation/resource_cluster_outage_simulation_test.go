@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -17,8 +16,8 @@ func TestAccOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 	var (
 		dataSourceName = "mongodbatlas_cluster_outage_simulation.test_outage"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acctest.RandomWithPrefix("test-acc-project")
-		clusterName    = acctest.RandomWithPrefix("test-acc-cluster")
+		projectName    = acc.RandomProjectName()
+		clusterName    = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -45,8 +44,8 @@ func TestAccOutageSimulationCluster_MultiRegion_basic(t *testing.T) {
 	var (
 		dataSourceName = "mongodbatlas_cluster_outage_simulation.test_outage"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acctest.RandomWithPrefix("test-acc-project")
-		clusterName    = acctest.RandomWithPrefix("test-acc-cluster")
+		projectName    = acc.RandomProjectName()
+		clusterName    = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

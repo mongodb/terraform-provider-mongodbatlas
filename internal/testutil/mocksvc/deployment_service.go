@@ -5,7 +5,7 @@ package mocksvc
 import (
 	context "context"
 
-	admin "go.mongodb.org/atlas-sdk/v20231115006/admin"
+	admin "go.mongodb.org/atlas-sdk/v20231115007/admin"
 
 	http "net/http"
 

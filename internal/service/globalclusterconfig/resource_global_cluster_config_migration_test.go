@@ -33,7 +33,7 @@ func TestAccMigrationClusterRSGlobalCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_shard_key_unique", "false"),
 				),
 			},
-			mig.TestStep(config),
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }

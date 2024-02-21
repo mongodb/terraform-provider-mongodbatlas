@@ -1,11 +1,9 @@
 package backupcompliancepolicy_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -13,9 +11,11 @@ import (
 const dataSourceName = "data.mongodbatlas_backup_compliance_policy.backup_policy"
 
 func TestAccGenericBackupDSBackupCompliancePolicy_basic(t *testing.T) {
-	projectName := fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	projectOwnerID := os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+	var (
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+		projectName    = acc.RandomProjectName()
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },

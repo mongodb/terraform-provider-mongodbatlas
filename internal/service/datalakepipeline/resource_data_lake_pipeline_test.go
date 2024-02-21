@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -16,10 +15,10 @@ import (
 func TestAccDataLakePipeline_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_data_lake_pipeline.test"
-		clusterName  = acctest.RandomWithPrefix("test-acc-index")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		name         = acctest.RandomWithPrefix("test-acc-index")
+		projectName  = acc.RandomProjectName()
+		clusterName  = acc.RandomClusterName()
+		name         = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },

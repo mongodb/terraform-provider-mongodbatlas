@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115006/admin"
+	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
 const (
@@ -133,7 +133,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if d.HasChange("name") {
 		_, _, err := connV2.TeamsApi.RenameTeam(ctx, orgID, teamID,
-			&admin.Team{Name: d.Get("name").(string)},
+			&admin.TeamUpdate{Name: d.Get("name").(string)},
 		).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorTeamUpdate, err))

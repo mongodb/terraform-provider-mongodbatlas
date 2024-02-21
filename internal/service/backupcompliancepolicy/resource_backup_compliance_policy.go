@@ -14,7 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupschedule"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20231115006/admin"
+	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
 const (

@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -18,13 +17,13 @@ func TestAccFederatedDatabaseQueryLimit_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_federated_query_limit.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc-project")
-		tenantName   = acctest.RandomWithPrefix("test-acc-tenant")
-		limitName    = "bytesProcessed.monthly"
-		policyName   = acctest.RandomWithPrefix("test-acc")
-		roleName     = acctest.RandomWithPrefix("test-acc")
 		testS3Bucket = os.Getenv("AWS_S3_BUCKET")
 		region       = "VIRGINIA_USA"
+		limitName    = "bytesProcessed.monthly"
+		projectName  = acc.RandomProjectName()
+		tenantName   = acc.RandomName()
+		policyName   = acc.RandomName()
+		roleName     = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -14,11 +13,11 @@ func TestAccFederatedDatabaseInstanceDSPlural_basic(t *testing.T) {
 	var (
 		resourceName = "data.mongodbatlas_federated_database_instances.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		firstName    = acctest.RandomWithPrefix("test-acc")
-		secondName   = acctest.RandomWithPrefix("test-acc")
-		policyName   = acctest.RandomWithPrefix("test-acc")
-		roleName     = acctest.RandomWithPrefix("mongodb-atlas-test-acc-fed")
+		projectName  = acc.RandomProjectName()
+		firstName    = acc.RandomName()
+		secondName   = acc.RandomName()
+		policyName   = acc.RandomName()
+		roleName     = acc.RandomName()
 		testS3Bucket = os.Getenv("AWS_S3_BUCKET")
 		region       = "VIRGINIA_USA"
 	)
