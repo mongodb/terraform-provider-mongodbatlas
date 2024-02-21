@@ -13,10 +13,12 @@ import (
 )
 
 func TestAccMigrationProjectAccesslistAPIKey_SettingIPAddress(t *testing.T) {
-	resourceName := "mongodbatlas_access_list_api_key.test"
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
-	description := fmt.Sprintf("test-acc-access_list-api_key-%s", acctest.RandString(5))
+	var (
+		resourceName = "mongodbatlas_access_list_api_key.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		ipAddress    = acc.RandomIP(179, 154, 226)
+		description  = fmt.Sprintf("test-acc-access_list-api_key-%s", acctest.RandString(5))
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
@@ -46,10 +48,12 @@ func TestAccMigrationProjectAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 }
 
 func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock(t *testing.T) {
-	resourceName := "mongodbatlas_access_list_api_key.test"
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
-	description := fmt.Sprintf("test-acc-access_list-api_key-%s", acctest.RandString(5))
+	var (
+		resourceName = "mongodbatlas_access_list_api_key.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		cidrBlock    = acc.RandomIP(179, 154, 226) + "/32"
+		description  = fmt.Sprintf("test-acc-access_list-api_key-%s", acctest.RandString(5))
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },

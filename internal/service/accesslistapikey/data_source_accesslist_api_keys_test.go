@@ -11,11 +11,13 @@ import (
 )
 
 func TestAccConfigDSAccesslistAPIKeys_basic(t *testing.T) {
-	resourceName := "mongodbatlas_access_list_api_key.test"
-	dataSourceName := "data.mongodbatlas_access_list_api_keys.test"
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	description := fmt.Sprintf("test-acc-accesslist-api_keys-%s", acctest.RandString(5))
-	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
+	var (
+		resourceName   = "mongodbatlas_access_list_api_key.test"
+		dataSourceName = "data.mongodbatlas_access_list_api_keys.test"
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		description    = fmt.Sprintf("test-acc-accesslist-api_keys-%s", acctest.RandString(5))
+		ipAddress      = acc.RandomIP(179, 154, 226)
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },

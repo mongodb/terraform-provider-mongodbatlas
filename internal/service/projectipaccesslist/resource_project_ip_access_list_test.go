@@ -16,9 +16,9 @@ func TestAccProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T) {
 		resourceName     = "mongodbatlas_project_ip_access_list.test"
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName      = acc.RandomProjectName()
-		ipAddress        = fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
+		ipAddress        = acc.RandomIP(179, 154, 226)
 		comment          = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
-		updatedIPAddress = fmt.Sprintf("179.154.228.%d", acctest.RandIntRange(0, 255))
+		updatedIPAddress = acc.RandomIP(179, 154, 228)
 		updatedComment   = fmt.Sprintf("TestAcc for ipAddress updated (%s)", updatedIPAddress)
 	)
 
@@ -58,9 +58,9 @@ func TestAccProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 		resourceName     = "mongodbatlas_project_ip_access_list.test"
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName      = acc.RandomProjectName()
-		cidrBlock        = fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
+		cidrBlock        = acc.RandomIP(179, 154, 226) + "/32"
 		comment          = fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
-		updatedCIDRBlock = fmt.Sprintf("179.154.228.%d/32", acctest.RandIntRange(0, 255))
+		updatedCIDRBlock = acc.RandomIP(179, 154, 228) + "/32"
 		updatedComment   = fmt.Sprintf("TestAcc for cidrBlock updated (%s)", updatedCIDRBlock)
 	)
 
@@ -158,11 +158,11 @@ func TestAccProjectRSProjectIPAccessList_SettingMultiple(t *testing.T) {
 
 		if i%2 == 0 {
 			entryName = "cidr_block"
-			entry["cidr_block"] = fmt.Sprintf("%d.2.3.%d/32", i, acctest.RandIntRange(0, 255))
+			entry["cidr_block"] = acc.RandomIP(byte(i), 2, 3) + "/32"
 			ipAddr = entry["cidr_block"]
 		} else {
 			entryName = "ip_address"
-			entry["ip_address"] = fmt.Sprintf("%d.2.3.%d", i, acctest.RandIntRange(0, 255))
+			entry["ip_address"] = acc.RandomIP(byte(i), 2, 3)
 			ipAddr = entry["ip_address"]
 		}
 		entry["comment"] = fmt.Sprintf("TestAcc for %s (%s)", entryName, ipAddr)
@@ -199,7 +199,7 @@ func TestAccProjectRSProjectIPAccessList_importBasic(t *testing.T) {
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acc.RandomProjectName()
-		ipAddress    = fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
+		ipAddress    = acc.RandomIP(179, 154, 226)
 		comment      = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
 		resourceName = "mongodbatlas_project_ip_access_list.test"
 	)
@@ -226,7 +226,7 @@ func TestAccProjectRSProjectIPAccessList_importIncorrectId(t *testing.T) {
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acc.RandomProjectName()
-		ipAddress    = fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
+		ipAddress    = acc.RandomIP(179, 154, 226)
 		comment      = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
 		resourceName = "mongodbatlas_project_ip_access_list.test"
 	)

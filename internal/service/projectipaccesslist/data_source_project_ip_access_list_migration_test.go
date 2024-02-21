@@ -17,7 +17,7 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T)
 		dataSourceName = "data.mongodbatlas_project_ip_access_list.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName    = acc.RandomProjectName()
-		ipAddress      = fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
+		ipAddress      = acc.RandomIP(179, 154, 226)
 		comment        = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
 	)
 
@@ -54,7 +54,7 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T)
 		dataSourceName = "data.mongodbatlas_project_ip_access_list.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName    = acc.RandomProjectName()
-		cidrBlock      = fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
+		cidrBlock      = acc.RandomIP(179, 154, 226) + "/32"
 		comment        = fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
 	)
 

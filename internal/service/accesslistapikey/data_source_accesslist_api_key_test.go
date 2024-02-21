@@ -15,7 +15,7 @@ func TestAccConfigDSAccesslistAPIKey_basic(t *testing.T) {
 	dataSourceName := "data.mongodbatlas_access_list_api_key.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	description := fmt.Sprintf("test-acc-accesslist-api_key-%s", acctest.RandString(5))
-	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
+	ipAddress := acc.RandomIP(179, 154, 226)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },

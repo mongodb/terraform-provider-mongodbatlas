@@ -283,7 +283,7 @@ func TestUpgradeProjectIPWhitelistDeprecation(t *testing.T) {
 		projectName = acc.RandomProjectName()
 		publicKey   = os.Getenv("MONGODB_ATLAS_PUBLIC_KEY")
 		privateKey  = os.Getenv("MONGODB_ATLAS_PRIVATE_KEY")
-		ipAddress   = fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
+		ipAddress   = acc.RandomIP(179, 154, 226)
 		comment     = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
 	)
 	// Construct the terraform options with default retryable errors to handle the most common

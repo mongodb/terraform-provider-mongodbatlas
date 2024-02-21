@@ -192,11 +192,13 @@ func TestAccMigrationProjectRS_withLimits(t *testing.T) {
 }
 
 func TestAccMigrationProjectRSProjectIPAccesslist_withSettingIPAddress(t *testing.T) {
-	resourceName := "mongodbatlas_project_ip_access_list.test"
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	projectName := acc.RandomProjectName()
-	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
-	comment := fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
+	var (
+		resourceName = "mongodbatlas_project_ip_access_list.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acc.RandomProjectName()
+		ipAddress    = acc.RandomIP(179, 154, 226)
+		comment      = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
@@ -232,7 +234,7 @@ func TestAccMigrationProjectRSProjectIPAccessList_withSettingCIDRBlock(t *testin
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		resourceName = "mongodbatlas_project_ip_access_list.test"
 		projectName  = acc.RandomProjectName()
-		cidrBlock    = fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
+		cidrBlock    = acc.RandomIP(179, 154, 226) + "/32"
 		comment      = fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
 	)
 
@@ -281,11 +283,11 @@ func TestAccMigrationProjectRSProjectIPAccessList_withMultipleSetting(t *testing
 
 		if i%2 == 0 {
 			entryName = "cidr_block"
-			entry["cidr_block"] = fmt.Sprintf("%d.2.3.%d/32", i, acctest.RandIntRange(0, 255))
+			entry["cidr_block"] = acc.RandomIP(byte(i), 2, 3) + "/32"
 			ipAddr = entry["cidr_block"]
 		} else {
 			entryName = "ip_address"
-			entry["ip_address"] = fmt.Sprintf("%d.2.3.%d", i, acctest.RandIntRange(0, 255))
+			entry["ip_address"] = acc.RandomIP(byte(i), 2, 3)
 			ipAddr = entry["ip_address"]
 		}
 		entry["comment"] = fmt.Sprintf("TestAcc for %s (%s)", entryName, ipAddr)
