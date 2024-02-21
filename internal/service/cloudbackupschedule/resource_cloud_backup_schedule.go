@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -449,75 +448,41 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 }
 
 func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APIClient, d *schema.ResourceData, projectID, clusterName string) error {
-	policy := admin.AdvancedDiskBackupSnapshotSchedulePolicy{}
-
 	resp, _, err := connV2.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		log.Printf("error getting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
-	} else if len(resp.GetPolicies()) == 1 {
-		policy.Id = resp.GetPolicies()[0].Id
+		return fmt.Errorf("error getting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
 
 	req := &admin.DiskBackupSnapshotSchedule{}
-	policyItem := admin.DiskBackupApiPolicyItem{}
-	var policiesItem []admin.DiskBackupApiPolicyItem
-	export := admin.AutoExportPolicy{}
 
-	req.CopySettings = &[]admin.DiskBackupCopySetting{}
 	if v, ok := d.GetOk("copy_settings"); ok && len(v.([]any)) > 0 {
 		req.CopySettings = expandCopySettings(v.([]any))
 	}
 
+	var policiesItem []admin.DiskBackupApiPolicyItem
+
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
 		item := v.([]any)
 		itemObj := item[0].(map[string]any)
-		if policyID := policyItemID(itemObj); *policyID != "" {
-			policyItem.Id = policyID
-		}
-		policyItem.FrequencyType = Hourly
-		policyItem.RetentionUnit = itemObj["retention_unit"].(string)
-		policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
-		policyItem.RetentionValue = itemObj["retention_value"].(int)
-		policiesItem = append(policiesItem, policyItem)
+		policiesItem = append(policiesItem, expandPolicyItem(itemObj, Hourly))
 	}
 	if v, ok := d.GetOk("policy_item_daily"); ok {
 		item := v.([]any)
 		itemObj := item[0].(map[string]any)
-		if policyID := policyItemID(itemObj); *policyID != "" {
-			policyItem.Id = policyID
-		}
-		policyItem.FrequencyType = Daily
-		policyItem.RetentionUnit = itemObj["retention_unit"].(string)
-		policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
-		policyItem.RetentionValue = itemObj["retention_value"].(int)
-		policiesItem = append(policiesItem, policyItem)
+		policiesItem = append(policiesItem, expandPolicyItem(itemObj, Daily))
 	}
 	if v, ok := d.GetOk("policy_item_weekly"); ok {
 		items := v.([]any)
 		for _, s := range items {
 			itemObj := s.(map[string]any)
-			if policyID := policyItemID(itemObj); *policyID != "" {
-				policyItem.Id = policyID
-			}
-			policyItem.FrequencyType = Weekly
-			policyItem.RetentionUnit = itemObj["retention_unit"].(string)
-			policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
-			policyItem.RetentionValue = itemObj["retention_value"].(int)
-			policiesItem = append(policiesItem, policyItem)
+			policiesItem = append(policiesItem, expandPolicyItem(itemObj, Weekly))
 		}
 	}
 	if v, ok := d.GetOk("policy_item_monthly"); ok {
 		items := v.([]any)
 		for _, s := range items {
 			itemObj := s.(map[string]any)
-			if policyID := policyItemID(itemObj); *policyID != "" {
-				policyItem.Id = policyID
-			}
-			policyItem.FrequencyType = Monthly
-			policyItem.RetentionUnit = itemObj["retention_unit"].(string)
-			policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
-			policyItem.RetentionValue = itemObj["retention_value"].(int)
-			policiesItem = append(policiesItem, policyItem)
+			policiesItem = append(policiesItem, expandPolicyItem(itemObj, Monthly))
 		}
 	}
 
@@ -528,11 +493,11 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 	if v, ok := d.GetOk("export"); ok {
 		item := v.([]any)
 		itemObj := item[0].(map[string]any)
-		export.ExportBucketId = conversion.StringPtr(itemObj["export_bucket_id"].(string))
-		export.FrequencyType = conversion.StringPtr(itemObj["frequency_type"].(string))
-		req.Export = nil
 		if autoExportEnabled := d.Get("auto_export_enabled"); autoExportEnabled != nil && autoExportEnabled.(bool) {
-			req.Export = &export
+			req.Export = &admin.AutoExportPolicy{
+				ExportBucketId: conversion.StringPtr(itemObj["export_bucket_id"].(string)),
+				FrequencyType:  conversion.StringPtr(itemObj["frequency_type"].(string)),
+			}
 		}
 	}
 
@@ -540,8 +505,13 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 		req.UseOrgAndGroupNamesInExportPrefix = conversion.Pointer(d.Get("use_org_and_group_names_in_export_prefix").(bool))
 	}
 
-	policy.PolicyItems = &policiesItem
 	if len(policiesItem) > 0 {
+		policy := admin.AdvancedDiskBackupSnapshotSchedulePolicy{
+			PolicyItems: &policiesItem,
+		}
+		if len(resp.GetPolicies()) == 1 {
+			policy.Id = resp.GetPolicies()[0].Id
+		}
 		req.Policies = &[]admin.AdvancedDiskBackupSnapshotSchedulePolicy{policy}
 	}
 
@@ -644,14 +614,22 @@ func expandCopySettings(tfList []any) *[]admin.DiskBackupCopySetting {
 	return &copySettings
 }
 
+func expandPolicyItem(itemObj map[string]any, frequencyType string) admin.DiskBackupApiPolicyItem {
+	return admin.DiskBackupApiPolicyItem{
+		Id:                policyItemID(itemObj),
+		RetentionUnit:     itemObj["retention_unit"].(string),
+		RetentionValue:    itemObj["retention_value"].(int),
+		FrequencyInterval: itemObj["frequency_interval"].(int),
+		FrequencyType:     frequencyType,
+	}
+}
+
 func policyItemID(policyState map[string]any) *string {
-	// if the policyItem has the ID field, this is the update operation
-	// we return the ID that was stored in the TF state
+	// if the policyItem ID is present then it's an update operation
 	if val, ok := policyState["id"]; ok {
-		if id, ok := val.(string); ok {
+		if id, ok := val.(string); ok && id != "" {
 			return &id
 		}
 	}
-
 	return nil
 }
