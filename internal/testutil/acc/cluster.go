@@ -83,3 +83,9 @@ func GetClusterInfo(req *ClusterRequest) ClusterInfo {
 		ClusterTerraformStr: clusterTerraformStr,
 	}
 }
+
+func ExistingClusterUsed() bool {
+	clusterName := os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	return clusterName != "" && projectID != ""
+}

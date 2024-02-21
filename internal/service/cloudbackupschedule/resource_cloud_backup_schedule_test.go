@@ -409,6 +409,9 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func checkDestroy(s *terraform.State) error {
+	if acc.ExistingClusterUsed() {
+		return nil
+	}
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_cloud_backup_schedule" {
 			continue

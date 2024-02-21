@@ -121,7 +121,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func checkDestroy(s *terraform.State) error {
-	if os.Getenv("MONGODB_ATLAS_CLUSTER_NAME") != "" {
+	if acc.ExistingClusterUsed() {
 		return nil
 	}
 	for _, rs := range s.RootModule().Resources {
