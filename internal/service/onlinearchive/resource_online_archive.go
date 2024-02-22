@@ -9,13 +9,15 @@ import (
 	"strings"
 	"time"
 
+	"go.mongodb.org/atlas-sdk/v20231115007/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
 const (
@@ -116,7 +118,6 @@ func resourceSchema() map[string]*schema.Schema {
 			Type:       schema.TypeList,
 			MinItems:   1,
 			MaxItems:   1,
-			ConfigMode: schema.SchemaConfigModeAttr,
 			Optional:   true,
 			Computed:   true,
 			Elem: &schema.Resource{

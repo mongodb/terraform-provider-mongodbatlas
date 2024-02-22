@@ -9,14 +9,16 @@ import (
 	"slices"
 	"strings"
 
+	"go.mongodb.org/atlas-sdk/v20231115007/admin"
+
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/spf13/cast"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
 var (
@@ -111,9 +113,8 @@ func SchemaAdvancedConfigDS() *schema.Schema {
 
 func SchemaConnectionStrings() *schema.Schema {
 	return &schema.Schema{
-		Type:       schema.TypeList,
-		Computed:   true,
-		ConfigMode: schema.SchemaConfigModeAttr,
+		Type:     schema.TypeList,
+		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"standard": {
@@ -133,9 +134,8 @@ func SchemaConnectionStrings() *schema.Schema {
 					Computed: true,
 				},
 				"private_endpoint": {
-					Type:       schema.TypeList,
-					Computed:   true,
-					ConfigMode: schema.SchemaConfigModeAttr,
+					Type:     schema.TypeList,
+					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"connection_string": {
@@ -143,9 +143,8 @@ func SchemaConnectionStrings() *schema.Schema {
 								Computed: true,
 							},
 							"endpoints": {
-								Type:       schema.TypeList,
-								Computed:   true,
-								ConfigMode: schema.SchemaConfigModeAttr,
+								Type:     schema.TypeList,
+								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
 										"endpoint_id": {
@@ -185,11 +184,10 @@ func SchemaConnectionStrings() *schema.Schema {
 
 func SchemaAdvancedConfig() *schema.Schema {
 	return &schema.Schema{
-		Type:       schema.TypeList,
-		Optional:   true,
-		Computed:   true,
-		ConfigMode: schema.SchemaConfigModeAttr,
-		MaxItems:   1,
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"default_read_concern": {

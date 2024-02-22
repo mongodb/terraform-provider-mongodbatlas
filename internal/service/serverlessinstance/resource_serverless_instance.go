@@ -9,13 +9,15 @@ import (
 	"strings"
 	"time"
 
+	"go.mongodb.org/atlas-sdk/v20231115007/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
 const (
@@ -85,7 +87,6 @@ func resourceSchema() map[string]*schema.Schema {
 			Type:       schema.TypeSet,
 			Optional:   true,
 			Computed:   true,
-			ConfigMode: schema.SchemaConfigModeAttr,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"href": {

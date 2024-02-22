@@ -6,11 +6,13 @@ import (
 	"regexp"
 	"strings"
 
+	"go.mongodb.org/atlas-sdk/v20231115007/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
 func Resource() *schema.Resource {
@@ -50,10 +52,9 @@ func Resource() *schema.Resource {
 				Computed: true,
 			},
 			"teams_ids": {
-				Type:       schema.TypeSet,
-				Optional:   true,
-				Computed:   true,
-				ConfigMode: schema.SchemaConfigModeAttr,
+				Type:     schema.TypeSet,
+				Optional: true,
+				Computed: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

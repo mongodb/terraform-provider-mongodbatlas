@@ -12,16 +12,18 @@ import (
 	"strings"
 	"time"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/spf13/cast"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -89,11 +91,10 @@ func Resource() *schema.Resource {
 				Description: "Flag that indicates whether to retain backup snapshots for the deleted dedicated cluster",
 			},
 			"bi_connector_config": {
-				Type:       schema.TypeList,
-				Optional:   true,
-				ConfigMode: schema.SchemaConfigModeAttr,
-				Computed:   true,
-				MaxItems:   1,
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
@@ -1204,9 +1205,8 @@ func updateCluster(ctx context.Context, conn *matlas.Client, request *matlas.Clu
 
 func computedCloudProviderSnapshotBackupPolicySchema() *schema.Schema {
 	return &schema.Schema{
-		Type:       schema.TypeList,
-		Computed:   true,
-		ConfigMode: schema.SchemaConfigModeAttr,
+		Type:     schema.TypeList,
+		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"cluster_id": {
@@ -1238,9 +1238,8 @@ func computedCloudProviderSnapshotBackupPolicySchema() *schema.Schema {
 					Computed: true,
 				},
 				"policies": {
-					Type:       schema.TypeList,
-					Computed:   true,
-					ConfigMode: schema.SchemaConfigModeAttr,
+					Type:     schema.TypeList,
+					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"id": {
@@ -1248,9 +1247,8 @@ func computedCloudProviderSnapshotBackupPolicySchema() *schema.Schema {
 								Computed: true,
 							},
 							"policy_item": {
-								Type:       schema.TypeList,
-								Computed:   true,
-								ConfigMode: schema.SchemaConfigModeAttr,
+								Type:     schema.TypeList,
+								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
 										"id": {

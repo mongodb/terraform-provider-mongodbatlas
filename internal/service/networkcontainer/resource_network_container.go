@@ -10,15 +10,17 @@ import (
 	"strings"
 	"time"
 
+	"go.mongodb.org/atlas-sdk/v20231115007/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/spf13/cast"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
 const (
@@ -95,7 +97,6 @@ func Resource() *schema.Resource {
 				Type:       schema.TypeList,
 				Optional:   true,
 				Computed:   true,
-				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

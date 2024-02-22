@@ -9,13 +9,15 @@ import (
 	"regexp"
 	"testing"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	clustersvc "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccClusterRSCluster_basicAWS_simple(t *testing.T) {
@@ -1532,44 +1534,6 @@ func TestAccClusterRSCluster_basicAWS_PausedToUnpaused(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
 					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
 				),
-			},
-		},
-	})
-}
-
-func TestAccClusterRSCluster_withDefaultBiConnectorAndAdvancedConfiguration_maintainsBackwardCompatibility(t *testing.T) {
-	var (
-		cluster      matlas.Cluster
-		resourceName = "mongodbatlas_cluster.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		clusterName  = acc.RandomClusterName()
-		cfg          = testAccMongoDBAtlasClusterConfigAWS(orgID, projectName, clusterName, true, true)
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasic(t) },
-		CheckDestroy: acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				ExternalProviders: acc.ExternalProviders("1.11.0"),
-				Config:            cfg,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasClusterAttributes(&cluster, clusterName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-				),
-			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   cfg,
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
 			},
 		},
 	})
