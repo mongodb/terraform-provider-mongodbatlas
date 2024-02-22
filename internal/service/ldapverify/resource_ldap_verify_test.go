@@ -49,7 +49,6 @@ func TestAccLDAPVerify_basic(t *testing.T) {
 }
 
 func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
-	acc.SkipTestForCI(t)
 	var (
 		ldapVerify    matlas.LDAPConfiguration
 		resourceName  = "mongodbatlas_ldap_verify.test"

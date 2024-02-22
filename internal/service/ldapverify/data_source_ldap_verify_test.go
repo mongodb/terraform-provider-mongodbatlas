@@ -12,17 +12,16 @@ import (
 )
 
 func TestAccLDAPVerifyDS_basic(t *testing.T) {
-	acc.SkipTestForCI(t)
 	var (
 		ldapVerify   matlas.LDAPConfiguration
 		resourceName = "mongodbatlas_ldap_verify.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		clusterName  = acc.RandomClusterName()
 		hostname     = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
 		username     = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
 		password     = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
 		port         = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
+		projectName  = acc.RandomProjectName()
+		clusterName  = acc.RandomClusterName()
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -34,7 +33,6 @@ func TestAccLDAPVerifyDS_basic(t *testing.T) {
 				Config: testAccMongoDBAtlasDataSourceLDAPVerifyConfig(projectName, orgID, clusterName, hostname, username, password, cast.ToInt(port)),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasLDAPVerifyExists(resourceName, &ldapVerify),
-
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "bind_username"),
