@@ -86,7 +86,7 @@ func TestAccEventTrigger_databaseNoCollection(t *testing.T) {
 		eventResp    = realm.EventTrigger{}
 	)
 	event := realm.EventTriggerRequest{
-		Name:       acctest.RandomWithPrefix("test-acc"),
+		Name:       acc.RandomName(),
 		Type:       "DATABASE",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
 		Disabled:   conversion.Pointer(false),
