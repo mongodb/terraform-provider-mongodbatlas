@@ -1,10 +1,12 @@
 package advancedcluster_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -103,7 +105,7 @@ func TestAccMigrationAdvancedClusterAdvancedCluster_partialAdvancedConf(t *testi
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: acc.ExternalProviders("1.12.3"),
+				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),

@@ -16,10 +16,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-// TestAccClusterRSCluster_withDefaultBiConnectorAndAdvancedConfiguration_backwardCompatibility In mongodbatlas provider v1.12.3
-// 'schema.SchemaConfigModeAttr' was added to collection attributes to
-// support Terraform versions <1.1.5. This setting is not recommended by Hashicorp and breaks CDKTF.
-// This test ensures removing this setting does not have a user impact (only Terraform versions >=1.2.x can be supported)
 func TestAccMigrationClusterRSCluster_withDefaultBiConnectorAndAdvancedConfiguration_backwardCompatibility(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
@@ -35,7 +31,7 @@ func TestAccMigrationClusterRSCluster_withDefaultBiConnectorAndAdvancedConfigura
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: acc.ExternalProviders("1.12.3"),
+				ExternalProviders: mig.ExternalProviders(),
 				Config:            cfg,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
@@ -49,10 +45,6 @@ func TestAccMigrationClusterRSCluster_withDefaultBiConnectorAndAdvancedConfigura
 	})
 }
 
-// TestAccMigrationClusterRSCluster_basic_PartialAdvancedConf_backwardCompatibility In mongodbatlas provider v1.12.3
-// 'schema.SchemaConfigModeAttr' was added to collection attributes to
-// support Terraform versions <1.1.5. This setting is not recommended by Hashicorp and breaks CDKTF.
-// This test ensures removing this setting does not have a user impact (only Terraform versions >=1.2.x can be supported)
 func TestAccMigrationClusterRSCluster_basic_PartialAdvancedConf_backwardCompatibility(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
@@ -74,7 +66,7 @@ func TestAccMigrationClusterRSCluster_basic_PartialAdvancedConf_backwardCompatib
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: acc.ExternalProviders("1.12.3"),
+				ExternalProviders: mig.ExternalProviders(),
 				Config:            cfgPartial,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
