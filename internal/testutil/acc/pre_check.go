@@ -226,6 +226,14 @@ func PreCheckLDAP(tb testing.TB) {
 	PreCheckBasic(tb)
 }
 
+func PreCheckLDAPCert(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("MONGODB_ATLAS_LDAP_CA_CERTIFICATE") == "" {
+		tb.Fatal("`MONGODB_ATLAS_LDAP_CA_CERTIFICATE` must be set")
+	}
+	PreCheckLDAP(tb)
+}
+
 func PreCheckFederatedSettings(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_FEDERATED_PROJECT_ID") == "" ||

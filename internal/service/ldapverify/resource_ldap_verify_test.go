@@ -64,7 +64,7 @@ func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckLDAP(t) },
+		PreCheck:                 func() { acc.PreCheckLDAPCert(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasLDAPVerifyDestroy,
 		Steps: []resource.TestStep{
@@ -217,7 +217,7 @@ func testAccMongoDBAtlasLDAPVerifyWithConfigurationConfig(projectName, orgID, cl
 			provider_name               = "AWS"
 			provider_region_name        = "US_EAST_2"
 			provider_instance_size_name = "M10"
-			backup_enabled              = true //enable cloud provider snapshots
+			
 		}
 
 		resource "mongodbatlas_ldap_verify" "test" {
