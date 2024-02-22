@@ -5,9 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20231115006/admin"
+	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -17,7 +16,7 @@ const dataSourceName = "data.mongodbatlas_project.test"
 
 func TestAccProjectDSProject_byID(t *testing.T) {
 	var (
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -50,7 +49,7 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 
 func TestAccProjectDSProject_byName(t *testing.T) {
 	var (
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -83,7 +82,7 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 
 func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 	var (
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -122,7 +121,7 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 
 func TestAccProjectDSProject_limits(t *testing.T) {
 	var (
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{

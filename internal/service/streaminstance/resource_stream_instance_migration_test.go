@@ -4,7 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 
@@ -15,9 +14,9 @@ import (
 func TestAccMigrationStreamRSStreamInstance_basic(t *testing.T) {
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc-stream")
-		instanceName = acctest.RandomWithPrefix("test-acc-name")
 		resourceName = "mongodbatlas_stream_instance.test"
+		projectName  = acc.RandomProjectName()
+		instanceName = acc.RandomName()
 	)
 	mig.SkipIfVersionBelow(t, "1.14.0")
 

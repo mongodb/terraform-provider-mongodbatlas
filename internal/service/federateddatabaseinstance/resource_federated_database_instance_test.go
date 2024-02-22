@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -17,8 +16,8 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_federated_database_instance.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		name         = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
+		name         = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -73,10 +72,10 @@ func TestAccFederatedDatabaseInstance_s3bucket(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_federated_database_instance.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		name         = acctest.RandomWithPrefix("test-acc")
-		policyName   = acctest.RandomWithPrefix("test-acc")
-		roleName     = acctest.RandomWithPrefix("mongodb-atlas-test-acc-fed")
+		projectName  = acc.RandomProjectName()
+		name         = acc.RandomName()
+		policyName   = acc.RandomName()
+		roleName     = acc.RandomIAMRole()
 		testS3Bucket = os.Getenv("AWS_S3_BUCKET")
 		region       = "VIRGINIA_USA"
 	)
@@ -109,8 +108,10 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_federated_database_instance.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		name         = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
+		clusterName1 = acc.RandomClusterName()
+		clusterName2 = acc.RandomClusterName()
+		name         = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -119,7 +120,7 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configWithCluster(projectName, orgID, name),
+				Config:                   configWithCluster(orgID, projectName, clusterName1, clusterName2, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
@@ -132,51 +133,51 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 	})
 }
 
-func configWithCluster(projectName, orgID, name string) string {
+func configWithCluster(orgID, projectName, clusterName1, clusterName2, name string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_project" "project-tf" {
-		name   = %[1]q
-		org_id = %[2]q
+		resource "mongodbatlas_project" "project-tf" {
+			org_id = %[1]q
+			name   = %[2]q
 	  }
 	  
 	  resource "mongodbatlas_cluster" "cluster-1" {
-		project_id = mongodbatlas_project.project-tf.id
-		provider_name               = "AWS"
-		name                        = "tfCluster0"
-		backing_provider_name       = "AWS"
-		provider_region_name        = "EU_WEST_2"
-		provider_instance_size_name = "M10"
+			project_id = mongodbatlas_project.project-tf.id
+			provider_name               = "AWS"
+			name                        = %[3]q
+			backing_provider_name       = "AWS"
+			provider_region_name        = "EU_WEST_2"
+			provider_instance_size_name = "M10"
 	  }
 	  
 	  
 	  resource "mongodbatlas_cluster" "cluster-2" {
-		project_id = mongodbatlas_project.project-tf.id
-		provider_name               = "AWS"
-		name                        = "tfCluster1"
-		backing_provider_name       = "AWS"
-		provider_region_name        = "EU_WEST_2"
-		provider_instance_size_name = "M10"
+			project_id = mongodbatlas_project.project-tf.id
+			provider_name               = "AWS"
+			name                        = %[4]q
+			backing_provider_name       = "AWS"
+			provider_region_name        = "EU_WEST_2"
+			provider_instance_size_name = "M10"
 	  }
 
 	  resource "mongodbatlas_federated_database_instance" "test" {
-		project_id = mongodbatlas_project.project-tf.id
-		name       = %[3]q
-		storage_databases {
-		  name = "VirtualDatabase0"
-		  collections {
-			name = "VirtualCollection0"
-			data_sources {
-			  collection = "listingsAndReviews"
-			  database   = "sample_airbnb"
-			  store_name = mongodbatlas_cluster.cluster-1.name
-			}
-			data_sources {
+			project_id = mongodbatlas_project.project-tf.id
+			name       = %[5]q
+			storage_databases {
+				name = "VirtualDatabase0"
+				collections {
+				name = "VirtualCollection0"
+				data_sources {
+					collection = "listingsAndReviews"
+					database   = "sample_airbnb"
+					store_name = mongodbatlas_cluster.cluster-1.name
+				}
+				data_sources {
 
-			  collection = "listingsAndReviews"
-			  database   = "sample_airbnb"
-			  store_name = mongodbatlas_cluster.cluster-2.name
+					collection = "listingsAndReviews"
+					database   = "sample_airbnb"
+					store_name = mongodbatlas_cluster.cluster-2.name
+				}
 			}
-		  }
 		}
 	  
 		storage_stores {
@@ -239,7 +240,7 @@ func configWithCluster(projectName, orgID, name string) string {
 		  }
 		}
 	  }
-	`, projectName, orgID, name)
+	`, orgID, projectName, clusterName1, clusterName2, name)
 }
 
 func importStateIDFuncS3Bucket(resourceName, s3Bucket string) resource.ImportStateIdFunc {

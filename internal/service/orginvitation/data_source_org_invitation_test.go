@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -15,7 +14,7 @@ func TestAccConfigDSOrgInvitation_basic(t *testing.T) {
 	var (
 		dataSourceName = "mongodbatlas_org_invitation.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		name           = fmt.Sprintf("test-acc-%s@mongodb.com", acctest.RandString(10))
+		name           = acc.RandomEmail()
 		initialRole    = []string{"ORG_OWNER"}
 	)
 

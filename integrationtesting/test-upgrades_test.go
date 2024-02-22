@@ -12,6 +12,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 var (
@@ -22,13 +23,12 @@ func TestUpgradeNetworkContainerRegionsGCP(t *testing.T) {
 	t.Parallel()
 
 	var (
-		randInt        = acctest.RandIntRange(0, 255)
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		atlasCIDRBlock = fmt.Sprintf("10.%d.0.0/18", randInt)
-		providerName   = "GCP"
 		publicKey      = os.Getenv("MONGODB_ATLAS_PUBLIC_KEY")
 		privateKey     = os.Getenv("MONGODB_ATLAS_PRIVATE_KEY")
+		providerName   = "GCP"
+		atlasCIDRBlock = fmt.Sprintf("10.%d.0.0/18", acctest.RandIntRange(0, 255))
 	)
 	// Construct the terraform options with default retryable errors to handle the most common
 	// retryable errors in terraform testing.
@@ -80,7 +80,7 @@ func TestUpgradeDatabaseUserLDAPAuthType(t *testing.T) {
 
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 		roleName    = "atlasAdmin"
 		username    = "CN=ellen@example.com,OU=users,DC=example,DC=com"
 		publicKey   = os.Getenv("MONGODB_ATLAS_PUBLIC_KEY")
@@ -146,8 +146,8 @@ func TestUpgradeClusterDeprecationEBSVolume(t *testing.T) {
 
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		clusterName  = acctest.RandomWithPrefix("test-acc")
+		projectName  = acc.RandomProjectName()
+		clusterName  = acc.RandomClusterName()
 		publicKey    = os.Getenv("MONGODB_ATLAS_PUBLIC_KEY")
 		privateKey   = os.Getenv("MONGODB_ATLAS_PRIVATE_KEY")
 		majorVersion = testAccGetMongoDBAtlasMajorVersion()
@@ -204,7 +204,7 @@ func TestUpgradePrivateEndpoint(t *testing.T) {
 
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 		publicKey   = os.Getenv("MONGODB_ATLAS_PUBLIC_KEY")
 		privateKey  = os.Getenv("MONGODB_ATLAS_PRIVATE_KEY")
 		baseURL     = os.Getenv("MONGODB_ATLAS_BASE_URL")
@@ -279,10 +279,10 @@ func TestUpgradeProjectIPWhitelistDeprecation(t *testing.T) {
 
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 		publicKey   = os.Getenv("MONGODB_ATLAS_PUBLIC_KEY")
 		privateKey  = os.Getenv("MONGODB_ATLAS_PRIVATE_KEY")
-		ipAddress   = fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
+		ipAddress   = acc.RandomIP(179, 154, 226)
 		comment     = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
 	)
 	// Construct the terraform options with default retryable errors to handle the most common
@@ -339,8 +339,8 @@ func TestUpgradeDesignIDState(t *testing.T) {
 
 	var (
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName     = acctest.RandomWithPrefix("test-acc")
-		clusterName     = acctest.RandomWithPrefix("test-acc")
+		projectName     = acc.RandomProjectName()
+		clusterName     = acc.RandomClusterName()
 		description     = fmt.Sprintf("My description in %s", clusterName)
 		retentionInDays = "1"
 		publicKey       = mongoSecrets.PublicKey
@@ -466,7 +466,7 @@ func TestUpgradePrivateLinkEndpointDeprecation(t *testing.T) {
 
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 		publicKey   = os.Getenv("MONGODB_ATLAS_PUBLIC_KEY")
 		privateKey  = os.Getenv("MONGODB_ATLAS_PRIVATE_KEY")
 		awsAccess   = os.Getenv("AWS_ACCESS_KEY_ID")
@@ -538,10 +538,10 @@ func TestUpgradeCloudBackupPolicies(t *testing.T) {
 
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 		publicKey   = os.Getenv("MONGODB_ATLAS_PUBLIC_KEY")
 		privateKey  = os.Getenv("MONGODB_ATLAS_PRIVATE_KEY")
-		clusterName = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		clusterName = acc.RandomClusterName()
 	)
 	// Construct the terraform options with default retryable errors to handle the most common
 	// retryable errors in terraform testing.
@@ -597,7 +597,7 @@ func TestUpgradeEncryptionAtRestAws(t *testing.T) {
 
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 		publicKey   = mongoSecrets.PublicKey
 		privateKey  = mongoSecrets.PrivateKey
 
@@ -664,7 +664,7 @@ func TestUpgradeEncryptionAtRestAzure(t *testing.T) {
 
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 		publicKey   = mongoSecrets.PublicKey
 		privateKey  = mongoSecrets.PrivateKey
 
@@ -739,7 +739,7 @@ func TestUpgradeEncryptionAtRestGCP(t *testing.T) {
 
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
+		projectName = acc.RandomProjectName()
 		publicKey   = mongoSecrets.PublicKey
 		privateKey  = mongoSecrets.PrivateKey
 
@@ -798,8 +798,8 @@ func TestUpgradeCloudBackupSnapshot(t *testing.T) {
 
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
-		clusterName = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
 	)
 	// Construct the terraform options with default retryable errors to handle the most common
 	// retryable errors in terraform testing.

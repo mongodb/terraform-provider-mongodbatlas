@@ -4,13 +4,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
-	"go.mongodb.org/atlas-sdk/v20231115006/admin"
+	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
 func TestAccMigrationEncryptionAtRest_basicAWS(t *testing.T) {
@@ -63,8 +62,8 @@ func TestAccMigrationEncryptionAtRest_withRole_basicAWS(t *testing.T) {
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		accessKeyID  = os.Getenv("AWS_ACCESS_KEY_ID")
 		secretKey    = os.Getenv("AWS_SECRET_ACCESS_KEY")
-		policyName   = acctest.RandomWithPrefix("test-aws-policy")
-		roleName     = acctest.RandomWithPrefix("test-aws-role")
+		policyName   = acc.RandomName()
+		roleName     = acc.RandomName()
 
 		awsKms = admin.AWSKMSConfiguration{
 			Enabled:             conversion.Pointer(true),

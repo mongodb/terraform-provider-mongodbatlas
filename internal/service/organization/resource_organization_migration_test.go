@@ -1,11 +1,9 @@
 package organization_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 
@@ -18,7 +16,7 @@ func TestAccMigrationConfigRSOrganization_Basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_organization.test"
 		orgOwnerID   = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
-		name         = fmt.Sprintf("test-acc-organization-%s", acctest.RandString(5))
+		name         = acc.RandomName()
 		description  = "test Key for Acceptance tests"
 		roleName     = "ORG_OWNER"
 	)

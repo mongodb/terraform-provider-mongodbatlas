@@ -6,9 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20231115006/admin"
+	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -18,9 +17,10 @@ import (
 func TestAccMigrationProjectRS_withNoProps(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project.test"
-		projectName  = acctest.RandomWithPrefix("test-acc-migration")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acc.RandomProjectName()
 	)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyProject,
@@ -61,8 +61,8 @@ func TestAccMigrationProjectRS_withTeams(t *testing.T) {
 	var (
 		project         admin.Group
 		resourceName    = "mongodbatlas_project.test"
-		projectName     = acctest.RandomWithPrefix("test-acc-teams")
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName     = acc.RandomProjectName()
 		clusterCount    = "0"
 		configWithTeams = acc.ConfigProject(projectName, orgID,
 			[]*admin.TeamRole{
@@ -110,9 +110,9 @@ func TestAccMigrationProjectRS_withFalseDefaultSettings(t *testing.T) {
 	var (
 		project         admin.Group
 		resourceName    = "mongodbatlas_project.test"
-		projectName     = acctest.RandomWithPrefix("tf-acc-project")
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID  = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+		projectName     = acc.RandomProjectName()
 		configWithTeams = acc.ConfigProjectWithFalseDefaultSettings(projectName, orgID, projectOwnerID)
 	)
 
@@ -147,8 +147,8 @@ func TestAccMigrationProjectRS_withFalseDefaultSettings(t *testing.T) {
 func TestAccMigrationProjectRS_withLimits(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project.test"
-		projectName  = acctest.RandomWithPrefix("tf-acc-project")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acc.RandomProjectName()
 		config       = acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
 			{
 				Name:  "atlas.project.deployment.clusters",
@@ -192,11 +192,13 @@ func TestAccMigrationProjectRS_withLimits(t *testing.T) {
 }
 
 func TestAccMigrationProjectRSProjectIPAccesslist_withSettingIPAddress(t *testing.T) {
-	resourceName := "mongodbatlas_project_ip_access_list.test"
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	projectName := acctest.RandomWithPrefix("test-acc")
-	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
-	comment := fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
+	var (
+		resourceName = "mongodbatlas_project_ip_access_list.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acc.RandomProjectName()
+		ipAddress    = acc.RandomIP(179, 154, 226)
+		comment      = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
@@ -228,11 +230,13 @@ func TestAccMigrationProjectRSProjectIPAccesslist_withSettingIPAddress(t *testin
 }
 
 func TestAccMigrationProjectRSProjectIPAccessList_withSettingCIDRBlock(t *testing.T) {
-	resourceName := "mongodbatlas_project_ip_access_list.test"
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	projectName := acctest.RandomWithPrefix("test-acc")
-	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
-	comment := fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
+	var (
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		resourceName = "mongodbatlas_project_ip_access_list.test"
+		projectName  = acc.RandomProjectName()
+		cidrBlock    = acc.RandomIP(179, 154, 226) + "/32"
+		comment      = fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
@@ -264,11 +268,13 @@ func TestAccMigrationProjectRSProjectIPAccessList_withSettingCIDRBlock(t *testin
 }
 
 func TestAccMigrationProjectRSProjectIPAccessList_withMultipleSetting(t *testing.T) {
-	resourceName := "mongodbatlas_project_ip_access_list.test_1"
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	projectName := acctest.RandomWithPrefix("test-acc")
-	const ipWhiteListCount = 20
-	accessList := make([]map[string]string, 0)
+	var (
+		resourceName     = "mongodbatlas_project_ip_access_list.test_1"
+		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		accessList       = make([]map[string]string, 0)
+		ipWhiteListCount = 20
+		projectName      = acc.RandomProjectName()
+	)
 
 	for i := 0; i < ipWhiteListCount; i++ {
 		entry := make(map[string]string)
@@ -277,11 +283,11 @@ func TestAccMigrationProjectRSProjectIPAccessList_withMultipleSetting(t *testing
 
 		if i%2 == 0 {
 			entryName = "cidr_block"
-			entry["cidr_block"] = fmt.Sprintf("%d.2.3.%d/32", i, acctest.RandIntRange(0, 255))
+			entry["cidr_block"] = acc.RandomIP(byte(i), 2, 3) + "/32"
 			ipAddr = entry["cidr_block"]
 		} else {
 			entryName = "ip_address"
-			entry["ip_address"] = fmt.Sprintf("%d.2.3.%d", i, acctest.RandIntRange(0, 255))
+			entry["ip_address"] = acc.RandomIP(byte(i), 2, 3)
 			ipAddr = entry["ip_address"]
 		}
 		entry["comment"] = fmt.Sprintf("TestAcc for %s (%s)", entryName, ipAddr)

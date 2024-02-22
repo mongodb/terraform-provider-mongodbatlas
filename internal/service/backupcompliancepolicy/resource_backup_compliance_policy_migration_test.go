@@ -1,20 +1,19 @@
 package backupcompliancepolicy_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 func TestAccMigrationGenericBackupRSBackupCompliancePolicy_basic(t *testing.T) {
 	var (
-		projectName    = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+		projectName    = acc.RandomProjectName()
 		config         = configBasic(projectName, orgID, projectOwnerID)
 	)
 
@@ -34,7 +33,7 @@ func TestAccMigrationGenericBackupRSBackupCompliancePolicy_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "7"),
 				),
 			},
-			mig.TestStep(config),
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }

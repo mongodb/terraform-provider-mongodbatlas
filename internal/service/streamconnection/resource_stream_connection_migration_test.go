@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -14,10 +13,10 @@ import (
 
 func TestAccMigrationStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc-stream")
-		instanceName = acctest.RandomWithPrefix("test-acc-name")
 		resourceName = "mongodbatlas_stream_connection.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acc.RandomProjectName()
+		instanceName = acc.RandomName()
 	)
 	mig.SkipIfVersionBelow(t, "1.14.0")
 
@@ -46,10 +45,10 @@ func TestAccMigrationStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 
 func TestAccMigrationStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc-stream")
-		instanceName = acctest.RandomWithPrefix("test-acc-name")
 		resourceName = "mongodbatlas_stream_connection.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acc.RandomProjectName()
+		instanceName = acc.RandomName()
 	)
 	mig.SkipIfVersionBelow(t, "1.14.0")
 
@@ -78,9 +77,9 @@ func TestAccMigrationStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 
 func TestAccMigrationStreamRSStreamConnection_cluster(t *testing.T) {
 	var (
-		clusterInfo  = acc.GetClusterInfo(nil)
-		instanceName = acctest.RandomWithPrefix("test-acc-name")
 		resourceName = "mongodbatlas_stream_connection.test"
+		clusterInfo  = acc.GetClusterInfo(nil)
+		instanceName = acc.RandomName()
 	)
 	mig.SkipIfVersionBelow(t, "1.14.0")
 

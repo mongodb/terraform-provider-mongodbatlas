@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -17,9 +16,9 @@ const resourceName = "mongodbatlas_backup_compliance_policy.backup_policy_res"
 
 func TestAccGenericBackupRSBackupCompliancePolicy_basic(t *testing.T) {
 	var (
-		projectName    = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+		projectName    = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -44,9 +43,9 @@ func TestAccGenericBackupRSBackupCompliancePolicy_basic(t *testing.T) {
 
 func TestAccGenericBackupRSBackupCompliancePolicy_withFirstLastName(t *testing.T) {
 	var (
-		projectName    = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+		projectName    = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -68,9 +67,9 @@ func TestAccGenericBackupRSBackupCompliancePolicy_withFirstLastName(t *testing.T
 
 func TestAccGenericBackupRSBackupCompliancePolicy_withoutOptionals(t *testing.T) {
 	var (
-		projectName    = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+		projectName    = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -95,9 +94,9 @@ func TestAccGenericBackupRSBackupCompliancePolicy_withoutOptionals(t *testing.T)
 
 func TestAccGenericBackupRSBackupCompliancePolicy_withoutRestoreWindowDays(t *testing.T) {
 	var (
-		projectName    = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+		projectName    = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -119,9 +118,9 @@ func TestAccGenericBackupRSBackupCompliancePolicy_withoutRestoreWindowDays(t *te
 
 func TestAccGenericBackupRSBackupCompliancePolicy_importBasic(t *testing.T) {
 	var (
-		projectName    = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+		projectName    = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
