@@ -192,7 +192,7 @@ For more information on configuring and managing programmatic API Keys see the [
 
 For the safety of our users, we require only consuming versions of HashiCorp Terraform that are currently receiving Security / Maintenance Updates. For more details see [Support Period and End-of-Life (EOL) Policy](https://support.hashicorp.com/hc/en-us/articles/360021185113-Support-Period-and-End-of-Life-EOL-Policy).   
 
-For latest HashiCorp Terraform versions see [here](https://endoflife.date/terraform ).
+HashiCorp Terraform versions that are not listed on this table are no longer supported by MongoDB Atlas. For latest HashiCorp Terraform versions see [here](https://endoflife.date/terraform ).
 
 ## Supported OS and Architectures
 As per [HashiCorp's recommendations](https://developer.hashicorp.com/terraform/registry/providers/os-arch), we fully support the following operating system / architecture combinations:
