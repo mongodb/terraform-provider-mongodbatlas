@@ -17,18 +17,18 @@ import (
 )
 
 const (
-	errorLDAPVerifyCreate  = "error creating MongoDB LDAPVerify (%s): %s"
-	errorLDAPVerifyRead    = "error reading MongoDB LDAPVerify (%s): %s"
-	errorLDAPVerifySetting = "error setting `%s` for LDAPVerify(%s): %s"
+	errorCreate   = "error creating MongoDB LDAPVerify (%s): %s"
+	errorRead     = "error reading MongoDB LDAPVerify (%s): %s"
+	errorSettings = "error setting `%s` for LDAPVerify(%s): %s"
 )
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasLDAPVerifyCreate,
-		ReadContext:   resourceMongoDBAtlasLDAPVerifyRead,
-		DeleteContext: resourceMongoDBAtlasLDAPVerifyDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasLDAPVerifyImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -112,7 +112,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasLDAPVerifyCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
@@ -139,13 +139,13 @@ func resourceMongoDBAtlasLDAPVerifyCreate(ctx context.Context, d *schema.Resourc
 
 	ldap, _, err := conn.LDAPConfigurations.Verify(ctx, projectID, ldapReq)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPVerifyCreate, projectID, err))
+		return diag.FromErr(fmt.Errorf(errorCreate, projectID, err))
 	}
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"PENDING"},
 		Target:     []string{"SUCCESS", "FAILED"},
-		Refresh:    resourceLDAPGetStatusRefreshFunc(ctx, projectID, ldap.RequestID, conn),
+		Refresh:    resourceRefreshFunc(ctx, projectID, ldap.RequestID, conn),
 		Timeout:    3 * time.Hour,
 		MinTimeout: 1 * time.Minute,
 		Delay:      3 * time.Minute,
@@ -154,7 +154,7 @@ func resourceMongoDBAtlasLDAPVerifyCreate(ctx context.Context, d *schema.Resourc
 	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPVerifyCreate, projectID, err))
+		return diag.FromErr(fmt.Errorf(errorCreate, projectID, err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -162,10 +162,10 @@ func resourceMongoDBAtlasLDAPVerifyCreate(ctx context.Context, d *schema.Resourc
 		"request_id": ldap.RequestID,
 	}))
 
-	return resourceMongoDBAtlasLDAPVerifyRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasLDAPVerifyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	ids := conversion.DecodeStateID(d.Id())
@@ -179,35 +179,35 @@ func resourceMongoDBAtlasLDAPVerifyRead(ctx context.Context, d *schema.ResourceD
 			return nil
 		}
 
-		return diag.FromErr(fmt.Errorf(errorLDAPVerifyRead, d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorRead, d.Id(), err))
 	}
 
 	if err := d.Set("hostname", ldapResp.Request.Hostname); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPVerifySetting, "hostname", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "hostname", d.Id(), err))
 	}
 	if err := d.Set("port", ldapResp.Request.Port); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPVerifySetting, "port", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "port", d.Id(), err))
 	}
 	if err := d.Set("bind_username", ldapResp.Request.BindUsername); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPVerifySetting, "bind_username", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "bind_username", d.Id(), err))
 	}
 	if err := d.Set("links", FlattenLinks(ldapResp.Links)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPVerifySetting, "links", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "links", d.Id(), err))
 	}
 	if err := d.Set("validations", flattenValidations(ldapResp.Validations)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPVerifySetting, "validations", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "validations", d.Id(), err))
 	}
 	if err := d.Set("request_id", ldapResp.RequestID); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPVerifySetting, "request_id", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "request_id", d.Id(), err))
 	}
 	if err := d.Set("status", ldapResp.Status); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPVerifySetting, "status", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "status", d.Id(), err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasLDAPVerifyDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	d.SetId("")
 
 	return nil
@@ -237,7 +237,7 @@ func flattenValidations(validationsArray []*matlas.LDAPValidation) []map[string]
 	return validations
 }
 
-func resourceMongoDBAtlasLDAPVerifyImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
@@ -250,15 +250,15 @@ func resourceMongoDBAtlasLDAPVerifyImportState(ctx context.Context, d *schema.Re
 
 	_, _, err := conn.LDAPConfigurations.GetStatus(ctx, projectID, requestID)
 	if err != nil {
-		return nil, fmt.Errorf(errorLDAPVerifyRead, requestID, err)
+		return nil, fmt.Errorf(errorRead, requestID, err)
 	}
 
 	if err := d.Set("project_id", projectID); err != nil {
-		return nil, fmt.Errorf(errorLDAPVerifySetting, "project_id", requestID, err)
+		return nil, fmt.Errorf(errorSettings, "project_id", requestID, err)
 	}
 
 	if err := d.Set("request_id", requestID); err != nil {
-		return nil, fmt.Errorf(errorLDAPVerifySetting, "request_id", requestID, err)
+		return nil, fmt.Errorf(errorSettings, "request_id", requestID, err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -269,7 +269,7 @@ func resourceMongoDBAtlasLDAPVerifyImportState(ctx context.Context, d *schema.Re
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceLDAPGetStatusRefreshFunc(ctx context.Context, projectID, requestID string, client *matlas.Client) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, projectID, requestID string, client *matlas.Client) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		p, resp, err := client.LDAPConfigurations.GetStatus(ctx, projectID, requestID)
 		if err != nil {

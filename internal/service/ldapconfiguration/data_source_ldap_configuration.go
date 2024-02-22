@@ -11,7 +11,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasLDAPConfigurationRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -73,41 +73,41 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasLDAPConfigurationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
 	ldap, _, err := conn.LDAPConfigurations.Get(ctx, projectID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationRead, projectID, err))
+		return diag.FromErr(fmt.Errorf(errorRead, projectID, err))
 	}
 
 	if err = d.Set("authentication_enabled", ldap.LDAP.AuthenticationEnabled); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "authentication_enabled", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "authentication_enabled", d.Id(), err))
 	}
 	if err = d.Set("authorization_enabled", ldap.LDAP.AuthorizationEnabled); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "authorization_enabled", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "authorization_enabled", d.Id(), err))
 	}
 	if err = d.Set("hostname", ldap.LDAP.Hostname); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "hostname", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "hostname", d.Id(), err))
 	}
 	if err = d.Set("port", ldap.LDAP.Port); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "port", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "port", d.Id(), err))
 	}
 	if err = d.Set("bind_username", ldap.LDAP.BindUsername); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "bind_username", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "bind_username", d.Id(), err))
 	}
 	if err = d.Set("bind_password", ldap.LDAP.BindPassword); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "bind_password", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "bind_password", d.Id(), err))
 	}
 	if err = d.Set("ca_certificate", ldap.LDAP.CaCertificate); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "ca_certificate", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "ca_certificate", d.Id(), err))
 	}
 	if err = d.Set("authz_query_template", ldap.LDAP.AuthzQueryTemplate); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "authz_query_template", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "authz_query_template", d.Id(), err))
 	}
 	if err = d.Set("user_to_dn_mapping", flattenDNMapping(ldap.LDAP.UserToDNMapping)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "user_to_dn_mapping", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "user_to_dn_mapping", d.Id(), err))
 	}
 
 	d.SetId(projectID)

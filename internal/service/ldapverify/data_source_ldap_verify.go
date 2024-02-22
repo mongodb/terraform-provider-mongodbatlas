@@ -12,7 +12,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasLDAPVerifyRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -74,36 +74,36 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasLDAPVerifyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	requestID := d.Get("request_id").(string)
 
 	ldapResp, _, err := conn.LDAPConfigurations.GetStatus(ctx, projectID, requestID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPVerifyRead, projectID, err))
+		return diag.FromErr(fmt.Errorf(errorRead, projectID, err))
 	}
 
 	if err := d.Set("hostname", ldapResp.Request.Hostname); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPVerifySetting, "hostname", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "hostname", d.Id(), err))
 	}
 	if err := d.Set("port", ldapResp.Request.Port); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPVerifySetting, "port", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "port", d.Id(), err))
 	}
 	if err := d.Set("bind_username", ldapResp.Request.BindUsername); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPVerifySetting, "bind_username", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "bind_username", d.Id(), err))
 	}
 	if err := d.Set("links", FlattenLinks(ldapResp.Links)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPVerifySetting, "links", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "links", d.Id(), err))
 	}
 	if err := d.Set("validations", flattenValidations(ldapResp.Validations)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPVerifySetting, "validations", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "validations", d.Id(), err))
 	}
 	if err := d.Set("request_id", ldapResp.RequestID); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPVerifySetting, "request_id", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "request_id", d.Id(), err))
 	}
 	if err := d.Set("status", ldapResp.Status); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPVerifySetting, "status", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "status", d.Id(), err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{

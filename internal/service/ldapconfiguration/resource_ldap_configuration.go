@@ -13,19 +13,19 @@ import (
 )
 
 const (
-	errorLDAPConfigurationCreate  = "error creating MongoDB LDAPConfiguration (%s): %s"
-	errorLDAPConfigurationUpdate  = "error updating MongoDB LDAPConfiguration (%s): %s"
-	errorLDAPConfigurationRead    = "error reading MongoDB LDAPConfiguration (%s): %s"
-	errorLDAPConfigurationDelete  = "error deleting MongoDB LDAPConfiguration (%s): %s"
-	errorLDAPConfigurationSetting = "error setting `%s` for LDAPConfiguration(%s): %s"
+	errorCreate   = "error creating MongoDB LDAPConfiguration (%s): %s"
+	errorUpdate   = "error updating MongoDB LDAPConfiguration (%s): %s"
+	errorRead     = "error reading MongoDB LDAPConfiguration (%s): %s"
+	errorDelete   = "error deleting MongoDB LDAPConfiguration (%s): %s"
+	errorSettings = "error setting `%s` for LDAPConfiguration(%s): %s"
 )
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasLDAPConfigurationCreate,
-		ReadContext:   resourceMongoDBAtlasLDAPConfigurationRead,
-		UpdateContext: resourceMongoDBAtlasLDAPConfigurationUpdate,
-		DeleteContext: resourceMongoDBAtlasLDAPConfigurationDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -99,7 +99,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasLDAPConfigurationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
@@ -147,15 +147,15 @@ func resourceMongoDBAtlasLDAPConfigurationCreate(ctx context.Context, d *schema.
 
 	_, _, err := conn.LDAPConfigurations.Save(ctx, projectID, ladpReq)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationCreate, projectID, err))
+		return diag.FromErr(fmt.Errorf(errorCreate, projectID, err))
 	}
 
 	d.SetId(projectID)
 
-	return resourceMongoDBAtlasLDAPConfigurationRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasLDAPConfigurationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	ldapResp, resp, err := conn.LDAPConfigurations.Get(context.Background(), d.Id())
@@ -165,38 +165,38 @@ func resourceMongoDBAtlasLDAPConfigurationRead(ctx context.Context, d *schema.Re
 			return nil
 		}
 
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationRead, d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorRead, d.Id(), err))
 	}
 
 	if err = d.Set("authentication_enabled", ldapResp.LDAP.AuthenticationEnabled); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "authentication_enabled", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "authentication_enabled", d.Id(), err))
 	}
 	if err = d.Set("authorization_enabled", ldapResp.LDAP.AuthorizationEnabled); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "authorization_enabled", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "authorization_enabled", d.Id(), err))
 	}
 	if err = d.Set("hostname", ldapResp.LDAP.Hostname); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "hostname", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "hostname", d.Id(), err))
 	}
 	if err = d.Set("port", ldapResp.LDAP.Port); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "port", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "port", d.Id(), err))
 	}
 	if err = d.Set("bind_username", ldapResp.LDAP.BindUsername); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "bind_username", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "bind_username", d.Id(), err))
 	}
 	if err = d.Set("ca_certificate", ldapResp.LDAP.CaCertificate); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "ca_certificate", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "ca_certificate", d.Id(), err))
 	}
 	if err = d.Set("authz_query_template", ldapResp.LDAP.AuthzQueryTemplate); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "authz_query_template", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "authz_query_template", d.Id(), err))
 	}
 	if err = d.Set("user_to_dn_mapping", flattenDNMapping(ldapResp.LDAP.UserToDNMapping)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "user_to_dn_mapping", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorSettings, "user_to_dn_mapping", d.Id(), err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasLDAPConfigurationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 
@@ -244,18 +244,18 @@ func resourceMongoDBAtlasLDAPConfigurationUpdate(ctx context.Context, d *schema.
 
 	_, _, err := conn.LDAPConfigurations.Save(ctx, d.Id(), ldapReq)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationUpdate, d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorUpdate, d.Id(), err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasLDAPConfigurationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	_, _, err := conn.LDAPConfigurations.Delete(ctx, d.Id())
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationDelete, d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorDelete, d.Id(), err))
 	}
 
 	return nil
