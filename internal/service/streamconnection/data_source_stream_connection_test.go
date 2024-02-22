@@ -11,10 +11,10 @@ import (
 
 func TestAccStreamDSStreamConnection_kafkaPlaintext(t *testing.T) {
 	var (
+		dataSourceName = "data.mongodbatlas_stream_connection.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName    = acc.RandomProjectName()
 		instanceName   = acc.RandomName()
-		dataSourceName = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },

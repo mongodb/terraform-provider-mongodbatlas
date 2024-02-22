@@ -71,6 +71,7 @@ func TestAccBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
 	var (
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName     = acc.RandomProjectName()
+		clusterName     = acc.RandomClusterName()
 		description     = "My description in my cluster"
 		retentionInDays = "4"
 	)
@@ -81,7 +82,7 @@ func TestAccBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configSharded(orgID, projectName, description, retentionInDays),
+				Config: configSharded(orgID, projectName, clusterName, description, retentionInDays),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -176,7 +177,7 @@ func configBasic(info *acc.ClusterInfo, description, retentionInDays string) str
 	`, info.ClusterNameStr, info.ProjectIDStr, description, retentionInDays)
 }
 
-func configSharded(orgID, projectName, description, retentionInDays string) string {
+func configSharded(orgID, projectName, clusterName, description, retentionInDays string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "backup_project" {
 			org_id = %[1]q
@@ -185,7 +186,7 @@ func configSharded(orgID, projectName, description, retentionInDays string) stri
 
 		resource "mongodbatlas_advanced_cluster" "my_cluster" {
 			project_id   = mongodbatlas_project.backup_project.id
-			name           = "ClusterSharded"
+			name           = %[3]q
 			cluster_type   = "SHARDED"
 			backup_enabled = true
 		
@@ -212,8 +213,8 @@ func configSharded(orgID, projectName, description, retentionInDays string) stri
 		resource "mongodbatlas_cloud_backup_snapshot" "test" {
 			project_id        = mongodbatlas_advanced_cluster.my_cluster.project_id
 			cluster_name      = mongodbatlas_advanced_cluster.my_cluster.name
-			description       = %[3]q
-			retention_in_days = %[4]q
+			description       = %[4]q
+			retention_in_days = %[5]q
 		}
 
 		data "mongodbatlas_cloud_backup_snapshot" "test" {
@@ -222,5 +223,5 @@ func configSharded(orgID, projectName, description, retentionInDays string) stri
 			cluster_name      = mongodbatlas_advanced_cluster.my_cluster.name
 		}
 
-	`, orgID, projectName, description, retentionInDays)
+	`, orgID, projectName, clusterName, description, retentionInDays)
 }

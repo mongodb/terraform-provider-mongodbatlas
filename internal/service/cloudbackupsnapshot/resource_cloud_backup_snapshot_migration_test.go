@@ -46,9 +46,10 @@ func TestAccMigrationBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
 	var (
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName     = acc.RandomProjectName()
+		clusterName     = acc.RandomClusterName()
 		description     = "My description in my cluster"
 		retentionInDays = "4"
-		config          = configSharded(orgID, projectName, description, retentionInDays)
+		config          = configSharded(orgID, projectName, clusterName, description, retentionInDays)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
