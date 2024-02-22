@@ -116,7 +116,7 @@ resource "mongodbatlas_event_trigger" "test" {
 * `config_providers` - Required for `AUTHENTICATION` type. A list of one or more [authentication provider](https://docs.mongodb.com/realm/authentication/providers/) id values. The trigger will only listen for authentication events produced by these providers.
 
 * `config_operation_types` - Required for `DATABASE` type. The [database event operation types](https://docs.mongodb.com/realm/triggers/database-triggers/#std-label-database-events) to listen for. This must contain at least one value. Possible Values: `INSERT`, `UPDATE`, `REPLACE`, `DELETE`
-* `config_database` - Required for `DATABASE` type. The name of the watched MongoDB database.
+* `config_database` - Required for `DATABASE` type. The name of the MongoDB database to watch.
 * `config_collection` - Optional for `DATABASE` type. The name of the MongoDB collection that the trigger watches for change events. The collection must be part of the specified database.
 * `config_service_id` - Required for `DATABASE` type. The ID of the MongoDB Service associated with the trigger.
 * `config_match` - Optional for `DATABASE` type. A [$match](https://docs.mongodb.com/manual/reference/operator/aggregation/match/) expression document that MongoDB Realm includes in the underlying change stream pipeline for the trigger. This is useful when you want to filter change events beyond their operation type. The trigger will only fire if the expression evaluates to true for a given change event.
