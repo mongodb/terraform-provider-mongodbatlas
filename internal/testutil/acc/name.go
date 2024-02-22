@@ -10,6 +10,7 @@ const (
 	prefixName    = "test-acc-tf"
 	prefixProject = prefixName + "-p"
 	prefixCluster = prefixName + "-c"
+	prefixIAMRole = "mongodb-atlas-" + prefixName
 )
 
 func RandomName() string {
@@ -22,6 +23,10 @@ func RandomProjectName() string {
 
 func RandomClusterName() string {
 	return acctest.RandomWithPrefix(prefixCluster)
+}
+
+func RandomIAMRole() string {
+	return acctest.RandomWithPrefix(prefixIAMRole)
 }
 
 func RandomIP(a, b, c byte) string {

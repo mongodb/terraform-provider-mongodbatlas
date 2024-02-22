@@ -75,7 +75,7 @@ func TestAccFederatedDatabaseInstance_s3bucket(t *testing.T) {
 		projectName  = acc.RandomProjectName()
 		name         = acc.RandomName()
 		policyName   = acc.RandomName()
-		roleName     = acc.RandomName()
+		roleName     = acc.RandomIAMRole()
 		testS3Bucket = os.Getenv("AWS_S3_BUCKET")
 		region       = "VIRGINIA_USA"
 	)
