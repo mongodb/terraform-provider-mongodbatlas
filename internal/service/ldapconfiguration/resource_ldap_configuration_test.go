@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-var (
+const (
 	resourceName = "mongodbatlas_ldap_configuration.test"
 )
 
@@ -95,14 +95,13 @@ func TestAccLDAPConfiguration_withVerify_CACertificateComplete(t *testing.T) {
 
 func TestAccLDAPConfiguration_importBasic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_ldap_configuration.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		hostname     = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
-		username     = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
-		password     = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
-		port         = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
-		authEnabled  = true
-		projectName  = acc.RandomProjectName()
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		hostname    = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
+		username    = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
+		password    = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
+		port        = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
+		authEnabled = true
+		projectName = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

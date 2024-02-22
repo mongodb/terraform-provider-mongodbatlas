@@ -13,28 +13,30 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
+const (
+	resourceName = "mongodbatlas_ldap_verify.test"
+)
+
 func TestAccLDAPVerify_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_ldap_verify.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		clusterName  = acc.RandomClusterName()
-		hostname     = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
-		username     = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
-		password     = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
-		port         = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+		hostname    = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
+		username    = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
+		password    = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
+		port        = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
 	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckLDAP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasLDAPVerifyDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasLDAPVerifyConfig(projectName, orgID, clusterName, hostname, username, password, cast.ToInt(port)),
+				Config: configBasic(projectName, orgID, clusterName, hostname, username, password, cast.ToInt(port)),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "bind_username"),
@@ -48,7 +50,6 @@ func TestAccLDAPVerify_basic(t *testing.T) {
 
 func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
 	var (
-		resourceName  = "mongodbatlas_ldap_verify.test"
 		orgID         = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName   = acc.RandomProjectName()
 		clusterName   = acc.RandomClusterName()
@@ -62,10 +63,10 @@ func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckLDAPCert(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasLDAPVerifyDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasLDAPVerifyWithConfigurationConfig(projectName, orgID, clusterName, hostname, username, password, caCertificate, cast.ToInt(port), true),
+				Config: configWithConfiguration(projectName, orgID, clusterName, hostname, username, password, caCertificate, cast.ToInt(port), true),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 
@@ -89,23 +90,22 @@ func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
 
 func TestAccLDAPVerify_importBasic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_ldap_verify.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		clusterName  = acc.RandomClusterName()
-		hostname     = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
-		username     = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
-		password     = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
-		port         = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+		hostname    = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
+		username    = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
+		password    = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
+		port        = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckLDAP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasLDAPVerifyDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasLDAPVerifyConfig(projectName, orgID, clusterName, hostname, username, password, cast.ToInt(port)),
+				Config: configBasic(projectName, orgID, clusterName, hostname, username, password, cast.ToInt(port)),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 
@@ -144,7 +144,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func testAccCheckMongoDBAtlasLDAPVerifyDestroy(s *terraform.State) error {
+func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_ldap_verify" {
 			continue
@@ -168,7 +168,7 @@ func testAccCheckMongoDBAtlasLDAPVerifyImportStateIDFunc(resourceName string) re
 	}
 }
 
-func testAccMongoDBAtlasLDAPVerifyConfig(projectName, orgID, clusterName, hostname, username, password string, port int) string {
+func configBasic(projectName, orgID, clusterName, hostname, username, password string, port int) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = "%[1]s"
@@ -193,10 +193,15 @@ func testAccMongoDBAtlasLDAPVerifyConfig(projectName, orgID, clusterName, hostna
 			bind_username            = "%[5]s"
 			bind_password            = "%[6]s"
 			depends_on = ["mongodbatlas_cluster.test"]
+
+		data "mongodbatlas_ldap_verify" "test" {
+			project_id = mongodbatlas_ldap_verify.test.project_id
+			request_id = mongodbatlas_ldap_verify.test.request_id
+		}	
 		}`, projectName, orgID, clusterName, hostname, username, password, port)
 }
 
-func testAccMongoDBAtlasLDAPVerifyWithConfigurationConfig(projectName, orgID, clusterName, hostname, username, password, caCertificate string, port int, authEnabled bool) string {
+func configWithConfiguration(projectName, orgID, clusterName, hostname, username, password, caCertificate string, port int, authEnabled bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = "%[1]s"
