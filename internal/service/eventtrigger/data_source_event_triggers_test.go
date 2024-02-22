@@ -44,7 +44,7 @@ func TestAccEventTriggerDSPlural_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasEventTriggersDataSourceConfig(projectID, appID, `"INSERT", "UPDATE"`, &event),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					checkExists(resourceName, &eventResp),
 				),
 			},
 		},

@@ -59,7 +59,7 @@ In addition to all arguments above, the following attributes are exported:
 * `config_operation_types` - The [database event operation types](https://docs.mongodb.com/realm/triggers/database-triggers/#std-label-database-events) to listen for.
 * `config_operation_type` - The [authentication operation type](https://docs.mongodb.com/realm/triggers/authentication-triggers/#std-label-authentication-event-operation-types) to listen for.
 * `config_providers` - A list of one or more [authentication provider](https://docs.mongodb.com/realm/authentication/providers/) id values. The trigger will only listen for authentication events produced by these providers.
-* `config_database` - The name of the MongoDB database that contains the watched collection.
+* `config_database` - The name of the MongoDB database to watch.
 * `config_collection` - The name of the MongoDB collection that the trigger watches for change events.
 * `config_service_id` - The ID of the MongoDB Service associated with the trigger.
 * `config_match` - A [$match](https://docs.mongodb.com/manual/reference/operator/aggregation/match/) expression document that MongoDB Realm includes in the underlying change stream pipeline for the trigger. 

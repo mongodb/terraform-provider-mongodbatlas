@@ -38,12 +38,12 @@ func TestAccEventTriggerDS_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataSourceEventTriggerConfig(projectID, appID, `"INSERT", "UPDATE"`, &event),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					checkExists(resourceName, &eventResp),
 				),
 			},
 		},
