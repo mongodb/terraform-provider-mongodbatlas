@@ -11,12 +11,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccLDAPVerify_basic(t *testing.T) {
 	var (
-		ldapVerify   matlas.LDAPConfiguration
 		resourceName = "mongodbatlas_ldap_verify.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acc.RandomProjectName()
@@ -35,7 +33,7 @@ func TestAccLDAPVerify_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasLDAPVerifyConfig(projectName, orgID, clusterName, hostname, username, password, cast.ToInt(port)),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasLDAPVerifyExists(resourceName, &ldapVerify),
+					checkExists(resourceName),
 
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
@@ -50,7 +48,6 @@ func TestAccLDAPVerify_basic(t *testing.T) {
 
 func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
 	var (
-		ldapVerify    matlas.LDAPConfiguration
 		resourceName  = "mongodbatlas_ldap_verify.test"
 		orgID         = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName   = acc.RandomProjectName()
@@ -70,7 +67,7 @@ func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasLDAPVerifyWithConfigurationConfig(projectName, orgID, clusterName, hostname, username, password, caCertificate, cast.ToInt(port), true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasLDAPVerifyExists(resourceName, &ldapVerify),
+					checkExists(resourceName),
 
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
@@ -92,7 +89,6 @@ func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
 
 func TestAccLDAPVerify_importBasic(t *testing.T) {
 	var (
-		ldapConf     = matlas.LDAPConfiguration{}
 		resourceName = "mongodbatlas_ldap_verify.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acc.RandomProjectName()
@@ -111,7 +107,7 @@ func TestAccLDAPVerify_importBasic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasLDAPVerifyConfig(projectName, orgID, clusterName, hostname, username, password, cast.ToInt(port)),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasLDAPVerifyExists(resourceName, &ldapConf),
+					checkExists(resourceName),
 
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
@@ -131,7 +127,7 @@ func TestAccLDAPVerify_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasLDAPVerifyExists(resourceName string, ldapConf *matlas.LDAPConfiguration) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -140,11 +136,10 @@ func testAccCheckMongoDBAtlasLDAPVerifyExists(resourceName string, ldapConf *mat
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		ldapConfRes, _, err := acc.Conn().LDAPConfigurations.GetStatus(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["request_id"])
+		_, _, err := acc.Conn().LDAPConfigurations.GetStatus(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["request_id"])
 		if err != nil {
 			return fmt.Errorf("ldapVerify (%s) does not exist", rs.Primary.ID)
 		}
-		ldapConf = ldapConfRes
 		return nil
 	}
 }

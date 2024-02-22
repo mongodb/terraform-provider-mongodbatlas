@@ -8,12 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccLDAPVerifyDS_basic(t *testing.T) {
 	var (
-		ldapVerify   matlas.LDAPConfiguration
 		resourceName = "mongodbatlas_ldap_verify.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		hostname     = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
@@ -32,7 +30,7 @@ func TestAccLDAPVerifyDS_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasDataSourceLDAPVerifyConfig(projectName, orgID, clusterName, hostname, username, password, cast.ToInt(port)),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasLDAPVerifyExists(resourceName, &ldapVerify),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "bind_username"),

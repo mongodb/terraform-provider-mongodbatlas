@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 var (
@@ -19,14 +18,13 @@ var (
 
 func TestAccLDAPConfiguration_basic(t *testing.T) {
 	var (
-		ldapConfiguration matlas.LDAPConfiguration
-		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		hostname          = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
-		username          = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
-		password          = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
-		port              = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
-		authEnabled       = true
-		projectName       = acc.RandomProjectName()
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		hostname    = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
+		username    = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
+		password    = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
+		port        = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
+		authEnabled = true
+		projectName = acc.RandomProjectName()
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -37,7 +35,7 @@ func TestAccLDAPConfiguration_basic(t *testing.T) {
 			{
 				Config: configBasic(projectName, orgID, hostname, username, password, authEnabled, cast.ToInt(port)),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &ldapConfiguration),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "bind_username"),
@@ -51,7 +49,6 @@ func TestAccLDAPConfiguration_basic(t *testing.T) {
 
 func TestAccLDAPConfiguration_withVerify_CACertificateComplete(t *testing.T) {
 	var (
-		ldapConfiguration  matlas.LDAPConfiguration
 		resourceVerifyName = "mongodbatlas_ldap_verify.test"
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName        = acc.RandomProjectName()
@@ -71,7 +68,7 @@ func TestAccLDAPConfiguration_withVerify_CACertificateComplete(t *testing.T) {
 			{
 				Config: configWithVerify(projectName, orgID, clusterName, hostname, username, password, caCertificate, cast.ToInt(port), true),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &ldapConfiguration),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "bind_username"),
@@ -98,7 +95,6 @@ func TestAccLDAPConfiguration_withVerify_CACertificateComplete(t *testing.T) {
 
 func TestAccLDAPConfiguration_importBasic(t *testing.T) {
 	var (
-		ldapConf     = matlas.LDAPConfiguration{}
 		resourceName = "mongodbatlas_ldap_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		hostname     = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
@@ -117,7 +113,7 @@ func TestAccLDAPConfiguration_importBasic(t *testing.T) {
 			{
 				Config: configBasic(projectName, orgID, hostname, username, password, authEnabled, cast.ToInt(port)),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &ldapConf),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "bind_username"),
@@ -136,7 +132,7 @@ func TestAccLDAPConfiguration_importBasic(t *testing.T) {
 	})
 }
 
-func checkExists(resourceName string, ldapConf *matlas.LDAPConfiguration) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -145,11 +141,10 @@ func checkExists(resourceName string, ldapConf *matlas.LDAPConfiguration) resour
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		ldapConfRes, _, err := acc.Conn().LDAPConfigurations.Get(context.Background(), rs.Primary.ID)
+		_, _, err := acc.Conn().LDAPConfigurations.Get(context.Background(), rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("ldapConfiguration (%s) does not exist", rs.Primary.ID)
 		}
-		ldapConf = ldapConfRes
 		return nil
 	}
 }
