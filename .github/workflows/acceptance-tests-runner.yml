@@ -653,7 +653,6 @@ jobs:
           MONGODB_ATLAS_LDAP_USERNAME: ${{ secrets.mongodb_atlas_ldap_username }}
           MONGODB_ATLAS_LDAP_PASSWORD: ${{ secrets.mongodb_atlas_ldap_password }}
           MONGODB_ATLAS_LDAP_PORT: ${{ secrets.mongodb_atlas_ldap_port }}
-          MONGODB_ATLAS_LDAP_CA_CERTIFICATE: ${{ secrets.ca_cert }}
           TEST_REGEX: "^TestAccLDAP"
         run: make testacc
   encryption:

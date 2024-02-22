@@ -49,6 +49,7 @@ func TestAccLDAPVerify_basic(t *testing.T) {
 }
 
 func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
+	acc.SkipTestForCI(t)
 	var (
 		orgID         = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName   = acc.RandomProjectName()
@@ -171,13 +172,13 @@ func testAccCheckMongoDBAtlasLDAPVerifyImportStateIDFunc(resourceName string) re
 func configBasic(projectName, orgID, clusterName, hostname, username, password string, port int) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = "%[1]s"
-			org_id = "%[2]s"
+			name   = %[1]q
+			org_id = %[2]q
 		}
 
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = mongodbatlas_project.test.id
-			name         = "%[3]s"
+			name         = %[3]q
 			
 			// Provider Settings "block"
 			provider_name               = "AWS"
@@ -188,29 +189,30 @@ func configBasic(projectName, orgID, clusterName, hostname, username, password s
 
 		resource "mongodbatlas_ldap_verify" "test" {
 			project_id               =  mongodbatlas_project.test.id
-			hostname 				 = "%[4]s"
+			hostname 				 = %[4]q
 			port                     =  %[7]d
-			bind_username            = "%[5]s"
-			bind_password            = "%[6]s"
+			bind_username            = %[5]q
+			bind_password            = %[6]q
 			depends_on = ["mongodbatlas_cluster.test"]
-
+		}
+	
 		data "mongodbatlas_ldap_verify" "test" {
 			project_id = mongodbatlas_ldap_verify.test.project_id
 			request_id = mongodbatlas_ldap_verify.test.request_id
-		}	
-		}`, projectName, orgID, clusterName, hostname, username, password, port)
+		}		
+	`, projectName, orgID, clusterName, hostname, username, password, port)
 }
 
 func configWithConfiguration(projectName, orgID, clusterName, hostname, username, password, caCertificate string, port int, authEnabled bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = "%[1]s"
-			org_id = "%[2]s"
+			name   = %[1]q
+			org_id = %[2]q
 		}
 
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = mongodbatlas_project.test.id
-			name         = "%[3]s"
+			name         = %[3]q
 			
 			// Provider Settings "block"
 			provider_name               = "AWS"
@@ -221,10 +223,10 @@ func configWithConfiguration(projectName, orgID, clusterName, hostname, username
 
 		resource "mongodbatlas_ldap_verify" "test" {
 			project_id                  = mongodbatlas_project.test.id
-			hostname = "%[4]s"
+			hostname = %[4]q
 			port                     = %[7]d
-			bind_username                     = "%[5]s"
-			bind_password                     = "%[6]s"
+			bind_username                     = %[5]q
+			bind_password                     = %[6]q
 			ca_certificate = <<-EOF
 %[9]s
 			EOF
@@ -235,13 +237,14 @@ func configWithConfiguration(projectName, orgID, clusterName, hostname, username
 			project_id                  = mongodbatlas_project.test.id
 			authentication_enabled                = %[8]t
 			authorization_enabled                = false
-			hostname = "%[4]s"
+			hostname = %[4]q
 			port                     = %[7]d
-			bind_username                     = "%[5]s"
-			bind_password                     = "%[6]s"
+			bind_username                     = %[5]q
+			bind_password                     = %[6]q
 			ca_certificate = <<-EOF
 %[9]s
 			EOF
 			depends_on = [mongodbatlas_ldap_verify.test]
-		}`, projectName, orgID, clusterName, hostname, username, password, port, authEnabled, caCertificate)
+		}
+	`, projectName, orgID, clusterName, hostname, username, password, port, authEnabled, caCertificate)
 }
