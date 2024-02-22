@@ -24,14 +24,14 @@ import (
 )
 
 const (
-	errorAccessListCreate          = "error creating Project IP Access List information: %s"
-	errorAccessListRead            = "error getting Project IP Access List information: %s"
-	errorAccessListDelete          = "error deleting Project IP Access List information: %s"
-	projectIPAccessListTimeout     = 45 * time.Minute
-	projectIPAccessListTimeoutRead = 2 * time.Minute
-	projectIPAccessListMinTimeout  = 2 * time.Second
-	projectIPAccessListDelay       = 4 * time.Second
-	projectIPAccessListRetry       = 2 * time.Minute
+	errorAccessListCreate = "error creating Project IP Access List information: %s"
+	errorAccessListRead   = "error getting Project IP Access List information: %s"
+	errorAccessListDelete = "error deleting Project IP Access List information: %s"
+	timeoutCreateDelete   = 45 * time.Minute
+	timeoutRead           = 2 * time.Minute
+	timeoutRetryItem      = 2 * time.Minute
+	minTimeoutCreate      = 10 * time.Second
+	delayCreate           = 10 * time.Second
 )
 
 type TfProjectIPAccessListModel struct {
@@ -182,9 +182,9 @@ func (r *projectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 
 			return entry, "created", nil
 		},
-		Timeout:    projectIPAccessListTimeout,
-		Delay:      projectIPAccessListDelay,
-		MinTimeout: projectIPAccessListMinTimeout,
+		Timeout:    timeoutCreateDelete,
+		Delay:      delayCreate,
+		MinTimeout: minTimeoutCreate,
 	}
 
 	// Wait, catching any errors
@@ -220,7 +220,7 @@ func (r *projectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	timeout, diags := projectIPAccessListModelState.Timeouts.Read(ctx, projectIPAccessListTimeoutRead)
+	timeout, diags := projectIPAccessListModelState.Timeouts.Read(ctx, timeoutRead)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -274,7 +274,7 @@ func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 	connV2 := r.Client.AtlasV2
 	projectID := projectIPAccessListModelState.ProjectID.ValueString()
 
-	timeout, diags := projectIPAccessListModelState.Timeouts.Delete(ctx, projectIPAccessListTimeout)
+	timeout, diags := projectIPAccessListModelState.Timeouts.Delete(ctx, timeoutCreateDelete)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -335,7 +335,7 @@ func (r *projectIPAccessListRS) ImportState(ctx context.Context, req resource.Im
 
 func isEntryInProjectAccessList(ctx context.Context, connV2 *admin.APIClient, projectID, entry string) (*admin.NetworkPermissionEntry, bool, error) {
 	var out admin.NetworkPermissionEntry
-	err := retry.RetryContext(ctx, projectIPAccessListRetry, func() *retry.RetryError {
+	err := retry.RetryContext(ctx, timeoutRetryItem, func() *retry.RetryError {
 		accessList, httpResponse, err := connV2.ProjectIPAccessListApi.GetProjectIpList(ctx, projectID, entry).Execute()
 		if err != nil {
 			switch {
