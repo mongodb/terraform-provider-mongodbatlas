@@ -82,10 +82,9 @@ func resourceSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"links": {
-			Type:       schema.TypeSet,
-			Optional:   true,
-			Computed:   true,
-			ConfigMode: schema.SchemaConfigModeAttr,
+			Type:     schema.TypeSet,
+			Optional: true,
+			Computed: true,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"href": {

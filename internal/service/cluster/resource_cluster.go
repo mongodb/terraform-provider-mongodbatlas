@@ -89,11 +89,10 @@ func Resource() *schema.Resource {
 				Description: "Flag that indicates whether to retain backup snapshots for the deleted dedicated cluster",
 			},
 			"bi_connector_config": {
-				Type:       schema.TypeList,
-				Optional:   true,
-				ConfigMode: schema.SchemaConfigModeAttr,
-				Computed:   true,
-				MaxItems:   1,
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
@@ -1204,9 +1203,8 @@ func updateCluster(ctx context.Context, conn *matlas.Client, request *matlas.Clu
 
 func computedCloudProviderSnapshotBackupPolicySchema() *schema.Schema {
 	return &schema.Schema{
-		Type:       schema.TypeList,
-		Computed:   true,
-		ConfigMode: schema.SchemaConfigModeAttr,
+		Type:     schema.TypeList,
+		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"cluster_id": {
@@ -1238,9 +1236,8 @@ func computedCloudProviderSnapshotBackupPolicySchema() *schema.Schema {
 					Computed: true,
 				},
 				"policies": {
-					Type:       schema.TypeList,
-					Computed:   true,
-					ConfigMode: schema.SchemaConfigModeAttr,
+					Type:     schema.TypeList,
+					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"id": {
@@ -1248,9 +1245,8 @@ func computedCloudProviderSnapshotBackupPolicySchema() *schema.Schema {
 								Computed: true,
 							},
 							"policy_item": {
-								Type:       schema.TypeList,
-								Computed:   true,
-								ConfigMode: schema.SchemaConfigModeAttr,
+								Type:     schema.TypeList,
+								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
 										"id": {

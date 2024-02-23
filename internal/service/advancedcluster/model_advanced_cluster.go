@@ -111,9 +111,8 @@ func SchemaAdvancedConfigDS() *schema.Schema {
 
 func SchemaConnectionStrings() *schema.Schema {
 	return &schema.Schema{
-		Type:       schema.TypeList,
-		Computed:   true,
-		ConfigMode: schema.SchemaConfigModeAttr,
+		Type:     schema.TypeList,
+		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"standard": {
@@ -133,9 +132,8 @@ func SchemaConnectionStrings() *schema.Schema {
 					Computed: true,
 				},
 				"private_endpoint": {
-					Type:       schema.TypeList,
-					Computed:   true,
-					ConfigMode: schema.SchemaConfigModeAttr,
+					Type:     schema.TypeList,
+					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"connection_string": {
@@ -143,9 +141,8 @@ func SchemaConnectionStrings() *schema.Schema {
 								Computed: true,
 							},
 							"endpoints": {
-								Type:       schema.TypeList,
-								Computed:   true,
-								ConfigMode: schema.SchemaConfigModeAttr,
+								Type:     schema.TypeList,
+								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
 										"endpoint_id": {
@@ -185,11 +182,10 @@ func SchemaConnectionStrings() *schema.Schema {
 
 func SchemaAdvancedConfig() *schema.Schema {
 	return &schema.Schema{
-		Type:       schema.TypeList,
-		Optional:   true,
-		Computed:   true,
-		ConfigMode: schema.SchemaConfigModeAttr,
-		MaxItems:   1,
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"default_read_concern": {

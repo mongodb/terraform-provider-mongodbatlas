@@ -113,12 +113,11 @@ func resourceSchema() map[string]*schema.Schema {
 			},
 		},
 		"data_process_region": {
-			Type:       schema.TypeList,
-			MinItems:   1,
-			MaxItems:   1,
-			ConfigMode: schema.SchemaConfigModeAttr,
-			Optional:   true,
-			Computed:   true,
+			Type:     schema.TypeList,
+			MinItems: 1,
+			MaxItems: 1,
+			Optional: true,
+			Computed: true,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"region": {
