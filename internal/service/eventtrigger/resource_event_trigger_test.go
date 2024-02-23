@@ -20,7 +20,6 @@ func TestAccEventTrigger_basic(t *testing.T) {
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		appID        = os.Getenv("MONGODB_REALM_APP_ID")
-		eventResp    = realm.EventTrigger{}
 	)
 	event := realm.EventTriggerRequest{
 		Name:       acc.RandomName(),
@@ -56,14 +55,14 @@ func TestAccEventTrigger_basic(t *testing.T) {
 			{
 				Config: configDatabaseTrigger(projectID, appID, `"INSERT", "UPDATE"`, &event, false, false),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &eventResp),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				Config: configDatabaseTrigger(projectID, appID, `"INSERT", "UPDATE", "DELETE"`, &eventUpdated, true, true),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &eventResp),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
@@ -83,7 +82,6 @@ func TestAccEventTrigger_databaseNoCollection(t *testing.T) {
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		appID        = os.Getenv("MONGODB_REALM_APP_ID")
-		eventResp    = realm.EventTrigger{}
 	)
 	event := realm.EventTriggerRequest{
 		Name:       acc.RandomName(),
@@ -107,7 +105,7 @@ func TestAccEventTrigger_databaseNoCollection(t *testing.T) {
 			{
 				Config: configDatabaseNoCollectionTrigger(projectID, appID, `"INSERT", "UPDATE"`, &event),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &eventResp),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "config_database", event.Config.Database),
 					resource.TestCheckResourceAttr(resourceName, "config_collection", ""),
@@ -131,7 +129,6 @@ func TestAccEventTrigger_databaseEventProccesor(t *testing.T) {
 		eventBridgeAwsAccountID = os.Getenv("AWS_EVENTBRIDGE_ACCOUNT_ID")
 		eventBridgeAwsRegion    = conversion.MongoDBRegionToAWSRegion(os.Getenv("AWS_REGION"))
 		appID                   = os.Getenv("MONGODB_REALM_APP_ID")
-		eventResp               = realm.EventTrigger{}
 	)
 	event := realm.EventTriggerRequest{
 		Name:       acc.RandomName(),
@@ -168,14 +165,14 @@ func TestAccEventTrigger_databaseEventProccesor(t *testing.T) {
 			{
 				Config: configDatabaseEPTrigger(projectID, appID, `"INSERT", "UPDATE"`, eventBridgeAwsAccountID, eventBridgeAwsRegion, &event),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &eventResp),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				Config: configDatabaseEPTrigger(projectID, appID, `"INSERT", "UPDATE", "DELETE"`, eventBridgeAwsAccountID, eventBridgeAwsRegion, &eventUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &eventResp),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
@@ -195,7 +192,6 @@ func TestAccEventTrigger_authBasic(t *testing.T) {
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		appID        = os.Getenv("MONGODB_REALM_APP_ID")
-		eventResp    = realm.EventTrigger{}
 	)
 	event := realm.EventTriggerRequest{
 		Name:       acc.RandomName(),
@@ -227,14 +223,14 @@ func TestAccEventTrigger_authBasic(t *testing.T) {
 			{
 				Config: configAuthenticationTrigger(projectID, appID, `"anon-user", "local-userpass"`, &event),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &eventResp),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				Config: configAuthenticationTrigger(projectID, appID, `"anon-user", "local-userpass", "api-key"`, &eventUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &eventResp),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
@@ -256,7 +252,6 @@ func TestAccEventTrigger_authEventProcessor(t *testing.T) {
 		eventBridgeAwsAccountID = os.Getenv("AWS_EVENTBRIDGE_ACCOUNT_ID")
 		eventBridgeAwsRegion    = conversion.MongoDBRegionToAWSRegion(os.Getenv("AWS_REGION"))
 		appID                   = os.Getenv("MONGODB_REALM_APP_ID")
-		eventResp               = realm.EventTrigger{}
 	)
 	event := realm.EventTriggerRequest{
 		Name:       acc.RandomName(),
@@ -288,14 +283,14 @@ func TestAccEventTrigger_authEventProcessor(t *testing.T) {
 			{
 				Config: configAuthenticationEPTrigger(projectID, appID, `"anon-user", "local-userpass"`, eventBridgeAwsAccountID, eventBridgeAwsRegion, &event),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &eventResp),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				Config: configAuthenticationEPTrigger(projectID, appID, `"anon-user", "local-userpass", "api-key"`, eventBridgeAwsAccountID, eventBridgeAwsRegion, &eventUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &eventResp),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
@@ -315,7 +310,6 @@ func TestAccEventTrigger_scheduleBasic(t *testing.T) {
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		appID        = os.Getenv("MONGODB_REALM_APP_ID")
-		eventResp    = realm.EventTrigger{}
 	)
 	event := realm.EventTriggerRequest{
 		Name:       acc.RandomName(),
@@ -344,14 +338,14 @@ func TestAccEventTrigger_scheduleBasic(t *testing.T) {
 			{
 				Config: configScheduleTrigger(projectID, appID, &event),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &eventResp),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				Config: configScheduleTrigger(projectID, appID, &eventUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &eventResp),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
@@ -373,7 +367,6 @@ func TestAccEventTrigger_scheduleEventProcessor(t *testing.T) {
 		eventBridgeAwsAccountID = os.Getenv("AWS_EVENTBRIDGE_ACCOUNT_ID")
 		eventBridgeAwsRegion    = conversion.MongoDBRegionToAWSRegion(os.Getenv("AWS_REGION"))
 		appID                   = os.Getenv("MONGODB_REALM_APP_ID")
-		eventResp               = realm.EventTrigger{}
 	)
 	event := realm.EventTriggerRequest{
 		Name:       acc.RandomName(),
@@ -402,14 +395,14 @@ func TestAccEventTrigger_scheduleEventProcessor(t *testing.T) {
 			{
 				Config: configScheduleEPTrigger(projectID, appID, eventBridgeAwsAccountID, eventBridgeAwsRegion, &event),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &eventResp),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				Config: configScheduleEPTrigger(projectID, appID, eventBridgeAwsAccountID, eventBridgeAwsRegion, &eventUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &eventResp),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
@@ -429,7 +422,6 @@ func TestAccEventTrigger_functionBasic(t *testing.T) {
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		appID        = os.Getenv("MONGODB_REALM_APP_ID")
-		eventResp    = realm.EventTrigger{}
 	)
 	event := realm.EventTriggerRequest{
 		Name:       acc.RandomName(),
@@ -458,14 +450,14 @@ func TestAccEventTrigger_functionBasic(t *testing.T) {
 			{
 				Config: configScheduleTrigger(projectID, appID, &event),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &eventResp),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				Config: configScheduleTrigger(projectID, appID, &eventUpdated),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &eventResp),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
@@ -479,7 +471,7 @@ func TestAccEventTrigger_functionBasic(t *testing.T) {
 	})
 }
 
-func checkExists(resourceName string, eventTrigger *realm.EventTrigger) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ctx := context.Background()
 		conn, err := acc.MongoDBClient.GetRealmClient(ctx)
@@ -500,9 +492,8 @@ func checkExists(resourceName string, eventTrigger *realm.EventTrigger) resource
 
 		log.Printf("[DEBUG] trigger_id ID: %s", ids["trigger_id"])
 
-		res, _, err := conn.EventTriggers.Get(ctx, ids["project_id"], ids["app_id"], ids["trigger_id"])
+		_, _, err = conn.EventTriggers.Get(ctx, ids["project_id"], ids["app_id"], ids["trigger_id"])
 		if err == nil {
-			*eventTrigger = *res
 			return nil
 		}
 
