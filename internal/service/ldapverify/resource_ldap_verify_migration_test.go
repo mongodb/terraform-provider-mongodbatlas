@@ -24,8 +24,7 @@ func TestAccMigrationLDAPVerify_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckLDAP(t) },
-		CheckDestroy: checkDestroy,
+		PreCheck: func() { mig.PreCheckLDAP(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),

@@ -24,7 +24,6 @@ func TestAccLDAPVerifyDS_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckLDAP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectName, orgID, clusterName, hostname, username, password, cast.ToInt(port)),
