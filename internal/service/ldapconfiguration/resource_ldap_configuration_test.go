@@ -4,38 +4,39 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+)
+
+const (
+	resourceName = "mongodbatlas_ldap_configuration.test"
 )
 
 func TestAccLDAPConfiguration_basic(t *testing.T) {
 	var (
-		ldapConfiguration matlas.LDAPConfiguration
-		resourceName      = "mongodbatlas_ldap_configuration.test"
-		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		hostname          = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
-		username          = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
-		password          = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
-		port              = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
-		authEnabled       = true
-		projectName       = acc.RandomProjectName()
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		hostname    = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
+		username    = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
+		password    = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
+		port        = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
+		authEnabled = true
+		projectName = acc.RandomProjectName()
 	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckLDAP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyLDAPConfiguration,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasLDAPConfigurationConfig(projectName, orgID, hostname, username, password, authEnabled, port),
+				Config: configBasic(projectName, orgID, hostname, username, password, authEnabled, cast.ToInt(port)),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasLDAPConfigurationExists(resourceName, &ldapConfiguration),
-
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "bind_username"),
@@ -48,49 +49,44 @@ func TestAccLDAPConfiguration_basic(t *testing.T) {
 }
 
 func TestAccLDAPConfiguration_withVerify_CACertificateComplete(t *testing.T) {
-	acc.SkipTestForCI(t)
 	var (
-		ldapConfiguration  matlas.LDAPConfiguration
-		resourceName       = "mongodbatlas_ldap_configuration.test"
 		resourceVerifyName = "mongodbatlas_ldap_verify.test"
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName        = acc.RandomProjectName()
-		clusterName        = acc.RandomClusterName()
 		hostname           = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
 		username           = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
 		password           = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
 		port               = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
 		caCertificate      = os.Getenv("MONGODB_ATLAS_LDAP_CA_CERTIFICATE")
+		projectName        = acc.RandomProjectName()
+		clusterName        = acc.RandomClusterName()
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckLDAP(t) },
+		PreCheck:                 func() { acc.PreCheckLDAPCert(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyLDAPConfiguration,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasLDAPConfigurationWithVerifyConfig(projectName, orgID, clusterName, hostname, username, password, caCertificate, cast.ToInt(port), true),
+				Config: configWithVerify(projectName, orgID, clusterName, hostname, username, password, caCertificate, cast.ToInt(port), true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasLDAPConfigurationExists(resourceName, &ldapConfiguration),
-
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(resourceName, "bind_username"),
-					resource.TestCheckResourceAttrSet(resourceName, "authentication_enabled"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttr(resourceName, "hostname", hostname),
+					resource.TestCheckResourceAttr(resourceName, "bind_username", username),
+					resource.TestCheckResourceAttr(resourceName, "authentication_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "port", port),
 					resource.TestCheckResourceAttr(resourceVerifyName, "status", "SUCCESS"),
-					resource.TestCheckResourceAttr(resourceVerifyName, "validations.0.validation_type", "SERVER_SPECIFIED"),
+					resource.TestCheckResourceAttr(resourceVerifyName, "validations.#", "5"),
+					resource.TestCheckResourceAttr(resourceVerifyName, "validations.0.validation_type", "CONNECT"),
 					resource.TestCheckResourceAttr(resourceVerifyName, "validations.0.status", "OK"),
-					resource.TestCheckResourceAttr(resourceVerifyName, "validations.1.validation_type", "CONNECT"),
+					resource.TestCheckResourceAttr(resourceVerifyName, "validations.1.validation_type", "AUTHENTICATE"),
 					resource.TestCheckResourceAttr(resourceVerifyName, "validations.1.status", "OK"),
-					resource.TestCheckResourceAttr(resourceVerifyName, "validations.2.validation_type", "AUTHENTICATE"),
+					resource.TestCheckResourceAttr(resourceVerifyName, "validations.2.validation_type", "AUTHORIZATION_ENABLED"),
 					resource.TestCheckResourceAttr(resourceVerifyName, "validations.2.status", "OK"),
-					resource.TestCheckResourceAttr(resourceVerifyName, "validations.3.validation_type", "AUTHORIZATION_ENABLED"),
+					resource.TestCheckResourceAttr(resourceVerifyName, "validations.3.validation_type", "PARSE_AUTHZ_QUERY_TEMPLATE"),
 					resource.TestCheckResourceAttr(resourceVerifyName, "validations.3.status", "OK"),
-					resource.TestCheckResourceAttr(resourceVerifyName, "validations.4.validation_type", "PARSE_AUTHZ_QUERY_TEMPLATE"),
+					resource.TestCheckResourceAttr(resourceVerifyName, "validations.4.validation_type", "QUERY_SERVER"),
 					resource.TestCheckResourceAttr(resourceVerifyName, "validations.4.status", "OK"),
-					resource.TestCheckResourceAttr(resourceVerifyName, "validations.5.validation_type", "QUERY_SERVER"),
-					resource.TestCheckResourceAttr(resourceVerifyName, "validations.5.status", "OK"),
 				),
 			},
 		},
@@ -99,37 +95,34 @@ func TestAccLDAPConfiguration_withVerify_CACertificateComplete(t *testing.T) {
 
 func TestAccLDAPConfiguration_importBasic(t *testing.T) {
 	var (
-		ldapConf     = matlas.LDAPConfiguration{}
-		resourceName = "mongodbatlas_ldap_configuration.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		hostname     = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
-		username     = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
-		password     = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
-		port         = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
-		authEnabled  = true
-		projectName  = acc.RandomProjectName()
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		hostname    = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
+		username    = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
+		password    = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
+		port        = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
+		authEnabled = true
+		projectName = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckLDAP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyLDAPConfiguration,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasLDAPConfigurationConfig(projectName, orgID, hostname, username, password, authEnabled, port),
+				Config: configBasic(projectName, orgID, hostname, username, password, authEnabled, cast.ToInt(port)),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasLDAPConfigurationExists(resourceName, &ldapConf),
-
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(resourceName, "bind_username"),
-					resource.TestCheckResourceAttrSet(resourceName, "authentication_enabled"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttr(resourceName, "hostname", hostname),
+					resource.TestCheckResourceAttr(resourceName, "bind_username", username),
+					resource.TestCheckResourceAttr(resourceName, "authentication_enabled", strconv.FormatBool(authEnabled)),
+					resource.TestCheckResourceAttr(resourceName, "port", port),
 				),
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasLDAPConfigurationImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"project_id", "bind_password"},
@@ -138,7 +131,7 @@ func TestAccLDAPConfiguration_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasLDAPConfigurationExists(resourceName string, ldapConf *matlas.LDAPConfiguration) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -147,16 +140,28 @@ func testAccCheckMongoDBAtlasLDAPConfigurationExists(resourceName string, ldapCo
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		ldapConfRes, _, err := acc.Conn().LDAPConfigurations.Get(context.Background(), rs.Primary.ID)
+		_, _, err := acc.ConnV2().LDAPConfigurationApi.GetLDAPConfiguration(context.Background(), rs.Primary.ID).Execute()
 		if err != nil {
 			return fmt.Errorf("ldapConfiguration (%s) does not exist", rs.Primary.ID)
 		}
-		ldapConf = ldapConfRes
 		return nil
 	}
 }
 
-func testAccCheckMongoDBAtlasLDAPConfigurationImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func checkDestroy(s *terraform.State) error {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "mongodbatlas_ldap_configuration" {
+			continue
+		}
+		_, _, err := acc.ConnV2().LDAPConfigurationApi.GetLDAPConfiguration(context.Background(), rs.Primary.ID).Execute()
+		if err == nil {
+			return fmt.Errorf("ldapConfiguration (%s) still exists", rs.Primary.ID)
+		}
+	}
+	return nil
+}
+
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -167,35 +172,38 @@ func testAccCheckMongoDBAtlasLDAPConfigurationImportStateIDFunc(resourceName str
 	}
 }
 
-func testAccMongoDBAtlasLDAPConfigurationConfig(projectName, orgID, hostname, username, password string, authEnabled bool, port string) string {
+func configBasic(projectName, orgID, hostname, username, password string, authEnabled bool, port int) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = "%[1]s"
-			org_id = "%[2]s"
+			name   = %[1]q
+			org_id = %[2]q
 		}
 
 		resource "mongodbatlas_ldap_configuration" "test" {
 			project_id                  =  mongodbatlas_project.test.id
-			authentication_enabled      =  %[6]t
-			hostname					= "%[3]s"
-			port                     	=  %[7]s
-			bind_username               = "%[4]s"
-			bind_password               = "%[5]s"
-		}`, projectName, orgID, hostname, username, password, authEnabled, port)
+			hostname								= %[3]q
+			bind_username           = %[4]q
+			bind_password           = %[5]q
+			authentication_enabled  =  %[6]t
+			port                   	=  %[7]d
+		}
+		
+		data "mongodbatlas_ldap_configuration" "test" {
+			project_id = mongodbatlas_ldap_configuration.test.id
+		}
+	`, projectName, orgID, hostname, username, password, authEnabled, port)
 }
 
-func testAccMongoDBAtlasLDAPConfigurationWithVerifyConfig(projectName, orgID, clusterName, hostname, username, password, caCertificate string, port int, authEnabled bool) string {
+func configWithVerify(projectName, orgID, clusterName, hostname, username, password, caCertificate string, port int, authEnabled bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = "%[1]s"
-			org_id = "%[2]s"
+			name   = %[1]q
+			org_id = %[2]q
 		}
 
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = mongodbatlas_project.test.id
-			name         = "%[3]s"
-			
-			// Provider Settings "block"
+			name         = %[3]q
 			provider_name               = "AWS"
 			provider_region_name        = "US_EAST_2"
 			provider_instance_size_name = "M10"
@@ -204,10 +212,10 @@ func testAccMongoDBAtlasLDAPConfigurationWithVerifyConfig(projectName, orgID, cl
 
 		resource "mongodbatlas_ldap_verify" "test" {
 			project_id                  = mongodbatlas_project.test.id
-			hostname = "%[4]s"
+			hostname = %[4]q
+			bind_username                     = %[5]q
+			bind_password                     = %[6]q
 			port                     = %[7]d
-			bind_username                     = "%[5]s"
-			bind_password                     = "%[6]s"
 			ca_certificate = <<-EOF
 %[9]s
 			EOF
@@ -217,12 +225,12 @@ func testAccMongoDBAtlasLDAPConfigurationWithVerifyConfig(projectName, orgID, cl
 
 		resource "mongodbatlas_ldap_configuration" "test" {
 			project_id                  = mongodbatlas_project.test.id
-			authentication_enabled                = %[8]t
 			authorization_enabled                = false
-			hostname = "%[4]s"
+			hostname = %[4]q
+			bind_username                     = %[5]q
+			bind_password                     = %[6]q
 			port                     = %[7]d
-			bind_username                     = "%[5]s"
-			bind_password                     = "%[6]s"
+			authentication_enabled                = %[8]t
 			ca_certificate = <<-EOF
 %[9]s
 			EOF

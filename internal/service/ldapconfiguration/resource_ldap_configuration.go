@@ -9,23 +9,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
 const (
-	errorLDAPConfigurationCreate  = "error creating MongoDB LDAPConfiguration (%s): %s"
-	errorLDAPConfigurationUpdate  = "error updating MongoDB LDAPConfiguration (%s): %s"
-	errorLDAPConfigurationRead    = "error reading MongoDB LDAPConfiguration (%s): %s"
-	errorLDAPConfigurationDelete  = "error deleting MongoDB LDAPConfiguration (%s): %s"
-	errorLDAPConfigurationSetting = "error setting `%s` for LDAPConfiguration(%s): %s"
+	errorCreate   = "error creating MongoDB LDAPConfiguration (%s): %s"
+	errorUpdate   = "error updating MongoDB LDAPConfiguration (%s): %s"
+	errorRead     = "error reading MongoDB LDAPConfiguration (%s): %s"
+	errorDelete   = "error deleting MongoDB LDAPConfiguration (%s): %s"
+	errorSettings = "error setting `%s` for LDAPConfiguration(%s): %s"
 )
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasLDAPConfigurationCreate,
-		ReadContext:   resourceMongoDBAtlasLDAPConfigurationRead,
-		UpdateContext: resourceMongoDBAtlasLDAPConfigurationUpdate,
-		DeleteContext: resourceMongoDBAtlasLDAPConfigurationDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -99,11 +99,11 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasLDAPConfigurationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
-	ldap := &matlas.LDAP{}
+	ldap := new(admin.LDAPSecuritySettings)
 
 	if v, ok := d.GetOk("authentication_enabled"); ok {
 		ldap.AuthenticationEnabled = conversion.Pointer(v.(bool))
@@ -141,66 +141,58 @@ func resourceMongoDBAtlasLDAPConfigurationCreate(ctx context.Context, d *schema.
 		ldap.UserToDNMapping = expandDNMapping(v.([]any))
 	}
 
-	ladpReq := &matlas.LDAPConfiguration{
-		LDAP: ldap,
+	params := &admin.UserSecurity{
+		Ldap: ldap,
 	}
-
-	_, _, err := conn.LDAPConfigurations.Save(ctx, projectID, ladpReq)
+	_, _, err := connV2.LDAPConfigurationApi.SaveLDAPConfiguration(ctx, projectID, params).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationCreate, projectID, err))
+		return diag.FromErr(fmt.Errorf(errorCreate, projectID, err))
 	}
-
 	d.SetId(projectID)
-
-	return resourceMongoDBAtlasLDAPConfigurationRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasLDAPConfigurationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	ldapResp, resp, err := conn.LDAPConfigurations.Get(context.Background(), d.Id())
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	resp, httpResp, err := connV2.LDAPConfigurationApi.GetLDAPConfiguration(context.Background(), d.Id()).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
-
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationRead, d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorRead, d.Id(), err))
 	}
 
-	if err = d.Set("authentication_enabled", ldapResp.LDAP.AuthenticationEnabled); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "authentication_enabled", d.Id(), err))
+	if err = d.Set("authentication_enabled", resp.Ldap.GetAuthenticationEnabled()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorSettings, "authentication_enabled", d.Id(), err))
 	}
-	if err = d.Set("authorization_enabled", ldapResp.LDAP.AuthorizationEnabled); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "authorization_enabled", d.Id(), err))
+	if err = d.Set("authorization_enabled", resp.Ldap.GetAuthorizationEnabled()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorSettings, "authorization_enabled", d.Id(), err))
 	}
-	if err = d.Set("hostname", ldapResp.LDAP.Hostname); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "hostname", d.Id(), err))
+	if err = d.Set("hostname", resp.Ldap.GetHostname()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorSettings, "hostname", d.Id(), err))
 	}
-	if err = d.Set("port", ldapResp.LDAP.Port); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "port", d.Id(), err))
+	if err = d.Set("port", resp.Ldap.GetPort()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorSettings, "port", d.Id(), err))
 	}
-	if err = d.Set("bind_username", ldapResp.LDAP.BindUsername); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "bind_username", d.Id(), err))
+	if err = d.Set("bind_username", resp.Ldap.GetBindUsername()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorSettings, "bind_username", d.Id(), err))
 	}
-	if err = d.Set("ca_certificate", ldapResp.LDAP.CaCertificate); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "ca_certificate", d.Id(), err))
+	if err = d.Set("ca_certificate", resp.Ldap.GetCaCertificate()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorSettings, "ca_certificate", d.Id(), err))
 	}
-	if err = d.Set("authz_query_template", ldapResp.LDAP.AuthzQueryTemplate); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "authz_query_template", d.Id(), err))
+	if err = d.Set("authz_query_template", resp.Ldap.GetAuthzQueryTemplate()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorSettings, "authz_query_template", d.Id(), err))
 	}
-	if err = d.Set("user_to_dn_mapping", flattenDNMapping(ldapResp.LDAP.UserToDNMapping)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "user_to_dn_mapping", d.Id(), err))
+	if err = d.Set("user_to_dn_mapping", flattenDNMapping(resp.Ldap.GetUserToDNMapping())); err != nil {
+		return diag.FromErr(fmt.Errorf(errorSettings, "user_to_dn_mapping", d.Id(), err))
 	}
-
 	return nil
 }
 
-func resourceMongoDBAtlasLDAPConfigurationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get the client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	ldap := &matlas.LDAP{}
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	ldap := new(admin.LDAPSecuritySettings)
 
 	if d.HasChange("authentication_enabled") {
 		ldap.AuthenticationEnabled = conversion.Pointer(d.Get("authentication_enabled").(bool))
@@ -238,53 +230,47 @@ func resourceMongoDBAtlasLDAPConfigurationUpdate(ctx context.Context, d *schema.
 		ldap.UserToDNMapping = expandDNMapping(d.Get("user_to_dn_mapping").([]any))
 	}
 
-	ldapReq := &matlas.LDAPConfiguration{
-		LDAP: ldap,
+	params := &admin.UserSecurity{
+		Ldap: ldap,
 	}
-
-	_, _, err := conn.LDAPConfigurations.Save(ctx, d.Id(), ldapReq)
+	_, _, err := connV2.LDAPConfigurationApi.SaveLDAPConfiguration(ctx, d.Id(), params).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationUpdate, d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorUpdate, d.Id(), err))
 	}
-
 	return nil
 }
 
-func resourceMongoDBAtlasLDAPConfigurationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get the client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-	_, _, err := conn.LDAPConfigurations.Delete(ctx, d.Id())
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	_, _, err := connV2.LDAPConfigurationApi.DeleteLDAPConfiguration(ctx, d.Id()).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationDelete, d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorDelete, d.Id(), err))
 	}
-
 	return nil
 }
 
-func expandDNMapping(p []any) []*matlas.UserToDNMapping {
-	mappings := make([]*matlas.UserToDNMapping, len(p))
-
+func expandDNMapping(p []any) *[]admin.UserToDNMapping {
+	mappings := make([]admin.UserToDNMapping, len(p))
 	for k, v := range p {
 		mapping := v.(map[string]any)
-		mappings[k] = &matlas.UserToDNMapping{
+		mappings[k] = admin.UserToDNMapping{
 			Match:        mapping["match"].(string),
-			Substitution: mapping["substitution"].(string),
-			LDAPQuery:    mapping["ldap_query"].(string),
+			Substitution: conversion.StringPtr(mapping["substitution"].(string)),
+			LdapQuery:    conversion.StringPtr(mapping["ldap_query"].(string)),
 		}
 	}
-
-	return mappings
+	return &mappings
 }
 
-func flattenDNMapping(usersDNMappings []*matlas.UserToDNMapping) []map[string]any {
-	usersDN := make([]map[string]any, 0)
-	for _, v := range usersDNMappings {
-		usersDN = append(usersDN, map[string]any{
-			"match":        v.Match,
-			"substitution": v.Substitution,
-			"ldap_query":   v.LDAPQuery,
-		})
+func flattenDNMapping(mappings []admin.UserToDNMapping) []map[string]string {
+	ret := make([]map[string]string, len(mappings))
+	for i := range mappings {
+		mapping := &mappings[i]
+		ret[i] = map[string]string{
+			"match":        mapping.GetMatch(),
+			"substitution": mapping.GetSubstitution(),
+			"ldap_query":   mapping.GetLdapQuery(),
+		}
 	}
-
-	return usersDN
+	return ret
 }
