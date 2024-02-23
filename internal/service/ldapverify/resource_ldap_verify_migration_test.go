@@ -33,10 +33,10 @@ func TestAccMigrationLDAPVerify_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(resourceName, "bind_username"),
 					resource.TestCheckResourceAttrSet(resourceName, "request_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttr(resourceName, "hostname", hostname),
+					resource.TestCheckResourceAttr(resourceName, "bind_username", username),
+					resource.TestCheckResourceAttr(resourceName, "port", port),
 				),
 			},
 			mig.TestStepCheckEmptyPlan(config),

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -30,7 +31,7 @@ func TestAccLDAPConfiguration_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckLDAP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyLDAPConfiguration,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectName, orgID, hostname, username, password, authEnabled, cast.ToInt(port)),
@@ -64,17 +65,17 @@ func TestAccLDAPConfiguration_withVerify_CACertificateComplete(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckLDAPCert(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyLDAPConfiguration,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: configWithVerify(projectName, orgID, clusterName, hostname, username, password, caCertificate, cast.ToInt(port), true),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(resourceName, "bind_username"),
-					resource.TestCheckResourceAttrSet(resourceName, "authentication_enabled"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttr(resourceName, "hostname", hostname),
+					resource.TestCheckResourceAttr(resourceName, "bind_username", username),
+					resource.TestCheckResourceAttr(resourceName, "authentication_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "port", port),
 					resource.TestCheckResourceAttr(resourceVerifyName, "status", "SUCCESS"),
 					resource.TestCheckResourceAttr(resourceVerifyName, "validations.0.validation_type", "SERVER_SPECIFIED"),
 					resource.TestCheckResourceAttr(resourceVerifyName, "validations.0.status", "OK"),
@@ -108,22 +109,22 @@ func TestAccLDAPConfiguration_importBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckLDAP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyLDAPConfiguration,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectName, orgID, hostname, username, password, authEnabled, cast.ToInt(port)),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(resourceName, "bind_username"),
-					resource.TestCheckResourceAttrSet(resourceName, "authentication_enabled"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttr(resourceName, "hostname", hostname),
+					resource.TestCheckResourceAttr(resourceName, "bind_username", username),
+					resource.TestCheckResourceAttr(resourceName, "authentication_enabled", strconv.FormatBool(authEnabled)),
+					resource.TestCheckResourceAttr(resourceName, "port", port),
 				),
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasLDAPConfigurationImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"project_id", "bind_password"},
@@ -141,7 +142,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		_, _, err := acc.Conn().LDAPConfigurations.Get(context.Background(), rs.Primary.ID)
+		_, _, err := acc.ConnV2().LDAPConfigurationApi.GetLDAPConfiguration(context.Background(), rs.Primary.ID).Execute()
 		if err != nil {
 			return fmt.Errorf("ldapConfiguration (%s) does not exist", rs.Primary.ID)
 		}
@@ -149,7 +150,20 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func testAccCheckMongoDBAtlasLDAPConfigurationImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func checkDestroy(s *terraform.State) error {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "mongodbatlas_ldap_configuration" {
+			continue
+		}
+		_, _, err := acc.ConnV2().LDAPConfigurationApi.GetLDAPConfiguration(context.Background(), rs.Primary.ID).Execute()
+		if err == nil {
+			return fmt.Errorf("ldapConfiguration (%s) still exists", rs.Primary.ID)
+		}
+	}
+	return nil
+}
+
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

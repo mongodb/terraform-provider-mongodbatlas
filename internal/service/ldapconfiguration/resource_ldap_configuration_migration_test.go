@@ -2,6 +2,7 @@ package ldapconfiguration_test
 
 import (
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -24,7 +25,7 @@ func TestAccMigrationLDAPConfiguration_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckLDAP(t) },
-		CheckDestroy: acc.CheckDestroyLDAPConfiguration,
+		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
@@ -32,10 +33,10 @@ func TestAccMigrationLDAPConfiguration_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(resourceName, "bind_username"),
-					resource.TestCheckResourceAttrSet(resourceName, "authentication_enabled"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttr(resourceName, "hostname", hostname),
+					resource.TestCheckResourceAttr(resourceName, "bind_username", username),
+					resource.TestCheckResourceAttr(resourceName, "authentication_enabled", strconv.FormatBool(authEnabled)),
+					resource.TestCheckResourceAttr(resourceName, "port", port),
 				),
 			},
 			mig.TestStepCheckEmptyPlan(config),

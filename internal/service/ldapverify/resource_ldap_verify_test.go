@@ -38,10 +38,10 @@ func TestAccLDAPVerify_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(resourceName, "bind_username"),
 					resource.TestCheckResourceAttrSet(resourceName, "request_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttr(resourceName, "hostname", hostname),
+					resource.TestCheckResourceAttr(resourceName, "bind_username", username),
+					resource.TestCheckResourceAttr(resourceName, "port", port),
 				),
 			},
 		},
@@ -70,12 +70,11 @@ func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
 				Config: configWithConfiguration(projectName, orgID, clusterName, hostname, username, password, caCertificate, cast.ToInt(port), true),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(resourceName, "bind_username"),
 					resource.TestCheckResourceAttrSet(resourceName, "request_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttr(resourceName, "hostname", hostname),
+					resource.TestCheckResourceAttr(resourceName, "bind_username", username),
+					resource.TestCheckResourceAttr(resourceName, "port", port),
 					resource.TestCheckResourceAttr(resourceName, "status", "SUCCESS"),
 					resource.TestCheckResourceAttr(resourceName, "validations.0.validation_type", "SERVER_SPECIFIED"),
 					resource.TestCheckResourceAttr(resourceName, "validations.0.status", "OK"),
@@ -109,17 +108,16 @@ func TestAccLDAPVerify_importBasic(t *testing.T) {
 				Config: configBasic(projectName, orgID, clusterName, hostname, username, password, cast.ToInt(port)),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(resourceName, "bind_username"),
 					resource.TestCheckResourceAttrSet(resourceName, "request_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttr(resourceName, "hostname", hostname),
+					resource.TestCheckResourceAttr(resourceName, "bind_username", username),
+					resource.TestCheckResourceAttr(resourceName, "port", port),
 				),
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasLDAPVerifyImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"project_id", "bind_password"},
@@ -137,7 +135,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		_, _, err := acc.Conn().LDAPConfigurations.GetStatus(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["request_id"])
+		_, _, err := acc.ConnV2().LDAPConfigurationApi.GetLDAPConfigurationStatus(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["request_id"]).Execute()
 		if err != nil {
 			return fmt.Errorf("ldapVerify (%s) does not exist", rs.Primary.ID)
 		}
@@ -151,7 +149,7 @@ func checkDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, _, err := acc.Conn().LDAPConfigurations.GetStatus(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["request_id"])
+		_, _, err := acc.ConnV2().LDAPConfigurationApi.GetLDAPConfigurationStatus(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["request_id"]).Execute()
 		if err == nil {
 			return fmt.Errorf("ldapVerify (%s) still exists", rs.Primary.ID)
 		}
@@ -159,7 +157,7 @@ func checkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckMongoDBAtlasLDAPVerifyImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
