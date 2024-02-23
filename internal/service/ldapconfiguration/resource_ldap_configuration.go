@@ -255,8 +255,8 @@ func expandDNMapping(p []any) *[]admin.UserToDNMapping {
 		mapping := v.(map[string]any)
 		mappings[k] = admin.UserToDNMapping{
 			Match:        mapping["match"].(string),
-			Substitution: conversion.Pointer(mapping["substitution"].(string)),
-			LdapQuery:    conversion.Pointer(mapping["ldap_query"].(string)),
+			Substitution: conversion.StringPtr(mapping["substitution"].(string)),
+			LdapQuery:    conversion.StringPtr(mapping["ldap_query"].(string)),
 		}
 	}
 	return &mappings
