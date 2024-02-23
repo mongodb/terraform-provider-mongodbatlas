@@ -14,7 +14,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115007/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -114,31 +113,30 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
-
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
-	ldapReq := &matlas.LDAP{}
+	params := new(admin.LDAPVerifyConnectivityJobRequestParams)
 
 	if v, ok := d.GetOk("hostname"); ok {
-		ldapReq.Hostname = conversion.Pointer(v.(string))
+		params.Hostname = v.(string)
 	}
 	if v, ok := d.GetOk("port"); ok {
-		ldapReq.Port = conversion.Pointer(v.(int))
+		params.Port = v.(int)
 	}
 	if v, ok := d.GetOk("bind_username"); ok {
-		ldapReq.BindUsername = conversion.Pointer(v.(string))
+		params.BindUsername = v.(string)
 	}
 	if v, ok := d.GetOk("bind_password"); ok {
-		ldapReq.BindPassword = conversion.Pointer(v.(string))
+		params.BindPassword = v.(string)
 	}
 	if v, ok := d.GetOk("ca_certificate"); ok {
-		ldapReq.CaCertificate = conversion.Pointer(v.(string))
+		params.CaCertificate = conversion.Pointer(v.(string))
 	}
 	if v, ok := d.GetOk("authz_query_template"); ok {
-		ldapReq.AuthzQueryTemplate = conversion.Pointer(v.(string))
+		params.AuthzQueryTemplate = conversion.Pointer(v.(string))
 	}
 
-	ldap, _, err := conn.LDAPConfigurations.Verify(ctx, projectID, ldapReq)
+	ldap, _, err := connV2.LDAPConfigurationApi.VerifyLDAPConfiguration(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, projectID, err))
 	}
@@ -146,13 +144,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"PENDING"},
 		Target:     []string{"SUCCESS", "FAILED"},
-		Refresh:    resourceRefreshFunc(ctx, projectID, ldap.RequestID, conn),
+		Refresh:    resourceRefreshFunc(ctx, projectID, ldap.GetRequestId(), connV2),
 		Timeout:    3 * time.Hour,
 		MinTimeout: 1 * time.Minute,
 		Delay:      3 * time.Minute,
 	}
 
-	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, projectID, err))
@@ -160,7 +157,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id": projectID,
-		"request_id": ldap.RequestID,
+		"request_id": ldap.GetRequestId(),
 	}))
 
 	return resourceRead(ctx, d, meta)
@@ -251,17 +248,16 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceRefreshFunc(ctx context.Context, projectID, requestID string, client *matlas.Client) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, projectID, requestID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		p, resp, err := client.LDAPConfigurations.GetStatus(ctx, projectID, requestID)
+		ldap, resp, err := connV2.LDAPConfigurationApi.GetLDAPConfigurationStatus(ctx, projectID, requestID).Execute()
 		if err != nil {
-			if resp.Response.StatusCode == 404 {
+			if resp.StatusCode == 404 {
 				return "", "DELETED", nil
 			}
-
 			return nil, "", err
 		}
-
-		return p, p.Status, nil
+		status := ldap.GetStatus()
+		return ldap, status, nil
 	}
 }

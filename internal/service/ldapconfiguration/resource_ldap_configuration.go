@@ -10,7 +10,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115007/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -101,10 +100,10 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
-	ldap := &matlas.LDAP{}
+	ldap := new(admin.LDAPSecuritySettings)
 
 	if v, ok := d.GetOk("authentication_enabled"); ok {
 		ldap.AuthenticationEnabled = conversion.Pointer(v.(bool))
@@ -142,17 +141,14 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		ldap.UserToDNMapping = expandDNMapping(v.([]any))
 	}
 
-	ladpReq := &matlas.LDAPConfiguration{
-		LDAP: ldap,
+	params := &admin.UserSecurity{
+		Ldap: ldap,
 	}
-
-	_, _, err := conn.LDAPConfigurations.Save(ctx, projectID, ladpReq)
+	_, _, err := connV2.LDAPConfigurationApi.SaveLDAPConfiguration(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, projectID, err))
 	}
-
 	d.SetId(projectID)
-
 	return resourceRead(ctx, d, meta)
 }
 
@@ -195,10 +191,8 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get the client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	ldap := &matlas.LDAP{}
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	ldap := new(admin.LDAPSecuritySettings)
 
 	if d.HasChange("authentication_enabled") {
 		ldap.AuthenticationEnabled = conversion.Pointer(d.Get("authentication_enabled").(bool))
@@ -236,11 +230,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		ldap.UserToDNMapping = expandDNMapping(d.Get("user_to_dn_mapping").([]any))
 	}
 
-	ldapReq := &matlas.LDAPConfiguration{
-		LDAP: ldap,
+	params := &admin.UserSecurity{
+		Ldap: ldap,
 	}
-
-	_, _, err := conn.LDAPConfigurations.Save(ctx, d.Id(), ldapReq)
+	_, _, err := connV2.LDAPConfigurationApi.SaveLDAPConfiguration(ctx, d.Id(), params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorUpdate, d.Id(), err))
 	}
@@ -256,19 +249,17 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return nil
 }
 
-func expandDNMapping(p []any) []*matlas.UserToDNMapping {
-	mappings := make([]*matlas.UserToDNMapping, len(p))
-
+func expandDNMapping(p []any) *[]admin.UserToDNMapping {
+	mappings := make([]admin.UserToDNMapping, len(p))
 	for k, v := range p {
 		mapping := v.(map[string]any)
-		mappings[k] = &matlas.UserToDNMapping{
+		mappings[k] = admin.UserToDNMapping{
 			Match:        mapping["match"].(string),
-			Substitution: mapping["substitution"].(string),
-			LDAPQuery:    mapping["ldap_query"].(string),
+			Substitution: conversion.StringPtr(mapping["substitution"].(string)),
+			LdapQuery:    conversion.StringPtr(mapping["ldap_query"].(string)),
 		}
 	}
-
-	return mappings
+	return &mappings
 }
 
 func flattenDNMapping(mappings []admin.UserToDNMapping) []map[string]string {
