@@ -17,7 +17,6 @@ func TestAccEventTriggerDSPlural_basic(t *testing.T) {
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		appID        = os.Getenv("MONGODB_REALM_APP_ID")
-		eventResp    = realm.EventTrigger{}
 	)
 	event := realm.EventTriggerRequest{
 		Name:       acc.RandomName(),
@@ -44,7 +43,7 @@ func TestAccEventTriggerDSPlural_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasEventTriggersDataSourceConfig(projectID, appID, `"INSERT", "UPDATE"`, &event),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &eventResp),
+					checkExists(resourceName),
 				),
 			},
 		},
