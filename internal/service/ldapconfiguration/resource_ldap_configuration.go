@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -156,43 +157,40 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	ldapResp, resp, err := conn.LDAPConfigurations.Get(context.Background(), d.Id())
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	resp, httpResp, err := connV2.LDAPConfigurationApi.GetLDAPConfiguration(context.Background(), d.Id()).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
-
 		return diag.FromErr(fmt.Errorf(errorRead, d.Id(), err))
 	}
 
-	if err = d.Set("authentication_enabled", ldapResp.LDAP.AuthenticationEnabled); err != nil {
+	if err = d.Set("authentication_enabled", resp.Ldap.GetAuthenticationEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "authentication_enabled", d.Id(), err))
 	}
-	if err = d.Set("authorization_enabled", ldapResp.LDAP.AuthorizationEnabled); err != nil {
+	if err = d.Set("authorization_enabled", resp.Ldap.GetAuthorizationEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "authorization_enabled", d.Id(), err))
 	}
-	if err = d.Set("hostname", ldapResp.LDAP.Hostname); err != nil {
+	if err = d.Set("hostname", resp.Ldap.GetHostname()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "hostname", d.Id(), err))
 	}
-	if err = d.Set("port", ldapResp.LDAP.Port); err != nil {
+	if err = d.Set("port", resp.Ldap.GetPort()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "port", d.Id(), err))
 	}
-	if err = d.Set("bind_username", ldapResp.LDAP.BindUsername); err != nil {
+	if err = d.Set("bind_username", resp.Ldap.GetBindUsername()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "bind_username", d.Id(), err))
 	}
-	if err = d.Set("ca_certificate", ldapResp.LDAP.CaCertificate); err != nil {
+	if err = d.Set("ca_certificate", resp.Ldap.GetCaCertificate()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "ca_certificate", d.Id(), err))
 	}
-	if err = d.Set("authz_query_template", ldapResp.LDAP.AuthzQueryTemplate); err != nil {
+	if err = d.Set("authz_query_template", resp.Ldap.GetAuthzQueryTemplate()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "authz_query_template", d.Id(), err))
 	}
-	if err = d.Set("user_to_dn_mapping", flattenDNMapping(ldapResp.LDAP.UserToDNMapping)); err != nil {
+	if err = d.Set("user_to_dn_mapping", flattenDNMapping(resp.Ldap.GetUserToDNMapping())); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "user_to_dn_mapping", d.Id(), err))
 	}
-
 	return nil
 }
 
@@ -246,18 +244,15 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorUpdate, d.Id(), err))
 	}
-
 	return nil
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get the client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-	_, _, err := conn.LDAPConfigurations.Delete(ctx, d.Id())
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	_, _, err := connV2.LDAPConfigurationApi.DeleteLDAPConfiguration(ctx, d.Id()).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorDelete, d.Id(), err))
 	}
-
 	return nil
 }
 
@@ -276,15 +271,15 @@ func expandDNMapping(p []any) []*matlas.UserToDNMapping {
 	return mappings
 }
 
-func flattenDNMapping(usersDNMappings []*matlas.UserToDNMapping) []map[string]any {
-	usersDN := make([]map[string]any, 0)
-	for _, v := range usersDNMappings {
-		usersDN = append(usersDN, map[string]any{
-			"match":        v.Match,
-			"substitution": v.Substitution,
-			"ldap_query":   v.LDAPQuery,
-		})
+func flattenDNMapping(mappings []admin.UserToDNMapping) []map[string]string {
+	ret := make([]map[string]string, len(mappings))
+	for i := range mappings {
+		mapping := &mappings[i]
+		ret[i] = map[string]string{
+			"match":        mapping.GetMatch(),
+			"substitution": mapping.GetSubstitution(),
+			"ldap_query":   mapping.GetLdapQuery(),
+		}
 	}
-
-	return usersDN
+	return ret
 }

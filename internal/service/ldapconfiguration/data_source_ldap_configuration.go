@@ -74,39 +74,39 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	ldap, _, err := conn.LDAPConfigurations.Get(ctx, projectID)
+	resp, _, err := connV2.LDAPConfigurationApi.GetLDAPConfiguration(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorRead, projectID, err))
 	}
 
-	if err = d.Set("authentication_enabled", ldap.LDAP.AuthenticationEnabled); err != nil {
+	if err = d.Set("authentication_enabled", resp.Ldap.GetAuthenticationEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "authentication_enabled", d.Id(), err))
 	}
-	if err = d.Set("authorization_enabled", ldap.LDAP.AuthorizationEnabled); err != nil {
+	if err = d.Set("authorization_enabled", resp.Ldap.GetAuthorizationEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "authorization_enabled", d.Id(), err))
 	}
-	if err = d.Set("hostname", ldap.LDAP.Hostname); err != nil {
+	if err = d.Set("hostname", resp.Ldap.GetHostname()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "hostname", d.Id(), err))
 	}
-	if err = d.Set("port", ldap.LDAP.Port); err != nil {
+	if err = d.Set("port", resp.Ldap.GetPort()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "port", d.Id(), err))
 	}
-	if err = d.Set("bind_username", ldap.LDAP.BindUsername); err != nil {
+	if err = d.Set("bind_username", resp.Ldap.GetBindUsername()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "bind_username", d.Id(), err))
 	}
-	if err = d.Set("bind_password", ldap.LDAP.BindPassword); err != nil {
+	if err = d.Set("bind_password", resp.Ldap.GetBindPassword()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "bind_password", d.Id(), err))
 	}
-	if err = d.Set("ca_certificate", ldap.LDAP.CaCertificate); err != nil {
+	if err = d.Set("ca_certificate", resp.Ldap.GetCaCertificate()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "ca_certificate", d.Id(), err))
 	}
-	if err = d.Set("authz_query_template", ldap.LDAP.AuthzQueryTemplate); err != nil {
+	if err = d.Set("authz_query_template", resp.Ldap.GetAuthzQueryTemplate()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "authz_query_template", d.Id(), err))
 	}
-	if err = d.Set("user_to_dn_mapping", flattenDNMapping(ldap.LDAP.UserToDNMapping)); err != nil {
+	if err = d.Set("user_to_dn_mapping", flattenDNMapping(resp.Ldap.GetUserToDNMapping())); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "user_to_dn_mapping", d.Id(), err))
 	}
 

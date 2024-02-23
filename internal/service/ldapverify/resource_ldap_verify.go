@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -166,41 +167,38 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
-
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	requestID := ids["request_id"]
-
-	ldapResp, resp, err := conn.LDAPConfigurations.GetStatus(context.Background(), projectID, requestID)
+	ldapResp, resp, err := connV2.LDAPConfigurationApi.GetLDAPConfigurationStatus(context.Background(), projectID, requestID).Execute()
 	if err != nil || ldapResp == nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
-
 		return diag.FromErr(fmt.Errorf(errorRead, d.Id(), err))
 	}
 
-	if err := d.Set("hostname", ldapResp.Request.Hostname); err != nil {
+	if err := d.Set("hostname", ldapResp.Request.GetHostname()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "hostname", d.Id(), err))
 	}
 	if err := d.Set("port", ldapResp.Request.Port); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "port", d.Id(), err))
 	}
-	if err := d.Set("bind_username", ldapResp.Request.BindUsername); err != nil {
+	if err := d.Set("bind_username", ldapResp.Request.GetBindUsername()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "bind_username", d.Id(), err))
 	}
-	if err := d.Set("links", FlattenLinks(ldapResp.Links)); err != nil {
+	if err := d.Set("links", conversion.FlattenLinks(ldapResp.GetLinks())); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "links", d.Id(), err))
 	}
-	if err := d.Set("validations", flattenValidations(ldapResp.Validations)); err != nil {
+	if err := d.Set("validations", flattenValidations(ldapResp.GetValidations())); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "validations", d.Id(), err))
 	}
-	if err := d.Set("request_id", ldapResp.RequestID); err != nil {
+	if err := d.Set("request_id", ldapResp.GetRequestId()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "request_id", d.Id(), err))
 	}
-	if err := d.Set("status", ldapResp.Status); err != nil {
+	if err := d.Set("status", ldapResp.GetStatus()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorSettings, "status", d.Id(), err))
 	}
 
@@ -209,46 +207,31 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	d.SetId("")
-
 	return nil
 }
 
-func FlattenLinks(linksArray []*matlas.Link) []map[string]any {
-	links := make([]map[string]any, 0)
-	for _, v := range linksArray {
-		links = append(links, map[string]any{
-			"href": v.Href,
-			"rel":  v.Rel,
-		})
+func flattenValidations(validations []admin.LDAPVerifyConnectivityJobRequestValidation) []map[string]string {
+	ret := make([]map[string]string, len(validations))
+	for i := range validations {
+		validation := &validations[i]
+		ret[i] = map[string]string{
+			"status":          validation.GetStatus(),
+			"validation_type": validation.GetValidationType(),
+		}
 	}
-
-	return links
-}
-
-func flattenValidations(validationsArray []*matlas.LDAPValidation) []map[string]any {
-	validations := make([]map[string]any, 0)
-	for _, v := range validationsArray {
-		validations = append(validations, map[string]any{
-			"status":          v.Status,
-			"validation_type": v.ValidationType,
-		})
-	}
-
-	return validations
+	return ret
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
-
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {
 		return nil, errors.New("import format error: to import a LDAP Verify use the format {project_id}-{request_id}")
 	}
-
 	projectID := parts[0]
 	requestID := parts[1]
 
-	_, _, err := conn.LDAPConfigurations.GetStatus(ctx, projectID, requestID)
+	_, _, err := connV2.LDAPConfigurationApi.GetLDAPConfigurationStatus(ctx, projectID, requestID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorRead, requestID, err)
 	}
@@ -265,7 +248,6 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		"project_id": projectID,
 		"request_id": requestID,
 	}))
-
 	return []*schema.ResourceData{d}, nil
 }
 
