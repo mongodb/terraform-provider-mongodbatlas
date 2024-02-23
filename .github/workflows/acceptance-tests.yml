@@ -55,6 +55,7 @@ jobs:
       mongodb_atlas_ldap_username: ${{ secrets.MONGODB_ATLAS_LDAP_USERNAME }}
       mongodb_atlas_ldap_password: ${{ secrets.MONGODB_ATLAS_LDAP_PASSWORD }}
       mongodb_atlas_ldap_port: ${{ secrets.MONGODB_ATLAS_LDAP_PORT }}
+      mongodb_atlas_ldap_ca_certificate: ${{ secrets.MONGODB_ATLAS_LDAP_CA_CERTIFICATE }}
     with:
       terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
       ref: ${{ inputs.ref }}

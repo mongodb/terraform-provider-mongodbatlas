@@ -20,12 +20,12 @@ const (
 func TestAccLDAPVerify_basic(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		clusterName = acc.RandomClusterName()
 		hostname    = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
 		username    = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
 		password    = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
 		port        = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -48,16 +48,15 @@ func TestAccLDAPVerify_basic(t *testing.T) {
 }
 
 func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
-	acc.SkipTestForCI(t)
 	var (
 		orgID         = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName   = acc.RandomProjectName()
-		clusterName   = acc.RandomClusterName()
 		hostname      = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
 		username      = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
 		password      = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
 		port          = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
 		caCertificate = os.Getenv("MONGODB_ATLAS_LDAP_CA_CERTIFICATE")
+		projectName   = acc.RandomProjectName()
+		clusterName   = acc.RandomClusterName()
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -74,12 +73,11 @@ func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "bind_username", username),
 					resource.TestCheckResourceAttr(resourceName, "port", port),
 					resource.TestCheckResourceAttr(resourceName, "status", "SUCCESS"),
-					resource.TestCheckResourceAttr(resourceName, "validations.0.validation_type", "SERVER_SPECIFIED"),
+					resource.TestCheckResourceAttr(resourceName, "validations.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "validations.0.validation_type", "CONNECT"),
 					resource.TestCheckResourceAttr(resourceName, "validations.0.status", "OK"),
-					resource.TestCheckResourceAttr(resourceName, "validations.1.validation_type", "CONNECT"),
+					resource.TestCheckResourceAttr(resourceName, "validations.1.validation_type", "AUTHENTICATE"),
 					resource.TestCheckResourceAttr(resourceName, "validations.1.status", "OK"),
-					resource.TestCheckResourceAttr(resourceName, "validations.2.validation_type", "AUTHENTICATE"),
-					resource.TestCheckResourceAttr(resourceName, "validations.2.status", "OK"),
 				),
 			},
 		},
@@ -89,12 +87,12 @@ func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
 func TestAccLDAPVerify_importBasic(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		clusterName = acc.RandomClusterName()
 		hostname    = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
 		username    = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
 		password    = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
 		port        = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

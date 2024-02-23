@@ -49,17 +49,16 @@ func TestAccLDAPConfiguration_basic(t *testing.T) {
 }
 
 func TestAccLDAPConfiguration_withVerify_CACertificateComplete(t *testing.T) {
-	acc.SkipTestForCI(t)
 	var (
 		resourceVerifyName = "mongodbatlas_ldap_verify.test"
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName        = acc.RandomProjectName()
-		clusterName        = acc.RandomClusterName()
 		hostname           = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
 		username           = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
 		password           = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
 		port               = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
 		caCertificate      = os.Getenv("MONGODB_ATLAS_LDAP_CA_CERTIFICATE")
+		projectName        = acc.RandomProjectName()
+		clusterName        = acc.RandomClusterName()
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -74,21 +73,20 @@ func TestAccLDAPConfiguration_withVerify_CACertificateComplete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "hostname", hostname),
 					resource.TestCheckResourceAttr(resourceName, "bind_username", username),
-					resource.TestCheckResourceAttr(resourceName, "authentication_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "authentication_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "port", port),
 					resource.TestCheckResourceAttr(resourceVerifyName, "status", "SUCCESS"),
-					resource.TestCheckResourceAttr(resourceVerifyName, "validations.0.validation_type", "SERVER_SPECIFIED"),
+					resource.TestCheckResourceAttr(resourceVerifyName, "validations.#", "5"),
+					resource.TestCheckResourceAttr(resourceVerifyName, "validations.0.validation_type", "CONNECT"),
 					resource.TestCheckResourceAttr(resourceVerifyName, "validations.0.status", "OK"),
-					resource.TestCheckResourceAttr(resourceVerifyName, "validations.1.validation_type", "CONNECT"),
+					resource.TestCheckResourceAttr(resourceVerifyName, "validations.1.validation_type", "AUTHENTICATE"),
 					resource.TestCheckResourceAttr(resourceVerifyName, "validations.1.status", "OK"),
-					resource.TestCheckResourceAttr(resourceVerifyName, "validations.2.validation_type", "AUTHENTICATE"),
+					resource.TestCheckResourceAttr(resourceVerifyName, "validations.2.validation_type", "AUTHORIZATION_ENABLED"),
 					resource.TestCheckResourceAttr(resourceVerifyName, "validations.2.status", "OK"),
-					resource.TestCheckResourceAttr(resourceVerifyName, "validations.3.validation_type", "AUTHORIZATION_ENABLED"),
+					resource.TestCheckResourceAttr(resourceVerifyName, "validations.3.validation_type", "PARSE_AUTHZ_QUERY_TEMPLATE"),
 					resource.TestCheckResourceAttr(resourceVerifyName, "validations.3.status", "OK"),
-					resource.TestCheckResourceAttr(resourceVerifyName, "validations.4.validation_type", "PARSE_AUTHZ_QUERY_TEMPLATE"),
+					resource.TestCheckResourceAttr(resourceVerifyName, "validations.4.validation_type", "QUERY_SERVER"),
 					resource.TestCheckResourceAttr(resourceVerifyName, "validations.4.status", "OK"),
-					resource.TestCheckResourceAttr(resourceVerifyName, "validations.5.validation_type", "QUERY_SERVER"),
-					resource.TestCheckResourceAttr(resourceVerifyName, "validations.5.status", "OK"),
 				),
 			},
 		},
@@ -205,7 +203,7 @@ func configWithVerify(projectName, orgID, clusterName, hostname, username, passw
 
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = mongodbatlas_project.test.id
-			name         = [3]q
+			name         = %[3]q
 			provider_name               = "AWS"
 			provider_region_name        = "US_EAST_2"
 			provider_instance_size_name = "M10"

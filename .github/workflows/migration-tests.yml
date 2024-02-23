@@ -544,6 +544,7 @@ jobs:
           MONGODB_ATLAS_LDAP_HOSTNAME: ${{ secrets.MONGODB_ATLAS_LDAP_HOSTNAME }}
           MONGODB_ATLAS_LDAP_USERNAME: ${{ secrets.MONGODB_ATLAS_LDAP_USERNAME }}
           MONGODB_ATLAS_LDAP_PASSWORD: ${{ secrets.MONGODB_ATLAS_LDAP_PASSWORD }}
+          MONGODB_ATLAS_LDAP_CA_CERTIFICATE: ${{ secrets.MONGODB_ATLAS_LDAP_CA_CERTIFICATE }}
           MONGODB_ATLAS_LDAP_PORT: ${{ secrets.MONGODB_ATLAS_LDAP_PORT }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           TEST_REGEX: "^TestAccMigrationLDAP"
