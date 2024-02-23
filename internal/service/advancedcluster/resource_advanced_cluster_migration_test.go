@@ -69,7 +69,7 @@ func TestAccMigrationAdvancedCluster_multiCloud(t *testing.T) {
 	})
 }
 
-func TestAccMigrationAdvancedClusterAdvancedCluster_partialAdvancedConf(t *testing.T) {
+func TestAccMigrationAdvancedCluster_partialAdvancedConf(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
