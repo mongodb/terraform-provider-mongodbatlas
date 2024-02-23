@@ -5,10 +5,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 func TestAccClusterRSClusterMigrateState_empty_advancedConfig(t *testing.T) {
+	acc.SkipInUnitTest(t)
 	v0State := map[string]any{
 		"project_id":                  "test-id",
 		"name":                        "test-cluster",
@@ -45,6 +48,7 @@ func TestAccClusterRSClusterMigrateState_empty_advancedConfig(t *testing.T) {
 }
 
 func TestAccClusterRSClusterMigrateState_with_advancedConfig(t *testing.T) {
+	acc.SkipInUnitTest(t)
 	v0State := map[string]any{
 		"project_id":                  "test-id",
 		"name":                        "test-cluster",
@@ -88,6 +92,7 @@ func TestAccClusterRSClusterMigrateState_with_advancedConfig(t *testing.T) {
 }
 
 func TestAccClusterRSClusterMigrateState_with_defaultAdvancedConfig_v0_5_1(t *testing.T) {
+	acc.SkipInUnitTest(t)
 	v0State := map[string]any{
 		"project_id":                  "test-id",
 		"name":                        "test-cluster",
