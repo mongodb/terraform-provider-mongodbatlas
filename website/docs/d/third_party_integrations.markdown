@@ -66,10 +66,10 @@ Additional values based on Type
   * `service_key` - Your Service Key.
 * `DATADOG`
   * `api_key` - Your API Key.
-  * `region` - Indicates which API URL to use, either "US", "EU", "US3", or "US5". Datadog will use "US" by default.    
+  * `region` - Two-letter code that indicates which API URL to use. See the `region` response field of [MongoDB API Third-Party Service Integration documentation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Third-Party-Integrations/operation/getThirdPartyIntegration) for more details. Datadog will use "US" by default.
 * `OPS_GENIE`
   * `api_key` - Your API Key.
-  * `region` -  Indicates which API URL to use, either US or EU. Opsgenie will use US by default.
+  * `region` -  Two-letter code that indicates which API URL to use. See the `region` response field of [MongoDB API Third-Party Service Integration documentation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Third-Party-Integrations/operation/getThirdPartyIntegration) for more details. Opsgenie will use US by default.
 * `VICTOR_OPS`
   * `api_key` - 	Your API Key.
   * `routing_key` - An optional field for your Routing Key.

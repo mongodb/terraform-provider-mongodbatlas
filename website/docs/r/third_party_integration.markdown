@@ -50,10 +50,10 @@ resource "mongodbatlas_third_party_integration" "test_datadog" {
   * `region` (Required) - PagerDuty region that indicates the API Uniform Resource Locator (URL) to use, either "US" or "EU". PagerDuty will use "US" by default.    
 * `DATADOG`
   * `api_key` - Your API Key.
-  * `region` (Required) - Indicates which API URL to use, either "US", "EU", "US3", or "US5". Datadog will use "US" by default.    
+  * `region` (Required) - Two-letter code that indicates which API URL to use. See the `region` request parameter of [MongoDB API Third-Party Service Integration documentation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Third-Party-Integrations/operation/createThirdPartyIntegration) for more details. Datadog will use "US" by default.
 * `OPS_GENIE`
   * `api_key` - Your API Key.
-  * `region` (Required) -  Indicates which API URL to use, either "US" or "EU". OpsGenie will use "US" by default.
+  * `region` (Required) - Two-letter code that indicates which API URL to use. See the `region` request parameter of [MongoDB API Third-Party Service Integration documentation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Third-Party-Integrations/operation/createThirdPartyIntegration) for more details. OpsGenie will use "US" by default.
 * `VICTOR_OPS`
   * `api_key` - 	Your API Key.
   * `routing_key` - An optional field for your Routing Key.
