@@ -85,6 +85,7 @@ resource "mongodbatlas_stream_connection" "test" {
 
 If `type` is of value `Cluster` the following additional arguments are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
+* `db_role_to_execute` - The name of a Built in or Custom DB Role to connect to an Atlas Cluster. See [DBRoleToExecute](#DBRoleToExecute).
 
 If `type` is of value `Kafka` the following additional arguments are defined:
 * `authentication` - User credentials required to connect to a Kafka cluster. Includes the authentication type, as well as the parameters for that authentication mode. See [authentication](#authentication).
@@ -102,6 +103,11 @@ If `type` is of value `Kafka` the following additional arguments are defined:
 
 * `broker_public_certificate` - A trusted, public x509 certificate for connecting to Kafka over SSL. String value of the certificate must be defined in the attribute.
 * `protocol` - Describes the transport type. Can be either `PLAINTEXT` or `SSL`.
+
+### DBRoleToExecute
+
+* `role` - The name of the role to use. Can be a built in role or a custom role.
+* `type` - Type of the DB role. Can be either BUILT_IN or CUSTOM.
 
 ## Import
 
