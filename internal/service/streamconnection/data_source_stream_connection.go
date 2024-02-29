@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -56,6 +57,17 @@ func DSAttributes(withArguments bool) map[string]schema.Attribute {
 		// cluster type specific
 		"cluster_name": schema.StringAttribute{
 			Computed: true,
+		},
+		"db_role_to_execute": schema.SingleNestedAttribute{
+			Computed: true,
+			Attributes: map[string]schema.Attribute{
+				"role": schema.StringAttribute{
+					Computed: true,
+				},
+				"type": schema.StringAttribute{
+					Computed: true,
+				},
+			},
 		},
 
 		// kafka type specific

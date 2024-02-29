@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"go.mongodb.org/atlas-sdk/v20231115007/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
 func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) (*admin.StreamsConnection, diag.Diagnostics) {
@@ -47,6 +49,17 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 			return nil, diags
 		}
 		streamConnection.Config = configMap
+	}
+
+	if !plan.DBRoleToExecute.IsNull() {
+		dbRoleToExecuteModel := &TFDbRoleToExecuteModel{}
+		if diags := plan.DBRoleToExecute.As(ctx, dbRoleToExecuteModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		streamConnection.DbRoleToExecute = &admin.DBRoleToExecute{
+			Role: dbRoleToExecuteModel.Role.ValueStringPointer(),
+			Type: dbRoleToExecuteModel.Type.ValueStringPointer(),
+		}
 	}
 
 	return &streamConnection, nil
@@ -89,6 +102,18 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 			return nil, diags
 		}
 		connectionModel.Security = securityModel
+	}
+
+	connectionModel.DBRoleToExecute = types.ObjectNull(DBRoleToExecuteObjectType.AttrTypes)
+	if apiResp.DbRoleToExecute != nil {
+		dbRoleToExecuteModel, diags := types.ObjectValueFrom(ctx, DBRoleToExecuteObjectType.AttrTypes, TFDbRoleToExecuteModel{
+			Role: types.StringPointerValue(apiResp.DbRoleToExecute.Role),
+			Type: types.StringPointerValue(apiResp.DbRoleToExecute.Type),
+		})
+		if diags.HasError() {
+			return nil, diags
+		}
+		connectionModel.DBRoleToExecute = dbRoleToExecuteModel
 	}
 
 	return &connectionModel, nil
