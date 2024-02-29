@@ -23,7 +23,7 @@ Thanks for your interest in contributing to MongoDB Atlas Terraform Provider, th
 ### Prerequisite Tools
 
 - [Git](https://git-scm.com/)
-- [Go (at least Go 1.21)](https://golang.org/dl/)
+- [Go (at least Go 1.22)](https://golang.org/dl/)
 
 ### Environment
 

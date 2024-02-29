@@ -19,7 +19,7 @@ Feature requests can be submitted at https://feedback.mongodb.com/forums/924145-
 ## Requirements  
 - [HashiCorp Terraform Version Compatibility Matrix](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#hashicorp-terraform-version-compatibility-matrix) 
 
-- [Go Version](https://golang.org/doc/install) 1.21 (to build the provider plugin)
+- [Go Version](https://golang.org/doc/install) 1.22 (to build the provider plugin)
 
 ## Using the Provider
 
