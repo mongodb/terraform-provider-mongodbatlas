@@ -197,8 +197,8 @@ func clusterStreamConnectionAttributeChecks(resourceName, clusterName string) re
 		resource.TestCheckResourceAttrSet(resourceName, "connection_name"),
 		resource.TestCheckResourceAttr(resourceName, "type", "Cluster"),
 		resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
-		resource.TestCheckResourceAttr(resourceName, "db_role_to_execute.0.role", "atlasAdmin"),
-		resource.TestCheckResourceAttr(resourceName, "db_role_to_execute.0.type", "BUILT_IN"),
+		resource.TestCheckResourceAttr(resourceName, "db_role_to_execute.role", "atlasAdmin"),
+		resource.TestCheckResourceAttr(resourceName, "db_role_to_execute.type", "BUILT_IN"),
 	}
 	return resource.ComposeTestCheckFunc(resourceChecks...)
 }

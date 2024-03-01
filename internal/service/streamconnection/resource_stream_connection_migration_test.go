@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -81,7 +82,7 @@ func TestAccMigrationStreamRSStreamConnection_cluster(t *testing.T) {
 		clusterInfo  = acc.GetClusterInfo(nil)
 		instanceName = acc.RandomName()
 	)
-	mig.SkipIfVersionBelow(t, "1.14.0")
+	mig.SkipIfVersionBelow(t, "1.15.2")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },
