@@ -291,7 +291,7 @@ Refer to the following for full privatelink endpoint connection string examples:
     - Set to `true` to enable disk auto-scaling.
     - Set to `false` to disable disk auto-scaling.
 
-~> **IMPORTANT:** If `disk_gb_enabled` is true, then Atlas will automatically scale disk size up and down.
+~> **IMPORTANT:** If `auto_scaling_disk_gb_enabled` is true, then Atlas will automatically scale disk size up and down.
 This will cause the value of `disk_size_gb` returned to potentially be different than what is specified in the Terraform config and if one then applies a plan, not noting this, Terraform will scale the cluster disk size back to the original `disk_size_gb` value.
 To prevent this a lifecycle customization should be used, i.e.:  
 `lifecycle {
