@@ -1115,7 +1115,7 @@ func configMultiZoneWithShards(orgID, projectName, name, numShardsFirstZone, num
 		project_id = mongodbatlas_project.cluster_project.id
 		name = %[3]q
 		backup_enabled = false
-		mongo_db_major_version = "6.0"
+		mongo_db_major_version = "7.0"
 		cluster_type   = "GEOSHARDED"
 
 		replication_specs {

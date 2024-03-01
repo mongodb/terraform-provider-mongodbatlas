@@ -29,7 +29,7 @@ resource "mongodbatlas_advanced_cluster" "automated_backup_test" {
     provider_region_name        = "US_EAST_4"
     provider_instance_size_name = "M10"
     cloud_backup                = true   // enable cloud backup snapshots
-    mongo_db_major_version      = "6.0"
+    mongo_db_major_version      = "7.0"
   }
 
 
