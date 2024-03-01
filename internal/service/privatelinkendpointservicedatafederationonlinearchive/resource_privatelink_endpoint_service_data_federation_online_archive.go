@@ -53,6 +53,16 @@ func Resource() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
+			"region": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+			"customer_endpoint_dns_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 			"type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -110,6 +120,14 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
 	}
 
+	if err := d.Set("region", privateEndpoint.GetRegion()); err != nil {
+		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
+	}
+
+	if err := d.Set("customer_endpoint_dns_name", privateEndpoint.GetCustomerEndpointDNSName()); err != nil {
+		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
+	}
+
 	return nil
 }
 
@@ -150,6 +168,14 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}
 
 	if err := d.Set("type", privateEndpoint.GetType()); err != nil {
+		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
+	}
+
+	if err := d.Set("region", privateEndpoint.GetRegion()); err != nil {
+		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
+	}
+
+	if err := d.Set("customer_endpoint_dns_name", privateEndpoint.GetCustomerEndpointDNSName()); err != nil {
 		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
 	}
 
@@ -198,6 +224,16 @@ func newPrivateNetworkEndpointIDEntry(d *schema.ResourceData) *admin.PrivateNetw
 	if v, ok := d.GetOk("provider_name"); ok && v != "" {
 		providerName := strings.ToUpper(v.(string))
 		out.Provider = &providerName
+	}
+
+	if v, ok := d.GetOk("region"); ok && v != "" {
+		region := v.(string)
+		out.Region = &region
+	}
+
+	if v, ok := d.GetOk("customer_endpoint_dns_name"); ok && v != "" {
+		customerEndpointDNSName := v.(string)
+		out.CustomerEndpointDNSName = &customerEndpointDNSName
 	}
 
 	return &out
