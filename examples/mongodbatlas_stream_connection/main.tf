@@ -14,9 +14,9 @@ resource "mongodbatlas_stream_connection" "example-cluster" {
   type            = "Cluster"
   cluster_name    = var.cluster_name
   db_role_to_execute = {
-		role = "atlasAdmin"
-		type = "BUILT_IN"
-	}
+    role = "atlasAdmin"
+    type = "BUILT_IN"
+  }
 }
 
 resource "mongodbatlas_stream_connection" "example-kafka-plaintext" {
