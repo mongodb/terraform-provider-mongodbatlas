@@ -49,6 +49,17 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		streamConnection.Config = configMap
 	}
 
+	if !plan.DBRoleToExecute.IsNull() {
+		dbRoleToExecuteModel := &TFDbRoleToExecuteModel{}
+		if diags := plan.DBRoleToExecute.As(ctx, dbRoleToExecuteModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		streamConnection.DbRoleToExecute = &admin.DBRoleToExecute{
+			Role: dbRoleToExecuteModel.Role.ValueStringPointer(),
+			Type: dbRoleToExecuteModel.Type.ValueStringPointer(),
+		}
+	}
+
 	return &streamConnection, nil
 }
 
@@ -89,6 +100,18 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 			return nil, diags
 		}
 		connectionModel.Security = securityModel
+	}
+
+	connectionModel.DBRoleToExecute = types.ObjectNull(DBRoleToExecuteObjectType.AttrTypes)
+	if apiResp.DbRoleToExecute != nil {
+		dbRoleToExecuteModel, diags := types.ObjectValueFrom(ctx, DBRoleToExecuteObjectType.AttrTypes, TFDbRoleToExecuteModel{
+			Role: types.StringPointerValue(apiResp.DbRoleToExecute.Role),
+			Type: types.StringPointerValue(apiResp.DbRoleToExecute.Type),
+		})
+		if diags.HasError() {
+			return nil, diags
+		}
+		connectionModel.DBRoleToExecute = dbRoleToExecuteModel
 	}
 
 	return &connectionModel, nil

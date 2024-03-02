@@ -81,7 +81,7 @@ func TestAccMigrationStreamRSStreamConnection_cluster(t *testing.T) {
 		clusterInfo  = acc.GetClusterInfo(nil)
 		instanceName = acc.RandomName()
 	)
-	mig.SkipIfVersionBelow(t, "1.14.0")
+	mig.SkipIfVersionBelow(t, "1.15.2")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },

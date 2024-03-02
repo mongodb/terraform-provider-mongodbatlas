@@ -180,6 +180,10 @@ func clusterStreamConnectionConfig(projectIDStr, instanceName, clusterNameStr, c
 		 	connection_name = "ConnectionNameKafka"
 		 	type = "Cluster"
 		 	cluster_name = %[3]s
+			db_role_to_execute = {
+				role = "atlasAdmin"
+				type = "BUILT_IN"
+			}
 		}
 	`, projectIDStr, instanceName, clusterNameStr)
 }
@@ -192,6 +196,8 @@ func clusterStreamConnectionAttributeChecks(resourceName, clusterName string) re
 		resource.TestCheckResourceAttrSet(resourceName, "connection_name"),
 		resource.TestCheckResourceAttr(resourceName, "type", "Cluster"),
 		resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+		resource.TestCheckResourceAttr(resourceName, "db_role_to_execute.role", "atlasAdmin"),
+		resource.TestCheckResourceAttr(resourceName, "db_role_to_execute.type", "BUILT_IN"),
 	}
 	return resource.ComposeTestCheckFunc(resourceChecks...)
 }

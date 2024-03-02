@@ -21,6 +21,8 @@ const (
 	authUsername     = "user1"
 	securityProtocol = "SSL"
 	bootstrapServers = "localhost:9092,another.host:9092"
+	dbRole           = "customRole"
+	dbRoleType       = "CUSTOM"
 )
 
 var configMap = map[string]string{
@@ -46,19 +48,24 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				Name:        admin.PtrString(connectionName),
 				Type:        admin.PtrString("Cluster"),
 				ClusterName: admin.PtrString(clusterName),
+				DbRoleToExecute: &admin.DBRoleToExecute{
+					Role: admin.PtrString(dbRole),
+					Type: admin.PtrString(dbRoleType),
+				},
 			},
 			providedProjID:       dummyProjectID,
 			providedInstanceName: instanceName,
 			providedAuthConfig:   nil,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
-				ProjectID:      types.StringValue(dummyProjectID),
-				InstanceName:   types.StringValue(instanceName),
-				ConnectionName: types.StringValue(connectionName),
-				Type:           types.StringValue("Cluster"),
-				ClusterName:    types.StringValue(clusterName),
-				Authentication: types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
-				Config:         types.MapNull(types.StringType),
-				Security:       types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+				ProjectID:       types.StringValue(dummyProjectID),
+				InstanceName:    types.StringValue(instanceName),
+				ConnectionName:  types.StringValue(connectionName),
+				Type:            types.StringValue("Cluster"),
+				ClusterName:     types.StringValue(clusterName),
+				Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+				Config:          types.MapNull(types.StringType),
+				Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+				DBRoleToExecute: tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
 			},
 		},
 		{
@@ -89,6 +96,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				BootstrapServers: types.StringValue(bootstrapServers),
 				Config:           tfConfigMap(t, configMap),
 				Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
+				DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 			},
 		},
 		{
@@ -101,13 +109,14 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedInstanceName: instanceName,
 			providedAuthConfig:   nil,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
-				ProjectID:      types.StringValue(dummyProjectID),
-				InstanceName:   types.StringValue(instanceName),
-				ConnectionName: types.StringValue(connectionName),
-				Type:           types.StringValue("Kafka"),
-				Authentication: types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
-				Config:         types.MapNull(types.StringType),
-				Security:       types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+				ProjectID:       types.StringValue(dummyProjectID),
+				InstanceName:    types.StringValue(instanceName),
+				ConnectionName:  types.StringValue(connectionName),
+				Type:            types.StringValue("Kafka"),
+				Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+				Config:          types.MapNull(types.StringType),
+				Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+				DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 			},
 		},
 		{
@@ -138,6 +147,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				BootstrapServers: types.StringValue(bootstrapServers),
 				Config:           tfConfigMap(t, configMap),
 				Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
+				DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 			},
 		},
 	}
@@ -187,6 +197,10 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						Name:        admin.PtrString(connectionName),
 						Type:        admin.PtrString("Cluster"),
 						ClusterName: admin.PtrString(clusterName),
+						DbRoleToExecute: &admin.DBRoleToExecute{
+							Role: admin.PtrString(dbRole),
+							Type: admin.PtrString(dbRoleType),
+						},
 					},
 				},
 				TotalCount: admin.PtrInt(2),
@@ -214,17 +228,19 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						BootstrapServers: types.StringValue(bootstrapServers),
 						Config:           tfConfigMap(t, configMap),
 						Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
+						DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 					},
 					{
-						ID:             types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
-						ProjectID:      types.StringValue(dummyProjectID),
-						InstanceName:   types.StringValue(instanceName),
-						ConnectionName: types.StringValue(connectionName),
-						Type:           types.StringValue("Cluster"),
-						ClusterName:    types.StringValue(clusterName),
-						Authentication: types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
-						Config:         types.MapNull(types.StringType),
-						Security:       types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+						ID:              types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
+						ProjectID:       types.StringValue(dummyProjectID),
+						InstanceName:    types.StringValue(instanceName),
+						ConnectionName:  types.StringValue(connectionName),
+						Type:            types.StringValue("Cluster"),
+						ClusterName:     types.StringValue(clusterName),
+						Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+						Config:          types.MapNull(types.StringType),
+						Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+						DBRoleToExecute: tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
 					},
 				},
 			},
@@ -275,16 +291,21 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 		{
 			name: "Cluster type complete TF state",
 			tfModel: &streamconnection.TFStreamConnectionModel{
-				ProjectID:      types.StringValue(dummyProjectID),
-				InstanceName:   types.StringValue(instanceName),
-				ConnectionName: types.StringValue(connectionName),
-				Type:           types.StringValue("Cluster"),
-				ClusterName:    types.StringValue(clusterName),
+				ProjectID:       types.StringValue(dummyProjectID),
+				InstanceName:    types.StringValue(instanceName),
+				ConnectionName:  types.StringValue(connectionName),
+				Type:            types.StringValue("Cluster"),
+				ClusterName:     types.StringValue(clusterName),
+				DBRoleToExecute: tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
 			},
 			expectedSDKReq: &admin.StreamsConnection{
 				Name:        admin.PtrString(connectionName),
 				Type:        admin.PtrString("Cluster"),
 				ClusterName: admin.PtrString(clusterName),
+				DbRoleToExecute: &admin.DBRoleToExecute{
+					Role: admin.PtrString(dbRole),
+					Type: admin.PtrString(dbRoleType),
+				},
 			},
 		},
 		{
@@ -387,4 +408,16 @@ func tfConfigMap(t *testing.T, config map[string]string) types.Map {
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
 	}
 	return mapValue
+}
+
+func tfDBRoleToExecuteObject(t *testing.T, role, roleType string) types.Object {
+	t.Helper()
+	auth, diags := types.ObjectValueFrom(context.Background(), streamconnection.DBRoleToExecuteObjectType.AttrTypes, streamconnection.TFDbRoleToExecuteModel{
+		Role: types.StringValue(role),
+		Type: types.StringValue(roleType),
+	})
+	if diags.HasError() {
+		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
+	}
+	return auth
 }

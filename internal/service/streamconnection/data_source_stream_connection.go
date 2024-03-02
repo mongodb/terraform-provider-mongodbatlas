@@ -57,6 +57,17 @@ func DSAttributes(withArguments bool) map[string]schema.Attribute {
 		"cluster_name": schema.StringAttribute{
 			Computed: true,
 		},
+		"db_role_to_execute": schema.SingleNestedAttribute{
+			Computed: true,
+			Attributes: map[string]schema.Attribute{
+				"role": schema.StringAttribute{
+					Computed: true,
+				},
+				"type": schema.StringAttribute{
+					Computed: true,
+				},
+			},
+		},
 
 		// kafka type specific
 		"authentication": schema.SingleNestedAttribute{

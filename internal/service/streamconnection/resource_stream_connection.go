@@ -5,12 +5,14 @@ import (
 	"errors"
 	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -43,6 +45,7 @@ type TFStreamConnectionModel struct {
 	BootstrapServers types.String `tfsdk:"bootstrap_servers"`
 	Config           types.Map    `tfsdk:"config"`
 	Security         types.Object `tfsdk:"security"`
+	DBRoleToExecute  types.Object `tfsdk:"db_role_to_execute"`
 }
 
 type TFConnectionAuthenticationModel struct {
@@ -65,6 +68,16 @@ type TFConnectionSecurityModel struct {
 var ConnectionSecurityObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"broker_public_certificate": types.StringType,
 	"protocol":                  types.StringType,
+}}
+
+type TFDbRoleToExecuteModel struct {
+	Role types.String `tfsdk:"role"`
+	Type types.String `tfsdk:"type"`
+}
+
+var DBRoleToExecuteObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"role": types.StringType,
+	"type": types.StringType,
 }}
 
 func (r *streamConnectionRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -101,6 +114,20 @@ func (r *streamConnectionRS) Schema(ctx context.Context, req resource.SchemaRequ
 			// cluster type specific
 			"cluster_name": schema.StringAttribute{
 				Optional: true,
+			},
+			"db_role_to_execute": schema.SingleNestedAttribute{
+				Optional: true,
+				Attributes: map[string]schema.Attribute{
+					"role": schema.StringAttribute{
+						Required: true,
+					},
+					"type": schema.StringAttribute{
+						Required: true,
+						Validators: []validator.String{
+							stringvalidator.OneOf("BUILT_IN", "CUSTOM"),
+						},
+					},
+				},
 			},
 
 			// kafka type specific
