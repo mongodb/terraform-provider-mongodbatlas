@@ -18,10 +18,10 @@ import (
 )
 
 const (
-	errorPrivateEndpointServiceDataFederationOnlineArchiveCreate = "error creating a Private Endpoing for projectId %s: %s"
-	errorPrivateEndpointServiceDataFederationOnlineArchiveDelete = "error deleting Private Endpoing %s for projectId %s: %s"
-	errorPrivateEndpointServiceDataFederationOnlineArchiveRead   = "error reading Private Endpoing %s for projectId %s: %s"
-	errorPrivateEndpointServiceDataFederationOnlineArchiveImport = "error importing Private Endpoing %s for projectId %s: %w"
+	errorPrivateEndpointServiceDataFederationOnlineArchiveCreate = "error creating a Private Endpoint for projectId %s: %s"
+	errorPrivateEndpointServiceDataFederationOnlineArchiveDelete = "error deleting Private Endpoint %s for projectId %s: %s"
+	errorPrivateEndpointServiceDataFederationOnlineArchiveRead   = "error reading Private Endpoint %s for projectId %s: %s"
+	errorPrivateEndpointServiceDataFederationOnlineArchiveImport = "error importing Private Endpoint %s for projectId %s: %w"
 	endpointType                                                 = "DATA_LAKE"
 )
 
