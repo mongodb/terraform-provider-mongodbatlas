@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/spf13/cast"
@@ -153,7 +154,7 @@ func Resource() *schema.Resource {
 			"provider_name": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: advancedcluster.StringIsUppercase(),
+				ValidateDiagFunc: validate.StringIsUppercase(),
 			},
 			"pit_enabled": {
 				Type:     schema.TypeBool,
@@ -236,7 +237,7 @@ func Resource() *schema.Resource {
 									"region_name": {
 										Type:             schema.TypeString,
 										Required:         true,
-										ValidateDiagFunc: advancedcluster.StringIsUppercase(),
+										ValidateDiagFunc: validate.StringIsUppercase(),
 									},
 									"electable_nodes": {
 										Type:     schema.TypeInt,
