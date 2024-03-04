@@ -33,6 +33,14 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"region": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"customer_endpoint_dns_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -46,19 +54,10 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err != nil {
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
 	}
-
-	if err := d.Set("comment", privateEndpoint.GetComment()); err != nil {
+	err = populateResourceData(d, privateEndpoint)
+	if err != nil {
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
 	}
-
-	if err := d.Set("provider_name", privateEndpoint.GetProvider()); err != nil {
-		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
-	}
-
-	if err := d.Set("type", privateEndpoint.GetType()); err != nil {
-		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
-	}
-
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":  projectID,
 		"endpoint_id": endopointID,
