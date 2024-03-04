@@ -99,37 +99,21 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
-	endopointID := ids["endpoint_id"]
+	endpointID := ids["endpoint_id"]
 
-	privateEndpoint, resp, err := connV2.DataFederationApi.GetDataFederationPrivateEndpoint(ctx, projectID, endopointID).Execute()
+	privateEndpoint, resp, err := connV2.DataFederationApi.GetDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
-		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
+		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endpointID, projectID, err)
 	}
 
-	if err := d.Set("comment", privateEndpoint.GetComment()); err != nil {
-		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
+	err = populateResourceData(d, privateEndpoint)
+	if err != nil {
+		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endpointID, projectID, err)
 	}
-
-	if err := d.Set("provider_name", privateEndpoint.GetProvider()); err != nil {
-		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
-	}
-
-	if err := d.Set("type", privateEndpoint.GetType()); err != nil {
-		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
-	}
-
-	if err := d.Set("region", privateEndpoint.GetRegion()); err != nil {
-		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
-	}
-
-	if err := d.Set("customer_endpoint_dns_name", privateEndpoint.GetCustomerEndpointDNSName()); err != nil {
-		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
-	}
-
 	return nil
 }
 
@@ -160,24 +144,8 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	if err != nil {
 		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
 	}
-
-	if err := d.Set("comment", privateEndpoint.GetComment()); err != nil {
-		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
-	}
-
-	if err := d.Set("provider_name", privateEndpoint.GetProvider()); err != nil {
-		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
-	}
-
-	if err := d.Set("type", privateEndpoint.GetType()); err != nil {
-		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
-	}
-
-	if err := d.Set("region", privateEndpoint.GetRegion()); err != nil {
-		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
-	}
-
-	if err := d.Set("customer_endpoint_dns_name", privateEndpoint.GetCustomerEndpointDNSName()); err != nil {
+	err = populateResourceData(d, privateEndpoint)
+	if err != nil {
 		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
 	}
 
@@ -239,4 +207,25 @@ func newPrivateNetworkEndpointIDEntry(d *schema.ResourceData) *admin.PrivateNetw
 	}
 
 	return &out
+}
+
+func populateResourceData(d *schema.ResourceData, privateEndpoint *admin.PrivateNetworkEndpointIdEntry) error {
+	if err := d.Set("comment", privateEndpoint.GetComment()); err != nil {
+		return err
+	}
+
+	if err := d.Set("provider_name", privateEndpoint.GetProvider()); err != nil {
+		return err
+	}
+
+	if err := d.Set("type", privateEndpoint.GetType()); err != nil {
+		return err
+	}
+
+	if err := d.Set("region", privateEndpoint.GetRegion()); err != nil {
+		return err
+	}
+
+	// if-return: redundant if ...; err != nil check, just return error instead
+	return d.Set("customer_endpoint_dns_name", privateEndpoint.GetCustomerEndpointDNSName())
 }
