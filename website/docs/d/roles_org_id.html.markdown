@@ -12,7 +12,7 @@ description: |-
 
 ## Example Usage
 
-### Using data scource to query
+### Using data source to query
 ```terraform
 data "mongodbatlas_roles_org_id" "test" {
 }
