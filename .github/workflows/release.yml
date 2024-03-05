@@ -55,7 +55,9 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
       - name: Set the user terminal
-        run: export GPG_TTY=$(tty)
+        run: | 
+          GPG_TTY=$(tty)
+          export GPG_TTY
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@7ec5c2b0c6cdda6e8bbb49444bc797dd33d74dd8
         with:
