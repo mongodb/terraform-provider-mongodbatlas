@@ -48,6 +48,8 @@ In addition to all arguments above, the following attributes are exported:
 * `type` - Human-readable label that identifies the resource type associated with this private endpoint.
 * `comment` - Human-readable string to associate with this private endpoint.
 * `provider_name` - Human-readable label that identifies the cloud service provider. 
+* `region` - Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.  Requires the **Atlas region name**, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
+* `customer_endpoint_dns_name` - Human-readable label to identify customer's VPC endpoint DNS name. Must follow regex: `vpce-[a-z0-9]{17}-[a-z0-9]{8}.vpce-svc-[a-z0-9]{17}.(.*).vpce.amazonaws.com`
 
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createDataFederationPrivateEndpoint) Documentation for more information.
 
