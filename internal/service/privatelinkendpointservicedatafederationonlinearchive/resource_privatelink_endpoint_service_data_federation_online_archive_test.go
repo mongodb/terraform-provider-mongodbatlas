@@ -13,10 +13,11 @@ import (
 )
 
 var (
-	resourceName = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
-	projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	endpointID   = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
-	comment      = "Terraform Acceptance Test"
+	resourceName       = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
+	projectID          = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	endpointID         = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+	defaultComment     = "Terraform Acceptance Test"
+	defaultAtlasRegion = "US_EAST_1"
 )
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
@@ -28,12 +29,12 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceConfigBasic(projectID, endpointID, comment),
+				Config: resourceConfigBasic(projectID, endpointID, defaultComment),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+					resource.TestCheckResourceAttr(resourceName, "comment", defaultComment),
 					resource.TestCheckResourceAttrSet(resourceName, "type"),
 					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
 				),
@@ -56,12 +57,12 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateC
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceConfigBasic(projectID, endpointID, comment),
+				Config: resourceConfigBasic(projectID, endpointID, defaultComment),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+					resource.TestCheckResourceAttr(resourceName, "comment", defaultComment),
 					resource.TestCheckResourceAttrSet(resourceName, "type"),
 					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
 				),
@@ -93,22 +94,20 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateC
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basicWithRegionDnsName(t *testing.T) {
 	// Skip because private endpoints are deleted daily from dev environment
 	acc.SkipTestForCI(t)
-	// Found in `.AWS.dev.us-east-1`:  https://github.com/10gen/mms/blob/85ec3df92711014b17643c05a61f5c580786556c/server/conf/data-lake-endpoint-services.json
-	serviceName := "vpce-svc-0a7247db33497082e"
-	customerEndpointDNSName := fmt.Sprintf("%s-8charsra.%s.us-east-1.vpce.amazonaws.com", endpointID, serviceName)
+	customerEndpointDNSName := asCustomerEndpointDNSName(endpointID)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceConfigBasicWithRegionDNSName(projectID, endpointID, customerEndpointDNSName),
+				Config: resourceConfigBasicWithRegionDNSName(projectID, endpointID, defaultComment),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
 					resource.TestCheckResourceAttr(resourceName, "comment", "Terraform Acceptance Test"),
-					resource.TestCheckResourceAttr(resourceName, "region", "US_EAST_1"),
+					resource.TestCheckResourceAttr(resourceName, "region", defaultAtlasRegion),
 					resource.TestCheckResourceAttr(resourceName, "customer_endpoint_dns_name", customerEndpointDNSName),
 					resource.TestCheckResourceAttrSet(resourceName, "type"),
 					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
@@ -180,15 +179,22 @@ func resourceConfigBasic(projectID, endpointID, comment string) string {
 	`, projectID, endpointID, comment)
 }
 
-func resourceConfigBasicWithRegionDNSName(projectID, endpointID, customerEndpointDNSName string) string {
+func asCustomerEndpointDNSName(endpointID string) string {
+	// Found in `.AWS.dev.us-east-1`:  https://github.com/10gen/mms/blob/85ec3df92711014b17643c05a61f5c580786556c/server/conf/data-lake-endpoint-services.json
+	serviceName := "vpce-svc-0a7247db33497082e"
+	return fmt.Sprintf("%s-8charsra.%s.us-east-1.vpce.amazonaws.com", endpointID, serviceName)
+}
+
+func resourceConfigBasicWithRegionDNSName(projectID, endpointID, comment string) string {
+	customerEndpointDNSName := asCustomerEndpointDNSName(endpointID)
 	return fmt.Sprintf(`
 	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
 	  project_id					= %[1]q
 	  endpoint_id					= %[2]q
 	  provider_name					= "AWS"
-	  comment						= "Terraform Acceptance Test"
+	  comment						= %[3]q
 	  region						= "US_EAST_1"
-	  customer_endpoint_dns_name 	= %[3]q
+	  customer_endpoint_dns_name 	= %[4]q
 	}
-	`, projectID, endpointID, customerEndpointDNSName)
+	`, projectID, endpointID, comment, customerEndpointDNSName)
 }
