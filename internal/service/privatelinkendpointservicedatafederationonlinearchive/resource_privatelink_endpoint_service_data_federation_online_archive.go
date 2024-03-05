@@ -21,6 +21,7 @@ const (
 	errorPrivateEndpointServiceDataFederationOnlineArchiveCreate = "error creating a Private Endpoint for projectId %s: %s"
 	errorPrivateEndpointServiceDataFederationOnlineArchiveDelete = "error deleting Private Endpoint %s for projectId %s: %s"
 	errorPrivateEndpointServiceDataFederationOnlineArchiveRead   = "error reading Private Endpoint %s for projectId %s: %s"
+	errorPrivateEndpointServiceDataFederationOnlineArchiveUpdate = "error updating a Private Endpoint for projectId %s: %s"
 	errorPrivateEndpointServiceDataFederationOnlineArchiveImport = "error importing Private Endpoint %s for projectId %s: %w"
 	endpointType                                                 = "DATA_LAKE"
 )
@@ -29,6 +30,7 @@ func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceCreate,
 		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
 		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImport,
@@ -52,7 +54,7 @@ func Resource() *schema.Resource {
 			"comment": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
+				ForceNew: false,
 			},
 			"region": {
 				Type:             schema.TypeString,
@@ -115,6 +117,30 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endpointID, projectID, err)
 	}
 	return nil
+}
+
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	ids := conversion.DecodeStateID(d.Id())
+	projectID := ids["project_id"]
+	endpointID := ids["endpoint_id"]
+	privateEndpoint, resp, err := connV2.DataFederationApi.GetDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
+	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endpointID, projectID, err)
+	}
+
+	if d.HasChange("comment") {
+		privateEndpoint.Comment = conversion.StringPtr(d.Get("comment").(string))
+		_, _, err = connV2.DataFederationApi.CreateDataFederationPrivateEndpoint(ctx, projectID, privateEndpoint).Execute()
+		if err != nil {
+			return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveCreate, endpointID, projectID)
+		}
+	}
+	return resourceRead(ctx, d, meta)
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -226,6 +252,5 @@ func populateResourceData(d *schema.ResourceData, privateEndpoint *admin.Private
 		return err
 	}
 
-	// if-return: redundant if ...; err != nil check, just return error instead
 	return d.Set("customer_endpoint_dns_name", privateEndpoint.GetCustomerEndpointDNSName())
 }
