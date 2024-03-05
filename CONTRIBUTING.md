@@ -67,7 +67,8 @@ For more explained information about plugin override check [Development Override
 
 #### PR Title Format
 
-A third person point of view is used when describing the changes made. Additionally, we use [*Conventional Commits*](https://www.conventionalcommits.org/) enforcing the subject of the title to start with a uppercase character:
+Use [*Conventional Commits*](https://www.conventionalcommits.org/) to name pull requests, starting with the type of change followed by a description of the change. Use a third person point of view, [active voice](https://www.mongodb.com/docs/meta/style-guide/writing/use-active-voice/#std-label-use-active-voice), and start each description with an uppercase character:
+
 - `fix: Description of the PR`: a commit of the type fix patches a bug in your codebase (this correlates with PATCH in Semantic Versioning).
 - `chore: Description of the PR`: the commit includes a technical or preventative maintenance task that is necessary for managing the product or the repository, but it is not tied to any specific feature or user story (this correlates with PATCH in Semantic Versioning).
 - `doc: Description of the PR`: The commit adds, updates, or revises documentation that is stored in the repository (this correlates with PATCH in Semantic Versioning).
@@ -85,6 +86,16 @@ Examples:
   - `fix!: Description of the ticket`
   - If the PR has `BREAKING CHANGE`: in its description is a breaking change
 - `remove!: Description of the PR`: The commit removes a feature from the product. Typically features are deprecated first for a period of time before being removed. Removing a feature is a breaking change (correlating with MAJOR in Semantic Versioning).
+
+Example PR title:
+  ```bash
+  chore: Upgrades `privatelink_endpoint_service_data_federation_online_archive` resource to auto-generated SDK
+  ```
+
+- The example PR title starts with a task type, "chore:"
+- The description begins with an uppercase character, "U" in "Upgrades"
+- The description uses active voice with the verb "Upgrades," where the subject is 
+  implicitly the PR itself.
 
 ### Testing the Provider
 
