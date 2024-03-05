@@ -94,6 +94,7 @@ func (r *streamInstanceRS) Schema(ctx context.Context, req resource.SchemaReques
 			},
 			"stream_config": schema.SingleNestedAttribute{
 				Optional: true,
+				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"tier": schema.StringAttribute{
 						Required: true,

@@ -16,10 +16,6 @@ func NewStreamInstanceCreateReq(ctx context.Context, plan *TFStreamInstanceModel
 	if diags := plan.DataProcessRegion.As(ctx, dataProcessRegion, basetypes.ObjectAsOptions{}); diags.HasError() {
 		return nil, diags
 	}
-	streamConfig := &TFInstanceStreamConfigSpecModel{}
-	if diags := plan.StreamConfig.As(ctx, streamConfig, basetypes.ObjectAsOptions{}); diags.HasError() {
-		return nil, diags
-	}
 	streamTenanat := &admin.StreamsTenant{
 		GroupId: plan.ProjectID.ValueStringPointer(),
 		Name:    plan.InstanceName.ValueStringPointer(),
@@ -28,7 +24,11 @@ func NewStreamInstanceCreateReq(ctx context.Context, plan *TFStreamInstanceModel
 			Region:        dataProcessRegion.Region.ValueString(),
 		},
 	}
-	if !streamConfig.Tier.IsNull() {
+	if !plan.StreamConfig.IsNull() {
+		streamConfig := &TFInstanceStreamConfigSpecModel{}
+		if diags := plan.StreamConfig.As(ctx, streamConfig, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
 		streamTenanat.StreamConfig = &admin.StreamConfig{
 			Tier: streamConfig.Tier.ValueStringPointer(),
 		}
@@ -60,8 +60,8 @@ func NewTFStreamInstance(ctx context.Context, apiResp *admin.StreamsTenant) (*TF
 		diags.Append(diagsProcessRegion...)
 	}
 	var streamConfig = types.ObjectNull(StreamConfigObjectType.AttrTypes)
-	if apiResp.StreamConfig != nil {
-		returnedStreamConfig, diagsStreamConfig := types.ObjectValueFrom(ctx, ProcessRegionObjectType.AttrTypes, TFInstanceStreamConfigSpecModel{
+	if apiResp.StreamConfig != nil && apiResp.StreamConfig.Tier != nil {
+		returnedStreamConfig, diagsStreamConfig := types.ObjectValueFrom(ctx, StreamConfigObjectType.AttrTypes, TFInstanceStreamConfigSpecModel{
 			Tier: types.StringPointerValue(apiResp.StreamConfig.Tier),
 		})
 		streamConfig = returnedStreamConfig
