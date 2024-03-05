@@ -6,13 +6,13 @@ description: |-
     Describes a Roles Org ID.
 ---
 
-# Data Source: mongodbatlas_project
+# Data Source: mongodbatlas_roles_org_id
 
-`mongodbatlas_project` describes a MongoDB Atlas Roles Org ID. This represents a Roles Org ID.
+`mongodbatlas_roles_org_id` describes a MongoDB Atlas Roles Org ID. This represents a Roles Org ID.
 
 ## Example Usage
 
-### Using project_id attribute to query
+### Using data source to query
 ```terraform
 data "mongodbatlas_roles_org_id" "test" {
 }
