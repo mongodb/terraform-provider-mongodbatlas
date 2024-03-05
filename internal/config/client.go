@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb-forks/digest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 	"github.com/spf13/cast"
-	admin20231001002 "go.mongodb.org/atlas-sdk/v20231001002/admin"
+	admin20231001002 "go.mongodb.org/atlas-sdk/v20231115007/admin"
 	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
