@@ -24,7 +24,7 @@ func NewStreamInstanceCreateReq(ctx context.Context, plan *TFStreamInstanceModel
 			Region:        dataProcessRegion.Region.ValueString(),
 		},
 	}
-	if !plan.StreamConfig.IsNull() {
+	if !plan.StreamConfig.IsNull() && !plan.StreamConfig.IsUnknown() {
 		streamConfig := &TFInstanceStreamConfigSpecModel{}
 		if diags := plan.StreamConfig.As(ctx, streamConfig, basetypes.ObjectAsOptions{}); diags.HasError() {
 			return nil, diags
@@ -60,9 +60,10 @@ func NewTFStreamInstance(ctx context.Context, apiResp *admin.StreamsTenant) (*TF
 		diags.Append(diagsProcessRegion...)
 	}
 	var streamConfig = types.ObjectNull(StreamConfigObjectType.AttrTypes)
-	if apiResp.StreamConfig != nil && apiResp.StreamConfig.Tier != nil {
+	apiStreamConfig := apiResp.StreamConfig
+	if apiStreamConfig != nil && apiStreamConfig.Tier != nil {
 		returnedStreamConfig, diagsStreamConfig := types.ObjectValueFrom(ctx, StreamConfigObjectType.AttrTypes, TFInstanceStreamConfigSpecModel{
-			Tier: types.StringPointerValue(apiResp.StreamConfig.Tier),
+			Tier: types.StringPointerValue(apiStreamConfig.Tier),
 		})
 		streamConfig = returnedStreamConfig
 		diags.Append(diagsStreamConfig...)

@@ -97,7 +97,8 @@ func (r *streamInstanceRS) Schema(ctx context.Context, req resource.SchemaReques
 				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"tier": schema.StringAttribute{
-						Required: true,
+						Optional: true,
+						Computed: true,
 					},
 				},
 			},
