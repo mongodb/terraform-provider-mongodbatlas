@@ -16,6 +16,7 @@ var (
 	resourceName = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
 	projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	endpointID   = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+	comment      = "Terraform Acceptance Test"
 )
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
@@ -27,12 +28,12 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceConfigBasic(projectID, endpointID),
+				Config: resourceConfigBasic(projectID, endpointID, comment),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttr(resourceName, "comment", "Terraform Acceptance Test"),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
 					resource.TestCheckResourceAttrSet(resourceName, "type"),
 					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
 				),
@@ -55,18 +56,18 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateC
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceConfigBasic(projectID, endpointID),
+				Config: resourceConfigBasic(projectID, endpointID, comment),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttr(resourceName, "comment", "Terraform Acceptance Test"),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
 					resource.TestCheckResourceAttrSet(resourceName, "type"),
 					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
 				),
 			},
 			{
-				Config: resourceConfigBasicWithComment(projectID, endpointID, "Terraform Acceptance Test Updated"),
+				Config: resourceConfigBasic(projectID, endpointID, "Terraform Acceptance Test Updated"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -77,7 +78,7 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateC
 				),
 			},
 			{
-				Config: resourceConfigBasicWithComment(projectID, endpointID, ""),
+				Config: resourceConfigBasic(projectID, endpointID, ""),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -168,18 +169,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func resourceConfigBasic(projectID, endpointID string) string {
-	return fmt.Sprintf(`
-	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
-	  project_id				= %[1]q
-	  endpoint_id				= %[2]q
-	  provider_name				= "AWS"
-	  comment					= "Terraform Acceptance Test"
-	}
-	`, projectID, endpointID)
-}
-
-func resourceConfigBasicWithComment(projectID, endpointID, comment string) string {
+func resourceConfigBasic(projectID, endpointID, comment string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
 	  project_id				= %[1]q
