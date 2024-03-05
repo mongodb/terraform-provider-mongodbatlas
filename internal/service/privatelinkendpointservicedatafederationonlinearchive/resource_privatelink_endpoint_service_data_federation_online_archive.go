@@ -112,7 +112,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endpointID, projectID, err)
 	}
 
-	err = populateResourceData(d, privateEndpoint)
+	err = populateResourceData(d, privateEndpoint, projectID, endpointID)
 	if err != nil {
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endpointID, projectID, err)
 	}
@@ -170,23 +170,10 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	if err != nil {
 		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
 	}
-	err = populateResourceData(d, privateEndpoint)
+	err = populateResourceData(d, privateEndpoint, projectID, endpointID)
 	if err != nil {
 		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
 	}
-
-	if err := d.Set("endpoint_id", privateEndpoint.GetEndpointId()); err != nil {
-		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
-	}
-
-	if err := d.Set("project_id", projectID); err != nil {
-		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
-	}
-
-	d.SetId(conversion.EncodeStateID(map[string]string{
-		"project_id":  projectID,
-		"endpoint_id": endpointID,
-	}))
 
 	return []*schema.ResourceData{d}, nil
 }
@@ -235,7 +222,7 @@ func newPrivateNetworkEndpointIDEntry(d *schema.ResourceData) *admin.PrivateNetw
 	return &out
 }
 
-func populateResourceData(d *schema.ResourceData, privateEndpoint *admin.PrivateNetworkEndpointIdEntry) error {
+func populateResourceData(d *schema.ResourceData, privateEndpoint *admin.PrivateNetworkEndpointIdEntry, projectID, endpointID string) error {
 	if err := d.Set("comment", privateEndpoint.GetComment()); err != nil {
 		return err
 	}
@@ -251,6 +238,19 @@ func populateResourceData(d *schema.ResourceData, privateEndpoint *admin.Private
 	if err := d.Set("region", privateEndpoint.GetRegion()); err != nil {
 		return err
 	}
+
+	if err := d.Set("endpoint_id", privateEndpoint.GetEndpointId()); err != nil {
+		return err
+	}
+
+	if err := d.Set("project_id", projectID); err != nil {
+		return err
+	}
+
+	d.SetId(conversion.EncodeStateID(map[string]string{
+		"project_id":  projectID,
+		"endpoint_id": endpointID,
+	}))
 
 	return d.Set("customer_endpoint_dns_name", privateEndpoint.GetCustomerEndpointDNSName())
 }

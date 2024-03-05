@@ -5,7 +5,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -35,11 +34,11 @@ func DataSource() *schema.Resource {
 			},
 			"region": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Optional: true,
 			},
 			"customer_endpoint_dns_name": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Optional: true,
 			},
 		},
 	}
@@ -48,20 +47,15 @@ func DataSource() *schema.Resource {
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
-	endopointID := d.Get("endpoint_id").(string)
+	endpointID := d.Get("endpoint_id").(string)
 
-	privateEndpoint, _, err := connV2.DataFederationApi.GetDataFederationPrivateEndpoint(ctx, projectID, endopointID).Execute()
+	privateEndpoint, _, err := connV2.DataFederationApi.GetDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
 	if err != nil {
-		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
+		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endpointID, projectID, err)
 	}
-	err = populateResourceData(d, privateEndpoint)
+	err = populateResourceData(d, privateEndpoint, projectID, endpointID)
 	if err != nil {
-		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
+		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endpointID, projectID, err)
 	}
-	d.SetId(conversion.EncodeStateID(map[string]string{
-		"project_id":  projectID,
-		"endpoint_id": endopointID,
-	}))
-
 	return nil
 }
