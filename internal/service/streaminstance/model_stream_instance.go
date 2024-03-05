@@ -16,14 +16,24 @@ func NewStreamInstanceCreateReq(ctx context.Context, plan *TFStreamInstanceModel
 	if diags := plan.DataProcessRegion.As(ctx, dataProcessRegion, basetypes.ObjectAsOptions{}); diags.HasError() {
 		return nil, diags
 	}
-	return &admin.StreamsTenant{
+	streamConfig := &TFInstanceStreamConfigSpecModel{}
+	if diags := plan.StreamConfig.As(ctx, streamConfig, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return nil, diags
+	}
+	streamTenanat := &admin.StreamsTenant{
 		GroupId: plan.ProjectID.ValueStringPointer(),
 		Name:    plan.InstanceName.ValueStringPointer(),
 		DataProcessRegion: &admin.StreamsDataProcessRegion{
 			CloudProvider: dataProcessRegion.CloudProvider.ValueString(),
 			Region:        dataProcessRegion.Region.ValueString(),
 		},
-	}, nil
+	}
+	if !streamConfig.Tier.IsNull() {
+		streamTenanat.StreamConfig = &admin.StreamConfig{
+			Tier: streamConfig.Tier.ValueStringPointer(),
+		}
+	}
+	return streamTenanat, nil
 }
 
 func NewStreamInstanceUpdateReq(ctx context.Context, plan *TFStreamInstanceModel) (*admin.StreamsDataProcessRegion, diag.Diagnostics) {
@@ -49,6 +59,14 @@ func NewTFStreamInstance(ctx context.Context, apiResp *admin.StreamsTenant) (*TF
 		dataProcessRegion = returnedProcessRegion
 		diags.Append(diagsProcessRegion...)
 	}
+	var streamConfig = types.ObjectNull(StreamConfigObjectType.AttrTypes)
+	if apiResp.StreamConfig != nil {
+		returnedStreamConfig, diagsStreamConfig := types.ObjectValueFrom(ctx, ProcessRegionObjectType.AttrTypes, TFInstanceStreamConfigSpecModel{
+			Tier: types.StringPointerValue(apiResp.StreamConfig.Tier),
+		})
+		streamConfig = returnedStreamConfig
+		diags.Append(diagsStreamConfig...)
+	}
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -58,6 +76,7 @@ func NewTFStreamInstance(ctx context.Context, apiResp *admin.StreamsTenant) (*TF
 		InstanceName:      types.StringPointerValue(apiResp.Name),
 		ProjectID:         types.StringPointerValue(apiResp.GroupId),
 		DataProcessRegion: dataProcessRegion,
+		StreamConfig:      streamConfig,
 		Hostnames:         hostnames,
 	}, nil
 }
