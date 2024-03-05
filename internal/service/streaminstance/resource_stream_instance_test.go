@@ -25,7 +25,7 @@ func TestAccStreamRSStreamInstance_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.StreamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider), // as of now there are no values that can be updated because only one region is supported
-				Check:  streamInstanceAttributeChecks(resourceName, orgID, projectName, instanceName, region, cloudProvider),
+				Check:  streamInstanceAttributeChecks(resourceName, instanceName, region, cloudProvider),
 			},
 			{
 				ResourceName:      resourceName,
@@ -37,7 +37,7 @@ func TestAccStreamRSStreamInstance_basic(t *testing.T) {
 	})
 }
 
-func streamInstanceAttributeChecks(resourceName, orgID, projectName, instanceName, region, cloudProvider string) resource.TestCheckFunc {
+func streamInstanceAttributeChecks(resourceName, instanceName, region, cloudProvider string) resource.TestCheckFunc {
 	resourceChecks := []resource.TestCheckFunc{
 		checkSearchInstanceExists(),
 		resource.TestCheckResourceAttrSet(resourceName, "id"),

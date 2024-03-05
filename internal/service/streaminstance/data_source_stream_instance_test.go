@@ -24,7 +24,7 @@ func TestAccStreamDSStreamInstance_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: streamInstanceDataSourceConfig(orgID, projectName, instanceName, region, cloudProvider),
-				Check:  streamInstanceAttributeChecks(dataSourceName, orgID, projectName, instanceName, region, cloudProvider),
+				Check:  streamInstanceAttributeChecks(dataSourceName, instanceName, region, cloudProvider),
 			},
 		},
 	})
