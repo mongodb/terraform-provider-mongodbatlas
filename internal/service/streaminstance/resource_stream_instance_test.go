@@ -37,6 +37,32 @@ func TestAccStreamRSStreamInstance_basic(t *testing.T) {
 	})
 }
 
+func TestAccStreamRSStreamInstance_withStreamConfig(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_stream_instance.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acc.RandomProjectName()
+		instanceName = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyStreamInstance,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.StreamInstanceWithStreamConfigConfig(orgID, projectName, instanceName, region, cloudProvider), // as of now there are no values that can be updated because only one region is supported
+				Check:  streamInstanceAttributeChecks(resourceName, instanceName, region, cloudProvider),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamInstanceImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func streamInstanceAttributeChecks(resourceName, instanceName, region, cloudProvider string) resource.TestCheckFunc {
 	resourceChecks := []resource.TestCheckFunc{
 		checkSearchInstanceExists(),
@@ -46,6 +72,7 @@ func streamInstanceAttributeChecks(resourceName, instanceName, region, cloudProv
 		resource.TestCheckResourceAttr(resourceName, "data_process_region.region", region),
 		resource.TestCheckResourceAttr(resourceName, "data_process_region.cloud_provider", cloudProvider),
 		resource.TestCheckResourceAttr(resourceName, "hostnames.#", "1"),
+		resource.TestCheckResourceAttr(resourceName, "stream_config.tier", "SP30"),
 	}
 	return resource.ComposeTestCheckFunc(resourceChecks...)
 }
