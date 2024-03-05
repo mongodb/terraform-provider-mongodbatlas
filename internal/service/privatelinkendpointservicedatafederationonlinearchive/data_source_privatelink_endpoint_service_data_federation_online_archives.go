@@ -45,11 +45,11 @@ func PluralDataSource() *schema.Resource {
 						},
 						"region": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
 						},
 						"customer_endpoint_dns_name": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
 						},
 					},
 				},
