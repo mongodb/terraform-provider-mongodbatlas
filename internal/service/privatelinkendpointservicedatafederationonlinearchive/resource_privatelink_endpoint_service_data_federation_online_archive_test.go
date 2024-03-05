@@ -94,7 +94,7 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateC
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basicWithRegionDnsName(t *testing.T) {
 	// Skip because private endpoints are deleted daily from dev environment
 	acc.SkipTestForCI(t)
-	customerEndpointDNSName := asCustomerEndpointDNSName(endpointID)
+	customerEndpointDNSName := toCustomerEndpointDNSName(endpointID)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -179,14 +179,14 @@ func resourceConfigBasic(projectID, endpointID, comment string) string {
 	`, projectID, endpointID, comment)
 }
 
-func asCustomerEndpointDNSName(endpointID string) string {
+func toCustomerEndpointDNSName(endpointID string) string {
 	// Found in `.AWS.dev.us-east-1`:  https://github.com/10gen/mms/blob/85ec3df92711014b17643c05a61f5c580786556c/server/conf/data-lake-endpoint-services.json
 	serviceName := "vpce-svc-0a7247db33497082e"
 	return fmt.Sprintf("%s-8charsra.%s.us-east-1.vpce.amazonaws.com", endpointID, serviceName)
 }
 
 func resourceConfigBasicWithRegionDNSName(projectID, endpointID, comment string) string {
-	customerEndpointDNSName := asCustomerEndpointDNSName(endpointID)
+	customerEndpointDNSName := toCustomerEndpointDNSName(endpointID)
 	return fmt.Sprintf(`
 	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
 	  project_id					= %[1]q
