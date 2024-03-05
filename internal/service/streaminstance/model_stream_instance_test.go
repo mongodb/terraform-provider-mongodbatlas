@@ -16,6 +16,7 @@ const (
 	cloudProvider         = "AWS"
 	region                = "VIRGINIA_USA"
 	instanceName          = "InstanceName"
+	tier                  = "SP30"
 )
 
 var hostnames = &[]string{"atlas-stream.virginia-usa.a.query.mongodb-dev.net"}
@@ -36,6 +37,9 @@ func TestStreamInstanceSDKToTFModel(t *testing.T) {
 					CloudProvider: cloudProvider,
 					Region:        region,
 				},
+				StreamConfig: &admin.StreamConfig{
+					Tier: admin.PtrString(tier),
+				},
 				GroupId:   admin.PtrString(dummyProjectID),
 				Hostnames: hostnames,
 				Name:      admin.PtrString(instanceName),
@@ -46,10 +50,11 @@ func TestStreamInstanceSDKToTFModel(t *testing.T) {
 				ProjectID:         types.StringValue(dummyProjectID),
 				Hostnames:         tfHostnamesList(t, hostnames),
 				InstanceName:      types.StringValue(instanceName),
+				StreamConfig:      tfStreamConfigObject(t, tier),
 			},
 		},
 		{
-			name: "Empty hostnames and dataProcessRegion in response", // should never happen, but verifying it is handled gracefully
+			name: "Empty hostnames, streamConfig and dataProcessRegion in response", // should never happen, but verifying it is handled gracefully
 			SDKResp: &admin.StreamsTenant{
 				Id:      admin.PtrString(dummyStreamInstanceID),
 				GroupId: admin.PtrString(dummyProjectID),
@@ -61,6 +66,7 @@ func TestStreamInstanceSDKToTFModel(t *testing.T) {
 				ProjectID:         types.StringValue(dummyProjectID),
 				Hostnames:         types.ListNull(types.StringType),
 				InstanceName:      types.StringValue(instanceName),
+				StreamConfig:      types.ObjectNull(streaminstance.StreamConfigObjectType.AttrTypes),
 			},
 		},
 	}
@@ -100,6 +106,9 @@ func TestStreamInstancesSDKToTFModel(t *testing.T) {
 						GroupId:   admin.PtrString(dummyProjectID),
 						Hostnames: hostnames,
 						Name:      admin.PtrString(instanceName),
+						StreamConfig: &admin.StreamConfig{
+							Tier: admin.PtrString(tier),
+						},
 					},
 				},
 				TotalCount: admin.PtrInt(1),
@@ -121,6 +130,7 @@ func TestStreamInstancesSDKToTFModel(t *testing.T) {
 						ProjectID:         types.StringValue(dummyProjectID),
 						Hostnames:         tfHostnamesList(t, hostnames),
 						InstanceName:      types.StringValue(instanceName),
+						StreamConfig:      tfStreamConfigObject(t, tier),
 					},
 				},
 			},
@@ -168,6 +178,26 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 	testCases := []tfToSDKCreateModelTestCase{
 		{
 			name: "Complete TF state",
+			tfModel: &streaminstance.TFStreamInstanceModel{
+				DataProcessRegion: tfRegionObject(t, cloudProvider, region),
+				ProjectID:         types.StringValue(dummyProjectID),
+				InstanceName:      types.StringValue(instanceName),
+				StreamConfig:      tfStreamConfigObject(t, tier),
+			},
+			expectedSDKReq: &admin.StreamsTenant{
+				DataProcessRegion: &admin.StreamsDataProcessRegion{
+					CloudProvider: cloudProvider,
+					Region:        region,
+				},
+				GroupId: admin.PtrString(dummyProjectID),
+				Name:    admin.PtrString(instanceName),
+				StreamConfig: &admin.StreamConfig{
+					Tier: admin.PtrString(tier),
+				},
+			},
+		},
+		{
+			name: "TF State without StreamConfig",
 			tfModel: &streaminstance.TFStreamInstanceModel{
 				DataProcessRegion: tfRegionObject(t, cloudProvider, region),
 				ProjectID:         types.StringValue(dummyProjectID),
@@ -244,6 +274,17 @@ func tfRegionObject(t *testing.T, cloudProvider, region string) types.Object {
 		t.Errorf("failed to create terraform data process region model: %s", diags.Errors()[0].Summary())
 	}
 	return dataProcessRegion
+}
+
+func tfStreamConfigObject(t *testing.T, tier string) types.Object {
+	t.Helper()
+	streamConfig, diags := types.ObjectValueFrom(context.Background(), streaminstance.StreamConfigObjectType.AttrTypes, streaminstance.TFInstanceStreamConfigSpecModel{
+		Tier: types.StringValue(tier),
+	})
+	if diags.HasError() {
+		t.Errorf("failed to create terraform data process region model: %s", diags.Errors()[0].Summary())
+	}
+	return streamConfig
 }
 
 func tfHostnamesList(t *testing.T, hostnames *[]string) types.List {
