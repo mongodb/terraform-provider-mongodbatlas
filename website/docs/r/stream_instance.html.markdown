@@ -30,11 +30,18 @@ resource "mongodbatlas_stream_instance" "test" {
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
 * `instance_name` - (Required) Human-readable label that identifies the stream instance.
 * `data_process_region` - (Required) Cloud service provider and region where MongoDB Cloud performs stream processing. See [data process region](#data-process-region).
+* `stream_config` - (Optional) Configuration options for an Atlas Stream Processing Instance. See [stream config](#stream-config)
+
 
 ### Data Process Region
 
 * `cloud_provider` - (Required) Label that identifies the cloud service provider where MongoDB Cloud performs stream processing. The [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/createStreamInstance) describes the valid values.
 * `region` - (Required) Name of the cloud provider region hosting Atlas Stream Processing. The [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/createStreamInstance) describes the valid values.
+
+### Stream Config
+
+* `tier` - (Required) Selected tier for the Stream Instance. Configures Memory / VCPU allowances. The [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/createStreamInstance) describes the valid values.
+
 
 ## Attributes Reference
 
