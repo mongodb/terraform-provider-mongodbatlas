@@ -27,8 +27,8 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_basic
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchive, "project_id", projectID),
 					resource.TestCheckResourceAttr(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchive, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttr(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchive, "comment", defaultComment),
-					resource.TestCheckResourceAttr(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchive, "region", defaultAtlasRegion),
+					resource.TestCheckResourceAttr(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchive, "comment", comment),
+					resource.TestCheckResourceAttr(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchive, "region", atlasRegion),
 					resource.TestCheckResourceAttr(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchive, "customer_endpoint_dns_name", customerEndpointDNSName),
 					resource.TestCheckResourceAttrSet(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchive, "type"),
 					resource.TestCheckResourceAttrSet(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchive, "provider_name"),
@@ -54,5 +54,5 @@ func dataSourcesConfigBasic(projectID, endpointID string) string {
 		project_id				= mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test.project_id
 		endpoint_id				= mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test.endpoint_id
 	}
-	`, projectID, endpointID, defaultAtlasRegion, customerEndpointDNSName)
+	`, projectID, endpointID, atlasRegion, customerEndpointDNSName)
 }

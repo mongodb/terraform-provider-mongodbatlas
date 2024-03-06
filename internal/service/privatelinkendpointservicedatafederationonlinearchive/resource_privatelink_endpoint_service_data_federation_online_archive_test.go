@@ -13,11 +13,11 @@ import (
 )
 
 var (
-	resourceName       = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
-	projectID          = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	endpointID         = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
-	defaultComment     = "Terraform Acceptance Test"
-	defaultAtlasRegion = "US_EAST_1"
+	resourceName = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
+	projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	endpointID   = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+	comment      = "Terraform Acceptance Test"
+	atlasRegion  = "US_EAST_1"
 )
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
@@ -29,12 +29,12 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceConfigBasic(projectID, endpointID, defaultComment),
+				Config: resourceConfigBasic(projectID, endpointID, comment),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttr(resourceName, "comment", defaultComment),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
 					resource.TestCheckResourceAttrSet(resourceName, "type"),
 					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
 				),
@@ -51,29 +51,30 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateComment(t *testing.T) {
 	// Skip because private endpoints are deleted daily from dev environment
 	acc.SkipTestForCI(t)
+	commentUpdated := "Terraform Acceptance Test Updated"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceConfigBasic(projectID, endpointID, defaultComment),
+				Config: resourceConfigBasic(projectID, endpointID, comment),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttr(resourceName, "comment", defaultComment),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
 					resource.TestCheckResourceAttrSet(resourceName, "type"),
 					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
 				),
 			},
 			{
-				Config: resourceConfigBasic(projectID, endpointID, "Terraform Acceptance Test Updated"),
+				Config: resourceConfigBasic(projectID, endpointID, commentUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttr(resourceName, "comment", "Terraform Acceptance Test Updated"),
+					resource.TestCheckResourceAttr(resourceName, "comment", commentUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "type"),
 					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
 				),
@@ -101,13 +102,13 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basicWi
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceConfigBasicWithRegionDNSName(projectID, endpointID, defaultComment),
+				Config: resourceConfigBasicWithRegionDNSName(projectID, endpointID, comment),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
 					resource.TestCheckResourceAttr(resourceName, "comment", "Terraform Acceptance Test"),
-					resource.TestCheckResourceAttr(resourceName, "region", defaultAtlasRegion),
+					resource.TestCheckResourceAttr(resourceName, "region", atlasRegion),
 					resource.TestCheckResourceAttr(resourceName, "customer_endpoint_dns_name", customerEndpointDNSName),
 					resource.TestCheckResourceAttrSet(resourceName, "type"),
 					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
