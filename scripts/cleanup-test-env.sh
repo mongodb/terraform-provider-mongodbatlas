@@ -62,7 +62,7 @@ echo "${projects}" | jq -r '.results[] | "\(.id) \(.name)"' | while read -r proj
     echo "Deleting project ${project_display}"
     # This command can fail if project has a cluster, a private endpoint, or general failure. The echo command always succeeds so the subshell will succeed and continue
     (
-# DONT MERGE        atlas project delete "${project_id}" --force || \
+        atlas project delete "${project_id}" --force || \
         echo "Failed to delete project ${project_display}"
     )
 done
