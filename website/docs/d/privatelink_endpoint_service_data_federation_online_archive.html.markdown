@@ -22,7 +22,7 @@ resource "mongodbatlas_project" "atlas-project" {
 
 resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
   project_id = mongodbatlas_project.atlas-project.id
-  endpoint_id = "<PRIVATE-ENDPOINT-SERVICE-ID>"
+  endpoint_id = "vpce-3bf78b0ddee411ba1"
   provider_name = "AWS"
   comment = "Test"
 }
@@ -31,7 +31,7 @@ data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" 
   project_id = mongodbatlas_project.atlas-project.id
   endpoint_id = mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test.endpoint_id
 }
-
+```
 
 
 ## Argument Reference
