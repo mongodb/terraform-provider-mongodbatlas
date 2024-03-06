@@ -54,7 +54,6 @@ func Resource() *schema.Resource {
 			"comment": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: false,
 			},
 			"region": {
 				Type:             schema.TypeString,

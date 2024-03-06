@@ -182,6 +182,7 @@ func resourceConfigBasic(projectID, endpointID, comment string) string {
 func toCustomerEndpointDNSName(endpointID string) string {
 	// Found in `.AWS.dev.us-east-1`:  https://github.com/10gen/mms/blob/85ec3df92711014b17643c05a61f5c580786556c/server/conf/data-lake-endpoint-services.json
 	serviceName := "vpce-svc-0a7247db33497082e"
+	// 8charsra, can be any 8 character alphanumeric string
 	return fmt.Sprintf("%s-8charsra.%s.us-east-1.vpce.amazonaws.com", endpointID, serviceName)
 }
 
