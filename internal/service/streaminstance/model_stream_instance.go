@@ -16,7 +16,7 @@ func NewStreamInstanceCreateReq(ctx context.Context, plan *TFStreamInstanceModel
 	if diags := plan.DataProcessRegion.As(ctx, dataProcessRegion, basetypes.ObjectAsOptions{}); diags.HasError() {
 		return nil, diags
 	}
-	streamTenanat := &admin.StreamsTenant{
+	streamTenant := &admin.StreamsTenant{
 		GroupId: plan.ProjectID.ValueStringPointer(),
 		Name:    plan.InstanceName.ValueStringPointer(),
 		DataProcessRegion: &admin.StreamsDataProcessRegion{
@@ -29,11 +29,11 @@ func NewStreamInstanceCreateReq(ctx context.Context, plan *TFStreamInstanceModel
 		if diags := plan.StreamConfig.As(ctx, streamConfig, basetypes.ObjectAsOptions{}); diags.HasError() {
 			return nil, diags
 		}
-		streamTenanat.StreamConfig = &admin.StreamConfig{
+		streamTenant.StreamConfig = &admin.StreamConfig{
 			Tier: streamConfig.Tier.ValueStringPointer(),
 		}
 	}
-	return streamTenanat, nil
+	return streamTenant, nil
 }
 
 func NewStreamInstanceUpdateReq(ctx context.Context, plan *TFStreamInstanceModel) (*admin.StreamsDataProcessRegion, diag.Diagnostics) {
