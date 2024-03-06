@@ -465,7 +465,6 @@ jobs:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key_network }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key_network }}
           MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id_network }}
-          MONGODB_ATLAS_PROJECT_ID: ${{ inputs.mongodb_atlas_project_id_network }}
           MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
           AWS_ACCOUNT_ID: ${{ secrets.aws_account_id }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
