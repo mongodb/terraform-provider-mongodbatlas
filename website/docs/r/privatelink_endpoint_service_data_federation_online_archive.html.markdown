@@ -12,9 +12,12 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
+-> **NOTE:** Updates are limited to the `comment` argument.
+
 ## Example Usage
 
 ```terraform
+
 resource "mongodbatlas_project" "atlas-project" {
   org_id = var.atlas_org_id
   name   = var.atlas_project_name
@@ -25,8 +28,11 @@ resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archi
   endpoint_id = "<PRIVATE-ENDPOINT-SERVICE-ID>"
   provider_name = "AWS"
   comment = "Test"
+  region        = "US_EAST_1"
+  customer_endpoint_dns_name = aws_vpc_endpoint.<AWS-RESOURCE_NAME>.dns_entry[0].dns_name
 }
 ```
+
 ## Argument Reference
 
 * `project_id` (Required) - Unique 24-hexadecimal digit string that identifies your project. 
