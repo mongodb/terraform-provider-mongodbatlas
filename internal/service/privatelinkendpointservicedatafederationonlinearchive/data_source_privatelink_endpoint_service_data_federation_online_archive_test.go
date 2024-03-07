@@ -15,7 +15,6 @@ var (
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_basic(t *testing.T) {
 	// Skip because private endpoints are deleted daily from dev environment
 	acc.SkipTestForCI(t)
-	customerEndpointDNSName := toCustomerEndpointDNSName(endpointID)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -39,7 +38,6 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_basic
 }
 
 func dataSourcesConfigBasic(projectID, endpointID string) string {
-	customerEndpointDNSName := toCustomerEndpointDNSName(endpointID)
 	return fmt.Sprintf(`
 	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
 	  project_id					= %[1]q
