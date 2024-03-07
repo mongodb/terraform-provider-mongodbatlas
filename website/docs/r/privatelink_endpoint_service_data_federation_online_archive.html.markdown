@@ -25,11 +25,11 @@ resource "mongodbatlas_project" "atlas-project" {
 
 resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
   project_id = mongodbatlas_project.atlas-project.id
-  endpoint_id = "<PRIVATE-ENDPOINT-SERVICE-ID>"
+  endpoint_id = "vpce-046cf43c79424d4c9"
   provider_name = "AWS"
   comment = "Test"
   region        = "US_EAST_1"
-  customer_endpoint_dns_name = aws_vpc_endpoint.<AWS-RESOURCE_NAME>.dns_entry[0].dns_name
+  customer_endpoint_dns_name = "vpce-046cf43c79424d4c9-nmls2y9k.vpce-svc-0824460b72e1a420e.us-east-1.vpce.amazonaws.com"
 }
 ```
 
@@ -39,8 +39,8 @@ resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archi
 * `endpoint_id` (Required) - Unique 22-character alphanumeric string that identifies the private endpoint. See [Atlas Data Lake supports Amazon Web Services private endpoints using the AWS PrivateLink feature](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createDataFederationPrivateEndpoint:~:text=Atlas%20Data%20Lake%20supports%20Amazon%20Web%20Services%20private%20endpoints%20using%20the%20AWS%20PrivateLink%20feature).
 * `provider_name` (Required) - Human-readable label that identifies the cloud service provider. 
 * `timeouts`- (Optional) The duration of time to wait for Private Endpoint Service to be created or deleted. The timeout value is definded by a signed sequence of decimal numbers with an time unit suffix such as: `1h45m`, `300s`, `10m`, .... The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout for Private Endpoint create & delete is `2h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
-* `region` - (Optional) Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.  Requires the **Atlas region name**, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
-* `customer_endpoint_dns_name` - (Optional) Human-readable label to identify customer's VPC endpoint DNS name. Must follow regex: `vpce-[a-z0-9]{17}-[a-z0-9]{8}.vpce-svc-[a-z0-9]{17}.(.*).vpce.amazonaws.com`
+* `region` -  Human-readable label to identify the region of VPC endpoint.  Requires the **Atlas region name**, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
+* `customer_endpoint_dns_name` - (Optional) Human-readable label to identify VPC endpoint DNS name.
 * `comment` - (Optional) Human-readable string to associate with this private endpoint.
 
 ## Attributes Reference

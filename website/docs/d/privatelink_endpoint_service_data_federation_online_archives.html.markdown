@@ -22,9 +22,11 @@ resource "mongodbatlas_project" "atlas-project" {
 
 resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
   project_id = mongodbatlas_project.atlas-project.id
-  endpoint_id = "vpce-3bf78b0ddee411ba1"
+  endpoint_id = "vpce-046cf43c79424d4c9"
   provider_name = "AWS"
   comment = "Test"
+  region        = "US_EAST_1"
+  customer_endpoint_dns_name = "vpce-046cf43c79424d4c9-nmls2y9k.vpce-svc-0824460b72e1a420e.us-east-1.vpce.amazonaws.com"
 }
 
 data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archives" "test_data_source" {
@@ -48,8 +50,8 @@ In addition to all arguments above, the following attributes are exported:
 * `type` - Human-readable label that identifies the resource type associated with this private endpoint.
 * `comment` - Human-readable string to associate with this private endpoint.
 * `provider_name` - Human-readable label that identifies the cloud service provider. 
-* `region` - Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.  Requires the **Atlas region name**, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
-* `customer_endpoint_dns_name` - Human-readable label to identify customer's VPC endpoint DNS name. Must follow regex: `vpce-[a-z0-9]{17}-[a-z0-9]{8}.vpce-svc-[a-z0-9]{17}.(.*).vpce.amazonaws.com`
+* `region` -  Human-readable label to identify the region of VPC endpoint.  Requires the **Atlas region name**, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
+* `customer_endpoint_dns_name` - (Optional) Human-readable label to identify VPC endpoint DNS name.
 
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createDataFederationPrivateEndpoint) Documentation for more information.
 
