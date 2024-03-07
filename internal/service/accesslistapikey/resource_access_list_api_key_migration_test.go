@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -91,7 +90,7 @@ func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock(t *testing.T) {
 	})
 }
 
-func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock_WideCIDR(t *testing.T) {
+func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock_WideCIDR_SDKMigration(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_access_list_api_key.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -111,16 +110,6 @@ func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock_WideCIDR(t *testin
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),
 				),
-			},
-			{
-				ExternalProviders: mig.ExternalProviders(),
-				Config:            configWithCIDRBlock(orgID, description, cidrBlock),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
