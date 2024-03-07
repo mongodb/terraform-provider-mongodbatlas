@@ -118,9 +118,9 @@ jobs:
       backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
       project: ${{ steps.filter.outputs.project == 'true' || env.mustTrigger == 'true' }}
       serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
-      network: true ######## TEMPORARY, WILL BE REMOVED BEFORE MERGING
+      network: ${{ steps.filter.outputs.network == 'true' || env.mustTrigger == 'true' }}
       config: ${{ steps.filter.outputs.config == 'true' || env.mustTrigger == 'true' }}
-      assume_role: true ######## TEMPORARY, WILL BE REMOVED BEFORE MERGING
+      assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
       event_trigger: ${{ steps.filter.outputs.event_trigger == 'true' || env.mustTrigger == 'true' }}
       search_index: ${{ steps.filter.outputs.search_index == 'true' || env.mustTrigger == 'true' }}
       federated: ${{ steps.filter.outputs.federated == 'true' || env.mustTrigger == 'true' }}
