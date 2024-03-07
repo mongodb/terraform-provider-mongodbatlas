@@ -70,11 +70,12 @@ func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            configWithCIDRBlock(orgID, description, cidrBlock),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),
-				),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						acc.DebugPlan(),
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -90,11 +91,11 @@ func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock(t *testing.T) {
 	})
 }
 
-func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock_16(t *testing.T) {
+func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock_WideCIDR(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_access_list_api_key.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		cidrBlock    = acc.RandomIP(179, 154, 226) + "/16"
+		cidrBlock    = "100.10.0.0/16"
 		description  = acc.RandomName()
 	)
 
@@ -114,11 +115,12 @@ func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock_16(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            configWithCIDRBlock(orgID, description, cidrBlock),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),
-				),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						acc.DebugPlan(),
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,

@@ -81,7 +81,7 @@ func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock_16(t *testing.T) {
+func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock_WideCIDR(t *testing.T) {
 	var (
 		resourceName     = "mongodbatlas_access_list_api_key.test"
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
