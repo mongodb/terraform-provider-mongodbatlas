@@ -44,8 +44,6 @@ jobs:
     secrets:
       mongodb_atlas_public_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_QA || secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
       mongodb_atlas_private_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_QA || secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
-      mongodb_atlas_public_key_network: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_QA || secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV_NETWORK }}
-      mongodb_atlas_private_key_network: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_QA || secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV_NETWORK }}
       ca_cert: ${{ secrets.CA_CERT }}
       aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
       aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
