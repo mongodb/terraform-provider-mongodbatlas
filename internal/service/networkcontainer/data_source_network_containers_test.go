@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -17,7 +18,7 @@ func TestAccNetworkContainerDSPlural_basicAWS(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourcePluralConfigBasicAWS(projectName, orgID, cidrBlock, providerNameAws, "US_EAST_1"),
+				Config: dataSourcePluralConfigBasicAWS(projectName, orgID, cidrBlock, constant.AWS, "US_EAST_1"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(dataSourceContainersName),
 					resource.TestCheckResourceAttrSet(dataSourceContainersName, "results.#"),
@@ -40,7 +41,7 @@ func TestAccNetworkContainerDSPlural_basicAzure(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourcePluralConfigBasicAzure(projectName, orgID, cidrBlock, providerNameAzure, "US_EAST_2"),
+				Config: dataSourcePluralConfigBasicAzure(projectName, orgID, cidrBlock, constant.AZURE, "US_EAST_2"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(dataSourceContainersName),
 					resource.TestCheckResourceAttrSet(dataSourceContainersName, "results.#"),
@@ -63,7 +64,7 @@ func TestAccNetworkContainerDSPlural_basicGCP(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourcePluralConfigBasicGCP(projectName, orgID, gcpCidrBlock, providerNameGCP),
+				Config: dataSourcePluralConfigBasicGCP(projectName, orgID, gcpCidrBlock, constant.GCP),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(dataSourceContainersName),
 					resource.TestCheckResourceAttrSet(dataSourceContainersName, "results.#"),

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -22,10 +23,10 @@ func TestAccNetworkContainerDS_basicAWS(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceConfigBasicAWS(projectName, orgID, cidrBlock, providerNameAws, "US_EAST_1"),
+				Config: dataSourceConfigBasicAWS(projectName, orgID, cidrBlock, constant.AWS, "US_EAST_1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "provider_name", providerNameAws),
+					resource.TestCheckResourceAttr(dataSourceName, "provider_name", constant.AWS),
 					resource.TestCheckResourceAttrSet(dataSourceName, "provisioned"),
 				),
 			},
@@ -43,10 +44,10 @@ func TestAccNetworkContainerDS_basicAzure(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceConfigBasicAzure(projectName, orgID, cidrBlock, providerNameAzure, "US_EAST_2"),
+				Config: dataSourceConfigBasicAzure(projectName, orgID, cidrBlock, constant.AZURE, "US_EAST_2"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "provider_name", providerNameAzure),
+					resource.TestCheckResourceAttr(dataSourceName, "provider_name", constant.AZURE),
 					resource.TestCheckResourceAttrSet(dataSourceName, "provisioned"),
 				),
 			},
@@ -59,15 +60,15 @@ func TestAccNetworkContainerDS_basicGCP(t *testing.T) {
 		projectName = acc.RandomProjectName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceConfigBasicGCP(projectName, orgID, gcpCidrBlock, providerNameGCP),
+				Config: dataSourceConfigBasicGCP(projectName, orgID, gcpCidrBlock, constant.GCP),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "provider_name", providerNameGCP),
+					resource.TestCheckResourceAttr(dataSourceName, "provider_name", constant.GCP),
 					resource.TestCheckResourceAttrSet(dataSourceName, "provisioned"),
 				),
 			},
