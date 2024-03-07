@@ -104,7 +104,7 @@ func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock_WideCIDR(t *testin
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: acc.ExternalProviders("1.14.0"),
+				ExternalProviders: acc.ExternalProviders("1.14.0"), // testing provider version before this resource was migrated to Atlas SDK
 				Config:            configWithCIDRBlock(orgID, description, cidrBlock),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
