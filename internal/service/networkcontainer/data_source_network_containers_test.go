@@ -14,7 +14,7 @@ func TestAccNetworkContainerDSPlural_basicAWS(t *testing.T) {
 		projectName = acc.RandomProjectName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
@@ -37,7 +37,7 @@ func TestAccNetworkContainerDSPlural_basicAzure(t *testing.T) {
 		projectName = acc.RandomProjectName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
@@ -60,7 +60,7 @@ func TestAccNetworkContainerDSPlural_basicGCP(t *testing.T) {
 		projectName = acc.RandomProjectName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
