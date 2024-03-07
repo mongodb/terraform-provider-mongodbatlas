@@ -236,10 +236,9 @@ func PreCheckLDAPCert(tb testing.TB) {
 
 func PreCheckFederatedSettings(tb testing.TB) {
 	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_FEDERATED_PROJECT_ID") == "" ||
-		os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID") == "" ||
-		os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID") == "" {
-		tb.Fatal("`MONGODB_ATLAS_FEDERATED_PROJECT_ID`, `MONGODB_ATLAS_FEDERATED_ORG_ID` and `MONGODB_ATLAS_FEDERATION_SETTINGS_ID` must be set for federated settings/verify acceptance testing")
+	if os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID") == "" ||
+		os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID") == "" {
+		tb.Fatal("`MONGODB_ATLAS_FEDERATED_ORG_ID` and `MONGODB_ATLAS_FEDERATION_SETTINGS_ID` must be set for federated settings/verify acceptance testing")
 	}
 }
 

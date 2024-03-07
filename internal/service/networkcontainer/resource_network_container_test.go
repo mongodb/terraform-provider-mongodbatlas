@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -19,9 +20,6 @@ var (
 	dataSourceContainersName = "data.mongodbatlas_network_containers.test"
 	cidrBlock                = fmt.Sprintf("10.8.%d.0/24", randInt)
 	gcpCidrBlock             = fmt.Sprintf("10.%d.0.0/18", randInt)
-	providerNameAws          = "AWS"
-	providerNameAzure        = "AZURE"
-	providerNameGCP          = "GCP"
 	orgID                    = os.Getenv("MONGODB_ATLAS_ORG_ID")
 )
 
@@ -38,20 +36,20 @@ func TestAccNetworkContainerRS_basicAWS(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configAWS(projectName, orgID, cidrBlock, providerNameAws, "US_EAST_1"),
+				Config: configAWS(projectName, orgID, cidrBlock, constant.AWS, "US_EAST_1"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameAws),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AWS),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 				),
 			},
 			{
-				Config: configAWS(projectName, orgID, cidrBlockUpdated, providerNameAws, "US_WEST_2"),
+				Config: configAWS(projectName, orgID, cidrBlockUpdated, constant.AWS, "US_WEST_2"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameAws),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AWS),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 				),
 			},
@@ -72,20 +70,20 @@ func TestAccNetworkContainerRS_basicAzure(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configAzure(projectName, orgID, cidrBlock, providerNameAzure),
+				Config: configAzure(projectName, orgID, cidrBlock, constant.AZURE),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameAzure),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AZURE),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 				),
 			},
 			{
-				Config: configAzure(projectName, orgID, cidrBlockUpdated, providerNameAzure),
+				Config: configAzure(projectName, orgID, cidrBlockUpdated, constant.AZURE),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameAzure),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AZURE),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 				),
 			},
@@ -106,20 +104,20 @@ func TestAccNetworkContainerRS_basicGCP(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configGCP(projectName, orgID, gcpCidrBlock, providerNameGCP),
+				Config: configGCP(projectName, orgID, gcpCidrBlock, constant.GCP),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameGCP),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.GCP),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 				),
 			},
 			{
-				Config: configGCP(projectName, orgID, cidrBlockUpdated, providerNameGCP),
+				Config: configGCP(projectName, orgID, cidrBlockUpdated, constant.GCP),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameGCP),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.GCP),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 				),
 			},
@@ -138,11 +136,11 @@ func TestAccNetworkContainerRS_WithRegionsGCP(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configGCPWithRegions(projectName, orgID, gcpWithRegionsCidrBlock, providerNameGCP),
+				Config: configGCPWithRegions(projectName, orgID, gcpWithRegionsCidrBlock, constant.GCP),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameGCP),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.GCP),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(dataSourceContainersName, "results.#"),
@@ -166,7 +164,7 @@ func TestAccNetworkContainerRS_importBasic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configAWS(projectName, orgID, cidrBlock, providerNameAws, "US_EAST_1"),
+				Config: configAWS(projectName, orgID, cidrBlock, constant.AWS, "US_EAST_1"),
 			},
 			{
 				ResourceName:            resourceName,

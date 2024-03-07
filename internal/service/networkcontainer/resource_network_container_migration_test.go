@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -11,7 +12,7 @@ import (
 func TestAccMigrationNetworkContainerRS_basicAWS(t *testing.T) {
 	var (
 		projectName = acc.RandomProjectName()
-		configAWS   = configAWS(projectName, orgID, cidrBlock, providerNameAws, "US_EAST_1")
+		configAWS   = configAWS(projectName, orgID, cidrBlock, constant.AWS, "US_EAST_1")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -24,7 +25,7 @@ func TestAccMigrationNetworkContainerRS_basicAWS(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameAws),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AWS),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 				),
 			},
@@ -36,7 +37,7 @@ func TestAccMigrationNetworkContainerRS_basicAWS(t *testing.T) {
 func TestAccMigrationNetworkContainerRS_basicAzure(t *testing.T) {
 	var (
 		projectName = acc.RandomProjectName()
-		configAzure = configAzure(projectName, orgID, cidrBlock, providerNameAzure)
+		configAzure = configAzure(projectName, orgID, cidrBlock, constant.AZURE)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -49,7 +50,7 @@ func TestAccMigrationNetworkContainerRS_basicAzure(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameAzure),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AZURE),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 				),
 			},
@@ -61,7 +62,7 @@ func TestAccMigrationNetworkContainerRS_basicAzure(t *testing.T) {
 func TestAccMigrationNetworkContainerRS_basicGCP(t *testing.T) {
 	var (
 		projectName = acc.RandomProjectName()
-		configGCP   = configGCP(projectName, orgID, gcpCidrBlock, providerNameGCP)
+		configGCP   = configGCP(projectName, orgID, gcpCidrBlock, constant.GCP)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -74,7 +75,7 @@ func TestAccMigrationNetworkContainerRS_basicGCP(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerNameGCP),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.GCP),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 				),
 			},

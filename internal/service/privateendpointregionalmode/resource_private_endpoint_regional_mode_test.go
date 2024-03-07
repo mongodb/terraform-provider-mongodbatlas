@@ -41,12 +41,12 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_conn(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasPrivateEndpointRegionalModeDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfigWithDependencies(resourceSuffix, projectID, false, dependencies),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName),
+					checkExists(resourceName),
 					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(projectID, clusterName, clusterResourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
@@ -56,7 +56,7 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_conn(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfigWithDependencies(resourceSuffix, projectID, true, dependencies),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName),
+					checkExists(resourceName),
 					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(projectID, clusterName, clusterResourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
@@ -71,29 +71,28 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_basic(t *testing.T) {
 	var (
 		resourceSuffix = "atlasrm"
 		resourceName   = fmt.Sprintf("mongodbatlas_private_endpoint_regional_mode.%s", resourceSuffix)
-		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acc.RandomProjectName()
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasPrivateEndpointRegionalModeDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceSuffix, projectID, false),
+				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(orgID, projectName, resourceSuffix, false),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceSuffix, projectID, true),
+				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(orgID, projectName, resourceSuffix, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 				),
 			},
@@ -132,16 +131,21 @@ func testAccMongoDBAtlasPrivateEndpointRegionalModeConfigNoProject(resourceName,
 	`, resourceName, projectID, enabled)
 }
 
-func testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceName, projectID string, enabled bool) string {
+func testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(orgID, projectName, resourceName string, enabled bool) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_private_endpoint_regional_mode" %[1]q {
-			project_id   = %[2]q
-			enabled      = %[3]t
+		resource "mongodbatlas_project" "project" {
+			org_id = %[1]q
+			name   = %[2]q
 		}
-	`, resourceName, projectID, enabled)
+
+		resource "mongodbatlas_private_endpoint_regional_mode" %[3]q {
+			project_id   = mongodbatlas_project.project.id
+			enabled      = %[4]t
+		}
+	`, orgID, projectName, resourceName, enabled)
 }
 
-func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName string) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -185,16 +189,13 @@ func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(project
 	}
 }
 
-func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeDestroy(s *terraform.State) error {
+func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_private_endpoint_regional_mode" {
 			continue
 		}
-		setting, _, err := acc.Conn().PrivateEndpoints.GetRegionalizedPrivateEndpointSetting(context.Background(), rs.Primary.ID)
-		if err != nil {
-			return fmt.Errorf("Could not read regionalized private endpoint setting for project %q", rs.Primary.ID)
-		}
-		if setting.Enabled != false {
+		setting, _, _ := acc.Conn().PrivateEndpoints.GetRegionalizedPrivateEndpointSetting(context.Background(), rs.Primary.ID)
+		if setting != nil && setting.Enabled != false {
 			return fmt.Errorf("Regionalized private endpoint setting for project %q was not properly disabled", rs.Primary.ID)
 		}
 	}
