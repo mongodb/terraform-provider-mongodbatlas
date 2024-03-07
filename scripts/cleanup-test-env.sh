@@ -18,19 +18,17 @@ set -Eeou pipefail
 
 delete_endpoint() {
     provider=$1
-    count=$(atlas privateEndpoints "${provider}" list --projectId "${clean_project_id}" -o=go-template="{{len .}}")
+    count=$(atlas privateEndpoints "${provider}" list --projectId "${project_id}" -o=go-template="{{len .}}")
     retVal=$?
     if [ $retVal -ne 0 ]; then
         count=0
     fi
     if [ "${count}" != "0" ]; then
-        echo "Project ${clean_project_id} contains ${provider} endpoints, will start deleting"
-        id=$(atlas privateEndpoints "${provider}" list --projectId "${clean_project_id}" -o=go-template="{{(index . 0).Id}}")
-        atlas privateEndpoints "${provider}" delete "${id}" --force --projectId "${clean_project_id}"
+        echo "Project ${project_display} contains ${provider} endpoints, will start deleting"
+        id=$(atlas privateEndpoints "${provider}" list --projectId "${project_id}" -o=go-template="{{(index . 0).Id}}")
+        atlas privateEndpoints "${provider}" delete "${id}" --force --projectId "${project_id}"
     fi
 }
-
-projectToSkip="${PROJECT_TO_NOT_DELETE:-NONE}"
 
 export MCLI_OPS_MANAGER_URL="${MONGODB_ATLAS_OPS_MANAGER_URL}"
 export MCLI_PRIVATE_API_KEY="${MONGODB_ATLAS_PRIVATE_KEY}"
@@ -41,30 +39,30 @@ org_id="${MONGODB_ATLAS_ORG_ID}"
 # Get all project Ids inside the organization
 projects=$(atlas project ls --limit 500 --orgId "${org_id}"  -o json)
 
-echo "${projects}" | jq -c '.results[].id' | while read -r id; do
-    # Trim the quotes from the id
-    clean_project_id=$(echo "$id" | tr -d '"')
-    if [ "${clean_project_id}" = "${projectToSkip}" ]; then
-        echo "Skipping project with ID ${projectToSkip}"
-        continue
-    fi
+echo "${projects}" | jq -r '.results[] | "\(.id) \(.name)"' | while read -r project_id project_name; do
+    project_display="${project_name} - ${project_id}"
 
-    clusters=$(atlas cluster ls --projectId "${clean_project_id}" -o=go-template="{{.TotalCount}}")
-    if [ "${clusters}" != "0" ]; then
-        echo "Project ${clean_project_id} contains clusters. Skipping..."
+    if [[ "${project_name}" == test-acc-tf-p-keep-* ]]; then
+        echo "Skipping project ${project_display}"
         continue
     fi
 
     set +e
+    clusters=$(atlas cluster ls --projectId "${project_id}" -o=go-template="{{.TotalCount}}")
+    if [ "${clusters}" != "0" ]; then
+        echo "Project ${project_display} contains clusters. Skipping..."
+        continue
+    fi
+
     delete_endpoint "aws"
     delete_endpoint "gcp"
     delete_endpoint "azure"
     set -e
 
-    echo "Deleting projectId ${clean_project_id}"
+    echo "Deleting project ${project_display}"
     # This command can fail if project has a cluster, a private endpoint, or general failure. The echo command always succeeds so the subshell will succeed and continue
     (
-        atlas project delete "${clean_project_id}" --force || \
-        echo "Failed to delete project with ID ${clean_project_id}"
+        atlas project delete "${project_id}" --force || \
+        echo "Failed to delete project ${project_display}"
     )
 done
