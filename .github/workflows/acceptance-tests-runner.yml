@@ -99,6 +99,10 @@ env:
   TF_ACC: 1
   TF_LOG: ${{ vars.LOG_LEVEL }}
   ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
+  MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
+  MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
+  MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
+  MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
 
 jobs:  
   change-detection:
@@ -222,10 +226,6 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           TEST_REGEX: "^TestAccOutageSimulationCluster"
         run: make testacc
 
@@ -246,10 +246,6 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           TEST_REGEX: "^TestAccClusterAdvancedCluster"
         run: make testacc
 
@@ -270,10 +266,6 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           TEST_REGEX: "^TestAccClusterRS"
         run: make testacc
 
@@ -294,10 +286,6 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           TEST_REGEX: "^TestAccSearchDeployment"
         run: make testacc
 
@@ -318,10 +306,6 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           MONGODB_ATLAS_ENABLE_BETA: ${{ vars.MONGODB_ATLAS_ENABLE_BETA }}
           TEST_REGEX: "^TestAccStream"
         run: make testacc
@@ -343,10 +327,6 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
           CA_CERT: ${{ secrets.ca_cert }}
           TEST_REGEX: "^TestAccGeneric"
@@ -369,10 +349,6 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
           TEST_REGEX: "^TestAccBackup"
         run: make testacc
@@ -393,10 +369,6 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
           MONGODB_ATLAS_TEAMS_IDS: ${{ inputs.mongodb_atlas_teams_ids }}
           AWS_ACCOUNT_ID: ${{ secrets.aws_account_id }}
@@ -426,10 +398,6 @@ jobs:
           terraform_wrapper: false    
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           TEST_REGEX: "^TestAccServerless"
         run: make testacc
   network:
@@ -449,10 +417,6 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           AWS_ACCOUNT_ID: ${{ secrets.aws_account_id }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
@@ -480,10 +444,6 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
           MONGODB_ATLAS_USERNAME: ${{ inputs.mongodb_atlas_username }}
           AZURE_ATLAS_APP_ID: ${{ inputs.azure_atlas_app_id }}
@@ -518,8 +478,6 @@ jobs:
         run: bash ./scripts/generate-credentials-with-sts-assume-role.sh
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
           MONGODB_ATLAS_PUBLIC_KEY: ""
           MONGODB_ATLAS_PRIVATE_KEY: ""
           ASSUME_ROLE_ARN: ${{ vars.ASSUME_ROLE_ARN }}
@@ -549,10 +507,6 @@ jobs:
           terraform_wrapper: false    
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           TEST_REGEX: "^TestAccSearchIndex"
         run: make testacc
   
@@ -573,10 +527,6 @@ jobs:
           terraform_wrapper: false    
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}          
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           MONGODB_ATLAS_FEDERATION_SETTINGS_ID: ${{ inputs.mongodb_atlas_federation_settings_id }}
           MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID: ${{ inputs.mongodb_atlas_federated_okta_idp_id }}
           MONGODB_ATLAS_FEDERATED_IDP_ID: ${{ inputs.mongodb_atlas_federated_idp_id }}
@@ -607,10 +557,6 @@ jobs:
           terraform_wrapper: false    
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           TEST_REGEX: "^TestAccDataLake"
         run: make testacc
   ldap:
@@ -630,10 +576,6 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           MONGODB_ATLAS_LDAP_HOSTNAME: ${{ secrets.mongodb_atlas_ldap_hostname }}
           MONGODB_ATLAS_LDAP_USERNAME: ${{ secrets.mongodb_atlas_ldap_username }}
           MONGODB_ATLAS_LDAP_PASSWORD: ${{ secrets.mongodb_atlas_ldap_password }}
@@ -658,10 +600,6 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           TEST_REGEX: "^TestAccEncryption"
         run: make testacc
   event_trigger:
@@ -681,9 +619,5 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
           TEST_REGEX: "^TestAccEventTrigger"
         run: make testacc
