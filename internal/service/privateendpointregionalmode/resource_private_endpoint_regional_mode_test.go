@@ -46,7 +46,7 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_conn(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfigWithDependencies(resourceSuffix, projectID, false, dependencies),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName),
+					checkExists(resourceName),
 					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(projectID, clusterName, clusterResourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
@@ -56,7 +56,7 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_conn(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfigWithDependencies(resourceSuffix, projectID, true, dependencies),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName),
+					checkExists(resourceName),
 					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(projectID, clusterName, clusterResourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
@@ -83,7 +83,7 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(orgID, projectName, resourceSuffix, false),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
 				),
@@ -91,7 +91,7 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(orgID, projectName, resourceSuffix, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 				),
@@ -145,7 +145,7 @@ func testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(orgID, projectName, re
 	`, orgID, projectName, resourceName, enabled)
 }
 
-func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName string) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
