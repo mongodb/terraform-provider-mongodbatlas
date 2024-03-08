@@ -25,7 +25,10 @@ func TestAccStreamRSStreamInstance_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.StreamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider), // as of now there are no values that can be updated because only one region is supported
-				Check:  streamInstanceAttributeChecks(resourceName, orgID, projectName, instanceName, region, cloudProvider),
+				Check: resource.ComposeTestCheckFunc(
+					streamInstanceAttributeChecks(resourceName, instanceName, region, cloudProvider),
+					resource.TestCheckResourceAttr(resourceName, "stream_config.tier", "SP30"),
+				),
 			},
 			{
 				ResourceName:      resourceName,
@@ -37,7 +40,36 @@ func TestAccStreamRSStreamInstance_basic(t *testing.T) {
 	})
 }
 
-func streamInstanceAttributeChecks(resourceName, orgID, projectName, instanceName, region, cloudProvider string) resource.TestCheckFunc {
+func TestAccStreamRSStreamInstance_withStreamConfig(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_stream_instance.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acc.RandomProjectName()
+		instanceName = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyStreamInstance,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.StreamInstanceWithStreamConfigConfig(orgID, projectName, instanceName, region, cloudProvider), // as of now there are no values that can be updated because only one region is supported
+				Check: resource.ComposeTestCheckFunc(
+					streamInstanceAttributeChecks(resourceName, instanceName, region, cloudProvider),
+					resource.TestCheckResourceAttr(resourceName, "stream_config.tier", "SP30"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamInstanceImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func streamInstanceAttributeChecks(resourceName, instanceName, region, cloudProvider string) resource.TestCheckFunc {
 	resourceChecks := []resource.TestCheckFunc{
 		checkSearchInstanceExists(),
 		resource.TestCheckResourceAttrSet(resourceName, "id"),

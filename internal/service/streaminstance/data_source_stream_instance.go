@@ -60,6 +60,14 @@ func DSAttributes(withArguments bool) map[string]schema.Attribute {
 			ElementType: types.StringType,
 			Computed:    true,
 		},
+		"stream_config": schema.SingleNestedAttribute{
+			Computed: true,
+			Attributes: map[string]schema.Attribute{
+				"tier": schema.StringAttribute{
+					Computed: true,
+				},
+			},
+		},
 	}
 }
 

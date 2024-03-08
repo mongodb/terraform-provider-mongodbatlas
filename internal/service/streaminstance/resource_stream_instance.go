@@ -37,6 +37,7 @@ type TFStreamInstanceModel struct {
 	InstanceName      types.String `tfsdk:"instance_name"`
 	ProjectID         types.String `tfsdk:"project_id"`
 	DataProcessRegion types.Object `tfsdk:"data_process_region"`
+	StreamConfig      types.Object `tfsdk:"stream_config"`
 	Hostnames         types.List   `tfsdk:"hostnames"`
 }
 
@@ -45,9 +46,17 @@ type TFInstanceProcessRegionSpecModel struct {
 	Region        types.String `tfsdk:"region"`
 }
 
+type TFInstanceStreamConfigSpecModel struct {
+	Tier types.String `tfsdk:"tier"`
+}
+
 var ProcessRegionObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"cloud_provider": types.StringType,
 	"region":         types.StringType,
+}}
+
+var StreamConfigObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"tier": types.StringType,
 }}
 
 func (r *streamInstanceRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -82,6 +91,16 @@ func (r *streamInstanceRS) Schema(ctx context.Context, req resource.SchemaReques
 			"hostnames": schema.ListAttribute{
 				ElementType: types.StringType,
 				Computed:    true,
+			},
+			"stream_config": schema.SingleNestedAttribute{
+				Optional: true,
+				Computed: true,
+				Attributes: map[string]schema.Attribute{
+					"tier": schema.StringAttribute{
+						Optional: true,
+						Computed: true,
+					},
+				},
 			},
 		},
 	}

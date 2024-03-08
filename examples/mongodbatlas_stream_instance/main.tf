@@ -10,4 +10,7 @@ resource "mongodbatlas_stream_instance" "example" {
     region         = "VIRGINIA_USA"
     cloud_provider = "AWS"
   }
+  stream_config = {
+    tier = "SP30"
+  }
 }

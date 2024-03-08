@@ -27,7 +27,7 @@ func TestAccMigrationStreamRSStreamInstance_basic(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            acc.StreamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider),
-				Check:             streamInstanceAttributeChecks(resourceName, orgID, projectName, instanceName, region, cloudProvider),
+				Check:             streamInstanceAttributeChecks(resourceName, instanceName, region, cloudProvider),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
