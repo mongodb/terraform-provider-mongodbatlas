@@ -14,6 +14,8 @@ description: |-
 
 ## Example Usage
 
+### Export one snapshot
+
 ```terraform
 
 resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
@@ -35,6 +37,55 @@ resource "mongodbatlas_cloud_backup_snapshot_export_job" "test" {
   }
 }
 
+```
+
+### Create backup and automatic snapshot export policies
+
+```terraform
+
+resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "export" {
+  project_id   = "{PROJECT_ID}"
+  iam_role_id = "{IAM_ROLE_ID}"
+  bucket_name = "example_bucket"
+  cloud_provider = "AWS"
+}
+
+resource "mongodbatlas_cloud_backup_schedule" "backup" {
+  project_id   = "{PROJECT_ID}"
+  cluster_name = "{CLUSTER_NAME}"
+  auto_export_enabled = true
+  export {
+    export_bucket_id = mongodbatlas_cloud_backup_snapshot_export_bucket.export.export_bucket_id
+    frequency_type = "daily"
+  }
+  use_org_and_group_names_in_export_prefix = true
+
+  reference_hour_of_day    = 7
+  reference_minute_of_hour = 00
+  restore_window_days      = 5
+
+  policy_item_hourly {
+    frequency_interval = 6        #accepted values = 1, 2, 4, 6, 8, 12 -> every n hours
+    retention_unit     = "days"
+    retention_value    = 7
+  }
+  policy_item_daily {
+    frequency_interval = 1        #accepted values = 1 -> every 1 day
+    retention_unit     = "days"
+    retention_value    = 7
+  }
+  policy_item_weekly {
+    frequency_interval = 6        # accepted values = 1 to 7 -> every 1=Monday,2=Tuesday,3=Wednesday,4=Thursday,5=Friday,6=Saturday,7=Sunday day of the week
+    retention_unit     = "weeks"
+    retention_value    = 4
+  }
+  policy_item_monthly {
+    frequency_interval = 28        # accepted values = 1 to 28 -> 1 to 28 every nth day of the month  
+                                  # accepted values = 40 -> every last day of the month
+    retention_unit     = "months"
+    retention_value    = 12
+  } 
+}
 ```
 
 ## Argument Reference
