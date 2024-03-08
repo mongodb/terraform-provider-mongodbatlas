@@ -25,7 +25,7 @@ func NewStreamInstanceCreateReq(ctx context.Context, plan *TFStreamInstanceModel
 		},
 	}
 	if !plan.StreamConfig.IsNull() && !plan.StreamConfig.IsUnknown() {
-		streamConfig := &TFInstanceStreamConfigSpecModel{}
+		streamConfig := new(TFInstanceStreamConfigSpecModel)
 		if diags := plan.StreamConfig.As(ctx, streamConfig, basetypes.ObjectAsOptions{}); diags.HasError() {
 			return nil, diags
 		}
