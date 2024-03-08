@@ -54,6 +54,9 @@ jobs:
       mongodb_atlas_ldap_password: ${{ secrets.MONGODB_ATLAS_LDAP_PASSWORD }}
       mongodb_atlas_ldap_port: ${{ secrets.MONGODB_ATLAS_LDAP_PORT }}
       mongodb_atlas_ldap_ca_certificate: ${{ secrets.MONGODB_ATLAS_LDAP_CA_CERTIFICATE }}
+      mongodb_atlas_private_endpoint_id: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_CLOUD_QA || secrets.MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_CLOUD_DEV }}
+      mongodb_atlas_private_endpoint_dns_name: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME_CLOUD_QA || secrets.MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME_CLOUD_DEV }}
+
     with:
       terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
       ref: ${{ inputs.ref }}

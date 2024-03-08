@@ -94,7 +94,11 @@ on:
         required: true
       mongodb_atlas_ldap_ca_certificate:
         required: true
-    
+      mongodb_atlas_private_endpoint_id:
+        required: true
+      mongodb_atlas_private_endpoint_dns_name:
+        required: true
+          
 env:
   TF_ACC: 1
   TF_LOG: ${{ vars.LOG_LEVEL }}
@@ -417,6 +421,8 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
+          MONGODB_ATLAS_PRIVATE_ENDPOINT_ID: ${{ secrets.mongodb_atlas_private_endpoint_id }}
+          MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME: ${{ secrets.mongodb_atlas_private_endpoint_dns_name }}      
           AWS_ACCOUNT_ID: ${{ secrets.aws_account_id }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
