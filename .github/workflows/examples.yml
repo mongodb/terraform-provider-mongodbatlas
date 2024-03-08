@@ -41,7 +41,7 @@ jobs:
         run: grep --include=\*versions.tf -rnl './examples' -e 'source  = "mongodb/mongodbatlas"' | xargs sed -i s@mongodb/mongodbatlas@hashicorp/mongodbatlas-dev@g
       - name: remove version of provider for local development
         run: grep --include=\*versions.tf -rnl './examples' -e 'version =' | xargs sed -i '/^\s*version =/d'
-      - name: Fix format after sostitutions
+      - name: Fix format after substitutions
         run: grep --include=\*versions.tf -rnl './examples' -e 'source[[:space:]]\+=' | xargs sed -i 's@\(\([[:space:]]*\)source\)[[:space:]]\+=[[:space:]]*@\2source = @g'
       - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
