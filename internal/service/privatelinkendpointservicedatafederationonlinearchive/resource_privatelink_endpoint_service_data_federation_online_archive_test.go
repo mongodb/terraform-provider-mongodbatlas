@@ -13,9 +13,12 @@ import (
 )
 
 var (
-	resourceName = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
-	projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	endpointID   = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+	resourceName            = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
+	projectID               = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	endpointID              = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+	customerEndpointDNSName = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME")
+	comment                 = "Terraform Acceptance Test"
+	atlasRegion             = "US_EAST_1"
 )
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
@@ -27,12 +30,86 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceConfigBasic(projectID, endpointID),
+				Config: resourceConfigBasic(projectID, endpointID, comment),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttrSet(resourceName, "comment"),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+					resource.TestCheckResourceAttrSet(resourceName, "type"),
+					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateComment(t *testing.T) {
+	// Skip because private endpoints are deleted daily from dev environment
+	acc.SkipTestForCI(t)
+	commentUpdated := "Terraform Acceptance Test Updated"
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceConfigBasic(projectID, endpointID, comment),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+					resource.TestCheckResourceAttrSet(resourceName, "type"),
+					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
+				),
+			},
+			{
+				Config: resourceConfigBasic(projectID, endpointID, commentUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
+					resource.TestCheckResourceAttr(resourceName, "comment", commentUpdated),
+					resource.TestCheckResourceAttrSet(resourceName, "type"),
+					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
+				),
+			},
+			{
+				Config: resourceConfigBasic(projectID, endpointID, ""),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
+					resource.TestCheckResourceAttr(resourceName, "comment", ""),
+				),
+			},
+		},
+	})
+}
+
+func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basicWithRegionDnsName(t *testing.T) {
+	// Skip because private endpoints are deleted daily from dev environment
+	acc.SkipTestForCI(t)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceConfigBasicWithRegionDNSName(projectID, endpointID, comment),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
+					resource.TestCheckResourceAttr(resourceName, "comment", "Terraform Acceptance Test"),
+					resource.TestCheckResourceAttr(resourceName, "region", atlasRegion),
+					resource.TestCheckResourceAttr(resourceName, "customer_endpoint_dns_name", customerEndpointDNSName),
 					resource.TestCheckResourceAttrSet(resourceName, "type"),
 					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
 				),
@@ -92,13 +169,26 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func resourceConfigBasic(projectID, endpointID string) string {
+func resourceConfigBasic(projectID, endpointID, comment string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
 	  project_id				= %[1]q
 	  endpoint_id				= %[2]q
 	  provider_name				= "AWS"
-	  comment					= "Terraform Acceptance Test"
+	  comment					= %[3]q
 	}
-	`, projectID, endpointID)
+	`, projectID, endpointID, comment)
+}
+
+func resourceConfigBasicWithRegionDNSName(projectID, endpointID, comment string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
+	  project_id					= %[1]q
+	  endpoint_id					= %[2]q
+	  provider_name					= "AWS"
+	  comment						= %[3]q
+	  region						= "US_EAST_1"
+	  customer_endpoint_dns_name 	= %[4]q
+	}
+	`, projectID, endpointID, comment, customerEndpointDNSName)
 }

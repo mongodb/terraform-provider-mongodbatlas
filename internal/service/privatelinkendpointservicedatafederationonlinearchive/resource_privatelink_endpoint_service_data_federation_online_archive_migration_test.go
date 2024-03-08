@@ -18,7 +18,7 @@ func TestAccMigrationNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiv
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            resourceConfigBasic(projectID, endpointID),
+				Config:            resourceConfigBasic(projectID, endpointID, comment),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -30,7 +30,7 @@ func TestAccMigrationNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiv
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   resourceConfigBasic(projectID, endpointID),
+				Config:                   resourceConfigBasic(projectID, endpointID, comment),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),

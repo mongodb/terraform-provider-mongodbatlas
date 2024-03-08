@@ -43,6 +43,14 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"region": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"customer_endpoint_dns_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -77,10 +85,12 @@ func flattenPrivateLinkEndpointDataLakeResponse(atlasPrivateLinkEndpointDataLake
 
 	for i, atlasPrivateLinkEndpointDataLake := range atlasPrivateLinkEndpointDataLakes {
 		results[i] = map[string]any{
-			"endpoint_id":   atlasPrivateLinkEndpointDataLake.GetEndpointId(),
-			"provider_name": atlasPrivateLinkEndpointDataLake.GetProvider(),
-			"comment":       atlasPrivateLinkEndpointDataLake.GetComment(),
-			"type":          atlasPrivateLinkEndpointDataLake.GetType(),
+			"endpoint_id":                atlasPrivateLinkEndpointDataLake.GetEndpointId(),
+			"provider_name":              atlasPrivateLinkEndpointDataLake.GetProvider(),
+			"comment":                    atlasPrivateLinkEndpointDataLake.GetComment(),
+			"type":                       atlasPrivateLinkEndpointDataLake.GetType(),
+			"region":                     atlasPrivateLinkEndpointDataLake.GetRegion(),
+			"customer_endpoint_dns_name": atlasPrivateLinkEndpointDataLake.GetCustomerEndpointDNSName(),
 		}
 	}
 

@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
 	"go.mongodb.org/atlas-sdk/v20231115007/admin"
@@ -264,13 +265,13 @@ func Resource() *schema.Resource {
 									"provider_name": {
 										Type:             schema.TypeString,
 										Required:         true,
-										ValidateDiagFunc: StringIsUppercase(),
+										ValidateDiagFunc: validate.StringIsUppercase(),
 									},
 									"read_only_specs": schemaSpecs(),
 									"region_name": {
 										Type:             schema.TypeString,
 										Required:         true,
-										ValidateDiagFunc: StringIsUppercase(),
+										ValidateDiagFunc: validate.StringIsUppercase(),
 									},
 								},
 							},
