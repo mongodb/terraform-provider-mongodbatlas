@@ -244,8 +244,9 @@ func PreCheckFederatedSettings(tb testing.TB) {
 
 func PreCheckPrivateEndpoint(tb testing.TB) {
 	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID") == "" {
-		tb.Fatal("`MONGODB_ATLAS_PRIVATE_ENDPOINT_ID` must be set for Private Endpoint Service Data Federation and Online Archive acceptance testing")
+	if os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID") == "" ||
+		os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME") == "" {
+		tb.Fatal("`MONGODB_ATLAS_PRIVATE_ENDPOINT_ID` and `MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME`must be set for Private Endpoint Service Data Federation and Online Archive acceptance testing")
 	}
 	PreCheck(tb)
 }

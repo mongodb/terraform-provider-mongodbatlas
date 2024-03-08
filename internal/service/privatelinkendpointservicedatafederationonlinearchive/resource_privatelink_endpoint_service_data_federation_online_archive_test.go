@@ -13,15 +13,17 @@ import (
 )
 
 var (
-	resourceName            = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
-	projectID               = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	endpointID              = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
-	customerEndpointDNSName = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME")
-	comment                 = "Terraform Acceptance Test"
-	atlasRegion             = "US_EAST_1"
+	resourceName = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
+	comment      = "Terraform Acceptance Test"
+	atlasRegion  = "US_EAST_1"
 )
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
+	var (
+		projectID  = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		endpointID = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+	)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckPrivateEndpoint(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -48,9 +50,13 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t
 	})
 }
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateComment(t *testing.T) {
-	// Skip because private endpoints are deleted daily from dev environment
-	acc.SkipTestForCI(t)
-	commentUpdated := "Terraform Acceptance Test Updated"
+	acc.SkipTestForCI(t) // Skip because private endpoints are deleted daily from dev environment
+	var (
+		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		endpointID     = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+		commentUpdated = "Terraform Acceptance Test Updated"
+	)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckPrivateEndpoint(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -92,15 +98,20 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateC
 }
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basicWithRegionDnsName(t *testing.T) {
-	// Skip because private endpoints are deleted daily from dev environment
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // Skip because private endpoints are deleted daily from dev environment
+	var (
+		projectID               = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		endpointID              = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+		customerEndpointDNSName = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME")
+	)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckPrivateEndpoint(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceConfigBasicWithRegionDNSName(projectID, endpointID, comment),
+				Config: resourceConfigBasicWithRegionDNSName(projectID, endpointID, comment, customerEndpointDNSName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -178,7 +189,7 @@ func resourceConfigBasic(projectID, endpointID, comment string) string {
 	`, projectID, endpointID, comment)
 }
 
-func resourceConfigBasicWithRegionDNSName(projectID, endpointID, comment string) string {
+func resourceConfigBasicWithRegionDNSName(projectID, endpointID, comment, customerEndpointDNSName string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
 	  project_id					= %[1]q

@@ -1,6 +1,7 @@
 package privatelinkendpointservicedatafederationonlinearchive_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -10,8 +11,12 @@ import (
 )
 
 func TestAccMigrationNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
-	// Skip because private endpoints are deleted daily from dev environment
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // Skip because private endpoints are deleted daily from dev environment
+	var (
+		projectID  = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		endpointID = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+	)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckPrivateEndpoint(t) },
 		CheckDestroy: checkDestroy,
