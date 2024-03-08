@@ -127,6 +127,7 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 
 ### Available complete examples
 - [Restore from backup snapshot at point in time](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_snapshot_restore_job/point-in-time)
+- [Restore from backup snapshot using an advanced cluster resource](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_snapshot_restore_job/point-in-time-advanced-cluster)
 
 ## Argument Reference
 
