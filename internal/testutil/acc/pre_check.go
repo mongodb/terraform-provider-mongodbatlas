@@ -248,7 +248,7 @@ func PreCheckPrivateEndpoint(tb testing.TB) {
 		os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME") == "" {
 		tb.Fatal("`MONGODB_ATLAS_PRIVATE_ENDPOINT_ID` and `MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME`must be set for Private Endpoint Service Data Federation and Online Archive acceptance testing")
 	}
-	PreCheck(tb)
+	PreCheckBasic(tb)
 }
 
 func PreCheckS3Bucket(tb testing.TB) {

@@ -14,9 +14,8 @@ var (
 )
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchivesDSPlural_basic(t *testing.T) {
-	acc.SkipTestForCI(t) // Skip because private endpoints are deleted daily from dev environment
 	var (
-		projectID  = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID  = acc.ProjectIDPrivateEndpoint(t)
 		endpointID = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
 	)
 
