@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -31,21 +32,14 @@ func TestAccMigrationProjectAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "ip_address", ipAddress),
 				),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configWithIPAddress(orgID, description, ipAddress),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(configWithIPAddress(orgID, description, ipAddress)),
 		},
 	})
 }
 
 func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock(t *testing.T) {
+	mig.SkipIfVersionBelow(t, "1.14.0")
+
 	var (
 		resourceName = "mongodbatlas_access_list_api_key.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -76,21 +70,14 @@ func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock(t *testing.T) {
 					},
 				},
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configWithCIDRBlock(orgID, description, cidrBlock),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(configWithCIDRBlock(orgID, description, cidrBlock)),
 		},
 	})
 }
 
 func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock_WideCIDR_SDKMigration(t *testing.T) {
+	mig.SkipIfVersionBelow(t, "1.14.0")
+
 	var (
 		resourceName = "mongodbatlas_access_list_api_key.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -111,16 +98,7 @@ func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock_WideCIDR_SDKMigrat
 					resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),
 				),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configWithCIDRBlock(orgID, description, cidrBlock),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(configWithCIDRBlock(orgID, description, cidrBlock)),
 		},
 	})
 }
