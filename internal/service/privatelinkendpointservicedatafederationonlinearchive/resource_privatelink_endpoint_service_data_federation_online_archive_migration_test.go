@@ -13,7 +13,7 @@ func TestAccMigrationNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiv
 	// Skip because private endpoints are deleted daily from dev environment
 	acc.SkipTestForCI(t)
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t) },
+		PreCheck:     func() { mig.PreCheckPrivateEndpoint(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{

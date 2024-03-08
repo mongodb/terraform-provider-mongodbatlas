@@ -16,7 +16,7 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchivesDSPlura
 	// Skip because private endpoints are deleted daily from dev environment
 	acc.SkipTestForCI(t)
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t) },
+		PreCheck:                 func() { acc.PreCheckPrivateEndpoint(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{

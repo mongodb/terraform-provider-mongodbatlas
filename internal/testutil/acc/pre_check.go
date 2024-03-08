@@ -242,11 +242,12 @@ func PreCheckFederatedSettings(tb testing.TB) {
 	}
 }
 
-func PreCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(tb testing.TB) {
+func PreCheckPrivateEndpoint(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID") == "" {
 		tb.Fatal("`MONGODB_ATLAS_PRIVATE_ENDPOINT_ID` must be set for Private Endpoint Service Data Federation and Online Archive acceptance testing")
 	}
+	PreCheck(tb)
 }
 
 func PreCheckS3Bucket(tb testing.TB) {
