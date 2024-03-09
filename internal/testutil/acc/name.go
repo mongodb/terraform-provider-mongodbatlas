@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -50,6 +50,6 @@ func projectID(tb testing.TB, name string) string {
 	tb.Helper()
 	resp, _, _ := ConnV2().ProjectsApi.GetProjectByName(context.Background(), name).Execute()
 	id := resp.GetId()
-	assert.NotNil(tb, id)
+	require.NotEmpty(tb, id)
 	return id
 }
