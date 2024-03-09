@@ -48,6 +48,7 @@ func ProjectIDGlobal(tb testing.TB) string {
 
 func projectID(tb testing.TB, name string) string {
 	tb.Helper()
+	SkipInUnitTest(tb)
 	resp, _, _ := ConnV2().ProjectsApi.GetProjectByName(context.Background(), name).Execute()
 	id := resp.GetId()
 	require.NotEmpty(tb, id)
