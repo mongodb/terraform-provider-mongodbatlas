@@ -15,7 +15,7 @@ var (
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchivesDSPlural_basic(t *testing.T) {
 	var (
-		projectID  = acc.ProjectIDPrivateEndpoint(t)
+		projectID  = acc.ProjectIDGlobal(t)
 		endpointID = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
 	)
 

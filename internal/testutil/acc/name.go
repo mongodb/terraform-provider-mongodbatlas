@@ -12,7 +12,7 @@ import (
 const (
 	prefixName        = "test-acc-tf"
 	prefixProject     = prefixName + "-p"
-	prefixProjectKeep = prefixProject + "-keep-"
+	prefixProjectKeep = prefixProject + "-keep"
 	prefixCluster     = prefixName + "-c"
 	prefixIAMRole     = "mongodb-atlas-" + prefixName
 )
@@ -41,9 +41,9 @@ func RandomEmail() string {
 	return fmt.Sprintf("%s-%s@mongodb.com", prefixName, acctest.RandString(10))
 }
 
-func ProjectIDPrivateEndpoint(tb testing.TB) string {
+func ProjectIDGlobal(tb testing.TB) string {
 	tb.Helper()
-	return projectID(tb, prefixProjectKeep+"private-endpoint")
+	return projectID(tb, prefixProjectKeep+"-global")
 }
 
 func projectID(tb testing.TB, name string) string {
