@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-    - name: Cache Go
+    - name: Cache Go Build
       uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319
       with:
         path: |
@@ -51,7 +51,7 @@ jobs:
       pull-requests: write # Permission is required to use sticky-pull-request-comment. See https://github.com/marocchino/sticky-pull-request-comment?tab=readme-ov-file#error-resource-not-accessible-by-integration
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-      - name: Cache Go
+      - name: Cache Go Unit Test
         uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319
         with:
           path: |
