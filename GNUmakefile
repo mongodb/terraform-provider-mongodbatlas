@@ -1,4 +1,3 @@
-TEST?=$$(go list ./...)
 ACCTEST_TIMEOUT?=300m
 PARALLEL_GO_TEST?=20
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
@@ -35,17 +34,17 @@ install: fmtcheck
 
 .PHONY: test
 test: fmtcheck
-	go test $(TEST) -timeout=30s -parallel=4 -race -covermode=atomic -coverprofile=coverage.out
+	go test ./... -timeout=30s -parallel=4 -race
 
 .PHONY: testacc
 testacc: fmtcheck
 	@$(eval VERSION=acc)
-	TF_ACC=1 go test $(TEST) -run '$(TEST_REGEX)' -v -parallel '$(PARALLEL_GO_TEST)' $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -cover -ldflags="$(LINKER_FLAGS)"
+	TF_ACC=1 go test ./... -run '$(TEST_REGEX)' -v -parallel '$(PARALLEL_GO_TEST)' $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
 
 .PHONY: testaccgov
 testaccgov: fmtcheck
 	@$(eval VERSION=acc)
-	TF_ACC=1 go test $(TEST) -run 'TestAccProjectRSGovProject_CreateWithProjectOwner' -v -parallel 1 "$(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -cover -ldflags=$(LINKER_FLAGS) "
+	TF_ACC=1 go test ./... -run 'TestAccProjectRSGovProject_CreateWithProjectOwner' -v -parallel 1 "$(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags=$(LINKER_FLAGS) "
 
 .PHONY: fmt
 fmt:
