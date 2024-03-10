@@ -44,36 +44,8 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-
-      - name: Cache Go modules
-        uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
-      - name: Install dependencies
-        run: go mod download
-
-      - name: Cache test results
-        uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319
-        with:
-          path: ~/go/test-cache
-          key: ${{ runner.os }}-go-test-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-test-
-
-
       - name: Unit Test
         run: make test
-
-      - name: Save test cache
-        uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319
-        with:
-          path: ~/go/test-cache
-          key: ${{ runner.os }}-go-test-${{ hashFiles('**/go.sum') }}
-
   lint:
     runs-on: ubuntu-latest
     steps:
