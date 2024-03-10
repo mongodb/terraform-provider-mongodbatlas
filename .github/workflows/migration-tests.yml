@@ -59,13 +59,13 @@ jobs:
       mustTrigger: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_group == '')  }}
     outputs:
       project: ${{ steps.filter.outputs.project == 'true' || env.mustTrigger == 'true' }}
-      config: ${{ steps.filter.outputs.config == 'true' || env.mustTrigger == 'true' }}
+      config: true #### TEMPORARY, WILL BE REVERTED BEFORE MERGING
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
       backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
       federated: ${{ steps.filter.outputs.federated == 'true' || env.mustTrigger == 'true' }}
       search_deployment: ${{ steps.filter.outputs.search_deployment == 'true' || env.mustTrigger == 'true' }}
-      generic: ${{ steps.filter.outputs.generic == 'true' || env.mustTrigger == 'true' }}
+      generic: true #### TEMPORARY, WILL BE REVERTED BEFORE MERGING
       network: ${{ steps.filter.outputs.network == 'true' || env.mustTrigger == 'true' }}
       encryption: ${{ steps.filter.outputs.encryption == 'true' || env.mustTrigger == 'true' }}
       serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
