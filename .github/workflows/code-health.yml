@@ -46,7 +46,6 @@ jobs:
     - name: Build
       run: make build
   unit-test:
-    needs: build
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write # Permission is required to use sticky-pull-request-comment. See https://github.com/marocchino/sticky-pull-request-comment?tab=readme-ov-file#error-resource-not-accessible-by-integration
