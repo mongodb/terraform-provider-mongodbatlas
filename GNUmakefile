@@ -80,13 +80,6 @@ tools:  ## Install dev tools
 	go install github.com/hashicorp/terraform-plugin-codegen-framework/cmd/tfplugingen-framework@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
 
-.PHONY: check
-check: test lint
-
-.PHONY: test-compile
-test-compile:
-	go test -c $(TEST) $(TESTARGS)
-
 .PHONY: website-lint
 website-lint:
 	@echo "==> Checking website against linters..."
