@@ -17,19 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-    - name: Cache Go Build
-      uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319
-      with:
-        path: |
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-build-
     - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
       with:
         go-version-file: 'go.mod'
-        cache: false
     - name: Mock generation
       run: make tools generate-mocks
     - name: Check for uncommited files
