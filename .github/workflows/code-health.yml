@@ -17,9 +17,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+    - name: Cache Go
+      uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-build-
     - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
       with:
         go-version-file: 'go.mod'
+        cache: false
     - name: Mock generation
       run: make tools generate-mocks
     - name: Check for uncommited files
@@ -36,25 +46,25 @@ jobs:
     - name: Build
       run: make build
   unit-test:
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write # Permission is required to use sticky-pull-request-comment. See https://github.com/marocchino/sticky-pull-request-comment?tab=readme-ov-file#error-resource-not-accessible-by-integration
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-
       - name: Cache Go
         uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319
         with:
           path: |
             ~/.cache/go-build
             ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-go-
-        
+            ${{ runner.os }}-go-build-
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
+          cache: false
       - name: Unit Test
         run: make test
   lint:
