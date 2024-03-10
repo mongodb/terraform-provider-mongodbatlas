@@ -160,7 +160,6 @@ func TestFlattenRoleAssignments(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := federatedsettingsidentityprovider.FlattenRoleAssignments(tc.input)
 			assert.Equal(t, tc.output, resultModel)
-			assert.Equal(t, tc.output, resultModel) // TEMPORARY
 		})
 	}
 }
