@@ -1,13 +1,10 @@
 ACCTEST_TIMEOUT?=300m
 PARALLEL_GO_TEST?=20
-GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 
 BINARY_NAME=terraform-provider-mongodbatlas
 DESTINATION=./bin/$(BINARY_NAME)
 
 GOFLAGS=-mod=vendor
-GOOPTS="-p 2"
-
 GITTAG=$(shell git describe --always --tags)
 VERSION=$(GITTAG:v%=%)
 LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
