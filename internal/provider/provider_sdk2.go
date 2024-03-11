@@ -62,6 +62,7 @@ import (
 )
 
 var (
+	ProviderEnableBeta, _    = strconv.ParseBool(os.Getenv("MONGODB_ATLAS_ENABLE_BETA"))
 	ProviderEnablePreview, _ = strconv.ParseBool(os.Getenv("MONGODB_ATLAS_ENABLE_PREVIEW"))
 )
 
