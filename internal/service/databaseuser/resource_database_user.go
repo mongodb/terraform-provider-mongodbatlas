@@ -278,6 +278,8 @@ func (r *databaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
+	resp.Diagnostics.AddWarning("If the password value will be managed externally, it is advised to remove the attribute", "More details can be found in resource documentation under the 'password' attribute")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &dbUserModel)...)
 	if resp.Diagnostics.HasError() {
 		return
