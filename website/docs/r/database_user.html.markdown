@@ -14,6 +14,8 @@ Each user has a set of roles that provide access to the project’s databases. U
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
+~> **WARNING:** The password argument is required for creation but should be removed after creation if it will be managed externally. More details can be found in the password argument documentation.
+
 ~> **IMPORTANT:** All arguments including the password will be stored in the raw state as plain-text. [Read more about sensitive data in state.](https://www.terraform.io/docs/state/sensitive-data.html)
 
 ## Example Usages
