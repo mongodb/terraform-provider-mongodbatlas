@@ -34,7 +34,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
@@ -294,9 +293,25 @@ func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *co
 	return &assumeRole
 }
 
+func isBaseURLConfigured(baseURL string) bool {
+	if baseURL == "" {
+		baseURL = MultiEnvDefaultFunc([]string{
+			"MONGODB_ATLAS_BASE_URL",
+			"MCLI_OPS_MANAGER_URL",
+		}, "").(string)
+	}
+	return baseURL != ""
+}
+
+func isBaseURLConfiguredForProvider(data *tfMongodbAtlasProviderModel) bool {
+	return isBaseURLConfigured(data.BaseURL.ValueString())
+}
+
 func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasProviderModel, resp *provider.ConfigureResponse) tfMongodbAtlasProviderModel {
 	if mongodbgovCloud := data.IsMongodbGovCloud.ValueBool(); mongodbgovCloud {
-		data.BaseURL = types.StringValue(MongodbGovCloudURL)
+		if !isBaseURLConfiguredForProvider(data) {
+			data.BaseURL = types.StringValue(MongodbGovCloudURL)
+		}
 	}
 	if data.BaseURL.ValueString() == "" {
 		data.BaseURL = types.StringValue(MultiEnvDefaultFunc([]string{
