@@ -24,7 +24,7 @@ description: |-
 
 ## Example Usage
 
-### Example automated delivery type.
+### Example automated delivery type
 
 ```terraform
   resource "mongodbatlas_cluster" "my_cluster" {
@@ -57,7 +57,7 @@ description: |-
   }
 ```
 
-### Example download delivery type.
+### Example download delivery type
 
 ```terraform
   resource "mongodbatlas_cluster" "my_cluster" {
