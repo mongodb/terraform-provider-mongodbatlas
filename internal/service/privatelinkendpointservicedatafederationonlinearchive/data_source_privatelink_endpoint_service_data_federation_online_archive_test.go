@@ -2,6 +2,7 @@ package privatelinkendpointservicedatafederationonlinearchive_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -13,15 +14,19 @@ var (
 )
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_basic(t *testing.T) {
-	// Skip because private endpoints are deleted daily from dev environment
-	acc.SkipTestForCI(t)
+	var (
+		projectID               = acc.ProjectIDGlobal(t)
+		endpointID              = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+		customerEndpointDNSName = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME")
+	)
+
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t) },
+		PreCheck:                 func() { acc.PreCheckPrivateEndpoint(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourcesConfigBasic(projectID, endpointID),
+				Config: dataSourcesConfigBasic(projectID, endpointID, customerEndpointDNSName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchive, "project_id", projectID),
@@ -37,7 +42,7 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_basic
 	})
 }
 
-func dataSourcesConfigBasic(projectID, endpointID string) string {
+func dataSourcesConfigBasic(projectID, endpointID, customerEndpointDNSName string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
 	  project_id					= %[1]q

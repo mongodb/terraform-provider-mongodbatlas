@@ -97,7 +97,7 @@ func PreCheckGov(tb testing.TB) {
 		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_PROJECT_ID_GOV") == "" ||
 		os.Getenv("MONGODB_ATLAS_ORG_ID_GOV") == "" {
-		tb.Skip()
+		tb.Fatal("`MONGODB_ATLAS_PUBLIC_KEY`, `MONGODB_ATLAS_PRIVATE_KEY`, `MONGODB_ATLAS_PROJECT_ID_GOV` and `MONGODB_ATLAS_ORG_ID_GOV` must be set for acceptance testing")
 	}
 }
 
@@ -202,7 +202,7 @@ func PreCheckSTSAssumeRole(tb testing.TB) {
 func PreCheckDataLakePipelineRun(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_DATA_LAKE_PIPELINE_RUN_ID") == "" {
-		tb.Skip("`MONGODB_ATLAS_DATA_LAKE_PIPELINE_RUN_ID` must be set for Projects acceptance testing")
+		tb.Fatal("`MONGODB_ATLAS_DATA_LAKE_PIPELINE_RUN_ID` must be set for Projects acceptance testing")
 	}
 	PreCheckDataLakePipelineRuns(tb)
 }
@@ -210,7 +210,7 @@ func PreCheckDataLakePipelineRun(tb testing.TB) {
 func PreCheckDataLakePipelineRuns(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME") == "" {
-		tb.Skip("`MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME` must be set for Projects acceptance testing")
+		tb.Fatal("`MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME` must be set for Projects acceptance testing")
 	}
 	PreCheck(tb)
 }
@@ -242,11 +242,13 @@ func PreCheckFederatedSettings(tb testing.TB) {
 	}
 }
 
-func PreCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(tb testing.TB) {
+func PreCheckPrivateEndpoint(tb testing.TB) {
 	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID") == "" {
-		tb.Skip("`MONGODB_ATLAS_PRIVATE_ENDPOINT_ID` must be set for Private Endpoint Service Data Federation and Online Archive acceptance testing")
+	if os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID") == "" ||
+		os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME") == "" {
+		tb.Fatal("`MONGODB_ATLAS_PRIVATE_ENDPOINT_ID` and `MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME`must be set for Private Endpoint Service Data Federation and Online Archive acceptance testing")
 	}
+	PreCheckBasic(tb)
 }
 
 func PreCheckS3Bucket(tb testing.TB) {

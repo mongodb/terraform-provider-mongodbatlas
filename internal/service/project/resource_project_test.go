@@ -589,6 +589,7 @@ func TestAccProjectRSProject_withProjectOwner(t *testing.T) {
 }
 
 func TestAccProjectRSGovProject_withProjectOwner(t *testing.T) {
+	acc.SkipTestForCI(t) // Gov test config not set
 	var (
 		group          admin.Group
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID_GOV")
