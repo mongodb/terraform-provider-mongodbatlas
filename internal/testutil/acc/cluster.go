@@ -63,7 +63,7 @@ func GetClusterInfo(tb testing.TB, req *ClusterRequest) ClusterInfo {
 				num_shards = 1
 				zone_name  = "Zone 1"
 				regions_config {
-					region_name     = "US_WEST_2"
+					region_name     = "US_EAST_1"
 					electable_nodes = 3
 					priority        = 7
 					read_only_nodes = 0
