@@ -38,7 +38,7 @@ func TestAccMigrationProjectAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 }
 
 func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock(t *testing.T) {
-	mig.SkipIfVersionBelow(t, "1.14.0")
+	mig.SkipIfVersionBelow(t, "1.14.0") // 1.14.0 is the version when this resource was migrated to the new Atlas SDK
 
 	var (
 		resourceName = "mongodbatlas_access_list_api_key.test"
@@ -52,7 +52,7 @@ func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock(t *testing.T) {
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: acc.ExternalProviders("1.14.0"), // testing provider version before this resource was migrated to Atlas SDK
+				ExternalProviders: acc.ExternalProviders("1.14.0"),
 				Config:            configWithCIDRBlock(orgID, description, cidrBlock),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
@@ -76,7 +76,7 @@ func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock(t *testing.T) {
 }
 
 func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock_WideCIDR_SDKMigration(t *testing.T) {
-	mig.SkipIfVersionBelow(t, "1.14.0")
+	mig.SkipIfVersionBelow(t, "1.14.0") // 1.14.0 is the version when this resource was migrated to the new Atlas SDK
 
 	var (
 		resourceName = "mongodbatlas_access_list_api_key.test"
@@ -90,7 +90,7 @@ func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock_WideCIDR_SDKMigrat
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: acc.ExternalProviders("1.14.0"), // testing provider version before this resource was migrated to Atlas SDK
+				ExternalProviders: acc.ExternalProviders("1.14.0"),
 				Config:            configWithCIDRBlock(orgID, description, cidrBlock),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
