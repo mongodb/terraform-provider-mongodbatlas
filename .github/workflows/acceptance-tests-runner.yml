@@ -96,6 +96,7 @@ on:
         required: true
     
 env:
+  TF_ACC: 1
   TF_LOG: ${{ vars.LOG_LEVEL }}
   ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
   MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
