@@ -97,38 +97,45 @@ func TestNewMongoDBDatabaseUser(t *testing.T) {
 	}{
 		{
 			name:                "CloudDatabaseUser for create",
-			tfDatabaseUserModel: *getDatabaseUserModel(rolesSet, labelsSet, scopesSet),
+			tfDatabaseUserModel: *getDatabaseUserModel(rolesSet, labelsSet, scopesSet, types.StringValue(password)),
 			passwordStateValue:  types.StringNull(),
 			expectedResult:      cloudDatabaseUser,
 			expectedError:       false,
 		},
 		{
-			name:                "CloudDatabaseUser with new password in model as value is modified",
-			tfDatabaseUserModel: *getDatabaseUserModel(rolesSet, labelsSet, scopesSet),
+			name:                "CloudDatabaseUser with new password in model when password value is modified",
+			tfDatabaseUserModel: *getDatabaseUserModel(rolesSet, labelsSet, scopesSet, types.StringValue(password)),
 			passwordStateValue:  types.StringValue("oldPassword"),
 			expectedResult:      cloudDatabaseUser,
 			expectedError:       false,
 		},
 		{
-			name:                "CloudDatabaseUser with no password in model as value remains the same",
-			tfDatabaseUserModel: *getDatabaseUserModel(rolesSet, labelsSet, scopesSet),
+			name:                "CloudDatabaseUser with no password in model when password value remains the same",
+			tfDatabaseUserModel: *getDatabaseUserModel(rolesSet, labelsSet, scopesSet, types.StringValue(password)),
+			passwordStateValue:  types.StringValue(password),
+			expectedResult:      cloudDatabaseUserWithoutPassword,
+			expectedError:       false,
+		},
+		{
+			name:                "CloudDatabaseUser with no password in model when password value is removed",
+			tfDatabaseUserModel: *getDatabaseUserModel(rolesSet, labelsSet, scopesSet, types.StringNull()),
 			passwordStateValue:  types.StringValue(password),
 			expectedResult:      cloudDatabaseUserWithoutPassword,
 			expectedError:       false,
 		},
 		{
 			name:                "Roles fail",
-			tfDatabaseUserModel: *getDatabaseUserModel(wrongRoleSet, labelsSet, scopesSet),
+			tfDatabaseUserModel: *getDatabaseUserModel(wrongRoleSet, labelsSet, scopesSet, types.StringValue(password)),
 			expectedError:       true,
 		},
 		{
 			name:                "Labels fail",
-			tfDatabaseUserModel: *getDatabaseUserModel(rolesSet, wrongLabelSet, scopesSet),
+			tfDatabaseUserModel: *getDatabaseUserModel(rolesSet, wrongLabelSet, scopesSet, types.StringValue(password)),
 			expectedError:       true,
 		},
 		{
 			name:                "Scopes fail",
-			tfDatabaseUserModel: *getDatabaseUserModel(rolesSet, labelsSet, wrongScopeSet),
+			tfDatabaseUserModel: *getDatabaseUserModel(rolesSet, labelsSet, wrongScopeSet, types.StringValue(password)),
 			expectedError:       true,
 		},
 	}
@@ -157,7 +164,7 @@ func TestNewTfDatabaseUserModel(t *testing.T) {
 			name:            "Success TfDatabaseUserModel",
 			sdkDatabaseUser: cloudDatabaseUser,
 			currentModel:    databaseuser.TfDatabaseUserModel{Password: types.StringValue(password)},
-			expectedResult:  getDatabaseUserModel(rolesSet, labelsSet, scopesSet),
+			expectedResult:  getDatabaseUserModel(rolesSet, labelsSet, scopesSet, types.StringValue(password)),
 			expectedError:   false,
 		},
 	}
@@ -336,7 +343,7 @@ func TestNewTFRolesModel(t *testing.T) {
 	}
 }
 
-func getDatabaseUserModel(roles, labels, scopes basetypes.SetValue) *databaseuser.TfDatabaseUserModel {
+func getDatabaseUserModel(roles, labels, scopes basetypes.SetValue, password types.String) *databaseuser.TfDatabaseUserModel {
 	encodedID := conversion.EncodeStateID(map[string]string{
 		"project_id":         projectID,
 		"username":           username,
@@ -347,7 +354,7 @@ func getDatabaseUserModel(roles, labels, scopes basetypes.SetValue) *databaseuse
 		ProjectID:        types.StringValue(projectID),
 		AuthDatabaseName: types.StringValue(authDatabaseName),
 		Username:         types.StringValue(username),
-		Password:         types.StringValue(password),
+		Password:         password,
 		X509Type:         types.StringValue(x509Type),
 		OIDCAuthType:     types.StringValue(oidCAuthType),
 		LDAPAuthType:     types.StringValue(ldapAuthType),
