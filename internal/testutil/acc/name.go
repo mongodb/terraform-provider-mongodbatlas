@@ -51,6 +51,6 @@ func projectID(tb testing.TB, name string) string {
 	SkipInUnitTest(tb)
 	resp, _, _ := ConnV2().ProjectsApi.GetProjectByName(context.Background(), name).Execute()
 	id := resp.GetId()
-	require.NotEmpty(tb, id)
+	require.NotEmpty(tb, id, fmt.Sprintf("Project name not found: %s", name))
 	return id
 }
