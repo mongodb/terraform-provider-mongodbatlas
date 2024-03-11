@@ -80,6 +80,40 @@ func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock(t *testing.T) {
 	})
 }
 
+func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock_WideCIDR(t *testing.T) {
+	var (
+		resourceName     = "mongodbatlas_access_list_api_key.test"
+		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		cidrBlock        = "100.10.0.0/16"
+		description      = acc.RandomName()
+		updatedCIDRBlock = "172.10.0.0/16"
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithCIDRBlock(orgID, description, cidrBlock),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+					resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),
+				),
+			},
+			{
+				Config: configWithCIDRBlock(orgID, description, updatedCIDRBlock),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+					resource.TestCheckResourceAttr(resourceName, "cidr_block", updatedCIDRBlock),
+				),
+			},
+		},
+	})
+}
+
 func TestAccProjectRSAccessListAPIKey_importBasic(t *testing.T) {
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")

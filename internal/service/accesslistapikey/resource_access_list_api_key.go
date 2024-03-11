@@ -125,8 +125,8 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
+	ipAddress := ids["entry"]
 
-	ipAddress := strings.ReplaceAll(ids["entry"], "/", "%2F")
 	apiKey, resp, err := connV2.ProgrammaticAPIKeysApi.GetApiKeyAccessList(ctx, orgID, ipAddress, apiKeyID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusBadRequest {
@@ -151,7 +151,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"org_id":     orgID,
 		"api_key_id": apiKeyID,
-		"entry":      ids["entry"],
+		"entry":      ipAddress,
 	}))
 
 	return nil
@@ -166,7 +166,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
-	ipAddress := strings.ReplaceAll(ids["entry"], "/", "%2F")
+	ipAddress := ids["entry"]
+
 	_, _, err := connV2.ProgrammaticAPIKeysApi.DeleteApiKeyAccessListEntry(ctx, orgID, apiKeyID, ipAddress).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting API Key: %s", err))
@@ -184,9 +185,8 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 
 	orgID := parts[0]
 	apiKeyID := parts[1]
-	entry := parts[2]
+	ipAddress := parts[2]
 
-	ipAddress := strings.ReplaceAll(entry, "/", "%2F")
 	r, _, err := connV2.ProgrammaticAPIKeysApi.GetApiKeyAccessList(ctx, orgID, ipAddress, apiKeyID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import api key %s in project %s, error: %s", orgID, apiKeyID, err)
@@ -207,7 +207,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"org_id":     orgID,
 		"api_key_id": apiKeyID,
-		"entry":      entry,
+		"entry":      ipAddress,
 	}))
 
 	return []*schema.ResourceData{d}, nil
