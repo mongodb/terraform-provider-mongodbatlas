@@ -10,7 +10,7 @@ description: |-
 
 `mongodbatlas_stream_instances` describes the stream instances defined in a project.
 
--> **NOTE:** Atlas Stream Processing is currently in preview, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA=true` to use this data source. To learn more about stream processing and existing limitations, see the [Atlas Stream Processing Documentation](https://www.mongodb.com/docs/atlas/atlas-sp/overview/#atlas-stream-processing-overview).
+-> **NOTE:** Atlas Stream Processing is currently in preview, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_PREVIEW=true` to use this data source. To learn more about stream processing and existing limitations, see the [Atlas Stream Processing Documentation](https://www.mongodb.com/docs/atlas/atlas-sp/overview/#atlas-stream-processing-overview).
 
 ## Example Usage
 

@@ -414,14 +414,14 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		atlasuser.PluralDataSource,
 		searchdeployment.DataSource,
 	}
-	betaDataSources := []func() datasource.DataSource{
+	previewDataSources := []func() datasource.DataSource{
 		streaminstance.DataSource,
 		streaminstance.PluralDataSource,
 		streamconnection.DataSource,
 		streamconnection.PluralDataSource,
 	}
-	if ProviderEnableBeta {
-		dataSources = append(dataSources, betaDataSources...)
+	if ProviderEnablePreview {
+		dataSources = append(dataSources, previewDataSources...)
 	}
 	return dataSources
 }
@@ -435,12 +435,12 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		projectipaccesslist.Resource,
 		searchdeployment.Resource,
 	}
-	betaResources := []func() resource.Resource{
+	previewResources := []func() resource.Resource{
 		streaminstance.Resource,
 		streamconnection.Resource,
 	}
-	if ProviderEnableBeta {
-		resources = append(resources, betaResources...)
+	if ProviderEnablePreview {
+		resources = append(resources, previewResources...)
 	}
 	return resources
 }

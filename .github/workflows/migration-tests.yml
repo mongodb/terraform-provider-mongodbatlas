@@ -265,7 +265,7 @@ jobs:
           terraform_wrapper: false    
       - name: Migration Tests
         env:
-          MONGODB_ATLAS_ENABLE_BETA: ${{ vars.MONGODB_ATLAS_ENABLE_BETA }}
+          MONGODB_ATLAS_ENABLE_PREVIEW: ${{ vars.MONGODB_ATLAS_ENABLE_PREVIEW }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           TEST_REGEX: "^TestAccMigrationStream"
         run: make testacc

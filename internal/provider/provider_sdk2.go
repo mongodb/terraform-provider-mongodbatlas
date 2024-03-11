@@ -62,7 +62,7 @@ import (
 )
 
 var (
-	ProviderEnableBeta, _ = strconv.ParseBool(os.Getenv("MONGODB_ATLAS_ENABLE_BETA"))
+	ProviderEnablePreview, _ = strconv.ParseBool(os.Getenv("MONGODB_ATLAS_ENABLE_PREVIEW"))
 )
 
 type SecretData struct {
@@ -136,7 +136,7 @@ func NewSdkV2Provider() *schema.Provider {
 		ResourcesMap:         getResourcesMap(),
 		ConfigureContextFunc: providerConfigure,
 	}
-	addBetaFeatures(provider)
+	addPreviewFeatures(provider)
 	return provider
 }
 
@@ -276,8 +276,8 @@ func getResourcesMap() map[string]*schema.Resource {
 	return resourcesMap
 }
 
-func addBetaFeatures(provider *schema.Provider) {
-	if ProviderEnableBeta {
+func addPreviewFeatures(provider *schema.Provider) {
+	if ProviderEnablePreview {
 		return
 	}
 }
