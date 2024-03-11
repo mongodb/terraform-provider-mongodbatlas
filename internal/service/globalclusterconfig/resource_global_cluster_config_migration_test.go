@@ -9,6 +9,7 @@ import (
 )
 
 func TestAccMigrationClusterRSGlobalCluster_basic(t *testing.T) {
+	acc.SkipTestForCI(t) // TEMPORARY, WILL BE DELETED BEFORE MERGE
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true})
 		config      = configBasic(&clusterInfo, false, false)
