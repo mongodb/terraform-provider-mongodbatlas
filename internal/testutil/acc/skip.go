@@ -15,6 +15,10 @@ func SkipTestForCI(tb testing.TB) {
 }
 
 // SkipInUnitTest is rarely needed, it is used in acc and mig tests to make sure that they don't run in unit test mode.
+// TF skipping test when TF_ACC=1 is not set is implemented inside resource.Test / ParallelTest functions.
+// SkipInUnitTest allows to call functions in the test body that must not run in unit test mode, only in acc/mig mode.
+// As an example it is used in ProjectIDGlobal so it can be called from the test methdod,
+// or in TestAccConfigDSAtlasUser_ByUserID so it can call fetchUser.
 func SkipInUnitTest(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("TF_ACC") == "" {
