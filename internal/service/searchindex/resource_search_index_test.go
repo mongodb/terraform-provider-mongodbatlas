@@ -13,7 +13,7 @@ import (
 
 func TestAccSearchIndexRS_basic(t *testing.T) {
 	var (
-		clusterInfo  = acc.GetClusterInfo(nil)
+		clusterInfo  = acc.GetClusterInfo(t, nil)
 		indexName    = acc.RandomName()
 		databaseName = acc.RandomName()
 	)
@@ -52,7 +52,7 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 
 func TestAccSearchIndexRS_withSearchType(t *testing.T) {
 	var (
-		clusterInfo  = acc.GetClusterInfo(nil)
+		clusterInfo  = acc.GetClusterInfo(t, nil)
 		indexName    = acc.RandomName()
 		databaseName = acc.RandomName()
 	)
@@ -91,7 +91,7 @@ func TestAccSearchIndexRS_withSearchType(t *testing.T) {
 
 func TestAccSearchIndexRS_withMapping(t *testing.T) {
 	var (
-		clusterInfo  = acc.GetClusterInfo(nil)
+		clusterInfo  = acc.GetClusterInfo(t, nil)
 		indexName    = acc.RandomName()
 		databaseName = acc.RandomName()
 	)
@@ -135,7 +135,7 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 
 func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 	var (
-		clusterInfo  = acc.GetClusterInfo(nil)
+		clusterInfo  = acc.GetClusterInfo(t, nil)
 		indexName    = acc.RandomName()
 		databaseName = acc.RandomName()
 	)
@@ -183,7 +183,7 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 
 func TestAccSearchIndexRS_updatedToEmptySynonyms(t *testing.T) {
 	var (
-		clusterInfo  = acc.GetClusterInfo(nil)
+		clusterInfo  = acc.GetClusterInfo(t, nil)
 		indexName    = acc.RandomName()
 		databaseName = acc.RandomName()
 	)
@@ -215,7 +215,7 @@ func TestAccSearchIndexRS_updatedToEmptySynonyms(t *testing.T) {
 
 func TestAccSearchIndexRS_updatedToEmptyAnalyzers(t *testing.T) {
 	var (
-		clusterInfo  = acc.GetClusterInfo(nil)
+		clusterInfo  = acc.GetClusterInfo(t, nil)
 		indexName    = acc.RandomName()
 		databaseName = acc.RandomName()
 	)
@@ -244,7 +244,7 @@ func TestAccSearchIndexRS_updatedToEmptyAnalyzers(t *testing.T) {
 
 func TestAccSearchIndexRS_updatedToEmptyMappingsFields(t *testing.T) {
 	var (
-		clusterInfo  = acc.GetClusterInfo(nil)
+		clusterInfo  = acc.GetClusterInfo(t, nil)
 		indexName    = acc.RandomName()
 		databaseName = acc.RandomName()
 	)
@@ -273,7 +273,7 @@ func TestAccSearchIndexRS_updatedToEmptyMappingsFields(t *testing.T) {
 
 func TestAccSearchIndexRS_importBasic(t *testing.T) {
 	var (
-		clusterInfo  = acc.GetClusterInfo(nil)
+		clusterInfo  = acc.GetClusterInfo(t, nil)
 		indexName    = acc.RandomName()
 		databaseName = acc.RandomName()
 	)
@@ -304,7 +304,7 @@ func TestAccSearchIndexRS_importBasic(t *testing.T) {
 
 func TestAccSearchIndexRS_withVector(t *testing.T) {
 	var (
-		clusterInfo  = acc.GetClusterInfo(nil)
+		clusterInfo  = acc.GetClusterInfo(t, nil)
 		indexName    = acc.RandomName()
 		databaseName = acc.RandomName()
 	)

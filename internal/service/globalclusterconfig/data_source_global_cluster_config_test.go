@@ -9,7 +9,7 @@ import (
 
 func TestAccClusterRSGlobalClusterDS_basic(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{Geosharded: true})
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true})
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
