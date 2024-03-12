@@ -335,7 +335,10 @@ jobs:
         env:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
           CA_CERT: ${{ secrets.ca_cert }}
-          ACCTEST_PACKAGES: "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/backupcompliancepolicy github.com/mongodb/terraform-provider-mongodbatlas/internal/service/auditing github.com/mongodb/terraform-provider-mongodbatlas/internal/service/x509authenticationdatabaseuser"
+          ACCTEST_PACKAGES: |
+            ./internal/service/backupcompliancepolicy
+            ./internal/service/auditing
+            ./internal/service/x509authenticationdatabaseuser
         run: |
           make testacc
   backup:

@@ -337,8 +337,11 @@ jobs:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
           CA_CERT: ${{ secrets.CA_CERT }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_PACKAGES: "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/backupcompliancepolicy github.com/mongodb/terraform-provider-mongodbatlas/internal/service/auditing github.com/mongodb/terraform-provider-mongodbatlas/internal/service/x509authenticationdatabaseuser"
         run: make testacc
+          ACCTEST_PACKAGES: |
+            ./internal/service/backupcompliancepolicy
+            ./internal/service/auditing
+            ./internal/service/x509authenticationdatabaseuser
       
   network:
     needs: [ change-detection, get-provider-version ]
