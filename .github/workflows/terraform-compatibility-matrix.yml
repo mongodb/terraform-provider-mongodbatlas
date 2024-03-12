@@ -14,6 +14,10 @@ on:
         description: 'Test group to run, e.g. advanced_cluster, empty for all'
         type: string
         required: false
+      ref:
+        description: 'The branch, tag or SHA where tests will run, e.g. v1.14.0, empty for default branch'
+        type: string
+        required: false
   workflow_call:
     inputs:
       atlas_cloud_env:
@@ -24,12 +28,19 @@ on:
         description: 'Test group to run, e.g. advanced_cluster, empty for all'
         type: string
         required: false
+      ref:
+        description: 'The branch, tag or SHA where tests will run, e.g. v1.14.0, empty for default branch'
+        type: string
+        required: false
     
 
 jobs:
   run-test-supported-versions:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          ref: ${{ inputs.ref || github.ref }}
       - name: Get HashiCorp Terraform supported versions
         shell: bash
         id: get-terraform-supported-versions
