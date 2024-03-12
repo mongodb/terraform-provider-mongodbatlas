@@ -420,7 +420,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		streamconnection.DataSource,
 		streamconnection.PluralDataSource,
 	}
-	if ProviderEnablePreview || ProviderEnableBeta {
+	if ProviderEnablePreview {
 		dataSources = append(dataSources, previewDataSources...)
 	}
 	return dataSources
@@ -439,7 +439,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		streaminstance.Resource,
 		streamconnection.Resource,
 	}
-	if ProviderEnablePreview || ProviderEnableBeta {
+	if ProviderEnablePreview {
 		resources = append(resources, previewResources...)
 	}
 	return resources
