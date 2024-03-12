@@ -1,4 +1,10 @@
-ACCTEST_PACKAGES?=./...
+
+ifdef ACCTEST_PACKAGES
+		# remove newlines and blanks coming from GH Actions
+    ACCTEST_PACKAGES := $(strip $(subst $(newline),, $(ACCTEST_PACKAGES)))
+else
+    ACCTEST_PACKAGES := "./..."
+endif
 ACCTEST_REGEX_RUN?=^TestAcc
 ACCTEST_TIMEOUT?=300m
 PARALLEL_GO_TEST?=20
@@ -38,7 +44,7 @@ test: fmtcheck
 .PHONY: testacc
 testacc: fmtcheck
 	@$(eval VERSION=acc)
-	TF_ACC=1 go test '$(ACCTEST_PACKAGES)' -run '$(ACCTEST_REGEX_RUN)' -skip '$(ACCTEST_REGEX_SKIP)' -v -parallel $(PARALLEL_GO_TEST) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
+	TF_ACC=1 go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -skip '$(ACCTEST_REGEX_SKIP)' -v -parallel $(PARALLEL_GO_TEST) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
 
 .PHONY: testaccgov
 testaccgov: fmtcheck
