@@ -11,6 +11,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+func TestMain(m *testing.M) {
+	acc.TestMainExecution(m)
+}
+
 func TestAccSearchIndexRS_basic(t *testing.T) {
 	var (
 		clusterInfo  = acc.GetClusterInfo(t, nil)

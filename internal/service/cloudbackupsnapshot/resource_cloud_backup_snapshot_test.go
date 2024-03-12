@@ -17,6 +17,10 @@ const (
 	dataSourceName = "data.mongodbatlas_cloud_backup_snapshot.test"
 )
 
+func TestMain(m *testing.M) {
+	acc.TestMainExecution(m)
+}
+
 func TestAccBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 	var (
 		dataSourcePluralSimpleName     = "data.mongodbatlas_cloud_backup_snapshots.test"

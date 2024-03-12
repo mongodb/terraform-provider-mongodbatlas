@@ -19,6 +19,10 @@ var (
 	dataSourceName = "data.mongodbatlas_cloud_backup_schedule.schedule_test"
 )
 
+func TestMain(m *testing.M) {
+	acc.TestMainExecution(m)
+}
+
 func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})

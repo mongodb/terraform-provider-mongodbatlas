@@ -24,7 +24,7 @@ type ClusterInfo struct {
 
 // GetClusterInfo is used to obtain a project and cluster configuration resource.
 // When `MONGODB_ATLAS_CLUSTER_NAME` and `MONGODB_ATLAS_PROJECT_ID` are defined, creation of resources is avoided. This is useful for local execution but not intended for CI executions.
-// Clusters will be created in ProjectIDGlobal.
+// Clusters will be created in ProjectIDExecution so TestMainExecution must be called from TestMain in the test package.
 func GetClusterInfo(tb testing.TB, req *ClusterRequest) ClusterInfo {
 	tb.Helper()
 	if req == nil {
@@ -43,7 +43,7 @@ func GetClusterInfo(tb testing.TB, req *ClusterRequest) ClusterInfo {
 			ClusterTerraformStr: "",
 		}
 	}
-	projectID = ProjectIDGlobal(tb)
+	projectID = ProjectIDExecution(tb)
 	clusterName = RandomClusterName()
 	clusterTypeStr := "REPLICASET"
 	if req.Geosharded {

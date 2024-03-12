@@ -15,6 +15,10 @@ import (
 //go:embed testdata/dummy-ca.pem
 var DummyCACert string
 
+func TestMain(m *testing.M) {
+	acc.TestMainExecution(m)
+}
+
 func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_stream_connection.test"

@@ -12,6 +12,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+func TestMain(m *testing.M) {
+	acc.TestMainExecution(m)
+}
+
 func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 	acc.SkipTestForCI(t) // TEMPORARY, WILL BE DELETED BEFORE MERGE
 	var (
