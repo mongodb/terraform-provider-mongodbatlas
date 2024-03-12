@@ -338,7 +338,6 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 }
 
 func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
-	acc.SkipTestForCI(t) // TEMPORARY, WILL BE DELETED BEFORE MERGE
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, ProviderName: constant.AZURE})
 	)

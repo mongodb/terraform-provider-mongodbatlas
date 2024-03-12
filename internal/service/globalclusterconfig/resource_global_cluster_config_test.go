@@ -17,7 +17,6 @@ func TestMain(m *testing.M) {
 }
 
 func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
-	acc.SkipTestForCI(t) // TEMPORARY, WILL BE DELETED BEFORE MERGE
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true})
 	)
@@ -64,7 +63,6 @@ func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 }
 
 func TestAccClusterRSGlobalCluster_withAWSAndBackup(t *testing.T) {
-	acc.SkipTestForCI(t) // TEMPORARY, WILL BE DELETED BEFORE MERGE
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, CloudBackup: true})
 	)
@@ -91,7 +89,6 @@ func TestAccClusterRSGlobalCluster_withAWSAndBackup(t *testing.T) {
 }
 
 func TestAccClusterRSGlobalCluster_importBasic(t *testing.T) {
-	acc.SkipTestForCI(t) // TEMPORARY, WILL BE DELETED BEFORE MERGE
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true})
 	)
@@ -116,7 +113,6 @@ func TestAccClusterRSGlobalCluster_importBasic(t *testing.T) {
 }
 
 func TestAccClusterRSGlobalCluster_database(t *testing.T) {
-	acc.SkipTestForCI(t) // TEMPORARY, WILL BE DELETED BEFORE MERGE
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, ExtraConfig: zonesStr})
 	)
