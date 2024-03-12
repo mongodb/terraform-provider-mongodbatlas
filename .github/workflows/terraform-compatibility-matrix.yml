@@ -3,7 +3,26 @@ run-name: 'HashiCorp Terraform Compatibility Matrix ${{ inputs.atlas_cloud_env }
 
 on:
   workflow_dispatch:
+    inputs:
+      atlas_cloud_env:
+        description: 'Atlas cloud environment used, can be either `dev` or `qa`, empty for `dev`'     
+        type: string
+        required: false
+      test_group:
+        description: 'Test group to run, e.g. advanced_cluster, empty for all'
+        type: string
+        required: false
   workflow_call:
+    inputs:
+      atlas_cloud_env:
+        description: 'Atlas cloud environment used, can be either `dev` or `qa`, empty for `dev`'     
+        type: string
+        required: false
+      test_group:
+        description: 'Test group to run, e.g. advanced_cluster, empty for all'
+        type: string
+        required: false
+    
 
 jobs:
   run-test-supported-versions:
@@ -16,7 +35,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           output=$(./scripts/get-terraform-supported-versions.sh)
-          echo "::set-output name=supported_versions::$output"
+          echo "supported_versions=$output" >> $GITHUB_OUTPUT
 
       - name: Print HashiCorp Terraform supported versions
         shell: bash
