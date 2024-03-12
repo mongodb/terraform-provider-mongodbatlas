@@ -25,8 +25,6 @@ func TestMainExecution(m *testing.M) {
 	if !InUnitTest() && atlasInfo.needsDeletion {
 		fmt.Printf("Deleting execution project: %s, resource: %s\n", atlasInfo.projectName, atlasInfo.resourceName)
 		deleteProject(atlasInfo.projectID)
-		atlasInfo.projectID = ""
-		atlasInfo.projectName = ""
 	}
 
 	os.Exit(exitCode)
