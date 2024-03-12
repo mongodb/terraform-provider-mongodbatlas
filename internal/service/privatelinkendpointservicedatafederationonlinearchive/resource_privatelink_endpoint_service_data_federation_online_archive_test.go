@@ -18,6 +18,10 @@ var (
 	atlasRegion  = "US_EAST_1"
 )
 
+func TestMain(m *testing.M) {
+	acc.TestMainExecution(m)
+}
+
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
 	var (
 		projectID  = acc.ProjectIDExecution(t)

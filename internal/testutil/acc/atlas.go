@@ -2,70 +2,65 @@ package acc
 
 import (
 	"context"
+	"fmt"
 	"os"
-	"sync"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
-func ProjectIDExecution(tb testing.TB) string {
-	tb.Helper()
-	SkipInUnitTest(tb)
-	atlasInfo.mu.Lock()
-	defer atlasInfo.mu.Unlock()
-
-	if atlasInfo.counter == 0 {
+// TestMainExecution must be called from TestMain in the test package if ProjectIDExecution is going to be used.
+func TestMainExecution(m *testing.M) {
+	if !InUnitTest() {
 		atlasInfo.projectName = RandomProjectName()
-		atlasInfo.projectID = createProject(tb, atlasInfo.projectName)
-		tb.Logf("CREATING PROJECT EXECUTION: %s", atlasInfo.projectName)
+		fmt.Printf("CREATING EXECUTION PROJECT: %s\n", atlasInfo.projectName)
+		atlasInfo.projectID = createProject(atlasInfo.projectName)
 	}
 
-	atlasInfo.counter++
-	tb.Cleanup(func() {
-		cleanupExecution(tb)
-	})
+	exitCode := m.Run()
 
+	if !InUnitTest() {
+		fmt.Printf("DELETING EXECUTION PROJECT: %s\n", atlasInfo.projectName)
+		deleteProject(atlasInfo.projectID)
+		atlasInfo.projectID = ""
+		atlasInfo.projectName = ""
+	}
+
+	os.Exit(exitCode)
+}
+
+// ProjectIDExecution returns a project id created for the execution of the test group.
+func ProjectIDExecution(tb testing.TB) string {
+	tb.Helper()
+	require.NotEmpty(tb, atlasInfo.projectID)
 	return atlasInfo.projectID
 }
 
 var atlasInfo = struct {
 	projectID   string
 	projectName string
-	counter     int
-	mu          sync.Mutex
 }{}
 
-func cleanupExecution(tb testing.TB) {
-	tb.Helper()
-	atlasInfo.mu.Lock()
-	defer atlasInfo.mu.Unlock()
-
-	atlasInfo.counter--
-	if atlasInfo.counter == 0 {
-		deleteProject(tb, atlasInfo.projectID)
-		tb.Logf("DELETING PROJECT EXECUTION: %s", atlasInfo.projectName)
-		atlasInfo.projectID = ""
-		atlasInfo.projectName = ""
-	}
-}
-
-func createProject(tb testing.TB, name string) string {
-	tb.Helper()
+func createProject(name string) string {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	require.NotEmpty(tb, orgID)
+	if orgID == "" {
+		fmt.Printf("Project creation failed: %s, org not set", name)
+		return ""
+	}
 	params := &admin.Group{Name: name, OrgId: orgID}
 	resp, _, err := ConnV2().ProjectsApi.CreateProject(context.Background(), params).Execute()
-	require.NoError(tb, err, "Project creation failed: %s, error: %s", name, err)
 	id := resp.GetId()
-	require.NotEmpty(tb, id, "Project creation failed: %s", name)
+	if err != nil || id == "" {
+		fmt.Printf("Project creation failed: %s, error: %s", name, err)
+		return ""
+	}
 	return id
 }
 
-func deleteProject(tb testing.TB, id string) {
-	tb.Helper()
+func deleteProject(id string) {
 	_, _, err := ConnV2().ProjectsApi.DeleteProject(context.Background(), id).Execute()
-	assert.NoError(tb, err)
+	if err != nil {
+		fmt.Printf("Project deletion failed: %s, error: %s", id, err)
+	}
 }
