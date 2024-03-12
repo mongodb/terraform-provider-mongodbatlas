@@ -325,7 +325,7 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 
 	mongodbgovCloud := conversion.Pointer(d.Get("is_mongodbgov_cloud").(bool))
 	if *mongodbgovCloud {
-		if !isBaseURLConfiguredForSDK2Provider(d) {
+		if !isGovBaseURLConfiguredForSDK2Provider(d) {
 			if err := d.Set("base_url", MongodbGovCloudURL); err != nil {
 				return append(diagnostics, diag.FromErr(err)...)
 			}
@@ -577,6 +577,6 @@ func expandAssumeRole(tfMap map[string]any) *config.AssumeRole {
 	return &assumeRole
 }
 
-func isBaseURLConfiguredForSDK2Provider(d *schema.ResourceData) bool {
-	return isBaseURLConfigured(d.Get("base_url").(string))
+func isGovBaseURLConfiguredForSDK2Provider(d *schema.ResourceData) bool {
+	return isGovBaseURLConfigured(d.Get("base_url").(string))
 }

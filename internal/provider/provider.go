@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -38,9 +39,11 @@ import (
 )
 
 const (
-	MongodbGovCloudURL   = "https://cloud.mongodbgov.com"
-	ProviderConfigError  = "error in configuring the provider."
-	MissingAuthAttrError = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
+	MongodbGovCloudURL    = "https://cloud.mongodbgov.com"
+	MongodbGovCloudQAURL  = "https://cloud-qa.mongodbgov.com"
+	MongodbGovCloudDevURL = "https://cloud-dev.mongodbgov.com"
+	ProviderConfigError   = "error in configuring the provider."
+	MissingAuthAttrError  = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
 )
 
 type MongodbtlasProvider struct{}
@@ -293,23 +296,9 @@ func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *co
 	return &assumeRole
 }
 
-func isBaseURLConfigured(baseURL string) bool {
-	if baseURL == "" {
-		baseURL = MultiEnvDefaultFunc([]string{
-			"MONGODB_ATLAS_BASE_URL",
-			"MCLI_OPS_MANAGER_URL",
-		}, "").(string)
-	}
-	return baseURL != ""
-}
-
-func isBaseURLConfiguredForProvider(data *tfMongodbAtlasProviderModel) bool {
-	return isBaseURLConfigured(data.BaseURL.ValueString())
-}
-
 func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasProviderModel, resp *provider.ConfigureResponse) tfMongodbAtlasProviderModel {
 	if mongodbgovCloud := data.IsMongodbGovCloud.ValueBool(); mongodbgovCloud {
-		if !isBaseURLConfiguredForProvider(data) {
+		if !isGovBaseURLConfiguredForProvider(data) {
 			data.BaseURL = types.StringValue(MongodbGovCloudURL)
 		}
 	}
@@ -489,4 +478,18 @@ func MultiEnvDefaultFunc(ks []string, def any) any {
 		}
 	}
 	return def
+}
+
+func isGovBaseURLConfigured(baseURL string) bool {
+	if baseURL == "" {
+		baseURL = MultiEnvDefaultFunc([]string{
+			"MONGODB_ATLAS_BASE_URL",
+			"MCLI_OPS_MANAGER_URL",
+		}, "").(string)
+	}
+	return baseURL != "" && (strings.Contains(baseURL, MongodbGovCloudDevURL) || strings.Contains(baseURL, MongodbGovCloudQAURL) || strings.Contains(baseURL, MongodbGovCloudURL))
+}
+
+func isGovBaseURLConfiguredForProvider(data *tfMongodbAtlasProviderModel) bool {
+	return isGovBaseURLConfigured(data.BaseURL.ValueString())
 }
