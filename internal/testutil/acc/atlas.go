@@ -33,6 +33,7 @@ func TestMainExecution(m *testing.M) {
 // ProjectIDExecution returns a project id created for the execution of the test group.
 func ProjectIDExecution(tb testing.TB) string {
 	tb.Helper()
+	SkipInUnitTest(tb)
 	require.NotEmpty(tb, atlasInfo.projectID)
 	return atlasInfo.projectID
 }
