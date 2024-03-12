@@ -486,7 +486,7 @@ func isGovBaseURLConfigured(baseURL string) bool {
 			"MCLI_OPS_MANAGER_URL",
 		}, "").(string)
 	}
-	return baseURL != "" && (baseURL == MongodbGovCloudURL || baseURL == MongodbGovCloudDevURL || baseURL == MongodbGovCloudQAURL)
+	return baseURL == MongodbGovCloudDevURL || baseURL == MongodbGovCloudQAURL
 }
 
 func isGovBaseURLConfiguredForProvider(data *tfMongodbAtlasProviderModel) bool {
