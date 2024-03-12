@@ -18,7 +18,11 @@ func SkipTestForCI(tb testing.TB) {
 // This can be useful for acceptance tests that define logic prior to resource.Test/resource.ParallelTest functions as this code would always be run.
 func SkipInUnitTest(tb testing.TB) {
 	tb.Helper()
-	if os.Getenv("TF_ACC") == "" {
+	if InUnitTest() {
 		tb.Skip()
 	}
+}
+
+func InUnitTest() bool {
+	return os.Getenv("TF_ACC") == ""
 }
