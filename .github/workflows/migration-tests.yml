@@ -32,6 +32,7 @@ env:
     TF_ACC: 1
     TF_LOG: ${{ vars.LOG_LEVEL }}
     ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
+    ACCTEST_REGEX_RUN: "^TestAccMigration"  
     MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
     MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
     MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
@@ -336,7 +337,7 @@ jobs:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
           CA_CERT: ${{ secrets.CA_CERT }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          TEST_REGEX: "^TestAccMigrationGeneric"
+          ACCTEST_PACKAGES: "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/backupcompliancepolicy github.com/mongodb/terraform-provider-mongodbatlas/internal/service/auditing github.com/mongodb/terraform-provider-mongodbatlas/internal/service/x509authenticationdatabaseuser"
         run: make testacc
       
   network:

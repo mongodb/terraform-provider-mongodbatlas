@@ -1,3 +1,5 @@
+ACCTEST_PACKAGES?=./...
+ACCTEST_REGEX_RUN?=^TestAcc
 ACCTEST_TIMEOUT?=300m
 PARALLEL_GO_TEST?=20
 
@@ -36,7 +38,7 @@ test: fmtcheck
 .PHONY: testacc
 testacc: fmtcheck
 	@$(eval VERSION=acc)
-	TF_ACC=1 go test ./... -run '$(TEST_REGEX)' -v -parallel '$(PARALLEL_GO_TEST)' $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
+	TF_ACC=1 go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -skip '$(ACCTEST_REGEX_SKIP)' -v -parallel $(PARALLEL_GO_TEST) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
 
 .PHONY: testaccgov
 testaccgov: fmtcheck
