@@ -2,6 +2,8 @@ name: "HashiCorp Terraform Compatibility Matrix"
 run-name: 'HashiCorp Terraform Compatibility Matrix ${{ inputs.atlas_cloud_env }}'
 
 on:
+  pull_request:
+    types: [synchronize]
   workflow_dispatch:
     inputs:
       atlas_cloud_env:
