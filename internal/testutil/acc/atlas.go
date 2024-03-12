@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -13,15 +15,16 @@ import (
 // TestMainExecution must be called from TestMain in the test package if ProjectIDExecution is going to be used.
 func TestMainExecution(m *testing.M) {
 	if !InUnitTest() {
+		atlasInfo.packageName = packageName()
 		atlasInfo.projectName = RandomProjectName()
-		fmt.Printf("CREATING EXECUTION PROJECT: %s\n", atlasInfo.projectName)
+		fmt.Printf("CREATING EXECUTION PROJECT: %s, resource: %s\n", atlasInfo.projectName, atlasInfo.packageName)
 		atlasInfo.projectID = createProject(atlasInfo.projectName)
 	}
 
 	exitCode := m.Run()
 
 	if !InUnitTest() {
-		fmt.Printf("DELETING EXECUTION PROJECT: %s\n", atlasInfo.projectName)
+		fmt.Printf("DELETING EXECUTION PROJECT: %s, resource: %s\n", atlasInfo.projectName, atlasInfo.packageName)
 		deleteProject(atlasInfo.projectID)
 		atlasInfo.projectID = ""
 		atlasInfo.projectName = ""
@@ -41,7 +44,21 @@ func ProjectIDExecution(tb testing.TB) string {
 var atlasInfo = struct {
 	projectID   string
 	projectName string
+	packageName string
 }{}
+
+func packageName() string {
+	pc := make([]uintptr, 1)
+	runtime.Callers(3, pc)
+	f := runtime.FuncForPC(pc[0])
+	pattern := `([^/]+)_test\.TestMain$`
+	re := regexp.MustCompile(pattern)
+	matches := re.FindStringSubmatch(f.Name())
+	if len(matches) <= 1 {
+		return ""
+	}
+	return matches[1]
+}
 
 func createProject(name string) string {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
