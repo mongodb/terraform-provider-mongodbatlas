@@ -61,8 +61,8 @@ jobs:
       project: ${{ steps.filter.outputs.project == 'true' || env.mustTrigger == 'true' }}
       config: ${{ steps.filter.outputs.config == 'true' || env.mustTrigger == 'true' }}
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
-      backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
-      stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
+      backup: false #### TEMPORARY, WILL BE REVERTED BEFORE MERGE
+      stream: false #### TEMPORARY, WILL BE REVERTED BEFORE MERGE
       federated: ${{ steps.filter.outputs.federated == 'true' || env.mustTrigger == 'true' }}
       search_deployment: ${{ steps.filter.outputs.search_deployment == 'true' || env.mustTrigger == 'true' }}
       generic: ${{ steps.filter.outputs.generic == 'true' || env.mustTrigger == 'true' }}
@@ -71,7 +71,7 @@ jobs:
       serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
       data_lake: ${{ steps.filter.outputs.data_lake == 'true' || env.mustTrigger == 'true' }}
       cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation == 'true' || env.mustTrigger == 'true' }}
-      cluster: ${{ steps.filter.outputs.cluster == 'true' || env.mustTrigger == 'true' }}
+      cluster: false #### TEMPORARY, WILL BE REVERTED BEFORE MERGE
       ldap: ${{ steps.filter.outputs.ldap == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
