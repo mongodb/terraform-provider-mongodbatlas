@@ -32,7 +32,7 @@ In order to use and/or test preview resources and datasources in this provider y
 
 
 ```bash
-export MONGODB_ATLAS_ENABLE_PREVIEW = true
+export MONGODB_ATLAS_ENABLE_PREVIEW=true
 ```
 ## Logs
 To help with issues, you can turn on Logs with `export TF_LOG=TRACE`. Note: this is very noisy. 
