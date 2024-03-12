@@ -115,12 +115,12 @@ jobs:
       cluster: ${{ steps.filter.outputs.cluster == 'true' || env.mustTrigger == 'true' }}
       search_deployment: ${{ steps.filter.outputs.search_deployment == 'true' || env.mustTrigger == 'true' }}
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
-      generic: true ##### TEMPORARY, WILL BE REVERTED BEFORE MERGE
+      generic: ${{ steps.filter.outputs.generic == 'true' || env.mustTrigger == 'true' }}
       backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
       project: ${{ steps.filter.outputs.project == 'true' || env.mustTrigger == 'true' }}
       serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
       network: ${{ steps.filter.outputs.network == 'true' || env.mustTrigger == 'true' }}
-      config: true ##### TEMPORARY, WILL BE REVERTED BEFORE MERGE
+      config: ${{ steps.filter.outputs.config == 'true' || env.mustTrigger == 'true' }}
       assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
       event_trigger: ${{ steps.filter.outputs.event_trigger == 'true' || env.mustTrigger == 'true' }}
       search_index: ${{ steps.filter.outputs.search_index == 'true' || env.mustTrigger == 'true' }}

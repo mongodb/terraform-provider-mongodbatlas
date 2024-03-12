@@ -1,10 +1,14 @@
+TEST?=$$(go list ./...)
 ACCTEST_TIMEOUT?=300m
 PARALLEL_GO_TEST?=20
+GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 
 BINARY_NAME=terraform-provider-mongodbatlas
 DESTINATION=./bin/$(BINARY_NAME)
 
 GOFLAGS=-mod=vendor
+GOOPTS="-p 2"
+
 GITTAG=$(shell git describe --always --tags)
 VERSION=$(GITTAG:v%=%)
 LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
@@ -31,17 +35,17 @@ install: fmtcheck
 
 .PHONY: test
 test: fmtcheck
-	go test ./... -timeout=30s -parallel=4 -race
+	go test $(TEST) -timeout=30s -parallel=4 -race -covermode=atomic -coverprofile=coverage.out
 
 .PHONY: testacc
 testacc: fmtcheck
 	@$(eval VERSION=acc)
-	TF_ACC=1 go test ./... -run '$(TEST_REGEX)' -v -parallel '$(PARALLEL_GO_TEST)' $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
+	TF_ACC=1 go test $(TEST) -run '$(TEST_REGEX)' -v -parallel '$(PARALLEL_GO_TEST)' $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -cover -ldflags="$(LINKER_FLAGS)"
 
 .PHONY: testaccgov
 testaccgov: fmtcheck
 	@$(eval VERSION=acc)
-	TF_ACC=1 go test ./... -run 'TestAccProjectRSGovProject_CreateWithProjectOwner' -v -parallel 1 "$(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags=$(LINKER_FLAGS) "
+	TF_ACC=1 go test $(TEST) -run 'TestAccProjectRSGovProject_CreateWithProjectOwner' -v -parallel 1 "$(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -cover -ldflags=$(LINKER_FLAGS) "
 
 .PHONY: fmt
 fmt:
@@ -76,6 +80,13 @@ tools:  ## Install dev tools
 	go install github.com/hashicorp/terraform-plugin-codegen-openapi/cmd/tfplugingen-openapi@latest
 	go install github.com/hashicorp/terraform-plugin-codegen-framework/cmd/tfplugingen-framework@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
+
+.PHONY: check
+check: test lint
+
+.PHONY: test-compile
+test-compile:
+	go test -c $(TEST) $(TESTARGS)
 
 .PHONY: website-lint
 website-lint:
