@@ -337,11 +337,11 @@ jobs:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
           CA_CERT: ${{ secrets.CA_CERT }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-        run: make testacc
           ACCTEST_PACKAGES: |
             ./internal/service/backupcompliancepolicy
             ./internal/service/auditing
             ./internal/service/x509authenticationdatabaseuser
+        run: make testacc
       
   network:
     needs: [ change-detection, get-provider-version ]

@@ -339,8 +339,7 @@ jobs:
             ./internal/service/backupcompliancepolicy
             ./internal/service/auditing
             ./internal/service/x509authenticationdatabaseuser
-        run: |
-          make testacc
+        run: make testacc
   backup:
     needs: [ change-detection ]
     if: ${{ needs.change-detection.outputs.backup == 'true' || inputs.test_group == 'backup' }}
