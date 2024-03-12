@@ -1,0 +1,47 @@
+name: "HashiCorp Terraform Compatibility Matrix"
+run-name: 'HashiCorp Terraform Compatibility Matrix ${{ inputs.atlas_cloud_env }}'
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  run-test-supported-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get HashiCorp Terraform supported versions
+        shell: bash
+        id: get-terraform-supported-versions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          output=$(./scripts/get-terraform-supported-versions.sh)
+          echo "::set-output name=supported_versions::$output"
+
+      - name: Print HashiCorp Terraform supported versions
+        shell: bash
+        run: |
+          echo "Output from previous step: ${{ steps.get-terraform-supported-versions.outputs.supported_versions }}" 
+
+  # update-terraform-supported-versions:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+  #     - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
+  #       with:
+  #         go-version-file: 'go.mod'
+  #     - name: Update files
+  #       run:  make tools update-terraform-supported-versions
+  #     - name: Verify Changed files
+  #       uses: tj-actions/verify-changed-files@79a8cef5d9ef3ab541ee07ef179bd6c3c2d42ecc
+  #       id: verify-changed-files
+  #     - name: Create PR
+  #       uses: peter-evans/create-pull-request@a4f52f8033a6168103c2538976c07b467e8163bc
+  #       if: steps.verify-changed-files.outputs.files_changed == 'true'
+  #       with:
+  #         title: "chore: Updates HashiCorp Terrafrom supported versions"
+  #         commit-message: "chore: Updates HashiCorp terraform supported versions"
+  #         delete-branch: true
+  #         branch: update-supported-versions
+  #         body: Automatic update of supported Terraform versions
