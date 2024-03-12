@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -487,7 +486,7 @@ func isGovBaseURLConfigured(baseURL string) bool {
 			"MCLI_OPS_MANAGER_URL",
 		}, "").(string)
 	}
-	return baseURL != "" && (strings.Contains(baseURL, MongodbGovCloudDevURL) || strings.Contains(baseURL, MongodbGovCloudQAURL) || strings.Contains(baseURL, MongodbGovCloudURL))
+	return baseURL != "" && (baseURL == MongodbGovCloudURL || baseURL == MongodbGovCloudDevURL || baseURL == MongodbGovCloudQAURL)
 }
 
 func isGovBaseURLConfiguredForProvider(data *tfMongodbAtlasProviderModel) bool {
