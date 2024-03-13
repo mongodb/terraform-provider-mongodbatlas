@@ -8,10 +8,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// SetupSharedResources must be called from TestMain test package in order to use ProjectIDExecution.
 func SetupSharedResources() {
 	sharedInfo.init = true
 }
 
+// CleanupSharedResources must be called from TestMain test package in order to use ProjectIDExecution.
 func CleanupSharedResources() {
 	if sharedInfo.projectID != "" {
 		fmt.Printf("Deleting execution project: %s, id: %s\n", sharedInfo.projectName, sharedInfo.projectID)
@@ -31,7 +33,7 @@ func ProjectIDExecution(tb testing.TB) string {
 	// lazy creation so it's only done if really needed
 	if sharedInfo.projectID == "" {
 		sharedInfo.projectName = RandomProjectName()
-		tb.Logf("Creating execution project: %s, id: %s\n", sharedInfo.projectName, sharedInfo.projectID)
+		tb.Logf("Creating execution project: %s\n", sharedInfo.projectName)
 		sharedInfo.projectID = createProject(tb, sharedInfo.projectName)
 	}
 
