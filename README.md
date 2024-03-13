@@ -27,12 +27,12 @@ To use a released provider in your Terraform environment, run [`terraform init`]
 
 Documentation about the provider specific configuration options can be found on the [provider's website](https://www.terraform.io/docs/providers/).
 
-## Beta Features
-In order to use and/or test beta resources and datasources in this provider you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA` to true.
+## Preview Features
+In order to use and/or test preview resources and datasources in this provider you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_PREVIEW` to true.
 
 
 ```bash
-export MONGODB_ATLAS_ENABLE_BETA = true
+export MONGODB_ATLAS_ENABLE_PREVIEW=true
 ```
 ## Logs
 To help with issues, you can turn on Logs with `export TF_LOG=TRACE`. Note: this is very noisy. 

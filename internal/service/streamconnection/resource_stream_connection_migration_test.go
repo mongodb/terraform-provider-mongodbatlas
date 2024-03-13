@@ -21,7 +21,7 @@ func TestAccMigrationStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 	mig.SkipIfVersionBelow(t, "1.14.0")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },
+		PreCheck:     func() { acc.PreCheckPreviewFlag(t); acc.PreCheckBasic(t) },
 		CheckDestroy: CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
@@ -53,7 +53,7 @@ func TestAccMigrationStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 	mig.SkipIfVersionBelow(t, "1.14.0")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },
+		PreCheck:     func() { acc.PreCheckPreviewFlag(t); acc.PreCheckBasic(t) },
 		CheckDestroy: CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
@@ -84,7 +84,7 @@ func TestAccMigrationStreamRSStreamConnection_cluster(t *testing.T) {
 	mig.SkipIfVersionBelow(t, "1.15.2")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },
+		PreCheck:     func() { acc.PreCheckPreviewFlag(t); acc.PreCheckBasic(t) },
 		CheckDestroy: CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
