@@ -17,7 +17,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
-
+    - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
+      with:
+        go-version-file: 'go.mod'
+    - name: Mock generation
+      run: make tools generate-mocks
+    - name: Check for uncommited files
+      run: |
+        FILES=$(git ls-files -o -m --directory --exclude-standard --no-empty-directory)
+        LINES=$(echo "$FILES" | awk 'NF' | wc -l)
+        if [ "${LINES}" -ne 0 ]; then
+          echo "Detected files that need to be committed:"
+          echo "${FILES//^/ }"
+          echo ""
+          echo "Mock skeletons are not up-to-date, you may have forgotten to run mockery before committing your changes."
+          exit 1
+        fi
+    - name: Build
+      run: make build
     - uses: lhotari/action-upterm@v1
       env:
         ASSIGNEE_JIRA_TICKET: ${{ secrets.ASSIGNEE_JIRA_TICKET }}
@@ -46,25 +63,6 @@ jobs:
         limit-access-to-users: lantoli
         wait-timeout-minutes: 30
 
-
-    - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
-      with:
-        go-version-file: 'go.mod'
-    - name: Mock generation
-      run: make tools generate-mocks
-    - name: Check for uncommited files
-      run: |
-        FILES=$(git ls-files -o -m --directory --exclude-standard --no-empty-directory)
-        LINES=$(echo "$FILES" | awk 'NF' | wc -l)
-        if [ "${LINES}" -ne 0 ]; then
-          echo "Detected files that need to be committed:"
-          echo "${FILES//^/ }"
-          echo ""
-          echo "Mock skeletons are not up-to-date, you may have forgotten to run mockery before committing your changes."
-          exit 1
-        fi
-    - name: Build
-      run: make build
   unit-test:
     needs: build
     runs-on: ubuntu-latest
