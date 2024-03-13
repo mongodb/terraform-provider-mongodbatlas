@@ -1428,8 +1428,8 @@ func TestAccClusterRSCluster_RegionsConfig(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.#", "2"),
 					// Note: replication_specs is a set for the cluster resource, therefore the order will not be consistent
-					resource.TestCheckTypeSetElemAttr(resourceName, "replication_specs.*.num_shards", "1"),
-					resource.TestCheckTypeSetElemAttr(resourceName, "replication_specs.*.num_shards", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "replication_specs.*", map[string]string{"num_shards": "1"}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "replication_specs.*", map[string]string{"num_shards": "2"}),
 				),
 			},
 		},
