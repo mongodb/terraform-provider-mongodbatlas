@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationServerlessPrivateLinkEndpointService_basic(t *testing.T) {
+func TestMigServerlessPrivateLinkEndpointService_basic(t *testing.T) {
 	var (
 		resourceName   = "mongodbatlas_privatelink_endpoint_service_serverless.test"
 		datasourceName = "data.mongodbatlas_privatelink_endpoint_service_serverless.test"

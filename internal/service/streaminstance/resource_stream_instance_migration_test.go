@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationStreamRSStreamInstance_basic(t *testing.T) {
+func TestMigStreamRSStreamInstance_basic(t *testing.T) {
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		resourceName = "mongodbatlas_stream_instance.test"

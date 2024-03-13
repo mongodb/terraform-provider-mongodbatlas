@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationServerlessPrivateLinkEndpoint_basic(t *testing.T) {
+func TestMigServerlessPrivateLinkEndpoint_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint_serverless.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")

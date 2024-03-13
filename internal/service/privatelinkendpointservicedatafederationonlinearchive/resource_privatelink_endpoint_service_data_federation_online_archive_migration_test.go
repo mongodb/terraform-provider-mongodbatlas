@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
+func TestMigNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
 	var (
 		projectID  = acc.ProjectIDExecution(t)
 		endpointID = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")

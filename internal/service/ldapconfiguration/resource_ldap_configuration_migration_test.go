@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-func TestAccMigrationLDAPConfiguration_basic(t *testing.T) {
+func TestMigLDAPConfiguration_basic(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		hostname    = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")

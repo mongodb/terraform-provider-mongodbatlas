@@ -14,7 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationProjectRS_withNoProps(t *testing.T) {
+func TestMigProjectRS_withNoProps(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -52,7 +52,7 @@ func TestAccMigrationProjectRS_withNoProps(t *testing.T) {
 	})
 }
 
-func TestAccMigrationProjectRS_withTeams(t *testing.T) {
+func TestMigProjectRS_withTeams(t *testing.T) {
 	var teamsIDs = strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
 	if len(teamsIDs) < 2 {
 		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
@@ -106,7 +106,7 @@ func TestAccMigrationProjectRS_withTeams(t *testing.T) {
 	})
 }
 
-func TestAccMigrationProjectRS_withFalseDefaultSettings(t *testing.T) {
+func TestMigProjectRS_withFalseDefaultSettings(t *testing.T) {
 	var (
 		project         admin.Group
 		resourceName    = "mongodbatlas_project.test"
@@ -144,7 +144,7 @@ func TestAccMigrationProjectRS_withFalseDefaultSettings(t *testing.T) {
 	})
 }
 
-func TestAccMigrationProjectRS_withLimits(t *testing.T) {
+func TestMigProjectRS_withLimits(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -191,7 +191,7 @@ func TestAccMigrationProjectRS_withLimits(t *testing.T) {
 	})
 }
 
-func TestAccMigrationProjectRSProjectIPAccesslist_withSettingIPAddress(t *testing.T) {
+func TestMigProjectRSProjectIPAccesslist_withSettingIPAddress(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project_ip_access_list.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -229,7 +229,7 @@ func TestAccMigrationProjectRSProjectIPAccesslist_withSettingIPAddress(t *testin
 	})
 }
 
-func TestAccMigrationProjectRSProjectIPAccessList_withSettingCIDRBlock(t *testing.T) {
+func TestMigProjectRSProjectIPAccessList_withSettingCIDRBlock(t *testing.T) {
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		resourceName = "mongodbatlas_project_ip_access_list.test"
@@ -267,7 +267,7 @@ func TestAccMigrationProjectRSProjectIPAccessList_withSettingCIDRBlock(t *testin
 	})
 }
 
-func TestAccMigrationProjectRSProjectIPAccessList_withMultipleSetting(t *testing.T) {
+func TestMigProjectRSProjectIPAccessList_withMultipleSetting(t *testing.T) {
 	var (
 		resourceName     = "mongodbatlas_project_ip_access_list.test_1"
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")

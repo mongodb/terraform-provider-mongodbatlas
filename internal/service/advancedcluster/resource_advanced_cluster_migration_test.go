@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationAdvancedCluster_singleAWSProvider(t *testing.T) {
+func TestMigAdvancedCluster_singleAWSProvider(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -40,7 +40,7 @@ func TestAccMigrationAdvancedCluster_singleAWSProvider(t *testing.T) {
 	})
 }
 
-func TestAccMigrationAdvancedCluster_multiCloud(t *testing.T) {
+func TestMigAdvancedCluster_multiCloud(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -69,7 +69,7 @@ func TestAccMigrationAdvancedCluster_multiCloud(t *testing.T) {
 	})
 }
 
-func TestAccMigrationAdvancedCluster_partialAdvancedConf(t *testing.T) {
+func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()

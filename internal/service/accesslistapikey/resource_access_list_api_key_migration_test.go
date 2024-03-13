@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationProjectAccesslistAPIKey_SettingIPAddress(t *testing.T) {
+func TestMigProjectAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_access_list_api_key.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -37,7 +37,7 @@ func TestAccMigrationProjectAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 	})
 }
 
-func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock(t *testing.T) {
+func TestMigProjectAccesslistAPIKey_SettingCIDRBlock(t *testing.T) {
 	mig.SkipIfVersionBelow(t, "1.14.0") // 1.14.0 is the version when this resource was migrated to the new Atlas SDK
 
 	var (
@@ -75,7 +75,7 @@ func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock(t *testing.T) {
 	})
 }
 
-func TestAccMigrationProjectAccesslistAPIKey_SettingCIDRBlock_WideCIDR_SDKMigration(t *testing.T) {
+func TestMigProjectAccesslistAPIKey_SettingCIDRBlock_WideCIDR_SDKMigration(t *testing.T) {
 	mig.SkipIfVersionBelow(t, "1.14.0") // 1.14.0 is the version when this resource was migrated to the new Atlas SDK
 
 	var (

@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationConfigRSAlertConfiguration_withNotificationsMetricThreshold(t *testing.T) {
+func TestMigConfigRSAlertConfiguration_withNotificationsMetricThreshold(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -39,7 +39,7 @@ func TestAccMigrationConfigRSAlertConfiguration_withNotificationsMetricThreshold
 	})
 }
 
-func TestAccMigrationConfigRSAlertConfiguration_withThreshold(t *testing.T) {
+func TestMigConfigRSAlertConfiguration_withThreshold(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -68,7 +68,7 @@ func TestAccMigrationConfigRSAlertConfiguration_withThreshold(t *testing.T) {
 	})
 }
 
-func TestAccMigrationConfigRSAlertConfiguration_withEmptyOptionalBlocks(t *testing.T) {
+func TestMigConfigRSAlertConfiguration_withEmptyOptionalBlocks(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -98,7 +98,7 @@ func TestAccMigrationConfigRSAlertConfiguration_withEmptyOptionalBlocks(t *testi
 	})
 }
 
-func TestAccMigrationConfigRSAlertConfiguration_withMultipleMatchers(t *testing.T) {
+func TestMigConfigRSAlertConfiguration_withMultipleMatchers(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -135,7 +135,7 @@ func TestAccMigrationConfigRSAlertConfiguration_withMultipleMatchers(t *testing.
 	})
 }
 
-func TestAccMigrationConfigRSAlertConfiguration_withEmptyOptionalAttributes(t *testing.T) {
+func TestMigConfigRSAlertConfiguration_withEmptyOptionalAttributes(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")

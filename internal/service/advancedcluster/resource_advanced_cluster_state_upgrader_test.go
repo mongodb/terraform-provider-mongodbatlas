@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccMigrationAdvancedCluster_empty_advancedConfig(t *testing.T) {
+func TestMigAdvancedCluster_empty_advancedConfig(t *testing.T) {
 	acc.SkipInUnitTest(t) // needed because TF test infra is not used
 	v0State := map[string]any{
 		"project_id":   "test-id",
@@ -62,7 +62,7 @@ func TestAccMigrationAdvancedCluster_empty_advancedConfig(t *testing.T) {
 	}
 }
 
-func TestAccMigrationAdvancedCluster_v0StateUpgrade_ReplicationSpecs(t *testing.T) {
+func TestMigAdvancedCluster_v0StateUpgrade_ReplicationSpecs(t *testing.T) {
 	acc.SkipInUnitTest(t) // needed because TF test infra is not used
 	v0State := map[string]any{
 		"project_id":     "test-id",

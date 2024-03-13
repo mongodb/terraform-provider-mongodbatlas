@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationGenericX509AuthDBUser_basic(t *testing.T) {
+func TestMigGenericX509AuthDBUser_basic(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -47,7 +47,7 @@ func TestAccMigrationGenericX509AuthDBUser_basic(t *testing.T) {
 	})
 }
 
-func TestAccMigrationGenericX509AuthDBUser_withCustomerX509(t *testing.T) {
+func TestMigGenericX509AuthDBUser_withCustomerX509(t *testing.T) {
 	var (
 		cas         = os.Getenv("CA_CERT")
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")

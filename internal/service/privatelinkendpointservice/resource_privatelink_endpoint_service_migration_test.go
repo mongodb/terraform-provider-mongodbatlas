@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationNetworkRSPrivateLinkEndpointService_Complete(t *testing.T) {
+func TestMigNetworkRSPrivateLinkEndpointService_Complete(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
 		resourceSuffix = "test"

@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationSearchDeployment_basic(t *testing.T) {
+func TestMigSearchDeployment_basic(t *testing.T) {
 	var (
 		resourceName    = "mongodbatlas_search_deployment.test"
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")

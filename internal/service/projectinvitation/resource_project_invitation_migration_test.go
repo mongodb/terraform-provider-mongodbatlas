@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationProjectInvitation_basic(t *testing.T) {
+func TestMigProjectInvitation_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project_invitation.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
