@@ -80,7 +80,7 @@ jobs:
     steps:
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
       - name: Run ShellCheck
-        uses: bewuethr/shellcheck-action@a7092784dbc0f7b2139dd8396ab357fe4678e958
+        uses: bewuethr/shellcheck-action@d01912909579c4b1a335828b8fca197fbb8e0aa4
   call-acceptance-tests-workflow:
     needs: [build, lint, shellcheck, unit-test, website-lint]
     secrets: inherit
