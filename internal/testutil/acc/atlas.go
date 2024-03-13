@@ -15,14 +15,12 @@ import (
 
 // TestMainExecution must be called from TestMain in the test package if ProjectIDExecution is going to be used.
 func TestMainExecution(m *testing.M) {
-	if !InUnitTest() {
-		atlasInfo.init = true
-		atlasInfo.resourceName = resourceName()
-	}
+	atlasInfo.init = true
+	atlasInfo.resourceName = resourceName()
 
 	exitCode := m.Run()
 
-	if !InUnitTest() && atlasInfo.needsDeletion {
+	if atlasInfo.needsDeletion {
 		fmt.Printf("Deleting execution project: %s, resource: %s\n", atlasInfo.projectName, atlasInfo.resourceName)
 		deleteProject(atlasInfo.projectID)
 	}
