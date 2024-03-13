@@ -1426,12 +1426,10 @@ func TestAccClusterRSCluster_RegionsConfig(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					// Note: replication_specs is a set for the cluster resource, therefore the order does not
-					// necessarily match the one used to insert the configuration in the .tf file.
-					// In fact, the num_shards field is used in the custom hash algorithm hence it affects the ordering.
-					// https://github.com/mongodb/terraform-provider-mongodbatlas/blob/059cd565e7aafd59eb8be30bbc9372b56ce2ffa4/internal/service/cluster/resource_cluster.go#L274
-					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.num_shards", "2"),
-					resource.TestCheckResourceAttr(resourceName, "replication_specs.1.num_shards", "1"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.#", "2"),
+					// Note: replication_specs is a set for the cluster resource, therefore the order will not be consistent
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "replication_specs.*", map[string]string{"num_shards": "1"}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "replication_specs.*", map[string]string{"num_shards": "2"}),
 				),
 			},
 		},
