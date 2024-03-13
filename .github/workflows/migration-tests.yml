@@ -32,6 +32,7 @@ env:
     TF_ACC: 1
     TF_LOG: ${{ vars.LOG_LEVEL }}
     ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
+    ACCTEST_REGEX_RUN: "^TestAccMigration"  
     MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
     MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
     MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
@@ -176,7 +177,11 @@ jobs:
           AWS_SECURITY_GROUP_2: ${{ vars.AWS_SECURITY_GROUP_2 }}
           AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
           AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
-          TEST_REGEX: "^TestAccMigrationProject"
+          ACCTEST_PACKAGES: |
+            ./internal/service/project
+            ./internal/service/projectipaccesslist
+            ./internal/service/accesslistapikey
+            ./internal/service/projectinvitation
         run: make testacc
   
   config:
@@ -202,7 +207,21 @@ jobs:
           AZURE_SERVICE_PRINCIPAL_ID: ${{vars.AZURE_SERVICE_PRINCIPAL_ID}}
           AZURE_TENANT_ID: ${{vars.AZURE_TENANT_ID}}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          TEST_REGEX: "^TestAccMigrationConfig"
+          ACCTEST_PACKAGES: |
+            ./internal/service/alertconfiguration
+            ./internal/service/atlasuser
+            ./internal/service/databaseuser
+            ./internal/service/projectapikey
+            ./internal/service/apikey
+            ./internal/service/teams
+            ./internal/service/cloudprovideraccess
+            ./internal/service/customdbrole
+            ./internal/service/maintenancewindow
+            ./internal/service/customdnsconfigurationclusteraws
+            ./internal/service/rolesorgid
+            ./internal/service/orginvitation
+            ./internal/service/organization
+            ./internal/service/thirdpartyintegration
         run: make testacc
 
   backup:
@@ -224,7 +243,13 @@ jobs:
         env:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          TEST_REGEX: "^TestAccMigrationBackup"
+          ACCTEST_PACKAGES: |
+            ./internal/service/onlinearchive
+            ./internal/service/cloudbackupschedule
+            ./internal/service/cloudbackupsnapshot
+            ./internal/service/cloudbackupsnapshotexportbucket
+            ./internal/service/cloudbackupsnapshotexportjob
+            ./internal/service/cloudbackupsnapshotrestorejob
         run: make testacc
 
   advanced_cluster:
@@ -245,7 +270,7 @@ jobs:
       - name: Migration Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          TEST_REGEX: "^TestAccMigrationAdvancedCluster"
+          ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
   
   stream:
@@ -269,7 +294,9 @@ jobs:
           # can be removed when MONGODB_ATLAS_LAST_VERSION supports the new MONGODB_ATLAS_ENABLE_PREVIEW flag
           MONGODB_ATLAS_ENABLE_BETA: "true"
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          TEST_REGEX: "^TestAccMigrationStream"
+          ACCTEST_PACKAGES: |
+            ./internal/service/streaminstance
+            ./internal/service/streamconnection
         run: make testacc
 
   federated:
@@ -294,7 +321,12 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY:  ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          TEST_REGEX: "^TestAccMigrationFederated"
+          ACCTEST_PACKAGES: |
+            ./internal/service/federatedsettingsidentityprovider
+            ./internal/service/federateddatabaseinstance
+            ./internal/service/federatedsettingsorgconfig
+            ./internal/service/federatedsettingsorgrolemapping
+            ./internal/service/federatedquerylimit
         run: make testacc
 
   search_deployment:
@@ -315,7 +347,7 @@ jobs:
       - name: Migration Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          TEST_REGEX: "^TestAccMigrationSearchDeployment"
+          ACCTEST_PACKAGES: ./internal/service/searchdeployment
         run: make testacc
 
   generic:
@@ -338,7 +370,10 @@ jobs:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
           CA_CERT: ${{ secrets.CA_CERT }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          TEST_REGEX: "^TestAccMigrationGeneric"
+          ACCTEST_PACKAGES: |
+            ./internal/service/backupcompliancepolicy
+            ./internal/service/auditing
+            ./internal/service/x509authenticationdatabaseuser
         run: make testacc
       
   network:
@@ -369,7 +404,13 @@ jobs:
           AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
           AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          TEST_REGEX: "^TestAccMigrationNetwork"
+          ACCTEST_PACKAGES: |
+            ./internal/service/networkcontainer
+            ./internal/service/networkpeering
+            ./internal/service/privateendpointregionalmode
+            ./internal/service/privatelinkendpoint
+            ./internal/service/privatelinkendpointservice
+            ./internal/service/privatelinkendpointservicedatafederationonlinearchive
         run: make testacc
   encryption:
     needs: [ change-detection, get-provider-version ]
@@ -389,7 +430,7 @@ jobs:
       - name: Migration Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          TEST_REGEX: "^TestAccMigrationEncryption"
+          ACCTEST_PACKAGES: ./internal/service/encryptionatrest
         run: make testacc
   serverless:
     needs: [ change-detection, get-provider-version ]
@@ -409,7 +450,10 @@ jobs:
       - name: Migration Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          TEST_REGEX: "^TestAccMigrationServerless"
+          ACCTEST_PACKAGES: |
+            ./internal/service/serverlessinstance
+            ./internal/service/privatelinkendpointserverless
+            ./internal/service/privatelinkendpointserviceserverless
         run: make testacc
   data_lake:
     needs: [ change-detection, get-provider-version ]
@@ -429,7 +473,7 @@ jobs:
       - name: Migration Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          TEST_REGEX: "^TestAccMigrationcDataLake"
+          ACCTEST_PACKAGES: ./internal/service/datalakepipeline
         run: make testacc
   cluster_outage_simulation:
     needs: [ change-detection, get-provider-version ]
@@ -449,7 +493,7 @@ jobs:
       - name: Migration Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          TEST_REGEX: "^TestAccMigrationOutageSimulationCluster"
+          ACCTEST_PACKAGES: ./internal/service/clusteroutagesimulation
         run: make testacc
   cluster:
     needs: [ change-detection, get-provider-version ]
@@ -469,7 +513,9 @@ jobs:
       - name: Migration Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          TEST_REGEX: "^TestAccMigrationClusterRS"
+          ACCTEST_PACKAGES: |
+            ./internal/service/cluster
+            ./internal/service/globalclusterconfig
         run: make testacc
   ldap:
     needs: [ change-detection, get-provider-version ]
@@ -494,5 +540,7 @@ jobs:
           MONGODB_ATLAS_LDAP_CA_CERTIFICATE: ${{ secrets.MONGODB_ATLAS_LDAP_CA_CERTIFICATE }}
           MONGODB_ATLAS_LDAP_PORT: ${{ secrets.MONGODB_ATLAS_LDAP_PORT }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          TEST_REGEX: "^TestAccMigrationLDAP"
+          ACCTEST_PACKAGES: |
+            ./internal/service/ldapconfiguration
+            ./internal/service/ldapverify
         run: make testacc
