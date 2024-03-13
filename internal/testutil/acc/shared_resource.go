@@ -22,6 +22,7 @@ func CleanupSharedResources() {
 }
 
 // ProjectIDExecution returns a project id created for the execution of the tests in the resource package.
+// Even if a GH test group is run, every resource/package will create its own project, not a shared project for all the test group.
 func ProjectIDExecution(tb testing.TB) string {
 	tb.Helper()
 	SkipInUnitTest(tb)
