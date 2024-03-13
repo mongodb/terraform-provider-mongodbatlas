@@ -5,24 +5,27 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
-	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/atlas-sdk/v20231115007/admin"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 )
 
 const (
-	connectionName   = "Connection"
-	typeValue        = ""
-	clusterName      = "Cluster0"
-	dummyProjectID   = "111111111111111111111111"
-	instanceName     = "InstanceName"
-	authMechanism    = "PLAIN"
-	authUsername     = "user1"
-	securityProtocol = "SSL"
-	bootstrapServers = "localhost:9092,another.host:9092"
-	dbRole           = "customRole"
-	dbRoleType       = "CUSTOM"
+	connectionName       = "Connection"
+	typeValue            = ""
+	clusterName          = "Cluster0"
+	dummyProjectID       = "111111111111111111111111"
+	instanceName         = "InstanceName"
+	authMechanism        = "PLAIN"
+	authUsername         = "user1"
+	securityProtocol     = "SSL"
+	bootstrapServers     = "localhost:9092,another.host:9092"
+	dbRole               = "customRole"
+	dbRoleType           = "CUSTOM"
+	sampleConnectionName = "sample_stream_solar"
 )
 
 var configMap = map[string]string{
@@ -150,6 +153,25 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 			},
 		},
+		{
+			name: "Sample connection type sample_stream_solar sample",
+			SDKResp: &admin.StreamsConnection{
+				Name: admin.PtrString(sampleConnectionName),
+				Type: admin.PtrString("Sample"),
+			},
+			providedProjID:       dummyProjectID,
+			providedInstanceName: instanceName,
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
+				ProjectID:       types.StringValue(dummyProjectID),
+				InstanceName:    types.StringValue(instanceName),
+				ConnectionName:  types.StringValue(sampleConnectionName),
+				Type:            types.StringValue("Sample"),
+				Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+				Config:          types.MapNull(types.StringType),
+				Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+				DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -202,21 +224,25 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							Type: admin.PtrString(dbRoleType),
 						},
 					},
+					{
+						Name: admin.PtrString(sampleConnectionName),
+						Type: admin.PtrString("Sample"),
+					},
 				},
-				TotalCount: admin.PtrInt(2),
+				TotalCount: admin.PtrInt(3),
 			},
 			providedConfig: &streamconnection.TFStreamConnectionsDSModel{
 				ProjectID:    types.StringValue(dummyProjectID),
 				InstanceName: types.StringValue(instanceName),
 				PageNum:      types.Int64Value(1),
-				ItemsPerPage: types.Int64Value(2),
+				ItemsPerPage: types.Int64Value(3),
 			},
 			expectedTFModel: &streamconnection.TFStreamConnectionsDSModel{
 				ProjectID:    types.StringValue(dummyProjectID),
 				InstanceName: types.StringValue(instanceName),
 				PageNum:      types.Int64Value(1),
-				ItemsPerPage: types.Int64Value(2),
-				TotalCount:   types.Int64Value(2),
+				ItemsPerPage: types.Int64Value(3),
+				TotalCount:   types.Int64Value(3),
 				Results: []streamconnection.TFStreamConnectionModel{
 					{
 						ID:               types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
@@ -241,6 +267,18 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						Config:          types.MapNull(types.StringType),
 						Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
 						DBRoleToExecute: tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
+					},
+					{
+						ID:              types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, sampleConnectionName)),
+						ProjectID:       types.StringValue(dummyProjectID),
+						InstanceName:    types.StringValue(instanceName),
+						ConnectionName:  types.StringValue(sampleConnectionName),
+						Type:            types.StringValue("Sample"),
+						ClusterName:     types.StringNull(),
+						Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+						Config:          types.MapNull(types.StringType),
+						Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+						DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 					},
 				},
 			},
@@ -347,6 +385,19 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 			expectedSDKReq: &admin.StreamsConnection{
 				Name: admin.PtrString(connectionName),
 				Type: admin.PtrString("Kafka"),
+			},
+		},
+		{
+			name: "Sample type TF state",
+			tfModel: &streamconnection.TFStreamConnectionModel{
+				ProjectID:      types.StringValue(dummyProjectID),
+				InstanceName:   types.StringValue(instanceName),
+				ConnectionName: types.StringValue(connectionName),
+				Type:           types.StringValue("Sample"),
+			},
+			expectedSDKReq: &admin.StreamsConnection{
+				Name: admin.PtrString(connectionName),
+				Type: admin.PtrString("Sample"),
 			},
 		},
 	}

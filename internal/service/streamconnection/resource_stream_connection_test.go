@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -98,6 +99,33 @@ func TestAccStreamRSStreamConnection_cluster(t *testing.T) {
 	})
 }
 
+func TestAccStreamRSStreamConnection_sample(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_stream_connection.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acc.RandomProjectName()
+		instanceName = acc.RandomName()
+		sampleName   = "sample_stream_solar"
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: sampleStreamConnectionConfig(orgID, projectName, instanceName, sampleName),
+				Check:  sampleStreamConnectionAttributeChecks(resourceName, instanceName, sampleName),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func kafkaStreamConnectionConfig(orgID, projectName, instanceName, username, password, bootstrapServers, configValue string, useSSL bool) string {
 	projectAndStreamInstanceConfig := acc.StreamInstanceConfig(orgID, projectName, instanceName, "VIRGINIA_USA", "AWS")
 	securityConfig := `
@@ -133,6 +161,33 @@ func kafkaStreamConnectionConfig(orgID, projectName, instanceName, username, pas
 		    %[6]s
 		}
 	`, projectAndStreamInstanceConfig, username, password, bootstrapServers, configValue, securityConfig)
+}
+
+func sampleStreamConnectionConfig(orgID, projectName, instanceName, sampleName string) string {
+	projectAndStreamInstanceConfig := acc.StreamInstanceConfig(orgID, projectName, instanceName, "VIRGINIA_USA", "AWS")
+
+	return fmt.Sprintf(`
+		%[1]s
+		
+		resource "mongodbatlas_stream_connection" "test" {
+		    project_id = mongodbatlas_project.test.id
+			instance_name = mongodbatlas_stream_instance.test.instance_name
+		 	connection_name = %[2]q
+		 	type = "Sample"
+		}
+	`, projectAndStreamInstanceConfig, sampleName)
+}
+
+func sampleStreamConnectionAttributeChecks(
+	resourceName, instanceName, sampleName string) resource.TestCheckFunc {
+	resourceChecks := []resource.TestCheckFunc{
+		checkStreamConnectionExists(),
+		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+		resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
+		resource.TestCheckResourceAttr(resourceName, "connection_name", sampleName),
+		resource.TestCheckResourceAttr(resourceName, "type", "Sample"),
+	}
+	return resource.ComposeTestCheckFunc(resourceChecks...)
 }
 
 func kafkaStreamConnectionAttributeChecks(
