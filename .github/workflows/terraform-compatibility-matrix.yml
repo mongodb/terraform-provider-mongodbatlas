@@ -35,7 +35,7 @@ on:
     
 
 jobs:
-  run-test-supported-versions:
+  get-supported-versions:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
@@ -53,7 +53,20 @@ jobs:
         shell: bash
         run: |
           echo "${{ steps.get-terraform-supported-versions.outputs.supported_versions }}" 
-      - name: Run Test Suite with all HashiCorp Terraform supported versions
-        uses: ./.github/workflows/test-suite.yml
-        with:
-          terraform_matrix: ${{ steps.get-terraform-supported-versions.outputs.supported_versions }}
+    outputs:
+      supported_versions: ${{ steps.get-terraform-supported-versions.outputs.supported_versions }}
+
+          
+  run-test-supported-versions:
+    needs: ["get-supported-versions"]
+    if: ${{ !cancelled() }}
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix:
+        terraform_version: ${{ fromJSON(needs.get-supported-versions.outputs.supported_versions) }}
+    name: terrafrom-compatibility-${{ matrix.terraform_version }}
+    uses: ./.github/workflows/test-suite.yml
+    with:
+      terraform_matrix: ${{ matrix.terraform_version }}
+
