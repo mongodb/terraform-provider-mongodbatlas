@@ -232,7 +232,7 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          TEST_REGEX: "^TestAccOutageSimulationCluster"
+          ACCTEST_PACKAGES: ./internal/service/clusteroutagesimulation
         run: make testacc
 
   advanced_cluster:
@@ -252,7 +252,7 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          TEST_REGEX: "^TestAccClusterAdvancedCluster"
+          ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
 
   cluster:
@@ -272,7 +272,9 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          TEST_REGEX: "^TestAccClusterRS"
+          ACCTEST_PACKAGES: |
+            ./internal/service/cluster
+            ./internal/service/globalclusterconfig
         run: make testacc
 
   search_deployment:
@@ -292,7 +294,7 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          TEST_REGEX: "^TestAccSearchDeployment"
+          ACCTEST_PACKAGES: ./internal/service/searchdeployment
         run: make testacc
 
   stream:
@@ -313,7 +315,9 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_ENABLE_BETA: ${{ vars.MONGODB_ATLAS_ENABLE_BETA }}
-          TEST_REGEX: "^TestAccStream"
+          ACCTEST_PACKAGES: |
+            ./internal/service/streaminstance
+            ./internal/service/streamconnection
         run: make testacc
 
   generic: # Acceptance tests that do not use any time-consuming resource (example: cluster)
@@ -358,7 +362,13 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
-          TEST_REGEX: "^TestAccBackup"
+          ACCTEST_PACKAGES: |
+            ./internal/service/onlinearchive
+            ./internal/service/cloudbackupschedule
+            ./internal/service/cloudbackupsnapshot
+            ./internal/service/cloudbackupsnapshotexportbucket
+            ./internal/service/cloudbackupsnapshotexportjob
+            ./internal/service/cloudbackupsnapshotrestorejob
         run: make testacc
   project: 
     needs: [ change-detection ]
@@ -387,7 +397,11 @@ jobs:
           AWS_SECURITY_GROUP_2: ${{ vars.AWS_SECURITY_GROUP_2 }}
           AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
           AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
-          TEST_REGEX: "^TestAccProject"
+          ACCTEST_PACKAGES: |
+            ./internal/service/project
+            ./internal/service/projectipaccesslist
+            ./internal/service/accesslistapikey
+            ./internal/service/projectinvitation
         run: make testacc
   serverless:
     needs: [ change-detection ]
@@ -406,7 +420,10 @@ jobs:
           terraform_wrapper: false    
       - name: Acceptance Tests
         env:
-          TEST_REGEX: "^TestAccServerless"
+          ACCTEST_PACKAGES: |
+            ./internal/service/serverlessinstance
+            ./internal/service/privatelinkendpointserverless
+            ./internal/service/privatelinkendpointserviceserverless
         run: make testacc
   network:
     needs: [ change-detection ]
@@ -435,7 +452,13 @@ jobs:
           AWS_SECURITY_GROUP_2: ${{ vars.AWS_SECURITY_GROUP_2 }}
           AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
           AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
-          TEST_REGEX: "^TestAccNetwork"
+          ACCTEST_PACKAGES: |
+            ./internal/service/networkcontainer
+            ./internal/service/networkpeering
+            ./internal/service/privateendpointregionalmode
+            ./internal/service/privatelinkendpoint
+            ./internal/service/privatelinkendpointservice
+            ./internal/service/privatelinkendpointservicedatafederationonlinearchive
         run: make testacc
   config:
     needs: [ change-detection ]
@@ -459,7 +482,21 @@ jobs:
           AZURE_ATLAS_APP_ID: ${{ inputs.azure_atlas_app_id }}
           AZURE_SERVICE_PRINCIPAL_ID: ${{ inputs.azure_service_principal_id }}
           AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
-          TEST_REGEX: "^TestAccConfig"
+          ACCTEST_PACKAGES: |
+            ./internal/service/alertconfiguration
+            ./internal/service/atlasuser
+            ./internal/service/databaseuser
+            ./internal/service/projectapikey
+            ./internal/service/apikey
+            ./internal/service/teams
+            ./internal/service/cloudprovideraccess
+            ./internal/service/customdbrole
+            ./internal/service/maintenancewindow
+            ./internal/service/customdnsconfigurationclusteraws
+            ./internal/service/rolesorgid
+            ./internal/service/orginvitation
+            ./internal/service/organization
+            ./internal/service/thirdpartyintegration
         run: make testacc
 
   assume_role:
@@ -497,7 +534,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ steps.sts-assume-role.outputs.aws_access_key_id }}
           AWS_SECRET_ACCESS_KEY: ${{ steps.sts-assume-role.outputs.aws_secret_access_key }}
           AWS_SESSION_TOKEN: ${{ steps.sts-assume-role.outputs.AWS_SESSION_TOKEN }}
-          TEST_REGEX: "^TestAccSTSAssumeRole"
+          ACCTEST_PACKAGES: ./internal/provider
         run: make testacc
 
   search_index:
@@ -517,7 +554,7 @@ jobs:
           terraform_wrapper: false    
       - name: Acceptance Tests
         env:
-          TEST_REGEX: "^TestAccSearchIndex"
+          ACCTEST_PACKAGES: ./internal/service/searchindex
         run: make testacc
   
   federated:
@@ -548,7 +585,12 @@ jobs:
           AWS_REGION: ${{ vars.aws_region_federation }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
-          TEST_REGEX: "^TestAccFederated"
+          ACCTEST_PACKAGES: |
+            ./internal/service/federatedsettingsidentityprovider
+            ./internal/service/federateddatabaseinstance
+            ./internal/service/federatedsettingsorgconfig
+            ./internal/service/federatedsettingsorgrolemapping
+            ./internal/service/federatedquerylimit
         run: make testacc
   data_lake:
     needs: [ change-detection ]
@@ -567,7 +609,7 @@ jobs:
           terraform_wrapper: false    
       - name: Acceptance Tests
         env:
-          TEST_REGEX: "^TestAccDataLake"
+          ACCTEST_PACKAGES: ./internal/service/datalakepipeline
         run: make testacc
   ldap:
     needs: [ change-detection ]
@@ -591,7 +633,9 @@ jobs:
           MONGODB_ATLAS_LDAP_PASSWORD: ${{ secrets.mongodb_atlas_ldap_password }}
           MONGODB_ATLAS_LDAP_PORT: ${{ secrets.mongodb_atlas_ldap_port }}
           MONGODB_ATLAS_LDAP_CA_CERTIFICATE: ${{ secrets.mongodb_atlas_ldap_ca_certificate }}
-          TEST_REGEX: "^TestAccLDAP"
+          ACCTEST_PACKAGES: |
+            ./internal/service/ldapconfiguration
+            ./internal/service/ldapverify
         run: make testacc
   encryption:
     needs: [ change-detection ]
@@ -610,7 +654,7 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          TEST_REGEX: "^TestAccEncryption"
+          ACCTEST_PACKAGES: ./internal/service/encryptionatrest
         run: make testacc
   event_trigger:
     needs: [ change-detection ]
@@ -629,5 +673,5 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          TEST_REGEX: "^TestAccEventTrigger"
+          ACCTEST_PACKAGES: ./internal/service/eventtrigger
         run: make testacc
