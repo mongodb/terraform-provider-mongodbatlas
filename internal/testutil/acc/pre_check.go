@@ -44,28 +44,28 @@ func PreCheckPreviewFlag(tb testing.TB) {
 
 func PreCheckCloudProviderAccessAzure(tb testing.TB) {
 	tb.Helper()
-	PreCheckBasic(tb)
 	if os.Getenv("AZURE_ATLAS_APP_ID") == "" ||
 		os.Getenv("AZURE_SERVICE_PRINCIPAL_ID") == "" ||
 		os.Getenv("AZURE_TENANT_ID") == "" {
 		tb.Fatal("`AZURE_ATLAS_APP_ID`, `AZURE_SERVICE_PRINCIPAL_ID`, and `AZURE_TENANT_ID` must be set for acceptance testing")
 	}
+	PreCheckBasic(tb)
 }
 
 func PreCheckBasicOwnerID(tb testing.TB) {
 	tb.Helper()
-	PreCheckBasic(tb)
 	if os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID") == "" {
 		tb.Fatal("`MONGODB_ATLAS_PROJECT_OWNER_ID` must be set ")
 	}
+	PreCheckBasic(tb)
 }
 
 func PreCheckAtlasUsername(tb testing.TB) {
 	tb.Helper()
-	PreCheckBasic(tb)
 	if os.Getenv("MONGODB_ATLAS_USERNAME") == "" {
 		tb.Fatal("`MONGODB_ATLAS_USERNAME` must be set ")
 	}
+	PreCheckBasic(tb)
 }
 
 func PreCheckProjectTeamsIDsWithMinCount(tb testing.TB, minTeamsCount int) {
@@ -79,6 +79,18 @@ func PreCheckProjectTeamsIDsWithMinCount(tb testing.TB, minTeamsCount int) {
 	if count := len(teamsIDs); count < minTeamsCount {
 		tb.Fatalf("`MONGODB_ATLAS_TEAMS_IDS` must have at least %d team ids for this acceptance testing, has %d", minTeamsCount, count)
 	}
+}
+
+func PreCheckTrigger(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("MONGODB_REALM_APP_ID") == "" ||
+		os.Getenv("MONGODB_REALM_FUNCTION_ID") == "" ||
+		os.Getenv("MONGODB_REALM_SERVICE_ID") == "" ||
+		os.Getenv("AWS_EVENTBRIDGE_ACCOUNT_ID") == "" ||
+		os.Getenv("AWS_REGION") == "" {
+		tb.Fatal("`MONGODB_REALM_APP_ID`, `MONGODB_REALM_FUNCTION_ID`, `MONGODB_REALM_SERVICE_ID`, `AWS_EVENTBRIDGE_ACCOUNT_ID` and `AWS_REGION` must be set for acceptance testing")
+	}
+	PreCheck(tb)
 }
 
 func GetProjectTeamsIDsWithPos(pos int) string {
