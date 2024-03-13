@@ -212,7 +212,7 @@ func (r *databaseUserRS) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	dbUserReq, d := NewMongoDBDatabaseUser(ctx, databaseUserPlan)
+	dbUserReq, d := NewMongoDBDatabaseUser(ctx, types.StringNull(), databaseUserPlan)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -230,6 +230,8 @@ func (r *databaseUserRS) Create(ctx context.Context, req resource.CreateRequest,
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	resp.Diagnostics.AddWarning("If the password value will be managed externally it is advised to remove the attribute", "More details can be found in resource documentation under the 'password' attribute")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &dbUserModel)...)
 	if resp.Diagnostics.HasError() {
@@ -286,14 +288,15 @@ func (r *databaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 
 func (r *databaseUserRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var databaseUserPlan *TfDatabaseUserModel
+	var databaseUserState *TfDatabaseUserModel
 
-	diags := req.Plan.Get(ctx, &databaseUserPlan)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &databaseUserPlan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &databaseUserState)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	dbUserReq, d := NewMongoDBDatabaseUser(ctx, databaseUserPlan)
+	dbUserReq, d := NewMongoDBDatabaseUser(ctx, databaseUserState.Password, databaseUserPlan)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return

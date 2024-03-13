@@ -17,7 +17,7 @@ func TestAccStreamDSStreamConnection_kafkaPlaintext(t *testing.T) {
 		instanceName   = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckPreviewFlag(t); acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
@@ -37,7 +37,7 @@ func TestAccStreamDSStreamConnection_kafkaSSL(t *testing.T) {
 		dataSourceName = "data.mongodbatlas_stream_connection.test"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckPreviewFlag(t); acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
@@ -56,7 +56,7 @@ func TestAccStreamDSStreamConnection_cluster(t *testing.T) {
 		instanceName   = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBetaFlag(t); acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckPreviewFlag(t); acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{

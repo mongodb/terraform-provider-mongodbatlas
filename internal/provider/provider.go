@@ -34,14 +34,15 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
 const (
-	MongodbGovCloudURL   = "https://cloud.mongodbgov.com"
-	ProviderConfigError  = "error in configuring the provider."
-	MissingAuthAttrError = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
+	MongodbGovCloudURL    = "https://cloud.mongodbgov.com"
+	MongodbGovCloudQAURL  = "https://cloud-qa.mongodbgov.com"
+	MongodbGovCloudDevURL = "https://cloud-dev.mongodbgov.com"
+	ProviderConfigError   = "error in configuring the provider."
+	MissingAuthAttrError  = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
 )
 
 type MongodbtlasProvider struct{}
@@ -296,7 +297,9 @@ func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *co
 
 func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasProviderModel, resp *provider.ConfigureResponse) tfMongodbAtlasProviderModel {
 	if mongodbgovCloud := data.IsMongodbGovCloud.ValueBool(); mongodbgovCloud {
-		data.BaseURL = types.StringValue(MongodbGovCloudURL)
+		if !isGovBaseURLConfiguredForProvider(data) {
+			data.BaseURL = types.StringValue(MongodbGovCloudURL)
+		}
 	}
 	if data.BaseURL.ValueString() == "" {
 		data.BaseURL = types.StringValue(MultiEnvDefaultFunc([]string{
@@ -414,14 +417,14 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		atlasuser.PluralDataSource,
 		searchdeployment.DataSource,
 	}
-	betaDataSources := []func() datasource.DataSource{
+	previewDataSources := []func() datasource.DataSource{
 		streaminstance.DataSource,
 		streaminstance.PluralDataSource,
 		streamconnection.DataSource,
 		streamconnection.PluralDataSource,
 	}
-	if ProviderEnableBeta {
-		dataSources = append(dataSources, betaDataSources...)
+	if ProviderEnablePreview {
+		dataSources = append(dataSources, previewDataSources...)
 	}
 	return dataSources
 }
@@ -435,12 +438,12 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		projectipaccesslist.Resource,
 		searchdeployment.Resource,
 	}
-	betaResources := []func() resource.Resource{
+	previewResources := []func() resource.Resource{
 		streaminstance.Resource,
 		streamconnection.Resource,
 	}
-	if ProviderEnableBeta {
-		resources = append(resources, betaResources...)
+	if ProviderEnablePreview {
+		resources = append(resources, previewResources...)
 	}
 	return resources
 }
@@ -474,4 +477,18 @@ func MultiEnvDefaultFunc(ks []string, def any) any {
 		}
 	}
 	return def
+}
+
+func isGovBaseURLConfigured(baseURL string) bool {
+	if baseURL == "" {
+		baseURL = MultiEnvDefaultFunc([]string{
+			"MONGODB_ATLAS_BASE_URL",
+			"MCLI_OPS_MANAGER_URL",
+		}, "").(string)
+	}
+	return baseURL == MongodbGovCloudDevURL || baseURL == MongodbGovCloudQAURL
+}
+
+func isGovBaseURLConfiguredForProvider(data *tfMongodbAtlasProviderModel) bool {
+	return isGovBaseURLConfigured(data.BaseURL.ValueString())
 }

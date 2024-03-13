@@ -73,41 +73,76 @@ var (
 		Labels:       &[]admin.ComponentLabel{sdkLabel},
 		Scopes:       &[]admin.UserScope{sdkScope},
 	}
+	cloudDatabaseUserWithoutPassword = &admin.CloudDatabaseUser{
+		GroupId:      projectID,
+		DatabaseName: authDatabaseName,
+		Username:     username,
+		X509Type:     &x509Type,
+		OidcAuthType: &oidCAuthType,
+		LdapAuthType: &ldapAuthType,
+		AwsIAMType:   &awsIAMType,
+		Roles:        &[]admin.DatabaseUserRole{sdkRole},
+		Labels:       &[]admin.ComponentLabel{sdkLabel},
+		Scopes:       &[]admin.UserScope{sdkScope},
+	}
 )
 
 func TestNewMongoDBDatabaseUser(t *testing.T) {
 	testCases := []struct {
-		TfDatabaseUserModel databaseuser.TfDatabaseUserModel
+		tfDatabaseUserModel databaseuser.TfDatabaseUserModel
+		passwordStateValue  types.String
 		expectedResult      *admin.CloudDatabaseUser
 		name                string
 		expectedError       bool
 	}{
 		{
-			name:                "Success CloudDatabaseUser",
-			TfDatabaseUserModel: *getDatabaseUserModel(rolesSet, labelsSet, scopesSet),
+			name:                "CloudDatabaseUser for create",
+			tfDatabaseUserModel: *getDatabaseUserModel(rolesSet, labelsSet, scopesSet, types.StringValue(password)),
+			passwordStateValue:  types.StringNull(),
 			expectedResult:      cloudDatabaseUser,
 			expectedError:       false,
 		},
 		{
+			name:                "CloudDatabaseUser with new password in model when password value is modified",
+			tfDatabaseUserModel: *getDatabaseUserModel(rolesSet, labelsSet, scopesSet, types.StringValue(password)),
+			passwordStateValue:  types.StringValue("oldPassword"),
+			expectedResult:      cloudDatabaseUser,
+			expectedError:       false,
+		},
+		{
+			name:                "CloudDatabaseUser with no password in model when password value remains the same",
+			tfDatabaseUserModel: *getDatabaseUserModel(rolesSet, labelsSet, scopesSet, types.StringValue(password)),
+			passwordStateValue:  types.StringValue(password),
+			expectedResult:      cloudDatabaseUserWithoutPassword,
+			expectedError:       false,
+		},
+		{
+			name:                "CloudDatabaseUser with no password in model when password value is removed",
+			tfDatabaseUserModel: *getDatabaseUserModel(rolesSet, labelsSet, scopesSet, types.StringNull()),
+			passwordStateValue:  types.StringValue(password),
+			expectedResult:      cloudDatabaseUserWithoutPassword,
+			expectedError:       false,
+		},
+		{
 			name:                "Roles fail",
-			TfDatabaseUserModel: *getDatabaseUserModel(wrongRoleSet, labelsSet, scopesSet),
+			tfDatabaseUserModel: *getDatabaseUserModel(wrongRoleSet, labelsSet, scopesSet, types.StringValue(password)),
 			expectedError:       true,
 		},
 		{
 			name:                "Labels fail",
-			TfDatabaseUserModel: *getDatabaseUserModel(rolesSet, wrongLabelSet, scopesSet),
+			tfDatabaseUserModel: *getDatabaseUserModel(rolesSet, wrongLabelSet, scopesSet, types.StringValue(password)),
 			expectedError:       true,
 		},
 		{
 			name:                "Scopes fail",
-			TfDatabaseUserModel: *getDatabaseUserModel(rolesSet, labelsSet, wrongScopeSet),
+			tfDatabaseUserModel: *getDatabaseUserModel(rolesSet, labelsSet, wrongScopeSet, types.StringValue(password)),
 			expectedError:       true,
 		},
 	}
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, err := databaseuser.NewMongoDBDatabaseUser(context.Background(), &testCases[i].TfDatabaseUserModel)
+			resultModel, err := databaseuser.NewMongoDBDatabaseUser(context.Background(), tc.passwordStateValue, &testCases[i].tfDatabaseUserModel)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -129,7 +164,7 @@ func TestNewTfDatabaseUserModel(t *testing.T) {
 			name:            "Success TfDatabaseUserModel",
 			sdkDatabaseUser: cloudDatabaseUser,
 			currentModel:    databaseuser.TfDatabaseUserModel{Password: types.StringValue(password)},
-			expectedResult:  getDatabaseUserModel(rolesSet, labelsSet, scopesSet),
+			expectedResult:  getDatabaseUserModel(rolesSet, labelsSet, scopesSet, types.StringValue(password)),
 			expectedError:   false,
 		},
 	}
@@ -308,7 +343,7 @@ func TestNewTFRolesModel(t *testing.T) {
 	}
 }
 
-func getDatabaseUserModel(roles, labels, scopes basetypes.SetValue) *databaseuser.TfDatabaseUserModel {
+func getDatabaseUserModel(roles, labels, scopes basetypes.SetValue, password types.String) *databaseuser.TfDatabaseUserModel {
 	encodedID := conversion.EncodeStateID(map[string]string{
 		"project_id":         projectID,
 		"username":           username,
@@ -319,7 +354,7 @@ func getDatabaseUserModel(roles, labels, scopes basetypes.SetValue) *databaseuse
 		ProjectID:        types.StringValue(projectID),
 		AuthDatabaseName: types.StringValue(authDatabaseName),
 		Username:         types.StringValue(username),
-		Password:         types.StringValue(password),
+		Password:         password,
 		X509Type:         types.StringValue(x509Type),
 		OIDCAuthType:     types.StringValue(oidCAuthType),
 		LDAPAuthType:     types.StringValue(ldapAuthType),

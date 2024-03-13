@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/accesslistapikey"
@@ -62,7 +63,7 @@ import (
 )
 
 var (
-	ProviderEnableBeta, _ = strconv.ParseBool(os.Getenv("MONGODB_ATLAS_ENABLE_BETA"))
+	ProviderEnablePreview, _ = strconv.ParseBool(os.Getenv("MONGODB_ATLAS_ENABLE_PREVIEW"))
 )
 
 type SecretData struct {
@@ -136,7 +137,7 @@ func NewSdkV2Provider() *schema.Provider {
 		ResourcesMap:         getResourcesMap(),
 		ConfigureContextFunc: providerConfigure,
 	}
-	addBetaFeatures(provider)
+	addPreviewFeatures(provider)
 	return provider
 }
 
@@ -276,8 +277,8 @@ func getResourcesMap() map[string]*schema.Resource {
 	return resourcesMap
 }
 
-func addBetaFeatures(provider *schema.Provider) {
-	if ProviderEnableBeta {
+func addPreviewFeatures(provider *schema.Provider) {
+	if ProviderEnablePreview {
 		return
 	}
 }
@@ -324,8 +325,10 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 
 	mongodbgovCloud := conversion.Pointer(d.Get("is_mongodbgov_cloud").(bool))
 	if *mongodbgovCloud {
-		if err := d.Set("base_url", MongodbGovCloudURL); err != nil {
-			return append(diagnostics, diag.FromErr(err)...)
+		if !isGovBaseURLConfiguredForSDK2Provider(d) {
+			if err := d.Set("base_url", MongodbGovCloudURL); err != nil {
+				return append(diagnostics, diag.FromErr(err)...)
+			}
 		}
 	}
 
@@ -572,4 +575,8 @@ func expandAssumeRole(tfMap map[string]any) *config.AssumeRole {
 	}
 
 	return &assumeRole
+}
+
+func isGovBaseURLConfiguredForSDK2Provider(d *schema.ResourceData) bool {
+	return isGovBaseURLConfigured(d.Get("base_url").(string))
 }

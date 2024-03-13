@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
-func NewMongoDBDatabaseUser(ctx context.Context, dbUserModel *TfDatabaseUserModel) (*admin.CloudDatabaseUser, diag.Diagnostics) {
+func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue types.String, dbUserModel *TfDatabaseUserModel) (*admin.CloudDatabaseUser, diag.Diagnostics) {
 	var rolesModel []*TfRoleModel
 	var labelsModel []*TfLabelModel
 	var scopesModel []*TfScopeModel
@@ -31,10 +31,9 @@ func NewMongoDBDatabaseUser(ctx context.Context, dbUserModel *TfDatabaseUserMode
 		return nil, diags
 	}
 
-	return &admin.CloudDatabaseUser{
+	result := admin.CloudDatabaseUser{
 		GroupId:      dbUserModel.ProjectID.ValueString(),
 		Username:     dbUserModel.Username.ValueString(),
-		Password:     dbUserModel.Password.ValueStringPointer(),
 		X509Type:     dbUserModel.X509Type.ValueStringPointer(),
 		AwsIAMType:   dbUserModel.AWSIAMType.ValueStringPointer(),
 		OidcAuthType: dbUserModel.OIDCAuthType.ValueStringPointer(),
@@ -43,7 +42,13 @@ func NewMongoDBDatabaseUser(ctx context.Context, dbUserModel *TfDatabaseUserMode
 		Roles:        NewMongoDBAtlasRoles(rolesModel),
 		Labels:       NewMongoDBAtlasLabels(labelsModel),
 		Scopes:       NewMongoDBAtlasScopes(scopesModel),
-	}, nil
+	}
+
+	if statePasswordValue != dbUserModel.Password {
+		// Password value has been modified or no previous state was present. Password is only updated if changed in the terraform configuration CLOUDP-235738
+		result.Password = dbUserModel.Password.ValueStringPointer()
+	}
+	return &result, nil
 }
 
 func NewTfDatabaseUserModel(ctx context.Context, model *TfDatabaseUserModel, dbUser *admin.CloudDatabaseUser) (*TfDatabaseUserModel, diag.Diagnostics) {
