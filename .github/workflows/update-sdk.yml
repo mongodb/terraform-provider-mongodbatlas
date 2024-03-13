@@ -21,7 +21,7 @@ jobs:
         uses: tj-actions/verify-changed-files@843c0b95f87cd81a2efe729380c6d1f11fb3ea12
         id: verify-changed-files
       - name: Create PR
-        uses: peter-evans/create-pull-request@a4f52f8033a6168103c2538976c07b467e8163bc
+        uses: peter-evans/create-pull-request@70a41aba780001da0a30141984ae2a0c95d8704e
         if: steps.verify-changed-files.outputs.files_changed == 'true'
         with:
           title: "chore: Updates Atlas Go SDK"
