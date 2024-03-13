@@ -310,7 +310,7 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_ENABLE_BETA: ${{ vars.MONGODB_ATLAS_ENABLE_BETA }}
+          MONGODB_ATLAS_ENABLE_PREVIEW: ${{ vars.MONGODB_ATLAS_ENABLE_PREVIEW }}
           TEST_REGEX: "^TestAccStream"
         run: make testacc
 
