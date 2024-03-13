@@ -1,12 +1,10 @@
 package acc
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -44,13 +42,4 @@ func RandomEmail() string {
 func ProjectIDGlobal(tb testing.TB) string {
 	tb.Helper()
 	return projectID(tb, prefixProjectKeep+"-global")
-}
-
-func projectID(tb testing.TB, name string) string {
-	tb.Helper()
-	SkipInUnitTest(tb)
-	resp, _, _ := ConnV2().ProjectsApi.GetProjectByName(context.Background(), name).Execute()
-	id := resp.GetId()
-	require.NotEmpty(tb, id, "Project name not found: %s", name)
-	return id
 }

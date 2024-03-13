@@ -18,9 +18,16 @@ var (
 	atlasRegion  = "US_EAST_1"
 )
 
+func TestMain(m *testing.M) {
+	acc.SetupSharedResources()
+	exitCode := m.Run()
+	acc.CleanupSharedResources()
+	os.Exit(exitCode)
+}
+
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
 	var (
-		projectID  = acc.ProjectIDGlobal(t)
+		projectID  = acc.ProjectIDExecution(t)
 		endpointID = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
 	)
 
@@ -51,7 +58,7 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t
 }
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateComment(t *testing.T) {
 	var (
-		projectID      = acc.ProjectIDGlobal(t)
+		projectID      = acc.ProjectIDExecution(t)
 		endpointID     = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
 		commentUpdated = "Terraform Acceptance Test Updated"
 	)
@@ -98,7 +105,7 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateC
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basicWithRegionDnsName(t *testing.T) {
 	var (
-		projectID               = acc.ProjectIDGlobal(t)
+		projectID               = acc.ProjectIDExecution(t)
 		endpointID              = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
 		customerEndpointDNSName = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME")
 	)
