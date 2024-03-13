@@ -8,10 +8,10 @@ require (
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/go-version v1.6.0
 	github.com/hashicorp/hcl/v2 v2.20.0
-	github.com/hashicorp/terraform-plugin-framework v1.5.0
+	github.com/hashicorp/terraform-plugin-framework v1.6.1
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.4.1
 	github.com/hashicorp/terraform-plugin-framework-validators v0.12.0
-	github.com/hashicorp/terraform-plugin-go v0.21.0
+	github.com/hashicorp/terraform-plugin-go v0.22.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-mux v0.14.0
 	github.com/hashicorp/terraform-plugin-sdk v1.17.2
@@ -113,7 +113,7 @@ require (
 	google.golang.org/genproto v0.0.0-20231106174013-bbf56f31fb17 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231106174013-bbf56f31fb17 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231106174013-bbf56f31fb17 // indirect
-	google.golang.org/grpc v1.61.0 // indirect
+	google.golang.org/grpc v1.61.1 // indirect
 	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
