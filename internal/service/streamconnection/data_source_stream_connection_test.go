@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 

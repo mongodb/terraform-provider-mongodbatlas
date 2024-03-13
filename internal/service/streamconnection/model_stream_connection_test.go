@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20231115007/admin"
-
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/stretchr/testify/assert"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
+	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
 const (
