@@ -135,7 +135,7 @@ jobs:
       ldap: ${{ steps.filter.outputs.ldap == 'true' || env.mustTrigger == 'true' }}
       encryption: ${{ steps.filter.outputs.encryption == 'true' || env.mustTrigger == 'true' }}
     steps:
-    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+    - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
     - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
       id: filter
       if: ${{ inputs.test_group == '' && env.mustTrigger == 'false' }}
@@ -220,7 +220,7 @@ jobs:
     if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || inputs.test_group == 'cluster_outage_simulation' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
@@ -240,7 +240,7 @@ jobs:
     if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
@@ -260,7 +260,7 @@ jobs:
     if: ${{ needs.change-detection.outputs.cluster == 'true' || inputs.test_group == 'cluster' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
@@ -282,7 +282,7 @@ jobs:
     if: ${{ needs.change-detection.outputs.search_deployment == 'true' || inputs.test_group == 'search_deployment' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
@@ -302,7 +302,7 @@ jobs:
     if: ${{ needs.change-detection.outputs.stream == 'true' || inputs.test_group == 'stream' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
@@ -314,7 +314,7 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_ENABLE_BETA: ${{ vars.MONGODB_ATLAS_ENABLE_BETA }}
+          MONGODB_ATLAS_ENABLE_PREVIEW: "true"
           ACCTEST_PACKAGES: |
             ./internal/service/streaminstance
             ./internal/service/streamconnection
@@ -325,7 +325,7 @@ jobs:
     if: ${{ needs.change-detection.outputs.generic == 'true' || inputs.test_group == 'generic' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
@@ -349,7 +349,7 @@ jobs:
     if: ${{ needs.change-detection.outputs.backup == 'true' || inputs.test_group == 'backup' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
@@ -375,7 +375,7 @@ jobs:
     if: ${{ needs.change-detection.outputs.project == 'true' || inputs.test_group == 'project' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
@@ -408,7 +408,7 @@ jobs:
     if: ${{ needs.change-detection.outputs.serverless == 'true' || inputs.test_group == 'serverless' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
@@ -430,7 +430,7 @@ jobs:
     if: ${{ needs.change-detection.outputs.network == 'true' || inputs.test_group == 'network' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
@@ -465,7 +465,7 @@ jobs:
     if: ${{ needs.change-detection.outputs.config == 'true' || inputs.test_group == 'config' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
@@ -504,7 +504,7 @@ jobs:
     if: ${{ needs.change-detection.outputs.assume_role == 'true' || inputs.test_group == 'assume_role' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
@@ -542,7 +542,7 @@ jobs:
     if: ${{ needs.change-detection.outputs.search_index == 'true' || inputs.test_group == 'search_index' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
@@ -562,7 +562,7 @@ jobs:
     if: ${{ needs.change-detection.outputs.federated == 'true' || inputs.test_group == 'federated' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
@@ -597,7 +597,7 @@ jobs:
     if: ${{ needs.change-detection.outputs.data_lake == 'true' || inputs.test_group == 'data_lake' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
@@ -616,7 +616,7 @@ jobs:
     if: ${{ needs.change-detection.outputs.ldap == 'true' || inputs.test_group == 'ldap' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
@@ -642,7 +642,7 @@ jobs:
     if: ${{ needs.change-detection.outputs.encryption == 'true' || inputs.test_group == 'encryption' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
@@ -661,7 +661,7 @@ jobs:
     if: ${{ needs.change-detection.outputs.event_trigger == 'true' || inputs.test_group == 'event_trigger' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491

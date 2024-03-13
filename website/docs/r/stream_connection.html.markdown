@@ -10,7 +10,7 @@ description: |-
 
 `mongodbatlas_stream_connection` provides a Stream Connection resource. The resource lets you create, edit, and delete stream instance connections.
 
--> **NOTE:** Atlas Stream Processing is currently in preview, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA=true` to use this resource. To learn more about stream processing and existing limitations, see the [Atlas Stream Processing Documentation](https://www.mongodb.com/docs/atlas/atlas-sp/overview/#atlas-stream-processing-overview).
+-> **NOTE:** Atlas Stream Processing is currently in preview, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_PREVIEW=true` to use this resource. To learn more about stream processing and existing limitations, see the [Atlas Stream Processing Documentation](https://www.mongodb.com/docs/atlas/atlas-sp/overview/#atlas-stream-processing-overview).
 
 ~> **IMPORTANT:** All arguments including the Kafka authentication password will be stored in the raw state as plaintext. [Read more about sensitive data in state.](https://www.terraform.io/docs/state/sensitive-data.html)
 
@@ -80,8 +80,8 @@ resource "mongodbatlas_stream_connection" "test" {
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
 * `instance_name` - (Required) Human-readable label that identifies the stream instance.
-* `connection_name` - (Required) Human-readable label that identifies the stream connection.
-* `type` - (Required) Type of connection. Can be either `Cluster` or `Kafka`.
+* `connection_name` - (Required) Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
+* `type` - (Required) Type of connection. Can be either `Cluster`, `Kafka` or `Sample`.
 
 If `type` is of value `Cluster` the following additional arguments are defined:
 * `cluster_name` - Name of the cluster configured for this connection.

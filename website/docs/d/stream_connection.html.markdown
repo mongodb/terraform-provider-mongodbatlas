@@ -10,7 +10,7 @@ description: |-
 
 `mongodbatlas_stream_connection` describes a stream connection.
 
--> **NOTE:** Atlas Stream Processing is currently in preview, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA=true` to use this data source. To learn more about stream processing and existing limitations, see the [Atlas Stream Processing Documentation](https://www.mongodb.com/docs/atlas/atlas-sp/overview/#atlas-stream-processing-overview).
+-> **NOTE:** Atlas Stream Processing is currently in preview, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_PREVIEW=true` to use this data source. To learn more about stream processing and existing limitations, see the [Atlas Stream Processing Documentation](https://www.mongodb.com/docs/atlas/atlas-sp/overview/#atlas-stream-processing-overview).
 
 ## Example Usage
 
@@ -26,11 +26,11 @@ data "mongodbatlas_stream_connection" "example" {
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
 * `instance_name` - (Required) Human-readable label that identifies the stream instance.
-* `connection_name` - (Required) Human-readable label that identifies the stream connection.
+* `connection_name` - (Required) Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
 
 ## Attributes Reference
 
-* `type` - Type of connection. Can be either `Cluster` or `Kafka`.
+* `type` - Type of connection. Can be either `Cluster`, `Kafka` or `Sample`.
 
 If `type` is of value `Cluster` the following additional attributes are defined:
 * `cluster_name` - Name of the cluster configured for this connection.

@@ -35,10 +35,10 @@ func PreCheckCert(tb testing.TB) {
 	}
 }
 
-func PreCheckBetaFlag(tb testing.TB) {
+func PreCheckPreviewFlag(tb testing.TB) {
 	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_ENABLE_BETA") == "" {
-		tb.Fatal("`MONGODB_ATLAS_ENABLE_BETA` must be set for running this acceptance test")
+	if os.Getenv("MONGODB_ATLAS_ENABLE_PREVIEW") == "" {
+		tb.Fatal("`MONGODB_ATLAS_ENABLE_PREVIEW` must be set for running this acceptance test")
 	}
 }
 
