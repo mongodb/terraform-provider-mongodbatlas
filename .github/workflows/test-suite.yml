@@ -10,6 +10,15 @@ on:
       provider_matrix:
         description: 'Previous MongoDB Atlas Provider version matrix for migration tests (JSON array)'
         default: '[""]' # "" for latest version
+  workflow_call:
+    inputs:
+      terraform_matrix:
+        description: 'Terraform version matrix (JSON array)'
+        type: string
+      provider_matrix:
+        description: 'Previous MongoDB Atlas Provider version matrix for migration tests (JSON array)'
+        type: string
+        default: '[""]' # "" for latest version
 
   schedule:
     - cron: "0 0 * * *" # workflow runs every day at midnight UTC
