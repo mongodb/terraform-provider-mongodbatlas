@@ -58,6 +58,13 @@ resource "mongodbatlas_stream_connection" "example-kafka-ssl" {
   }
 }
 
+resource "mongodbatlas_stream_connection" "example-sample" {
+  project_id      = var.project_id
+  instance_name   = mongodbatlas_stream_instance.example.instance_name
+  connection_name = "sample_stream_solar"
+  type            = "Sample"
+}
+
 data "mongodbatlas_stream_connection" "example-kafka-ssl" {
   project_id      = var.project_id
   instance_name   = mongodbatlas_stream_instance.example.instance_name
