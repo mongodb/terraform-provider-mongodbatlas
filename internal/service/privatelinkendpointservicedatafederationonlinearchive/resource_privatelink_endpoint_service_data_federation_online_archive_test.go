@@ -19,7 +19,10 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	acc.TestMainExecution(m)
+	acc.SetupSharedResources()
+	exitCode := m.Run()
+	acc.CleanupSharedResources()
+	os.Exit(exitCode)
 }
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {

@@ -2,6 +2,7 @@ package acc
 
 import (
 	"fmt"
+	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
@@ -36,4 +37,9 @@ func RandomIP(a, b, c byte) string {
 
 func RandomEmail() string {
 	return fmt.Sprintf("%s-%s@mongodb.com", prefixName, acctest.RandString(10))
+}
+
+func ProjectIDGlobal(tb testing.TB) string {
+	tb.Helper()
+	return projectID(tb, prefixProjectKeep+"-global")
 }
