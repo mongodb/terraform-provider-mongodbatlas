@@ -13,7 +13,7 @@ on:
 
 env:
   AWS_DEFAULT_REGION: us-west-2
-  MONGODB_ATLAS_ENABLE_PREVIEW: ${{ vars.MONGODB_ATLAS_ENABLE_PREVIEW }}
+  MONGODB_ATLAS_ENABLE_PREVIEW: "true"
 
 jobs:
   tf-validate:
