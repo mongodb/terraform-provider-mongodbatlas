@@ -17,6 +17,36 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
+
+    - uses: lhotari/action-upterm@v1
+      env:
+        ASSIGNEE_JIRA_TICKET: ${{ secrets.ASSIGNEE_JIRA_TICKET }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+        AWS_EVENTBRIDGE_ACCOUNT_ID: ${{ secrets.AWS_EVENTBRIDGE_ACCOUNT_ID }}
+        AWS_S3_BUCKET_FEDERATION: ${{ secrets.AWS_S3_BUCKET_FEDERATION }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        CA_CERT: ${{ secrets.CA_CERT }}
+        GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+        MONGODB_ATLAS_LDAP_CA_CERTIFICATE: ${{ secrets.MONGODB_ATLAS_LDAP_CA_CERTIFICATE }}
+        MONGODB_ATLAS_LDAP_HOSTNAME: ${{ secrets.MONGODB_ATLAS_LDAP_HOSTNAME }}
+        MONGODB_ATLAS_LDAP_PASSWORD: ${{ secrets.MONGODB_ATLAS_LDAP_PASSWORD }}
+        MONGODB_ATLAS_LDAP_PORT: ${{ secrets.MONGODB_ATLAS_LDAP_PORT }}
+        MONGODB_ATLAS_LDAP_USERNAME: ${{ secrets.MONGODB_ATLAS_LDAP_USERNAME }}
+        MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME: ${{ secrets.MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME }}
+        MONGODB_ATLAS_PRIVATE_ENDPOINT_ID: ${{ secrets.MONGODB_ATLAS_PRIVATE_ENDPOINT_ID }}
+        MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
+        MONGODB_ATLAS_PRIVATE_KEY_CLOUD_QA: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_QA }}
+        MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
+        MONGODB_ATLAS_PUBLIC_KEY_CLOUD_QA: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_QA }}
+        PASSPHRASE: ${{ secrets.PASSPHRASE }}
+      with:
+        limit-access-to-actor: true
+        limit-access-to-users: lantoli
+        wait-timeout-minutes: 30
+
+
     - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
       with:
         go-version-file: 'go.mod'
