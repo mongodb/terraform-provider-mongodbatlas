@@ -70,6 +70,6 @@ jobs:
     secrets: inherit
     uses: ./.github/workflows/test-suite.yml
     with:
-      terraform_matrix: '[${{ matrix.terraform_version }}]'
+      terraform_matrix: '["${{ matrix.terraform_version }}"]'
       provider_matrix: '[""]'
 
