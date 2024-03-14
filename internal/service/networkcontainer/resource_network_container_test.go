@@ -57,6 +57,41 @@ func TestAccNetworkContainerRS_basicAWS(t *testing.T) {
 	})
 }
 
+func TestAccNetworkContainerRS_updateCidrWithoutChangingRegions(t *testing.T) {
+	var (
+		randIntUpdated   = acctest.RandIntRange(0, 255)
+		cidrBlockUpdated = fmt.Sprintf("10.8.%d.0/24", randIntUpdated)
+		projectName      = acc.RandomProjectName()
+		region           = "US_EAST_1"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configAWS(projectName, orgID, cidrBlock, constant.AWS, region),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AWS),
+					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
+				),
+			},
+			{
+				Config: configAWS(projectName, orgID, cidrBlockUpdated, constant.AWS, region),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AWS),
+					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccNetworkContainerRS_basicAzure(t *testing.T) {
 	var (
 		randIntUpdated   = acctest.RandIntRange(0, 255)

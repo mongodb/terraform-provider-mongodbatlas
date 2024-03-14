@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"reflect"
 	"strings"
 	"time"
 
@@ -217,8 +216,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	containerID := ids["container_id"]
 
 	container := new(admin.CloudProviderContainer)
+	hasChange := false
 
 	if d.HasChange("atlas_cidr_block") {
+		hasChange = true
 		atlasCidrBlock := d.Get("atlas_cidr_block").(string)
 		providerName := d.Get("provider_name").(string)
 		container.AtlasCidrBlock = &atlasCidrBlock
@@ -226,21 +227,25 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("provider_name") {
+		hasChange = true
 		providerName := d.Get("provider_name").(string)
 		container.ProviderName = &providerName
 	}
 
 	if d.HasChange("region_name") {
-		regionName, _ := conversion.ValRegion(d.Get("region_name"))
-		container.RegionName = &regionName
+		hasChange = true
 	}
+	// regionName is a required field.
+	regionName, _ := conversion.ValRegion(d.Get("region_name"))
+	container.RegionName = &regionName
 
 	if d.HasChange("region") {
+		hasChange = true
 		region, _ := conversion.ValRegion(d.Get("region"))
 		container.Region = &region
 	}
 
-	if !reflect.DeepEqual(container, admin.CloudProviderContainer{}) {
+	if hasChange {
 		_, _, err := connV2.NetworkPeeringApi.UpdatePeeringContainer(ctx, projectID, containerID, container).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorContainerUpdate, containerID, err))
