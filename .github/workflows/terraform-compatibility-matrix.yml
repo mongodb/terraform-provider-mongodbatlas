@@ -18,21 +18,6 @@ on:
         description: 'The branch, tag or SHA where tests will run, e.g. v1.14.0, empty for default branch'
         type: string
         required: false
-  workflow_call:
-    inputs:
-      atlas_cloud_env:
-        description: 'Atlas cloud environment used, can be either `dev` or `qa`, empty for `dev`'     
-        type: string
-        required: false
-      test_group:
-        description: 'Test group to run, e.g. advanced_cluster, empty for all'
-        type: string
-        required: false
-      ref:
-        description: 'The branch, tag or SHA where tests will run, e.g. v1.14.0, empty for default branch'
-        type: string
-        required: false
-    
 
 jobs:
   get-supported-versions:
@@ -66,10 +51,11 @@ jobs:
       fail-fast: false
       matrix:
         terraform_version: '${{ fromJSON(needs.get-supported-versions.outputs.supported_versions) }}'
-    name: terrafrom-compatibility-${{ matrix.terraform_version }}
+    name: terrafrom-compatibility-${{ matrix.terraform_version }}-${{ inputs.atlas_cloud_env || 'dev' }}
     secrets: inherit
     uses: ./.github/workflows/test-suite.yml
     with:
       terraform_matrix: '["${{ matrix.terraform_version }}"]'
       provider_matrix: '[""]'
+      atlas_cloud_env: ${{ inputs.atlas_cloud_env }}
 
