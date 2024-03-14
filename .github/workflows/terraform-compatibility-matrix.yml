@@ -64,11 +64,11 @@ jobs:
       max-parallel: 1
       fail-fast: false
       matrix:
-        terraform_version: ${{ fromJSON('["1.7.x", "1.6.x", "1.5.x", "1.4.x", "1.3.x", "1.2.x"]') }}
+        terraform_version: ${{ needs.get-supported-versions.outputs.supported_versions }}
     name: terrafrom-compatibility-${{ matrix.terraform_version }}
     secrets: inherit
     uses: ./.github/workflows/test-suite.yml
     with:
-      terraform_matrix: '["1.7.x", "1.6.x", "1.5.x", "1.4.x", "1.3.x", "1.2.x"]'
+      terraform_matrix: ${{ matrix.terraform_version }}
       provider_matrix: '[""]'
 
