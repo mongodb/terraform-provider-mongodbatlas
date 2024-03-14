@@ -65,11 +65,11 @@ jobs:
       max-parallel: 1
       fail-fast: false
       matrix:
-        terraform_version: '${{ needs.get-supported-versions.outputs.supported_versions }}'
+        terraform_version: '${{ fromJSON(needs.get-supported-versions.outputs.supported_versions) }}'
     name: terrafrom-compatibility-${{ matrix.terraform_version }}
     secrets: inherit
     uses: ./.github/workflows/test-suite.yml
     with:
-      terraform_matrix: ${{ matrix.terraform_version }}
+      terraform_matrix: ${{ needs.get-supported-versions.outputs.supported_versions }}
       provider_matrix: '[""]'
 
