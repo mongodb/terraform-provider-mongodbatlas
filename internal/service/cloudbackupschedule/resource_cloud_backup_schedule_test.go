@@ -28,7 +28,7 @@ var (
 
 func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{CloudBackup: true})
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -147,7 +147,7 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (
-		clusterInfo  = acc.GetClusterInfo(&acc.ClusterRequest{CloudBackup: true})
+		clusterInfo  = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
 		policyName   = acc.RandomName()
 		roleName     = acc.RandomName()
 		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
@@ -180,7 +180,7 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 }
 func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{CloudBackup: true})
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -292,7 +292,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 }
 func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{CloudBackup: true})
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -342,7 +342,7 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 
 func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{CloudBackup: true, ProviderName: constant.AZURE})
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, ProviderName: constant.AZURE})
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

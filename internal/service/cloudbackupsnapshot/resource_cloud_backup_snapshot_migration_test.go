@@ -11,7 +11,7 @@ import (
 
 func TestMigBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 	var (
-		clusterInfo     = acc.GetClusterInfo(&acc.ClusterRequest{CloudBackup: true})
+		clusterInfo     = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
 		description     = "My description in my cluster"
 		retentionInDays = "4"
 		config          = configBasic(&clusterInfo, description, retentionInDays)

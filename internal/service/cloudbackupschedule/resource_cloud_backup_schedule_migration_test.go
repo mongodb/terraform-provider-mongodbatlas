@@ -12,7 +12,7 @@ import (
 
 func TestMigBackupRSCloudBackupSchedule_basic(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{CloudBackup: true})
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
 		config      = configNewPolicies(&clusterInfo, &admin.DiskBackupSnapshotSchedule{
 			ReferenceHourOfDay:    conversion.Pointer(0),
 			ReferenceMinuteOfHour: conversion.Pointer(0),

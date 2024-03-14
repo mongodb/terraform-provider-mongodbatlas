@@ -3,6 +3,7 @@ package acc
 import (
 	"fmt"
 	"os"
+	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 )
@@ -24,7 +25,8 @@ type ClusterInfo struct {
 
 // GetClusterInfo is used to obtain a project and cluster configuration resource.
 // When `MONGODB_ATLAS_CLUSTER_NAME` and `MONGODB_ATLAS_PROJECT_ID` are defined, creation of resources is avoided. This is useful for local execution but not intended for CI executions.
-func GetClusterInfo(req *ClusterRequest) ClusterInfo {
+func GetClusterInfo(tb testing.TB, req *ClusterRequest) ClusterInfo {
+	tb.Helper()
 	if req == nil {
 		req = new(ClusterRequest)
 	}
