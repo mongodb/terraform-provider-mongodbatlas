@@ -2,56 +2,46 @@ package databaseuser_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
 func TestAccConfigDSDatabaseUser_basic(t *testing.T) {
 	var (
-		dbUser       admin.CloudDatabaseUser
-		resourceName = "data.mongodbatlas_database_user.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		roleName     = "atlasAdmin"
-		projectName  = acc.RandomProjectName()
-		username     = acc.RandomName()
+		projectID = acc.ProjectIDExecution(t)
+		roleName  = "atlasAdmin"
+		username  = acc.RandomName()
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserDataSourceConfig(orgID, projectName, roleName, username),
+				Config: configDS(projectID, username, roleName),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "x509_type", "NONE"),
-					resource.TestCheckResourceAttr(resourceName, "roles.0.role_name", roleName),
-					resource.TestCheckResourceAttr(resourceName, "roles.0.database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "2"),
+					checkExists(dataSourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(dataSourceName, "username", username),
+					resource.TestCheckResourceAttr(dataSourceName, "auth_database_name", "admin"),
+					resource.TestCheckResourceAttr(dataSourceName, "x509_type", "NONE"),
+					resource.TestCheckResourceAttr(dataSourceName, "roles.0.role_name", roleName),
+					resource.TestCheckResourceAttr(dataSourceName, "roles.0.database_name", "admin"),
+					resource.TestCheckResourceAttr(dataSourceName, "labels.#", "2"),
 				),
 			},
 		},
 	})
 }
 
-func testAccMongoDBAtlasDatabaseUserDataSourceConfig(orgID, projectName, roleName, username string) string {
+func configDS(projectID, username, roleName string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = %[2]q
-			org_id = %[1]q
-		}
 		resource "mongodbatlas_database_user" "test" {
-			username           = %[4]q
+			project_id         = %[1]q
+			username           = %[2]q
 			password           = "test-acc-password"
-			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "admin"
 
 			roles {
@@ -74,5 +64,5 @@ func testAccMongoDBAtlasDatabaseUserDataSourceConfig(orgID, projectName, roleNam
 			project_id         = mongodbatlas_database_user.test.project_id
 			auth_database_name = "admin"
 		}
-	`, orgID, projectName, roleName, username)
+	`, projectID, username, roleName)
 }

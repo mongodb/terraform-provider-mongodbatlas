@@ -2,7 +2,6 @@ package databaseuser_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -11,49 +10,38 @@ import (
 
 func TestAccConfigDSDatabaseUsers_basic(t *testing.T) {
 	var (
-		resourceName = "data.mongodbatlas_database_users.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		roleName     = "atlasAdmin"
-		projectName  = acc.RandomProjectName()
-		username     = acc.RandomName()
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomName()
+		roleName  = "atlasAdmin"
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUsersDataSourceConfig(orgID, projectName, roleName, username),
+				Config: configDSPlural(projectID, username, roleName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("mongodbatlas_database_user.db_user", "id"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_database_user.db_user_1", "id"),
-					resource.TestCheckResourceAttr("mongodbatlas_database_user.db_user_1", "labels.#", "2"),
-				),
-			},
-			{
-				Config: testAccMongoDBAtlasDatabaseUsersDataSourceConfigWithDS(orgID, projectName, roleName, username),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "results.0.username"),
-					resource.TestCheckResourceAttrSet(resourceName, "results.0.roles.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "results.1.labels.#"),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "results.#", "2"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.username"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.roles.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.labels.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.1.username"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.1.roles.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.1.labels.#"),
 				),
 			},
 		},
 	})
 }
 
-func testAccMongoDBAtlasDatabaseUsersDataSourceConfig(orgID, projectName, roleName, username string) string {
+func configDSPlural(projectID, username, roleName string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			org_id = %[1]q
-			name   = %[2]q
-		}
 		resource "mongodbatlas_database_user" "db_user" {
-			username           = %[4]q
+			project_id         = %[1]q
+			username           = %[2]q
 			password           = "test-acc-password"
-			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "admin"
 
 			roles {
@@ -68,9 +56,9 @@ func testAccMongoDBAtlasDatabaseUsersDataSourceConfig(orgID, projectName, roleNa
 		}
 
 		resource "mongodbatlas_database_user" "db_user_1" {
-			username           = "%[4]s-1"
+			project_id         = %[1]q
+			username           = "%[2]s-1"
 			password           = "test-acc-password-1"
-			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "admin"
 
 			roles {
@@ -88,15 +76,10 @@ func testAccMongoDBAtlasDatabaseUsersDataSourceConfig(orgID, projectName, roleNa
 				value = "value 2"
 			}
 		}
-	`, orgID, projectName, roleName, username)
-}
-
-func testAccMongoDBAtlasDatabaseUsersDataSourceConfigWithDS(orgID, projectName, roleName, username string) string {
-	return fmt.Sprintf(`
-		%s
 
 		data "mongodbatlas_database_users" "test" {
-			project_id = mongodbatlas_project.test.id
+			project_id = %[1]q
+			depends_on = [mongodbatlas_database_user.db_user, mongodbatlas_database_user.db_user_1]
 		}
-	`, testAccMongoDBAtlasDatabaseUsersDataSourceConfig(orgID, projectName, roleName, username))
+	`, projectID, username, roleName)
 }

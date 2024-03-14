@@ -1,7 +1,6 @@
 package databaseuser_test
 
 import (
-	"os"
 	"testing"
 
 	"go.mongodb.org/atlas-sdk/v20231115007/admin"
@@ -14,21 +13,19 @@ import (
 
 func TestMigConfigRSDatabaseUser_Basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_database_user.basic_ds"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		username     = acc.RandomName()
-		config       = acc.ConfigDatabaseUserBasic(projectName, orgID, "atlasAdmin", username, "First Key", "First value")
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomName()
+		config    = acc.ConfigDatabaseUserBasic(projectID, username, "atlasAdmin", "First Key", "First value")
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
@@ -43,15 +40,13 @@ func TestMigConfigRSDatabaseUser_Basic(t *testing.T) {
 
 func TestMigConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_database_user.test"
-		username     = "CN=ellen@example.com,OU=users,DC=example,DC=com"
-		x509Type     = "CUSTOMER"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		config       = acc.ConfigDatabaseUserWithX509Type(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type)
+		projectID = acc.ProjectIDExecution(t)
+		username  = "CN=ellen@example.com,OU=users,DC=example,DC=com"
+		x509Type  = "CUSTOMER"
+		config    = acc.ConfigDatabaseUserWithX509Type(projectID, username, x509Type, "atlasAdmin", "First Key", "First value")
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
@@ -71,21 +66,19 @@ func TestMigConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 }
 func TestMigConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_database_user.test"
-		username     = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		config       = acc.ConfigDatabaseUserWithAWSIAMType(projectName, orgID, "atlasAdmin", username, "First Key", "First value")
+		projectID = acc.ProjectIDExecution(t)
+		username  = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
+		config    = acc.ConfigDatabaseUserWithAWSIAMType(projectID, username, "atlasAdmin", "First Key", "First value")
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "aws_iam_type", "USER"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
@@ -99,12 +92,9 @@ func TestMigConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 
 func TestMigConfigRSDatabaseUser_withLabels(t *testing.T) {
 	var (
-		dbUser       admin.CloudDatabaseUser
-		resourceName = "mongodbatlas_database_user.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		username     = acc.RandomName()
-		config       = acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username,
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomName()
+		config    = acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin",
 			[]admin.ComponentLabel{
 				{
 					Key:   conversion.StringPtr("key 1"),
@@ -118,17 +108,16 @@ func TestMigConfigRSDatabaseUser_withLabels(t *testing.T) {
 		)
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
-		CheckDestroy: acc.CheckDestroyDatabaseUser,
+		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
@@ -142,21 +131,19 @@ func TestMigConfigRSDatabaseUser_withLabels(t *testing.T) {
 
 func TestMigConfigRSDatabaseUser_withEmptyLabels(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_database_user.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		username     = acc.RandomName()
-		config       = acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username, nil)
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomName()
+		config    = acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", nil)
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
@@ -170,12 +157,10 @@ func TestMigConfigRSDatabaseUser_withEmptyLabels(t *testing.T) {
 
 func TestMigConfigRSDatabaseUser_withRoles(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_database_user.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		username     = acc.RandomName()
-		password     = acc.RandomName()
-		config       = acc.ConfigDatabaseUserWithRoles(username, password, projectName, orgID,
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomName()
+		password  = acc.RandomName()
+		config    = acc.ConfigDatabaseUserWithRoles(projectID, username, password,
 			[]*admin.DatabaseUserRole{
 				{
 					RoleName:       "read",
@@ -191,14 +176,14 @@ func TestMigConfigRSDatabaseUser_withRoles(t *testing.T) {
 		)
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", password),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
@@ -212,35 +197,33 @@ func TestMigConfigRSDatabaseUser_withRoles(t *testing.T) {
 
 func TestMigConfigRSDatabaseUser_withScopes(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_database_user.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		clusterName  = acc.RandomClusterName()
-		username     = acc.RandomName()
-		password     = acc.RandomName()
-		config       = acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", projectName, orgID,
+		projectID     = acc.ProjectIDExecution(t)
+		userScopeName = acc.RandomName()
+		username      = acc.RandomName()
+		password      = acc.RandomName()
+		config        = acc.ConfigDatabaseUserWithScopes(projectID, username, password, "atlasAdmin",
 			[]*admin.UserScope{
 				{
-					Name: clusterName,
+					Name: userScopeName,
 					Type: "CLUSTER",
 				},
 			},
 		)
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", password),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "scopes.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.0.name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "scopes.0.name", userScopeName),
 					resource.TestCheckResourceAttr(resourceName, "scopes.0.type", "CLUSTER"),
 				),
 			},
@@ -251,15 +234,13 @@ func TestMigConfigRSDatabaseUser_withScopes(t *testing.T) {
 
 func TestMigConfigRSDatabaseUser_withEmptyScopes(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_database_user.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		username     = acc.RandomName()
-		password     = acc.RandomName()
-		config       = acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", projectName, orgID, nil)
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomName()
+		password  = acc.RandomName()
+		config    = acc.ConfigDatabaseUserWithScopes(projectID, username, password, "atlasAdmin", nil)
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
@@ -280,21 +261,19 @@ func TestMigConfigRSDatabaseUser_withEmptyScopes(t *testing.T) {
 
 func TestMigConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_database_user.test"
-		username     = "CN=david@example.com,OU=users,DC=example,DC=com"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		config       = acc.ConfigDatabaseUserWithLDAPAuthType(projectName, orgID, "atlasAdmin", username, "First Key", "First value")
+		projectID = acc.ProjectIDExecution(t)
+		username  = "CN=david@example.com,OU=users,DC=example,DC=com"
+		config    = acc.ConfigDatabaseUserWithLDAPAuthType(projectID, username, "atlasAdmin", "First Key", "First value")
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "ldap_auth_type", "USER"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
