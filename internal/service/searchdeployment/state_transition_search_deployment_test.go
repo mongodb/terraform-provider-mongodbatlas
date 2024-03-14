@@ -12,6 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mocksvc"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
@@ -73,15 +74,18 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			svc := mocksvc.NewDeploymentService(t)
-			ctx := context.Background()
+			m := mocksvc.NewAtlasSearchApi(t)
+			m.EXPECT().GetAtlasSearchDeployment(mock.Anything, mock.Anything, mock.Anything).Return(admin.GetAtlasSearchDeploymentApiRequest{ApiService: m})
+
 			for _, resp := range tc.mockResponses {
-				svc.On("GetAtlasSearchDeployment", ctx, dummyProjectID, clusterName).Return(resp.get()...).Once()
+				modelResp, httpResp, err := resp.get()
+				m.EXPECT().GetAtlasSearchDeploymentExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			resp, err := searchdeployment.WaitSearchNodeStateTransition(ctx, dummyProjectID, "Cluster0", svc, testTimeoutConfig)
+			client := admin.APIClient{AtlasSearchApi: m}
+			resp, err := searchdeployment.WaitSearchNodeStateTransition(context.Background(), dummyProjectID, "Cluster0", &client, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
 			assert.Equal(t, responseWithState(tc.expectedState), resp)
-			svc.AssertExpectations(t)
+			m.AssertExpectations(t)
 		})
 	}
 }
@@ -115,14 +119,17 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			svc := mocksvc.NewDeploymentService(t)
-			ctx := context.Background()
+			m := mocksvc.NewAtlasSearchApi(t)
+			m.EXPECT().GetAtlasSearchDeployment(mock.Anything, mock.Anything, mock.Anything).Return(admin.GetAtlasSearchDeploymentApiRequest{ApiService: m})
+
 			for _, resp := range tc.mockResponses {
-				svc.On("GetAtlasSearchDeployment", ctx, dummyProjectID, clusterName).Return(resp.get()...).Once()
+				modelResp, httpResp, err := resp.get()
+				m.EXPECT().GetAtlasSearchDeploymentExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			err := searchdeployment.WaitSearchNodeDelete(ctx, dummyProjectID, clusterName, svc, testTimeoutConfig)
+			client := admin.APIClient{AtlasSearchApi: m}
+			err := searchdeployment.WaitSearchNodeDelete(context.Background(), dummyProjectID, clusterName, &client, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
-			svc.AssertExpectations(t)
+			m.AssertExpectations(t)
 		})
 	}
 }
@@ -156,10 +163,10 @@ type response struct {
 	err        error
 }
 
-func (r *response) get() []interface{} {
+func (r *response) get() (*admin.ApiSearchDeploymentResponse, *http.Response, error) {
 	var httpResp *http.Response
 	if r.statusCode != nil {
 		httpResp = &http.Response{StatusCode: *r.statusCode}
 	}
-	return []interface{}{responseWithState(r.state), httpResp, r.err}
+	return responseWithState(r.state), httpResp, r.err
 }

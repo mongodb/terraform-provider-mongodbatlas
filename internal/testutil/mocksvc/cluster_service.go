@@ -17,6 +17,14 @@ type ClusterService struct {
 	mock.Mock
 }
 
+type ClusterService_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *ClusterService) EXPECT() *ClusterService_Expecter {
+	return &ClusterService_Expecter{mock: &_m.Mock}
+}
+
 // Get provides a mock function with given fields: ctx, groupID, clusterName
 func (_m *ClusterService) Get(ctx context.Context, groupID string, clusterName string) (*admin.AdvancedClusterDescription, *http.Response, error) {
 	ret := _m.Called(ctx, groupID, clusterName)
@@ -56,6 +64,36 @@ func (_m *ClusterService) Get(ctx context.Context, groupID string, clusterName s
 	return r0, r1, r2
 }
 
+// ClusterService_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
+type ClusterService_Get_Call struct {
+	*mock.Call
+}
+
+// Get is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID string
+//   - clusterName string
+func (_e *ClusterService_Expecter) Get(ctx interface{}, groupID interface{}, clusterName interface{}) *ClusterService_Get_Call {
+	return &ClusterService_Get_Call{Call: _e.mock.On("Get", ctx, groupID, clusterName)}
+}
+
+func (_c *ClusterService_Get_Call) Run(run func(ctx context.Context, groupID string, clusterName string)) *ClusterService_Get_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *ClusterService_Get_Call) Return(_a0 *admin.AdvancedClusterDescription, _a1 *http.Response, _a2 error) *ClusterService_Get_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *ClusterService_Get_Call) RunAndReturn(run func(context.Context, string, string) (*admin.AdvancedClusterDescription, *http.Response, error)) *ClusterService_Get_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // List provides a mock function with given fields: ctx, options
 func (_m *ClusterService) List(ctx context.Context, options *admin.ListClustersApiParams) (*admin.PaginatedAdvancedClusterDescription, *http.Response, error) {
 	ret := _m.Called(ctx, options)
@@ -93,6 +131,35 @@ func (_m *ClusterService) List(ctx context.Context, options *admin.ListClustersA
 	}
 
 	return r0, r1, r2
+}
+
+// ClusterService_List_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'List'
+type ClusterService_List_Call struct {
+	*mock.Call
+}
+
+// List is a helper method to define mock.On call
+//   - ctx context.Context
+//   - options *admin.ListClustersApiParams
+func (_e *ClusterService_Expecter) List(ctx interface{}, options interface{}) *ClusterService_List_Call {
+	return &ClusterService_List_Call{Call: _e.mock.On("List", ctx, options)}
+}
+
+func (_c *ClusterService_List_Call) Run(run func(ctx context.Context, options *admin.ListClustersApiParams)) *ClusterService_List_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*admin.ListClustersApiParams))
+	})
+	return _c
+}
+
+func (_c *ClusterService_List_Call) Return(_a0 *admin.PaginatedAdvancedClusterDescription, _a1 *http.Response, _a2 error) *ClusterService_List_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *ClusterService_List_Call) RunAndReturn(run func(context.Context, *admin.ListClustersApiParams) (*admin.PaginatedAdvancedClusterDescription, *http.Response, error)) *ClusterService_List_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewClusterService creates a new instance of ClusterService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

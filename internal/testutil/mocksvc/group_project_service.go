@@ -17,6 +17,14 @@ type GroupProjectService struct {
 	mock.Mock
 }
 
+type GroupProjectService_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *GroupProjectService) EXPECT() *GroupProjectService_Expecter {
+	return &GroupProjectService_Expecter{mock: &_m.Mock}
+}
+
 // AddAllTeamsToProject provides a mock function with given fields: ctx, groupID, teamRole
 func (_m *GroupProjectService) AddAllTeamsToProject(ctx context.Context, groupID string, teamRole *[]admin.TeamRole) (*admin.PaginatedTeamRole, *http.Response, error) {
 	ret := _m.Called(ctx, groupID, teamRole)
@@ -54,6 +62,36 @@ func (_m *GroupProjectService) AddAllTeamsToProject(ctx context.Context, groupID
 	}
 
 	return r0, r1, r2
+}
+
+// GroupProjectService_AddAllTeamsToProject_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddAllTeamsToProject'
+type GroupProjectService_AddAllTeamsToProject_Call struct {
+	*mock.Call
+}
+
+// AddAllTeamsToProject is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID string
+//   - teamRole *[]admin.TeamRole
+func (_e *GroupProjectService_Expecter) AddAllTeamsToProject(ctx interface{}, groupID interface{}, teamRole interface{}) *GroupProjectService_AddAllTeamsToProject_Call {
+	return &GroupProjectService_AddAllTeamsToProject_Call{Call: _e.mock.On("AddAllTeamsToProject", ctx, groupID, teamRole)}
+}
+
+func (_c *GroupProjectService_AddAllTeamsToProject_Call) Run(run func(ctx context.Context, groupID string, teamRole *[]admin.TeamRole)) *GroupProjectService_AddAllTeamsToProject_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(*[]admin.TeamRole))
+	})
+	return _c
+}
+
+func (_c *GroupProjectService_AddAllTeamsToProject_Call) Return(_a0 *admin.PaginatedTeamRole, _a1 *http.Response, _a2 error) *GroupProjectService_AddAllTeamsToProject_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *GroupProjectService_AddAllTeamsToProject_Call) RunAndReturn(run func(context.Context, string, *[]admin.TeamRole) (*admin.PaginatedTeamRole, *http.Response, error)) *GroupProjectService_AddAllTeamsToProject_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteProjectLimit provides a mock function with given fields: ctx, limitName, projectID
@@ -95,6 +133,36 @@ func (_m *GroupProjectService) DeleteProjectLimit(ctx context.Context, limitName
 	return r0, r1, r2
 }
 
+// GroupProjectService_DeleteProjectLimit_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteProjectLimit'
+type GroupProjectService_DeleteProjectLimit_Call struct {
+	*mock.Call
+}
+
+// DeleteProjectLimit is a helper method to define mock.On call
+//   - ctx context.Context
+//   - limitName string
+//   - projectID string
+func (_e *GroupProjectService_Expecter) DeleteProjectLimit(ctx interface{}, limitName interface{}, projectID interface{}) *GroupProjectService_DeleteProjectLimit_Call {
+	return &GroupProjectService_DeleteProjectLimit_Call{Call: _e.mock.On("DeleteProjectLimit", ctx, limitName, projectID)}
+}
+
+func (_c *GroupProjectService_DeleteProjectLimit_Call) Run(run func(ctx context.Context, limitName string, projectID string)) *GroupProjectService_DeleteProjectLimit_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *GroupProjectService_DeleteProjectLimit_Call) Return(_a0 map[string]interface{}, _a1 *http.Response, _a2 error) *GroupProjectService_DeleteProjectLimit_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *GroupProjectService_DeleteProjectLimit_Call) RunAndReturn(run func(context.Context, string, string) (map[string]interface{}, *http.Response, error)) *GroupProjectService_DeleteProjectLimit_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetProjectSettings provides a mock function with given fields: ctx, groupID
 func (_m *GroupProjectService) GetProjectSettings(ctx context.Context, groupID string) (*admin.GroupSettings, *http.Response, error) {
 	ret := _m.Called(ctx, groupID)
@@ -132,6 +200,35 @@ func (_m *GroupProjectService) GetProjectSettings(ctx context.Context, groupID s
 	}
 
 	return r0, r1, r2
+}
+
+// GroupProjectService_GetProjectSettings_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetProjectSettings'
+type GroupProjectService_GetProjectSettings_Call struct {
+	*mock.Call
+}
+
+// GetProjectSettings is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID string
+func (_e *GroupProjectService_Expecter) GetProjectSettings(ctx interface{}, groupID interface{}) *GroupProjectService_GetProjectSettings_Call {
+	return &GroupProjectService_GetProjectSettings_Call{Call: _e.mock.On("GetProjectSettings", ctx, groupID)}
+}
+
+func (_c *GroupProjectService_GetProjectSettings_Call) Run(run func(ctx context.Context, groupID string)) *GroupProjectService_GetProjectSettings_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GroupProjectService_GetProjectSettings_Call) Return(_a0 *admin.GroupSettings, _a1 *http.Response, _a2 error) *GroupProjectService_GetProjectSettings_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *GroupProjectService_GetProjectSettings_Call) RunAndReturn(run func(context.Context, string) (*admin.GroupSettings, *http.Response, error)) *GroupProjectService_GetProjectSettings_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListClusters provides a mock function with given fields: ctx, groupID
@@ -173,6 +270,35 @@ func (_m *GroupProjectService) ListClusters(ctx context.Context, groupID string)
 	return r0, r1, r2
 }
 
+// GroupProjectService_ListClusters_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListClusters'
+type GroupProjectService_ListClusters_Call struct {
+	*mock.Call
+}
+
+// ListClusters is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID string
+func (_e *GroupProjectService_Expecter) ListClusters(ctx interface{}, groupID interface{}) *GroupProjectService_ListClusters_Call {
+	return &GroupProjectService_ListClusters_Call{Call: _e.mock.On("ListClusters", ctx, groupID)}
+}
+
+func (_c *GroupProjectService_ListClusters_Call) Run(run func(ctx context.Context, groupID string)) *GroupProjectService_ListClusters_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GroupProjectService_ListClusters_Call) Return(_a0 *admin.PaginatedAdvancedClusterDescription, _a1 *http.Response, _a2 error) *GroupProjectService_ListClusters_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *GroupProjectService_ListClusters_Call) RunAndReturn(run func(context.Context, string) (*admin.PaginatedAdvancedClusterDescription, *http.Response, error)) *GroupProjectService_ListClusters_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListProjectLimits provides a mock function with given fields: ctx, groupID
 func (_m *GroupProjectService) ListProjectLimits(ctx context.Context, groupID string) ([]admin.DataFederationLimit, *http.Response, error) {
 	ret := _m.Called(ctx, groupID)
@@ -210,6 +336,35 @@ func (_m *GroupProjectService) ListProjectLimits(ctx context.Context, groupID st
 	}
 
 	return r0, r1, r2
+}
+
+// GroupProjectService_ListProjectLimits_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListProjectLimits'
+type GroupProjectService_ListProjectLimits_Call struct {
+	*mock.Call
+}
+
+// ListProjectLimits is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID string
+func (_e *GroupProjectService_Expecter) ListProjectLimits(ctx interface{}, groupID interface{}) *GroupProjectService_ListProjectLimits_Call {
+	return &GroupProjectService_ListProjectLimits_Call{Call: _e.mock.On("ListProjectLimits", ctx, groupID)}
+}
+
+func (_c *GroupProjectService_ListProjectLimits_Call) Run(run func(ctx context.Context, groupID string)) *GroupProjectService_ListProjectLimits_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GroupProjectService_ListProjectLimits_Call) Return(_a0 []admin.DataFederationLimit, _a1 *http.Response, _a2 error) *GroupProjectService_ListProjectLimits_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *GroupProjectService_ListProjectLimits_Call) RunAndReturn(run func(context.Context, string) ([]admin.DataFederationLimit, *http.Response, error)) *GroupProjectService_ListProjectLimits_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListProjectTeams provides a mock function with given fields: ctx, groupID
@@ -251,6 +406,35 @@ func (_m *GroupProjectService) ListProjectTeams(ctx context.Context, groupID str
 	return r0, r1, r2
 }
 
+// GroupProjectService_ListProjectTeams_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListProjectTeams'
+type GroupProjectService_ListProjectTeams_Call struct {
+	*mock.Call
+}
+
+// ListProjectTeams is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID string
+func (_e *GroupProjectService_Expecter) ListProjectTeams(ctx interface{}, groupID interface{}) *GroupProjectService_ListProjectTeams_Call {
+	return &GroupProjectService_ListProjectTeams_Call{Call: _e.mock.On("ListProjectTeams", ctx, groupID)}
+}
+
+func (_c *GroupProjectService_ListProjectTeams_Call) Run(run func(ctx context.Context, groupID string)) *GroupProjectService_ListProjectTeams_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GroupProjectService_ListProjectTeams_Call) Return(_a0 *admin.PaginatedTeamRole, _a1 *http.Response, _a2 error) *GroupProjectService_ListProjectTeams_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *GroupProjectService_ListProjectTeams_Call) RunAndReturn(run func(context.Context, string) (*admin.PaginatedTeamRole, *http.Response, error)) *GroupProjectService_ListProjectTeams_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RemoveProjectTeam provides a mock function with given fields: ctx, groupID, teamID
 func (_m *GroupProjectService) RemoveProjectTeam(ctx context.Context, groupID string, teamID string) (*http.Response, error) {
 	ret := _m.Called(ctx, groupID, teamID)
@@ -279,6 +463,36 @@ func (_m *GroupProjectService) RemoveProjectTeam(ctx context.Context, groupID st
 	}
 
 	return r0, r1
+}
+
+// GroupProjectService_RemoveProjectTeam_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveProjectTeam'
+type GroupProjectService_RemoveProjectTeam_Call struct {
+	*mock.Call
+}
+
+// RemoveProjectTeam is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID string
+//   - teamID string
+func (_e *GroupProjectService_Expecter) RemoveProjectTeam(ctx interface{}, groupID interface{}, teamID interface{}) *GroupProjectService_RemoveProjectTeam_Call {
+	return &GroupProjectService_RemoveProjectTeam_Call{Call: _e.mock.On("RemoveProjectTeam", ctx, groupID, teamID)}
+}
+
+func (_c *GroupProjectService_RemoveProjectTeam_Call) Run(run func(ctx context.Context, groupID string, teamID string)) *GroupProjectService_RemoveProjectTeam_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *GroupProjectService_RemoveProjectTeam_Call) Return(_a0 *http.Response, _a1 error) *GroupProjectService_RemoveProjectTeam_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GroupProjectService_RemoveProjectTeam_Call) RunAndReturn(run func(context.Context, string, string) (*http.Response, error)) *GroupProjectService_RemoveProjectTeam_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ReturnAllIPAddresses provides a mock function with given fields: ctx, groupID
@@ -320,6 +534,35 @@ func (_m *GroupProjectService) ReturnAllIPAddresses(ctx context.Context, groupID
 	return r0, r1, r2
 }
 
+// GroupProjectService_ReturnAllIPAddresses_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ReturnAllIPAddresses'
+type GroupProjectService_ReturnAllIPAddresses_Call struct {
+	*mock.Call
+}
+
+// ReturnAllIPAddresses is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID string
+func (_e *GroupProjectService_Expecter) ReturnAllIPAddresses(ctx interface{}, groupID interface{}) *GroupProjectService_ReturnAllIPAddresses_Call {
+	return &GroupProjectService_ReturnAllIPAddresses_Call{Call: _e.mock.On("ReturnAllIPAddresses", ctx, groupID)}
+}
+
+func (_c *GroupProjectService_ReturnAllIPAddresses_Call) Run(run func(ctx context.Context, groupID string)) *GroupProjectService_ReturnAllIPAddresses_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GroupProjectService_ReturnAllIPAddresses_Call) Return(_a0 *admin.GroupIPAddresses, _a1 *http.Response, _a2 error) *GroupProjectService_ReturnAllIPAddresses_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *GroupProjectService_ReturnAllIPAddresses_Call) RunAndReturn(run func(context.Context, string) (*admin.GroupIPAddresses, *http.Response, error)) *GroupProjectService_ReturnAllIPAddresses_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetProjectLimit provides a mock function with given fields: ctx, limitName, groupID, dataFederationLimit
 func (_m *GroupProjectService) SetProjectLimit(ctx context.Context, limitName string, groupID string, dataFederationLimit *admin.DataFederationLimit) (*admin.DataFederationLimit, *http.Response, error) {
 	ret := _m.Called(ctx, limitName, groupID, dataFederationLimit)
@@ -357,6 +600,37 @@ func (_m *GroupProjectService) SetProjectLimit(ctx context.Context, limitName st
 	}
 
 	return r0, r1, r2
+}
+
+// GroupProjectService_SetProjectLimit_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetProjectLimit'
+type GroupProjectService_SetProjectLimit_Call struct {
+	*mock.Call
+}
+
+// SetProjectLimit is a helper method to define mock.On call
+//   - ctx context.Context
+//   - limitName string
+//   - groupID string
+//   - dataFederationLimit *admin.DataFederationLimit
+func (_e *GroupProjectService_Expecter) SetProjectLimit(ctx interface{}, limitName interface{}, groupID interface{}, dataFederationLimit interface{}) *GroupProjectService_SetProjectLimit_Call {
+	return &GroupProjectService_SetProjectLimit_Call{Call: _e.mock.On("SetProjectLimit", ctx, limitName, groupID, dataFederationLimit)}
+}
+
+func (_c *GroupProjectService_SetProjectLimit_Call) Run(run func(ctx context.Context, limitName string, groupID string, dataFederationLimit *admin.DataFederationLimit)) *GroupProjectService_SetProjectLimit_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(*admin.DataFederationLimit))
+	})
+	return _c
+}
+
+func (_c *GroupProjectService_SetProjectLimit_Call) Return(_a0 *admin.DataFederationLimit, _a1 *http.Response, _a2 error) *GroupProjectService_SetProjectLimit_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *GroupProjectService_SetProjectLimit_Call) RunAndReturn(run func(context.Context, string, string, *admin.DataFederationLimit) (*admin.DataFederationLimit, *http.Response, error)) *GroupProjectService_SetProjectLimit_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateProject provides a mock function with given fields: ctx, groupID, groupName
@@ -398,6 +672,36 @@ func (_m *GroupProjectService) UpdateProject(ctx context.Context, groupID string
 	return r0, r1, r2
 }
 
+// GroupProjectService_UpdateProject_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateProject'
+type GroupProjectService_UpdateProject_Call struct {
+	*mock.Call
+}
+
+// UpdateProject is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID string
+//   - groupName *admin.GroupName
+func (_e *GroupProjectService_Expecter) UpdateProject(ctx interface{}, groupID interface{}, groupName interface{}) *GroupProjectService_UpdateProject_Call {
+	return &GroupProjectService_UpdateProject_Call{Call: _e.mock.On("UpdateProject", ctx, groupID, groupName)}
+}
+
+func (_c *GroupProjectService_UpdateProject_Call) Run(run func(ctx context.Context, groupID string, groupName *admin.GroupName)) *GroupProjectService_UpdateProject_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(*admin.GroupName))
+	})
+	return _c
+}
+
+func (_c *GroupProjectService_UpdateProject_Call) Return(_a0 *admin.Group, _a1 *http.Response, _a2 error) *GroupProjectService_UpdateProject_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *GroupProjectService_UpdateProject_Call) RunAndReturn(run func(context.Context, string, *admin.GroupName) (*admin.Group, *http.Response, error)) *GroupProjectService_UpdateProject_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateTeamRoles provides a mock function with given fields: ctx, groupID, teamID, teamRole
 func (_m *GroupProjectService) UpdateTeamRoles(ctx context.Context, groupID string, teamID string, teamRole *admin.TeamRole) (*admin.PaginatedTeamRole, *http.Response, error) {
 	ret := _m.Called(ctx, groupID, teamID, teamRole)
@@ -435,6 +739,37 @@ func (_m *GroupProjectService) UpdateTeamRoles(ctx context.Context, groupID stri
 	}
 
 	return r0, r1, r2
+}
+
+// GroupProjectService_UpdateTeamRoles_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateTeamRoles'
+type GroupProjectService_UpdateTeamRoles_Call struct {
+	*mock.Call
+}
+
+// UpdateTeamRoles is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID string
+//   - teamID string
+//   - teamRole *admin.TeamRole
+func (_e *GroupProjectService_Expecter) UpdateTeamRoles(ctx interface{}, groupID interface{}, teamID interface{}, teamRole interface{}) *GroupProjectService_UpdateTeamRoles_Call {
+	return &GroupProjectService_UpdateTeamRoles_Call{Call: _e.mock.On("UpdateTeamRoles", ctx, groupID, teamID, teamRole)}
+}
+
+func (_c *GroupProjectService_UpdateTeamRoles_Call) Run(run func(ctx context.Context, groupID string, teamID string, teamRole *admin.TeamRole)) *GroupProjectService_UpdateTeamRoles_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(*admin.TeamRole))
+	})
+	return _c
+}
+
+func (_c *GroupProjectService_UpdateTeamRoles_Call) Return(_a0 *admin.PaginatedTeamRole, _a1 *http.Response, _a2 error) *GroupProjectService_UpdateTeamRoles_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *GroupProjectService_UpdateTeamRoles_Call) RunAndReturn(run func(context.Context, string, string, *admin.TeamRole) (*admin.PaginatedTeamRole, *http.Response, error)) *GroupProjectService_UpdateTeamRoles_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewGroupProjectService creates a new instance of GroupProjectService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
