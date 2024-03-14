@@ -12,6 +12,13 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+func TestMain(m *testing.M) {
+	acc.SetupSharedResources()
+	exitCode := m.Run()
+	acc.CleanupSharedResources()
+	os.Exit(exitCode)
+}
+
 func TestAccNetworkRSPrivateLinkEndpointAWS_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"

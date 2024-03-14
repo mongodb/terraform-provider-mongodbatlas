@@ -14,6 +14,13 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
+func TestMain(m *testing.M) {
+	acc.SetupSharedResources()
+	exitCode := m.Run()
+	acc.CleanupSharedResources()
+	os.Exit(exitCode)
+}
+
 var (
 	resourceName   = "mongodbatlas_cloud_backup_schedule.schedule_test"
 	dataSourceName = "data.mongodbatlas_cloud_backup_schedule.schedule_test"

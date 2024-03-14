@@ -13,6 +13,13 @@ import (
 	"github.com/spf13/cast"
 )
 
+func TestMain(m *testing.M) {
+	acc.SetupSharedResources()
+	exitCode := m.Run()
+	acc.CleanupSharedResources()
+	os.Exit(exitCode)
+}
+
 const resourceName = "mongodbatlas_maintenance_window.test"
 
 func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {

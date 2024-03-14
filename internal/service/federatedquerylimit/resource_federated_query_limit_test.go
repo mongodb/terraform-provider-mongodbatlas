@@ -12,6 +12,13 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+func TestMain(m *testing.M) {
+	acc.SetupSharedResources()
+	exitCode := m.Run()
+	acc.CleanupSharedResources()
+	os.Exit(exitCode)
+}
+
 func TestAccFederatedDatabaseQueryLimit_basic(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (

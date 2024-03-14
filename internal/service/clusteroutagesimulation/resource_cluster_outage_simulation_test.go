@@ -12,6 +12,13 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+func TestMain(m *testing.M) {
+	acc.SetupSharedResources()
+	exitCode := m.Run()
+	acc.CleanupSharedResources()
+	os.Exit(exitCode)
+}
+
 func TestAccOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 	var (
 		dataSourceName = "mongodbatlas_cluster_outage_simulation.test_outage"

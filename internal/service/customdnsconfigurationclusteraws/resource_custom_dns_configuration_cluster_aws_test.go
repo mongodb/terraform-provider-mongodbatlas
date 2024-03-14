@@ -11,6 +11,13 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+func TestMain(m *testing.M) {
+	acc.SetupSharedResources()
+	exitCode := m.Run()
+	acc.CleanupSharedResources()
+	os.Exit(exitCode)
+}
+
 const resourceName = "mongodbatlas_custom_dns_configuration_cluster_aws.test"
 
 func TestAccConfigRSCustomDNSConfigurationAWS_basic(t *testing.T) {

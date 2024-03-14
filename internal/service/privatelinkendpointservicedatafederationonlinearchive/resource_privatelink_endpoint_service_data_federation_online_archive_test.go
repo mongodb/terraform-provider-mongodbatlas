@@ -12,18 +12,18 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-var (
-	resourceName = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
-	comment      = "Terraform Acceptance Test"
-	atlasRegion  = "US_EAST_1"
-)
-
 func TestMain(m *testing.M) {
 	acc.SetupSharedResources()
 	exitCode := m.Run()
 	acc.CleanupSharedResources()
 	os.Exit(exitCode)
 }
+
+var (
+	resourceName = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
+	comment      = "Terraform Acceptance Test"
+	atlasRegion  = "US_EAST_1"
+)
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
 	var (

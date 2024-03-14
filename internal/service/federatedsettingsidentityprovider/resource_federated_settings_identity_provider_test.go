@@ -13,6 +13,13 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
+func TestMain(m *testing.M) {
+	acc.SetupSharedResources()
+	exitCode := m.Run()
+	acc.CleanupSharedResources()
+	os.Exit(exitCode)
+}
+
 func TestAccFederatedSettingsIdentityProviderRS_basic(t *testing.T) {
 	var (
 		federatedSettingsIdentityProvider admin.FederationIdentityProvider

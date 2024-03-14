@@ -18,6 +18,13 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
+func TestMain(m *testing.M) {
+	acc.SetupSharedResources()
+	exitCode := m.Run()
+	acc.CleanupSharedResources()
+	os.Exit(exitCode)
+}
+
 func TestAccClusterRSCluster_basicAWS_simple(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
