@@ -35,10 +35,6 @@ jobs:
           output=$(./scripts/get-terraform-supported-versions.sh)
           quoted_output=$(echo "$output" | jq -c .)
           echo "supported_versions=$quoted_output" >> "$GITHUB_OUTPUT"
-      - name: Print HashiCorp Terraform supported versions
-        shell: bash
-        run: |
-          echo "${{ steps.get-terraform-supported-versions.outputs.supported_versions }}" 
     outputs:
       supported_versions: ${{ steps.get-terraform-supported-versions.outputs.supported_versions }}
 
