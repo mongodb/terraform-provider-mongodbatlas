@@ -73,7 +73,7 @@ func GetClusterInfo(tb testing.TB, req *ClusterRequest) ClusterInfo {
 		}
 	`, projectID, clusterName, req.CloudBackup, req.ProviderName, clusterTypeStr, req.ExtraConfig)
 	return ClusterInfo{
-		ProjectIDStr:        "mongodbatlas_project.test.id",
+		ProjectIDStr:        fmt.Sprintf("%q", projectID),
 		ClusterName:         clusterName,
 		ClusterNameStr:      "mongodbatlas_cluster.test_cluster.name",
 		ClusterTerraformStr: clusterTerraformStr,
