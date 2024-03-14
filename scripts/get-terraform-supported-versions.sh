@@ -49,7 +49,7 @@ add_end_support_date() {
 
 		new_date="${new_year}-${month}-${last_day_of_month}T${hour}:${minute}:${second}Z"
 
-		echo "$obj" | jq --arg new_date "$new_date" '.end_support_date = $new_date'
+		echo "$obj" | jq --arg new_date "${new_date}" '.end_support_date = ${new_date}'
 	done | jq -s '.')
 
 	echo "$new_json_list"
