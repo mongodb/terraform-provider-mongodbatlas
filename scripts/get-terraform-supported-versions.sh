@@ -86,6 +86,6 @@ done
 
 versions_array=$(printf '%s\n' "${json_array}" | jq -r '.[] | .version')
 
-formatted_output=$(echo "$versions_array" | awk 'BEGIN { ORS = "" } {gsub(/^v/,"",$1); gsub(/\.0$/,".x",$1); printf("%s\"%s\"", (NR==1?"":", "), $1)}' | sed 's/"/\\"/g')
+formatted_output=$(echo "$versions_array" | awk 'BEGIN { ORS = "" } {gsub(/^v/,"",$1); gsub(/\.0$/,".x",$1); printf("%s\"%s\"", (NR==1?"":", "), $1)}' | sed 's/,"/," /g')
 
 echo "[$formatted_output]"
