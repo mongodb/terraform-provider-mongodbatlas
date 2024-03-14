@@ -1,11 +1,7 @@
 package alertconfiguration_test
 
 import (
-	"fmt"
-	"os"
 	"testing"
-
-	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -14,14 +10,11 @@ import (
 
 func TestMigConfigRSAlertConfiguration_withNotificationsMetricThreshold(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_alert_configuration.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		alert        = &admin.GroupAlertsConfig{}
-		config       = configBasicRS(orgID, projectName, true)
+		projectID = acc.ProjectIDExecution(t)
+		config    = configBasicRS(projectID, true)
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
@@ -29,8 +22,8 @@ func TestMigConfigRSAlertConfiguration_withNotificationsMetricThreshold(t *testi
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, alert),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "2"),
 				),
 			},
@@ -41,14 +34,11 @@ func TestMigConfigRSAlertConfiguration_withNotificationsMetricThreshold(t *testi
 
 func TestMigConfigRSAlertConfiguration_withThreshold(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_alert_configuration.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		alert        = &admin.GroupAlertsConfig{}
-		config       = configWithThresholdUpdated(orgID, projectName, true, 1)
+		projectID = acc.ProjectIDExecution(t)
+		config    = configWithThresholdUpdated(projectID, true, 1)
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
@@ -56,8 +46,8 @@ func TestMigConfigRSAlertConfiguration_withThreshold(t *testing.T) {
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, alert),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "matcher.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "threshold_config.#", "1"),
@@ -70,14 +60,11 @@ func TestMigConfigRSAlertConfiguration_withThreshold(t *testing.T) {
 
 func TestMigConfigRSAlertConfiguration_withEmptyOptionalBlocks(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_alert_configuration.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		alert        = &admin.GroupAlertsConfig{}
-		config       = configWithEmptyOptionalBlocks(orgID, projectName)
+		projectID = acc.ProjectIDExecution(t)
+		config    = configWithEmptyOptionalBlocks(projectID)
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
@@ -85,8 +72,8 @@ func TestMigConfigRSAlertConfiguration_withEmptyOptionalBlocks(t *testing.T) {
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, alert),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "matcher.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "threshold_config.#", "0"),
@@ -100,11 +87,8 @@ func TestMigConfigRSAlertConfiguration_withEmptyOptionalBlocks(t *testing.T) {
 
 func TestMigConfigRSAlertConfiguration_withMultipleMatchers(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_alert_configuration.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		alert        = &admin.GroupAlertsConfig{}
-		config       = configWithMatchers(orgID, projectName, true, false, true,
+		projectID = acc.ProjectIDExecution(t)
+		config    = configWithMatchers(projectID, true, false, true,
 			map[string]interface{}{
 				"fieldName": "TYPE_NAME",
 				"operator":  "EQUALS",
@@ -117,7 +101,7 @@ func TestMigConfigRSAlertConfiguration_withMultipleMatchers(t *testing.T) {
 			})
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
@@ -125,8 +109,8 @@ func TestMigConfigRSAlertConfiguration_withMultipleMatchers(t *testing.T) {
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, alert),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "matcher.#", "2"),
 				),
 			},
@@ -137,14 +121,11 @@ func TestMigConfigRSAlertConfiguration_withMultipleMatchers(t *testing.T) {
 
 func TestMigConfigRSAlertConfiguration_withEmptyOptionalAttributes(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_alert_configuration.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		alert        = &admin.GroupAlertsConfig{}
-		config       = configWithEmptyOptionalAttributes(orgID, projectName)
+		projectID = acc.ProjectIDExecution(t)
+		config    = configWithEmptyOptionalAttributes(projectID)
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
@@ -152,62 +133,12 @@ func TestMigConfigRSAlertConfiguration_withEmptyOptionalAttributes(t *testing.T)
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, alert),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
 				),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
-}
-
-// configWithEmptyOptionalAttributes does not define notification.delay_min, notification.sms_enabled, and metric_threshold_config.threshold.
-func configWithEmptyOptionalAttributes(orgID, projectName string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = %[2]q
-			org_id = %[1]q
-		}
-		resource "mongodbatlas_alert_configuration" "test" {
-			project_id = mongodbatlas_project.test.id
-			event_type = "OUTSIDE_METRIC_THRESHOLD"
-
-			notification {
-			  type_name     = "ORG"
-			  interval_min  = 5
-			  email_enabled   = true
-			}
-
-			metric_threshold_config {
-			  metric_name = "ASSERT_REGULAR"
-			  operator    = "LESS_THAN"
-			  units       = "RAW"
-			  mode        = "AVERAGE"
-			}
-		  }
-	`, orgID, projectName)
-}
-
-func configWithEmptyOptionalBlocks(orgID, projectName string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = %[2]q
-			org_id = %[1]q
-		}
-		resource "mongodbatlas_alert_configuration" "test" {
-			project_id = mongodbatlas_project.test.id
-			event_type = "NO_PRIMARY"
-			enabled    = true
-
-			notification {
-				type_name     = "GROUP"
-				interval_min  = 5
-				delay_min     = 0
-				sms_enabled   = true
-				email_enabled = false
-				roles = ["GROUP_DATA_ACCESS_READ_ONLY"]
-			}
-		}
-	`, orgID, projectName)
 }
