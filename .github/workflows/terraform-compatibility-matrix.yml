@@ -52,6 +52,5 @@ jobs:
     uses: ./.github/workflows/test-suite.yml
     with:
       terraform_matrix: '["${{ matrix.terraform_version }}"]'
-      provider_matrix: '[""]'
       atlas_cloud_env: ${{ inputs.atlas_cloud_env }}
 
