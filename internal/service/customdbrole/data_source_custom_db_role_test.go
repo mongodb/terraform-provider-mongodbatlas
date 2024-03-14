@@ -66,8 +66,8 @@ func configDS(orgID, projectName, roleName, action, databaseName string) string 
 		}
 
 		data "mongodbatlas_custom_db_role" "test" {
-			project_id = "${mongodbatlas_custom_db_role.test.project_id}"
-			role_name  = "${mongodbatlas_custom_db_role.test.role_name}"
+			project_id = mongodbatlas_custom_db_role.test.project_id
+			role_name  = mongodbatlas_custom_db_role.test.role_name
 		}
 	`, orgID, projectName, roleName, action, databaseName)
 }

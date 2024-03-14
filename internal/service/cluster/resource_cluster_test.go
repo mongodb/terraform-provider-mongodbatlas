@@ -2238,7 +2238,7 @@ func testAccMongoDBAtlasClusterConfigGCPWithNetworkPeering(gcpProjectID, gcpRegi
 
 		resource "mongodbatlas_network_peering" "test" {
 			project_id     = "%[3]s"
-			container_id   = "${mongodbatlas_network_container.test.container_id}"
+			container_id   = mongodbatlas_network_container.test.container_id
 			provider_name  = "%[4]s"
 			gcp_project_id = "%[1]s"
 			network_name   = "default"
@@ -2250,7 +2250,7 @@ func testAccMongoDBAtlasClusterConfigGCPWithNetworkPeering(gcpProjectID, gcpRegi
 
 		resource "google_compute_network_peering" "gcp_peering" {
 			name         = "%[5]s"
-			network      = "${data.google_compute_network.default.self_link}"
+			network      = data.google_compute_network.default.self_link
 			peer_network = "https://www.googleapis.com/compute/v1/projects/${mongodbatlas_network_peering.test.atlas_gcp_project_id}/global/networks/${mongodbatlas_network_peering.test.atlas_vpc_name}"
 		}
 
@@ -2307,7 +2307,7 @@ func testAccMongoDBAtlasClusterConfigAzureWithContainerID(projectID, clusterName
 		resource "mongodbatlas_network_peering" "test" {
 			project_id            = "%[1]s"
 			atlas_cidr_block      = "192.168.0.0/21"
-			container_id          = "${mongodbatlas_cluster.test.container_id}"
+			container_id          = mongodbatlas_cluster.test.container_id
 			provider_name         = "%[3]s"
 			azure_directory_id    = "%[5]s"
 			azure_subscription_id = "%[6]s"

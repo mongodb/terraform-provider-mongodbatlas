@@ -145,7 +145,7 @@ func testAccMongoDBAtlasProjectDSByNameUsingRS(rs string) string {
 		%s
 
 		data "mongodbatlas_project" "test" {
-			name = "${mongodbatlas_project.test.name}"
+			name = mongodbatlas_project.test.name
 		}
 	`, rs)
 }
@@ -155,7 +155,7 @@ func testAccMongoDBAtlasProjectDSByIDUsingRS(rs string) string {
 		%s
 
 		data "mongodbatlas_project" "test" {
-			project_id = "${mongodbatlas_project.test.id}"
+			project_id = mongodbatlas_project.test.id
 		}
 	`, rs)
 }

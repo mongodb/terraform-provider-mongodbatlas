@@ -52,7 +52,7 @@ func configDS(orgID, projectName string, dayOfWeek, hourOfDay int) string {
 		}
 
 		data "mongodbatlas_maintenance_window" "test" {
-			project_id = "${mongodbatlas_maintenance_window.test.id}"
+			project_id = mongodbatlas_maintenance_window.test.id
 		}
 	`, orgID, projectName, dayOfWeek, hourOfDay)
 }

@@ -46,7 +46,7 @@ func configDSPlural(orgID, description, roleNames string) string {
 		}
 
 		data "mongodbatlas_api_keys" "test" {
-		  org_id = "${mongodbatlas_api_key.test.org_id}"
+		  org_id = mongodbatlas_api_key.test.org_id
 		}
 	`, orgID, description, roleNames)
 }
