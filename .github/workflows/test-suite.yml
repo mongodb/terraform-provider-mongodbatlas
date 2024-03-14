@@ -21,7 +21,7 @@ on:
         default: '[""]' # "" for latest version
 
   schedule:
-    - cron: "0 0 * * *" # workflow runs every day at midnight UTC
+    - cron: "0 0 * * 0-5" # workflow runs every day at midnight UTC except on Saturdays
    
 concurrency:
   group: '${{ github.workflow }}'
