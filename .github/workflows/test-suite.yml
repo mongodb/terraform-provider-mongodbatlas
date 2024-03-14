@@ -72,7 +72,7 @@ jobs:
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
-      terraform_version:  '[${{matrix.terraform_version}}]'
+      terraform_version: ${{ matrix.terraform_version }}
 
   clean-after:
     needs: [mig-tests, acc-tests]
