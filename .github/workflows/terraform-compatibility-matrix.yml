@@ -49,6 +49,10 @@ jobs:
         run: |
           output=$(./scripts/get-terraform-supported-versions.sh)
           echo "supported_versions=$output" >> "$GITHUB_OUTPUT"
+      - name: Print HashiCorp Terraform supported versions
+        shell: bash
+        run: |
+          echo "${{ steps.get-terraform-supported-versions.outputs.supported_versions }}" 
     outputs:
       supported_versions: ${{ steps.get-terraform-supported-versions.outputs.supported_versions }}
 
@@ -66,4 +70,5 @@ jobs:
     uses: ./.github/workflows/test-suite.yml
     with:
       terraform_matrix: ${{ matrix.terraform_version }}
+      provider_matrix: '[""]'
 
