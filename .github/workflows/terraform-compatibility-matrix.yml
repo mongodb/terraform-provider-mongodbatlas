@@ -48,7 +48,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           output=$(./scripts/get-terraform-supported-versions.sh)
-          echo "supported_versions='$output'" >> "$GITHUB_OUTPUT"
+          echo "supported_versions=$output" >> "$GITHUB_OUTPUT"
       - name: Print HashiCorp Terraform supported versions
         shell: bash
         run: |
