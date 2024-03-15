@@ -32,7 +32,7 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 		projectID = acc.ProjectIDExecution(t)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -62,7 +62,7 @@ func TestAccConfigRSAlertConfiguration_withEmptyMetricThresholdConfig(t *testing
 		projectID = acc.ProjectIDExecution(t)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -79,7 +79,7 @@ func TestAccConfigRSAlertConfiguration_withEmptyMatcherMetricThresholdConfig(t *
 		projectID = acc.ProjectIDExecution(t)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -100,7 +100,7 @@ func TestAccConfigRSAlertConfiguration_withNotifications(t *testing.T) {
 		projectID = acc.ProjectIDExecution(t)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -128,7 +128,7 @@ func TestAccConfigRSAlertConfiguration_withMatchers(t *testing.T) {
 		projectID = acc.ProjectIDExecution(t)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -176,7 +176,7 @@ func TestAccConfigRSAlertConfiguration_withMetricUpdated(t *testing.T) {
 		projectID = acc.ProjectIDExecution(t)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -204,7 +204,7 @@ func TestAccConfigRSAlertConfiguration_withThresholdUpdated(t *testing.T) {
 		projectID = acc.ProjectIDExecution(t)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -239,7 +239,7 @@ func TestAccConfigRSAlertConfiguration_withoutRoles(t *testing.T) {
 		projectID = acc.ProjectIDExecution(t)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -260,7 +260,7 @@ func TestAccConfigRSAlertConfiguration_withoutOptionalAttributes(t *testing.T) {
 		projectID = acc.ProjectIDExecution(t)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -281,7 +281,7 @@ func TestAccConfigRSAlertConfiguration_importBasic(t *testing.T) {
 		projectID = acc.ProjectIDExecution(t)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -305,7 +305,7 @@ func TestAccConfigRSAlertConfiguration_importIncorrectId(t *testing.T) {
 		projectID = acc.ProjectIDExecution(t)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -328,7 +328,7 @@ func TestAccConfigRSAlertConfiguration_importConfigNotifications(t *testing.T) {
 		projectID = acc.ProjectIDExecution(t)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -358,7 +358,7 @@ func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
 		serviceKey = dummy32CharKey
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -388,7 +388,7 @@ func TestAccConfigRSAlertConfiguration_updatePagerDutyWithNotifierId(t *testing.
 		notifierID = "651dd9336afac13e1c112222"
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -421,7 +421,7 @@ func TestAccConfigRSAlertConfiguration_withDataDog(t *testing.T) {
 		ddRegion  = "US"
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -443,7 +443,7 @@ func TestAccConfigRSAlertConfiguration_withPagerDuty(t *testing.T) {
 		serviceKey = dummy32CharKey
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -465,7 +465,7 @@ func TestAccConfigRSAlertConfiguration_withOpsGenie(t *testing.T) {
 		apiKey    = dummy36CharKey
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -487,7 +487,7 @@ func TestAccConfigRSAlertConfiguration_withVictorOps(t *testing.T) {
 		apiKey    = dummy36CharKey
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,

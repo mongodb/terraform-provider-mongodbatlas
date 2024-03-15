@@ -14,7 +14,7 @@ func TestMigConfigRSAlertConfiguration_withNotificationsMetricThreshold(t *testi
 		config    = configBasicRS(projectID, true)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
@@ -38,7 +38,7 @@ func TestMigConfigRSAlertConfiguration_withThreshold(t *testing.T) {
 		config    = configWithThresholdUpdated(projectID, true, 1)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
@@ -64,7 +64,7 @@ func TestMigConfigRSAlertConfiguration_withEmptyOptionalBlocks(t *testing.T) {
 		config    = configWithEmptyOptionalBlocks(projectID)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
@@ -101,7 +101,7 @@ func TestMigConfigRSAlertConfiguration_withMultipleMatchers(t *testing.T) {
 			})
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
@@ -125,7 +125,7 @@ func TestMigConfigRSAlertConfiguration_withEmptyOptionalAttributes(t *testing.T)
 		config    = configWithEmptyOptionalAttributes(projectID)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{

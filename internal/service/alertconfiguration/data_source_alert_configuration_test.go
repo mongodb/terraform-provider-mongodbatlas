@@ -13,7 +13,7 @@ func TestAccConfigDSAlertConfiguration_basic(t *testing.T) {
 		projectID = acc.ProjectIDExecution(t)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -39,7 +39,7 @@ func TestAccConfigDSAlertConfiguration_withThreshold(t *testing.T) {
 		projectID = acc.ProjectIDExecution(t)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -65,7 +65,7 @@ func TestAccConfigDSAlertConfiguration_withOutput(t *testing.T) {
 		outputLabel = "resource_import"
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -94,7 +94,7 @@ func TestAccConfigDSAlertConfiguration_withPagerDuty(t *testing.T) {
 		serviceKey = dummy32CharKey
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
