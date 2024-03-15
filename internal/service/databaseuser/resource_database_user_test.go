@@ -33,7 +33,7 @@ func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 		username  = acc.RandomName()
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -75,11 +75,11 @@ func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 func TestAccConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
-		username  = "CN=ellen@example.com,OU=users,DC=example,DC=com"
+		username  = acc.RandomLDAPName()
 		x509Type  = "CUSTOMER"
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -106,7 +106,7 @@ func TestAccConfigRSDatabaseUser_withX509TypeManaged(t *testing.T) {
 		username  = acc.RandomName()
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -129,10 +129,10 @@ func TestAccConfigRSDatabaseUser_withX509TypeManaged(t *testing.T) {
 func TestAccConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
-		username  = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
+		username  = acc.RandomIAMUser()
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -155,14 +155,10 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 func TestAccConfigRSDatabaseUser_withAWSIAMType_import(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
-		username  = os.Getenv("TEST_DB_USER_IAM_ARN")
+		username  = acc.RandomIAMUser()
 	)
 
-	if username == "" {
-		username = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
-	}
-
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -195,7 +191,7 @@ func TestAccConfigRSDatabaseUser_withLabels(t *testing.T) {
 		username  = acc.RandomName()
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -270,7 +266,7 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 		password  = acc.RandomName()
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -331,7 +327,7 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 		password      = acc.RandomName()
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -394,7 +390,7 @@ func TestAccConfigRSDatabaseUser_updateToEmptyScopes(t *testing.T) {
 		password      = acc.RandomName()
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -446,7 +442,7 @@ func TestAccConfigRSDatabaseUser_updateToEmptyLabels(t *testing.T) {
 		username  = acc.RandomName()
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -488,10 +484,10 @@ func TestAccConfigRSDatabaseUser_updateToEmptyLabels(t *testing.T) {
 func TestAccConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
-		username  = "CN=david@example.com,OU=users,DC=example,DC=com"
+		username  = acc.RandomLDAPName()
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -517,7 +513,7 @@ func TestAccConfigRSDatabaseUser_importBasic(t *testing.T) {
 		username  = acc.RandomName()
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -546,11 +542,11 @@ func TestAccConfigRSDatabaseUser_importBasic(t *testing.T) {
 func TestAccConfigRSDatabaseUser_importX509TypeCustomer(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
-		username  = "CN=ellen@example.com,OU=users,DC=example,DC=com"
+		username  = acc.RandomLDAPName()
 		x509Type  = "CUSTOMER"
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -580,10 +576,10 @@ func TestAccConfigRSDatabaseUser_importX509TypeCustomer(t *testing.T) {
 func TestAccConfigRSDatabaseUser_importLDAPAuthType(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
-		username  = "CN=david@example.com,OU=users,DC=example,DC=com"
+		username  = acc.RandomLDAPName()
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,

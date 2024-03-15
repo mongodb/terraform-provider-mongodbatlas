@@ -18,7 +18,7 @@ func TestMigConfigRSDatabaseUser_Basic(t *testing.T) {
 		config    = acc.ConfigDatabaseUserBasic(projectID, username, "atlasAdmin", "First Key", "First value")
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
@@ -41,12 +41,12 @@ func TestMigConfigRSDatabaseUser_Basic(t *testing.T) {
 func TestMigConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
-		username  = "CN=ellen@example.com,OU=users,DC=example,DC=com"
+		username  = acc.RandomLDAPName()
 		x509Type  = "CUSTOMER"
 		config    = acc.ConfigDatabaseUserWithX509Type(projectID, username, x509Type, "atlasAdmin", "First Key", "First value")
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
@@ -67,11 +67,11 @@ func TestMigConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 func TestMigConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
-		username  = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
+		username  = acc.RandomIAMUser()
 		config    = acc.ConfigDatabaseUserWithAWSIAMType(projectID, username, "atlasAdmin", "First Key", "First value")
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
@@ -108,7 +108,7 @@ func TestMigConfigRSDatabaseUser_withLabels(t *testing.T) {
 		)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
@@ -136,7 +136,7 @@ func TestMigConfigRSDatabaseUser_withEmptyLabels(t *testing.T) {
 		config    = acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", nil)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
@@ -176,7 +176,7 @@ func TestMigConfigRSDatabaseUser_withRoles(t *testing.T) {
 		)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
@@ -211,7 +211,7 @@ func TestMigConfigRSDatabaseUser_withScopes(t *testing.T) {
 		)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
@@ -240,7 +240,7 @@ func TestMigConfigRSDatabaseUser_withEmptyScopes(t *testing.T) {
 		config    = acc.ConfigDatabaseUserWithScopes(projectID, username, password, "atlasAdmin", nil)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
@@ -262,11 +262,11 @@ func TestMigConfigRSDatabaseUser_withEmptyScopes(t *testing.T) {
 func TestMigConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
-		username  = "CN=david@example.com,OU=users,DC=example,DC=com"
+		username  = acc.RandomLDAPName()
 		config    = acc.ConfigDatabaseUserWithLDAPAuthType(projectID, username, "atlasAdmin", "First Key", "First value")
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{

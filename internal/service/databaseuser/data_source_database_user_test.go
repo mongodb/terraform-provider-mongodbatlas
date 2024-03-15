@@ -15,7 +15,7 @@ func TestAccConfigDSDatabaseUser_basic(t *testing.T) {
 		username  = acc.RandomName()
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
