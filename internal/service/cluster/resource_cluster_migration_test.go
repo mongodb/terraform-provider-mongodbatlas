@@ -92,7 +92,7 @@ func testAccMongoDBAtlasClusterConfigAdvancedConfPartialUpdated(projectID, name,
 		    replication_specs {
 			  num_shards = 1
 			  regions_config {
-			     region_name     = "EU_CENTRAL_1"
+			     region_name     = "US_WEST_2"
 			     electable_nodes = 3
 			     priority        = 7
                  read_only_nodes = 0
@@ -105,7 +105,7 @@ func testAccMongoDBAtlasClusterConfigAdvancedConfPartialUpdated(projectID, name,
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_instance_size_name = "M10"
-			provider_region_name        = "EU_CENTRAL_1"
+			provider_region_name        = "US_WEST_2"
 
 			advanced_configuration {
 				minimum_enabled_tls_protocol         = %[4]q
