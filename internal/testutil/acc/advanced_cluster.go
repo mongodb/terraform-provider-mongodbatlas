@@ -32,8 +32,8 @@ func CheckDestroyCluster(s *terraform.State) error {
 		}
 		projectID := rs.Primary.Attributes["project_id"]
 		clusterName := rs.Primary.Attributes["cluster_name"]
-		_, _, err := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute()
-		if err == nil {
+		resp, _, _ := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute()
+		if resp.GetId() != "" {
 			return fmt.Errorf("cluster (%s:%s) still exists", clusterName, rs.Primary.ID)
 		}
 	}
