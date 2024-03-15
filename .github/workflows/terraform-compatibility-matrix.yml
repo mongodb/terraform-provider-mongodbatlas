@@ -14,10 +14,6 @@ on:
         description: 'Test group to run, e.g. advanced_cluster, empty for all'
         type: string
         required: false
-      ref:
-        description: 'The branch, tag or SHA where tests will run, e.g. v1.14.0, empty for default branch'
-        type: string
-        required: false
 
 jobs:
   get-supported-versions:
