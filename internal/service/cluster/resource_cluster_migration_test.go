@@ -2,12 +2,10 @@ package cluster_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -19,10 +17,9 @@ func TestMigClusterRSCluster_withDefaultBiConnectorAndAdvancedConfiguration_back
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
+		projectID    = acc.ProjectIDExecution(t)
 		clusterName  = acc.RandomClusterName()
-		cfg          = testAccMongoDBAtlasClusterConfigAWS(orgID, projectName, clusterName, true, true)
+		cfg          = testAccMongoDBAtlasClusterConfigAWS(projectID, clusterName, true, true)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -48,13 +45,12 @@ func TestMigClusterRSCluster_basic_PartialAdvancedConf_backwardCompatibility(t *
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.advance_conf"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-		cfgPartial   = testAccMongoDBAtlasClusterConfigAdvancedConfPartial(orgID, projectName, name, "false", &matlas.ProcessArgs{
+		projectID    = acc.ProjectIDExecution(t)
+		clusterName  = acc.RandomClusterName()
+		cfgPartial   = testAccMongoDBAtlasClusterConfigAdvancedConfPartial(projectID, clusterName, "false", &matlas.ProcessArgs{
 			MinimumEnabledTLSProtocol: "TLS1_2",
 		})
-		cfgPartialUpdated = testAccMongoDBAtlasClusterConfigAdvancedConfPartialUpdated(orgID, projectName, name, "false", &matlas.ProcessArgs{
+		cfgPartialUpdated = testAccMongoDBAtlasClusterConfigAdvancedConfPartialUpdated(projectID, clusterName, "false", &matlas.ProcessArgs{
 			MinimumEnabledTLSProtocol: "TLS1_2",
 			SampleSizeBIConnector:     conversion.Pointer[int64](110),
 		})
@@ -85,15 +81,11 @@ func TestMigClusterRSCluster_basic_PartialAdvancedConf_backwardCompatibility(t *
 	})
 }
 
-func testAccMongoDBAtlasClusterConfigAdvancedConfPartialUpdated(orgID, projectName, name, autoscalingEnabled string, p *matlas.ProcessArgs) string {
+func testAccMongoDBAtlasClusterConfigAdvancedConfPartialUpdated(projectID, name, autoscalingEnabled string, p *matlas.ProcessArgs) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "cluster_project" {
-			name   = %[2]q
-			org_id = %[1]q
-		}
 		resource "mongodbatlas_cluster" "advance_conf" {
-			project_id   = mongodbatlas_project.cluster_project.id
-			name         = %[3]q
+			project_id   = %[1]q
+			name         = %[2]q
 			disk_size_gb = 10
 
             cluster_type = "REPLICASET"
@@ -108,7 +100,7 @@ func testAccMongoDBAtlasClusterConfigAdvancedConfPartialUpdated(orgID, projectNa
 		    }
 
 			backup_enabled               = false
-			auto_scaling_disk_gb_enabled =  %[4]s
+			auto_scaling_disk_gb_enabled =  %[3]s
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
@@ -116,9 +108,9 @@ func testAccMongoDBAtlasClusterConfigAdvancedConfPartialUpdated(orgID, projectNa
 			provider_region_name        = "EU_CENTRAL_1"
 
 			advanced_configuration {
-				minimum_enabled_tls_protocol         = %[5]q
-				sample_size_bi_connector			 = %[6]d
+				minimum_enabled_tls_protocol         = %[4]q
+				sample_size_bi_connector			 = %[5]d
 			}
 		}
-	`, orgID, projectName, name, autoscalingEnabled, p.MinimumEnabledTLSProtocol, *p.SampleSizeBIConnector)
+	`, projectID, name, autoscalingEnabled, p.MinimumEnabledTLSProtocol, *p.SampleSizeBIConnector)
 }

@@ -40,19 +40,14 @@ func CheckDestroyCluster(s *terraform.State) error {
 	return nil
 }
 
-func ConfigClusterGlobal(resourceName, orgID, projectName, name, backupEnabled string) string {
+func ConfigClusterGlobal(resourceName, projectID, name, backupEnabled string) string {
 	return fmt.Sprintf(`
-
-		resource "mongodbatlas_project" "cluster_project" {
-			name   = %[3]q
-			org_id = %[2]q
-		}
 		resource "mongodbatlas_cluster" %[1]q {
-			project_id              = mongodbatlas_project.cluster_project.id
-			name                    = %[4]q
+			project_id              = %[2]q
+			name                    = %[3]q
 			disk_size_gb            = 80
 			num_shards              = 1
-			cloud_backup            = %[5]s
+			cloud_backup            = %[4]s
 			cluster_type            = "GEOSHARDED"
 
 			// Provider Settings "block"
@@ -81,7 +76,7 @@ func ConfigClusterGlobal(resourceName, orgID, projectName, name, backupEnabled s
 				}
 			}
 		}
-	`, resourceName, orgID, projectName, name, backupEnabled)
+	`, resourceName, projectID, name, backupEnabled)
 }
 
 func ImportStateClusterIDFunc(resourceName string) resource.ImportStateIdFunc {

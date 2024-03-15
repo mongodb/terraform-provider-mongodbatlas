@@ -21,16 +21,14 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_conn(t *testing.T) {
 		resourceName           = fmt.Sprintf("mongodbatlas_private_endpoint_regional_mode.%s", resourceSuffix)
 		awsAccessKey           = os.Getenv("AWS_ACCESS_KEY_ID")
 		awsSecretKey           = os.Getenv("AWS_SECRET_ACCESS_KEY")
-		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectID              = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		projectName            = acc.RandomProjectName()
 		providerName           = "AWS"
 		region                 = os.Getenv("AWS_REGION")
+		projectID              = acc.ProjectIDExecution(t)
 		clusterName            = acc.RandomClusterName()
 		clusterResourceName    = "global_cluster"
 	)
 
-	clusterResource := acc.ConfigClusterGlobal(clusterResourceName, orgID, projectName, clusterName, "false")
+	clusterResource := acc.ConfigClusterGlobal(clusterResourceName, projectID, clusterName, "false")
 	clusterDataSource := testAccMongoDBAtlasPrivateEndpointRegionalModeClusterData(clusterResourceName, resourceSuffix, endpointResourceSuffix)
 	endpointResources := testAccMongoDBAtlasPrivateLinkEndpointServiceConfigUnmanagedAWS(
 		awsAccessKey, awsSecretKey, projectID, providerName, region, endpointResourceSuffix,
