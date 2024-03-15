@@ -24,8 +24,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-        with:
-          ref: ${{ inputs.ref || github.ref }}
       - name: Get HashiCorp Terraform supported versions
         shell: bash
         id: get-terraform-supported-versions
