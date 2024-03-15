@@ -69,7 +69,7 @@ func ConfigClusterGlobal(resourceName, projectID, name, backupEnabled string) st
 				zone_name  = "Zone 2"
 				num_shards = 2
 				regions_config {
-				region_name     = "US_EAST_2"
+				region_name     = "US_WEST_2"
 				electable_nodes = 3
 				priority        = 7
 				read_only_nodes = 0

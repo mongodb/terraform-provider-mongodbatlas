@@ -1569,7 +1569,7 @@ func testAccMongoDBAtlasClusterConfigAWSNVMEInstance(projectID, name, instanceNa
 			project_id   = %[1]q
 			name         = %[2]q
 			cloud_backup                 = true
-			provider_region_name     = "US_EAST_1"
+			provider_region_name     = "US_WEST_2"
 			provider_name               = "AWS"
 			provider_instance_size_name = %[3]q
 			provider_volume_type        = "PROVISIONED"
@@ -1881,13 +1881,13 @@ func testAccMongoDBAtlasClusterConfigSingleRegionWithProviderRegionName(projectI
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_instance_size_name = "M10"
-			provider_region_name = "US_EAST_1"
+			provider_region_name = "US_WEST_2"
 
 			replication_specs {
 				num_shards = 1
 
 				regions_config {
-					region_name     = "US_EAST_1"
+					region_name     = "US_WEST_2"
 					electable_nodes = 3
 					priority        = 7
 					read_only_nodes = 0
