@@ -49,7 +49,7 @@ add_end_support_date() {
 
 		new_date="${new_year}-${month}-${last_day_of_month}T${hour}:${minute}:${second}Z"
 
-		echo "$obj" | jq --arg new_date "${new_date}" '.end_support_date = ${new_date}'
+		echo "$obj" | jq --arg new_date "${new_date}" '.end_support_date = $new_date'
 	done | jq -s '.')
 
 	echo "$new_json_list"
@@ -72,7 +72,7 @@ while true; do
 		updated_date_versions=$(add_end_support_date "$filtered_versions_json")
 		filtered_out_deprecated_versions=$(echo "$updated_date_versions" | jq 'map(select((.version | test("alpha|beta|rc"; "i") | not) and ((.end_support_date | fromdate) >= now))) | map(select(.version | endswith(".0")))')
 
-		if [ -z "$json_array" ]; then
+		if [ -z ${json_array+x} ]; then
 			# If json_array is empty, assign filtered_versions directly
 			json_array=$(jq -n --argjson filtered_versions "${filtered_out_deprecated_versions}" '$filtered_versions')
 		else
