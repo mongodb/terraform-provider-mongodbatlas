@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       atlas_cloud_env:
-        description: 'Atlas cloud environment used, can be either `dev` or `qa`, empty for `dev`'     
+        description: 'Atlas cloud environment used, can be either `dev` or `qa`, empty for `dev`. Migration tests will always use `dev`'     
         type: string
         required: false
       test_group:
