@@ -15,13 +15,6 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestMain(m *testing.M) {
-	acc.SetupSharedResources()
-	exitCode := m.Run()
-	acc.CleanupSharedResources()
-	os.Exit(exitCode)
-}
-
 func TestAccNetworkNetworkPeering_basicAWS(t *testing.T) {
 	var (
 		peer                 matlas.Peer

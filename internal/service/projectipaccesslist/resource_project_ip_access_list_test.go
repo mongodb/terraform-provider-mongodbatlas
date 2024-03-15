@@ -10,13 +10,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestMain(m *testing.M) {
-	acc.SetupSharedResources()
-	exitCode := m.Run()
-	acc.CleanupSharedResources()
-	os.Exit(exitCode)
-}
-
 func TestAccProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T) {
 	var (
 		resourceName     = "mongodbatlas_project_ip_access_list.test"

@@ -13,13 +13,6 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestMain(m *testing.M) {
-	acc.SetupSharedResources()
-	exitCode := m.Run()
-	acc.CleanupSharedResources()
-	os.Exit(exitCode)
-}
-
 func TestAccFederatedSettingsOrg_basic(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (

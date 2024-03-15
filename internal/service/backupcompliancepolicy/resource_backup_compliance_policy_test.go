@@ -12,13 +12,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestMain(m *testing.M) {
-	acc.SetupSharedResources()
-	exitCode := m.Run()
-	acc.CleanupSharedResources()
-	os.Exit(exitCode)
-}
-
 const resourceName = "mongodbatlas_backup_compliance_policy.backup_policy_res"
 
 func TestAccGenericBackupRSBackupCompliancePolicy_basic(t *testing.T) {

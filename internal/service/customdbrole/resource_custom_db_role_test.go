@@ -15,13 +15,6 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestMain(m *testing.M) {
-	acc.SetupSharedResources()
-	exitCode := m.Run()
-	acc.CleanupSharedResources()
-	os.Exit(exitCode)
-}
-
 const resourceName = "mongodbatlas_custom_db_role.test"
 
 func TestAccConfigRSCustomDBRoles_Basic(t *testing.T) {

@@ -9,12 +9,13 @@ import (
 )
 
 // SetupSharedResources must be called from TestMain test package in order to use ProjectIDExecution.
-func SetupSharedResources() {
+// It returns the cleanup function that must be called at the end of TestMain.
+func SetupSharedResources() func() {
 	sharedInfo.init = true
+	return cleanupSharedResources
 }
 
-// CleanupSharedResources must be called from TestMain test package in order to use ProjectIDExecution.
-func CleanupSharedResources() {
+func cleanupSharedResources() {
 	if sharedInfo.projectID != "" {
 		fmt.Printf("Deleting execution project: %s, id: %s\n", sharedInfo.projectName, sharedInfo.projectID)
 		deleteProject(sharedInfo.projectID)

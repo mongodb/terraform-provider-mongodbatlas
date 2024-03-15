@@ -14,13 +14,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestMain(m *testing.M) {
-	acc.SetupSharedResources()
-	exitCode := m.Run()
-	acc.CleanupSharedResources()
-	os.Exit(exitCode)
-}
-
 var (
 	randInt                  = acctest.RandIntRange(0, 255)
 	resourceName             = "mongodbatlas_network_container.test"

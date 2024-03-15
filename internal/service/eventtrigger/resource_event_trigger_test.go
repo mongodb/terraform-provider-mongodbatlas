@@ -14,13 +14,6 @@ import (
 	"go.mongodb.org/realm/realm"
 )
 
-func TestMain(m *testing.M) {
-	acc.SetupSharedResources()
-	exitCode := m.Run()
-	acc.CleanupSharedResources()
-	os.Exit(exitCode)
-}
-
 func TestAccEventTrigger_basic(t *testing.T) {
 	acc.SkipTestForCI(t)
 	var (

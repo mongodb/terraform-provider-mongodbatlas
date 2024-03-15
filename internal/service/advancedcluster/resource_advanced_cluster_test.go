@@ -14,13 +14,6 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
-func TestMain(m *testing.M) {
-	acc.SetupSharedResources()
-	exitCode := m.Run()
-	acc.CleanupSharedResources()
-	os.Exit(exitCode)
-}
-
 const (
 	resourceName         = "mongodbatlas_advanced_cluster.test"
 	dataSourceName       = "data.mongodbatlas_advanced_cluster.test"

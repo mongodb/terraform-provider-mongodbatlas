@@ -20,13 +20,6 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
-func TestMain(m *testing.M) {
-	acc.SetupSharedResources()
-	exitCode := m.Run()
-	acc.CleanupSharedResources()
-	os.Exit(exitCode)
-}
-
 var (
 	name             = types.StringValue("sameName")
 	diffName         = types.StringValue("diffName")
