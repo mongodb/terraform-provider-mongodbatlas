@@ -10,9 +10,9 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
-func TestAccMigrationBackupRSCloudBackupSchedule_basic(t *testing.T) {
+func TestMigBackupRSCloudBackupSchedule_basic(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{CloudBackup: true})
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
 		config      = configNewPolicies(&clusterInfo, &admin.DiskBackupSnapshotSchedule{
 			ReferenceHourOfDay:    conversion.Pointer(0),
 			ReferenceMinuteOfHour: conversion.Pointer(0),

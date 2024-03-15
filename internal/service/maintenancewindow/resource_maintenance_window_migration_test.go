@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-func TestAccMigrationConfigMaintenanceWindow_basic(t *testing.T) {
+func TestMigConfigMaintenanceWindow_basic(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()

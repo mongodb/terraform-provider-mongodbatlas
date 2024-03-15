@@ -18,13 +18,6 @@ var (
 	atlasRegion  = "US_EAST_1"
 )
 
-func TestMain(m *testing.M) {
-	acc.SetupSharedResources()
-	exitCode := m.Run()
-	acc.CleanupSharedResources()
-	os.Exit(exitCode)
-}
-
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
 	var (
 		projectID  = acc.ProjectIDExecution(t)

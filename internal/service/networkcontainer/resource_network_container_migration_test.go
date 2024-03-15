@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationNetworkContainerRS_basicAWS(t *testing.T) {
+func TestMigNetworkContainerRS_basicAWS(t *testing.T) {
 	var (
 		projectName = acc.RandomProjectName()
 		configAWS   = configAWS(projectName, orgID, cidrBlock, constant.AWS, "US_EAST_1")
@@ -34,7 +34,7 @@ func TestAccMigrationNetworkContainerRS_basicAWS(t *testing.T) {
 	})
 }
 
-func TestAccMigrationNetworkContainerRS_basicAzure(t *testing.T) {
+func TestMigNetworkContainerRS_basicAzure(t *testing.T) {
 	var (
 		projectName = acc.RandomProjectName()
 		configAzure = configAzure(projectName, orgID, cidrBlock, constant.AZURE)
@@ -59,7 +59,7 @@ func TestAccMigrationNetworkContainerRS_basicAzure(t *testing.T) {
 	})
 }
 
-func TestAccMigrationNetworkContainerRS_basicGCP(t *testing.T) {
+func TestMigNetworkContainerRS_basicGCP(t *testing.T) {
 	var (
 		projectName = acc.RandomProjectName()
 		configGCP   = configGCP(projectName, orgID, gcpCidrBlock, constant.GCP)

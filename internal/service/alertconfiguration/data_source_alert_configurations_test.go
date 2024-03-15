@@ -3,7 +3,6 @@ package alertconfiguration_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -18,21 +17,19 @@ import (
 
 func TestAccConfigDSAlertConfigurations_basic(t *testing.T) {
 	var (
-		dataSourceName = "data.mongodbatlas_alert_configurations.test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
+		projectID = acc.ProjectIDExecution(t)
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasicPluralDS(orgID, projectName),
+				Config: configBasicPluralDS(projectID),
 				Check: resource.ComposeTestCheckFunc(
-					checkCount(dataSourceName),
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckNoResourceAttr(dataSourceName, "total_count"),
+					checkCount(dataSourcePluralName),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
+					resource.TestCheckNoResourceAttr(dataSourcePluralName, "total_count"),
 				),
 			},
 		},
@@ -41,22 +38,20 @@ func TestAccConfigDSAlertConfigurations_basic(t *testing.T) {
 
 func TestAccConfigDSAlertConfigurations_withOutputTypes(t *testing.T) {
 	var (
-		dataSourceName = "data.mongodbatlas_alert_configurations.test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
-		outputTypes    = []string{"resource_hcl", "resource_import"}
+		projectID   = acc.ProjectIDExecution(t)
+		outputTypes = []string{"resource_hcl", "resource_import"}
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configOutputType(orgID, projectName, outputTypes),
+				Config: configOutputType(projectID, outputTypes),
 				Check: resource.ComposeTestCheckFunc(
-					checkCount(dataSourceName),
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "results.0.output.#", "2"),
+					checkCount(dataSourcePluralName),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.output.#", "2"),
 				),
 			},
 		},
@@ -65,16 +60,15 @@ func TestAccConfigDSAlertConfigurations_withOutputTypes(t *testing.T) {
 
 func TestAccConfigDSAlertConfigurations_invalidOutputTypeValue(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
+		projectID = acc.ProjectIDExecution(t)
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configOutputType(orgID, projectName, []string{"resource_hcl", "invalid_type"}),
+				Config:      configOutputType(projectID, []string{"resource_hcl", "invalid_type"}),
 				ExpectError: regexp.MustCompile("value must be one of:"),
 			},
 		},
@@ -83,70 +77,56 @@ func TestAccConfigDSAlertConfigurations_invalidOutputTypeValue(t *testing.T) {
 
 func TestAccConfigDSAlertConfigurations_totalCount(t *testing.T) {
 	var (
-		dataSourceName = "data.mongodbatlas_alert_configurations.test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
+		projectID = acc.ProjectIDExecution(t)
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configTotalCount(orgID, projectName),
+				Config: configTotalCount(projectID),
 				Check: resource.ComposeTestCheckFunc(
-					checkCount(dataSourceName),
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "total_count"),
+					checkCount(dataSourcePluralName),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "total_count"),
 				),
 			},
 		},
 	})
 }
 
-func configBasicPluralDS(orgID, projectName string) string {
+func configBasicPluralDS(projectID string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = %[2]q
-			org_id = %[1]q
-		}
 		data "mongodbatlas_alert_configurations" "test" {
-			project_id = mongodbatlas_project.test.id
+			project_id = %[1]q
 
 			list_options {
 				page_num = 0
 			}
 		}
-	`, orgID, projectName)
+	`, projectID)
 }
 
-func configOutputType(orgID, projectName string, outputTypes []string) string {
+func configOutputType(projectID string, outputTypes []string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = %[2]q
-			org_id = %[1]q
-		}
 		data "mongodbatlas_alert_configurations" "test" {
-			project_id = mongodbatlas_project.test.id
-			output_type = %[3]s
+			project_id = %[1]q
+			output_type = %[2]s
 		}
-	`, orgID, projectName, strings.ReplaceAll(fmt.Sprintf("%+q", outputTypes), " ", ","))
+	`, projectID, strings.ReplaceAll(fmt.Sprintf("%+q", outputTypes), " ", ","))
 }
 
-func configTotalCount(orgID, projectName string) string {
+func configTotalCount(projectID string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = %[2]q
-			org_id = %[1]q
-		}
 		data "mongodbatlas_alert_configurations" "test" {
-			project_id = mongodbatlas_project.test.id
+			project_id = %[1]q
 
 			list_options {
 				include_count = true
 			}
 		}
-	`, orgID, projectName)
+	`, projectID)
 }
 
 func checkCount(resourceName string) resource.TestCheckFunc {

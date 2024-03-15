@@ -8,7 +8,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccMigrationConfigRSProjectAPIKey_RemovingOptionalRootProjectID(t *testing.T) {
+func TestMigConfigRSProjectAPIKey_RemovingOptionalRootProjectID(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project_api_key.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")

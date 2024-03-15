@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationcDataLakePipeline_basic(t *testing.T) {
+func TestMigcDataLakePipeline_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_data_lake_pipeline.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")

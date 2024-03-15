@@ -2,20 +2,15 @@ package alertconfiguration_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
 func TestAccConfigDSAlertConfiguration_basic(t *testing.T) {
 	var (
-		alert          = &admin.GroupAlertsConfig{}
-		dataSourceName = "data.mongodbatlas_alert_configuration.test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
+		projectID = acc.ProjectIDExecution(t)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -24,10 +19,10 @@ func TestAccConfigDSAlertConfiguration_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasicDS(orgID, projectName),
+				Config: configBasicDS(projectID),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(dataSourceName, alert),
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					checkExists(dataSourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(dataSourceName, "notification.#", "1"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "notification.0.notifier_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "matcher.#", "1"),
@@ -41,10 +36,7 @@ func TestAccConfigDSAlertConfiguration_basic(t *testing.T) {
 
 func TestAccConfigDSAlertConfiguration_withThreshold(t *testing.T) {
 	var (
-		alert          = &admin.GroupAlertsConfig{}
-		dataSourceName = "data.mongodbatlas_alert_configuration.test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
+		projectID = acc.ProjectIDExecution(t)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -53,11 +45,10 @@ func TestAccConfigDSAlertConfiguration_withThreshold(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithThreshold(orgID, projectName, true, 1),
+				Config: configWithThreshold(projectID, true, 1),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(dataSourceName, alert),
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					checkExists(dataSourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(dataSourceName, "notification.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "matcher.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "metric_threshold_config.#", "0"),
@@ -70,11 +61,8 @@ func TestAccConfigDSAlertConfiguration_withThreshold(t *testing.T) {
 
 func TestAccConfigDSAlertConfiguration_withOutput(t *testing.T) {
 	var (
-		alert          = &admin.GroupAlertsConfig{}
-		dataSourceName = "data.mongodbatlas_alert_configuration.test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
-		outputLabel    = "resource_import"
+		projectID   = acc.ProjectIDExecution(t)
+		outputLabel = "resource_import"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -83,11 +71,10 @@ func TestAccConfigDSAlertConfiguration_withOutput(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithOutputs(orgID, projectName, outputLabel),
+				Config: configWithOutputs(projectID, outputLabel),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(dataSourceName, alert),
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					checkExists(dataSourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(dataSourceName, "notification.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "output.0.label", outputLabel),
 					resource.TestCheckResourceAttr(dataSourceName, "output.0.type", "resource_import"),
@@ -103,37 +90,30 @@ func TestAccConfigDSAlertConfiguration_withOutput(t *testing.T) {
 
 func TestAccConfigDSAlertConfiguration_withPagerDuty(t *testing.T) {
 	var (
-		alert          = &admin.GroupAlertsConfig{}
-		dataSourceName = "data.mongodbatlas_alert_configuration.test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
-		serviceKey     = dummy32CharKey
+		projectID  = acc.ProjectIDExecution(t)
+		serviceKey = dummy32CharKey
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithPagerDutyDS(orgID, projectName, serviceKey, true),
+				Config: configWithPagerDutyDS(projectID, serviceKey, true),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(dataSourceName, alert),
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					checkExists(dataSourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
 				),
 			},
 		},
 	})
 }
 
-func configBasicDS(orgID, projectName string) string {
+func configBasicDS(projectID string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = %[2]q
-			org_id = %[1]q
-		}
 		resource "mongodbatlas_alert_configuration" "test" {
-			project_id = mongodbatlas_project.test.id
+			project_id = %[1]q
 			event_type = "OUTSIDE_METRIC_THRESHOLD"
 			enabled    = true
 
@@ -161,22 +141,18 @@ func configBasicDS(orgID, projectName string) string {
 		}
 
 		data "mongodbatlas_alert_configuration" "test" {
-			project_id             = "${mongodbatlas_alert_configuration.test.project_id}"
-			alert_configuration_id = "${mongodbatlas_alert_configuration.test.id}"
+			project_id             = mongodbatlas_alert_configuration.test.project_id
+			alert_configuration_id = mongodbatlas_alert_configuration.test.id
 		}
-	`, orgID, projectName)
+	`, projectID)
 }
 
-func configWithThreshold(orgID, projectName string, enabled bool, threshold float64) string {
+func configWithThreshold(projectID string, enabled bool, threshold float64) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = %[2]q
-			org_id = %[1]q
-		}
 		resource "mongodbatlas_alert_configuration" "test" {
-			project_id = mongodbatlas_project.test.id
+			project_id = %[1]q
+			enabled    = %[2]t
 			event_type = "REPLICATION_OPLOG_WINDOW_RUNNING_OUT"
-			enabled    = "%[3]t"
 
 			notification {
 				type_name     = "GROUP"
@@ -196,25 +172,21 @@ func configWithThreshold(orgID, projectName string, enabled bool, threshold floa
 			threshold_config {
 				operator    = "LESS_THAN"
 				units       = "HOURS"
-				threshold   = %[4]f
+				threshold   = %[3]f
 			}
 		}
 
 		data "mongodbatlas_alert_configuration" "test" {
-			project_id             = "${mongodbatlas_alert_configuration.test.project_id}"
-			alert_configuration_id = "${mongodbatlas_alert_configuration.test.id}"
+			project_id             = mongodbatlas_alert_configuration.test.project_id
+			alert_configuration_id = mongodbatlas_alert_configuration.test.id
 		}
-	`, orgID, projectName, enabled, threshold)
+	`, projectID, enabled, threshold)
 }
 
-func configWithOutputs(orgID, projectName, outputLabel string) string {
+func configWithOutputs(projectID, outputLabel string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = %[2]q
-			org_id = %[1]q
-		}
 		resource "mongodbatlas_alert_configuration" "test" {
-			project_id = mongodbatlas_project.test.id
+			project_id = %[1]q
 
 			event_type = "NO_PRIMARY"
 			enabled    = true
@@ -230,42 +202,38 @@ func configWithOutputs(orgID, projectName, outputLabel string) string {
 		}
 
 		data "mongodbatlas_alert_configuration" "test" {
-			project_id             = "${mongodbatlas_alert_configuration.test.project_id}"
-			alert_configuration_id = "${mongodbatlas_alert_configuration.test.id}"
+			project_id             = mongodbatlas_alert_configuration.test.project_id
+			alert_configuration_id = mongodbatlas_alert_configuration.test.id
 
 			output {
 				type = "resource_import"
-				label = %[3]q
+				label = %[2]q
 			}
 			output {
 				type = "resource_hcl"
-				label = %[3]q
+				label = %[2]q
 			}
 		}
-	`, orgID, projectName, outputLabel)
+	`, projectID, outputLabel)
 }
 
-func configWithPagerDutyDS(orgID, projectName, serviceKey string, enabled bool) string {
+func configWithPagerDutyDS(projectID, serviceKey string, enabled bool) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_project" "test" {
-	name   = %[2]q
-	org_id = %[1]q
-}
-resource "mongodbatlas_alert_configuration" "test" {
-  project_id = mongodbatlas_project.test.id
-  event_type = "NO_PRIMARY"
-  enabled    = "%[4]t"
+		resource "mongodbatlas_alert_configuration" "test" {
+			project_id = %[1]q
+			enabled    = "%[3]t"
+			event_type = "NO_PRIMARY"
 
-  notification {
-    type_name    = "PAGER_DUTY"
-    service_key  = %[3]q
-    delay_min    = 0
-  }
-}
+			notification {
+				type_name    = "PAGER_DUTY"
+				service_key  = %[2]q
+				delay_min    = 0
+			}
+		}
 
-data "mongodbatlas_alert_configuration" "test" {
-  project_id             = "${mongodbatlas_alert_configuration.test.project_id}"
-  alert_configuration_id = "${mongodbatlas_alert_configuration.test.id}"
-}
-	`, orgID, projectName, serviceKey, enabled)
+		data "mongodbatlas_alert_configuration" "test" {
+			project_id             = mongodbatlas_alert_configuration.test.project_id
+			alert_configuration_id = mongodbatlas_alert_configuration.test.id
+		}
+	`, projectID, serviceKey, enabled)
 }

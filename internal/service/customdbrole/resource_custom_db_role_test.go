@@ -650,7 +650,7 @@ func configWithInheritedRoles(orgID, projectName string, inheritedRole []matlas.
 		}
 
 		resource "mongodbatlas_custom_db_role" "inherited_role_two" {
-			project_id = "${mongodbatlas_custom_db_role.inherited_role_one.project_id}"
+			project_id = mongodbatlas_custom_db_role.inherited_role_one.project_id
 		 	role_name  = %[6]q
 
 			actions {
@@ -662,7 +662,7 @@ func configWithInheritedRoles(orgID, projectName string, inheritedRole []matlas.
 		}
 
 		resource "mongodbatlas_custom_db_role" "test_role" {
-			project_id = "${mongodbatlas_custom_db_role.inherited_role_one.project_id}"
+			project_id = mongodbatlas_custom_db_role.inherited_role_one.project_id
 			role_name  = %[9]q
 
 			actions {
@@ -674,12 +674,12 @@ func configWithInheritedRoles(orgID, projectName string, inheritedRole []matlas.
 			}
 
 			inherited_roles {
-				role_name     = "${mongodbatlas_custom_db_role.inherited_role_one.role_name}"
+				role_name     = mongodbatlas_custom_db_role.inherited_role_one.role_name
 				database_name = "admin"
 			}
 
 			inherited_roles {
-				role_name     = "${mongodbatlas_custom_db_role.inherited_role_two.role_name}"
+				role_name     = mongodbatlas_custom_db_role.inherited_role_two.role_name
 				database_name = "admin"
 			}
 		}
@@ -747,7 +747,7 @@ func configWithMultiple(orgID, projectName string, inheritedRole, testRole *matl
 		}
 
 		resource "mongodbatlas_custom_db_role" "test_role" {
-			project_id = "${mongodbatlas_custom_db_role.inherited_role.project_id}"
+			project_id = mongodbatlas_custom_db_role.inherited_role.project_id
 			role_name  = %[5]q
 
 			%[6]s

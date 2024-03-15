@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T) {
+func TestMigProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_project_ip_access_list.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -48,7 +48,7 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T)
 	})
 }
 
-func TestAccMigrationProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
+func TestMigProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_project_ip_access_list.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -85,7 +85,7 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T)
 	})
 }
 
-func TestAccMigrationProjectDSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
+func TestMigProjectDSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_project_ip_access_list.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")

@@ -8,9 +8,9 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationClusterRSGlobalCluster_basic(t *testing.T) {
+func TestMigClusterRSGlobalCluster_basic(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{Geosharded: true})
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true})
 		config      = configBasic(&clusterInfo, false, false)
 	)
 

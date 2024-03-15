@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
+func TestMigStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_stream_connection.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -43,7 +43,7 @@ func TestAccMigrationStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 	})
 }
 
-func TestAccMigrationStreamRSStreamConnection_kafkaSSL(t *testing.T) {
+func TestMigStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_stream_connection.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -75,10 +75,10 @@ func TestAccMigrationStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 	})
 }
 
-func TestAccMigrationStreamRSStreamConnection_cluster(t *testing.T) {
+func TestMigStreamRSStreamConnection_cluster(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_stream_connection.test"
-		clusterInfo  = acc.GetClusterInfo(nil)
+		clusterInfo  = acc.GetClusterInfo(t, nil)
 		instanceName = acc.RandomName()
 	)
 	mig.SkipIfVersionBelow(t, "1.15.2")

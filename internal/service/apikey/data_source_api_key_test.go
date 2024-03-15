@@ -46,8 +46,8 @@ func configDS(orgID, apiKeyID, roleNames string) string {
 		}
 
 		data "mongodbatlas_api_key" "test" {
-		  org_id      = "${mongodbatlas_api_key.test.org_id}"
-		  api_key_id  = "${mongodbatlas_api_key.test.api_key_id}"
+		  org_id      = mongodbatlas_api_key.test.org_id
+		  api_key_id  = mongodbatlas_api_key.test.api_key_id
 		}
 	`, orgID, apiKeyID, roleNames)
 }

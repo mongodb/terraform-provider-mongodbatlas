@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
+func TestMigOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cluster_outage_simulation.test_outage"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -39,7 +39,7 @@ func TestAccMigrationOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 	})
 }
 
-func TestAccMigrationOutageSimulationCluster_MultiRegion_basic(t *testing.T) {
+func TestMigOutageSimulationCluster_MultiRegion_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cluster_outage_simulation.test_outage"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")

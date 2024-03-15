@@ -14,7 +14,7 @@ import (
 
 func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{Geosharded: true})
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true})
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -60,7 +60,7 @@ func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 
 func TestAccClusterRSGlobalCluster_withAWSAndBackup(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{Geosharded: true, CloudBackup: true})
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, CloudBackup: true})
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -86,7 +86,7 @@ func TestAccClusterRSGlobalCluster_withAWSAndBackup(t *testing.T) {
 
 func TestAccClusterRSGlobalCluster_importBasic(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{Geosharded: true})
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true})
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -110,7 +110,7 @@ func TestAccClusterRSGlobalCluster_importBasic(t *testing.T) {
 
 func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(&acc.ClusterRequest{Geosharded: true, ExtraConfig: zonesStr})
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, ExtraConfig: zonesStr})
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -197,7 +197,7 @@ func checkDestroy(s *terraform.State) error {
 
 		globalConfig, _, err := acc.ConnV2().GlobalClustersApi.GetManagedNamespace(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
 		if err != nil {
-			if strings.Contains(err.Error(), "GROUP_NOT_FOUND") {
+			if strings.Contains(err.Error(), "NOT_FOUND") {
 				return nil
 			}
 			return err

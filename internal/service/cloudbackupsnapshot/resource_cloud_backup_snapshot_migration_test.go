@@ -9,9 +9,9 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestAccMigrationBackupRSCloudBackupSnapshot_basic(t *testing.T) {
+func TestMigBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 	var (
-		clusterInfo     = acc.GetClusterInfo(&acc.ClusterRequest{CloudBackup: true})
+		clusterInfo     = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
 		description     = "My description in my cluster"
 		retentionInDays = "4"
 		config          = configBasic(&clusterInfo, description, retentionInDays)
@@ -42,7 +42,7 @@ func TestAccMigrationBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 	})
 }
 
-func TestAccMigrationBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
+func TestMigBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
 	var (
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName     = acc.RandomProjectName()

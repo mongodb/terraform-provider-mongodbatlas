@@ -135,7 +135,7 @@ func dataSourcePluralConfigBasicGCP(projectName, orgID, cidrBlock, providerName 
 		}
 
 		data "mongodbatlas_network_containers" "test" {
-			project_id = "${mongodbatlas_network_container.test.project_id}"
+			project_id = mongodbatlas_network_container.test.project_id
 			provider_name = "GCP"
 		}
 	`, projectName, orgID, cidrBlock, providerName)

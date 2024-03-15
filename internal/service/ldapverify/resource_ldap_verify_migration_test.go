@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccMigrationLDAPVerify_basic(t *testing.T) {
+func TestMigLDAPVerify_basic(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		hostname    = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")

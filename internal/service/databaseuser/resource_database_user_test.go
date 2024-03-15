@@ -1,37 +1,40 @@
 package databaseuser_test
 
 import (
+	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"go.mongodb.org/atlas-sdk/v20231115007/admin"
 )
 
+const (
+	resourceName         = "mongodbatlas_database_user.test"
+	dataSourceName       = "data.mongodbatlas_database_user.test"
+	dataSourcePluralName = "data.mongodbatlas_database_users.test"
+)
+
 func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 	var (
-		dbUser       admin.CloudDatabaseUser
-		resourceName = "mongodbatlas_database_user.basic_ds"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		username     = acc.RandomName()
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyDatabaseUser,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserBasic(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				Config: acc.ConfigDatabaseUserBasic(projectID, username, "atlasAdmin", "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
@@ -43,11 +46,10 @@ func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserBasic(projectName, orgID, "read", username, "Second Key", "Second value"),
+				Config: acc.ConfigDatabaseUserBasic(projectID, username, "read", "Second Key", "Second value"),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
@@ -64,25 +66,21 @@ func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 
 func TestAccConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 	var (
-		dbUser       admin.CloudDatabaseUser
-		resourceName = "mongodbatlas_database_user.test"
-		username     = "CN=ellen@example.com,OU=users,DC=example,DC=com"
-		x509Type     = "CUSTOMER"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomLDAPName()
+		x509Type  = "CUSTOMER"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyDatabaseUser,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithX509Type(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
+				Config: acc.ConfigDatabaseUserWithX509Type(projectID, username, x509Type, "atlasAdmin", "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "x509_type", x509Type),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
@@ -95,25 +93,21 @@ func TestAccConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 
 func TestAccConfigRSDatabaseUser_withX509TypeManaged(t *testing.T) {
 	var (
-		dbUser       admin.CloudDatabaseUser
-		resourceName = "mongodbatlas_database_user.test"
-		x509Type     = "MANAGED"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		username     = acc.RandomName()
+		projectID = acc.ProjectIDExecution(t)
+		x509Type  = "MANAGED"
+		username  = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyDatabaseUser,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithX509Type(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
+				Config: acc.ConfigDatabaseUserWithX509Type(projectID, username, x509Type, "atlasAdmin", "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "x509_type", x509Type),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
@@ -126,23 +120,19 @@ func TestAccConfigRSDatabaseUser_withX509TypeManaged(t *testing.T) {
 
 func TestAccConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 	var (
-		dbUser       admin.CloudDatabaseUser
-		resourceName = "mongodbatlas_database_user.test"
-		username     = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomIAMUser()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyDatabaseUser,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithAWSIAMType(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				Config: acc.ConfigDatabaseUserWithAWSIAMType(projectID, username, "atlasAdmin", "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "aws_iam_type", "USER"),
@@ -156,28 +146,20 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 
 func TestAccConfigRSDatabaseUser_withAWSIAMType_import(t *testing.T) {
 	var (
-		dbUser       admin.CloudDatabaseUser
-		resourceName = "mongodbatlas_database_user.test"
-		username     = os.Getenv("TEST_DB_USER_IAM_ARN")
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomIAMUser()
 	)
-
-	if username == "" {
-		username = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
-	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyDatabaseUser,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithAWSIAMType(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				Config: acc.ConfigDatabaseUserWithAWSIAMType(projectID, username, "atlasAdmin", "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "aws_iam_type", "USER"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
@@ -186,7 +168,7 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType_import(t *testing.T) {
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasDatabaseUserImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"password"},
@@ -197,24 +179,20 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType_import(t *testing.T) {
 
 func TestAccConfigRSDatabaseUser_withLabels(t *testing.T) {
 	var (
-		dbUser       admin.CloudDatabaseUser
-		resourceName = "mongodbatlas_database_user.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		username     = acc.RandomName()
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyDatabaseUser,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username, nil),
+				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", nil),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
@@ -222,7 +200,7 @@ func TestAccConfigRSDatabaseUser_withLabels(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username,
+				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin",
 					[]admin.ComponentLabel{
 						{
 							Key:   conversion.StringPtr("key 1"),
@@ -235,9 +213,8 @@ func TestAccConfigRSDatabaseUser_withLabels(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
@@ -245,7 +222,7 @@ func TestAccConfigRSDatabaseUser_withLabels(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserWithLabels(projectName, orgID, "read", username,
+				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "read",
 					[]admin.ComponentLabel{
 						{
 							Key:   conversion.StringPtr("key 4"),
@@ -262,9 +239,8 @@ func TestAccConfigRSDatabaseUser_withLabels(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
@@ -277,21 +253,18 @@ func TestAccConfigRSDatabaseUser_withLabels(t *testing.T) {
 
 func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 	var (
-		dbUser       admin.CloudDatabaseUser
-		resourceName = "mongodbatlas_database_user.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		username     = acc.RandomName()
-		password     = acc.RandomName()
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomName()
+		password  = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyDatabaseUser,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithRoles(username, password, projectName, orgID,
+				Config: acc.ConfigDatabaseUserWithRoles(projectID, username, password,
 					[]*admin.DatabaseUserRole{
 						{
 							RoleName:       "read",
@@ -306,9 +279,8 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", password),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
@@ -318,7 +290,7 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserWithRoles(username, password, projectName, orgID,
+				Config: acc.ConfigDatabaseUserWithRoles(projectID, username, password,
 					[]*admin.DatabaseUserRole{
 						{
 							RoleName:     "read",
@@ -327,9 +299,8 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", password),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
@@ -342,65 +313,60 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 
 func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 	var (
-		dbUser       admin.CloudDatabaseUser
-		resourceName = "mongodbatlas_database_user.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		clusterName  = acc.RandomClusterName()
-		username     = acc.RandomName()
-		password     = acc.RandomName()
+		projectID     = acc.ProjectIDExecution(t)
+		userScopeName = acc.RandomName()
+		username      = acc.RandomName()
+		password      = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyDatabaseUser,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", projectName, orgID,
+				Config: acc.ConfigDatabaseUserWithScopes(projectID, username, password, "atlasAdmin",
 					[]*admin.UserScope{
 						{
-							Name: clusterName,
+							Name: userScopeName,
 							Type: "CLUSTER",
 						},
 						{
-							Name: clusterName,
+							Name: userScopeName,
 							Type: "DATA_LAKE",
 						},
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", password),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "scopes.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.0.name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "scopes.0.name", userScopeName),
 					resource.TestCheckResourceAttr(resourceName, "scopes.0.type", "CLUSTER"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.1.name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "scopes.1.name", userScopeName),
 					resource.TestCheckResourceAttr(resourceName, "scopes.1.type", "DATA_LAKE"),
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", projectName, orgID,
+				Config: acc.ConfigDatabaseUserWithScopes(projectID, username, password, "atlasAdmin",
 					[]*admin.UserScope{
 						{
-							Name: clusterName,
+							Name: userScopeName,
 							Type: "CLUSTER",
 						},
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", password),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "scopes.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.0.name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "scopes.0.name", userScopeName),
 					resource.TestCheckResourceAttr(resourceName, "scopes.0.type", "CLUSTER"),
 				),
 			},
@@ -410,53 +376,48 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 
 func TestAccConfigRSDatabaseUser_updateToEmptyScopes(t *testing.T) {
 	var (
-		dbUser       admin.CloudDatabaseUser
-		resourceName = "mongodbatlas_database_user.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		clusterName  = acc.RandomClusterName()
-		username     = acc.RandomName()
-		password     = acc.RandomName()
+		projectID     = acc.ProjectIDExecution(t)
+		userScopeName = acc.RandomName()
+		username      = acc.RandomName()
+		password      = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyDatabaseUser,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", projectName, orgID,
+				Config: acc.ConfigDatabaseUserWithScopes(projectID, username, password, "atlasAdmin",
 					[]*admin.UserScope{
 						{
-							Name: clusterName,
+							Name: userScopeName,
 							Type: "CLUSTER",
 						},
 						{
-							Name: clusterName,
+							Name: userScopeName,
 							Type: "DATA_LAKE",
 						},
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", password),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "scopes.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.0.name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "scopes.0.name", userScopeName),
 					resource.TestCheckResourceAttr(resourceName, "scopes.0.type", "CLUSTER"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.1.name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "scopes.1.name", userScopeName),
 					resource.TestCheckResourceAttr(resourceName, "scopes.1.type", "DATA_LAKE"),
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserWithScopes(username, password, "atlasAdmin", projectName, orgID, nil),
+				Config: acc.ConfigDatabaseUserWithScopes(projectID, username, password, "atlasAdmin", nil),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", password),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
@@ -469,20 +430,17 @@ func TestAccConfigRSDatabaseUser_updateToEmptyScopes(t *testing.T) {
 
 func TestAccConfigRSDatabaseUser_updateToEmptyLabels(t *testing.T) {
 	var (
-		dbUser       admin.CloudDatabaseUser
-		resourceName = "mongodbatlas_database_user.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		username     = acc.RandomName()
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyDatabaseUser,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username,
+				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin",
 					[]admin.ComponentLabel{
 						{
 							Key:   conversion.StringPtr("key 1"),
@@ -495,8 +453,8 @@ func TestAccConfigRSDatabaseUser_updateToEmptyLabels(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "labels.0.key", "key 1"),
 					resource.TestCheckResourceAttr(resourceName, "labels.0.value", "value 1"),
@@ -505,10 +463,9 @@ func TestAccConfigRSDatabaseUser_updateToEmptyLabels(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserWithLabels(projectName, orgID, "atlasAdmin", username, nil),
+				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", nil),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "0"),
 				),
 			},
@@ -518,24 +475,20 @@ func TestAccConfigRSDatabaseUser_updateToEmptyLabels(t *testing.T) {
 
 func TestAccConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
 	var (
-		dbUser       admin.CloudDatabaseUser
-		resourceName = "mongodbatlas_database_user.test"
-		username     = "CN=david@example.com,OU=users,DC=example,DC=com"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomLDAPName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyDatabaseUser,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithLDAPAuthType(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				Config: acc.ConfigDatabaseUserWithLDAPAuthType(projectID, username, "atlasAdmin", "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "ldap_auth_type", "USER"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
@@ -548,21 +501,19 @@ func TestAccConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
 
 func TestAccConfigRSDatabaseUser_importBasic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_database_user.basic_ds"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		username     = acc.RandomName()
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyDatabaseUser,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserBasic(projectName, orgID, "read", username, "First Key", "First value"),
+				Config: acc.ConfigDatabaseUserBasic(projectID, username, "read", "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
@@ -571,7 +522,7 @@ func TestAccConfigRSDatabaseUser_importBasic(t *testing.T) {
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasDatabaseUserImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"password"},
@@ -582,25 +533,21 @@ func TestAccConfigRSDatabaseUser_importBasic(t *testing.T) {
 
 func TestAccConfigRSDatabaseUser_importX509TypeCustomer(t *testing.T) {
 	var (
-		dbUser       admin.CloudDatabaseUser
-		resourceName = "mongodbatlas_database_user.test"
-		username     = "CN=ellen@example.com,OU=users,DC=example,DC=com"
-		x509Type     = "CUSTOMER"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomLDAPName()
+		x509Type  = "CUSTOMER"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyDatabaseUser,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithX509Type(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
+				Config: acc.ConfigDatabaseUserWithX509Type(projectID, username, x509Type, "atlasAdmin", "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "x509_type", x509Type),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
@@ -609,7 +556,7 @@ func TestAccConfigRSDatabaseUser_importX509TypeCustomer(t *testing.T) {
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasDatabaseUserImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"password"},
@@ -620,24 +567,20 @@ func TestAccConfigRSDatabaseUser_importX509TypeCustomer(t *testing.T) {
 
 func TestAccConfigRSDatabaseUser_importLDAPAuthType(t *testing.T) {
 	var (
-		dbUser       admin.CloudDatabaseUser
-		resourceName = "mongodbatlas_database_user.test"
-		username     = "CN=david@example.com,OU=users,DC=example,DC=com"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomLDAPName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyDatabaseUser,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithLDAPAuthType(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				Config: acc.ConfigDatabaseUserWithLDAPAuthType(projectID, username, "atlasAdmin", "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckDatabaseUserExists(resourceName, &dbUser),
-					acc.CheckDatabaseUserAttributes(&dbUser, username),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "ldap_auth_type", "USER"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
@@ -646,7 +589,7 @@ func TestAccConfigRSDatabaseUser_importLDAPAuthType(t *testing.T) {
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasDatabaseUserImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"password"},
@@ -655,15 +598,61 @@ func TestAccConfigRSDatabaseUser_importLDAPAuthType(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasDatabaseUserImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		if rs.Primary.Attributes["project_id"] == "" {
+			return fmt.Errorf("no project_id is set")
+		}
+		if rs.Primary.Attributes["auth_database_name"] == "" {
+			return fmt.Errorf("no auth_database_name is set")
+		}
+		if rs.Primary.Attributes["username"] == "" {
+			return fmt.Errorf("no username is set")
+		}
+
+		authDB := rs.Primary.Attributes["auth_database_name"]
+		projectID := rs.Primary.Attributes["project_id"]
+		username := rs.Primary.Attributes["username"]
+
+		if _, _, err := acc.ConnV2().DatabaseUsersApi.GetDatabaseUser(context.Background(), projectID, authDB, username).Execute(); err == nil {
+			return nil
+		}
+
+		return fmt.Errorf("database user(%s-%s-%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["username"], rs.Primary.Attributes["auth_database_name"])
+	}
+}
+
+func checkDestroy(s *terraform.State) error {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "mongodbatlas_database_user" {
+			continue
+		}
+
+		projectID, username, authDatabaseName, err := databaseuser.SplitDatabaseUserImportID(rs.Primary.ID)
+		if err != nil {
+			continue
+		}
+		// Try to find the database user
+		_, _, err = acc.ConnV2().DatabaseUsersApi.GetDatabaseUser(context.Background(), projectID, authDatabaseName, username).Execute()
+		if err == nil {
+			return fmt.Errorf("database user (%s) still exists", projectID)
+		}
+	}
+
+	return nil
+}
+
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-
 		return fmt.Sprintf("%s-%s-%s", ids["project_id"], ids["username"], ids["auth_database_name"]), nil
 	}
 }
