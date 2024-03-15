@@ -81,8 +81,7 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetAtlasSearchDeploymentExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			client := admin.APIClient{AtlasSearchApi: m}
-			resp, err := searchdeployment.WaitSearchNodeStateTransition(context.Background(), dummyProjectID, "Cluster0", &client, testTimeoutConfig)
+			resp, err := searchdeployment.WaitSearchNodeStateTransition(context.Background(), dummyProjectID, "Cluster0", m, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
 			assert.Equal(t, responseWithState(tc.expectedState), resp)
 		})
@@ -125,8 +124,7 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetAtlasSearchDeploymentExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			client := admin.APIClient{AtlasSearchApi: m}
-			err := searchdeployment.WaitSearchNodeDelete(context.Background(), dummyProjectID, clusterName, &client, testTimeoutConfig)
+			err := searchdeployment.WaitSearchNodeDelete(context.Background(), dummyProjectID, clusterName, m, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
 		})
 	}
