@@ -17,6 +17,14 @@ type EarService struct {
 	mock.Mock
 }
 
+type EarService_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *EarService) EXPECT() *EarService_Expecter {
+	return &EarService_Expecter{mock: &_m.Mock}
+}
+
 // UpdateEncryptionAtRest provides a mock function with given fields: ctx, groupID, encryptionAtRest
 func (_m *EarService) UpdateEncryptionAtRest(ctx context.Context, groupID string, encryptionAtRest *admin.EncryptionAtRest) (*admin.EncryptionAtRest, *http.Response, error) {
 	ret := _m.Called(ctx, groupID, encryptionAtRest)
@@ -54,6 +62,36 @@ func (_m *EarService) UpdateEncryptionAtRest(ctx context.Context, groupID string
 	}
 
 	return r0, r1, r2
+}
+
+// EarService_UpdateEncryptionAtRest_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateEncryptionAtRest'
+type EarService_UpdateEncryptionAtRest_Call struct {
+	*mock.Call
+}
+
+// UpdateEncryptionAtRest is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID string
+//   - encryptionAtRest *admin.EncryptionAtRest
+func (_e *EarService_Expecter) UpdateEncryptionAtRest(ctx interface{}, groupID interface{}, encryptionAtRest interface{}) *EarService_UpdateEncryptionAtRest_Call {
+	return &EarService_UpdateEncryptionAtRest_Call{Call: _e.mock.On("UpdateEncryptionAtRest", ctx, groupID, encryptionAtRest)}
+}
+
+func (_c *EarService_UpdateEncryptionAtRest_Call) Run(run func(ctx context.Context, groupID string, encryptionAtRest *admin.EncryptionAtRest)) *EarService_UpdateEncryptionAtRest_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(*admin.EncryptionAtRest))
+	})
+	return _c
+}
+
+func (_c *EarService_UpdateEncryptionAtRest_Call) Return(_a0 *admin.EncryptionAtRest, _a1 *http.Response, _a2 error) *EarService_UpdateEncryptionAtRest_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *EarService_UpdateEncryptionAtRest_Call) RunAndReturn(run func(context.Context, string, *admin.EncryptionAtRest) (*admin.EncryptionAtRest, *http.Response, error)) *EarService_UpdateEncryptionAtRest_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewEarService creates a new instance of EarService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

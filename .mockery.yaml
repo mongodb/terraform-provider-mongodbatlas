@@ -1,4 +1,4 @@
-with-expecter: false
+with-expecter: true
 disable-version-string: true
 dir: internal/testutil/mocksvc
 outpkg: mocksvc
@@ -6,9 +6,9 @@ filename: "{{ .InterfaceName | snakecase }}.go"
 mockname: "{{.InterfaceName}}"
 
 packages:
-  github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment:
+  go.mongodb.org/atlas-sdk/v20231115007/admin:
     interfaces:
-      DeploymentService:
+      AtlasSearchApi:
 
   github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest:
     interfaces:
