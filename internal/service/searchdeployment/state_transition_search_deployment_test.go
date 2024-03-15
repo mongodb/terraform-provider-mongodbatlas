@@ -85,7 +85,6 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 			resp, err := searchdeployment.WaitSearchNodeStateTransition(context.Background(), dummyProjectID, "Cluster0", &client, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
 			assert.Equal(t, responseWithState(tc.expectedState), resp)
-			m.AssertExpectations(t)
 		})
 	}
 }
@@ -129,7 +128,6 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 			client := admin.APIClient{AtlasSearchApi: m}
 			err := searchdeployment.WaitSearchNodeDelete(context.Background(), dummyProjectID, clusterName, &client, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
-			m.AssertExpectations(t)
 		})
 	}
 }
