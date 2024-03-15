@@ -2,12 +2,12 @@
 
 ## [v1.15.2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.15.2) (2024-03-15)
 
-[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.15.1...v1.15.2-pre)
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.15.1...v1.15.2)
 
 **Enhancements**
 
 - feat: Adds support for Sample stream type to `mongodbatlas_stream_connection` [\#2026](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2026) ([maastha](https://github.com/maastha))
-- feat: Add support for using DEV/QA for mongodbgov [\#2009](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2009) ([maastha](https://github.com/maastha))
+- feat: Adds support for using DEV/QA for mongodbgov [\#2009](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2009) ([maastha](https://github.com/maastha))
 - refactor: Renames `MONGODB_ATLAS_ENABLE_BETA` to `MONGODB_ATLAS_ENABLE_PREVIEW` for features in preview [\#2004](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2004) ([EspenAlbert](https://github.com/EspenAlbert))
 - feat: Adds StreamConfig attribute to `mongodbatlas_stream_instance` resource and datasources [\#1989](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1989) ([oarbusi](https://github.com/oarbusi))
 - feat: Adds support for `region` & `customer_endpoint_dns_name` in privatelink [\#1982](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1982) ([EspenAlbert](https://github.com/EspenAlbert))
