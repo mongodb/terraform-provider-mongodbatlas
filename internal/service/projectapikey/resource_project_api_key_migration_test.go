@@ -1,7 +1,6 @@
 package projectapikey_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -11,8 +10,7 @@ import (
 func TestMigConfigRSProjectAPIKey_RemovingOptionalRootProjectID(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project_api_key.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
+		projectID    = acc.ProjectIDExecution(t)
 		description  = acc.RandomName()
 		roleName     = "GROUP_OWNER"
 	)
@@ -23,7 +21,7 @@ func TestMigConfigRSProjectAPIKey_RemovingOptionalRootProjectID(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders("1.13.1"), // fixed version as this is the last version where root project id was required.
-				Config:            testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName, true),
+				Config:            testAccMongoDBAtlasProjectAPIKeyConfigBasic(projectID, description, roleName, true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
@@ -33,7 +31,7 @@ func TestMigConfigRSProjectAPIKey_RemovingOptionalRootProjectID(t *testing.T) {
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName, true),
+				Config:                   testAccMongoDBAtlasProjectAPIKeyConfigBasic(projectID, description, roleName, true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
@@ -43,7 +41,7 @@ func TestMigConfigRSProjectAPIKey_RemovingOptionalRootProjectID(t *testing.T) {
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName, false),
+				Config:                   testAccMongoDBAtlasProjectAPIKeyConfigBasic(projectID, description, roleName, false),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
