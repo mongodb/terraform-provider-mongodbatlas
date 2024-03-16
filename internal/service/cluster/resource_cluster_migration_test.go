@@ -17,7 +17,7 @@ func TestMigClusterRSCluster_withDefaultBiConnectorAndAdvancedConfiguration_back
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
-		cfg         = testAccMongoDBAtlasClusterConfigAWS(projectID, clusterName, true, true)
+		cfg         = configAWS(projectID, clusterName, true, true)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -42,10 +42,10 @@ func TestMigClusterRSCluster_basic_PartialAdvancedConf_backwardCompatibility(t *
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
-		cfgPartial  = testAccMongoDBAtlasClusterConfigAdvancedConfPartial(projectID, clusterName, "false", &matlas.ProcessArgs{
+		cfgPartial  = configAdvancedConfPartial(projectID, clusterName, "false", &matlas.ProcessArgs{
 			MinimumEnabledTLSProtocol: "TLS1_2",
 		})
-		cfgPartialUpdated = testAccMongoDBAtlasClusterConfigAdvancedConfPartialUpdated(projectID, clusterName, "false", &matlas.ProcessArgs{
+		cfgPartialUpdated = configAdvancedConfPartialUpdated(projectID, clusterName, "false", &matlas.ProcessArgs{
 			MinimumEnabledTLSProtocol: "TLS1_2",
 			SampleSizeBIConnector:     conversion.Pointer[int64](110),
 		})
@@ -76,7 +76,7 @@ func TestMigClusterRSCluster_basic_PartialAdvancedConf_backwardCompatibility(t *
 	})
 }
 
-func testAccMongoDBAtlasClusterConfigAdvancedConfPartialUpdated(projectID, name, autoscalingEnabled string, p *matlas.ProcessArgs) string {
+func configAdvancedConfPartialUpdated(projectID, name, autoscalingEnabled string, p *matlas.ProcessArgs) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = %[1]q
