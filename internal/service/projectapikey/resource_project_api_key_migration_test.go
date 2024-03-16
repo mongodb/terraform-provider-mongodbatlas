@@ -9,7 +9,7 @@ import (
 
 func TestMigConfigRSProjectAPIKey_RemovingOptionalRootProjectID(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDExecution(t)
+		projectID   = acc.ProjectIDGlobal(t)
 		description = acc.RandomName()
 	)
 
