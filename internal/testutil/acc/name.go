@@ -10,7 +10,7 @@ import (
 const (
 	prefixName        = "test-acc-tf"
 	prefixProject     = prefixName + "-p"
-	prefixProjectKeep = prefixProject + "-keep"
+	PrefixProjectKeep = prefixProject + "-keep"
 	prefixCluster     = prefixName + "-c"
 	prefixIAMRole     = "mongodb-atlas-" + prefixName
 	prefixIAMUser     = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
@@ -48,7 +48,9 @@ func RandomLDAPName() string {
 	return fmt.Sprintf("CN=%s-%s@example.com,OU=users,DC=example,DC=com", prefixName, acctest.RandString(10))
 }
 
+// ProjectIDGlobal returns a common global project.
+// Consider mig.ProjectIDGlobal for mig tests.
 func ProjectIDGlobal(tb testing.TB) string {
 	tb.Helper()
-	return projectID(tb, prefixProjectKeep+"-global")
+	return ProjectID(tb, PrefixProjectKeep+"-global")
 }
