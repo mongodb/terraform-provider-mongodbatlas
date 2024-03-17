@@ -5,11 +5,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 func TestMigConfigRSProjectAPIKey_RemovingOptionalRootProjectID(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDGlobal(t)
+		projectID   = mig.ProjectIDGlobal(t)
 		description = acc.RandomName()
 	)
 
