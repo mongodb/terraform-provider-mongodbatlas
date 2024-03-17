@@ -15,7 +15,7 @@ import (
 
 func TestMigClusterRSCluster_withDefaultBiConnectorAndAdvancedConfiguration_backwardCompatibility(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDGlobal(t)
+		projectID   = mig.ProjectIDGlobal(t)
 		clusterName = acc.RandomClusterName()
 		cfg         = configAWS(projectID, clusterName, true, true)
 	)
@@ -40,7 +40,7 @@ func TestMigClusterRSCluster_withDefaultBiConnectorAndAdvancedConfiguration_back
 
 func TestMigClusterRSCluster_basic_PartialAdvancedConf_backwardCompatibility(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDGlobal(t)
+		projectID   = mig.ProjectIDGlobal(t)
 		clusterName = acc.RandomClusterName()
 		cfgPartial  = configAdvancedConfPartial(projectID, clusterName, "false", &matlas.ProcessArgs{
 			MinimumEnabledTLSProtocol: "TLS1_2",
