@@ -29,7 +29,7 @@ func deleteProject(id string) {
 	}
 }
 
-func projectID(tb testing.TB, name string) string {
+func ProjectID(tb testing.TB, name string) string {
 	tb.Helper()
 	SkipInUnitTest(tb)
 	resp, _, _ := ConnV2().ProjectsApi.GetProjectByName(context.Background(), name).Execute()
