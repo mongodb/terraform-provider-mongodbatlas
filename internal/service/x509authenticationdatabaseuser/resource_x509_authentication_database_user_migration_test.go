@@ -12,9 +12,8 @@ import (
 
 func TestMigGenericX509AuthDBUser_basic(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		username    = acc.RandomName()
+		projectID = mig.ProjectIDGlobal(t)
+		username  = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -24,7 +23,7 @@ func TestMigGenericX509AuthDBUser_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configBasic(projectName, orgID, username),
+				Config:            configBasic(projectID, username),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -35,7 +34,7 @@ func TestMigGenericX509AuthDBUser_basic(t *testing.T) {
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configBasic(projectName, orgID, username),
+				Config:                   configBasic(projectID, username),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
@@ -49,9 +48,8 @@ func TestMigGenericX509AuthDBUser_basic(t *testing.T) {
 
 func TestMigGenericX509AuthDBUser_withCustomerX509(t *testing.T) {
 	var (
-		cas         = os.Getenv("CA_CERT")
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
+		projectID = mig.ProjectIDGlobal(t)
+		cas       = os.Getenv("CA_CERT")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -59,7 +57,7 @@ func TestMigGenericX509AuthDBUser_withCustomerX509(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configWithCustomerX509(projectName, orgID, cas),
+				Config:            configWithCustomerX509(projectID, cas),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -70,7 +68,7 @@ func TestMigGenericX509AuthDBUser_withCustomerX509(t *testing.T) {
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configWithCustomerX509(projectName, orgID, cas),
+				Config:                   configWithCustomerX509(projectID, cas),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
