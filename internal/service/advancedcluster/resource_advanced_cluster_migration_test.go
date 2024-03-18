@@ -119,8 +119,8 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 			},
 			mig.TestStepCheckEmptyPlan(config),
 			{
-				ExternalProviders: mig.ExternalProviders(),
-				Config:            configUpdated,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   configUpdated,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
@@ -133,7 +133,6 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.read_preference", "secondary"),
 				),
 			},
-			mig.TestStepCheckEmptyPlan(configUpdated),
 		},
 	})
 }

@@ -3,6 +3,7 @@ package advancedcluster_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"regexp"
 	"testing"
 
@@ -177,7 +178,8 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 
 func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 	var (
-		projectID          = acc.ProjectIDExecution(t)
+		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName        = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
 	)
@@ -188,7 +190,7 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configMultiCloudSharded(projectID, clusterName),
+				Config: configMultiCloudSharded(orgID, projectName, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -198,7 +200,7 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 				),
 			},
 			{
-				Config: configMultiCloudSharded(projectID, clusterNameUpdated),
+				Config: configMultiCloudSharded(orgID, projectName, clusterNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -832,11 +834,16 @@ func configMultiCloud(projectID, name string) string {
 	`, projectID, name)
 }
 
-func configMultiCloudSharded(projectID, name string) string {
+func configMultiCloudSharded(orgID, projectName, name string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "cluster_project" {
+			name   = %[2]q
+			org_id = %[1]q
+		}	
+
 		resource "mongodbatlas_advanced_cluster" "test" {
-			project_id   = %[1]q
-			name         = %[2]q
+			project_id   = mongodbatlas_project.cluster_project.id
+			name         = %[3]q
 			cluster_type = "SHARDED"
 
 			replication_specs {
@@ -852,7 +859,7 @@ func configMultiCloudSharded(projectID, name string) string {
 					}
 					provider_name = "AWS"
 					priority      = 7
-					region_name   = "US_WEST_2"
+					region_name   = "EU_WEST_1"
 				}
 				region_configs {
 					electable_specs {
@@ -865,7 +872,7 @@ func configMultiCloudSharded(projectID, name string) string {
 				}
 			}
 		}
-	`, projectID, name)
+	`, orgID, projectName, name)
 }
 
 func configSingleProviderPaused(projectID, clusterName string, paused bool, instanceSize string) string {
