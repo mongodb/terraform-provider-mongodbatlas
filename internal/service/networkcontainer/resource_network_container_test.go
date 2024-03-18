@@ -41,12 +41,10 @@ func TestAccNetworkContainerRS_basicAWS(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AWS),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 
-					checkExists(dataSourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "provider_name", constant.AWS),
 					resource.TestCheckResourceAttrSet(dataSourceName, "provisioned"),
 
-					checkExists(dataSourcePluralName),
 					resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.id"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.atlas_cidr_block"),
@@ -89,12 +87,10 @@ func TestAccNetworkContainerRS_basicAzure(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AZURE),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 
-					checkExists(dataSourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "provider_name", constant.AZURE),
 					resource.TestCheckResourceAttrSet(dataSourceName, "provisioned"),
 
-					checkExists(dataSourcePluralName),
 					resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.id"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.atlas_cidr_block"),
@@ -137,12 +133,10 @@ func TestAccNetworkContainerRS_basicGCP(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.GCP),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 
-					checkExists(dataSourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "provider_name", constant.GCP),
 					resource.TestCheckResourceAttrSet(dataSourceName, "provisioned"),
 
-					checkExists(dataSourcePluralName),
 					resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.id"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.atlas_cidr_block"),
@@ -185,12 +179,10 @@ func TestAccNetworkContainerRS_withRegionsGCP(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.GCP),
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 
-					checkExists(dataSourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "provider_name", constant.GCP),
 					resource.TestCheckResourceAttrSet(dataSourceName, "provisioned"),
 
-					checkExists(dataSourcePluralName),
 					resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.id"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.atlas_cidr_block"),
