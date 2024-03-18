@@ -13,10 +13,9 @@ import (
 
 func TestMigAdvancedCluster_singleAWSProvider(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
+		projectID   = mig.ProjectIDGlobal(t)
 		clusterName = acc.RandomClusterName()
-		config      = configSingleProvider(orgID, projectName, clusterName)
+		config      = configSingleProvider(projectID, clusterName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -42,10 +41,9 @@ func TestMigAdvancedCluster_singleAWSProvider(t *testing.T) {
 
 func TestMigAdvancedCluster_multiCloud(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
+		projectID   = mig.ProjectIDGlobal(t)
 		clusterName = acc.RandomClusterName()
-		config      = configMultiCloud(orgID, projectName, clusterName)
+		config      = configMultiCloud(projectID, clusterName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

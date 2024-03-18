@@ -80,8 +80,7 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 	var (
 		dataSourceName = fmt.Sprintf("data.%s", resourceName)
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
+		projectID      = acc.ProjectIDExecution(t)
 		clusterName    = acc.RandomClusterName()
 	)
 
@@ -91,7 +90,7 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configSingleProvider(orgID, projectName, clusterName),
+				Config: configSingleProvider(projectID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -104,7 +103,7 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 				),
 			},
 			{
-				Config: configMultiCloud(orgID, projectName, clusterName),
+				Config: configMultiCloud(projectID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -127,8 +126,7 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 
 func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 	var (
-		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName        = acc.RandomProjectName()
+		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
 	)
@@ -139,7 +137,7 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configMultiCloud(orgID, projectName, clusterName),
+				Config: configMultiCloud(projectID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -154,7 +152,7 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 				),
 			},
 			{
-				Config: configMultiCloud(orgID, projectName, clusterNameUpdated),
+				Config: configMultiCloud(projectID, clusterNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -777,89 +775,81 @@ func configWithTags(orgID, projectName, name string, tags []admin.ResourceTag) s
 	`, orgID, projectName, name, tagsConf)
 }
 
-func configSingleProvider(orgID, projectName, name string) string {
+func configSingleProvider(projectID, name string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_project" "cluster_project" {
-	name   = %[2]q
-	org_id = %[1]q
-}
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = mongodbatlas_project.cluster_project.id
-  name         = %[3]q
-  cluster_type = "REPLICASET"
-  retain_backups_enabled = "true"
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[2]q
+			cluster_type = "REPLICASET"
+			retain_backups_enabled = "true"
 
-  replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }
-  }
-}
-data "mongodbatlas_advanced_cluster" "test" {
-	project_id = mongodbatlas_advanced_cluster.test.project_id
-	name 	     = mongodbatlas_advanced_cluster.test.name
-}
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					analytics_specs {
+						instance_size = "M10"
+						node_count    = 1
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "EU_WEST_1"
+				}
+			}
+		}
 
-	`, orgID, projectName, name)
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+		}
+	`, projectID, name)
 }
 
-func configMultiCloud(orgID, projectName, name string) string {
+func configMultiCloud(projectID, name string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_project" "cluster_project" {
-	name   = %[2]q
-	org_id = %[1]q
-}
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = mongodbatlas_project.cluster_project.id
-  name         = %[3]q
-  cluster_type = "REPLICASET"
-  retain_backups_enabled = false
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[2]q
+			cluster_type = "REPLICASET"
+			retain_backups_enabled = false
 
-  replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 2
-      }
-      provider_name = "GCP"
-      priority      = 6
-      region_name   = "NORTH_AMERICA_NORTHEAST_1"
-    }
-  }
-}
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					analytics_specs {
+						instance_size = "M10"
+						node_count    = 1
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "EU_WEST_1"
+				}
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 2
+					}
+					provider_name = "GCP"
+					priority      = 6
+					region_name   = "NORTH_AMERICA_NORTHEAST_1"
+				}
+			}
+		}
 
-data "mongodbatlas_advanced_cluster" "test" {
-	project_id = mongodbatlas_advanced_cluster.test.project_id
-	name 	     = mongodbatlas_advanced_cluster.test.name
-}
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+		}
 
-data "mongodbatlas_advanced_clusters" "test" {
-	project_id = mongodbatlas_advanced_cluster.test.project_id
-}
-	`, orgID, projectName, name)
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+		}
+	`, projectID, name)
 }
 
 func configMultiCloudSharded(orgID, projectName, name string) string {
