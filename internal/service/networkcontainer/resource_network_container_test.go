@@ -195,7 +195,6 @@ func TestAccNetworkContainerRS_withRegionsGCP(t *testing.T) {
 }
 
 func TestAccNetworkContainerRS_importBasic(t *testing.T) {
-	acc.SkipTestForCI(t)
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		randInt   = acctest.RandIntRange(0, 255)
