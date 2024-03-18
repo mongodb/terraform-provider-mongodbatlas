@@ -19,7 +19,7 @@ const (
 
 func TestAccOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 	var (
-		projectID   = acc.RandomProjectName()
+		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
 	)
 
