@@ -21,10 +21,10 @@ const (
 
 func TestAccNetworkContainerRS_basicAWS(t *testing.T) {
 	var (
-		randIntUpdated   = acctest.RandIntRange(0, 255)
 		projectID        = acc.ProjectIDExecution(t)
 		randInt          = acctest.RandIntRange(0, 255)
 		cidrBlock        = fmt.Sprintf("10.8.%d.0/24", randInt)
+		randIntUpdated   = acctest.RandIntRange(0, 255)
 		cidrBlockUpdated = fmt.Sprintf("10.8.%d.0/24", randIntUpdated)
 	)
 
@@ -71,7 +71,8 @@ func TestAccNetworkContainerRS_basicAzure(t *testing.T) {
 	var (
 		randInt          = acctest.RandIntRange(0, 255)
 		cidrBlock        = fmt.Sprintf("10.8.%d.0/24", randInt)
-		cidrBlockUpdated = fmt.Sprintf("192.168.%d.0/24", randInt)
+		randIntUpdated   = acctest.RandIntRange(0, 255)
+		cidrBlockUpdated = fmt.Sprintf("10.8.%d.0/24", randIntUpdated)
 		projectID        = acc.ProjectIDExecution(t)
 	)
 
@@ -166,7 +167,7 @@ func TestAccNetworkContainerRS_withRegionsGCP(t *testing.T) {
 	var (
 		projectID               = acc.ProjectIDExecution(t)
 		randInt                 = acctest.RandIntRange(0, 255)
-		gcpWithRegionsCidrBlock = fmt.Sprintf("10.%d.0.0/21", randInt)
+		gcpWithRegionsCidrBlock = fmt.Sprintf("11.%d.0.0/18", randInt)
 		regions                 = "[\"US_EAST_4\", \"US_WEST_3\"]"
 	)
 	// No ParallelTest because only one network container is allowed per provider and project
@@ -204,7 +205,7 @@ func TestAccNetworkContainerRS_importBasic(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		randInt   = acctest.RandIntRange(0, 255)
-		cidrBlock = fmt.Sprintf("10.8.%d.0/24", randInt)
+		cidrBlock = fmt.Sprintf("11.8.%d.0/24", randInt)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
