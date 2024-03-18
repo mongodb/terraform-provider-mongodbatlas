@@ -178,8 +178,7 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 
 func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 	var (
-		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName        = acc.RandomProjectName()
+		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
 	)
@@ -190,7 +189,7 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configMultiCloudSharded(orgID, projectName, clusterName),
+				Config: configMultiCloudSharded(projectID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -200,7 +199,7 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 				),
 			},
 			{
-				Config: configMultiCloudSharded(orgID, projectName, clusterNameUpdated),
+				Config: configMultiCloudSharded(projectID, clusterNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -847,44 +846,40 @@ func configMultiCloud(projectID, name string) string {
 	`, projectID, name)
 }
 
-func configMultiCloudSharded(orgID, projectName, name string) string {
+func configMultiCloudSharded(projectID, name string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_project" "cluster_project" {
-	name   = %[2]q
-	org_id = %[1]q
-}	
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = mongodbatlas_project.cluster_project.id
-  name         = %[3]q
-  cluster_type = "SHARDED"
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[2]q
+			cluster_type = "SHARDED"
 
-  replication_specs {
-    num_shards = 1
-    region_configs {
-      electable_specs {
-        instance_size = "M30"
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M30"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }
-    region_configs {
-      electable_specs {
-        instance_size = "M30"
-        node_count    = 2
-      }
-      provider_name = "AZURE"
-      priority      = 6
-      region_name   = "US_EAST_2"
-    }
-  }
-}
-	`, orgID, projectName, name)
+			replication_specs {
+				num_shards = 1
+				region_configs {
+					electable_specs {
+						instance_size = "M30"
+						node_count    = 3
+					}
+					analytics_specs {
+						instance_size = "M30"
+						node_count    = 1
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "EU_WEST_1"
+				}
+				region_configs {
+					electable_specs {
+						instance_size = "M30"
+						node_count    = 2
+					}
+					provider_name = "AZURE"
+					priority      = 6
+					region_name   = "US_EAST_2"
+				}
+			}
+		}
+	`, projectID, name)
 }
 
 func configSingleProviderPaused(orgID, projectName, name string, paused bool, instanceSize string) string {
