@@ -2,12 +2,10 @@ package cluster_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -17,12 +15,9 @@ import (
 
 func TestMigClusterRSCluster_withDefaultBiConnectorAndAdvancedConfiguration_backwardCompatibility(t *testing.T) {
 	var (
-		cluster      matlas.Cluster
-		resourceName = "mongodbatlas_cluster.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		clusterName  = acc.RandomClusterName()
-		cfg          = testAccMongoDBAtlasClusterConfigAWS(orgID, projectName, clusterName, true, true)
+		projectID   = mig.ProjectIDGlobal(t)
+		clusterName = acc.RandomClusterName()
+		cfg         = configAWS(projectID, clusterName, true, true)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -33,8 +28,7 @@ func TestMigClusterRSCluster_withDefaultBiConnectorAndAdvancedConfiguration_back
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            cfg,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasClusterAttributes(&cluster, clusterName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 				),
@@ -46,15 +40,12 @@ func TestMigClusterRSCluster_withDefaultBiConnectorAndAdvancedConfiguration_back
 
 func TestMigClusterRSCluster_basic_PartialAdvancedConf_backwardCompatibility(t *testing.T) {
 	var (
-		cluster      matlas.Cluster
-		resourceName = "mongodbatlas_cluster.advance_conf"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-		cfgPartial   = testAccMongoDBAtlasClusterConfigAdvancedConfPartial(orgID, projectName, name, "false", &matlas.ProcessArgs{
+		projectID   = mig.ProjectIDGlobal(t)
+		clusterName = acc.RandomClusterName()
+		cfgPartial  = configAdvancedConfPartial(projectID, clusterName, "false", &matlas.ProcessArgs{
 			MinimumEnabledTLSProtocol: "TLS1_2",
 		})
-		cfgPartialUpdated = testAccMongoDBAtlasClusterConfigAdvancedConfPartialUpdated(orgID, projectName, name, "false", &matlas.ProcessArgs{
+		cfgPartialUpdated = configAdvancedConfPartialUpdated(projectID, clusterName, "false", &matlas.ProcessArgs{
 			MinimumEnabledTLSProtocol: "TLS1_2",
 			SampleSizeBIConnector:     conversion.Pointer[int64](110),
 		})
@@ -68,7 +59,7 @@ func TestMigClusterRSCluster_basic_PartialAdvancedConf_backwardCompatibility(t *
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            cfgPartial,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
 				),
 			},
@@ -85,22 +76,18 @@ func TestMigClusterRSCluster_basic_PartialAdvancedConf_backwardCompatibility(t *
 	})
 }
 
-func testAccMongoDBAtlasClusterConfigAdvancedConfPartialUpdated(orgID, projectName, name, autoscalingEnabled string, p *matlas.ProcessArgs) string {
+func configAdvancedConfPartialUpdated(projectID, name, autoscalingEnabled string, p *matlas.ProcessArgs) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "cluster_project" {
-			name   = %[2]q
-			org_id = %[1]q
-		}
-		resource "mongodbatlas_cluster" "advance_conf" {
-			project_id   = mongodbatlas_project.cluster_project.id
-			name         = %[3]q
+		resource "mongodbatlas_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[2]q
 			disk_size_gb = 10
 
             cluster_type = "REPLICASET"
 		    replication_specs {
 			  num_shards = 1
 			  regions_config {
-			     region_name     = "EU_CENTRAL_1"
+			     region_name     = "US_WEST_2"
 			     electable_nodes = 3
 			     priority        = 7
                  read_only_nodes = 0
@@ -108,17 +95,17 @@ func testAccMongoDBAtlasClusterConfigAdvancedConfPartialUpdated(orgID, projectNa
 		    }
 
 			backup_enabled               = false
-			auto_scaling_disk_gb_enabled =  %[4]s
+			auto_scaling_disk_gb_enabled =  %[3]s
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_instance_size_name = "M10"
-			provider_region_name        = "EU_CENTRAL_1"
+			provider_region_name        = "US_WEST_2"
 
 			advanced_configuration {
-				minimum_enabled_tls_protocol         = %[5]q
-				sample_size_bi_connector			 = %[6]d
+				minimum_enabled_tls_protocol         = %[4]q
+				sample_size_bi_connector			 = %[5]d
 			}
 		}
-	`, orgID, projectName, name, autoscalingEnabled, p.MinimumEnabledTLSProtocol, *p.SampleSizeBIConnector)
+	`, projectID, name, autoscalingEnabled, p.MinimumEnabledTLSProtocol, *p.SampleSizeBIConnector)
 }
