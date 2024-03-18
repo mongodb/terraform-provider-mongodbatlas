@@ -2,6 +2,7 @@ package networkcontainer_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -11,6 +12,7 @@ import (
 
 func TestAccNetworkContainerDSPlural_basicAWS(t *testing.T) {
 	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -34,6 +36,7 @@ func TestAccNetworkContainerDSPlural_basicAWS(t *testing.T) {
 
 func TestAccNetworkContainerDSPlural_basicAzure(t *testing.T) {
 	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -57,6 +60,7 @@ func TestAccNetworkContainerDSPlural_basicAzure(t *testing.T) {
 
 func TestAccNetworkContainerDSPlural_basicGCP(t *testing.T) {
 	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
