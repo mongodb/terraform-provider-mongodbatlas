@@ -596,8 +596,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 
 func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
+		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
 	)
 
@@ -607,7 +606,7 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithTags(orgID, projectName, clusterName, nil),
+				Config: configWithTags(projectID, clusterName, nil),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
@@ -619,7 +618,7 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithTags(orgID, projectName, clusterName, []admin.ResourceTag{
+				Config: configWithTags(projectID, clusterName, []admin.ResourceTag{
 					{
 						Key:   conversion.StringPtr("key 1"),
 						Value: conversion.StringPtr("value 1"),
@@ -646,7 +645,7 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithTags(orgID, projectName, clusterName, []admin.ResourceTag{
+				Config: configWithTags(projectID, clusterName, []admin.ResourceTag{
 					{
 						Key:   conversion.StringPtr("key 3"),
 						Value: conversion.StringPtr("value 3"),
@@ -717,7 +716,7 @@ func configTenant(projectID, name string) string {
 	`, projectID, name)
 }
 
-func configWithTags(orgID, projectName, name string, tags []admin.ResourceTag) string {
+func configWithTags(projectID, clusterName string, tags []admin.ResourceTag) string {
 	var tagsConf string
 	for _, label := range tags {
 		tagsConf += fmt.Sprintf(`
@@ -729,14 +728,9 @@ func configWithTags(orgID, projectName, name string, tags []admin.ResourceTag) s
 	}
 
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "cluster_project" {
-			name   = %[2]q
-			org_id = %[1]q
-		}
-		
 		resource "mongodbatlas_advanced_cluster" "test" {
-			project_id   = mongodbatlas_project.cluster_project.id
-			name         = %[3]q
+			project_id   = %[1]q
+			name         = %[2]q
 			cluster_type = "REPLICASET"
 
 			replication_specs {
@@ -755,7 +749,7 @@ func configWithTags(orgID, projectName, name string, tags []admin.ResourceTag) s
 				}
 			}
 
-			%[4]s
+			%[3]s
 		}
 
 		data "mongodbatlas_advanced_cluster" "test" {
@@ -766,7 +760,7 @@ func configWithTags(orgID, projectName, name string, tags []admin.ResourceTag) s
 		data "mongodbatlas_advanced_clusters" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 		}
-	`, orgID, projectName, name, tagsConf)
+	`, projectID, clusterName, tagsConf)
 }
 
 func configSingleProvider(projectID, name string) string {
