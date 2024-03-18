@@ -12,10 +12,9 @@ import (
 func TestMigOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cluster_outage_simulation.test_outage"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
+		projectID    = mig.ProjectIDGlobal(t)
 		clusterName  = acc.RandomClusterName()
-		config       = configSingleRegion(projectName, orgID, clusterName)
+		config       = configSingleRegion(projectID, clusterName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -12,12 +12,15 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+const (
+	resourceName   = "mongodbatlas_cluster_outage_simulation.test_outage"
+	dataSourceName = "data.mongodbatlas_cluster_outage_simulation.test"
+)
+
 func TestAccOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 	var (
-		dataSourceName = "mongodbatlas_cluster_outage_simulation.test_outage"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
-		clusterName    = acc.RandomClusterName()
+		projectID   = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -26,8 +29,15 @@ func TestAccOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configSingleRegion(projectName, orgID, clusterName),
+				Config: configSingleRegion(projectID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "outage_filters.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "start_request_date"),
+					resource.TestCheckResourceAttrSet(resourceName, "simulation_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "state"),
+
 					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "outage_filters.#"),
@@ -68,31 +78,32 @@ func TestAccOutageSimulationCluster_MultiRegion_basic(t *testing.T) {
 	})
 }
 
-func configSingleRegion(projectName, orgID, clusterName string) string {
+func configSingleRegion(projectID, clusterName string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_project" "outage_project" {
-		name   = %[1]q
-		org_id = %[2]q
-	}
+		resource "mongodbatlas_cluster" "test" {
+				project_id                  = %[1]q
+				name                        = %[2]q
+				provider_name               = "AWS"
+				provider_region_name        = "US_WEST_2"
+				provider_instance_size_name = "M10"
+			}
 
-	resource "mongodbatlas_cluster" "atlas_cluster" {
-		project_id                  = mongodbatlas_project.outage_project.id
-   		provider_name               = "AWS"
-   		name                        = %[3]q
-   		backing_provider_name       = "AWS"
-   		provider_region_name        = "US_EAST_1"
-   		provider_instance_size_name = "M10"
-	  }
+			resource "mongodbatlas_cluster_outage_simulation" "test_outage" {
+				project_id = %[1]q
+				cluster_name = %[2]q
+				outage_filters {
+					cloud_provider = "AWS"
+					region_name    = "US_WEST_2"
+				}
+				depends_on = ["mongodbatlas_cluster.test"]
+			}
 
-	  resource "mongodbatlas_cluster_outage_simulation" "test_outage" {
-		project_id = mongodbatlas_project.outage_project.id
-		cluster_name = mongodbatlas_cluster.atlas_cluster.name
-		 outage_filters {
-		  cloud_provider = "AWS"
-		  region_name    = "US_EAST_1"
-		}
-	}
-	`, projectName, orgID, clusterName)
+			data "mongodbatlas_cluster_outage_simulation" "test" {
+				project_id = mongodbatlas_project.outage_project.id
+				cluster_name = mongodbatlas_cluster.atlas_cluster.name
+				depends_on = [mongodbatlas_cluster_outage_simulation.test_outage]
+			}		
+	`, projectID, clusterName)
 }
 
 func configMultiRegion(projectName, orgID, clusterName string) string {
