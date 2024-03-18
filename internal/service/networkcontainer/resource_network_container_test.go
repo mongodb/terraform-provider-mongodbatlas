@@ -158,15 +158,14 @@ func TestAccNetworkContainerRS_basicGCP(t *testing.T) {
 }
 
 func TestAccNetworkContainerRS_withRegionsGCP(t *testing.T) {
-	acc.SkipTestForCI(t)
 	var (
 		projectID               = acc.ProjectIDExecution(t)
 		randInt                 = acctest.RandIntRange(0, 255)
 		gcpWithRegionsCidrBlock = fmt.Sprintf("11.%d.0.0/21", randInt)
 		regions                 = "[\"US_EAST_4\", \"US_WEST_3\"]"
 	)
-	// No ParallelTest because only one network container is allowed per provider and project
-	resource.ParallelTest(t, resource.TestCase{
+	// No ParallelTest because only one GCP network container is allowed per project
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
