@@ -145,8 +145,8 @@ func configMultiRegion(projectID, clusterName string) string {
 
 		resource "mongodbatlas_cluster_outage_simulation" "test_outage" {
 			project_id   = %[1]q
+			cluster_name = %[2]q
 
-			cluster_name = mongodbatlas_cluster.atlas_cluster.name
 			outage_filters {
 				cloud_provider = "AWS"
 				region_name    = "US_EAST_1"
