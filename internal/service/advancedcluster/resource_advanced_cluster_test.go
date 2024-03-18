@@ -22,8 +22,7 @@ const (
 
 func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 	var (
-		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName        = acc.RandomProjectName()
+		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
 	)
@@ -34,7 +33,7 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configTenant(orgID, projectName, clusterName),
+				Config: configTenant(projectID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -51,7 +50,7 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 				),
 			},
 			{
-				Config: configTenant(orgID, projectName, clusterNameUpdated),
+				Config: configTenant(projectID, clusterNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -688,39 +687,35 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func configTenant(orgID, projectName, name string) string {
+func configTenant(projectID, name string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_project" "cluster_project" {
-	name   = %[2]q
-	org_id = %[1]q
-}
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = mongodbatlas_project.cluster_project.id
-  name         = %[3]q
-  cluster_type = "REPLICASET"
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[2]q
+			cluster_type = "REPLICASET"
 
-  replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M5"
-      }
-      provider_name         = "TENANT"
-      backing_provider_name = "AWS"
-      region_name           = "US_EAST_1"
-      priority              = 7
-    }
-  }
-}
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = "M5"
+					}
+					provider_name         = "TENANT"
+					backing_provider_name = "AWS"
+					region_name           = "US_EAST_1"
+					priority              = 7
+				}
+			}
+		}
 
-data "mongodbatlas_advanced_cluster" "test" {
-	project_id = mongodbatlas_advanced_cluster.test.project_id
-	name 	     = mongodbatlas_advanced_cluster.test.name
-}
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+		}
 
-data "mongodbatlas_advanced_clusters" "test" {
-	project_id = mongodbatlas_advanced_cluster.test.project_id
-}
-	`, orgID, projectName, name)
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+		}
+	`, projectID, name)
 }
 
 func configWithTags(orgID, projectName, name string, tags []admin.ResourceTag) string {
