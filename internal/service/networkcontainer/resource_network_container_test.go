@@ -161,7 +161,7 @@ func TestAccNetworkContainerRS_withRegionsGCP(t *testing.T) {
 	var (
 		projectID               = acc.ProjectIDExecution(t)
 		randInt                 = acctest.RandIntRange(0, 255)
-		gcpWithRegionsCidrBlock = fmt.Sprintf("11.%d.0.0/21", randInt)
+		gcpWithRegionsCidrBlock = fmt.Sprintf("10.%d.0.0/18", randInt)
 		regions                 = "[\"US_EAST_4\", \"US_WEST_3\"]"
 	)
 	// No ParallelTest because only one GCP network container is allowed per project
