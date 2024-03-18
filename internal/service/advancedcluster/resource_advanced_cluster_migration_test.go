@@ -2,7 +2,6 @@ package advancedcluster_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -69,33 +68,37 @@ func TestMigAdvancedCluster_multiCloud(t *testing.T) {
 
 func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		rName       = acc.RandomClusterName()
-		processArgs = `advanced_configuration  {
-			fail_index_key_too_long              = false
-			javascript_enabled                   = true
-			minimum_enabled_tls_protocol         = "TLS1_1"
-			no_table_scan                        = false
-		  }`
-		biConnector = `bi_connector_config {
-			enabled = true
-		  }`
-		processArgsUpdated = `advanced_configuration  {
-			fail_index_key_too_long              = false
-			javascript_enabled                   = true
-			minimum_enabled_tls_protocol         = "TLS1_1"
-			no_table_scan                        = false
-			default_read_concern                 = "available"
-			sample_size_bi_connector			 = 110
-            sample_refresh_interval_bi_connector = 310
-		  }`
-		biConnectorUpdated = `bi_connector_config {
-			enabled = false
-			read_preference = "secondary"
-		  }`
-		config        = configPartialAdvancedConfig(orgID, projectName, rName, processArgs, biConnector)
-		configUpdated = configPartialAdvancedConfig(orgID, projectName, rName, processArgsUpdated, biConnectorUpdated)
+		projectID   = mig.ProjectIDGlobal(t)
+		clusterName = acc.RandomClusterName()
+		extraArgs   = `
+			advanced_configuration  {
+				fail_index_key_too_long              = false
+				javascript_enabled                   = true
+				minimum_enabled_tls_protocol         = "TLS1_1"
+				no_table_scan                        = false
+			}
+
+			bi_connector_config {
+				enabled = true
+			}`
+
+		extraArgsUpdated = `
+			advanced_configuration  {
+				fail_index_key_too_long              = false
+				javascript_enabled                   = true
+				minimum_enabled_tls_protocol         = "TLS1_1"
+				no_table_scan                        = false
+				default_read_concern                 = "available"
+				sample_size_bi_connector			 = 110
+					sample_refresh_interval_bi_connector = 310
+				}
+				
+				bi_connector_config {
+					enabled = false
+					read_preference = "secondary"
+			}`
+		config        = configPartialAdvancedConfig(projectID, clusterName, extraArgs)
+		configUpdated = configPartialAdvancedConfig(projectID, clusterName, extraArgsUpdated)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -116,8 +119,8 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 			},
 			mig.TestStepCheckEmptyPlan(config),
 			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configUpdated,
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            configUpdated,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
@@ -130,42 +133,34 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.read_preference", "secondary"),
 				),
 			},
+			mig.TestStepCheckEmptyPlan(configUpdated),
 		},
 	})
 }
 
-func configPartialAdvancedConfig(orgID, projectName, name, processArgs, biConnector string) string {
+func configPartialAdvancedConfig(projectID, clusterName, extraArgs string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_project" "cluster_project" {
-	name   = %[2]q
-	org_id = %[1]q
-}	
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id             = mongodbatlas_project.cluster_project.id
-  name                   = %[3]q
-  cluster_type           = "REPLICASET"
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id             = %[1]q
+			name                   = %[2]q
+			cluster_type           = "REPLICASET"
 
-  %[5]s
-
-   replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }
-  }
-
-  %[4]s
-    
-}
-
-	`, orgID, projectName, name, processArgs, biConnector)
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					analytics_specs {
+						instance_size = "M10"
+						node_count    = 1
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "EU_WEST_1"
+				}
+			}
+			%[3]s
+		}
+	`, projectID, clusterName, extraArgs)
 }
