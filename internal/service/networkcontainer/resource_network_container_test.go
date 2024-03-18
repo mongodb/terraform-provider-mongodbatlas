@@ -169,6 +169,7 @@ func TestAccNetworkContainerRS_withRegionsGCP(t *testing.T) {
 		gcpWithRegionsCidrBlock = fmt.Sprintf("10.%d.0.0/21", randInt)
 		regions                 = "[\"US_EAST_4\", \"US_WEST_3\"]"
 	)
+	// No ParallelTest because only one network container is allowed per provider and project
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -209,7 +210,7 @@ func TestAccNetworkContainerRS_importBasic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, cidrBlock, constant.AWS, "US_EAST_1"),
+				Config: configBasic(projectID, cidrBlock, constant.AWS, "US_WEST_2"),
 			},
 			{
 				ResourceName:            resourceName,
