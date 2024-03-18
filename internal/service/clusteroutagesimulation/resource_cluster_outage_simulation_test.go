@@ -99,8 +99,8 @@ func configSingleRegion(projectID, clusterName string) string {
 			}
 
 			data "mongodbatlas_cluster_outage_simulation" "test" {
-				project_id = mongodbatlas_project.outage_project.id
-				cluster_name = mongodbatlas_cluster.atlas_cluster.name
+				project_id = %[1]q
+				cluster_name = %[2]q
 				depends_on = [mongodbatlas_cluster_outage_simulation.test_outage]
 			}		
 	`, projectID, clusterName)
