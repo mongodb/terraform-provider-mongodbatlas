@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -14,6 +13,7 @@ func TestMigGenericX509AuthDBUser_basic(t *testing.T) {
 	var (
 		projectID = mig.ProjectIDGlobal(t)
 		username  = acc.RandomName()
+		config    = configBasic(projectID, username)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -23,7 +23,7 @@ func TestMigGenericX509AuthDBUser_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configBasic(projectID, username),
+				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -32,24 +32,17 @@ func TestMigGenericX509AuthDBUser_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "username", username),
 				),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configBasic(projectID, username),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
 
 func TestMigGenericX509AuthDBUser_withCustomerX509(t *testing.T) {
 	var (
-		projectID = mig.ProjectIDGlobal(t)
-		cas       = os.Getenv("CA_CERT")
+		cas         = os.Getenv("CA_CERT")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution or ProjectIDGlobal to avoid CANNOT_GENERATE_CERT_IF_ADVANCED_X509
+		config      = configWithCustomerX509(orgID, projectName, cas)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -57,7 +50,7 @@ func TestMigGenericX509AuthDBUser_withCustomerX509(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configWithCustomerX509(projectID, cas),
+				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -66,16 +59,7 @@ func TestMigGenericX509AuthDBUser_withCustomerX509(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "customer_x509_cas"),
 				),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configWithCustomerX509(projectID, cas),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }

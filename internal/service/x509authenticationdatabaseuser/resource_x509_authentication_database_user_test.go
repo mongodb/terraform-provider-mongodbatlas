@@ -49,7 +49,8 @@ func TestAccGenericX509AuthDBUser_withCustomerX509(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_x509_authentication_database_user.test"
 		cas            = os.Getenv("CA_CERT")
-		projectID      = acc.ProjectIDExecution(t)
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid CANNOT_GENERATE_CERT_IF_ADVANCED_X509
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -57,7 +58,7 @@ func TestAccGenericX509AuthDBUser_withCustomerX509(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithCustomerX509(projectID, cas),
+				Config: configWithCustomerX509(orgID, projectName, cas),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -122,8 +123,9 @@ func TestAccGenericX509AuthDBUser_withDatabaseUser(t *testing.T) {
 
 func TestAccGenericX509AuthDBUser_importWithCustomerX509(t *testing.T) {
 	var (
-		cas       = os.Getenv("CA_CERT")
-		projectID = acc.ProjectIDExecution(t)
+		cas         = os.Getenv("CA_CERT")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid CANNOT_GENERATE_CERT_IF_ADVANCED_X509
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -131,7 +133,7 @@ func TestAccGenericX509AuthDBUser_importWithCustomerX509(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithCustomerX509(projectID, cas),
+				Config: configWithCustomerX509(orgID, projectName, cas),
 			},
 			{
 				ResourceName:      resourceName,
@@ -205,22 +207,6 @@ func configBasic(projectID, username string) string {
 	`, projectID, username)
 }
 
-func configWithCustomerX509(projectID, cas string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_x509_authentication_database_user" "test" {
-			project_id         = %[1]q
-			customer_x509_cas = <<-EOT
-			%[2]s
-			EOT
-		}
-
-		data "mongodbatlas_x509_authentication_database_user" "test" {
-			project_id = mongodbatlas_x509_authentication_database_user.test.project_id
-			username   = mongodbatlas_x509_authentication_database_user.test.username
-		}
-	`, projectID, cas)
-}
-
 func configWithDatabaseUser(projectID, username string, months int) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_database_user" "user" {
@@ -251,4 +237,25 @@ func configWithDatabaseUser(projectID, username string, months int) string {
 			username   = mongodbatlas_x509_authentication_database_user.test.username
 		}
 	`, projectID, username, months)
+}
+
+func configWithCustomerX509(orgID, projectName, cas string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+
+		resource "mongodbatlas_x509_authentication_database_user" "test" {
+			project_id        = mongodbatlas_project.test.id
+			customer_x509_cas = <<-EOT
+			%[3]s
+			EOT
+		}
+
+		data "mongodbatlas_x509_authentication_database_user" "test" {
+			project_id = mongodbatlas_x509_authentication_database_user.test.project_id
+			username   = mongodbatlas_x509_authentication_database_user.test.username
+		}
+	`, orgID, projectName, cas)
 }
