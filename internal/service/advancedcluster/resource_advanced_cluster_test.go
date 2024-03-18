@@ -775,7 +775,7 @@ func configSingleProvider(projectID, name string) string {
 					}
 					provider_name = "AWS"
 					priority      = 7
-					region_name   = "EU_WEST_1"
+					region_name   = "US_WEST_2"
 				}
 			}
 		}
@@ -807,7 +807,7 @@ func configMultiCloud(projectID, name string) string {
 					}
 					provider_name = "AWS"
 					priority      = 7
-					region_name   = "EU_WEST_1"
+					region_name   = "US_WEST_2"
 				}
 				region_configs {
 					electable_specs {
@@ -852,7 +852,7 @@ func configMultiCloudSharded(projectID, name string) string {
 					}
 					provider_name = "AWS"
 					priority      = 7
-					region_name   = "EU_WEST_1"
+					region_name   = "US_WEST_2"
 				}
 				region_configs {
 					electable_specs {
@@ -888,7 +888,7 @@ func configSingleProviderPaused(projectID, clusterName string, paused bool, inst
 					}
 					provider_name = "AWS"
 					priority      = 7
-					region_name   = "US_WEST_2"
+					region_name   = "US_EAST_1"
 				}
 			}
 		}
@@ -1005,7 +1005,7 @@ func configReplicationSpecsAutoScaling(projectID, clusterName string, p *admin.A
 				}
 					provider_name = "AWS"
 					priority      = 7
-					region_name   = "US_WEST_2"
+					region_name   = "US_EAST_1"
 				}
 			}
 		}
