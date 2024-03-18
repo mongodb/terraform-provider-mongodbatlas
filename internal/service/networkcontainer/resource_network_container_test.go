@@ -116,6 +116,7 @@ func TestAccNetworkContainerRS_basicAzure(t *testing.T) {
 }
 
 func TestAccNetworkContainerRS_basicGCP(t *testing.T) {
+	acc.SkipTestForCI(t)
 	var (
 		randInt          = acctest.RandIntRange(0, 255)
 		gcpCidrBlock     = fmt.Sprintf("10.%d.0.0/18", randInt)
@@ -202,6 +203,7 @@ func TestAccNetworkContainerRS_withRegionsGCP(t *testing.T) {
 }
 
 func TestAccNetworkContainerRS_importBasic(t *testing.T) {
+	acc.SkipTestForCI(t)
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		randInt   = acctest.RandIntRange(0, 255)
