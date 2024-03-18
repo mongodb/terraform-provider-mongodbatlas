@@ -19,17 +19,13 @@ const (
 	dataSourcePluralName = "data.mongodbatlas_network_containers.test"
 )
 
-var (
-	randInt      = acctest.RandIntRange(0, 255)
-	cidrBlock    = fmt.Sprintf("10.8.%d.0/24", randInt)
-	gcpCidrBlock = fmt.Sprintf("10.%d.0.0/18", randInt)
-)
-
 func TestAccNetworkContainerRS_basicAWS(t *testing.T) {
 	var (
 		randIntUpdated   = acctest.RandIntRange(0, 255)
-		cidrBlockUpdated = fmt.Sprintf("10.8.%d.0/24", randIntUpdated)
 		projectID        = acc.ProjectIDExecution(t)
+		randInt          = acctest.RandIntRange(0, 255)
+		cidrBlock        = fmt.Sprintf("10.8.%d.0/24", randInt)
+		cidrBlockUpdated = fmt.Sprintf("10.8.%d.0/24", randIntUpdated)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -73,8 +69,9 @@ func TestAccNetworkContainerRS_basicAWS(t *testing.T) {
 
 func TestAccNetworkContainerRS_basicAzure(t *testing.T) {
 	var (
-		randIntUpdated   = acctest.RandIntRange(0, 255)
-		cidrBlockUpdated = fmt.Sprintf("192.168.%d.0/24", randIntUpdated)
+		randInt          = acctest.RandIntRange(0, 255)
+		cidrBlock        = fmt.Sprintf("10.8.%d.0/24", randInt)
+		cidrBlockUpdated = fmt.Sprintf("192.168.%d.0/24", randInt)
 		projectID        = acc.ProjectIDExecution(t)
 	)
 
@@ -119,6 +116,8 @@ func TestAccNetworkContainerRS_basicAzure(t *testing.T) {
 
 func TestAccNetworkContainerRS_basicGCP(t *testing.T) {
 	var (
+		randInt          = acctest.RandIntRange(0, 255)
+		gcpCidrBlock     = fmt.Sprintf("10.%d.0.0/18", randInt)
 		randIntUpdated   = acctest.RandIntRange(0, 255)
 		cidrBlockUpdated = fmt.Sprintf("10.%d.0.0/18", randIntUpdated)
 		projectID        = acc.ProjectIDExecution(t)
@@ -166,6 +165,7 @@ func TestAccNetworkContainerRS_basicGCP(t *testing.T) {
 func TestAccNetworkContainerRS_withRegionsGCP(t *testing.T) {
 	var (
 		projectID               = acc.ProjectIDExecution(t)
+		randInt                 = acctest.RandIntRange(0, 255)
 		gcpWithRegionsCidrBlock = fmt.Sprintf("10.%d.0.0/21", randInt)
 		regions                 = "[\"US_EAST_4\", \"US_WEST_3\"]"
 	)
@@ -203,6 +203,8 @@ func TestAccNetworkContainerRS_withRegionsGCP(t *testing.T) {
 func TestAccNetworkContainerRS_importBasic(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
+		randInt   = acctest.RandIntRange(0, 255)
+		cidrBlock = fmt.Sprintf("10.8.%d.0/24", randInt)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
