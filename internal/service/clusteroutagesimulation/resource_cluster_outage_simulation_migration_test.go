@@ -1,7 +1,6 @@
 package clusteroutagesimulation_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -11,11 +10,9 @@ import (
 
 func TestMigOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_cluster_outage_simulation.test_outage"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		clusterName  = acc.RandomClusterName()
-		config       = configSingleRegion(projectName, orgID, clusterName)
+		projectID   = mig.ProjectIDGlobal(t)
+		clusterName = acc.RandomClusterName()
+		config      = configSingleRegion(projectID, clusterName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -41,11 +38,9 @@ func TestMigOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 
 func TestMigOutageSimulationCluster_MultiRegion_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_cluster_outage_simulation.test_outage"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		clusterName  = acc.RandomClusterName()
-		config       = configMultiRegion(projectName, orgID, clusterName)
+		projectID   = mig.ProjectIDGlobal(t)
+		clusterName = acc.RandomClusterName()
+		config      = configMultiRegion(projectID, clusterName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
