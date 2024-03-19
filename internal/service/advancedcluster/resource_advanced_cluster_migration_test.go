@@ -2,6 +2,7 @@ package advancedcluster_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -40,9 +41,10 @@ func TestMigAdvancedCluster_singleAWSProvider(t *testing.T) {
 
 func TestMigAdvancedCluster_multiCloud(t *testing.T) {
 	var (
-		projectID   = mig.ProjectIDGlobal(t)
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
 		clusterName = acc.RandomClusterName()
-		config      = configMultiCloud(projectID, clusterName)
+		config      = configMultiCloud(orgID, projectName, clusterName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -156,7 +158,7 @@ func configPartialAdvancedConfig(projectID, clusterName, extraArgs string) strin
 					}
 					provider_name = "AWS"
 					priority      = 7
-					region_name   = "EU_WEST_1"
+					region_name   = "US_WEST_2"
 				}
 			}
 			%[3]s

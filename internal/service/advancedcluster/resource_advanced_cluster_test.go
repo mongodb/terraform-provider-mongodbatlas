@@ -102,17 +102,6 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 				),
 			},
 			{
-				Config: configMultiCloud(projectID, clusterName),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-				),
-			},
-			{
 				ResourceName:            resourceName,
 				ImportStateIdFunc:       acc.ImportStateClusterIDFunc(resourceName),
 				ImportState:             true,
@@ -125,7 +114,8 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 
 func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 	var (
-		projectID          = acc.ProjectIDExecution(t)
+		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName        = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
 	)
@@ -136,7 +126,7 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configMultiCloud(projectID, clusterName),
+				Config: configMultiCloud(orgID, projectName, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -151,7 +141,7 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 				),
 			},
 			{
-				Config: configMultiCloud(projectID, clusterNameUpdated),
+				Config: configMultiCloud(orgID, projectName, clusterNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -555,8 +545,9 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *testing.T) {
 	var (
-		projectID        = acc.ProjectIDExecution(t)
-		clusterName      = acc.RandomClusterName()
+		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName      = acc.RandomProjectName()
+		clusterName      = acc.RandomClusterName() // No ProjectIDExecution to avoid cross-region limits because multi-region
 		numShards        = "1"
 		numShardsUpdated = "2"
 	)
@@ -567,7 +558,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configMultiZoneWithShards(projectID, clusterName, numShards, numShards),
+				Config: configMultiZoneWithShards(orgID, projectName, clusterName, numShards, numShards),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
@@ -576,7 +567,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 				),
 			},
 			{
-				Config: configMultiZoneWithShards(projectID, clusterName, numShardsUpdated, numShards),
+				Config: configMultiZoneWithShards(orgID, projectName, clusterName, numShardsUpdated, numShards),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
@@ -693,7 +684,7 @@ func configTenant(projectID, name string) string {
 					}
 					provider_name         = "TENANT"
 					backing_provider_name = "AWS"
-					region_name           = "US_EAST_1"
+					region_name           = "US_WEST_2"
 					priority              = 7
 				}
 			}
@@ -739,7 +730,7 @@ func configWithTags(projectID, clusterName string, tags []admin.ResourceTag) str
 					}
 					provider_name = "AWS"
 					priority      = 7
-					region_name   = "US_EAST_1"
+					region_name   = "US_WEST_2"
 				}
 			}
 
@@ -789,11 +780,16 @@ func configSingleProvider(projectID, name string) string {
 	`, projectID, name)
 }
 
-func configMultiCloud(projectID, name string) string {
+func configMultiCloud(orgID, projectName, name string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "cluster_project" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+
 		resource "mongodbatlas_advanced_cluster" "test" {
-			project_id   = %[1]q
-			name         = %[2]q
+			project_id   = mongodbatlas_project.cluster_project.id
+			name         = %[3]q
 			cluster_type = "REPLICASET"
 			retain_backups_enabled = false
 
@@ -809,7 +805,7 @@ func configMultiCloud(projectID, name string) string {
 					}
 					provider_name = "AWS"
 					priority      = 7
-					region_name   = "US_WEST_2"
+					region_name   = "EU_WEST_1"
 				}
 				region_configs {
 					electable_specs {
@@ -831,7 +827,7 @@ func configMultiCloud(projectID, name string) string {
 		data "mongodbatlas_advanced_clusters" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 		}
-	`, projectID, name)
+	`, orgID, projectName, name)
 }
 
 func configMultiCloudSharded(orgID, projectName, name string) string {
@@ -895,7 +891,7 @@ func configSingleProviderPaused(projectID, clusterName string, paused bool, inst
 					}
 					provider_name = "AWS"
 					priority      = 7
-					region_name   = "US_EAST_1"
+					region_name   = "US_WEST_2"
 				}
 			}
 		}
@@ -921,7 +917,7 @@ func configAdvanced(projectID, clusterName string, p *admin.ClusterDescriptionPr
 					}
 					provider_name = "AWS"
 					priority      = 7
-					region_name   = "EU_WEST_1"
+					region_name   = "US_WEST_2"
 				}
 			}
 
@@ -969,7 +965,7 @@ func configAdvancedDefaultWrite(projectID, clusterName string, p *admin.ClusterD
 					}
 					provider_name = "AWS"
 					priority      = 7
-					region_name   = "EU_WEST_1"
+					region_name   = "US_WEST_2"
 				}
 			}
 
@@ -1012,7 +1008,7 @@ func configReplicationSpecsAutoScaling(projectID, clusterName string, p *admin.A
 				}
 					provider_name = "AWS"
 					priority      = 7
-					region_name   = "US_EAST_1"
+					region_name   = "US_WEST_2"
 				}
 			}
 		}
@@ -1043,59 +1039,64 @@ func configReplicationSpecsAnalyticsAutoScaling(projectID, clusterName string, p
 				}
 					provider_name = "AWS"
 					priority      = 7
-					region_name   = "EU_WEST_1"
+					region_name   = "US_WEST_2"
 				}
 			}
 		}
 	`, projectID, clusterName, p.Compute.GetEnabled(), p.DiskGB.GetEnabled(), p.Compute.GetMaxInstanceSize())
 }
 
-func configMultiZoneWithShards(projectID, clusterName, numShardsFirstZone, numShardsSecondZone string) string {
+func configMultiZoneWithShards(orgID, projectName, name, numShardsFirstZone, numShardsSecondZone string) string {
 	return fmt.Sprintf(`
-			resource "mongodbatlas_advanced_cluster" "test" {
-				project_id =  %[1]q
-				name = %[2]q
-				backup_enabled = false
-				mongo_db_major_version = "7.0"
-				cluster_type   = "GEOSHARDED"
+		resource "mongodbatlas_project" "cluster_project" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
 
-				replication_specs {
-					zone_name  = "zone n1"
-					num_shards = %[3]q
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_project.cluster_project.id
+			name = %[3]q
+			backup_enabled = false
+			mongo_db_major_version = "7.0"
+			cluster_type   = "GEOSHARDED"
 
-					region_configs {
-					electable_specs {
-						instance_size = "M10"
-						node_count    = 3
-					}
-					analytics_specs {
-						instance_size = "M10"
-						node_count    = 0
-					}
-					provider_name = "AWS"
-					priority      = 7
-					region_name   = "US_EAST_1"
-					}
+			replication_specs {
+				zone_name  = "zone n1"
+				num_shards = %[4]q
+
+				region_configs {
+				electable_specs {
+					instance_size = "M10"
+					node_count    = 3
 				}
-
-				replication_specs {
-					zone_name  = "zone n2"
-					num_shards = %[4]q
-
-					region_configs {
-					electable_specs {
-						instance_size = "M10"
-						node_count    = 3
-					}
-					analytics_specs {
-						instance_size = "M10"
-						node_count    = 0
-					}
-					provider_name = "AWS"
-					priority      = 7
-					region_name   = "EU_WEST_1"
-					}
+				analytics_specs {
+					instance_size = "M10"
+					node_count    = 0
+				}
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = "US_EAST_1"
 				}
 			}
-	`, projectID, clusterName, numShardsFirstZone, numShardsSecondZone)
+
+			replication_specs {
+				zone_name  = "zone n2"
+				num_shards = %[5]q
+
+				region_configs {
+				electable_specs {
+					instance_size = "M10"
+					node_count    = 3
+				}
+				analytics_specs {
+					instance_size = "M10"
+					node_count    = 0
+				}
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = "EU_WEST_1"
+				}
+			}
+		}
+	`, orgID, projectName, name, numShardsFirstZone, numShardsSecondZone)
 }
