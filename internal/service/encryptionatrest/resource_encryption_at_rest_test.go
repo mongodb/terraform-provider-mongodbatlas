@@ -546,11 +546,12 @@ func TestResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			testObject := mocksvc.NewEarService(t)
+			m := mocksvc.NewEncryptionAtRestUsingCustomerKeyManagementApi(t)
 
-			testObject.On("UpdateEncryptionAtRest", mock.Anything, mock.Anything, mock.Anything).Return(tc.mockResponse, nil, tc.mockError)
+			m.EXPECT().UpdateEncryptionAtRest(mock.Anything, mock.Anything, mock.Anything).Return(admin.UpdateEncryptionAtRestApiRequest{ApiService: m})
+			m.EXPECT().UpdateEncryptionAtRestExecute(mock.Anything).Return(tc.mockResponse, nil, tc.mockError).Once()
 
-			response, strategy, err := encryptionatrest.ResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(context.Background(), projectID, testObject, &admin.EncryptionAtRest{})()
+			response, strategy, err := encryptionatrest.ResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(context.Background(), projectID, m, &admin.EncryptionAtRest{})()
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)

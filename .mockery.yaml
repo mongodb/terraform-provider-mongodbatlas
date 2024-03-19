@@ -9,10 +9,8 @@ packages:
   go.mongodb.org/atlas-sdk/v20231115007/admin:
     interfaces:
       AtlasSearchApi:
+      EncryptionAtRestUsingCustomerKeyManagementApi:
 
-  github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest:
-    interfaces:
-      EarService:
   
   github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project:
     interfaces:
