@@ -1,8 +1,10 @@
 package networkcontainer_test
 
 import (
+	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -11,8 +13,10 @@ import (
 
 func TestMigNetworkContainerRS_basicAWS(t *testing.T) {
 	var (
-		projectName = acc.RandomProjectName()
-		configAWS   = configAWS(projectName, orgID, cidrBlock, constant.AWS, "US_EAST_1")
+		projectID = acc.ProjectIDExecution(t)
+		randInt   = acctest.RandIntRange(0, 255)
+		cidrBlock = fmt.Sprintf("10.8.%d.0/24", randInt)
+		config    = configBasic(projectID, cidrBlock, constant.AWS, "US_EAST_1")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -21,7 +25,7 @@ func TestMigNetworkContainerRS_basicAWS(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configAWS,
+				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -29,15 +33,17 @@ func TestMigNetworkContainerRS_basicAWS(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 				),
 			},
-			mig.TestStepCheckEmptyPlan(configAWS),
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
 
 func TestMigNetworkContainerRS_basicAzure(t *testing.T) {
 	var (
-		projectName = acc.RandomProjectName()
-		configAzure = configAzure(projectName, orgID, cidrBlock, constant.AZURE)
+		projectID = acc.ProjectIDExecution(t)
+		randInt   = acctest.RandIntRange(0, 255)
+		cidrBlock = fmt.Sprintf("10.8.%d.0/24", randInt)
+		config    = configBasic(projectID, cidrBlock, constant.AZURE, "US_EAST_2")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -46,7 +52,7 @@ func TestMigNetworkContainerRS_basicAzure(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configAzure,
+				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -54,15 +60,17 @@ func TestMigNetworkContainerRS_basicAzure(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 				),
 			},
-			mig.TestStepCheckEmptyPlan(configAzure),
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
 
 func TestMigNetworkContainerRS_basicGCP(t *testing.T) {
 	var (
-		projectName = acc.RandomProjectName()
-		configGCP   = configGCP(projectName, orgID, gcpCidrBlock, constant.GCP)
+		projectID    = acc.ProjectIDExecution(t)
+		randInt      = acctest.RandIntRange(0, 255)
+		gcpCidrBlock = fmt.Sprintf("10.%d.0.0/18", randInt)
+		config       = configBasic(projectID, gcpCidrBlock, constant.GCP, "")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -71,7 +79,7 @@ func TestMigNetworkContainerRS_basicGCP(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configGCP,
+				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -79,7 +87,7 @@ func TestMigNetworkContainerRS_basicGCP(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
 				),
 			},
-			mig.TestStepCheckEmptyPlan(configGCP),
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
