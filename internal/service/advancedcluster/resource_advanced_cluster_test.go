@@ -581,7 +581,8 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 
 func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDExecution(t)
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to check correctly plural data source in the different test steps
 		clusterName = acc.RandomClusterName()
 	)
 
@@ -591,7 +592,7 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithTags(projectID, clusterName, nil),
+				Config: configWithTags(orgID, projectName, clusterName, nil),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
@@ -603,7 +604,7 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithTags(projectID, clusterName, []admin.ResourceTag{
+				Config: configWithTags(orgID, projectName, clusterName, []admin.ResourceTag{
 					{
 						Key:   conversion.StringPtr("key 1"),
 						Value: conversion.StringPtr("value 1"),
@@ -630,7 +631,7 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithTags(projectID, clusterName, []admin.ResourceTag{
+				Config: configWithTags(orgID, projectName, clusterName, []admin.ResourceTag{
 					{
 						Key:   conversion.StringPtr("key 3"),
 						Value: conversion.StringPtr("value 3"),
@@ -701,7 +702,7 @@ func configTenant(projectID, name string) string {
 	`, projectID, name)
 }
 
-func configWithTags(projectID, clusterName string, tags []admin.ResourceTag) string {
+func configWithTags(orgID, projectName, name string, tags []admin.ResourceTag) string {
 	var tagsConf string
 	for _, label := range tags {
 		tagsConf += fmt.Sprintf(`
@@ -713,9 +714,14 @@ func configWithTags(projectID, clusterName string, tags []admin.ResourceTag) str
 	}
 
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "cluster_project" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
+		
 		resource "mongodbatlas_advanced_cluster" "test" {
-			project_id   = %[1]q
-			name         = %[2]q
+			project_id   = mongodbatlas_project.cluster_project.id
+			name         = %[3]q
 			cluster_type = "REPLICASET"
 
 			replication_specs {
@@ -730,11 +736,11 @@ func configWithTags(projectID, clusterName string, tags []admin.ResourceTag) str
 					}
 					provider_name = "AWS"
 					priority      = 7
-					region_name   = "US_WEST_2"
+					region_name   = "US_EAST_1"
 				}
 			}
 
-			%[3]s
+			%[4]s
 		}
 
 		data "mongodbatlas_advanced_cluster" "test" {
@@ -745,7 +751,7 @@ func configWithTags(projectID, clusterName string, tags []admin.ResourceTag) str
 		data "mongodbatlas_advanced_clusters" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 		}
-	`, projectID, clusterName, tagsConf)
+	`, orgID, projectName, name, tagsConf)
 }
 
 func configSingleProvider(projectID, name string) string {
