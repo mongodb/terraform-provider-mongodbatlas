@@ -400,7 +400,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
+	projectProps, err := GetProjectPropsFromAPI(ctx, connV2, projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -452,7 +452,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
+	projectProps, err := GetProjectPropsFromAPI(ctx, connV2, projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -492,19 +492,19 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	}
 	projectID := projectState.ID.ValueString()
 
-	err := UpdateProject(ctx, ServiceFromClient(connV2), &projectState, &projectPlan)
+	err := UpdateProject(ctx, connV2, &projectState, &projectPlan)
 	if err != nil {
 		resp.Diagnostics.AddError("error in project update", fmt.Sprintf(errorProjectUpdate, projectID, err.Error()))
 		return
 	}
 
-	err = UpdateProjectTeams(ctx, ServiceFromClient(connV2), &projectState, &projectPlan)
+	err = UpdateProjectTeams(ctx, connV2, &projectState, &projectPlan)
 	if err != nil {
 		resp.Diagnostics.AddError("error in project teams update", fmt.Sprintf(errorProjectUpdate, projectID, err.Error()))
 		return
 	}
 
-	err = UpdateProjectLimits(ctx, ServiceFromClient(connV2), &projectState, &projectPlan)
+	err = UpdateProjectLimits(ctx, connV2, &projectState, &projectPlan)
 	if err != nil {
 		resp.Diagnostics.AddError("error in project limits update", fmt.Sprintf(errorProjectUpdate, projectID, err.Error()))
 		return
@@ -527,7 +527,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	}
 
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, ServiceFromClient(connV2), projectID)
+	projectProps, err := GetProjectPropsFromAPI(ctx, connV2, projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -603,23 +603,23 @@ type AdditionalProperties struct {
 }
 
 // GetProjectPropsFromAPI fetches properties obtained from complementary endpoints associated with a project.
-func GetProjectPropsFromAPI(ctx context.Context, client GroupProjectService, projectID string) (*AdditionalProperties, error) {
-	teams, _, err := client.ListProjectTeams(ctx, projectID)
+func GetProjectPropsFromAPI(ctx context.Context, client *admin.APIClient, projectID string) (*AdditionalProperties, error) {
+	teams, _, err := client.TeamsApi.ListProjectTeams(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's teams assigned (%s): %v", projectID, err.Error())
 	}
 
-	limits, _, err := client.ListProjectLimits(ctx, projectID)
+	limits, _, err := client.ProjectsApi.ListProjectLimits(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's limits (%s): %s", projectID, err.Error())
 	}
 
-	projectSettings, _, err := client.GetProjectSettings(ctx, projectID)
+	projectSettings, _, err := client.ProjectsApi.GetProjectSettings(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's settings assigned (%s): %v", projectID, err.Error())
 	}
 
-	ipAddresses, _, err := client.ReturnAllIPAddresses(ctx, projectID)
+	ipAddresses, _, err := client.ProjectsApi.ReturnAllIPAddresses(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's IP addresses (%s): %v", projectID, err.Error())
 	}
@@ -655,7 +655,7 @@ func updateProjectSettings(ctx context.Context, connV2 *admin.APIClient, state, 
 	return nil
 }
 
-func UpdateProjectLimits(ctx context.Context, client GroupProjectService, projectState, projectPlan *TFProjectRSModel) error {
+func UpdateProjectLimits(ctx context.Context, client *admin.APIClient, projectState, projectPlan *TFProjectRSModel) error {
 	var planLimits []TFLimitModel
 	var stateLimits []TFLimitModel
 	_ = projectPlan.Limits.ElementsAs(ctx, &planLimits, false)
@@ -671,7 +671,7 @@ func UpdateProjectLimits(ctx context.Context, client GroupProjectService, projec
 	// removing limits from the project
 	for _, limit := range removedLimits {
 		limitName := limit.Name.ValueString()
-		if _, _, err := client.DeleteProjectLimit(ctx, limitName, projectID); err != nil {
+		if _, _, err := client.ProjectsApi.DeleteProjectLimit(ctx, limitName, projectID).Execute(); err != nil {
 			return fmt.Errorf("error removing limit %s from the project(%s) during update: %s", limitName, projectID, err)
 		}
 	}
@@ -693,13 +693,13 @@ func UpdateProjectLimits(ctx context.Context, client GroupProjectService, projec
 	return nil
 }
 
-func setProjectLimits(ctx context.Context, client GroupProjectService, projectID string, tfLimits []TFLimitModel) error {
+func setProjectLimits(ctx context.Context, client *admin.APIClient, projectID string, tfLimits []TFLimitModel) error {
 	for _, limit := range tfLimits {
 		dataFederationLimit := &admin.DataFederationLimit{
 			Name:  limit.Name.ValueString(),
 			Value: limit.Value.ValueInt64(),
 		}
-		_, _, err := client.SetProjectLimit(ctx, limit.Name.ValueString(), projectID, dataFederationLimit)
+		_, _, err := client.ProjectsApi.SetProjectLimit(ctx, limit.Name.ValueString(), projectID, dataFederationLimit).Execute()
 		if err != nil {
 			return fmt.Errorf("error adding limits into the project: %v", err.Error())
 		}
@@ -707,7 +707,7 @@ func setProjectLimits(ctx context.Context, client GroupProjectService, projectID
 	return nil
 }
 
-func UpdateProjectTeams(ctx context.Context, client GroupProjectService, projectState, projectPlan *TFProjectRSModel) error {
+func UpdateProjectTeams(ctx context.Context, client *admin.APIClient, projectState, projectPlan *TFProjectRSModel) error {
 	var planTeams []TFTeamModel
 	var stateTeams []TFTeamModel
 	_ = projectPlan.Teams.ElementsAs(ctx, &planTeams, false)
@@ -723,7 +723,7 @@ func UpdateProjectTeams(ctx context.Context, client GroupProjectService, project
 	// removing teams from the project
 	for _, team := range removedTeams {
 		teamID := team.TeamID.ValueString()
-		_, err := client.RemoveProjectTeam(ctx, projectID, team.TeamID.ValueString())
+		_, err := client.TeamsApi.RemoveProjectTeam(ctx, projectID, teamID).Execute()
 		if err != nil {
 			apiError, ok := admin.AsError(err)
 			if ok && *apiError.ErrorCode != "USER_UNAUTHORIZED" {
@@ -737,18 +737,18 @@ func UpdateProjectTeams(ctx context.Context, client GroupProjectService, project
 	for _, team := range changedTeams {
 		teamID := team.TeamID.ValueString()
 		roleNames := conversion.TypesSetToString(ctx, team.RoleNames)
-		_, _, err := client.UpdateTeamRoles(ctx, projectID, teamID,
+		_, _, err := client.TeamsApi.UpdateTeamRoles(ctx, projectID, teamID,
 			&admin.TeamRole{
 				RoleNames: &roleNames,
 			},
-		)
+		).Execute()
 		if err != nil {
 			return fmt.Errorf("error updating role names for the team(%s): %s", teamID, err.Error())
 		}
 	}
 
 	// adding new teams into the project
-	if _, _, err := client.AddAllTeamsToProject(ctx, projectID, NewTeamRoleList(ctx, newTeams)); err != nil {
+	if _, _, err := client.TeamsApi.AddAllTeamsToProject(ctx, projectID, NewTeamRoleList(ctx, newTeams)).Execute(); err != nil {
 		return fmt.Errorf("error adding teams to the project: %v", err.Error())
 	}
 
@@ -775,14 +775,14 @@ func hasLimitsChanged(planLimits, stateLimits []TFLimitModel) bool {
 	return !reflect.DeepEqual(planLimits, stateLimits)
 }
 
-func UpdateProject(ctx context.Context, client GroupProjectService, projectState, projectPlan *TFProjectRSModel) error {
+func UpdateProject(ctx context.Context, client *admin.APIClient, projectState, projectPlan *TFProjectRSModel) error {
 	if projectPlan.Name.Equal(projectState.Name) {
 		return nil
 	}
 
 	projectID := projectState.ID.ValueString()
 
-	if _, _, err := client.UpdateProject(ctx, projectID, NewGroupUpdate(projectPlan)); err != nil {
+	if _, _, err := client.ProjectsApi.UpdateProject(ctx, projectID, NewGroupUpdate(projectPlan)).Execute(); err != nil {
 		return fmt.Errorf("error updating the project(%s): %s", projectID, err)
 	}
 
@@ -793,7 +793,7 @@ func deleteProject(ctx context.Context, connV2 *admin.APIClient, projectID strin
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{projectDependentsStateDeleting, projectDependentsStateRetry},
 		Target:     []string{projectDependentsStateIdle},
-		Refresh:    ResourceProjectDependentsDeletingRefreshFunc(ctx, projectID, ServiceFromClient(connV2)),
+		Refresh:    ResourceProjectDependentsDeletingRefreshFunc(ctx, projectID, connV2),
 		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Delay:      0,
@@ -819,9 +819,9 @@ Else consider the aggregate dependents idle.
 If we get a defined error response, return that right away
 Else retry
 */
-func ResourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID string, client GroupProjectService) retry.StateRefreshFunc {
+func ResourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID string, client *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		clusters, _, listClustersErr := client.ListClusters(ctx, projectID)
+		clusters, _, listClustersErr := client.ClustersApi.ListClusters(ctx, projectID).Execute()
 		dependents := AtlasProjectDependants{AdvancedClusters: clusters}
 
 		if listClustersErr != nil {
