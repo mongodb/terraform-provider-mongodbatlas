@@ -19,7 +19,7 @@ const (
 	dataSourcePluralName = "data.mongodbatlas_network_containers.test"
 )
 
-func TestAccNetworkContainerRS_basicAWS(t *testing.T) {
+func TestAccNetworkContainer_basicAWS(t *testing.T) {
 	var (
 		projectID        = acc.ProjectIDExecution(t)
 		randInt          = acctest.RandIntRange(0, 255)
@@ -65,7 +65,7 @@ func TestAccNetworkContainerRS_basicAWS(t *testing.T) {
 	})
 }
 
-func TestAccNetworkContainerRS_basicAzure(t *testing.T) {
+func TestAccNetworkContainer_basicAzure(t *testing.T) {
 	var (
 		randInt          = acctest.RandIntRange(0, 255)
 		cidrBlock        = fmt.Sprintf("10.8.%d.0/24", randInt)
@@ -111,7 +111,7 @@ func TestAccNetworkContainerRS_basicAzure(t *testing.T) {
 	})
 }
 
-func TestAccNetworkContainerRS_basicGCP(t *testing.T) {
+func TestAccNetworkContainer_basicGCP(t *testing.T) {
 	var (
 		randInt          = acctest.RandIntRange(0, 255)
 		gcpCidrBlock     = fmt.Sprintf("10.%d.0.0/18", randInt)
@@ -157,7 +157,7 @@ func TestAccNetworkContainerRS_basicGCP(t *testing.T) {
 	})
 }
 
-func TestAccNetworkContainerRS_withRegionsGCP(t *testing.T) {
+func TestAccNetworkContainer_withRegionsGCP(t *testing.T) {
 	var (
 		projectID               = acc.ProjectIDExecution(t)
 		randInt                 = acctest.RandIntRange(0, 255)
@@ -193,7 +193,7 @@ func TestAccNetworkContainerRS_withRegionsGCP(t *testing.T) {
 	})
 }
 
-func TestAccNetworkContainerRS_importBasic(t *testing.T) {
+func TestAccNetworkContainer_importBasic(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		randInt   = acctest.RandIntRange(0, 255)

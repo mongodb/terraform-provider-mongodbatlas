@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestMigNetworkContainerRS_basicAWS(t *testing.T) {
+func TestMigNetworkContainer_basicAWS(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		randInt   = acctest.RandIntRange(0, 255)
@@ -38,7 +38,7 @@ func TestMigNetworkContainerRS_basicAWS(t *testing.T) {
 	})
 }
 
-func TestMigNetworkContainerRS_basicAzure(t *testing.T) {
+func TestMigNetworkContainer_basicAzure(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		randInt   = acctest.RandIntRange(0, 255)
@@ -65,7 +65,7 @@ func TestMigNetworkContainerRS_basicAzure(t *testing.T) {
 	})
 }
 
-func TestMigNetworkContainerRS_basicGCP(t *testing.T) {
+func TestMigNetworkContainer_basicGCP(t *testing.T) {
 	var (
 		projectID    = acc.ProjectIDExecution(t)
 		randInt      = acctest.RandIntRange(0, 255)
