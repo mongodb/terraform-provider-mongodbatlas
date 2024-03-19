@@ -549,7 +549,7 @@ func TestResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(t *testing.T) {
 			m := mocksvc.NewEncryptionAtRestUsingCustomerKeyManagementApi(t)
 
 			m.EXPECT().UpdateEncryptionAtRest(mock.Anything, mock.Anything, mock.Anything).Return(admin.UpdateEncryptionAtRestApiRequest{ApiService: m})
-			m.EXPECT().UpdateEncryptionAtRestExecute(mock.Anything).Return(tc.mockResponse, nil, tc.mockError)
+			m.EXPECT().UpdateEncryptionAtRestExecute(mock.Anything).Return(tc.mockResponse, nil, tc.mockError).Once()
 
 			response, strategy, err := encryptionatrest.ResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(context.Background(), projectID, m, &admin.EncryptionAtRest{})()
 
