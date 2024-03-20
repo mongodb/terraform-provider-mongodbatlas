@@ -633,9 +633,9 @@ func (_c *GroupProjectService_SetProjectLimit_Call) RunAndReturn(run func(contex
 	return _c
 }
 
-// UpdateProject provides a mock function with given fields: ctx, groupID, groupName
-func (_m *GroupProjectService) UpdateProject(ctx context.Context, groupID string, groupName *admin.GroupName) (*admin.Group, *http.Response, error) {
-	ret := _m.Called(ctx, groupID, groupName)
+// UpdateProject provides a mock function with given fields: ctx, groupID, groupUpdate
+func (_m *GroupProjectService) UpdateProject(ctx context.Context, groupID string, groupUpdate *admin.GroupUpdate) (*admin.Group, *http.Response, error) {
+	ret := _m.Called(ctx, groupID, groupUpdate)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateProject")
@@ -644,27 +644,27 @@ func (_m *GroupProjectService) UpdateProject(ctx context.Context, groupID string
 	var r0 *admin.Group
 	var r1 *http.Response
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *admin.GroupName) (*admin.Group, *http.Response, error)); ok {
-		return rf(ctx, groupID, groupName)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *admin.GroupUpdate) (*admin.Group, *http.Response, error)); ok {
+		return rf(ctx, groupID, groupUpdate)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, *admin.GroupName) *admin.Group); ok {
-		r0 = rf(ctx, groupID, groupName)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *admin.GroupUpdate) *admin.Group); ok {
+		r0 = rf(ctx, groupID, groupUpdate)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*admin.Group)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, *admin.GroupName) *http.Response); ok {
-		r1 = rf(ctx, groupID, groupName)
+	if rf, ok := ret.Get(1).(func(context.Context, string, *admin.GroupUpdate) *http.Response); ok {
+		r1 = rf(ctx, groupID, groupUpdate)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*http.Response)
 		}
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, string, *admin.GroupName) error); ok {
-		r2 = rf(ctx, groupID, groupName)
+	if rf, ok := ret.Get(2).(func(context.Context, string, *admin.GroupUpdate) error); ok {
+		r2 = rf(ctx, groupID, groupUpdate)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -680,14 +680,14 @@ type GroupProjectService_UpdateProject_Call struct {
 // UpdateProject is a helper method to define mock.On call
 //   - ctx context.Context
 //   - groupID string
-//   - groupName *admin.GroupName
-func (_e *GroupProjectService_Expecter) UpdateProject(ctx interface{}, groupID interface{}, groupName interface{}) *GroupProjectService_UpdateProject_Call {
-	return &GroupProjectService_UpdateProject_Call{Call: _e.mock.On("UpdateProject", ctx, groupID, groupName)}
+//   - groupUpdate *admin.GroupUpdate
+func (_e *GroupProjectService_Expecter) UpdateProject(ctx interface{}, groupID interface{}, groupUpdate interface{}) *GroupProjectService_UpdateProject_Call {
+	return &GroupProjectService_UpdateProject_Call{Call: _e.mock.On("UpdateProject", ctx, groupID, groupUpdate)}
 }
 
-func (_c *GroupProjectService_UpdateProject_Call) Run(run func(ctx context.Context, groupID string, groupName *admin.GroupName)) *GroupProjectService_UpdateProject_Call {
+func (_c *GroupProjectService_UpdateProject_Call) Run(run func(ctx context.Context, groupID string, groupUpdate *admin.GroupUpdate)) *GroupProjectService_UpdateProject_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(*admin.GroupName))
+		run(args[0].(context.Context), args[1].(string), args[2].(*admin.GroupUpdate))
 	})
 	return _c
 }
@@ -697,7 +697,7 @@ func (_c *GroupProjectService_UpdateProject_Call) Return(_a0 *admin.Group, _a1 *
 	return _c
 }
 
-func (_c *GroupProjectService_UpdateProject_Call) RunAndReturn(run func(context.Context, string, *admin.GroupName) (*admin.Group, *http.Response, error)) *GroupProjectService_UpdateProject_Call {
+func (_c *GroupProjectService_UpdateProject_Call) RunAndReturn(run func(context.Context, string, *admin.GroupUpdate) (*admin.Group, *http.Response, error)) *GroupProjectService_UpdateProject_Call {
 	_c.Call.Return(run)
 	return _c
 }

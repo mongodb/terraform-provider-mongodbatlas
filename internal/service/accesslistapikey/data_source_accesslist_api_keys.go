@@ -93,7 +93,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	return nil
 }
 
-func flattenAccessListAPIKeys(ctx context.Context, orgID string, list []admin.UserAccessList) []map[string]any {
+func flattenAccessListAPIKeys(ctx context.Context, orgID string, list []admin.UserAccessListResponse) []map[string]any {
 	results := make([]map[string]any, len(list))
 	for k, elm := range list {
 		results[k] = map[string]any{

@@ -606,12 +606,12 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 			{
 				Config: configWithTags(orgID, projectName, clusterName, []admin.ResourceTag{
 					{
-						Key:   conversion.StringPtr("key 1"),
-						Value: conversion.StringPtr("value 1"),
+						Key:   "key 1",
+						Value: "value 1",
 					},
 					{
-						Key:   conversion.StringPtr("key 2"),
-						Value: conversion.StringPtr("value 2"),
+						Key:   "key 2",
+						Value: "value 2",
 					},
 				}),
 				Check: resource.ComposeTestCheckFunc(
@@ -633,8 +633,8 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 			{
 				Config: configWithTags(orgID, projectName, clusterName, []admin.ResourceTag{
 					{
-						Key:   conversion.StringPtr("key 3"),
-						Value: conversion.StringPtr("value 3"),
+						Key:   "key 3",
+						Value: "value 3",
 					},
 				}),
 				Check: resource.ComposeTestCheckFunc(

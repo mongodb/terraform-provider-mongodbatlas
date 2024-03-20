@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
@@ -258,11 +257,11 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead(ctx context.Co
 
 	oidcParams := &admin.ListIdentityProvidersApiParams{
 		FederationSettingsId: federationSettingsID.(string),
-		Protocol:             conversion.StringPtr(OIDC),
+		Protocol:             &[]string{OIDC},
 	}
 	samlParams := &admin.ListIdentityProvidersApiParams{
 		FederationSettingsId: federationSettingsID.(string),
-		Protocol:             conversion.StringPtr(SAML),
+		Protocol:             &[]string{SAML},
 	}
 
 	samlFederatedSettingsIdentityProviders, _, samlErr := connV2.FederatedAuthenticationApi.ListIdentityProvidersWithParams(ctx, samlParams).Execute()

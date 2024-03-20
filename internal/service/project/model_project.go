@@ -163,8 +163,14 @@ func NewTeamRoleList(ctx context.Context, teams []TFTeamModel) *[]admin.TeamRole
 	return &res
 }
 
-func NewGroupName(tfProject *TFProjectRSModel) *admin.GroupName {
-	return &admin.GroupName{
+func NewGroup(tfProject *TFProjectRSModel) *admin.Group {
+	return &admin.Group{
+		Name: tfProject.Name.ValueString(),
+	}
+}
+
+func NewGroupUpdate(tfProject *TFProjectRSModel) *admin.GroupUpdate {
+	return &admin.GroupUpdate{
 		Name: tfProject.Name.ValueStringPointer(),
 	}
 }

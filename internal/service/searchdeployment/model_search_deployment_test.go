@@ -68,9 +68,9 @@ func TestSearchDeploymentSDKToTFModel(t *testing.T) {
 
 func TestSearchDeploymentTFModelToSDK(t *testing.T) {
 	testCases := []struct {
+		name           string
 		tfModel        *searchdeployment.TFSearchDeploymentRSModel
 		expectedSDKReq admin.ApiSearchDeploymentRequest
-		name           string
 	}{
 		{
 			name: "Complete TF state",
@@ -82,7 +82,7 @@ func TestSearchDeploymentTFModelToSDK(t *testing.T) {
 				Specs:       tfSpecsList(t, instanceSize, nodeCount),
 			},
 			expectedSDKReq: admin.ApiSearchDeploymentRequest{
-				Specs: &[]admin.ApiSearchDeploymentSpec{
+				Specs: []admin.ApiSearchDeploymentSpec{
 					{
 						InstanceSize: instanceSize,
 						NodeCount:    nodeCount,

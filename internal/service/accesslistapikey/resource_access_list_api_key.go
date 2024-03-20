@@ -95,7 +95,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		entry = IPAddress
 	}
 
-	accessList := &[]admin.UserAccessList{
+	accessList := &[]admin.UserAccessListRequest{
 		{
 			CidrBlock: conversion.StringPtr(CIDRBlock),
 			IpAddress: conversion.StringPtr(IPAddress),

@@ -21,7 +21,7 @@ func NewSearchDeploymentReq(ctx context.Context, searchDeploymentPlan *TFSearchD
 		}
 	}
 	return admin.ApiSearchDeploymentRequest{
-		Specs: &resultSpecs,
+		Specs: resultSpecs,
 	}
 }
 
