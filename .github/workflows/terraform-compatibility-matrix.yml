@@ -34,6 +34,13 @@ jobs:
     outputs:
       supported_versions: ${{ steps.get-terraform-supported-versions.outputs.supported_versions }}
 
+  slack-notification:
+    needs: ["run-test-supported-versions"]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Notification
+        run: |
+          echo "Status of previous job: ${{ needs.get-supported-versions.status }}"    
           
   run-test-supported-versions:
     needs: ["get-supported-versions"]
@@ -50,10 +57,4 @@ jobs:
       terraform_matrix: '["${{ matrix.terraform_version }}"]'
       atlas_cloud_env: ${{ inputs.atlas_cloud_env }}
 
-  slack-notification:
-    needs: ["run-test-supported-versions"]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Send Notification
-        run: |
-          echo "Status of previous job: ${{ needs.run-test-supported-versions.status }}"        
+    
