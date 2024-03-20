@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -41,7 +42,7 @@ func TestAccGenericBackupRSBackupCompliancePolicy_basic(t *testing.T) {
 	})
 }
 
-func TestAccGenericBackupRSBackupCompliancePolicy_withFirstLastName(t *testing.T) {
+func TestAccGenericBackupRSBackupCompliancePolicy_update(t *testing.T) {
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
@@ -53,6 +54,17 @@ func TestAccGenericBackupRSBackupCompliancePolicy_withFirstLastName(t *testing.T
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
+			{
+				Config: configWithoutOptionals(projectName, orgID, projectOwnerID),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "authorized_user_first_name", "First"),
+					resource.TestCheckResourceAttr(resourceName, "authorized_user_last_name", "Last"),
+					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_at_rest_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "copy_protection_enabled", "false"),
+				),
+			},
 			{
 				Config: configBasic(projectName, orgID, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(

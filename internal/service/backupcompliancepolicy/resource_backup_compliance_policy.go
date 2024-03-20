@@ -8,13 +8,15 @@ import (
 	"net/http"
 	"strings"
 
+	"go.mongodb.org/atlas-sdk/v20231115008/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/spf13/cast"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupschedule"
-	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 const (
@@ -233,7 +235,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	params := &admin.DataProtectionSettings20231001{
+	dataProtectionSettings := &admin.DataProtectionSettings20231001{
 		ProjectId:               conversion.StringPtr(projectID),
 		AuthorizedEmail:         d.Get("authorized_email").(string),
 		AuthorizedUserFirstName: d.Get("authorized_user_first_name").(string),
@@ -291,10 +293,15 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 	if len(backupPoliciesItem) > 0 {
-		params.ScheduledPolicyItems = &backupPoliciesItem
+		dataProtectionSettings.ScheduledPolicyItems = &backupPoliciesItem
 	}
 
-	_, _, err := connV2.CloudBackupsApi.UpdateDataProtectionSettings(ctx, projectID, params).Execute()
+	params := admin.UpdateDataProtectionSettingsApiParams{
+		GroupId:                        projectID,
+		DataProtectionSettings20231001: dataProtectionSettings,
+		OverwriteBackupPolicies:        conversion.Pointer(false),
+	}
+	_, _, err := connV2.CloudBackupsApi.UpdateDataProtectionSettingsWithParams(ctx, &params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicyUpdate, projectID, err))
 	}
@@ -393,7 +400,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 
-	params := &admin.DataProtectionSettings20231001{
+	dataProtectionSettings := &admin.DataProtectionSettings20231001{
 		ProjectId:               conversion.StringPtr(projectID),
 		AuthorizedEmail:         d.Get("authorized_email").(string),
 		AuthorizedUserFirstName: d.Get("authorized_user_first_name").(string),
@@ -402,19 +409,19 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("copy_protection_enabled") {
-		params.CopyProtectionEnabled = conversion.Pointer(d.Get("copy_protection_enabled").(bool))
+		dataProtectionSettings.CopyProtectionEnabled = conversion.Pointer(d.Get("copy_protection_enabled").(bool))
 	}
 
 	if d.HasChange("encryption_at_rest_enabled") {
-		params.EncryptionAtRestEnabled = conversion.Pointer(d.Get("encryption_at_rest_enabled").(bool))
+		dataProtectionSettings.EncryptionAtRestEnabled = conversion.Pointer(d.Get("encryption_at_rest_enabled").(bool))
 	}
 
 	if d.HasChange("pit_enabled") {
-		params.PitEnabled = conversion.Pointer(d.Get("pit_enabled").(bool))
+		dataProtectionSettings.PitEnabled = conversion.Pointer(d.Get("pit_enabled").(bool))
 	}
 
 	if d.HasChange("restore_window_days") {
-		params.RestoreWindowDays = conversion.Pointer(cast.ToInt(d.Get("restore_window_days")))
+		dataProtectionSettings.RestoreWindowDays = conversion.Pointer(cast.ToInt(d.Get("restore_window_days")))
 	}
 
 	var backupPoliciesItem []admin.BackupComplianceScheduledPolicyItem
@@ -463,10 +470,15 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 	if len(backupPoliciesItem) > 0 {
-		params.ScheduledPolicyItems = &backupPoliciesItem
+		dataProtectionSettings.ScheduledPolicyItems = &backupPoliciesItem
 	}
 
-	_, _, err := connV2.CloudBackupsApi.UpdateDataProtectionSettings(ctx, projectID, params).Execute()
+	params := admin.UpdateDataProtectionSettingsApiParams{
+		GroupId:                        projectID,
+		DataProtectionSettings20231001: dataProtectionSettings,
+		OverwriteBackupPolicies:        conversion.Pointer(false),
+	}
+	_, _, err := connV2.CloudBackupsApi.UpdateDataProtectionSettingsWithParams(ctx, &params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicyUpdate, projectID, err))
 	}
