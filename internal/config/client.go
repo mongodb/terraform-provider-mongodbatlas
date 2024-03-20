@@ -43,6 +43,7 @@ type Config struct {
 	PrivateKey   string
 	BaseURL      string
 	RealmBaseURL string
+	ProxyPort    *int
 }
 
 type AssumeRole struct {
@@ -64,19 +65,21 @@ type SecretData struct {
 
 // NewClient func...
 func (c *Config) NewClient(ctx context.Context) (any, error) {
+
 	// setup a transport to handle digest
-	// transport := digest.NewTransport(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey))
+	transport := digest.NewTransport(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey))
 
-	// // setup a transport to handle digest
-	transport := &digest.Transport{
-		Username: cast.ToString(c.PublicKey),
-		Password: cast.ToString(c.PrivateKey),
-	}
+	if c.ProxyPort != nil {
+		transport = &digest.Transport{
+			Username: cast.ToString(c.PublicKey),
+			Password: cast.ToString(c.PrivateKey),
+		}
 
-	proxyURL, _ := url.Parse("http://localhost:8500")
-	transport.Transport = &http.Transport{
-		Proxy:           http.ProxyURL(proxyURL),
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		proxyURL, _ := url.Parse(fmt.Sprintf("http://localhost:%d", *c.ProxyPort))
+		transport.Transport = &http.Transport{
+			Proxy:           http.ProxyURL(proxyURL),
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
 	}
 
 	// initialize the client

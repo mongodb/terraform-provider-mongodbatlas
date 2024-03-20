@@ -72,7 +72,7 @@ type SecretData struct {
 }
 
 // NewSdkV2Provider returns the provider to be use by the code.
-func NewSdkV2Provider() *schema.Provider {
+func NewSdkV2Provider(proxyNum *int) *schema.Provider {
 	provider := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"public_key": {
@@ -133,9 +133,11 @@ func NewSdkV2Provider() *schema.Provider {
 				Description: "AWS Security Token Service provided session token.",
 			},
 		},
-		DataSourcesMap:       getDataSourcesMap(),
-		ResourcesMap:         getResourcesMap(),
-		ConfigureContextFunc: providerConfigure,
+		DataSourcesMap: getDataSourcesMap(),
+		ResourcesMap:   getResourcesMap(),
+		ConfigureContextFunc: func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+			return providerConfigure(proxyNum, ctx, d)
+		},
 	}
 	addPreviewFeatures(provider)
 	return provider
@@ -283,7 +285,7 @@ func addPreviewFeatures(provider *schema.Provider) {
 	}
 }
 
-func providerConfigure(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
+func providerConfigure(proxyNum *int, ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 	diagnostics := setDefaultsAndValidations(d)
 	if diagnostics.HasError() {
 		return nil, diagnostics
@@ -294,6 +296,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (any, diag.D
 		PrivateKey:   d.Get("private_key").(string),
 		BaseURL:      d.Get("base_url").(string),
 		RealmBaseURL: d.Get("realm_base_url").(string),
+		ProxyPort:    proxyNum,
 	}
 
 	assumeRoleValue, ok := d.GetOk("assume_role")

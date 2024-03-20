@@ -1,10 +1,14 @@
 package alertconfiguration_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -236,4 +240,36 @@ func configWithPagerDutyDS(projectID, serviceKey string, enabled bool) string {
 			alert_configuration_id = mongodbatlas_alert_configuration.test.id
 		}
 	`, projectID, serviceKey, enabled)
+}
+
+func checkExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no ID is set")
+		}
+		ids := conversion.DecodeStateID(rs.Primary.ID)
+		_, _, err := acc.ConnV2().AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID]).Execute()
+		if err != nil {
+			return fmt.Errorf("the Alert Configuration(%s) does not exist", ids[alertconfiguration.EncodedIDKeyAlertID])
+		}
+		return nil
+	}
+}
+
+func checkDestroy(s *terraform.State) error {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "mongodbatlas_alert_configuration" {
+			continue
+		}
+		ids := conversion.DecodeStateID(rs.Primary.ID)
+		alert, _, err := acc.Conn().AlertConfigurations.GetAnAlertConfig(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID])
+		if alert != nil {
+			return fmt.Errorf("the Project Alert Configuration(%s) still exists %s", ids[alertconfiguration.EncodedIDKeyAlertID], err)
+		}
+	}
+	return nil
 }

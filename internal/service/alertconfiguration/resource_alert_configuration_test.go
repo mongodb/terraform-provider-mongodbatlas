@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
 	"regexp"
 	"testing"
 
@@ -22,8 +23,16 @@ const (
 	dataSourcePluralName = "data.mongodbatlas_alert_configurations.test"
 )
 
-func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
-	hv := hoverfly.NewHoverfly()
+func setupHoverfly(t *testing.T) (int, func(t *testing.T)) {
+	t.Log("setting up hoverfly for test case")
+
+	// Generate a random number between 0 and 65535
+	proxyPort := rand.Intn(65536)
+
+	settings := hoverfly.InitSettings()
+	settings.ProxyPort = fmt.Sprintf("%d", proxyPort)
+
+	hv := hoverfly.NewHoverflyWithConfiguration(settings)
 	err := hv.StartProxy()
 	if err != nil {
 		log.Fatalf("Failed to start Hoverfly: %v", err)
@@ -34,19 +43,32 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 		log.Fatalf("Failed to set Hoverfly mode: %v", err)
 	}
 
+	return proxyPort, func(t *testing.T) {
+		data, _ := hv.GetSimulation()
+		t.Logf("TOTAL AMOUNT OF PAIRS CAPTURED: %d", len(data.DataViewV5.RequestResponsePairs))
+		hv.StopProxy()
+
+		t.Log("teardown test case")
+	}
+}
+
+func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
+	proxyPort, teardown := setupHoverfly(t)
+	t.Cleanup(func() { teardown(t) })
+
 	var (
 		projectID = acc.ProjectIDExecution(t)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
+		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
 			{
 				Config: configBasicRS(projectID, true),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "2"),
 				),
@@ -54,28 +76,27 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 			{
 				Config: configBasicRS(projectID, false),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "2"),
 				),
 			},
 		},
 	})
-
-	data, _ := hv.GetSimulation()
-	fmt.Printf("TOTAL AMOUNT OF PAIRS CAPTURED: %d", len(data.DataViewV5.RequestResponsePairs))
-	hv.StopProxy()
 }
 
 func TestAccConfigRSAlertConfiguration_withEmptyMetricThresholdConfig(t *testing.T) {
+	proxyPort, teardown := setupHoverfly(t)
+	t.Cleanup(func() { teardown(t) })
+
 	var (
 		projectID = acc.ProjectIDExecution(t)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
+		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
 			{
 				Config: configWithEmptyMetricThresholdConfig(projectID, true),
@@ -85,19 +106,22 @@ func TestAccConfigRSAlertConfiguration_withEmptyMetricThresholdConfig(t *testing
 }
 
 func TestAccConfigRSAlertConfiguration_withEmptyMatcherMetricThresholdConfig(t *testing.T) {
+	proxyPort, teardown := setupHoverfly(t)
+	t.Cleanup(func() { teardown(t) })
+
 	var (
 		projectID = acc.ProjectIDExecution(t)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
+		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
 			{
 				Config: configWithEmptyMatcherMetricThresholdConfig(projectID, true),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
 				),
@@ -106,26 +130,29 @@ func TestAccConfigRSAlertConfiguration_withEmptyMatcherMetricThresholdConfig(t *
 	})
 }
 func TestAccConfigRSAlertConfiguration_withNotifications(t *testing.T) {
+	proxyPort, teardown := setupHoverfly(t)
+	t.Cleanup(func() { teardown(t) })
+
 	var (
 		projectID = acc.ProjectIDExecution(t)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
+		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
 			{
 				Config: configWithNotifications(projectID, true, true, false),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				Config: configWithNotifications(projectID, false, false, true),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
@@ -134,14 +161,17 @@ func TestAccConfigRSAlertConfiguration_withNotifications(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withMatchers(t *testing.T) {
+	proxyPort, teardown := setupHoverfly(t)
+	t.Cleanup(func() { teardown(t) })
+
 	var (
 		projectID = acc.ProjectIDExecution(t)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
+		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
 			{
 				Config: configWithMatchers(projectID, true, false, true,
@@ -156,7 +186,7 @@ func TestAccConfigRSAlertConfiguration_withMatchers(t *testing.T) {
 						"value":     "MONGOS",
 					}),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
@@ -173,7 +203,7 @@ func TestAccConfigRSAlertConfiguration_withMatchers(t *testing.T) {
 						"value":     "PRIMARY",
 					}),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
@@ -182,26 +212,29 @@ func TestAccConfigRSAlertConfiguration_withMatchers(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withMetricUpdated(t *testing.T) {
+	proxyPort, teardown := setupHoverfly(t)
+	t.Cleanup(func() { teardown(t) })
+
 	var (
 		projectID = acc.ProjectIDExecution(t)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
+		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
 			{
 				Config: configWithMetricUpdated(projectID, true, 99.0),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				Config: configWithMetricUpdated(projectID, false, 89.7),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
@@ -210,26 +243,29 @@ func TestAccConfigRSAlertConfiguration_withMetricUpdated(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withThresholdUpdated(t *testing.T) {
+	proxyPort, teardown := setupHoverfly(t)
+	t.Cleanup(func() { teardown(t) })
+
 	var (
 		projectID = acc.ProjectIDExecution(t)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
+		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
 			{
 				Config: configWithThresholdUpdated(projectID, true, 1),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				Config: configWithThresholdUpdated(projectID, false, 3),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
@@ -245,19 +281,22 @@ func TestAccConfigRSAlertConfiguration_withThresholdUpdated(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withoutRoles(t *testing.T) {
+	proxyPort, teardown := setupHoverfly(t)
+	t.Cleanup(func() { teardown(t) })
+
 	var (
 		projectID = acc.ProjectIDExecution(t)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
+		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
 			{
 				Config: configWithoutRoles(projectID, true, 99.0),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
@@ -266,19 +305,22 @@ func TestAccConfigRSAlertConfiguration_withoutRoles(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withoutOptionalAttributes(t *testing.T) {
+	proxyPort, teardown := setupHoverfly(t)
+	t.Cleanup(func() { teardown(t) })
+
 	var (
 		projectID = acc.ProjectIDExecution(t)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
+		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
 			{
 				Config: configWithEmptyOptionalAttributes(projectID),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
@@ -287,14 +329,17 @@ func TestAccConfigRSAlertConfiguration_withoutOptionalAttributes(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_importBasic(t *testing.T) {
+	proxyPort, teardown := setupHoverfly(t)
+	t.Cleanup(func() { teardown(t) })
+
 	var (
 		projectID = acc.ProjectIDExecution(t)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
+		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
 			{
 				Config: configBasicRS(projectID, true),
@@ -311,14 +356,17 @@ func TestAccConfigRSAlertConfiguration_importBasic(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_importIncorrectId(t *testing.T) {
+	proxyPort, teardown := setupHoverfly(t)
+	t.Cleanup(func() { teardown(t) })
+
 	var (
 		projectID = acc.ProjectIDExecution(t)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
+		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
 			{
 				Config: configBasicRS(projectID, true),
@@ -334,14 +382,17 @@ func TestAccConfigRSAlertConfiguration_importIncorrectId(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_importConfigNotifications(t *testing.T) {
+	proxyPort, teardown := setupHoverfly(t)
+	t.Cleanup(func() { teardown(t) })
+
 	var (
 		projectID = acc.ProjectIDExecution(t)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
+		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
 			{
 				Config: configWithNotifications(projectID, true, true, false),
@@ -363,6 +414,9 @@ const dummy36CharKey = "11111111-1111-1111-1111-111111111111"
 
 // used for testing notification that does not define interval_min attribute
 func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
+	proxyPort, teardown := setupHoverfly(t)
+	t.Cleanup(func() { teardown(t) })
+
 	var (
 		projectID  = acc.ProjectIDExecution(t)
 		serviceKey = dummy32CharKey
@@ -370,13 +424,13 @@ func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
+		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
 			{
 				Config: configWithPagerDuty(projectID, serviceKey, true),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
@@ -392,6 +446,9 @@ func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_updatePagerDutyWithNotifierId(t *testing.T) {
+	proxyPort, teardown := setupHoverfly(t)
+	t.Cleanup(func() { teardown(t) })
+
 	var (
 		projectID  = acc.ProjectIDExecution(t)
 		serviceKey = dummy32CharKey
@@ -400,13 +457,13 @@ func TestAccConfigRSAlertConfiguration_updatePagerDutyWithNotifierId(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
+		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
 			{
 				Config: configWithPagerDutyNotifierID(projectID, notifierID, 10, &serviceKey),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "notification.0.delay_min", "10"),
 					resource.TestCheckResourceAttr(resourceName, "notification.0.service_key", serviceKey),
@@ -415,7 +472,7 @@ func TestAccConfigRSAlertConfiguration_updatePagerDutyWithNotifierId(t *testing.
 			{
 				Config: configWithPagerDutyNotifierID(projectID, notifierID, 15, nil),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "notification.0.delay_min", "15"),
 				),
@@ -425,6 +482,9 @@ func TestAccConfigRSAlertConfiguration_updatePagerDutyWithNotifierId(t *testing.
 }
 
 func TestAccConfigRSAlertConfiguration_withDataDog(t *testing.T) {
+	proxyPort, teardown := setupHoverfly(t)
+	t.Cleanup(func() { teardown(t) })
+
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		ddAPIKey  = dummy32CharKey
@@ -433,13 +493,13 @@ func TestAccConfigRSAlertConfiguration_withDataDog(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
+		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
 			{
 				Config: configWithDataDog(projectID, ddAPIKey, ddRegion, true),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
@@ -448,6 +508,9 @@ func TestAccConfigRSAlertConfiguration_withDataDog(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withPagerDuty(t *testing.T) {
+	proxyPort, teardown := setupHoverfly(t)
+	t.Cleanup(func() { teardown(t) })
+
 	var (
 		projectID  = acc.ProjectIDExecution(t)
 		serviceKey = dummy32CharKey
@@ -455,13 +518,13 @@ func TestAccConfigRSAlertConfiguration_withPagerDuty(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
+		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
 			{
 				Config: configWithPagerDuty(projectID, serviceKey, true),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
@@ -470,6 +533,9 @@ func TestAccConfigRSAlertConfiguration_withPagerDuty(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withOpsGenie(t *testing.T) {
+	proxyPort, teardown := setupHoverfly(t)
+	t.Cleanup(func() { teardown(t) })
+
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		apiKey    = dummy36CharKey
@@ -477,13 +543,13 @@ func TestAccConfigRSAlertConfiguration_withOpsGenie(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
+		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
 			{
 				Config: configWithOpsGenie(projectID, apiKey, true),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
@@ -492,6 +558,9 @@ func TestAccConfigRSAlertConfiguration_withOpsGenie(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withVictorOps(t *testing.T) {
+	proxyPort, teardown := setupHoverfly(t)
+	t.Cleanup(func() { teardown(t) })
+
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		apiKey    = dummy36CharKey
@@ -499,13 +568,13 @@ func TestAccConfigRSAlertConfiguration_withVictorOps(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
+		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
 			{
 				Config: configWithVictorOps(projectID, apiKey, true),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
@@ -513,7 +582,7 @@ func TestAccConfigRSAlertConfiguration_withVictorOps(t *testing.T) {
 	})
 }
 
-func checkExists(resourceName string) resource.TestCheckFunc {
+func checkExistsUsingProxy(proxyPort int, resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -523,7 +592,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.ConnV2().AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID]).Execute()
+		_, _, err := acc.ConnV2UsingProxy(proxyPort).AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID]).Execute()
 		if err != nil {
 			return fmt.Errorf("the Alert Configuration(%s) does not exist", ids[alertconfiguration.EncodedIDKeyAlertID])
 		}
@@ -531,18 +600,20 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func checkDestroy(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_alert_configuration" {
-			continue
+func checkDestroyUsingProxy(proxyPort int) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		for _, rs := range s.RootModule().Resources {
+			if rs.Type != "mongodbatlas_alert_configuration" {
+				continue
+			}
+			ids := conversion.DecodeStateID(rs.Primary.ID)
+			alert, _, err := acc.ConnV2UsingProxy(proxyPort).AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID]).Execute()
+			if alert != nil {
+				return fmt.Errorf("the Project Alert Configuration(%s) still exists %s", ids[alertconfiguration.EncodedIDKeyAlertID], err)
+			}
 		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		alert, _, err := acc.Conn().AlertConfigurations.GetAnAlertConfig(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID])
-		if alert != nil {
-			return fmt.Errorf("the Project Alert Configuration(%s) still exists %s", ids[alertconfiguration.EncodedIDKeyAlertID], err)
-		}
+		return nil
 	}
-	return nil
 }
 
 func importStateProjectIDFunc(resourceName string) resource.ImportStateIdFunc {

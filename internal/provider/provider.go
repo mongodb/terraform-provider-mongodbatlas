@@ -45,7 +45,9 @@ const (
 	MissingAuthAttrError  = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
 )
 
-type MongodbtlasProvider struct{}
+type MongodbtlasProvider struct {
+	proxyNum *int
+}
 
 type tfMongodbAtlasProviderModel struct {
 	AssumeRole           types.List   `tfsdk:"assume_role"`
@@ -229,6 +231,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		PrivateKey:   data.PrivateKey.ValueString(),
 		BaseURL:      data.BaseURL.ValueString(),
 		RealmBaseURL: data.RealmBaseURL.ValueString(),
+		ProxyPort:    p.proxyNum,
 	}
 
 	var assumeRoles []tfAssumeRoleModel
@@ -448,13 +451,15 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 	return resources
 }
 
-func NewFrameworkProvider() provider.Provider {
-	return &MongodbtlasProvider{}
+func NewFrameworkProvider(proxyNum *int) provider.Provider {
+	return &MongodbtlasProvider{
+		proxyNum: proxyNum,
+	}
 }
 
-func MuxedProviderFactory() func() tfprotov6.ProviderServer {
-	v2Provider := NewSdkV2Provider()
-	newProvider := NewFrameworkProvider()
+func MuxedProviderFactory(proxyNum *int) func() tfprotov6.ProviderServer {
+	v2Provider := NewSdkV2Provider(proxyNum)
+	newProvider := NewFrameworkProvider(proxyNum)
 	ctx := context.Background()
 	upgradedSdkProvider, err := tf5to6server.UpgradeServer(ctx, v2Provider.GRPCProvider)
 	if err != nil {
