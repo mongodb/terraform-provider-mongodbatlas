@@ -255,30 +255,20 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead(ctx context.Co
 		return diag.FromErr(errors.New("federation_settings_id must be configured"))
 	}
 
-	oidcParams := &admin.ListIdentityProvidersApiParams{
+	params := &admin.ListIdentityProvidersApiParams{
 		FederationSettingsId: federationSettingsID.(string),
-		Protocol:             &[]string{OIDC},
-	}
-	samlParams := &admin.ListIdentityProvidersApiParams{
-		FederationSettingsId: federationSettingsID.(string),
-		Protocol:             &[]string{SAML},
+		Protocol:             &[]string{OIDC, SAML},
 	}
 
-	samlFederatedSettingsIdentityProviders, _, samlErr := connV2.FederatedAuthenticationApi.ListIdentityProvidersWithParams(ctx, samlParams).Execute()
-	if samlErr != nil {
-		return diag.Errorf("error getting federatedSettings IdentityProviders assigned (%s): %s", federationSettingsID, samlErr)
+	providers, _, err := connV2.FederatedAuthenticationApi.ListIdentityProvidersWithParams(ctx, params).Execute()
+	if err != nil {
+		return diag.Errorf("error getting federatedSettings Identity Providers assigned (%s): %s", federationSettingsID, err)
 	}
-	oidcFederatedSettingsIdentityProviders, _, oidcErr := connV2.FederatedAuthenticationApi.ListIdentityProvidersWithParams(ctx, oidcParams).Execute()
-	if oidcErr != nil {
-		return diag.Errorf("error getting federatedSettings IdentityProviders assigned (%s): %s", federationSettingsID, oidcErr)
-	}
-	allFederatedSettingsIdentityProviders := append(samlFederatedSettingsIdentityProviders.GetResults(), oidcFederatedSettingsIdentityProviders.GetResults()...)
 
-	if err := d.Set("results", FlattenFederatedSettingsIdentityProvider(allFederatedSettingsIdentityProviders)); err != nil {
+	if err := d.Set("results", FlattenFederatedSettingsIdentityProvider(providers.GetResults())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `result` for federatedSettings IdentityProviders: %s", err))
 	}
 
 	d.SetId(federationSettingsID.(string))
-
 	return nil
 }
