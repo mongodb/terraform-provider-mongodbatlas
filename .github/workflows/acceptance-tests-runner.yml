@@ -481,6 +481,10 @@ jobs:
           runner_github_workspace_path: ${{ github.workspace }}
       - name: Enable https calls to be simulated by Hoverfly
         run: install-and-trust-hoverfly-default-cert.sh
+      - name: Verify that https calls can be simulated
+        run: |
+            hoverctl start
+            hoverctl mode capture --stateful
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
