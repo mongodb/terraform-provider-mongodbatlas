@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20231115007/admin"
+	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 const (
@@ -81,12 +81,12 @@ func TestAccServerlessInstance_WithTags(t *testing.T) {
 			{
 				Config: acc.ConfigServerlessInstanceWithTags(orgID, projectName, instanceName, []admin.ResourceTag{
 					{
-						Key:   conversion.StringPtr("key 1"),
-						Value: conversion.StringPtr("value 1"),
+						Key:   "key 1",
+						Value: "value 1",
 					},
 					{
-						Key:   conversion.StringPtr("key 2"),
-						Value: conversion.StringPtr("value 2"),
+						Key:   "key 2",
+						Value: "value 2",
 					},
 				},
 				),
@@ -107,8 +107,8 @@ func TestAccServerlessInstance_WithTags(t *testing.T) {
 			{
 				Config: acc.ConfigServerlessInstanceWithTags(orgID, projectName, instanceName, []admin.ResourceTag{
 					{
-						Key:   conversion.StringPtr("key 3"),
-						Value: conversion.StringPtr("value 3"),
+						Key:   "key 3",
+						Value: "value 3",
 					},
 				},
 				),

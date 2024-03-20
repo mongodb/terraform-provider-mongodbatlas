@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115007/admin"
+	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 func Resource() *schema.Resource {
@@ -95,7 +95,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		entry = IPAddress
 	}
 
-	accessList := &[]admin.UserAccessList{
+	accessList := &[]admin.UserAccessListRequest{
 		{
 			CidrBlock: conversion.StringPtr(CIDRBlock),
 			IpAddress: conversion.StringPtr(IPAddress),

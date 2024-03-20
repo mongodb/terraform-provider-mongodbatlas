@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-test/deep"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshot"
-	"go.mongodb.org/atlas-sdk/v20231115007/admin"
+	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 func TestSplitSnapshotImportID(t *testing.T) {

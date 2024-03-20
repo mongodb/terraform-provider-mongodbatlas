@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20231115007/admin"
+	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, projectProps AdditionalProperties) (*TFProjectDSModel, diag.Diagnostics) {
@@ -163,8 +163,14 @@ func NewTeamRoleList(ctx context.Context, teams []TFTeamModel) *[]admin.TeamRole
 	return &res
 }
 
-func NewGroupName(tfProject *TFProjectRSModel) *admin.GroupName {
-	return &admin.GroupName{
+func NewGroup(tfProject *TFProjectRSModel) *admin.Group {
+	return &admin.Group{
+		Name: tfProject.Name.ValueString(),
+	}
+}
+
+func NewGroupUpdate(tfProject *TFProjectRSModel) *admin.GroupUpdate {
+	return &admin.GroupUpdate{
 		Name: tfProject.Name.ValueStringPointer(),
 	}
 }

@@ -9,7 +9,7 @@ import (
 	"sort"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20231115007/admin"
+	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -782,7 +782,7 @@ func UpdateProject(ctx context.Context, client GroupProjectService, projectState
 
 	projectID := projectState.ID.ValueString()
 
-	if _, _, err := client.UpdateProject(ctx, projectID, NewGroupName(projectPlan)); err != nil {
+	if _, _, err := client.UpdateProject(ctx, projectID, NewGroupUpdate(projectPlan)); err != nil {
 		return fmt.Errorf("error updating the project(%s): %s", projectID, err)
 	}
 
