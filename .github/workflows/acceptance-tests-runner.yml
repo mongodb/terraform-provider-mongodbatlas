@@ -477,6 +477,7 @@ jobs:
       - name: Install Hoverfly
         uses: agilepathway/hoverfly-github-action@b8263d635a4c27b99a9d8e41d90b450cf8bc147f
         with:
+          version: v1.8.0
           runner_github_workspace_path: ${{ github.workspace }}
       - name: Enable https calls to be simulated by Hoverfly
         run: install-and-trust-hoverfly-default-cert.sh
