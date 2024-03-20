@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	admin20231001002 "go.mongodb.org/atlas-sdk/v20231001002/admin"
+	admin20231001002 "go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 func DataSource() *schema.Resource {
