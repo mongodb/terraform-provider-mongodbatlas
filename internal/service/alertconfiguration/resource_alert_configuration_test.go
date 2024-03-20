@@ -3,9 +3,12 @@ package alertconfiguration_test
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"testing"
 
+	hoverfly "github.com/SpectoLabs/hoverfly/core"
+	v2 "github.com/SpectoLabs/hoverfly/core/handlers/v2"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -20,6 +23,17 @@ const (
 )
 
 func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
+	hv := hoverfly.NewHoverfly()
+	err := hv.StartProxy()
+	if err != nil {
+		log.Fatalf("Failed to start Hoverfly: %v", err)
+	}
+
+	err = hv.SetModeWithArguments(v2.ModeView{Mode: "capture", Arguments: v2.ModeArgumentsView{Stateful: true}})
+	if err != nil {
+		log.Fatalf("Failed to set Hoverfly mode: %v", err)
+	}
+
 	var (
 		projectID = acc.ProjectIDExecution(t)
 	)
@@ -47,6 +61,10 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 			},
 		},
 	})
+
+	data, _ := hv.GetSimulation()
+	fmt.Printf("TOTAL AMOUNT OF PAIRS CAPTURED: %d", len(data.DataViewV5.RequestResponsePairs))
+	hv.StopProxy()
 }
 
 func TestAccConfigRSAlertConfiguration_withEmptyMetricThresholdConfig(t *testing.T) {
