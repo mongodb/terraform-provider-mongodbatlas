@@ -56,4 +56,4 @@ jobs:
     steps:
       - name: Send Notification
         run: |
-          echo "${{ needs.run-test-supported-versions.status }}"        
+          echo "Status of previous job: ${{ needs.run-test-supported-versions.status }}"        
