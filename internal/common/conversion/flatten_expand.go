@@ -34,8 +34,8 @@ func ExpandTagsFromSetSchema(d *schema.ResourceData) *[]admin.ResourceTag {
 	for i, item := range list.List() {
 		tag := item.(map[string]any)
 		ret[i] = admin.ResourceTag{
-			Key:   StringPtr(tag["key"].(string)),
-			Value: StringPtr(tag["value"].(string)),
+			Key:   tag["key"].(string),
+			Value: tag["value"].(string),
 		}
 	}
 	return &ret
