@@ -2,6 +2,8 @@ name: "HashiCorp Terraform Compatibility Matrix"
 run-name: 'HashiCorp Terraform Compatibility Matrix ${{ inputs.atlas_cloud_env }}'
 
 on:
+  pull_request:
+    types: [synchronize]
   schedule:
     - cron: "0 0 1 * *" # runs first Saturday of the month at midnight UTC
   workflow_dispatch:
@@ -48,3 +50,10 @@ jobs:
       terraform_matrix: '["${{ matrix.terraform_version }}"]'
       atlas_cloud_env: ${{ inputs.atlas_cloud_env }}
 
+  slack-notification:
+    needs: ["run-test-supported-versions"]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Notification
+        run: |
+          echo "${{ needs.run-test-supported-versions.status }}"        
