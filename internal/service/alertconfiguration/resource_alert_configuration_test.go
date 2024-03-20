@@ -3,18 +3,15 @@ package alertconfiguration_test
 import (
 	"context"
 	"fmt"
-	"log"
-	"math/rand"
 	"regexp"
 	"testing"
 
-	hoverfly "github.com/SpectoLabs/hoverfly/core"
-	v2 "github.com/SpectoLabs/hoverfly/core/handlers/v2"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/replay"
 )
 
 const (
@@ -23,37 +20,8 @@ const (
 	dataSourcePluralName = "data.mongodbatlas_alert_configurations.test"
 )
 
-func setupHoverfly(t *testing.T) (int, func(t *testing.T)) {
-	t.Log("setting up hoverfly for test case")
-
-	// Generate a random number between 0 and 65535
-	proxyPort := rand.Intn(65536)
-
-	settings := hoverfly.InitSettings()
-	settings.ProxyPort = fmt.Sprintf("%d", proxyPort)
-
-	hv := hoverfly.NewHoverflyWithConfiguration(settings)
-	err := hv.StartProxy()
-	if err != nil {
-		log.Fatalf("Failed to start Hoverfly: %v", err)
-	}
-
-	err = hv.SetModeWithArguments(v2.ModeView{Mode: "capture", Arguments: v2.ModeArgumentsView{Stateful: true}})
-	if err != nil {
-		log.Fatalf("Failed to set Hoverfly mode: %v", err)
-	}
-
-	return proxyPort, func(t *testing.T) {
-		data, _ := hv.GetSimulation()
-		t.Logf("TOTAL AMOUNT OF PAIRS CAPTURED: %d", len(data.DataViewV5.RequestResponsePairs))
-		hv.StopProxy()
-
-		t.Log("teardown test case")
-	}
-}
-
 func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
-	proxyPort, teardown := setupHoverfly(t)
+	proxyPort, teardown := replay.SetupReplayProxy(t)
 	t.Cleanup(func() { teardown(t) })
 
 	var (
@@ -86,7 +54,7 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withEmptyMetricThresholdConfig(t *testing.T) {
-	proxyPort, teardown := setupHoverfly(t)
+	proxyPort, teardown := replay.SetupReplayProxy(t)
 	t.Cleanup(func() { teardown(t) })
 
 	var (
@@ -106,7 +74,7 @@ func TestAccConfigRSAlertConfiguration_withEmptyMetricThresholdConfig(t *testing
 }
 
 func TestAccConfigRSAlertConfiguration_withEmptyMatcherMetricThresholdConfig(t *testing.T) {
-	proxyPort, teardown := setupHoverfly(t)
+	proxyPort, teardown := replay.SetupReplayProxy(t)
 	t.Cleanup(func() { teardown(t) })
 
 	var (
@@ -130,7 +98,7 @@ func TestAccConfigRSAlertConfiguration_withEmptyMatcherMetricThresholdConfig(t *
 	})
 }
 func TestAccConfigRSAlertConfiguration_withNotifications(t *testing.T) {
-	proxyPort, teardown := setupHoverfly(t)
+	proxyPort, teardown := replay.SetupReplayProxy(t)
 	t.Cleanup(func() { teardown(t) })
 
 	var (
@@ -161,7 +129,7 @@ func TestAccConfigRSAlertConfiguration_withNotifications(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withMatchers(t *testing.T) {
-	proxyPort, teardown := setupHoverfly(t)
+	proxyPort, teardown := replay.SetupReplayProxy(t)
 	t.Cleanup(func() { teardown(t) })
 
 	var (
@@ -212,7 +180,7 @@ func TestAccConfigRSAlertConfiguration_withMatchers(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withMetricUpdated(t *testing.T) {
-	proxyPort, teardown := setupHoverfly(t)
+	proxyPort, teardown := replay.SetupReplayProxy(t)
 	t.Cleanup(func() { teardown(t) })
 
 	var (
@@ -243,7 +211,7 @@ func TestAccConfigRSAlertConfiguration_withMetricUpdated(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withThresholdUpdated(t *testing.T) {
-	proxyPort, teardown := setupHoverfly(t)
+	proxyPort, teardown := replay.SetupReplayProxy(t)
 	t.Cleanup(func() { teardown(t) })
 
 	var (
@@ -281,7 +249,7 @@ func TestAccConfigRSAlertConfiguration_withThresholdUpdated(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withoutRoles(t *testing.T) {
-	proxyPort, teardown := setupHoverfly(t)
+	proxyPort, teardown := replay.SetupReplayProxy(t)
 	t.Cleanup(func() { teardown(t) })
 
 	var (
@@ -305,7 +273,7 @@ func TestAccConfigRSAlertConfiguration_withoutRoles(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withoutOptionalAttributes(t *testing.T) {
-	proxyPort, teardown := setupHoverfly(t)
+	proxyPort, teardown := replay.SetupReplayProxy(t)
 	t.Cleanup(func() { teardown(t) })
 
 	var (
@@ -329,7 +297,7 @@ func TestAccConfigRSAlertConfiguration_withoutOptionalAttributes(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_importBasic(t *testing.T) {
-	proxyPort, teardown := setupHoverfly(t)
+	proxyPort, teardown := replay.SetupReplayProxy(t)
 	t.Cleanup(func() { teardown(t) })
 
 	var (
@@ -356,7 +324,7 @@ func TestAccConfigRSAlertConfiguration_importBasic(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_importIncorrectId(t *testing.T) {
-	proxyPort, teardown := setupHoverfly(t)
+	proxyPort, teardown := replay.SetupReplayProxy(t)
 	t.Cleanup(func() { teardown(t) })
 
 	var (
@@ -382,7 +350,7 @@ func TestAccConfigRSAlertConfiguration_importIncorrectId(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_importConfigNotifications(t *testing.T) {
-	proxyPort, teardown := setupHoverfly(t)
+	proxyPort, teardown := replay.SetupReplayProxy(t)
 	t.Cleanup(func() { teardown(t) })
 
 	var (
@@ -414,7 +382,7 @@ const dummy36CharKey = "11111111-1111-1111-1111-111111111111"
 
 // used for testing notification that does not define interval_min attribute
 func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
-	proxyPort, teardown := setupHoverfly(t)
+	proxyPort, teardown := replay.SetupReplayProxy(t)
 	t.Cleanup(func() { teardown(t) })
 
 	var (
@@ -446,7 +414,7 @@ func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_updatePagerDutyWithNotifierId(t *testing.T) {
-	proxyPort, teardown := setupHoverfly(t)
+	proxyPort, teardown := replay.SetupReplayProxy(t)
 	t.Cleanup(func() { teardown(t) })
 
 	var (
@@ -482,7 +450,7 @@ func TestAccConfigRSAlertConfiguration_updatePagerDutyWithNotifierId(t *testing.
 }
 
 func TestAccConfigRSAlertConfiguration_withDataDog(t *testing.T) {
-	proxyPort, teardown := setupHoverfly(t)
+	proxyPort, teardown := replay.SetupReplayProxy(t)
 	t.Cleanup(func() { teardown(t) })
 
 	var (
@@ -508,7 +476,7 @@ func TestAccConfigRSAlertConfiguration_withDataDog(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withPagerDuty(t *testing.T) {
-	proxyPort, teardown := setupHoverfly(t)
+	proxyPort, teardown := replay.SetupReplayProxy(t)
 	t.Cleanup(func() { teardown(t) })
 
 	var (
@@ -533,7 +501,7 @@ func TestAccConfigRSAlertConfiguration_withPagerDuty(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withOpsGenie(t *testing.T) {
-	proxyPort, teardown := setupHoverfly(t)
+	proxyPort, teardown := replay.SetupReplayProxy(t)
 	t.Cleanup(func() { teardown(t) })
 
 	var (
@@ -558,7 +526,7 @@ func TestAccConfigRSAlertConfiguration_withOpsGenie(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withVictorOps(t *testing.T) {
-	proxyPort, teardown := setupHoverfly(t)
+	proxyPort, teardown := replay.SetupReplayProxy(t)
 	t.Cleanup(func() { teardown(t) })
 
 	var (
@@ -582,7 +550,7 @@ func TestAccConfigRSAlertConfiguration_withVictorOps(t *testing.T) {
 	})
 }
 
-func checkExistsUsingProxy(proxyPort int, resourceName string) resource.TestCheckFunc {
+func checkExistsUsingProxy(proxyPort *int, resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -600,7 +568,7 @@ func checkExistsUsingProxy(proxyPort int, resourceName string) resource.TestChec
 	}
 }
 
-func checkDestroyUsingProxy(proxyPort int) resource.TestCheckFunc {
+func checkDestroyUsingProxy(proxyPort *int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		for _, rs := range s.RootModule().Resources {
 			if rs.Type != "mongodbatlas_alert_configuration" {

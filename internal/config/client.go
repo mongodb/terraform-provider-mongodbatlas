@@ -39,11 +39,11 @@ type MongoDBClient struct {
 // Config contains the configurations needed to use SDKs
 type Config struct {
 	AssumeRole   *AssumeRole
+	ProxyPort    *int
 	PublicKey    string
 	PrivateKey   string
 	BaseURL      string
 	RealmBaseURL string
-	ProxyPort    *int
 }
 
 type AssumeRole struct {
@@ -65,7 +65,6 @@ type SecretData struct {
 
 // NewClient func...
 func (c *Config) NewClient(ctx context.Context) (any, error) {
-
 	// setup a transport to handle digest
 	transport := digest.NewTransport(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey))
 
