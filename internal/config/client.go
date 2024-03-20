@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"net/http"
@@ -73,7 +74,10 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	}
 
 	proxyURL, _ := url.Parse("http://localhost:8500")
-	transport.Transport = &http.Transport{Proxy: http.ProxyURL(proxyURL)}
+	transport.Transport = &http.Transport{
+		Proxy:           http.ProxyURL(proxyURL),
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
 
 	// initialize the client
 	client, err := transport.Client()
