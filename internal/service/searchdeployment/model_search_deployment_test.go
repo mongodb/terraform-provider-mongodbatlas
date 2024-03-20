@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
-	"go.mongodb.org/atlas-sdk/v20231115007/admin"
+	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 type sdkToTFModelTestCase struct {
@@ -68,9 +68,9 @@ func TestSearchDeploymentSDKToTFModel(t *testing.T) {
 
 func TestSearchDeploymentTFModelToSDK(t *testing.T) {
 	testCases := []struct {
+		name           string
 		tfModel        *searchdeployment.TFSearchDeploymentRSModel
 		expectedSDKReq admin.ApiSearchDeploymentRequest
-		name           string
 	}{
 		{
 			name: "Complete TF state",
@@ -82,7 +82,7 @@ func TestSearchDeploymentTFModelToSDK(t *testing.T) {
 				Specs:       tfSpecsList(t, instanceSize, nodeCount),
 			},
 			expectedSDKReq: admin.ApiSearchDeploymentRequest{
-				Specs: &[]admin.ApiSearchDeploymentSpec{
+				Specs: []admin.ApiSearchDeploymentSpec{
 					{
 						InstanceSize: instanceSize,
 						NodeCount:    nodeCount,

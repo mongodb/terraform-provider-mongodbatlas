@@ -6,7 +6,7 @@ filename: "{{ .InterfaceName | snakecase }}.go"
 mockname: "{{.InterfaceName}}"
 
 packages:
-  go.mongodb.org/atlas-sdk/v20231115007/admin:
+  go.mongodb.org/atlas-sdk/v20231115008/admin:
     interfaces:
       AtlasSearchApi:
       EncryptionAtRestUsingCustomerKeyManagementApi:
