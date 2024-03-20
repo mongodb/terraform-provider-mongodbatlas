@@ -64,7 +64,16 @@ type SecretData struct {
 // NewClient func...
 func (c *Config) NewClient(ctx context.Context) (any, error) {
 	// setup a transport to handle digest
-	transport := digest.NewTransport(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey))
+	// transport := digest.NewTransport(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey))
+
+	// // setup a transport to handle digest
+	transport := &digest.Transport{
+		Username: cast.ToString(c.PublicKey),
+		Password: cast.ToString(c.PrivateKey),
+	}
+
+	proxyURL, _ := url.Parse("http://localhost:8500")
+	transport.Transport = &http.Transport{Proxy: http.ProxyURL(proxyURL)}
 
 	// initialize the client
 	client, err := transport.Client()
