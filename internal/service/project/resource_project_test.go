@@ -121,8 +121,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			projectsMock.EXPECT().ReturnAllIPAddresses(mock.Anything, mock.Anything).Return(admin.ReturnAllIPAddressesApiRequest{ApiService: projectsMock}).Maybe()
 			projectsMock.EXPECT().ReturnAllIPAddressesExecute(mock.Anything).Return(tc.ipAddressesResponse.IPAddresses, tc.ipAddressesResponse.HTTPResponse, tc.ipAddressesResponse.Err).Maybe()
 
-			client := &admin.APIClient{ProjectsApi: projectsMock, TeamsApi: teamsMock}
-			_, err := project.GetProjectPropsFromAPI(context.Background(), client, dummyProjectID)
+			_, err := project.GetProjectPropsFromAPI(context.Background(), projectsMock, teamsMock, dummyProjectID)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -224,8 +223,7 @@ func TestUpdateProject(t *testing.T) {
 
 			svc.EXPECT().UpdateProjectExecute(mock.Anything).Return(tc.mockResponses.Project, tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
 
-			client := &admin.APIClient{ProjectsApi: svc}
-			err := project.UpdateProject(context.Background(), client, &testCases[i].projectState, &testCases[i].projectPlan)
+			err := project.UpdateProject(context.Background(), svc, &testCases[i].projectState, &testCases[i].projectPlan)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -334,8 +332,7 @@ func TestUpdateProjectLimits(t *testing.T) {
 			svc.EXPECT().SetProjectLimit(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(admin.SetProjectLimitApiRequest{ApiService: svc}).Maybe()
 			svc.EXPECT().SetProjectLimitExecute(mock.Anything).Return(nil, nil, nil).Maybe()
 
-			client := &admin.APIClient{ProjectsApi: svc}
-			err := project.UpdateProjectLimits(context.Background(), client, &testCases[i].projectState, &testCases[i].projectPlan)
+			err := project.UpdateProjectLimits(context.Background(), svc, &testCases[i].projectState, &testCases[i].projectPlan)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -431,8 +428,7 @@ func TestUpdateProjectTeams(t *testing.T) {
 			svc.EXPECT().UpdateTeamRoles(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(admin.UpdateTeamRolesApiRequest{ApiService: svc}).Maybe()
 			svc.EXPECT().UpdateTeamRolesExecute(mock.Anything).Return(nil, nil, nil).Maybe()
 
-			client := &admin.APIClient{TeamsApi: svc}
-			err := project.UpdateProjectTeams(context.Background(), client, &testCases[i].projectState, &testCases[i].projectPlan)
+			err := project.UpdateProjectTeams(context.Background(), svc, &testCases[i].projectState, &testCases[i].projectPlan)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -486,8 +482,7 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 			svc.EXPECT().ListClusters(mock.Anything, dummyProjectID).Return(admin.ListClustersApiRequest{ApiService: svc})
 			svc.EXPECT().ListClustersExecute(mock.Anything).Return(tc.mockResponses.AdvancedClusterDescription, tc.mockResponses.HTTPResponse, tc.mockResponses.Err)
 
-			client := &admin.APIClient{ClustersApi: svc}
-			_, _, err := project.ResourceProjectDependentsDeletingRefreshFunc(context.Background(), dummyProjectID, client)()
+			_, _, err := project.ResourceProjectDependentsDeletingRefreshFunc(context.Background(), dummyProjectID, svc)()
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
