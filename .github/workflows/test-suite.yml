@@ -25,7 +25,7 @@ on:
         required: false
 
   schedule:
-    - cron: "0 0 * * 0-5" # workflow runs every day at midnight UTC except on Saturdays
+    - cron: "0 0 2-31 * *" # workflow runs every day at midnight UTC except on Saturdays
    
 concurrency:
   group: '${{ github.workflow }}'
