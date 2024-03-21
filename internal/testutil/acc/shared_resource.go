@@ -2,9 +2,11 @@ package acc
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"testing"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/replay"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,6 +21,11 @@ func cleanupSharedResources() {
 	if sharedInfo.projectID != "" {
 		fmt.Printf("Deleting execution project: %s, id: %s\n", sharedInfo.projectName, sharedInfo.projectID)
 		deleteProject(sharedInfo.projectID)
+		if replay.IsInCaptureMode() {
+			if err := replay.CaptureExecutionVariables(sharedInfo.projectID); err != nil {
+				log.Fatal("Failed to generate file for capturing execution variables")
+			}
+		}
 	}
 }
 
@@ -34,9 +41,15 @@ func ProjectIDExecution(tb testing.TB) string {
 
 	// lazy creation so it's only done if really needed
 	if sharedInfo.projectID == "" {
-		sharedInfo.projectName = RandomProjectName()
-		tb.Logf("Creating execution project: %s\n", sharedInfo.projectName)
-		sharedInfo.projectID = createProject(tb, sharedInfo.projectName)
+		if replay.IsInSimulateMode() {
+			vars, _ := replay.ObtainExecutionVariables()
+			tb.Logf("Using project id from simulation execution variables %s\n", vars.ProjectID)
+			sharedInfo.projectID = vars.ProjectID
+		} else {
+			sharedInfo.projectName = RandomProjectName()
+			tb.Logf("Creating execution project: %s\n", sharedInfo.projectName)
+			sharedInfo.projectID = createProject(tb, sharedInfo.projectName)
+		}
 	}
 
 	return sharedInfo.projectID

@@ -4,22 +4,27 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"testing"
 
 	hoverfly "github.com/SpectoLabs/hoverfly/core"
 	v2 "github.com/SpectoLabs/hoverfly/core/handlers/v2"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
 const resultFilePrefix = "../../../simulations/"
 
+func IsInCaptureMode() bool {
+	return os.Getenv("REPLAY_MODE") == "capture"
+}
+
+func IsInSimulateMode() bool {
+	return os.Getenv("REPLAY_MODE") == "simulate"
+}
+
 func SetupReplayProxy(t *testing.T) (*int, func(t *testing.T)) {
-
-	configuredMode := os.Getenv("PROXY_MODE")
-
-	if configuredMode == "capture" {
+	if IsInCaptureMode() {
 		proxyPort, hv := newHoverflyInstance()
 
 		if err := hv.SetModeWithArguments(v2.ModeView{Mode: "capture", Arguments: v2.ModeArgumentsView{Stateful: true}}); err != nil {
@@ -27,7 +32,7 @@ func SetupReplayProxy(t *testing.T) (*int, func(t *testing.T)) {
 		}
 		return &proxyPort, teardownCapture(hv)
 	}
-	if configuredMode == "simulate" {
+	if IsInSimulateMode() {
 		proxyPort, hv := newHoverflyInstance()
 
 		fileName := fmt.Sprintf("%s%s.json", resultFilePrefix, t.Name())
@@ -42,12 +47,12 @@ func SetupReplayProxy(t *testing.T) (*int, func(t *testing.T)) {
 		return &proxyPort, teardownSimulate(hv)
 	}
 
-	log.Printf("No proxy valid proxy mode was configured: %s", configuredMode)
+	log.Printf("No replay mode was configured")
 	return nil, func(t *testing.T) {}
 }
 
 func newHoverflyInstance() (int, *hoverfly.Hoverfly) {
-	proxyPort := rand.Intn(65536)
+	proxyPort := acctest.RandIntRange(1024, 65536)
 	settings := hoverfly.InitSettings()
 	settings.ProxyPort = fmt.Sprintf("%d", proxyPort)
 	hv := hoverfly.NewHoverflyWithConfiguration(settings)
@@ -70,25 +75,26 @@ func teardownCapture(hv *hoverfly.Hoverfly) func(t *testing.T) {
 		if err != nil {
 			log.Fatalf("Failed to obtain simulation result: %v", err)
 		}
-		fileName := fmt.Sprintf("%s%s.json", resultFilePrefix, t.Name())
-		serializeSimulationToFile(data, fileName)
+		jsonData, err := json.MarshalIndent(data, "", "    ")
+		if err != nil {
+			log.Fatalf("Error serializing to JSON: %v", err)
+		}
+
+		if err := createFileInSimulationDir(jsonData, t.Name()); err != nil {
+			log.Fatalf("Error storing file: %v", err)
+		}
 		hv.StopProxy()
 	}
 }
 
-func serializeSimulationToFile(simulation v2.SimulationViewV5, filePath string) {
-	jsonData, err := json.MarshalIndent(simulation, "", "    ")
-	if err != nil {
-		log.Fatalf("Error serializing to JSON: %v", err)
-	}
-
+func createFileInSimulationDir(jsonData []byte, fileName string) error {
+	filePath := fmt.Sprintf("%s%s.json", resultFilePrefix, fileName)
 	dirPath := filepath.Dir(filePath)
 	if err := os.MkdirAll(dirPath, 0755); err != nil {
-		log.Fatalf("Error creating directories: %v", err)
+		return err
 	}
-
-	err = os.WriteFile(filePath, jsonData, 0644)
-	if err != nil {
-		log.Fatalf("Error writing JSON to file: %v", err)
+	if err := os.WriteFile(filePath, jsonData, 0644); err != nil {
+		return err
 	}
+	return nil
 }
