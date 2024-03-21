@@ -30,50 +30,48 @@ fi
 if [ "$1" == "success" ]; then
     text_value="HashiCorp Terraform Compatibility Matrix succeeded!"
 
-    cat <<EOF
-{
-	"text": "$text_value",
-	"blocks": [
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "$text_value"
-			}
-		}
-	]
-}
-EOF
+    json="{
+        \"text\": \"$text_value\",
+        \"blocks\": [
+            {
+                \"type\": \"section\",
+                \"text\": {
+                    \"type\": \"mrkdwn\",
+                    \"text\": \"$text_value\"
+                }
+            }
+        ]
+    }"
 else
     text_value="HashiCorp Terraform Compatibility Matrix failed!"
     server_url=$2
     repository=$3
     run_id=$4
-    cat <<EOF
-{
-	"text": "$text_value",
-	"blocks": [
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "$text_value"
-			}
-		},
-		{
-			"type": "actions",
-			"elements": [
-				{
-					"type": "button",
-					"text": {
-						"type": "plain_text",
-						"text": ":github: Failed action"
-					},
-					"url": "${server_url}/${repository}/actions/runs/${run_id}"
-				}
-			]
-		}
-	]
-}
-EOF
+    json="{
+        \"text\": \"$text_value\",
+        \"blocks\": [
+            {
+                \"type\": \"section\",
+                \"text\": {
+                    \"type\": \"mrkdwn\",
+                    \"text\": \"$text_value\"
+                }
+            },
+            {
+                \"type\": \"actions\",
+                \"elements\": [
+                    {
+                        \"type\": \"button\",
+                        \"text\": {
+                            \"type\": \"plain_text\",
+                            \"text\": \":github: Failed action\"
+                        },
+                        \"url\": \"${server_url}/${repository}/actions/runs/${run_id}\"
+                    }
+                ]
+            }
+        ]
+    }"
 fi
+
+echo "$json"
