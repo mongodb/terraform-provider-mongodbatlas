@@ -30,48 +30,50 @@ fi
 if [ "$1" == "success" ]; then
     text_value="HashiCorp Terraform Compatibility Matrix succeeded!"
 
-    json="{
-        \"text\": \"$text_value\",
-        \"blocks\": [
+    cat <<EOF
+	{
+        "text": "$text_value",
+        "blocks": [
             {
-                \"type\": \"section\",
-                \"text\": {
-                    \"type\": \"mrkdwn\",
-                    \"text\": \"$text_value\"
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "$text_value"
                 }
             }
         ]
-    }"
+    }
+EOF
 else
     text_value="HashiCorp Terraform Compatibility Matrix failed!"
     server_url=$2
     repository=$3
     run_id=$4
-    json="{
-        \"text\": \"$text_value\",
-        \"blocks\": [
+    cat <<EOF
+	{
+        "text": "$text_value",
+        "blocks": [
             {
-                \"type\": \"section\",
-                \"text\": {
-                    \"type\": \"mrkdwn\",
-                    \"text\": \"$text_value\"
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "$text_value"
                 }
             },
             {
-                \"type\": \"actions\",
-                \"elements\": [
+                "type": "actions",
+                "elements": [
                     {
-                        \"type\": \"button\",
-                        \"text\": {
-                            \"type\": \"plain_text\",
-                            \"text\": \":github: Failed action\"
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": ":github: Failed action"
                         },
-                        \"url\": \"${server_url}/${repository}/actions/runs/${run_id}\"
+                        "url": "${server_url}/${repository}/actions/runs/${run_id}"
                     }
                 ]
             }
         ]
-    }"
+    }
+EOF
 fi
-
-echo "$json"
