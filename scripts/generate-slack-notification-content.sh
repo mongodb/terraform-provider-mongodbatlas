@@ -29,10 +29,10 @@ fi
 
 if [ "$1" == "success" ]; then
     text_value="HashiCorp Terraform Compatibility Matrix succeeded!"
-	action_text="Failed action"
+	action_text="Successful action"
 else
     text_value="HashiCorp Terraform Compatibility Matrix failed!"
-	action_text="Successful action"
+	action_text="Failed action"
 fi
 
 server_url=$2
