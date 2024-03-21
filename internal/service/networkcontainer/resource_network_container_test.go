@@ -24,7 +24,7 @@ func TestAccNetworkContainer_basicAWS(t *testing.T) {
 		projectID        = acc.ProjectIDExecution(t)
 		randInt          = acctest.RandIntRange(0, 255)
 		cidrBlock        = fmt.Sprintf("10.8.%d.0/24", randInt)
-		randIntUpdated   = acctest.RandIntRange(0, 255)
+		randIntUpdated   = (randInt + 1) % 256
 		cidrBlockUpdated = fmt.Sprintf("10.8.%d.0/24", randIntUpdated)
 	)
 
@@ -69,7 +69,7 @@ func TestAccNetworkContainer_basicAzure(t *testing.T) {
 	var (
 		randInt          = acctest.RandIntRange(0, 255)
 		cidrBlock        = fmt.Sprintf("10.8.%d.0/24", randInt)
-		randIntUpdated   = acctest.RandIntRange(0, 255)
+		randIntUpdated   = (randInt + 1) % 256
 		cidrBlockUpdated = fmt.Sprintf("10.8.%d.0/24", randIntUpdated)
 		projectID        = acc.ProjectIDExecution(t)
 	)
@@ -115,7 +115,7 @@ func TestAccNetworkContainer_basicGCP(t *testing.T) {
 	var (
 		randInt          = acctest.RandIntRange(0, 255)
 		gcpCidrBlock     = fmt.Sprintf("10.%d.0.0/18", randInt)
-		randIntUpdated   = acctest.RandIntRange(0, 255)
+		randIntUpdated   = (randInt + 1) % 256
 		cidrBlockUpdated = fmt.Sprintf("10.%d.0.0/18", randIntUpdated)
 		projectID        = acc.ProjectIDExecution(t)
 	)
@@ -213,6 +213,53 @@ func TestAccNetworkContainer_importBasic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{},
+			},
+		},
+	})
+}
+
+func TestAccNetworkContainer_updateIndividualFields(t *testing.T) {
+	var (
+		projectID        = acc.ProjectIDExecution(t)
+		randInt          = acctest.RandIntRange(0, 255)
+		cidrBlock        = fmt.Sprintf("10.8.%d.0/24", randInt)
+		randIntUpdated   = (randInt + 1) % 256
+		cidrBlockUpdated = fmt.Sprintf("10.8.%d.0/24", randIntUpdated)
+		region           = "US_WEST_2"
+		regionUpdated    = "US_EAST_2"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(projectID, cidrBlock, constant.AWS, region),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AWS),
+					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
+				),
+			},
+			{
+				Config: configBasic(projectID, cidrBlockUpdated, constant.AWS, region),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AWS),
+					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
+				),
+			},
+			{
+				Config: configBasic(projectID, cidrBlockUpdated, constant.AWS, regionUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AWS),
+					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
+				),
 			},
 		},
 	})
