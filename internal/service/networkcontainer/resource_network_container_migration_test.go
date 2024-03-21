@@ -26,12 +26,7 @@ func TestMigNetworkContainer_basicAWS(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AWS),
-					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
-				),
+				Check:             resource.ComposeTestCheckFunc(commonChecks(constant.AWS)...),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},
@@ -53,12 +48,7 @@ func TestMigNetworkContainer_basicAzure(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AZURE),
-					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
-				),
+				Check:             resource.ComposeTestCheckFunc(commonChecks(constant.AZURE)...),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},
@@ -80,12 +70,7 @@ func TestMigNetworkContainer_basicGCP(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.GCP),
-					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
-				),
+				Check:             resource.ComposeTestCheckFunc(commonChecks(constant.GCP)...),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},
