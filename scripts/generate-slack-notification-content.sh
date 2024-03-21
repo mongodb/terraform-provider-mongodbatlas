@@ -31,47 +31,47 @@ if [ "$1" == "success" ]; then
     text_value="HashiCorp Terraform Compatibility Matrix succeeded!"
 
     json="{
-	\"text\": \"$text_value\",
-	\"blocks\": [
-		{
-			\"type\": \"section\",
-			\"text\": {
-				\"type\": \"mrkdwn\",
-				\"text\": \"$text_value\"
+		\"text\": \"$text_value\",
+		\"blocks\": [
+			{
+				\"type\": \"section\",
+				\"text\": {
+					\"type\": \"mrkdwn\",
+					\"text\": \"$text_value\"
+				}
 			}
-		}
-	]
-}"
+		]
+	}"
 else
     text_value="HashiCorp Terraform Compatibility Matrix failed!"
 	server_url=$2
 	repository=$3
 	run_id=$4
     json="{
-\"text\": \"$text_value\",
-\"blocks\": [
-	{
-		\"type\": \"section\",
-		\"text\": {
-			\"type\": \"mrkdwn\",
-			\"text\": \"$text_value\"
-		}
-	},
-	{
-		\"type\": \"actions\",
-		\"elements\": [
+		\"text\": \"$text_value\",
+		\"blocks\": [
 			{
-				\"type\": \"button\",
+				\"type\": \"section\",
 				\"text\": {
-				\"type\": \"plain_text\",
-				\"text\": \":github: Failed action\"
-				},
-				\"url\": \"${server_url}/${repository}/actions/runs/${run_id}\"
+					\"type\": \"mrkdwn\",
+					\"text\": \"$text_value\"
+				}
+			},
+			{
+				\"type\": \"actions\",
+				\"elements\": [
+					{
+						\"type\": \"button\",
+						\"text\": {
+						\"type\": \"plain_text\",
+						\"text\": \":github: Failed action\"
+						},
+						\"url\": \"${server_url}/${repository}/actions/runs/${run_id}\"
+					},
+				]
 			}
 		]
-	}
-]
-}"
+	}"
 fi
 
-echo $json
+echo "$json"
