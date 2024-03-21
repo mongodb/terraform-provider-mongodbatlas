@@ -300,9 +300,9 @@ func UpgradeRefreshFunc(ctx context.Context, name, projectID string, client admi
 	}
 }
 
-func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, client admin.ClustersApi) retry.StateRefreshFunc {
+func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, clustersAPI admin.ClustersApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		clusters, resp, err := client.ListClusters(ctx, projectID).Execute()
+		clusters, resp, err := clustersAPI.ListClusters(ctx, projectID).Execute()
 
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
