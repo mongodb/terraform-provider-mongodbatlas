@@ -112,7 +112,7 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx context.Context, 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"REPEATING", "PENDING"},
 		Target:     []string{"IDLE", "DELETED"},
-		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, advancedcluster.ServiceFromClient(connV2)),
+		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 		Timeout:    d.Timeout(timeoutKey.(string)),
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
