@@ -13,15 +13,12 @@ type ExecutionVariables struct {
 	ProjectID string `json:"projectId"`
 }
 
-func CaptureExecutionVariables(projectId string) error {
-	jsonData, err := json.MarshalIndent(ExecutionVariables{ProjectID: projectId}, "", "    ")
+func CaptureExecutionVariables(projectID string) error {
+	jsonData, err := json.MarshalIndent(ExecutionVariables{ProjectID: projectID}, "", "    ")
 	if err != nil {
 		return err
 	}
-	if err := createFileInSimulationDir(jsonData, fileName); err != nil {
-		return err
-	}
-	return nil
+	return createFileInSimulationDir(jsonData, fileName)
 }
 
 func ObtainExecutionVariables() (*ExecutionVariables, error) {

@@ -20,10 +20,10 @@ const (
 // TestAccProviderV6Factories is used in all tests for ProtoV6ProviderFactories.
 var TestAccProviderV6Factories map[string]func() (tfprotov6.ProviderServer, error)
 
-func TestAccProviderV6FactoriesWithProxy(proxyNum *int) map[string]func() (tfprotov6.ProviderServer, error) {
+func TestAccProviderV6FactoriesWithProxy(proxyPort *int) map[string]func() (tfprotov6.ProviderServer, error) {
 	return map[string]func() (tfprotov6.ProviderServer, error){
 		ProviderNameMongoDBAtlas: func() (tfprotov6.ProviderServer, error) {
-			return provider.MuxedProviderFactory(proxyNum)(), nil
+			return provider.MuxedProviderFactory(proxyPort)(), nil
 		},
 	}
 }

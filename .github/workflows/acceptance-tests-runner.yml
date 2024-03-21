@@ -473,14 +473,7 @@ jobs:
       - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false
-      - name: Install Hoverfly
-        uses: agilepathway/hoverfly-github-action@b8263d635a4c27b99a9d8e41d90b450cf8bc147f
-        with:
-          version: v1.8.0
-          runner_github_workspace_path: ${{ github.workspace }}
-      - name: Enable https calls to be simulated by Hoverfly
-        run: install-and-trust-hoverfly-default-cert.sh
+          terraform_wrapper: false  
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
@@ -488,9 +481,21 @@ jobs:
           AZURE_ATLAS_APP_ID: ${{ inputs.azure_atlas_app_id }}
           AZURE_SERVICE_PRINCIPAL_ID: ${{ inputs.azure_service_principal_id }}
           AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
-          # HTTPS_PROXY: http://localhost:8500 # impacts download of go dependencies
           ACCTEST_PACKAGES: |
             ./internal/service/alertconfiguration
+            ./internal/service/atlasuser
+            ./internal/service/databaseuser
+            ./internal/service/projectapikey
+            ./internal/service/apikey
+            ./internal/service/teams
+            ./internal/service/cloudprovideraccess
+            ./internal/service/customdbrole
+            ./internal/service/maintenancewindow
+            ./internal/service/customdnsconfigurationclusteraws
+            ./internal/service/rolesorgid
+            ./internal/service/orginvitation
+            ./internal/service/organization
+            ./internal/service/thirdpartyintegration
         run: make testacc
 
   assume_role:

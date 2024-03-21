@@ -46,7 +46,7 @@ const (
 )
 
 type MongodbtlasProvider struct {
-	proxyNum *int
+	proxyPort *int
 }
 
 type tfMongodbAtlasProviderModel struct {
@@ -231,7 +231,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		PrivateKey:   data.PrivateKey.ValueString(),
 		BaseURL:      data.BaseURL.ValueString(),
 		RealmBaseURL: data.RealmBaseURL.ValueString(),
-		ProxyPort:    p.proxyNum,
+		ProxyPort:    p.proxyPort,
 	}
 
 	var assumeRoles []tfAssumeRoleModel
@@ -246,7 +246,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		awsSessionToken := data.AwsSessionToken.ValueString()
 		endpoint := data.StsEndpoint.ValueString()
 		var err error
-		cfg, err = configureCredentialsSTS(cfg, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+		cfg, err = configureCredentialsSTS(&cfg, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
 		if err != nil {
 			resp.Diagnostics.AddError("failed to configure credentials STS", err.Error())
 			return
@@ -451,15 +451,15 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 	return resources
 }
 
-func NewFrameworkProvider(proxyNum *int) provider.Provider {
+func NewFrameworkProvider(proxyPort *int) provider.Provider {
 	return &MongodbtlasProvider{
-		proxyNum: proxyNum,
+		proxyPort: proxyPort,
 	}
 }
 
-func MuxedProviderFactory(proxyNum *int) func() tfprotov6.ProviderServer {
-	v2Provider := NewSdkV2Provider(proxyNum)
-	newProvider := NewFrameworkProvider(proxyNum)
+func MuxedProviderFactory(proxyPort *int) func() tfprotov6.ProviderServer {
+	v2Provider := NewSdkV2Provider(proxyPort)
+	newProvider := NewFrameworkProvider(proxyPort)
 	ctx := context.Background()
 	upgradedSdkProvider, err := tf5to6server.UpgradeServer(ctx, v2Provider.GRPCProvider)
 	if err != nil {

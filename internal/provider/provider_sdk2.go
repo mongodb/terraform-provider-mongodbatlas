@@ -72,7 +72,7 @@ type SecretData struct {
 }
 
 // NewSdkV2Provider returns the provider to be use by the code.
-func NewSdkV2Provider(proxyNum *int) *schema.Provider {
+func NewSdkV2Provider(proxyPort *int) *schema.Provider {
 	provider := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"public_key": {
@@ -133,11 +133,9 @@ func NewSdkV2Provider(proxyNum *int) *schema.Provider {
 				Description: "AWS Security Token Service provided session token.",
 			},
 		},
-		DataSourcesMap: getDataSourcesMap(),
-		ResourcesMap:   getResourcesMap(),
-		ConfigureContextFunc: func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-			return providerConfigure(proxyNum, ctx, d)
-		},
+		DataSourcesMap:       getDataSourcesMap(),
+		ResourcesMap:         getResourcesMap(),
+		ConfigureContextFunc: providerConfigure(proxyPort),
 	}
 	addPreviewFeatures(provider)
 	return provider
@@ -285,42 +283,44 @@ func addPreviewFeatures(provider *schema.Provider) {
 	}
 }
 
-func providerConfigure(proxyNum *int, ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
-	diagnostics := setDefaultsAndValidations(d)
-	if diagnostics.HasError() {
-		return nil, diagnostics
-	}
+func providerConfigure(proxyPort *int) func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
+	return func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
+		diagnostics := setDefaultsAndValidations(d)
+		if diagnostics.HasError() {
+			return nil, diagnostics
+		}
 
-	cfg := config.Config{
-		PublicKey:    d.Get("public_key").(string),
-		PrivateKey:   d.Get("private_key").(string),
-		BaseURL:      d.Get("base_url").(string),
-		RealmBaseURL: d.Get("realm_base_url").(string),
-		ProxyPort:    proxyNum,
-	}
+		cfg := config.Config{
+			PublicKey:    d.Get("public_key").(string),
+			PrivateKey:   d.Get("private_key").(string),
+			BaseURL:      d.Get("base_url").(string),
+			RealmBaseURL: d.Get("realm_base_url").(string),
+			ProxyPort:    proxyPort,
+		}
 
-	assumeRoleValue, ok := d.GetOk("assume_role")
-	awsRoleDefined := ok && len(assumeRoleValue.([]any)) > 0 && assumeRoleValue.([]any)[0] != nil
-	if awsRoleDefined {
-		cfg.AssumeRole = expandAssumeRole(assumeRoleValue.([]any)[0].(map[string]any))
-		secret := d.Get("secret_name").(string)
-		region := conversion.MongoDBRegionToAWSRegion(d.Get("region").(string))
-		awsAccessKeyID := d.Get("aws_access_key_id").(string)
-		awsSecretAccessKey := d.Get("aws_secret_access_key").(string)
-		awsSessionToken := d.Get("aws_session_token").(string)
-		endpoint := d.Get("sts_endpoint").(string)
-		var err error
-		cfg, err = configureCredentialsSTS(cfg, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+		assumeRoleValue, ok := d.GetOk("assume_role")
+		awsRoleDefined := ok && len(assumeRoleValue.([]any)) > 0 && assumeRoleValue.([]any)[0] != nil
+		if awsRoleDefined {
+			cfg.AssumeRole = expandAssumeRole(assumeRoleValue.([]any)[0].(map[string]any))
+			secret := d.Get("secret_name").(string)
+			region := conversion.MongoDBRegionToAWSRegion(d.Get("region").(string))
+			awsAccessKeyID := d.Get("aws_access_key_id").(string)
+			awsSecretAccessKey := d.Get("aws_secret_access_key").(string)
+			awsSessionToken := d.Get("aws_session_token").(string)
+			endpoint := d.Get("sts_endpoint").(string)
+			var err error
+			cfg, err = configureCredentialsSTS(&cfg, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+			if err != nil {
+				return nil, append(diagnostics, diag.FromErr(err)...)
+			}
+		}
+
+		client, err := cfg.NewClient(ctx)
 		if err != nil {
 			return nil, append(diagnostics, diag.FromErr(err)...)
 		}
+		return client, diagnostics
 	}
-
-	client, err := cfg.NewClient(ctx)
-	if err != nil {
-		return nil, append(diagnostics, diag.FromErr(err)...)
-	}
-	return client, diagnostics
 }
 
 func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {

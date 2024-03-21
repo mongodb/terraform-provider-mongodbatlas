@@ -68,12 +68,8 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	// setup a transport to handle digest
 	transport := digest.NewTransport(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey))
 
+	// proxy is only used for testing purposes
 	if c.ProxyPort != nil {
-		transport = &digest.Transport{
-			Username: cast.ToString(c.PublicKey),
-			Password: cast.ToString(c.PrivateKey),
-		}
-
 		proxyURL, _ := url.Parse(fmt.Sprintf("http://localhost:%d", *c.ProxyPort))
 		transport.Transport = &http.Transport{
 			Proxy:           http.ProxyURL(proxyURL),

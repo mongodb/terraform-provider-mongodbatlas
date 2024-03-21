@@ -23,32 +23,44 @@ func IsInSimulateMode() bool {
 	return os.Getenv("REPLAY_MODE") == "simulate"
 }
 
-func SetupReplayProxy(t *testing.T) (*int, func(t *testing.T)) {
+func SetupReplayProxy(t *testing.T) (proxyPort *int, teardown func(t *testing.T)) {
+	t.Helper()
 	if IsInCaptureMode() {
-		proxyPort, hv := newHoverflyInstance()
-
-		if err := hv.SetModeWithArguments(v2.ModeView{Mode: "capture", Arguments: v2.ModeArgumentsView{Stateful: true}}); err != nil {
-			log.Fatalf("Failed to set Hoverfly mode: %v", err)
-		}
-		return &proxyPort, teardownCapture(hv)
+		return setupCaptureMode()
 	}
 	if IsInSimulateMode() {
-		proxyPort, hv := newHoverflyInstance()
-
-		fileName := fmt.Sprintf("%s%s.json", resultFilePrefix, t.Name())
-		if err := hv.ImportFromDisk(fileName); err != nil {
-			log.Fatalf("Failed to import simulation for test: %v", err)
-		}
-
-		if err := hv.SetMode("simulate"); err != nil {
-			log.Fatalf("Failed to set Hoverfly mode: %v", err)
-		}
-
-		return &proxyPort, teardownSimulate(hv)
+		return setupSimulateMode(t)
 	}
 
 	log.Printf("No replay mode was configured")
-	return nil, func(t *testing.T) {}
+	return nil, func(t *testing.T) {
+		t.Helper()
+	}
+}
+
+func setupSimulateMode(t *testing.T) (proxyPort *int, teardown func(t *testing.T)) {
+	t.Helper()
+	port, hv := newHoverflyInstance()
+
+	fileName := fmt.Sprintf("%s%s.json", resultFilePrefix, t.Name())
+	if err := hv.ImportFromDisk(fileName); err != nil {
+		log.Fatalf("Failed to import simulation for test: %v", err)
+	}
+
+	if err := hv.SetMode("simulate"); err != nil {
+		log.Fatalf("Failed to set Hoverfly mode: %v", err)
+	}
+
+	return &port, teardownSimulate(hv)
+}
+
+func setupCaptureMode() (proxyPort *int, teardown func(t *testing.T)) {
+	port, hv := newHoverflyInstance()
+
+	if err := hv.SetModeWithArguments(v2.ModeView{Mode: "capture", Arguments: v2.ModeArgumentsView{Stateful: true}}); err != nil {
+		log.Fatalf("Failed to set Hoverfly mode: %v", err)
+	}
+	return &port, teardownCapture(hv)
 }
 
 func newHoverflyInstance() (int, *hoverfly.Hoverfly) {
@@ -65,12 +77,14 @@ func newHoverflyInstance() (int, *hoverfly.Hoverfly) {
 
 func teardownSimulate(hv *hoverfly.Hoverfly) func(t *testing.T) {
 	return func(t *testing.T) {
+		t.Helper()
 		hv.StopProxy()
 	}
 }
 
 func teardownCapture(hv *hoverfly.Hoverfly) func(t *testing.T) {
 	return func(t *testing.T) {
+		t.Helper()
 		data, err := hv.GetSimulation()
 		if err != nil {
 			log.Fatalf("Failed to obtain simulation result: %v", err)
