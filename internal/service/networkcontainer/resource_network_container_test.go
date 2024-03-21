@@ -53,7 +53,7 @@ func TestAccNetworkContainer_basicAWS(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic(projectID, cidrBlockUpdated, constant.AWS, "US_WEST_2"),
+				Config: configBasic(projectID, cidrBlockUpdated, constant.AWS, "US_EAST_2"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -225,8 +225,8 @@ func TestAccNetworkContainer_updateIndividualFields(t *testing.T) {
 		cidrBlock        = fmt.Sprintf("10.8.%d.0/24", randInt)
 		randIntUpdated   = (randInt + 1) % 256
 		cidrBlockUpdated = fmt.Sprintf("10.8.%d.0/24", randIntUpdated)
-		region           = "US_WEST_2"
-		regionUpdated    = "US_EAST_2"
+		region           = "EU_WEST_1"
+		regionUpdated    = "EU_WEST_2"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

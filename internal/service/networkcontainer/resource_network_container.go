@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"reflect"
 	"strings"
 	"time"
 
@@ -212,40 +211,33 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	if !d.HasChange("atlas_cidr_block") && !d.HasChange("region_name") && !d.HasChange("region") && !d.HasChange("regions") {
+		return resourceRead(ctx, d, meta)
+	}
+
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	containerID := ids["container_id"]
+	regionName, _ := conversion.ValRegion(d.Get("region_name"))
+	region, _ := conversion.ValRegion(d.Get("region"))
 
-	container := new(admin.CloudProviderContainer)
-
-	if d.HasChange("atlas_cidr_block") {
-		atlasCidrBlock := d.Get("atlas_cidr_block").(string)
-		providerName := d.Get("provider_name").(string)
-		container.AtlasCidrBlock = &atlasCidrBlock
-		container.ProviderName = &providerName
+	params := &admin.CloudProviderContainer{
+		ProviderName:   conversion.StringPtr(d.Get("provider_name").(string)),
+		AtlasCidrBlock: conversion.StringPtr(d.Get("atlas_cidr_block").(string)),
+		RegionName:     conversion.StringPtr(regionName),
+		Region:         conversion.StringPtr(region),
 	}
 
-	if d.HasChange("provider_name") {
-		providerName := d.Get("provider_name").(string)
-		container.ProviderName = &providerName
-	}
-
-	if d.HasChange("region_name") {
-		regionName, _ := conversion.ValRegion(d.Get("region_name"))
-		container.RegionName = &regionName
-	}
-
-	if d.HasChange("region") {
-		region, _ := conversion.ValRegion(d.Get("region"))
-		container.Region = &region
-	}
-
-	if !reflect.DeepEqual(container, admin.CloudProviderContainer{}) {
-		_, _, err := connV2.NetworkPeeringApi.UpdatePeeringContainer(ctx, projectID, containerID, container).Execute()
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorContainerUpdate, containerID, err))
+	if regionList, ok := d.GetOk("regions"); ok {
+		if regions := cast.ToStringSlice(regionList); regions != nil {
+			params.SetRegions(regions)
 		}
+	}
+
+	_, _, err := connV2.NetworkPeeringApi.UpdatePeeringContainer(ctx, projectID, containerID, params).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorContainerUpdate, containerID, err))
 	}
 
 	return resourceRead(ctx, d, meta)
