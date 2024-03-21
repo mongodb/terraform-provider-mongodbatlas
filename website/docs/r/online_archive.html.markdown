@@ -25,7 +25,7 @@ resource "mongodbatlas_online_archive" "test" {
     db_name      = var.database_name
 
     partition_fields {
-        field_name = "date_field"
+        field_name = "dateField"
         order = 0
     }
 
@@ -41,7 +41,7 @@ resource "mongodbatlas_online_archive" "test" {
 
     criteria {
         type = "DATE"
-        date_field = "created"
+        date_field = "dateField"
         expire_after_days = 5
     }
 
