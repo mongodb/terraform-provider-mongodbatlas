@@ -241,12 +241,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 		params.SetRegion(region)
 	case constant.GCP:
-		regionList, ok := d.GetOk("regions")
-		if !ok {
-			return diag.FromErr(fmt.Errorf(errorContainerUpdate, containerID, "error updating regions"))
-		}
-		if regions := cast.ToStringSlice(regionList); regions != nil {
-			params.SetRegions(regions)
+		if regionList, ok := d.GetOk("regions"); ok {
+			if regions := cast.ToStringSlice(regionList); regions != nil {
+				params.SetRegions(regions)
+			}
 		}
 	}
 	_, _, err := connV2.NetworkPeeringApi.UpdatePeeringContainer(ctx, projectID, containerID, params).Execute()
