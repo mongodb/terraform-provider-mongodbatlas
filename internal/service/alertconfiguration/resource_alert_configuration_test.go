@@ -25,7 +25,7 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 	t.Cleanup(func() { teardown(t) })
 
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = replay.ManageProjectExecutionVariable(t, acc.ProjectIDExecution(t))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -58,7 +58,7 @@ func TestAccConfigRSAlertConfiguration_withEmptyMetricThresholdConfig(t *testing
 	t.Cleanup(func() { teardown(t) })
 
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = replay.ManageProjectExecutionVariable(t, acc.ProjectIDExecution(t))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -78,7 +78,7 @@ func TestAccConfigRSAlertConfiguration_withEmptyMatcherMetricThresholdConfig(t *
 	t.Cleanup(func() { teardown(t) })
 
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = replay.ManageProjectExecutionVariable(t, acc.ProjectIDExecution(t))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -102,7 +102,7 @@ func TestAccConfigRSAlertConfiguration_withNotifications(t *testing.T) {
 	t.Cleanup(func() { teardown(t) })
 
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = replay.ManageProjectExecutionVariable(t, acc.ProjectIDExecution(t))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -133,7 +133,7 @@ func TestAccConfigRSAlertConfiguration_withMatchers(t *testing.T) {
 	t.Cleanup(func() { teardown(t) })
 
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = replay.ManageProjectExecutionVariable(t, acc.ProjectIDExecution(t))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -184,7 +184,7 @@ func TestAccConfigRSAlertConfiguration_withMetricUpdated(t *testing.T) {
 	t.Cleanup(func() { teardown(t) })
 
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = replay.ManageProjectExecutionVariable(t, acc.ProjectIDExecution(t))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -215,7 +215,7 @@ func TestAccConfigRSAlertConfiguration_withThresholdUpdated(t *testing.T) {
 	t.Cleanup(func() { teardown(t) })
 
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = replay.ManageProjectExecutionVariable(t, acc.ProjectIDExecution(t))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -253,7 +253,7 @@ func TestAccConfigRSAlertConfiguration_withoutRoles(t *testing.T) {
 	t.Cleanup(func() { teardown(t) })
 
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = replay.ManageProjectExecutionVariable(t, acc.ProjectIDExecution(t))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -277,7 +277,7 @@ func TestAccConfigRSAlertConfiguration_withoutOptionalAttributes(t *testing.T) {
 	t.Cleanup(func() { teardown(t) })
 
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = replay.ManageProjectExecutionVariable(t, acc.ProjectIDExecution(t))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -301,7 +301,7 @@ func TestAccConfigRSAlertConfiguration_importBasic(t *testing.T) {
 	t.Cleanup(func() { teardown(t) })
 
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = replay.ManageProjectExecutionVariable(t, acc.ProjectIDExecution(t))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -328,7 +328,7 @@ func TestAccConfigRSAlertConfiguration_importIncorrectId(t *testing.T) {
 	t.Cleanup(func() { teardown(t) })
 
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = replay.ManageProjectExecutionVariable(t, acc.ProjectIDExecution(t))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -354,7 +354,7 @@ func TestAccConfigRSAlertConfiguration_importConfigNotifications(t *testing.T) {
 	t.Cleanup(func() { teardown(t) })
 
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = replay.ManageProjectExecutionVariable(t, acc.ProjectIDExecution(t))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -386,7 +386,7 @@ func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
 	t.Cleanup(func() { teardown(t) })
 
 	var (
-		projectID  = acc.ProjectIDExecution(t)
+		projectID  = replay.ManageProjectExecutionVariable(t, acc.ProjectIDExecution(t))
 		serviceKey = dummy32CharKey
 	)
 
@@ -418,7 +418,7 @@ func TestAccConfigRSAlertConfiguration_updatePagerDutyWithNotifierId(t *testing.
 	t.Cleanup(func() { teardown(t) })
 
 	var (
-		projectID  = acc.ProjectIDExecution(t)
+		projectID  = replay.ManageProjectExecutionVariable(t, acc.ProjectIDExecution(t))
 		serviceKey = dummy32CharKey
 		notifierID = "651dd9336afac13e1c112222"
 	)
@@ -454,7 +454,7 @@ func TestAccConfigRSAlertConfiguration_withDataDog(t *testing.T) {
 	t.Cleanup(func() { teardown(t) })
 
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = replay.ManageProjectExecutionVariable(t, acc.ProjectIDExecution(t))
 		ddAPIKey  = dummy32CharKey
 		ddRegion  = "US"
 	)
@@ -480,7 +480,7 @@ func TestAccConfigRSAlertConfiguration_withPagerDuty(t *testing.T) {
 	t.Cleanup(func() { teardown(t) })
 
 	var (
-		projectID  = acc.ProjectIDExecution(t)
+		projectID  = replay.ManageProjectExecutionVariable(t, acc.ProjectIDExecution(t))
 		serviceKey = dummy32CharKey
 	)
 
@@ -505,7 +505,7 @@ func TestAccConfigRSAlertConfiguration_withOpsGenie(t *testing.T) {
 	t.Cleanup(func() { teardown(t) })
 
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = replay.ManageProjectExecutionVariable(t, acc.ProjectIDExecution(t))
 		apiKey    = dummy36CharKey
 	)
 
@@ -530,7 +530,7 @@ func TestAccConfigRSAlertConfiguration_withVictorOps(t *testing.T) {
 	t.Cleanup(func() { teardown(t) })
 
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = replay.ManageProjectExecutionVariable(t, acc.ProjectIDExecution(t))
 		apiKey    = dummy36CharKey
 	)
 
