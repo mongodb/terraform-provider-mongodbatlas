@@ -74,4 +74,4 @@ else
     }"
 fi
 
-echo "$json"
+echo "$json" | jq -c .
