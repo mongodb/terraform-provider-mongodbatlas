@@ -30,7 +30,7 @@ fi
 if [ "$1" == "success" ]; then
     text_value="HashiCorp Terraform Compatibility Matrix succeeded!"
 
-    json="{
+    json=("{
         \"text\": \"$text_value\",
         \"blocks\": [
             {
@@ -41,13 +41,13 @@ if [ "$1" == "success" ]; then
                 }
             }
         ]
-    }"
+    }")
 else
     text_value="HashiCorp Terraform Compatibility Matrix failed!"
     server_url=$2
     repository=$3
     run_id=$4
-    json="{
+    json=("{
         \"text\": \"$text_value\",
         \"blocks\": [
             {
@@ -71,7 +71,7 @@ else
                 ]
             }
         ]
-    }"
+    }")
 fi
 
 echo "$json"
