@@ -35,31 +35,11 @@ func TestAccNetworkContainer_basicAWS(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, cidrBlock, constant.AWS, "US_EAST_1"),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AWS),
-					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
-
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "provider_name", constant.AWS),
-					resource.TestCheckResourceAttrSet(dataSourceName, "provisioned"),
-
-					resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.id"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.atlas_cidr_block"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.provider_name"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.provisioned"),
-				),
+				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.AWS)...),
 			},
 			{
 				Config: configBasic(projectID, cidrBlockUpdated, constant.AWS, "US_EAST_2"),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AWS),
-					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
-				),
+				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.AWS)...),
 			},
 		},
 	})
@@ -81,31 +61,11 @@ func TestAccNetworkContainer_basicAzure(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, cidrBlock, constant.AZURE, "US_EAST_2"),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AZURE),
-					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
-
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "provider_name", constant.AZURE),
-					resource.TestCheckResourceAttrSet(dataSourceName, "provisioned"),
-
-					resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.id"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.atlas_cidr_block"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.provider_name"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.provisioned"),
-				),
+				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.AZURE)...),
 			},
 			{
 				Config: configBasic(projectID, cidrBlockUpdated, constant.AZURE, "US_EAST_2"),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AZURE),
-					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
-				),
+				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.AZURE)...),
 			},
 		},
 	})
@@ -127,31 +87,11 @@ func TestAccNetworkContainer_basicGCP(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, gcpCidrBlock, constant.GCP, ""),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.GCP),
-					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
-
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "provider_name", constant.GCP),
-					resource.TestCheckResourceAttrSet(dataSourceName, "provisioned"),
-
-					resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.id"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.atlas_cidr_block"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.provider_name"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.provisioned"),
-				),
+				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.GCP)...),
 			},
 			{
 				Config: configBasic(projectID, cidrBlockUpdated, constant.GCP, ""),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.GCP),
-					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
-				),
+				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.GCP)...),
 			},
 		},
 	})
@@ -172,22 +112,7 @@ func TestAccNetworkContainer_withRegionsGCP(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, gcpWithRegionsCidrBlock, constant.GCP, regions),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.GCP),
-					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
-
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "provider_name", constant.GCP),
-					resource.TestCheckResourceAttrSet(dataSourceName, "provisioned"),
-
-					resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.id"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.atlas_cidr_block"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.provider_name"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.provisioned"),
-				),
+				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.GCP)...),
 			},
 		},
 	})
@@ -236,30 +161,15 @@ func TestAccNetworkContainer_updateIndividualFields(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, cidrBlock, constant.AWS, region),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AWS),
-					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
-				),
+				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.AWS)...),
 			},
 			{
 				Config: configBasic(projectID, cidrBlockUpdated, constant.AWS, region),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AWS),
-					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
-				),
+				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.AWS)...),
 			},
 			{
 				Config: configBasic(projectID, cidrBlockUpdated, constant.AWS, regionUpdated),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", constant.AWS),
-					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
-				),
+				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.AWS)...),
 			},
 		},
 	})
@@ -306,6 +216,25 @@ func checkDestroy(s *terraform.State) error {
 		}
 	}
 	return nil
+}
+
+func commonChecks(providerName string) []resource.TestCheckFunc {
+	return []resource.TestCheckFunc{
+		checkExists(resourceName),
+		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+		resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+		resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
+
+		resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+		resource.TestCheckResourceAttr(dataSourceName, "provider_name", providerName),
+		resource.TestCheckResourceAttrSet(dataSourceName, "provisioned"),
+
+		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.id"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.atlas_cidr_block"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.provider_name"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.provisioned"),
+	}
 }
 
 func configBasic(projectID, cidrBlock, providerName, region string) string {
