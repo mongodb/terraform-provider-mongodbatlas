@@ -29,25 +29,17 @@ fi
 
 if [ "$1" == "success" ]; then
     text_value="HashiCorp Terraform Compatibility Matrix succeeded!"
-
-    json="{
-        \"text\": \"$text_value\",
-        \"blocks\": [
-            {
-                \"type\": \"section\",
-                \"text\": {
-                    \"type\": \"mrkdwn\",
-                    \"text\": \"$text_value\"
-                }
-            }
-        ]
-    }"
+	action_text="Failed action"
 else
     text_value="HashiCorp Terraform Compatibility Matrix failed!"
-    server_url=$2
-    repository=$3
-    run_id=$4
-    json="{
+	action_text="Successful action"
+fi
+
+server_url=$2
+repository=$3
+run_id=$4
+
+json="{
         \"text\": \"$text_value\",
         \"blocks\": [
             {
@@ -64,7 +56,7 @@ else
                         \"type\": \"button\",
                         \"text\": {
                             \"type\": \"plain_text\",
-                            \"text\": \":github: Failed action\"
+                            \"text\": \":github: $action_text\"
                         },
                         \"url\": \"${server_url}/${repository}/actions/runs/${run_id}\"
                     }
@@ -72,6 +64,5 @@ else
             }
         ]
     }"
-fi
 
 echo "$json" | jq -c .
