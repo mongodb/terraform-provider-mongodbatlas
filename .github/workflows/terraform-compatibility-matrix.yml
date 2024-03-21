@@ -54,6 +54,7 @@ jobs:
     needs: ["run-test-supported-versions"]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
       - name: Get content of slack message
         id: slack-payload
         run: |
