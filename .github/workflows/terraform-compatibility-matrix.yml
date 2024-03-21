@@ -50,11 +50,22 @@ jobs:
         run: |
           echo "test-${{ matrix.terraform_version }}"
   
-  slack-notification-content:
+  slack-notification:
     needs: ["run-test-supported-versions"]
     runs-on: ubuntu-latest
     steps:
-      - name: Summary in github log
+      - name: Get content of slack message
+        id: slack-payload
         run: |
-          echo "Terraform Jobs: ${{ toJson(needs.run-test-supported-versions.result) }}"
+          slack_message=$(./scripts/generate-slack-notifications-content.sh ${{ needs.run-test-supported-versions.result }})
+          echo "slack_payload=${slack_message}" >> "${GITHUB_OUTPUT}""
+      - name: Send Slack message
+        id: slack
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: ${{ steps.slack-payload.outputs.slack_payload }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        
   
