@@ -210,7 +210,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	if !d.HasChange("region_name") && !d.HasChange("atlas_cidr_block") && !d.HasChange("region_name") && !d.HasChange("region") && !d.HasChange("regions") {
+	if !d.HasChange("provider_name") && !d.HasChange("atlas_cidr_block") && !d.HasChange("region_name") && !d.HasChange("region") && !d.HasChange("regions") {
 		return resourceRead(ctx, d, meta)
 	}
 
