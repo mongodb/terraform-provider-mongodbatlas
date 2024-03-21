@@ -58,7 +58,7 @@ jobs:
       - name: Get content of slack message
         id: slack-payload
         run: |
-          slack_message=$(./scripts/generate-slack-notifications-content.sh ${{ needs.run-test-supported-versions.result }})
+          slack_message=$(./scripts/generate-slack-notification-content.sh ${{ needs.run-test-supported-versions.result }})
           echo "slack_payload=${slack_message}" >> "${GITHUB_OUTPUT}""
       - name: Send Slack message
         id: slack
