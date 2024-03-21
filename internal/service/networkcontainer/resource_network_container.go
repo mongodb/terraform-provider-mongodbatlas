@@ -51,6 +51,7 @@ func Resource() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      constant.AWS,
+				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{constant.AWS, constant.GCP, constant.AZURE}, false),
 			},
 			"region_name": {
