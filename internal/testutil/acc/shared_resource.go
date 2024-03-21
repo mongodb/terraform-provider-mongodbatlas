@@ -24,6 +24,7 @@ func cleanupSharedResources() {
 
 // ProjectIDExecution returns a project id created for the execution of the tests in the resource package.
 // Even if a GH test group is run, every resource/package will create its own project, not a shared project for all the test group.
+// When `MONGODB_ATLAS_PROJECT_ID` is defined, it is used instead of creating a project. This is useful for local execution but not intended for CI executions.
 func ProjectIDExecution(tb testing.TB) string {
 	tb.Helper()
 	SkipInUnitTest(tb)
@@ -31,6 +32,10 @@ func ProjectIDExecution(tb testing.TB) string {
 
 	sharedInfo.mu.Lock()
 	defer sharedInfo.mu.Unlock()
+
+	if id := projectIDLocal(tb); id != "" {
+		return id
+	}
 
 	// lazy creation so it's only done if really needed
 	if sharedInfo.projectID == "" {

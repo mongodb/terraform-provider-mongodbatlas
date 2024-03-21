@@ -50,6 +50,7 @@ func RandomLDAPName() string {
 
 // ProjectIDGlobal returns a common global project.
 // Consider mig.ProjectIDGlobal for mig tests.
+// When `MONGODB_ATLAS_PROJECT_ID` is defined, it is used instead of creating a project. This is useful for local execution but not intended for CI executions.
 func ProjectIDGlobal(tb testing.TB) string {
 	tb.Helper()
 	return ProjectID(tb, PrefixProjectKeep+"-global")
