@@ -13,7 +13,6 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    if: ${{ always() && needs.validate-version-input.result == 'success' && (needs.run-qa-acceptance-tests.result == 'skipped' || needs.run-qa-acceptance-tests.result == 'success') }}
     steps:
       - name: Checkout
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
