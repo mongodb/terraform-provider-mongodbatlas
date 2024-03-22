@@ -72,6 +72,11 @@ func ConfigProjectIPAccessListWithCIDRBlock(orgID, projectName, cidrBlock, comme
 			cidr_block = %[3]q
 			comment    = %[4]q
 		}
+
+		data "mongodbatlas_project_ip_access_list" "test" {
+			project_id = mongodbatlas_project_ip_access_list.test.project_id
+			cidr_block = mongodbatlas_project_ip_access_list.test.cidr_block
+		}
 	`, orgID, projectName, cidrBlock, comment)
 }
 

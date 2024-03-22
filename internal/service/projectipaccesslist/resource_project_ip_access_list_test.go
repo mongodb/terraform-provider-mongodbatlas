@@ -40,6 +40,7 @@ func TestAccProjectIPAccesslist_settingIPAddress(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "ip_address", ipAddress),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
 
+					acc.CheckProjectIPAccessListExists(dataSourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "ip_address"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "comment"),
@@ -86,6 +87,13 @@ func TestAccProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "comment"),
 					resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+
+					acc.CheckProjectIPAccessListExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "cidr_block"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "comment"),
+					resource.TestCheckResourceAttr(dataSourceName, "cidr_block", cidrBlock),
+					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
 				),
 			},
 			{
@@ -127,20 +135,20 @@ func TestAccProjectRSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
 				Config: acc.ConfigProjectIPAccessListWithAWSSecurityGroup(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "aws_security_group"),
-					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "aws_security_group", awsSGroup),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+
+					acc.CheckProjectIPAccessListExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "aws_security_group", awsSGroup),
+					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
 				),
 			},
 			{
 				Config: acc.ConfigProjectIPAccessListWithAWSSecurityGroup(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, updatedAWSSgroup, updatedComment),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "aws_security_group"),
-					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-
 					resource.TestCheckResourceAttr(resourceName, "aws_security_group", updatedAWSSgroup),
 					resource.TestCheckResourceAttr(resourceName, "comment", updatedComment),
 				),
