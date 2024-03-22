@@ -102,7 +102,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Test Suite failed* ${{ secrets.SLACK_ONCALL_TAG }}"
+                    "text": "*Test Suite failed* @apix-integrations-on-call"
                   }
                 },
                 {
