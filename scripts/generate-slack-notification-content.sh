@@ -30,6 +30,7 @@ fi
 if [ "$1" == "success" ]; then
     text_value=":white_check_mark: HashiCorp Terraform Compatibility Matrix succeeded"
 	action_text="Successful action"
+	oncall_tag="@apix-integrations-on-call"
 else
     text_value=":red_circle: HashiCorp Terraform Compatibility Matrix failed"
 	action_text="Failed action"
