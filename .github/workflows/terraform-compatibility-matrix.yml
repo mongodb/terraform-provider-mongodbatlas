@@ -26,7 +26,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          output=$(./scripts/get-terraform-supported-versions.sh)
+          output=$(./scripts/get-terraform-supported-versions.sh "false")
           quoted_output=$(echo "${output}" | jq -c .)
           echo "supported_versions=${quoted_output}" >> "${GITHUB_OUTPUT}"
     outputs:
