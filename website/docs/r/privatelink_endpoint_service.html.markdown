@@ -8,13 +8,14 @@ description: |-
 
 # Resource: mongodbatlas_privatelink_endpoint_service
 
-`mongodbatlas_privatelink_endpoint_service` provides a Private Endpoint Interface Link resource. This represents a Private Endpoint Interface Link, which adds one interface endpoint to a private endpoint connection in an Atlas project.
+`mongodbatlas_privatelink_endpoint_service` provides a Private Endpoint Interface Link resource. This represents a Private Endpoint Interface Link, which adds one [Interface Endpoint](https://www.mongodb.com/docs/atlas/security-private-endpoint/#private-endpoint-concepts) to a private endpoint connection in an Atlas project.
 
 ~> **IMPORTANT:**You must have one of the following roles to successfully handle the resource:
   * Organization Owner
   * Project Owner
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
+
 -> **NOTE:** Create and delete wait for all clusters on the project to IDLE in order for their operations to complete. This ensures the latest connection strings can be retrieved following creation or deletion of this resource. Default timeout is 2hrs.
 
 ## Example with AWS
