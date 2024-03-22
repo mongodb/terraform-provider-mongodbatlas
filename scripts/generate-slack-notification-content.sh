@@ -27,6 +27,7 @@ if [ "$1" != "success" ] && [ "$1" != "failure" ]; then
     exit 1
 fi
 
+oncall_tag=""
 if [ "$1" == "success" ]; then
     text_value=":white_check_mark: HashiCorp Terraform Compatibility Matrix succeeded"
 	action_text="Successful action"
