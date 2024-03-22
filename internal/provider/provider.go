@@ -457,7 +457,15 @@ func NewFrameworkProvider(proxyPort *int) provider.Provider {
 	}
 }
 
-func MuxedProviderFactory(proxyPort *int) func() tfprotov6.ProviderServer {
+func MuxedProviderFactory() func() tfprotov6.ProviderServer {
+	return muxedProviderFactory(nil)
+}
+
+func MuxedProviderFactoryForTesting(proxyPort *int) func() tfprotov6.ProviderServer {
+	return muxedProviderFactory(proxyPort)
+}
+
+func muxedProviderFactory(proxyPort *int) func() tfprotov6.ProviderServer {
 	v2Provider := NewSdkV2Provider(proxyPort)
 	newProvider := NewFrameworkProvider(proxyPort)
 	ctx := context.Background()

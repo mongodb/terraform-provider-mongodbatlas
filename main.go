@@ -19,7 +19,7 @@ func main() {
 	}
 	err := tf6server.Serve(
 		"registry.terraform.io/mongodb/mongodbatlas",
-		provider.MuxedProviderFactory(nil),
+		provider.MuxedProviderFactory(),
 		serveOpts...,
 	)
 	if err != nil {
