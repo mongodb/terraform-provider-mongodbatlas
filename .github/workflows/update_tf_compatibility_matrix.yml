@@ -25,4 +25,4 @@ jobs:
           commit-message: "doc: Updates Terraform Compatibility Matrix documentation"
           delete-branch: true
           branch: terraform-compatibility-matrix-update
-          body: Automatic update for Terraform Compatibility Matrix documentation
+          body: Automatic updates for Terraform Compatibility Matrix documentation
