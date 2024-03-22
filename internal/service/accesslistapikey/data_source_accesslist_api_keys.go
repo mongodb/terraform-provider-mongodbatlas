@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
-	"go.mongodb.org/atlas-sdk/v20231115007/admin"
+	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -93,7 +93,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	return nil
 }
 
-func flattenAccessListAPIKeys(ctx context.Context, orgID string, list []admin.UserAccessList) []map[string]any {
+func flattenAccessListAPIKeys(ctx context.Context, orgID string, list []admin.UserAccessListResponse) []map[string]any {
 	results := make([]map[string]any, len(list))
 	for k, elm := range list {
 		results[k] = map[string]any{

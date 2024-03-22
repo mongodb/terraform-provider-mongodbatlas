@@ -26,7 +26,7 @@ func TestMigAdvancedCluster_empty_advancedConfig(t *testing.T) {
 							},
 						},
 						"provider_name": "AWS",
-						"region_name":   "US_EAST_1",
+						"region_name":   "US_WEST_2",
 						"priority":      7,
 					},
 				},
@@ -77,7 +77,7 @@ func TestMigAdvancedCluster_v0StateUpgrade_ReplicationSpecs(t *testing.T) {
 					map[string]any{
 						"priority":      7,
 						"provider_name": "AWS",
-						"region_name":   "US_EAST_1",
+						"region_name":   "US_WEST_2",
 						"electable_specs": []any{
 							map[string]any{
 								"instance_size": "M30",

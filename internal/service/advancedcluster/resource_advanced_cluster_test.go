@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20231115007/admin"
+	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 const (
@@ -22,8 +22,7 @@ const (
 
 func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 	var (
-		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName        = acc.RandomProjectName()
+		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
 	)
@@ -34,7 +33,7 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configTenant(orgID, projectName, clusterName),
+				Config: configTenant(projectID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -51,7 +50,7 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 				),
 			},
 			{
-				Config: configTenant(orgID, projectName, clusterNameUpdated),
+				Config: configTenant(projectID, clusterNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -80,8 +79,7 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 	var (
 		dataSourceName = fmt.Sprintf("data.%s", resourceName)
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
+		projectID      = acc.ProjectIDExecution(t)
 		clusterName    = acc.RandomClusterName()
 	)
 
@@ -91,7 +89,7 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configSingleProvider(orgID, projectName, clusterName),
+				Config: configSingleProvider(projectID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -101,17 +99,6 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
 					resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-				),
-			},
-			{
-				Config: configMultiCloud(orgID, projectName, clusterName),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 				),
 			},
 			{
@@ -128,7 +115,7 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName        = acc.RandomProjectName()
+		projectName        = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
 	)
@@ -182,7 +169,7 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName        = acc.RandomProjectName()
+		projectName        = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
 	)
@@ -225,8 +212,7 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 
 func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 	var (
-		orgID               = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName         = acc.RandomProjectName()
+		projectID           = acc.ProjectIDExecution(t)
 		clusterName         = acc.RandomClusterName()
 		instanceSize        = "M10"
 		anotherInstanceSize = "M20"
@@ -238,7 +224,7 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configSingleProviderPaused(orgID, projectName, clusterName, false, instanceSize),
+				Config: configSingleProviderPaused(projectID, clusterName, false, instanceSize),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -249,7 +235,7 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 				),
 			},
 			{
-				Config: configSingleProviderPaused(orgID, projectName, clusterName, true, instanceSize),
+				Config: configSingleProviderPaused(projectID, clusterName, true, instanceSize),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -260,7 +246,7 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 				),
 			},
 			{
-				Config:      configSingleProviderPaused(orgID, projectName, clusterName, true, anotherInstanceSize),
+				Config:      configSingleProviderPaused(projectID, clusterName, true, anotherInstanceSize),
 				ExpectError: regexp.MustCompile("CANNOT_UPDATE_PAUSED_CLUSTER"),
 			},
 			{
@@ -276,8 +262,7 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 
 func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
+		projectID    = acc.ProjectIDExecution(t)
 		clusterName  = acc.RandomClusterName()
 		instanceSize = "M10"
 	)
@@ -288,7 +273,7 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configSingleProviderPaused(orgID, projectName, clusterName, true, instanceSize),
+				Config: configSingleProviderPaused(projectID, clusterName, true, instanceSize),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -299,7 +284,7 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 				),
 			},
 			{
-				Config: configSingleProviderPaused(orgID, projectName, clusterName, false, instanceSize),
+				Config: configSingleProviderPaused(projectID, clusterName, false, instanceSize),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -310,11 +295,11 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 				),
 			},
 			{
-				Config:      configSingleProviderPaused(orgID, projectName, clusterName, true, instanceSize),
+				Config:      configSingleProviderPaused(projectID, clusterName, true, instanceSize),
 				ExpectError: regexp.MustCompile("CANNOT_PAUSE_RECENTLY_RESUMED_CLUSTER"),
 			},
 			{
-				Config: configSingleProviderPaused(orgID, projectName, clusterName, false, instanceSize),
+				Config: configSingleProviderPaused(projectID, clusterName, false, instanceSize),
 			},
 			{
 				ResourceName:            resourceName,
@@ -329,8 +314,7 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 
 func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 	var (
-		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName        = acc.RandomProjectName()
+		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
 		processArgs        = &admin.ClusterDescriptionProcessArgs{
@@ -365,7 +349,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdvanced(orgID, projectName, clusterName, processArgs),
+				Config: configAdvanced(projectID, clusterName, processArgs),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
@@ -384,7 +368,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 				),
 			},
 			{
-				Config: configAdvanced(orgID, projectName, clusterNameUpdated, processArgsUpdated),
+				Config: configAdvanced(projectID, clusterNameUpdated, processArgsUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
@@ -408,8 +392,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 
 func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 	var (
-		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName        = acc.RandomProjectName()
+		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
 		processArgs        = &admin.ClusterDescriptionProcessArgs{
@@ -441,7 +424,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdvancedDefaultWrite(orgID, projectName, clusterName, processArgs),
+				Config: configAdvancedDefaultWrite(projectID, clusterName, processArgs),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
@@ -457,7 +440,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 				),
 			},
 			{
-				Config: configAdvancedDefaultWrite(orgID, projectName, clusterNameUpdated, processArgsUpdated),
+				Config: configAdvancedDefaultWrite(projectID, clusterNameUpdated, processArgsUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
@@ -478,8 +461,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.T) {
 	var (
-		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName        = acc.RandomProjectName()
+		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
 		autoScaling        = &admin.AdvancedAutoScalingSettings{
@@ -498,7 +480,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicationSpecsAutoScaling(orgID, projectName, clusterName, autoScaling),
+				Config: configReplicationSpecsAutoScaling(projectID, clusterName, autoScaling),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
@@ -507,7 +489,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 				),
 			},
 			{
-				Config: configReplicationSpecsAutoScaling(orgID, projectName, clusterNameUpdated, autoScalingUpdated),
+				Config: configReplicationSpecsAutoScaling(projectID, clusterNameUpdated, autoScalingUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
@@ -521,8 +503,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t *testing.T) {
 	var (
-		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName        = acc.RandomProjectName()
+		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
 		autoScaling        = &admin.AdvancedAutoScalingSettings{
@@ -541,7 +522,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicationSpecsAnalyticsAutoScaling(orgID, projectName, clusterName, autoScaling),
+				Config: configReplicationSpecsAnalyticsAutoScaling(projectID, clusterName, autoScaling),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
@@ -550,7 +531,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 				),
 			},
 			{
-				Config: configReplicationSpecsAnalyticsAutoScaling(orgID, projectName, clusterNameUpdated, autoScalingUpdated),
+				Config: configReplicationSpecsAnalyticsAutoScaling(projectID, clusterNameUpdated, autoScalingUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
@@ -566,7 +547,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 	var (
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName      = acc.RandomProjectName()
-		clusterName      = acc.RandomClusterName()
+		clusterName      = acc.RandomClusterName() // No ProjectIDExecution to avoid cross-region limits because multi-region
 		numShards        = "1"
 		numShardsUpdated = "2"
 	)
@@ -601,7 +582,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to check correctly plural data source in the different test steps
 		clusterName = acc.RandomClusterName()
 	)
 
@@ -625,12 +606,12 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 			{
 				Config: configWithTags(orgID, projectName, clusterName, []admin.ResourceTag{
 					{
-						Key:   conversion.StringPtr("key 1"),
-						Value: conversion.StringPtr("value 1"),
+						Key:   "key 1",
+						Value: "value 1",
 					},
 					{
-						Key:   conversion.StringPtr("key 2"),
-						Value: conversion.StringPtr("value 2"),
+						Key:   "key 2",
+						Value: "value 2",
 					},
 				}),
 				Check: resource.ComposeTestCheckFunc(
@@ -652,8 +633,8 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 			{
 				Config: configWithTags(orgID, projectName, clusterName, []admin.ResourceTag{
 					{
-						Key:   conversion.StringPtr("key 3"),
-						Value: conversion.StringPtr("value 3"),
+						Key:   "key 3",
+						Value: "value 3",
 					},
 				}),
 				Check: resource.ComposeTestCheckFunc(
@@ -690,39 +671,35 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func configTenant(orgID, projectName, name string) string {
+func configTenant(projectID, name string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_project" "cluster_project" {
-	name   = %[2]q
-	org_id = %[1]q
-}
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = mongodbatlas_project.cluster_project.id
-  name         = %[3]q
-  cluster_type = "REPLICASET"
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[2]q
+			cluster_type = "REPLICASET"
 
-  replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M5"
-      }
-      provider_name         = "TENANT"
-      backing_provider_name = "AWS"
-      region_name           = "US_EAST_1"
-      priority              = 7
-    }
-  }
-}
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = "M5"
+					}
+					provider_name         = "TENANT"
+					backing_provider_name = "AWS"
+					region_name           = "US_EAST_1"
+					priority              = 7
+				}
+			}
+		}
 
-data "mongodbatlas_advanced_cluster" "test" {
-	project_id = mongodbatlas_advanced_cluster.test.project_id
-	name 	     = mongodbatlas_advanced_cluster.test.name
-}
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+		}
 
-data "mongodbatlas_advanced_clusters" "test" {
-	project_id = mongodbatlas_advanced_cluster.test.project_id
-}
-	`, orgID, projectName, name)
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+		}
+	`, projectID, name)
 }
 
 func configWithTags(orgID, projectName, name string, tags []admin.ResourceTag) string {
@@ -777,384 +754,355 @@ func configWithTags(orgID, projectName, name string, tags []admin.ResourceTag) s
 	`, orgID, projectName, name, tagsConf)
 }
 
-func configSingleProvider(orgID, projectName, name string) string {
+func configSingleProvider(projectID, name string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_project" "cluster_project" {
-	name   = %[2]q
-	org_id = %[1]q
-}
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = mongodbatlas_project.cluster_project.id
-  name         = %[3]q
-  cluster_type = "REPLICASET"
-  retain_backups_enabled = "true"
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[2]q
+			cluster_type = "REPLICASET"
+			retain_backups_enabled = "true"
 
-  replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }
-  }
-}
-data "mongodbatlas_advanced_cluster" "test" {
-	project_id = mongodbatlas_advanced_cluster.test.project_id
-	name 	     = mongodbatlas_advanced_cluster.test.name
-}
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					analytics_specs {
+						instance_size = "M10"
+						node_count    = 1
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_WEST_2"
+				}
+			}
+		}
 
-	`, orgID, projectName, name)
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+		}
+	`, projectID, name)
 }
 
 func configMultiCloud(orgID, projectName, name string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_project" "cluster_project" {
-	name   = %[2]q
-	org_id = %[1]q
-}
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = mongodbatlas_project.cluster_project.id
-  name         = %[3]q
-  cluster_type = "REPLICASET"
-  retain_backups_enabled = false
+		resource "mongodbatlas_project" "cluster_project" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
 
-  replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 2
-      }
-      provider_name = "GCP"
-      priority      = 6
-      region_name   = "NORTH_AMERICA_NORTHEAST_1"
-    }
-  }
-}
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = mongodbatlas_project.cluster_project.id
+			name         = %[3]q
+			cluster_type = "REPLICASET"
+			retain_backups_enabled = false
 
-data "mongodbatlas_advanced_cluster" "test" {
-	project_id = mongodbatlas_advanced_cluster.test.project_id
-	name 	     = mongodbatlas_advanced_cluster.test.name
-}
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					analytics_specs {
+						instance_size = "M10"
+						node_count    = 1
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "EU_WEST_1"
+				}
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 2
+					}
+					provider_name = "GCP"
+					priority      = 6
+					region_name   = "NORTH_AMERICA_NORTHEAST_1"
+				}
+			}
+		}
 
-data "mongodbatlas_advanced_clusters" "test" {
-	project_id = mongodbatlas_advanced_cluster.test.project_id
-}
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+		}
+
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+		}
 	`, orgID, projectName, name)
 }
 
 func configMultiCloudSharded(orgID, projectName, name string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_project" "cluster_project" {
-	name   = %[2]q
-	org_id = %[1]q
-}	
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = mongodbatlas_project.cluster_project.id
-  name         = %[3]q
-  cluster_type = "SHARDED"
+		resource "mongodbatlas_project" "cluster_project" {
+			name   = %[2]q
+			org_id = %[1]q
+		}	
 
-  replication_specs {
-    num_shards = 1
-    region_configs {
-      electable_specs {
-        instance_size = "M30"
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M30"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }
-    region_configs {
-      electable_specs {
-        instance_size = "M30"
-        node_count    = 2
-      }
-      provider_name = "AZURE"
-      priority      = 6
-      region_name   = "US_EAST_2"
-    }
-  }
-}
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = mongodbatlas_project.cluster_project.id
+			name         = %[3]q
+			cluster_type = "SHARDED"
+
+			replication_specs {
+				num_shards = 1
+				region_configs {
+					electable_specs {
+						instance_size = "M30"
+						node_count    = 3
+					}
+					analytics_specs {
+						instance_size = "M30"
+						node_count    = 1
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "EU_WEST_1"
+				}
+				region_configs {
+					electable_specs {
+						instance_size = "M30"
+						node_count    = 2
+					}
+					provider_name = "AZURE"
+					priority      = 6
+					region_name   = "US_EAST_2"
+				}
+			}
+		}
 	`, orgID, projectName, name)
 }
 
-func configSingleProviderPaused(orgID, projectName, name string, paused bool, instanceSize string) string {
+func configSingleProviderPaused(projectID, clusterName string, paused bool, instanceSize string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_project" "cluster_project" {
-	name   = %[2]q
-	org_id = %[1]q
-}
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = mongodbatlas_project.cluster_project.id
-  name         = %[3]q
-  cluster_type = "REPLICASET"
-  paused       = %[4]t
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[2]q
+			paused       = %[3]t
+			cluster_type = "REPLICASET"
 
-  replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = %[5]q
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }
-  }
-}
-	`, orgID, projectName, name, paused, instanceSize)
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = %[4]q
+						node_count    = 3
+					}
+					analytics_specs {
+						instance_size = "M10"
+						node_count    = 1
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_WEST_2"
+				}
+			}
+		}
+	`, projectID, clusterName, paused, instanceSize)
 }
 
-func configAdvanced(orgID, projectName, name string, p *admin.ClusterDescriptionProcessArgs) string {
+func configAdvanced(projectID, clusterName string, p *admin.ClusterDescriptionProcessArgs) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_project" "cluster_project" {
-	name   = %[2]q
-	org_id = %[1]q
-}	
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id             = mongodbatlas_project.cluster_project.id
-  name                   = %[3]q
-  cluster_type           = "REPLICASET"
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id             = %[1]q
+			name                   = %[2]q
+			cluster_type           = "REPLICASET"
 
-   replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }
-  }
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					analytics_specs {
+						instance_size = "M10"
+						node_count    = 1
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_WEST_2"
+				}
+			}
 
-  advanced_configuration  {
-    fail_index_key_too_long              = %[4]t
-    javascript_enabled                   = %[5]t
-    minimum_enabled_tls_protocol         = %[6]q
-    no_table_scan                        = %[7]t
-    oplog_size_mb                        = %[8]d
-    sample_size_bi_connector			 = %[9]d
-    sample_refresh_interval_bi_connector = %[10]d
-	transaction_lifetime_limit_seconds   = %[11]d
-  }
-}
-data "mongodbatlas_advanced_cluster" "test" {
-	project_id = mongodbatlas_advanced_cluster.test.project_id
-	name 	     = mongodbatlas_advanced_cluster.test.name
-}
+			advanced_configuration  {
+				fail_index_key_too_long              = %[3]t
+				javascript_enabled                   = %[4]t
+				minimum_enabled_tls_protocol         = %[5]q
+				no_table_scan                        = %[6]t
+				oplog_size_mb                        = %[7]d
+				sample_size_bi_connector			 = %[8]d
+				sample_refresh_interval_bi_connector = %[9]d
+			transaction_lifetime_limit_seconds   = %[10]d
+			}
+		}
 
-data "mongodbatlas_advanced_clusters" "test" {
-	project_id = mongodbatlas_advanced_cluster.test.project_id
-}
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+		}
 
-	`, orgID, projectName, name,
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+		}
+	`, projectID, clusterName,
 		p.GetFailIndexKeyTooLong(), p.GetJavascriptEnabled(), p.GetMinimumEnabledTlsProtocol(), p.GetNoTableScan(),
 		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p.GetTransactionLifetimeLimitSeconds())
 }
 
-func configAdvancedDefaultWrite(orgID, projectName, name string, p *admin.ClusterDescriptionProcessArgs) string {
+func configAdvancedDefaultWrite(projectID, clusterName string, p *admin.ClusterDescriptionProcessArgs) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_project" "cluster_project" {
-	name   = %[2]q
-	org_id = %[1]q
-}	
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id             = mongodbatlas_project.cluster_project.id
-  name                   = %[3]q
-  cluster_type           = "REPLICASET"
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id             = %[1]q
+			name                   = %[2]q
+			cluster_type           = "REPLICASET"
 
-   replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }
-  }
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					analytics_specs {
+						instance_size = "M10"
+						node_count    = 1
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_WEST_2"
+				}
+			}
 
-  advanced_configuration  {
-    javascript_enabled                   = %[4]t
-    minimum_enabled_tls_protocol         = %[5]q
-    no_table_scan                        = %[6]t
-    oplog_size_mb                        = %[7]d
-    sample_size_bi_connector			 = %[8]d
-    sample_refresh_interval_bi_connector = %[9]d
-    default_read_concern                 = %[10]q
-    default_write_concern                = %[11]q
-  }
-}
-
-	`, orgID, projectName, name, p.GetJavascriptEnabled(), p.GetMinimumEnabledTlsProtocol(), p.GetNoTableScan(),
+			advanced_configuration  {
+				javascript_enabled                   = %[3]t
+				minimum_enabled_tls_protocol         = %[4]q
+				no_table_scan                        = %[5]t
+				oplog_size_mb                        = %[6]d
+				sample_size_bi_connector			 = %[7]d
+				sample_refresh_interval_bi_connector = %[8]d
+				default_read_concern                 = %[9]q
+				default_write_concern                = %[10]q
+			}
+		}
+	`, projectID, clusterName, p.GetJavascriptEnabled(), p.GetMinimumEnabledTlsProtocol(), p.GetNoTableScan(),
 		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p.GetDefaultReadConcern(), p.GetDefaultWriteConcern())
 }
 
-func configReplicationSpecsAutoScaling(orgID, projectName, name string, p *admin.AdvancedAutoScalingSettings) string {
+func configReplicationSpecsAutoScaling(projectID, clusterName string, p *admin.AdvancedAutoScalingSettings) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_project" "cluster_project" {
-	name   = %[2]q
-	org_id = %[1]q
-}	
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id             = mongodbatlas_project.cluster_project.id
-  name                   = %[3]q
-  cluster_type           = "REPLICASET"
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id             = %[1]q
+			name                   = %[2]q
+			cluster_type           = "REPLICASET"
 
-   replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-	  auto_scaling {
-        compute_enabled = %[4]t
-        disk_gb_enabled = %[5]t
-		compute_max_instance_size = %[6]q
-	  }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }
-  }
-}
-	`, orgID, projectName, name, p.Compute.GetEnabled(), p.DiskGB.GetEnabled(), p.Compute.GetMaxInstanceSize())
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					analytics_specs {
+						instance_size = "M10"
+						node_count    = 1
+					}
+				auto_scaling {
+						compute_enabled = %[3]t
+						disk_gb_enabled = %[4]t
+				compute_max_instance_size = %[5]q
+				}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_WEST_2"
+				}
+			}
+		}
+	`, projectID, clusterName, p.Compute.GetEnabled(), p.DiskGB.GetEnabled(), p.Compute.GetMaxInstanceSize())
 }
 
-func configReplicationSpecsAnalyticsAutoScaling(orgID, projectName, name string, p *admin.AdvancedAutoScalingSettings) string {
+func configReplicationSpecsAnalyticsAutoScaling(projectID, clusterName string, p *admin.AdvancedAutoScalingSettings) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id             = %[1]q
+			name                   = %[2]q
+			cluster_type           = "REPLICASET"
 
-resource "mongodbatlas_project" "cluster_project" {
-	name   = %[2]q
-	org_id = %[1]q
-}
-
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id             = mongodbatlas_project.cluster_project.id
-  name                   = %[3]q
-  cluster_type           = "REPLICASET"
-
-   replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-	  analytics_auto_scaling {
-        compute_enabled = %[4]t
-        disk_gb_enabled = %[5]t
-		compute_max_instance_size = %[6]q
-	  }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }
-  }
-
-
-}
-
-	`, orgID, projectName, name, p.Compute.GetEnabled(), p.DiskGB.GetEnabled(), p.Compute.GetMaxInstanceSize())
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					analytics_specs {
+						instance_size = "M10"
+						node_count    = 1
+					}
+				analytics_auto_scaling {
+						compute_enabled = %[3]t
+						disk_gb_enabled = %[4]t
+				compute_max_instance_size = %[5]q
+				}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_WEST_2"
+				}
+			}
+		}
+	`, projectID, clusterName, p.Compute.GetEnabled(), p.DiskGB.GetEnabled(), p.Compute.GetMaxInstanceSize())
 }
 
 func configMultiZoneWithShards(orgID, projectName, name, numShardsFirstZone, numShardsSecondZone string) string {
 	return fmt.Sprintf(`
-
-	resource "mongodbatlas_project" "cluster_project" {
-		name   = %[2]q
-		org_id = %[1]q
-	}
-
-	resource "mongodbatlas_advanced_cluster" "test" {
-		project_id = mongodbatlas_project.cluster_project.id
-		name = %[3]q
-		backup_enabled = false
-		mongo_db_major_version = "7.0"
-		cluster_type   = "GEOSHARDED"
-
-		replication_specs {
-		  zone_name  = "zone n1"
-		  num_shards = %[4]q
-
-		  region_configs {
-			electable_specs {
-			  instance_size = "M10"
-			  node_count    = 3
-			}
-			analytics_specs {
-			  instance_size = "M10"
-			  node_count    = 0
-			}
-			provider_name = "AWS"
-			priority      = 7
-			region_name   = "US_EAST_1"
-		  }
+		resource "mongodbatlas_project" "cluster_project" {
+			org_id = %[1]q
+			name   = %[2]q
 		}
 
-		replication_specs {
-		  zone_name  = "zone n2"
-		  num_shards = %[5]q
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_project.cluster_project.id
+			name = %[3]q
+			backup_enabled = false
+			mongo_db_major_version = "7.0"
+			cluster_type   = "GEOSHARDED"
 
-		  region_configs {
-			electable_specs {
-			  instance_size = "M10"
-			  node_count    = 3
+			replication_specs {
+				zone_name  = "zone n1"
+				num_shards = %[4]q
+
+				region_configs {
+				electable_specs {
+					instance_size = "M10"
+					node_count    = 3
+				}
+				analytics_specs {
+					instance_size = "M10"
+					node_count    = 0
+				}
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = "US_EAST_1"
+				}
 			}
-			analytics_specs {
-			  instance_size = "M10"
-			  node_count    = 0
+
+			replication_specs {
+				zone_name  = "zone n2"
+				num_shards = %[5]q
+
+				region_configs {
+				electable_specs {
+					instance_size = "M10"
+					node_count    = 3
+				}
+				analytics_specs {
+					instance_size = "M10"
+					node_count    = 0
+				}
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = "EU_WEST_1"
+				}
 			}
-			provider_name = "AWS"
-			priority      = 7
-			region_name   = "EU_WEST_1"
-		  }
 		}
-	  }
 	`, orgID, projectName, name, numShardsFirstZone, numShardsSecondZone)
 }

@@ -6,15 +6,13 @@ filename: "{{ .InterfaceName | snakecase }}.go"
 mockname: "{{.InterfaceName}}"
 
 packages:
-  go.mongodb.org/atlas-sdk/v20231115007/admin:
+  go.mongodb.org/atlas-sdk/v20231115008/admin:
     interfaces:
       AtlasSearchApi:
       EncryptionAtRestUsingCustomerKeyManagementApi:
-
-  
-  github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project:
-    interfaces:
-      GroupProjectService:
+      TeamsApi:
+      ProjectsApi:
+      ClustersApi:
   
   github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster:
     interfaces:

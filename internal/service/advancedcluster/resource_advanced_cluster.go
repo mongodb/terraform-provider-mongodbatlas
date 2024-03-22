@@ -21,7 +21,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20231115007/admin"
+	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 const (
@@ -822,7 +822,7 @@ func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
-		Refresh:    UpgradeRefreshFunc(ctx, name, projectID, ServiceFromClient(connV2)),
+		Refresh:    UpgradeRefreshFunc(ctx, name, projectID, connV2.ClustersApi),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,

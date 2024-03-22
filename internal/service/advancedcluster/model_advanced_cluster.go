@@ -15,7 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20231115007/admin"
+	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 var (
@@ -275,9 +275,9 @@ func IsSharedTier(instanceSize string) bool {
 	return instanceSize == "M0" || instanceSize == "M2" || instanceSize == "M5"
 }
 
-func UpgradeRefreshFunc(ctx context.Context, name, projectID string, client ClusterService) retry.StateRefreshFunc {
+func UpgradeRefreshFunc(ctx context.Context, name, projectID string, client admin.ClustersApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		cluster, resp, err := client.Get(ctx, projectID, name)
+		cluster, resp, err := client.GetCluster(ctx, projectID, name).Execute()
 
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
@@ -300,12 +300,9 @@ func UpgradeRefreshFunc(ctx context.Context, name, projectID string, client Clus
 	}
 }
 
-func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, client ClusterService) retry.StateRefreshFunc {
+func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, clustersAPI admin.ClustersApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		params := &admin.ListClustersApiParams{
-			GroupId: projectID,
-		}
-		clusters, resp, err := client.List(ctx, params)
+		clusters, resp, err := clustersAPI.ListClusters(ctx, projectID).Execute()
 
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil

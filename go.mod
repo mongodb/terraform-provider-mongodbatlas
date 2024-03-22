@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/SpectoLabs/hoverfly v1.8.0
-	github.com/aws/aws-sdk-go v1.50.32
+	github.com/aws/aws-sdk-go v1.51.3
 	github.com/go-test/deep v1.1.0
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/go-version v1.6.0
@@ -20,11 +20,11 @@ require (
 	github.com/hashicorp/terraform-plugin-testing v1.7.0
 	github.com/mongodb-forks/digest v1.0.5
 	github.com/spf13/cast v1.6.0
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/zclconf/go-cty v1.14.3
 	go.mongodb.org/atlas v0.36.0
 	go.mongodb.org/atlas-sdk/v20231001002 v20231001002.0.0
-	go.mongodb.org/atlas-sdk/v20231115007 v20231115007.1.0
+	go.mongodb.org/atlas-sdk/v20231115008 v20231115008.0.0
 	go.mongodb.org/realm v0.1.0
 )
 
@@ -118,7 +118,7 @@ require (
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/afero v1.9.2 // indirect
-	github.com/stretchr/objx v0.5.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/tdewolff/minify/v2 v2.12.4 // indirect
 	github.com/tdewolff/parse/v2 v2.6.4 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
