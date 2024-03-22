@@ -72,7 +72,9 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	if c.ProxyPort != nil {
 		proxyURL, _ := url.Parse(fmt.Sprintf("http://localhost:%d", *c.ProxyPort))
 		transport.Transport = &http.Transport{
-			Proxy:           http.ProxyURL(proxyURL),
+			Proxy: http.ProxyURL(proxyURL),
+
+			//nolint:gosec // temporary workaround so client can connect with hoverfly instance
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
 	}

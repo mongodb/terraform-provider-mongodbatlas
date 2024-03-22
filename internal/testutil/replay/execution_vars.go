@@ -18,9 +18,10 @@ type ExecutionVariables struct {
 // ManageProjectID is a function that will store the generated project id during capture mode,
 // and in case of simulate mode will simple fetch the project id defined in execution variables file
 func ManageProjectID(t *testing.T, projectIDProvider func() string) string {
+	t.Helper()
 	if IsInCaptureMode() {
 		id := projectIDProvider()
-		serializeValueToEnvFile(id, t)
+		serializeValueToEnvFile(t, id)
 		return id
 	}
 
@@ -36,18 +37,20 @@ func ManageProjectID(t *testing.T, projectIDProvider func() string) string {
 	return projectIDProvider()
 }
 
-func serializeValueToEnvFile(projectID string, t *testing.T) {
+func serializeValueToEnvFile(t *testing.T, projectID string) {
+	t.Helper()
 	jsonData, err := json.MarshalIndent(ExecutionVariables{ProjectID: projectID}, "", "    ")
 	if err != nil {
 		log.Fatal("failed to serialize json with env variables")
 	}
-	err = createFileInSimulationDir(jsonData, fmt.Sprintf("%s%s", t.Name(), envVarFilePostfix))
+	err = createFileInSimulationDir(jsonData, fmt.Sprintf("%s%s.json", t.Name(), envVarFilePostfix))
 	if err != nil {
 		log.Fatal("failed to write json with env variables")
 	}
 }
 
 func ObtainExecutionVariables(t *testing.T) (*ExecutionVariables, error) {
+	t.Helper()
 	filePath := filePathInSimulationDir(fmt.Sprintf("%s%s.json", t.Name(), envVarFilePostfix))
 	pairsFile, err := os.Open(filePath)
 	if err != nil {

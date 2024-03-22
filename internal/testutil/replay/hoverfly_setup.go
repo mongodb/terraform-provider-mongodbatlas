@@ -1,10 +1,11 @@
 package replay
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"log"
-	"math/rand"
+	"math/big"
 	"os"
 	"path/filepath"
 	"testing"
@@ -64,9 +65,14 @@ func setupCaptureMode() (proxyPort *int, teardown func(t *testing.T)) {
 }
 
 func newHoverflyInstance() (int, *hoverfly.Hoverfly) {
-	min := 1024
-	max := 65536
-	proxyPort := rand.Intn(max-min+1) + min
+	var min int64 = 1024
+	var max int64 = 65536
+	diff := max - min
+	nBig, err := rand.Int(rand.Reader, big.NewInt(diff+1))
+	if err != nil {
+		log.Fatalf("Failed to generate random number: %v", err)
+	}
+	proxyPort := int(nBig.Int64() + min)
 
 	settings := hoverfly.InitSettings()
 	settings.ProxyPort = fmt.Sprintf("%d", proxyPort)
@@ -97,7 +103,7 @@ func teardownCapture(hv *hoverfly.Hoverfly) func(t *testing.T) {
 			log.Fatalf("Error serializing to JSON: %v", err)
 		}
 
-		if err := createFileInSimulationDir(jsonData, t.Name()); err != nil {
+		if err := createFileInSimulationDir(jsonData, fmt.Sprintf("%s.json", t.Name())); err != nil {
 			log.Fatalf("Error storing file: %v", err)
 		}
 		hv.StopProxy()
@@ -105,15 +111,12 @@ func teardownCapture(hv *hoverfly.Hoverfly) func(t *testing.T) {
 }
 
 func createFileInSimulationDir(jsonData []byte, fileName string) error {
-	filePath := filePathInSimulationDir(fmt.Sprintf("%s.json", fileName))
+	filePath := filePathInSimulationDir(fileName)
 	dirPath := filepath.Dir(filePath)
-	if err := os.MkdirAll(dirPath, 0755); err != nil {
+	if err := os.MkdirAll(dirPath, 0o755); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filePath, jsonData, 0644); err != nil {
-		return err
-	}
-	return nil
+	return os.WriteFile(filePath, jsonData, 0o600)
 }
 
 func filePathInSimulationDir(fileName string) string {
