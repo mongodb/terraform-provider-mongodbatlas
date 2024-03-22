@@ -34,12 +34,12 @@ if [ "$1" == "success" ]; then
 else
     text_value=":red_circle: HashiCorp Terraform Compatibility Matrix failed"
 	action_text="Failed action"
-	oncall_tag="@apix-integrations-on-call"
+	oncall_tag=$2
 fi
 
-server_url=$2
-repository=$3
-run_id=$4
+server_url=$3
+repository=$4
+run_id=$5
 
 json="{
         \"text\": \"$text_value\",
