@@ -62,9 +62,7 @@ jobs:
         with:
           version: v1.56.2
       - name: actionlint
-        run: | 
-          make tools 
-          actionlint -verbose -color
+        run: make tools && actionlint -verbose -color
         shell: bash  
   website-lint:
     runs-on: ubuntu-latest
