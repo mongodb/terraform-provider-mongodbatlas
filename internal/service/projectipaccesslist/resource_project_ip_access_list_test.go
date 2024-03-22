@@ -63,7 +63,7 @@ func TestAccProjectIPAccesslist_settingIPAddress(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
+func TestAccProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 	var (
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName      = acc.RandomProjectName()
@@ -111,7 +111,7 @@ func TestAccProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
+func TestAccProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 	var (
 		vpcID            = os.Getenv("AWS_VPC_ID")
 		vpcCIDRBlock     = os.Getenv("AWS_VPC_CIDR_BLOCK")
@@ -127,7 +127,7 @@ func TestAccProjectRSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckPeeringEnvAWS(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
 		Steps: []resource.TestStep{
@@ -157,7 +157,7 @@ func TestAccProjectRSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProjectIPAccessList_SettingMultiple(t *testing.T) {
+func TestAccProjectIPAccessList_settingMultiple(t *testing.T) {
 	var (
 		resourceName     = "mongodbatlas_project_ip_access_list.test_%d"
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -210,7 +210,7 @@ func TestAccProjectRSProjectIPAccessList_SettingMultiple(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProjectIPAccessList_importBasic(t *testing.T) {
+func TestAccProjectIPAccessList_importBasic(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -236,7 +236,7 @@ func TestAccProjectRSProjectIPAccessList_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProjectIPAccessList_importIncorrectId(t *testing.T) {
+func TestAccProjectIPAccessList_importIncorrectId(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
