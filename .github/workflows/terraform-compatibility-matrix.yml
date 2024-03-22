@@ -2,8 +2,6 @@ name: "HashiCorp Terraform Compatibility Matrix"
 run-name: 'HashiCorp Terraform Compatibility Matrix ${{ inputs.atlas_cloud_env }}'
 
 on:
-  pull_request:
-    types: [synchronize]
   schedule:
     - cron: "0 0 1 * *" # runs first day of the month at midnight UTC
   workflow_dispatch:
