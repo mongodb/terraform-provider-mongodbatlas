@@ -104,9 +104,10 @@ func TestUpgradeRefreshFunc(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			testObject := mocksvc.NewClusterService(t)
+			testObject := mocksvc.NewClustersApi(t)
 
-			testObject.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError)
+			testObject.EXPECT().GetCluster(mock.Anything, mock.Anything, mock.Anything).Return(admin.GetClusterApiRequest{ApiService: testObject}).Once()
+			testObject.EXPECT().GetClusterExecute(mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError).Once()
 
 			result, stateName, err := advancedcluster.UpgradeRefreshFunc(context.Background(), dummyClusterName, dummyProjectID, testObject)()
 			if (err != nil) != tc.expectedError {
@@ -208,9 +209,10 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			testObject := mocksvc.NewClusterService(t)
+			testObject := mocksvc.NewClustersApi(t)
 
-			testObject.On("List", mock.Anything, mock.Anything, mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError)
+			testObject.EXPECT().ListClusters(mock.Anything, mock.Anything).Return(admin.ListClustersApiRequest{ApiService: testObject}).Once()
+			testObject.EXPECT().ListClustersExecute(mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError).Once()
 
 			result, stateName, err := advancedcluster.ResourceClusterListAdvancedRefreshFunc(context.Background(), dummyProjectID, testObject)()
 			if (err != nil) != tc.expectedError {
