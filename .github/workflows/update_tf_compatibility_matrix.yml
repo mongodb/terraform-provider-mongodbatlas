@@ -1,0 +1,30 @@
+name: Update Terraform Compatibility Matrix documentation
+
+# Checks if any changes are required to be made to our documentation for supported Terraform versions. Runs daily and can be triggered manually.
+on:
+ schedule:
+   - cron: "0 7 * * *" # Everyday at 7:00 AM 
+ workflow_dispatch:
+  
+jobs:
+  update-tf-compatibility-matrix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
+      - name: Update files
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run:  make update-tf-compatibility-matrix
+      - name: Verify Changed files
+        uses: tj-actions/verify-changed-files@843c0b95f87cd81a2efe729380c6d1f11fb3ea12
+        id: verify-changed-files
+      - name: Create PR
+        uses: peter-evans/create-pull-request@70a41aba780001da0a30141984ae2a0c95d8704e
+        if: steps.verify-changed-files.outputs.files_changed == 'true'
+        with:
+          title: "doc: Updates Terraform Compatibility Matrix documentation"
+          commit-message: "doc: Updates Terraform Compatibility Matrix documentation"
+          delete-branch: true
+          branch: terraform-compatibility-matrix-update
+          body: Automatic updates for Terraform Compatibility Matrix documentation
