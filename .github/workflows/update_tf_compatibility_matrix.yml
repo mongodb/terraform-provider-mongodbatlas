@@ -1,6 +1,6 @@
 name: Update Terraform Compatibility Matrix documentation
 
-# Checks if a new Atlas Go SDK version is available and creates a pull request adjusting version in codebase. Runs once per week and can be triggered manually.
+# Checks if any changes are required to be made to our documentation for supported Terraform versions. Runs daily and can be triggered manually.
 on:
  schedule:
    - cron: "0 7 * * *" # Everyday at 7:00 AM 
@@ -12,9 +12,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
-      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
-        with:
-          go-version-file: 'go.mod'
       - name: Update files
         run:  make update-tf-compatibility-matrix
       - name: Verify Changed files
