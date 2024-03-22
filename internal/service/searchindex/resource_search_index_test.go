@@ -64,7 +64,8 @@ func TestAccSearchIndex_withMapping(t *testing.T) {
 		indexType       = ""
 		mappingsDynamic = "false"
 	)
-	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo, "mappings_fields", "analyzers")
+	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
+	checks = addAttrSetChecks(checks, "mappings_fields", "analyzers")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -93,7 +94,7 @@ func TestAccSearchIndex_withSynonyms(t *testing.T) {
 		}
 	)
 	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
-	checks = append(checks, extraAttrChecks(mapChecks)...)
+	checks = addAttrChecks(checks, mapChecks)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -108,7 +109,40 @@ func TestAccSearchIndex_withSynonyms(t *testing.T) {
 	})
 }
 
-func commonChecks(indexName, indexType, mappingsDynamic, databaseName string, clusterInfo acc.ClusterInfo, attrsSet ...string) []resource.TestCheckFunc {
+func TestAccSearchIndexRS_updatedToEmptySynonyms(t *testing.T) {
+	var (
+		clusterInfo     = acc.GetClusterInfo(t, nil)
+		indexName       = acc.RandomName()
+		databaseName    = acc.RandomName()
+		indexType       = ""
+		mappingsDynamic = "true"
+	)
+	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
+	checks1 := addAttrChecks(checks, map[string]string{
+		"synonyms.#":                   "1",
+		"synonyms.0.analyzer":          "lucene.simple",
+		"synonyms.0.name":              "synonym_test",
+		"synonyms.0.source_collection": collectionName,
+	})
+	checks2 := addAttrChecks(checks, map[string]string{"synonyms.#": "0"})
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, with),
+				Check:  resource.ComposeTestCheckFunc(checks1...),
+			},
+			{
+				Config: configWithSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, without),
+				Check:  resource.ComposeTestCheckFunc(checks2...),
+			},
+		},
+	})
+}
+
+func commonChecks(indexName, indexType, mappingsDynamic, databaseName string, clusterInfo acc.ClusterInfo) []resource.TestCheckFunc {
 	attributes := map[string]string{
 		"name":             indexName,
 		"cluster_name":     clusterInfo.ClusterName,
@@ -118,74 +152,20 @@ func commonChecks(indexName, indexType, mappingsDynamic, databaseName string, cl
 		"search_analyzer":  searchAnalyzer,
 		"mappings_dynamic": mappingsDynamic,
 	}
-	checks := resourceAttrChecks(resourceName, attributes)
-	checks = append(checks, resourceAttrChecks(datasourceName, attributes)...)
-	checks = append(checks, resource.TestCheckResourceAttrSet(resourceName, "project_id"))
-	checks = append(checks, resourceAttrSetChecks(datasourceName, "project_id", "index_id")...)
-	checks = append(checks, resourceAttrSetChecks(resourceName, attrsSet...)...)
-	checks = append(checks, resourceAttrSetChecks(datasourceName, attrsSet...)...)
-	return checks
-}
-func extraAttrChecks(mapChecks map[string]string) []resource.TestCheckFunc {
-	checks := []resource.TestCheckFunc{}
-
-	for key, value := range mapChecks {
-		checks = append(checks, resource.TestCheckResourceAttr(resourceName, key, value))
-	}
-	for key, value := range mapChecks {
-		checks = append(checks, resource.TestCheckResourceAttr(datasourceName, key, value))
-	}
-	return checks
+	checks := addAttrChecks(nil, attributes)
+	checks = acc.AddAttrSetChecks(resourceName, checks, "project_id")
+	return acc.AddAttrSetChecks(datasourceName, checks, "project_id", "index_id")
 }
 
-func resourceAttrSetChecks(targetName string, attrNames ...string) []resource.TestCheckFunc {
-	checks := []resource.TestCheckFunc{}
-	for _, attrName := range attrNames {
-		checks = append(checks, resource.TestCheckResourceAttrSet(targetName, attrName))
-	}
-	return checks
-}
-func resourceAttrChecks(targetName string, mapChecks map[string]string) []resource.TestCheckFunc {
-	checks := []resource.TestCheckFunc{}
-
-	for key, value := range mapChecks {
-		checks = append(checks, resource.TestCheckResourceAttr(targetName, key, value))
-	}
-	return checks
+func addAttrChecks(checks []resource.TestCheckFunc, mapChecks map[string]string) []resource.TestCheckFunc {
+	checks = acc.AddAttrChecks(resourceName, checks, mapChecks)
+	return acc.AddAttrChecks(datasourceName, checks, mapChecks)
 }
 
-func TestAccSearchIndexRS_updatedToEmptySynonyms(t *testing.T) {
-	var (
-		clusterInfo  = acc.GetClusterInfo(t, nil)
-		indexName    = acc.RandomName()
-		databaseName = acc.RandomName()
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroySearchIndex,
-		Steps: []resource.TestStep{
-			{
-				Config: configWithSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, with),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "synonyms.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "synonyms.0.analyzer", "lucene.simple"),
-					resource.TestCheckResourceAttr(resourceName, "synonyms.0.name", "synonym_test"),
-					resource.TestCheckResourceAttr(resourceName, "synonyms.0.source_collection", collectionName),
-				),
-			},
-			{
-				Config: configWithSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, without),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "synonyms.#", "0"),
-				),
-			},
-		},
-	})
+func addAttrSetChecks(checks []resource.TestCheckFunc, attrNames ...string) []resource.TestCheckFunc {
+	checks = acc.AddAttrSetChecks(resourceName, checks, attrNames...)
+	return acc.AddAttrSetChecks(datasourceName, checks, attrNames...)
 }
-
 func TestAccSearchIndexRS_updatedToEmptyAnalyzers(t *testing.T) {
 	var (
 		clusterInfo  = acc.GetClusterInfo(t, nil)
