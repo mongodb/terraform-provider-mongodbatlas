@@ -9,9 +9,13 @@ import (
 // SkipTestForCI is added to tests that cannot run as part of CI, e.g. in Github actions.
 func SkipTestForCI(tb testing.TB) {
 	tb.Helper()
-	if strings.EqualFold(os.Getenv("CI"), "true") {
+	if InCI() {
 		tb.Skip()
 	}
+}
+
+func InCI() bool {
+	return strings.EqualFold(os.Getenv("CI"), "true")
 }
 
 // SkipInUnitTest allows skipping a test entirely when TF_ACC=1 is not defined.
