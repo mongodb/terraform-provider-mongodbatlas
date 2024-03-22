@@ -134,3 +134,7 @@ scaffold-schemas:
 .PHONY: generate-doc
 generate-doc: ## Generate the resource documentation via tfplugindocs
 	./scripts/generate-doc.sh ${resource_name}
+
+.PHONY: update-tf-compatibility-matrix
+update-tf-compatibility-matrix: ## Update Terraform Compatibility Matrix documentation
+	./scripts/update-tf-compatibility-matrix.sh

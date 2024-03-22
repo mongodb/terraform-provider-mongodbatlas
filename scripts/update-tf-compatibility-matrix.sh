@@ -15,9 +15,9 @@
 # limitations under the License.
 set -euo pipefail
 
-input_array=$(./get-terraform-supported-versions.sh "true")
+input_array=$(./scripts/get-terraform-supported-versions.sh "true")
 
-indexFile="../website/docs/index.html.markdown"
+indexFile="website/docs/index.html.markdown"
 
 transform_array() {
     local arr="$1"
