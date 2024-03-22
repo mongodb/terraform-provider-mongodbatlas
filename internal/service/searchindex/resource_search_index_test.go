@@ -19,8 +19,7 @@ func TestAccSearchIndex_basic(t *testing.T) {
 		indexType       = ""
 		mappingsDynamic = "true"
 	)
-	checks := commonChecks(resourceName, indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
-	checks = append(checks, commonChecks(datasourceName, indexName, indexType, mappingsDynamic, databaseName, clusterInfo, "index_id")...)
+	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -43,9 +42,7 @@ func TestAccSearchIndex_withSearchType(t *testing.T) {
 		indexType       = "search"
 		mappingsDynamic = "true"
 	)
-	checks := commonChecks(resourceName, indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
-	checks = append(checks, commonChecks(datasourceName, indexName, indexType, mappingsDynamic, databaseName, clusterInfo, "index_id")...)
-	checks = append(checks, resource.TestCheckResourceAttrSet(datasourceName, "index_id"))
+	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -66,12 +63,8 @@ func TestAccSearchIndex_withMapping(t *testing.T) {
 		databaseName    = acc.RandomName()
 		indexType       = ""
 		mappingsDynamic = "false"
-		extraFields     = []string{"mappings_fields", "analyzers"}
 	)
-	checks := commonChecks(resourceName, indexName, indexType, mappingsDynamic, databaseName, clusterInfo, extraFields...)
-	checks = append(checks, commonChecks(datasourceName, indexName, indexType, mappingsDynamic, databaseName, clusterInfo, extraFields...)...)
-	checks = append(checks, resource.TestCheckResourceAttrSet(datasourceName, "index_id"))
-
+	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo, "mappings_fields", "analyzers")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -99,10 +92,9 @@ func TestAccSearchIndex_withSynonyms(t *testing.T) {
 			"synonyms.0.source_collection": collectionName,
 		}
 	)
-	checks := commonChecks(resourceName, indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
-	checks = append(checks, commonChecks(datasourceName, indexName, indexType, mappingsDynamic, databaseName, clusterInfo, "index_id")...)
-	checks = append(checks, resourceAttrChecks(resourceName, mapChecks)...)
-	checks = append(checks, resourceAttrChecks(datasourceName, mapChecks)...)
+	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
+	checks = append(checks, extraAttrChecks(mapChecks)...)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -115,24 +107,44 @@ func TestAccSearchIndex_withSynonyms(t *testing.T) {
 		},
 	})
 }
-func commonChecks(targetName, indexName, indexType, mappingsDynamic, databaseName string, clusterInfo acc.ClusterInfo, attrsSet ...string) []resource.TestCheckFunc {
-	checks := []resource.TestCheckFunc{
-		checkExists(targetName),
-		resource.TestCheckResourceAttrSet(targetName, "project_id"),
-		resource.TestCheckResourceAttr(targetName, "name", indexName),
-		resource.TestCheckResourceAttr(targetName, "cluster_name", clusterInfo.ClusterName),
-		resource.TestCheckResourceAttr(targetName, "database", databaseName),
-		resource.TestCheckResourceAttr(targetName, "collection_name", collectionName),
-		resource.TestCheckResourceAttr(targetName, "type", indexType),
-		resource.TestCheckResourceAttr(targetName, "search_analyzer", searchAnalyzer),
-		resource.TestCheckResourceAttr(targetName, "mappings_dynamic", mappingsDynamic),
+
+func commonChecks(indexName, indexType, mappingsDynamic, databaseName string, clusterInfo acc.ClusterInfo, attrsSet ...string) []resource.TestCheckFunc {
+	attributes := map[string]string{
+		"name":             indexName,
+		"cluster_name":     clusterInfo.ClusterName,
+		"database":         databaseName,
+		"collection_name":  collectionName,
+		"type":             indexType,
+		"search_analyzer":  searchAnalyzer,
+		"mappings_dynamic": mappingsDynamic,
 	}
-	for _, attrName := range attrsSet {
-		checks = append(checks, resource.TestCheckResourceAttrSet(targetName, attrName))
+	checks := resourceAttrChecks(resourceName, attributes)
+	checks = append(checks, resourceAttrChecks(datasourceName, attributes)...)
+	checks = append(checks, resource.TestCheckResourceAttrSet(resourceName, "project_id"))
+	checks = append(checks, resourceAttrSetChecks(datasourceName, "project_id", "index_id")...)
+	checks = append(checks, resourceAttrSetChecks(resourceName, attrsSet...)...)
+	checks = append(checks, resourceAttrSetChecks(datasourceName, attrsSet...)...)
+	return checks
+}
+func extraAttrChecks(mapChecks map[string]string) []resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{}
+
+	for key, value := range mapChecks {
+		checks = append(checks, resource.TestCheckResourceAttr(resourceName, key, value))
+	}
+	for key, value := range mapChecks {
+		checks = append(checks, resource.TestCheckResourceAttr(datasourceName, key, value))
 	}
 	return checks
 }
 
+func resourceAttrSetChecks(targetName string, attrNames ...string) []resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{}
+	for _, attrName := range attrNames {
+		checks = append(checks, resource.TestCheckResourceAttrSet(targetName, attrName))
+	}
+	return checks
+}
 func resourceAttrChecks(targetName string, mapChecks map[string]string) []resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{}
 
