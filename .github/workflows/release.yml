@@ -8,11 +8,30 @@ on:
       version_number:
         description: 'Version number (e.g., v1.0.0, v1.0.0-pre, v1.0.0-pre1)'
         required: true
+      skip_tests:
+        description: 'Skip QA acceptance tests, define value to `true` to explicitly skip'
 
 jobs:
 
+  validate-version-input:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validation of version format
+        run: |
+          echo "${{ inputs.version_number }}" | grep -P '^v\d+\.\d+\.\d+(-pre[A-Za-z0-9-]*)?$'  
+
+    # QA acceptance tests are skipped when explicit input parameter is used
+  run-qa-acceptance-tests:
+    needs: [ validate-version-input ]
+    if: needs.validate-version-input.result == 'success' && inputs.skip_tests != 'true'
+    secrets: inherit
+    uses: ./.github/workflows/acceptance-tests.yml
+    with:
+      atlas_cloud_env: "qa"
+
   release:
     runs-on: ubuntu-latest
+    needs: [ validate-version-input, run-qa-acceptance-tests ]
     if: ${{ always() && needs.validate-version-input.result == 'success' && (needs.run-qa-acceptance-tests.result == 'skipped' || needs.run-qa-acceptance-tests.result == 'success') }}
     steps:
       - name: Checkout
