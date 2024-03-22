@@ -9,33 +9,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T) {
-	var (
-		resourceName = "mongodbatlas_project_ip_access_list.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		ipAddress    = acc.RandomIP(179, 154, 226)
-		comment      = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-					resource.TestCheckResourceAttr(resourceName, "ip_address", ipAddress),
-					resource.TestCheckResourceAttr(resourceName, "comment", comment),
-				),
-			},
-		},
-	})
-}
-
 func TestAccProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project_ip_access_list.test"

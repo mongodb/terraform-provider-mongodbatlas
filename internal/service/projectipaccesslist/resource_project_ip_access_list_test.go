@@ -10,9 +10,13 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T) {
+const (
+	resourceName   = "mongodbatlas_project_ip_access_list.test"
+	dataSourceName = "data.mongodbatlas_project_ip_access_list.test"
+)
+
+func TestAccProjectIPAccesslist_settingIPAddress(t *testing.T) {
 	var (
-		resourceName     = "mongodbatlas_project_ip_access_list.test"
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName      = acc.RandomProjectName()
 		ipAddress        = acc.RandomIP(179, 154, 226)
@@ -35,6 +39,12 @@ func TestAccProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "comment"),
 					resource.TestCheckResourceAttr(resourceName, "ip_address", ipAddress),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "ip_address"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "comment"),
+					resource.TestCheckResourceAttr(dataSourceName, "ip_address", ipAddress),
+					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
 				),
 			},
 			{
@@ -54,7 +64,6 @@ func TestAccProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T) {
 
 func TestAccProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 	var (
-		resourceName     = "mongodbatlas_project_ip_access_list.test"
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName      = acc.RandomProjectName()
 		cidrBlock        = acc.RandomIP(179, 154, 226) + "/32"
@@ -96,7 +105,6 @@ func TestAccProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 
 func TestAccProjectRSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
 	var (
-		resourceName     = "mongodbatlas_project_ip_access_list.test"
 		vpcID            = os.Getenv("AWS_VPC_ID")
 		vpcCIDRBlock     = os.Getenv("AWS_VPC_CIDR_BLOCK")
 		awsAccountID     = os.Getenv("AWS_ACCOUNT_ID")
@@ -196,11 +204,10 @@ func TestAccProjectRSProjectIPAccessList_SettingMultiple(t *testing.T) {
 
 func TestAccProjectRSProjectIPAccessList_importBasic(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		ipAddress    = acc.RandomIP(179, 154, 226)
-		comment      = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
-		resourceName = "mongodbatlas_project_ip_access_list.test"
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		ipAddress   = acc.RandomIP(179, 154, 226)
+		comment     = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -223,11 +230,10 @@ func TestAccProjectRSProjectIPAccessList_importBasic(t *testing.T) {
 
 func TestAccProjectRSProjectIPAccessList_importIncorrectId(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		ipAddress    = acc.RandomIP(179, 154, 226)
-		comment      = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
-		resourceName = "mongodbatlas_project_ip_access_list.test"
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		ipAddress   = acc.RandomIP(179, 154, 226)
+		comment     = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
 	)
 
 	resource.Test(t, resource.TestCase{

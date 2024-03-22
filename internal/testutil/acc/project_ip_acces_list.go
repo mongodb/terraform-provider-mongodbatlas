@@ -52,6 +52,11 @@ func ConfigProjectIPAccessListWithIPAddress(orgID, projectName, ipAddress, comme
 			ip_address = %[3]q
 			comment    = %[4]q
 		}
+
+		data "mongodbatlas_project_ip_access_list" "test" {
+			project_id = mongodbatlas_project_ip_access_list.test.project_id
+			ip_address = mongodbatlas_project_ip_access_list.test.ip_address
+		}
 	`, orgID, projectName, ipAddress, comment)
 }
 
