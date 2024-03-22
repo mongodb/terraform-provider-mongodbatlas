@@ -44,11 +44,11 @@ jobs:
       matrix:
         terraform_version: '${{ fromJSON(needs.get-supported-versions.outputs.supported_versions) }}'
     name: terrafrom-compatibility-${{ matrix.terraform_version }}-${{ inputs.atlas_cloud_env || 'dev' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: test-${{ matrix.terraform_version }}
-        run: |
-          echo "test-${{ matrix.terraform_version }}"
+    secrets: inherit
+    uses: ./.github/workflows/test-suite.yml
+    with:
+      terraform_matrix: '["${{ matrix.terraform_version }}"]'
+      atlas_cloud_env: ${{ inputs.atlas_cloud_env }}
   
   slack-notification:
     needs: ["run-test-supported-versions"]
