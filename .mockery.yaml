@@ -13,7 +13,3 @@ packages:
       TeamsApi:
       ProjectsApi:
       ClustersApi:
-  
-  github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster:
-    interfaces:
-      ClusterService:
