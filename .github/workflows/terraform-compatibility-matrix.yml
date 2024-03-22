@@ -60,7 +60,7 @@ jobs:
           echo "slack_payload=${slack_message}" >> "${GITHUB_OUTPUT}"
       - name: Send Slack message
         id: slack
-        uses: slackapi/slack-github-action@v1.25.0
+        uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001
         with:
           payload: ${{ steps.slack-payload.outputs.slack_payload }}
         env:
