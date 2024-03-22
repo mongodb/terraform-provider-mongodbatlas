@@ -28,11 +28,12 @@ if [ "$1" != "success" ] && [ "$1" != "failure" ]; then
 fi
 
 if [ "$1" == "success" ]; then
-    text_value="HashiCorp Terraform Compatibility Matrix succeeded!"
+    text_value=":white_check_mark: HashiCorp Terraform Compatibility Matrix succeeded"
 	action_text="Successful action"
 else
-    text_value="HashiCorp Terraform Compatibility Matrix failed!"
+    text_value=":red_circle: HashiCorp Terraform Compatibility Matrix failed"
 	action_text="Failed action"
+	oncall_tag="@apix-integrations-on-call"
 fi
 
 server_url=$2
@@ -46,7 +47,7 @@ json="{
                 \"type\": \"section\",
                 \"text\": {
                     \"type\": \"mrkdwn\",
-                    \"text\": \"$text_value\"
+                    \"text\": \"*$text_value* $oncall_tag\"
                 }
             },
             {
