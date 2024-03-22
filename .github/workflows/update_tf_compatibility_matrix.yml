@@ -7,12 +7,14 @@ on:
  workflow_dispatch:
   
 jobs:
-  update-sdk:
+  update-tf-compatibility-matrix:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
       - name: Update files
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run:  make update-tf-compatibility-matrix
       - name: Verify Changed files
         uses: tj-actions/verify-changed-files@843c0b95f87cd81a2efe729380c6d1f11fb3ea12
