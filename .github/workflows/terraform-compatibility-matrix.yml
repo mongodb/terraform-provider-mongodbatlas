@@ -5,7 +5,7 @@ on:
   pull_request:
     types: [synchronize]
   schedule:
-    - cron: "0 0 1 * *" # runs first Saturday of the month at midnight UTC
+    - cron: "0 0 1 * *" # runs first day of the month at midnight UTC
   workflow_dispatch:
     inputs:
       atlas_cloud_env:

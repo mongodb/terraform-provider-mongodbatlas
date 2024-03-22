@@ -25,7 +25,7 @@ on:
         required: false
 
   schedule:
-    - cron: "0 0 2-31 * *" # workflow runs every day at midnight UTC except on Saturdays
+    - cron: "0 0 2-31 * *" # workflow runs every day at midnight UTC except on the first day of the month
    
 concurrency:
   group: '${{ github.workflow }}'
@@ -85,3 +85,41 @@ jobs:
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
   
+  slack-notification:
+    needs: [mig-tests, acc-tests, clean-after]
+    if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && (needs.mig-tests.result == 'failure' || needs.acc-tests.result == 'failure')}}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack message
+        id: slack
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "text": ":red_circle: Test Suite failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Test Suite failed* @apix-integrations-on-call"
+                  }
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": ":github: $action_text"
+                        },
+                        "url": "${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
+                    }
+                ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
