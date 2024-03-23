@@ -12,11 +12,10 @@ import (
 
 func TestMigProjectIPAccessList_settingIPAddress(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		ipAddress   = acc.RandomIP(179, 154, 226)
-		comment     = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
-		config      = acc.ConfigProjectIPAccessListWithIPAddress(orgID, projectName, ipAddress, comment)
+		projectID = mig.ProjectIDGlobal(t)
+		ipAddress = acc.RandomIP(179, 154, 226)
+		comment   = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
+		config    = configWithIPAddress(projectID, ipAddress, comment)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -17,8 +17,7 @@ const (
 
 func TestAccProjectIPAccesslist_settingIPAddress(t *testing.T) {
 	var (
-		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName      = acc.RandomProjectName()
+		projectID        = acc.ProjectIDExecution(t)
 		ipAddress        = acc.RandomIP(179, 154, 226)
 		comment          = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
 		updatedIPAddress = acc.RandomIP(179, 154, 228)
@@ -31,11 +30,11 @@ func TestAccProjectIPAccesslist_settingIPAddress(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectIPAccessListWithIPAddress(orgID, projectName, ipAddress, comment),
+				Config: configWithIPAddress(projectID, ipAddress, comment),
 				Check:  resource.ComposeTestCheckFunc(commonChecks(ipAddress, "", "", comment)...),
 			},
 			{
-				Config: acc.ConfigProjectIPAccessListWithIPAddress(orgID, projectName, updatedIPAddress, updatedComment),
+				Config: configWithIPAddress(projectID, updatedIPAddress, updatedComment),
 				Check:  resource.ComposeTestCheckFunc(commonChecks(updatedIPAddress, "", "", updatedComment)...),
 			},
 		},
@@ -150,10 +149,9 @@ func TestAccProjectIPAccessList_settingMultiple(t *testing.T) {
 
 func TestAccProjectIPAccessList_importBasic(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		ipAddress   = acc.RandomIP(179, 154, 226)
-		comment     = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
+		projectID = acc.ProjectIDExecution(t)
+		ipAddress = acc.RandomIP(179, 154, 226)
+		comment   = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -162,7 +160,7 @@ func TestAccProjectIPAccessList_importBasic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectIPAccessListWithIPAddress(orgID, projectName, ipAddress, comment),
+				Config: configWithIPAddress(projectID, ipAddress, comment),
 			},
 			{
 				ResourceName:      resourceName,
@@ -176,10 +174,9 @@ func TestAccProjectIPAccessList_importBasic(t *testing.T) {
 
 func TestAccProjectIPAccessList_importIncorrectId(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		ipAddress   = acc.RandomIP(179, 154, 226)
-		comment     = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
+		projectID = acc.ProjectIDExecution(t)
+		ipAddress = acc.RandomIP(179, 154, 226)
+		comment   = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -188,7 +185,7 @@ func TestAccProjectIPAccessList_importIncorrectId(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectIPAccessListWithIPAddress(orgID, projectName, ipAddress, comment),
+				Config: configWithIPAddress(projectID, ipAddress, comment),
 			},
 			{
 				ResourceName:  resourceName,
@@ -225,4 +222,19 @@ func commonChecks(ipAddress, cidrBlock, awsSGroup, comment string) []resource.Te
 			resource.TestCheckResourceAttr(dataSourceName, "aws_security_group", awsSGroup))
 	}
 	return checks
+}
+
+func configWithIPAddress(projectID, ipAddress, comment string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project_ip_access_list" "test" {
+			project_id = %[1]q
+			ip_address = %[2]q
+			comment    = %[3]q
+		}
+
+		data "mongodbatlas_project_ip_access_list" "test" {
+			project_id = mongodbatlas_project_ip_access_list.test.project_id
+			ip_address = mongodbatlas_project_ip_access_list.test.ip_address
+		}
+	`, projectID, ipAddress, comment)
 }
