@@ -69,15 +69,14 @@ func TestAccProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 
 func TestAccProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 	var (
+		projectID        = acc.ProjectIDExecution(t)
 		vpcID            = os.Getenv("AWS_VPC_ID")
 		vpcCIDRBlock     = os.Getenv("AWS_VPC_CIDR_BLOCK")
 		awsAccountID     = os.Getenv("AWS_ACCOUNT_ID")
 		awsRegion        = os.Getenv("AWS_REGION")
-		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		awsSGroup        = os.Getenv("AWS_SECURITY_GROUP_1")
 		updatedAWSSgroup = os.Getenv("AWS_SECURITY_GROUP_2")
 		providerName     = "AWS"
-		projectName      = acc.RandomProjectName()
 		comment          = fmt.Sprintf("TestAcc for awsSecurityGroup (%s)", awsSGroup)
 		updatedComment   = fmt.Sprintf("TestAcc for awsSecurityGroup updated (%s)", updatedAWSSgroup)
 	)
@@ -88,11 +87,11 @@ func TestAccProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectIPAccessListWithAWSSecurityGroup(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
+				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
 				Check:  resource.ComposeTestCheckFunc(commonChecks("", "", awsSGroup, comment)...),
 			},
 			{
-				Config: acc.ConfigProjectIPAccessListWithAWSSecurityGroup(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, updatedAWSSgroup, updatedComment),
+				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, updatedAWSSgroup, updatedComment),
 				Check:  resource.ComposeTestCheckFunc(commonChecks("", "", updatedAWSSgroup, updatedComment)...),
 			},
 		},
@@ -251,4 +250,38 @@ func configWithCIDRBlock(projectID, cidrBlock, comment string) string {
 			cidr_block = mongodbatlas_project_ip_access_list.test.cidr_block
 		}
 	`, projectID, cidrBlock, comment)
+}
+
+func configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_network_container" "test" {
+			project_id   		  = %[1]q
+			atlas_cidr_block  = "192.168.208.0/21"
+			provider_name		  = %[2]q
+			region_name			  = %[6]q
+		}
+
+		resource "mongodbatlas_network_peering" "test" {
+			accepter_region_name	  = "us-east-1"
+			project_id    			    = %[1]q
+			container_id            = mongodbatlas_network_container.test.container_id
+			provider_name           = %[2]q
+			vpc_id					        = %[3]q
+			aws_account_id	        = %[4]q
+			route_table_cidr_block  = %[5]q
+		}
+
+		resource "mongodbatlas_project_ip_access_list" "test" {
+			project_id         = %[1]q
+			aws_security_group = %[7]q
+			comment            = %[8]q
+
+			depends_on = ["mongodbatlas_network_peering.test"]
+		}
+
+		data "mongodbatlas_project_ip_access_list" "test" {
+			project_id = %[1]q
+			aws_security_group = mongodbatlas_project_ip_access_list.test.aws_security_group
+		}
+	`, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment)
 }

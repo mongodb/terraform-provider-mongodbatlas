@@ -56,16 +56,15 @@ func TestMigProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 
 func TestMigProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectID    = acc.ProjectIDExecution(t)
 		awsSGroup    = os.Getenv("AWS_SECURITY_GROUP_1")
 		vpcID        = os.Getenv("AWS_VPC_ID")
 		vpcCIDRBlock = os.Getenv("AWS_VPC_CIDR_BLOCK")
 		awsAccountID = os.Getenv("AWS_ACCOUNT_ID")
 		awsRegion    = os.Getenv("AWS_REGION")
 		providerName = "AWS"
-		projectName  = acc.RandomProjectName()
 		comment      = fmt.Sprintf("TestAcc for awsSecurityGroup (%s)", awsSGroup)
-		config       = acc.ConfigProjectIPAccessListWithAWSSecurityGroup(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment)
+		config       = configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
