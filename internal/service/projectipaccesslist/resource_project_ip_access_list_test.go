@@ -103,11 +103,12 @@ func TestAccProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 
 func TestAccProjectIPAccessList_settingMultiple(t *testing.T) {
 	var (
-		resourceName     = "mongodbatlas_project_ip_access_list.test_%d"
+		resourceFmt      = "mongodbatlas_project_ip_access_list.test_%d"
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName      = acc.RandomProjectName()
 		ipWhiteListCount = 20
-		accessList       = make([]map[string]string, 0)
+		accessList       = []map[string]string{}
+		checks           = []resource.TestCheckFunc{}
 	)
 
 	for i := 0; i < ipWhiteListCount; i++ {
@@ -127,6 +128,7 @@ func TestAccProjectIPAccessList_settingMultiple(t *testing.T) {
 		entry["comment"] = fmt.Sprintf("TestAcc for %s (%s)", entryName, ipAddr)
 
 		accessList = append(accessList, entry)
+		checks = append(checks, acc.CheckProjectIPAccessListExists(fmt.Sprintf(resourceFmt, i)))
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -136,19 +138,11 @@ func TestAccProjectIPAccessList_settingMultiple(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigProjectIPAccessListWithMultiple(projectName, orgID, accessList, false),
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectIPAccessListExists(fmt.Sprintf(resourceName, 0)),
-					acc.CheckProjectIPAccessListExists(fmt.Sprintf(resourceName, 1)),
-					acc.CheckProjectIPAccessListExists(fmt.Sprintf(resourceName, 2)),
-				),
+				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 			{
 				Config: acc.ConfigProjectIPAccessListWithMultiple(projectName, orgID, accessList, true),
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectIPAccessListExists(fmt.Sprintf(resourceName, 0)),
-					acc.CheckProjectIPAccessListExists(fmt.Sprintf(resourceName, 1)),
-					acc.CheckProjectIPAccessListExists(fmt.Sprintf(resourceName, 2)),
-				),
+				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 		},
 	})
