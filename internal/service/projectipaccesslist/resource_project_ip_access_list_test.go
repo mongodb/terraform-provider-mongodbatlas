@@ -25,7 +25,7 @@ func TestAccProjectIPAccesslist_settingIPAddress(t *testing.T) {
 		updatedComment   = fmt.Sprintf("TestAcc for ipAddress updated (%s)", updatedIPAddress)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
@@ -73,7 +73,7 @@ func TestAccProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 		updatedComment   = fmt.Sprintf("TestAcc for cidrBlock updated (%s)", updatedCIDRBlock)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
@@ -126,7 +126,7 @@ func TestAccProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 		updatedComment   = fmt.Sprintf("TestAcc for awsSecurityGroup updated (%s)", updatedAWSSgroup)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckPeeringEnvAWS(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
@@ -218,7 +218,7 @@ func TestAccProjectIPAccessList_importBasic(t *testing.T) {
 		comment     = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
@@ -244,7 +244,7 @@ func TestAccProjectIPAccessList_importIncorrectId(t *testing.T) {
 		comment     = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,

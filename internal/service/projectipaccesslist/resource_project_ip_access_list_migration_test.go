@@ -19,7 +19,7 @@ func TestMigProjectIPAccessList_settingIPAddress(t *testing.T) {
 		config      = acc.ConfigProjectIPAccessListWithIPAddress(orgID, projectName, ipAddress, comment)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyProjectIPAccessList,
 		Steps: []resource.TestStep{
@@ -49,7 +49,7 @@ func TestMigProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 		config      = acc.ConfigProjectIPAccessListWithCIDRBlock(orgID, projectName, cidrBlock, comment)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyProjectIPAccessList,
 		Steps: []resource.TestStep{
@@ -84,7 +84,7 @@ func TestMigProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 		config       = acc.ConfigProjectIPAccessListWithAWSSecurityGroup(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckPeeringEnvAWS(t) },
 		CheckDestroy: acc.CheckDestroyProjectIPAccessList,
 		Steps: []resource.TestStep{
