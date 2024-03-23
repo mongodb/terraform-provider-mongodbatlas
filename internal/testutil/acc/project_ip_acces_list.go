@@ -41,41 +41,6 @@ func CheckDestroyProjectIPAccessList(s *terraform.State) error {
 	return nil
 }
 
-func ConfigProjectIPAccessListWithMultiple(projectName, orgID string, accessList []map[string]string, isUpdate bool) string {
-	cfg := fmt.Sprintf(`
-			resource "mongodbatlas_project" "test" {
-				name   = %[1]q
-				org_id = %[2]q
-			}`, projectName, orgID)
-
-	for i, entry := range accessList {
-		comment := entry["comment"]
-
-		if isUpdate {
-			comment = entry["comment"] + " update"
-		}
-
-		if cidr, ok := entry["cidr_block"]; ok {
-			cfg += fmt.Sprintf(`
-			resource "mongodbatlas_project_ip_access_list" "test_%[1]d" {
-				project_id   = mongodbatlas_project.test.id
-				cidr_block = %[2]q
-				comment    = %[3]q
-			}
-		`, i, cidr, comment)
-		} else {
-			cfg += fmt.Sprintf(`
-			resource "mongodbatlas_project_ip_access_list" "test_%[1]d" {
-				project_id   = mongodbatlas_project.test.id
-				ip_address = %[2]q
-				comment    = %[3]q
-			}
-		`, i, entry["ip_address"], comment)
-		}
-	}
-	return cfg
-}
-
 func ImportStateProjecIPAccessListtIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]

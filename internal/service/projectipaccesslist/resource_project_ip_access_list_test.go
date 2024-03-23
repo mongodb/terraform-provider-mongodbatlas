@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -100,9 +101,8 @@ func TestAccProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 
 func TestAccProjectIPAccessList_settingMultiple(t *testing.T) {
 	var (
+		projectID        = acc.ProjectIDExecution(t)
 		resourceFmt      = "mongodbatlas_project_ip_access_list.test_%d"
-		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName      = acc.RandomProjectName()
 		ipWhiteListCount = 20
 		accessList       = []map[string]string{}
 		checks           = []resource.TestCheckFunc{}
@@ -134,11 +134,11 @@ func TestAccProjectIPAccessList_settingMultiple(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectIPAccessListWithMultiple(projectName, orgID, accessList, false),
+				Config: configWithMultiple(projectID, accessList, false),
 				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 			{
-				Config: acc.ConfigProjectIPAccessListWithMultiple(projectName, orgID, accessList, true),
+				Config: configWithMultiple(projectID, accessList, true),
 				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 		},
@@ -284,4 +284,33 @@ func configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vp
 			aws_security_group = mongodbatlas_project_ip_access_list.test.aws_security_group
 		}
 	`, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment)
+}
+
+func configWithMultiple(projectID string, accessList []map[string]string, isUpdate bool) string {
+	var config strings.Builder
+	for i, entry := range accessList {
+		comment := entry["comment"]
+		if isUpdate {
+			comment = entry["comment"] + " update"
+		}
+
+		if cidr, ok := entry["cidr_block"]; ok {
+			config.WriteString(fmt.Sprintf(`
+				resource "mongodbatlas_project_ip_access_list" "test_%[1]d" {
+					project_id   = %[2]q
+					cidr_block = %[3]q
+					comment    = %[4]q
+				}
+			`, i, projectID, cidr, comment))
+		} else {
+			config.WriteString(fmt.Sprintf(`
+				resource "mongodbatlas_project_ip_access_list" "test_%[1]d" {
+					project_id   = %[2]q
+					ip_address = %[3]q
+					comment    = %[4]q
+				}
+			`, i, projectID, entry["ip_address"], comment))
+		}
+	}
+	return config.String()
 }
