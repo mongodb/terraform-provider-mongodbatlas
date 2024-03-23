@@ -34,7 +34,7 @@ func TestMigProjectIPAccessList_settingIPAddress(t *testing.T) {
 
 func TestMigProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = mig.ProjectIDGlobal(t)
 		cidrBlock = acc.RandomIP(179, 154, 226) + "/32"
 		comment   = fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
 		config    = configWithCIDRBlock(projectID, cidrBlock, comment)
@@ -56,7 +56,7 @@ func TestMigProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 
 func TestMigProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 	var (
-		projectID    = acc.ProjectIDExecution(t)
+		projectID    = mig.ProjectIDGlobal(t)
 		awsSGroup    = os.Getenv("AWS_SECURITY_GROUP_1")
 		vpcID        = os.Getenv("AWS_VPC_ID")
 		vpcCIDRBlock = os.Getenv("AWS_VPC_CIDR_BLOCK")
