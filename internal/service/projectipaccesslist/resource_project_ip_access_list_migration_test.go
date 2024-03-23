@@ -34,11 +34,10 @@ func TestMigProjectIPAccessList_settingIPAddress(t *testing.T) {
 
 func TestMigProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		cidrBlock   = acc.RandomIP(179, 154, 226) + "/32"
-		comment     = fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
-		config      = acc.ConfigProjectIPAccessListWithCIDRBlock(orgID, projectName, cidrBlock, comment)
+		projectID = acc.ProjectIDExecution(t)
+		cidrBlock = acc.RandomIP(179, 154, 226) + "/32"
+		comment   = fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
+		config    = configWithCIDRBlock(projectID, cidrBlock, comment)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

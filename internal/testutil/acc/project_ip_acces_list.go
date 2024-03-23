@@ -41,26 +41,6 @@ func CheckDestroyProjectIPAccessList(s *terraform.State) error {
 	return nil
 }
 
-func ConfigProjectIPAccessListWithCIDRBlock(orgID, projectName, cidrBlock, comment string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = %[2]q
-			org_id = %[1]q
-		}
-
-		resource "mongodbatlas_project_ip_access_list" "test" {
-			project_id = mongodbatlas_project.test.id
-			cidr_block = %[3]q
-			comment    = %[4]q
-		}
-
-		data "mongodbatlas_project_ip_access_list" "test" {
-			project_id = mongodbatlas_project_ip_access_list.test.project_id
-			cidr_block = mongodbatlas_project_ip_access_list.test.cidr_block
-		}
-	`, orgID, projectName, cidrBlock, comment)
-}
-
 func ConfigProjectIPAccessListWithAWSSecurityGroup(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment string) string {
 	return fmt.Sprintf(`
 

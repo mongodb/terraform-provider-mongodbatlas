@@ -43,8 +43,7 @@ func TestAccProjectIPAccesslist_settingIPAddress(t *testing.T) {
 
 func TestAccProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 	var (
-		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName      = acc.RandomProjectName()
+		projectID        = acc.ProjectIDExecution(t)
 		cidrBlock        = acc.RandomIP(179, 154, 226) + "/32"
 		comment          = fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
 		updatedCIDRBlock = acc.RandomIP(179, 154, 228) + "/32"
@@ -57,11 +56,11 @@ func TestAccProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectIPAccessListWithCIDRBlock(orgID, projectName, cidrBlock, comment),
+				Config: configWithCIDRBlock(projectID, cidrBlock, comment),
 				Check:  resource.ComposeTestCheckFunc(commonChecks("", cidrBlock, "", comment)...),
 			},
 			{
-				Config: acc.ConfigProjectIPAccessListWithCIDRBlock(orgID, projectName, updatedCIDRBlock, updatedComment),
+				Config: configWithCIDRBlock(projectID, updatedCIDRBlock, updatedComment),
 				Check:  resource.ComposeTestCheckFunc(commonChecks("", updatedCIDRBlock, "", updatedComment)...),
 			},
 		},
@@ -237,4 +236,19 @@ func configWithIPAddress(projectID, ipAddress, comment string) string {
 			ip_address = mongodbatlas_project_ip_access_list.test.ip_address
 		}
 	`, projectID, ipAddress, comment)
+}
+
+func configWithCIDRBlock(projectID, cidrBlock, comment string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project_ip_access_list" "test" {
+			project_id = %[1]q
+			cidr_block = %[2]q
+			comment    = %[3]q
+		}
+
+		data "mongodbatlas_project_ip_access_list" "test" {
+			project_id = mongodbatlas_project_ip_access_list.test.project_id
+			cidr_block = mongodbatlas_project_ip_access_list.test.cidr_block
+		}
+	`, projectID, cidrBlock, comment)
 }
