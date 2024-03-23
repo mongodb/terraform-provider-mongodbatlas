@@ -32,32 +32,11 @@ func TestAccProjectIPAccesslist_settingIPAddress(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigProjectIPAccessListWithIPAddress(orgID, projectName, ipAddress, comment),
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-					resource.TestCheckResourceAttr(resourceName, "ip_address", ipAddress),
-					resource.TestCheckResourceAttr(resourceName, "comment", comment),
-
-					acc.CheckProjectIPAccessListExists(dataSourceName),
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "comment"),
-					resource.TestCheckResourceAttr(dataSourceName, "ip_address", ipAddress),
-					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
-				),
+				Check:  resource.ComposeTestCheckFunc(commonChecks(ipAddress, "", "", comment)...),
 			},
 			{
 				Config: acc.ConfigProjectIPAccessListWithIPAddress(orgID, projectName, updatedIPAddress, updatedComment),
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-					resource.TestCheckResourceAttr(resourceName, "ip_address", updatedIPAddress),
-					resource.TestCheckResourceAttr(resourceName, "comment", updatedComment),
-				),
+				Check:  resource.ComposeTestCheckFunc(commonChecks(updatedIPAddress, "", "", updatedComment)...),
 			},
 		},
 	})
@@ -80,32 +59,11 @@ func TestAccProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigProjectIPAccessListWithCIDRBlock(orgID, projectName, cidrBlock, comment),
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "cidr_block"),
-					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-					resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),
-					resource.TestCheckResourceAttr(resourceName, "comment", comment),
-
-					acc.CheckProjectIPAccessListExists(dataSourceName),
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "cidr_block"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "comment"),
-					resource.TestCheckResourceAttr(dataSourceName, "cidr_block", cidrBlock),
-					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
-				),
+				Check:  resource.ComposeTestCheckFunc(commonChecks("", cidrBlock, "", comment)...),
 			},
 			{
 				Config: acc.ConfigProjectIPAccessListWithCIDRBlock(orgID, projectName, updatedCIDRBlock, updatedComment),
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "cidr_block"),
-					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-					resource.TestCheckResourceAttr(resourceName, "cidr_block", updatedCIDRBlock),
-					resource.TestCheckResourceAttr(resourceName, "comment", updatedComment),
-				),
+				Check:  resource.ComposeTestCheckFunc(commonChecks("", updatedCIDRBlock, "", updatedComment)...),
 			},
 		},
 	})
@@ -133,25 +91,11 @@ func TestAccProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigProjectIPAccessListWithAWSSecurityGroup(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "aws_security_group", awsSGroup),
-					resource.TestCheckResourceAttr(resourceName, "comment", comment),
-
-					acc.CheckProjectIPAccessListExists(dataSourceName),
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "aws_security_group", awsSGroup),
-					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
-				),
+				Check:  resource.ComposeTestCheckFunc(commonChecks("", "", awsSGroup, comment)...),
 			},
 			{
 				Config: acc.ConfigProjectIPAccessListWithAWSSecurityGroup(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, updatedAWSSgroup, updatedComment),
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "aws_security_group", updatedAWSSgroup),
-					resource.TestCheckResourceAttr(resourceName, "comment", updatedComment),
-				),
+				Check:  resource.ComposeTestCheckFunc(commonChecks("", "", updatedAWSSgroup, updatedComment)...),
 			},
 		},
 	})
@@ -260,4 +204,31 @@ func TestAccProjectIPAccessList_importIncorrectId(t *testing.T) {
 			},
 		},
 	})
+}
+
+func commonChecks(ipAddress, cidrBlock, awsSGroup, comment string) []resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{
+		acc.CheckProjectIPAccessListExists(resourceName),
+		acc.CheckProjectIPAccessListExists(dataSourceName),
+		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+		resource.TestCheckResourceAttr(resourceName, "comment", comment),
+		resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
+	}
+	if ipAddress != "" {
+		checks = append(checks,
+			resource.TestCheckResourceAttr(resourceName, "ip_address", ipAddress),
+			resource.TestCheckResourceAttr(dataSourceName, "ip_address", ipAddress))
+	}
+	if cidrBlock != "" {
+		checks = append(checks,
+			resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),
+			resource.TestCheckResourceAttr(dataSourceName, "cidr_block", cidrBlock))
+	}
+	if awsSGroup != "" {
+		checks = append(checks,
+			resource.TestCheckResourceAttr(resourceName, "aws_security_group", awsSGroup),
+			resource.TestCheckResourceAttr(dataSourceName, "aws_security_group", awsSGroup))
+	}
+	return checks
 }

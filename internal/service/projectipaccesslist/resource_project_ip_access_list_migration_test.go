@@ -26,14 +26,7 @@ func TestMigProjectIPAccessList_settingIPAddress(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-					resource.TestCheckResourceAttr(resourceName, "ip_address", ipAddress),
-					resource.TestCheckResourceAttr(resourceName, "comment", comment),
-				),
+				Check:             resource.ComposeTestCheckFunc(commonChecks(ipAddress, "", "", comment)...),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},
@@ -56,14 +49,7 @@ func TestMigProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "cidr_block"),
-					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-					resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),
-					resource.TestCheckResourceAttr(resourceName, "comment", comment),
-				),
+				Check:             resource.ComposeTestCheckFunc(commonChecks("", cidrBlock, "", comment)...),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},
@@ -91,12 +77,7 @@ func TestMigProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "aws_security_group", awsSGroup),
-					resource.TestCheckResourceAttr(resourceName, "comment", comment),
-				),
+				Check:             resource.ComposeTestCheckFunc(commonChecks("", "", awsSGroup, comment)...),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},
