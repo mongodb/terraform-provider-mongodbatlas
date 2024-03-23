@@ -26,17 +26,3 @@ func CheckProjectIPAccessListExists(resourceName string) resource.TestCheckFunc 
 		return nil
 	}
 }
-
-func CheckDestroyProjectIPAccessList(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_project_ip_access_list" {
-			continue
-		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := ConnV2().ProjectIPAccessListApi.GetProjectIpList(context.Background(), ids["project_id"], ids["entry"]).Execute()
-		if err == nil {
-			return fmt.Errorf("project ip access list entry (%s) still exists", ids["entry"])
-		}
-	}
-	return nil
-}

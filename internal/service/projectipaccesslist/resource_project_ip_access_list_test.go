@@ -1,6 +1,7 @@
 package projectipaccesslist_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"regexp"
@@ -30,7 +31,7 @@ func TestAccProjectIPAccesslist_settingIPAddress(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: configWithIPAddress(projectID, ipAddress, comment),
@@ -56,7 +57,7 @@ func TestAccProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: configWithCIDRBlock(projectID, cidrBlock, comment),
@@ -87,7 +88,7 @@ func TestAccProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckPeeringEnvAWS(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
@@ -133,7 +134,7 @@ func TestAccProjectIPAccessList_settingMultiple(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: configWithMultiple(projectID, accessList, false),
@@ -157,7 +158,7 @@ func TestAccProjectIPAccessList_importBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: configWithIPAddress(projectID, ipAddress, comment),
@@ -182,7 +183,7 @@ func TestAccProjectIPAccessList_importIncorrectId(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: configWithIPAddress(projectID, ipAddress, comment),
@@ -195,6 +196,20 @@ func TestAccProjectIPAccessList_importIncorrectId(t *testing.T) {
 			},
 		},
 	})
+}
+
+func checkDestroy(s *terraform.State) error {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "mongodbatlas_project_ip_access_list" {
+			continue
+		}
+		ids := conversion.DecodeStateID(rs.Primary.ID)
+		_, _, err := acc.ConnV2().ProjectIPAccessListApi.GetProjectIpList(context.Background(), ids["project_id"], ids["entry"]).Execute()
+		if err == nil {
+			return fmt.Errorf("project ip access list entry (%s) still exists", ids["entry"])
+		}
+	}
+	return nil
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
