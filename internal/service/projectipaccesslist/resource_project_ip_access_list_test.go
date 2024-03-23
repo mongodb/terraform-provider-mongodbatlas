@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -162,7 +164,7 @@ func TestAccProjectIPAccessList_importBasic(t *testing.T) {
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: acc.ImportStateProjecIPAccessListtIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -193,6 +195,17 @@ func TestAccProjectIPAccessList_importIncorrectId(t *testing.T) {
 			},
 		},
 	})
+}
+
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+		ids := conversion.DecodeStateID(rs.Primary.ID)
+		return fmt.Sprintf("%s-%s", ids["project_id"], ids["entry"]), nil
+	}
 }
 
 func commonChecks(ipAddress, cidrBlock, awsSGroup, comment string) []resource.TestCheckFunc {

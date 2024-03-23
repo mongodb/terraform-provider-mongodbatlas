@@ -40,16 +40,3 @@ func CheckDestroyProjectIPAccessList(s *terraform.State) error {
 	}
 	return nil
 }
-
-func ImportStateProjecIPAccessListtIDFunc(resourceName string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return "", fmt.Errorf("not found: %s", resourceName)
-		}
-
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		return fmt.Sprintf("%s-%s", ids["project_id"], ids["entry"]), nil
-	}
-}
