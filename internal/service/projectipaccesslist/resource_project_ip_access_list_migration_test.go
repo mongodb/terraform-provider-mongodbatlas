@@ -56,7 +56,7 @@ func TestMigProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 
 func TestMigProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 	var (
-		projectID    = mig.ProjectIDGlobal(t)
+		projectID    = acc.ProjectIDExecution(t) // Don't use mig.ProjectIDGlobal because it needs a network container
 		awsSGroup    = os.Getenv("AWS_SECURITY_GROUP_1")
 		vpcID        = os.Getenv("AWS_VPC_ID")
 		vpcCIDRBlock = os.Getenv("AWS_VPC_CIDR_BLOCK")
