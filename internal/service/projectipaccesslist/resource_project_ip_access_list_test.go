@@ -128,7 +128,7 @@ func TestAccProjectIPAccessList_settingMultiple(t *testing.T) {
 		entry["comment"] = fmt.Sprintf("TestAcc for %s (%s)", entryName, ipAddr)
 
 		accessList = append(accessList, entry)
-		checks = append(checks, acc.CheckProjectIPAccessListExists(fmt.Sprintf(resourceFmt, i)))
+		checks = append(checks, checkExists(fmt.Sprintf(resourceFmt, i)))
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -198,6 +198,24 @@ func TestAccProjectIPAccessList_importIncorrectId(t *testing.T) {
 	})
 }
 
+func checkExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no ID is set")
+		}
+		ids := conversion.DecodeStateID(rs.Primary.ID)
+		_, _, err := acc.ConnV2().ProjectIPAccessListApi.GetProjectIpList(context.Background(), ids["project_id"], ids["entry"]).Execute()
+		if err != nil {
+			return fmt.Errorf("project ip access list entry (%s) does not exist", ids["entry"])
+		}
+		return nil
+	}
+}
+
 func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_project_ip_access_list" {
@@ -225,8 +243,8 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 
 func commonChecks(ipAddress, cidrBlock, awsSGroup, comment string) []resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{
-		acc.CheckProjectIPAccessListExists(resourceName),
-		acc.CheckProjectIPAccessListExists(dataSourceName),
+		checkExists(resourceName),
+		checkExists(dataSourceName),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 		resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 		resource.TestCheckResourceAttr(resourceName, "comment", comment),
