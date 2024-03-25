@@ -87,7 +87,7 @@ jobs:
   
   slack-notification:
     needs: [mig-tests, acc-tests, clean-after]
-    if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && (needs.mig-tests.result == 'failure' || needs.acc-tests.result == 'failure')}}
+    if: ${{ !cancelled() && github.event_name == 'schedule' && (needs.mig-tests.result == 'failure' || needs.acc-tests.result == 'failure')}}
     runs-on: ubuntu-latest
     steps:
       - name: Send Slack message
