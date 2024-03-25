@@ -21,8 +21,7 @@ const (
 )
 
 func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
-	proxyPort, teardown := replay.SetupReplayProxy(t)
-	t.Cleanup(func() { teardown(t) })
+	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
 		projectID = replay.ManageProjectID(t, func() string {
@@ -56,8 +55,7 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withEmptyMetricThresholdConfig(t *testing.T) {
-	proxyPort, teardown := replay.SetupReplayProxy(t)
-	t.Cleanup(func() { teardown(t) })
+	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
 		projectID = replay.ManageProjectID(t, func() string {
@@ -78,8 +76,7 @@ func TestAccConfigRSAlertConfiguration_withEmptyMetricThresholdConfig(t *testing
 }
 
 func TestAccConfigRSAlertConfiguration_withEmptyMatcherMetricThresholdConfig(t *testing.T) {
-	proxyPort, teardown := replay.SetupReplayProxy(t)
-	t.Cleanup(func() { teardown(t) })
+	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
 		projectID = replay.ManageProjectID(t, func() string {
@@ -104,8 +101,7 @@ func TestAccConfigRSAlertConfiguration_withEmptyMatcherMetricThresholdConfig(t *
 	})
 }
 func TestAccConfigRSAlertConfiguration_withNotifications(t *testing.T) {
-	proxyPort, teardown := replay.SetupReplayProxy(t)
-	t.Cleanup(func() { teardown(t) })
+	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
 		projectID = replay.ManageProjectID(t, func() string {
@@ -137,8 +133,7 @@ func TestAccConfigRSAlertConfiguration_withNotifications(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withMatchers(t *testing.T) {
-	proxyPort, teardown := replay.SetupReplayProxy(t)
-	t.Cleanup(func() { teardown(t) })
+	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
 		projectID = replay.ManageProjectID(t, func() string {
@@ -190,8 +185,7 @@ func TestAccConfigRSAlertConfiguration_withMatchers(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withMetricUpdated(t *testing.T) {
-	proxyPort, teardown := replay.SetupReplayProxy(t)
-	t.Cleanup(func() { teardown(t) })
+	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
 		projectID = replay.ManageProjectID(t, func() string {
@@ -223,8 +217,7 @@ func TestAccConfigRSAlertConfiguration_withMetricUpdated(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withThresholdUpdated(t *testing.T) {
-	proxyPort, teardown := replay.SetupReplayProxy(t)
-	t.Cleanup(func() { teardown(t) })
+	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
 		projectID = replay.ManageProjectID(t, func() string {
@@ -263,8 +256,7 @@ func TestAccConfigRSAlertConfiguration_withThresholdUpdated(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withoutRoles(t *testing.T) {
-	proxyPort, teardown := replay.SetupReplayProxy(t)
-	t.Cleanup(func() { teardown(t) })
+	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
 		projectID = replay.ManageProjectID(t, func() string {
@@ -289,8 +281,7 @@ func TestAccConfigRSAlertConfiguration_withoutRoles(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withoutOptionalAttributes(t *testing.T) {
-	proxyPort, teardown := replay.SetupReplayProxy(t)
-	t.Cleanup(func() { teardown(t) })
+	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
 		projectID = replay.ManageProjectID(t, func() string {
@@ -315,8 +306,7 @@ func TestAccConfigRSAlertConfiguration_withoutOptionalAttributes(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_importBasic(t *testing.T) {
-	proxyPort, teardown := replay.SetupReplayProxy(t)
-	t.Cleanup(func() { teardown(t) })
+	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
 		projectID = replay.ManageProjectID(t, func() string {
@@ -344,8 +334,7 @@ func TestAccConfigRSAlertConfiguration_importBasic(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_importIncorrectId(t *testing.T) {
-	proxyPort, teardown := replay.SetupReplayProxy(t)
-	t.Cleanup(func() { teardown(t) })
+	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
 		projectID = replay.ManageProjectID(t, func() string {
@@ -372,8 +361,7 @@ func TestAccConfigRSAlertConfiguration_importIncorrectId(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_importConfigNotifications(t *testing.T) {
-	proxyPort, teardown := replay.SetupReplayProxy(t)
-	t.Cleanup(func() { teardown(t) })
+	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
 		projectID = replay.ManageProjectID(t, func() string {
@@ -406,8 +394,7 @@ const dummy36CharKey = "11111111-1111-1111-1111-111111111111"
 
 // used for testing notification that does not define interval_min attribute
 func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
-	proxyPort, teardown := replay.SetupReplayProxy(t)
-	t.Cleanup(func() { teardown(t) })
+	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
 		projectID = replay.ManageProjectID(t, func() string {
@@ -440,8 +427,7 @@ func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_updatePagerDutyWithNotifierId(t *testing.T) {
-	proxyPort, teardown := replay.SetupReplayProxy(t)
-	t.Cleanup(func() { teardown(t) })
+	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
 		projectID = replay.ManageProjectID(t, func() string {
@@ -478,8 +464,7 @@ func TestAccConfigRSAlertConfiguration_updatePagerDutyWithNotifierId(t *testing.
 }
 
 func TestAccConfigRSAlertConfiguration_withDataDog(t *testing.T) {
-	proxyPort, teardown := replay.SetupReplayProxy(t)
-	t.Cleanup(func() { teardown(t) })
+	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
 		projectID = replay.ManageProjectID(t, func() string {
@@ -506,8 +491,7 @@ func TestAccConfigRSAlertConfiguration_withDataDog(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withPagerDuty(t *testing.T) {
-	proxyPort, teardown := replay.SetupReplayProxy(t)
-	t.Cleanup(func() { teardown(t) })
+	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
 		projectID = replay.ManageProjectID(t, func() string {
@@ -533,8 +517,7 @@ func TestAccConfigRSAlertConfiguration_withPagerDuty(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withOpsGenie(t *testing.T) {
-	proxyPort, teardown := replay.SetupReplayProxy(t)
-	t.Cleanup(func() { teardown(t) })
+	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
 		projectID = replay.ManageProjectID(t, func() string {
@@ -560,8 +543,7 @@ func TestAccConfigRSAlertConfiguration_withOpsGenie(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_withVictorOps(t *testing.T) {
-	proxyPort, teardown := replay.SetupReplayProxy(t)
-	t.Cleanup(func() { teardown(t) })
+	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
 		projectID = replay.ManageProjectID(t, func() string {

@@ -21,7 +21,7 @@ func IsInSimulateMode() bool {
 	return os.Getenv("REPLAY_MODE") == "simulate"
 }
 
-func SetupReplayProxy(t *testing.T) (proxyPort *int, teardown func(t *testing.T)) {
+func SetupReplayProxy(t *testing.T) *int {
 	t.Helper()
 	if IsInCaptureMode() {
 		return setupCaptureMode(t)
@@ -31,14 +31,11 @@ func SetupReplayProxy(t *testing.T) (proxyPort *int, teardown func(t *testing.T)
 	}
 
 	log.Printf("No replay mode was configured")
-	return nil, func(t *testing.T) {
-		t.Helper()
-	}
+	return nil
 }
 
-func setupSimulateMode(t *testing.T) (proxyPort *int, teardown func(t *testing.T)) {
+func setupSimulateMode(t *testing.T) *int {
 	t.Helper()
-
 	port := randomPortNumber()
 	adminPort := port + 1
 	simulationFilePath := fmt.Sprintf("%s%s.json", simulationDir, t.Name())
@@ -46,11 +43,11 @@ func setupSimulateMode(t *testing.T) (proxyPort *int, teardown func(t *testing.T
 	if err := cmd.Run(); err != nil {
 		t.Fatalf("Failed to start hoverfly in simulate mode: %s", err)
 	}
-
-	return &port, teardownSimulate(port)
+	t.Cleanup(func() { cleanupSimulateMode(t, port) })
+	return &port
 }
 
-func setupCaptureMode(t *testing.T) (proxyPort *int, teardown func(t *testing.T)) {
+func setupCaptureMode(t *testing.T) (proxyPort *int) {
 	t.Helper()
 	port := randomPortNumber()
 	adminPort := port + 1
@@ -58,29 +55,24 @@ func setupCaptureMode(t *testing.T) (proxyPort *int, teardown func(t *testing.T)
 	if err := cmd.Run(); err != nil {
 		t.Fatalf("Failed to start hoverfly in capture mode: %s", err)
 	}
-
-	return &port, teardownCapture(port)
+	t.Cleanup(func() { cleanupCaptureMode(t, port) })
+	return &port
 }
 
-func teardownSimulate(port int) func(t *testing.T) {
-	return func(t *testing.T) {
-		t.Helper()
-
-		cmd := exec.Command("../../../scripts/hoverfly-end-simulation.sh", fmt.Sprintf("%d", port)) //nolint:gosec // inputs are fully controlled within function
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to end hoverfly simulation: %s", err)
-		}
+func cleanupSimulateMode(t *testing.T, port int) {
+	t.Helper()
+	cmd := exec.Command("../../../scripts/hoverfly-end-simulation.sh", fmt.Sprintf("%d", port)) //nolint:gosec // inputs are fully controlled within function
+	if err := cmd.Run(); err != nil {
+		t.Fatalf("Failed to end hoverfly simulation: %s", err)
 	}
 }
 
-func teardownCapture(port int) func(t *testing.T) {
-	return func(t *testing.T) {
-		t.Helper()
-		simulationFilePath := fmt.Sprintf("%s%s.json", simulationDir, t.Name())
-		cmd := exec.Command("../../../scripts/hoverfly-export-simulation.sh", fmt.Sprintf("%d", port), simulationFilePath) //nolint:gosec // inputs are fully controlled within function
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to stop and export: %s", err)
-		}
+func cleanupCaptureMode(t *testing.T, port int) {
+	t.Helper()
+	simulationFilePath := fmt.Sprintf("%s%s.json", simulationDir, t.Name())
+	cmd := exec.Command("../../../scripts/hoverfly-export-simulation.sh", fmt.Sprintf("%d", port), simulationFilePath) //nolint:gosec // inputs are fully controlled within function
+	if err := cmd.Run(); err != nil {
+		t.Fatalf("Failed to stop and export: %s", err)
 	}
 }
 

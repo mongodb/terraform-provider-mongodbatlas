@@ -23,7 +23,7 @@ var TestAccProviderV6Factories map[string]func() (tfprotov6.ProviderServer, erro
 func TestAccProviderV6FactoriesWithProxy(proxyPort *int) map[string]func() (tfprotov6.ProviderServer, error) {
 	return map[string]func() (tfprotov6.ProviderServer, error){
 		ProviderNameMongoDBAtlas: func() (tfprotov6.ProviderServer, error) {
-			return provider.MuxedProviderFactoryForTesting(proxyPort)(), nil
+			return provider.MuxProviderFactoryForTesting(proxyPort)(), nil
 		},
 	}
 }
@@ -54,7 +54,7 @@ func ConnV2UsingProxy(proxyPort *int) *admin.APIClient {
 func init() {
 	TestAccProviderV6Factories = map[string]func() (tfprotov6.ProviderServer, error){
 		ProviderNameMongoDBAtlas: func() (tfprotov6.ProviderServer, error) {
-			return provider.MuxedProviderFactory()(), nil
+			return provider.MuxProviderFactory()(), nil
 		},
 	}
 	cfg := config.Config{
