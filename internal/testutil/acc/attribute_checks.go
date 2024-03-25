@@ -57,7 +57,7 @@ func JSONEquals(expected string) resource.CheckResourceAttrWithFunc {
 
 func AddAttrSetChecks(targetName string, checks []resource.TestCheckFunc, attrNames ...string) []resource.TestCheckFunc {
 	// avoids accidentally modifying existing slice
-	newChecks := []resource.TestCheckFunc{}
+	newChecks := make([]resource.TestCheckFunc, len(checks), len(checks)+len(attrNames))
 	copy(newChecks, checks)
 	for _, attrName := range attrNames {
 		newChecks = append(newChecks, resource.TestCheckResourceAttrSet(targetName, attrName))
@@ -67,7 +67,7 @@ func AddAttrSetChecks(targetName string, checks []resource.TestCheckFunc, attrNa
 
 func AddAttrChecks(targetName string, checks []resource.TestCheckFunc, mapChecks map[string]string) []resource.TestCheckFunc {
 	// avoids accidentally modifying existing slice
-	newChecks := []resource.TestCheckFunc{}
+	newChecks := make([]resource.TestCheckFunc, len(checks), len(checks)+len(mapChecks))
 	copy(newChecks, checks)
 	for key, value := range mapChecks {
 		newChecks = append(newChecks, resource.TestCheckResourceAttr(targetName, key, value))

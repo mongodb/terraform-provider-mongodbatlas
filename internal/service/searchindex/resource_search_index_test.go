@@ -209,15 +209,22 @@ func TestAccSearchIndexRS_updatedToEmptyMappingsFields(t *testing.T) {
 
 func TestAccSearchIndexRS_withVector(t *testing.T) {
 	var (
-		clusterInfo     = acc.GetClusterInfo(t, nil)
-		indexName       = acc.RandomName()
-		indexType       = "vectorSearch"
-		databaseName    = acc.RandomName()
-		mappingsDynamic = "true"
+		clusterInfo  = acc.GetClusterInfo(t, nil)
+		indexName    = acc.RandomName()
+		indexType    = "vectorSearch"
+		databaseName = acc.RandomName()
+		attributes   = map[string]string{
+			"name":            indexName,
+			"cluster_name":    clusterInfo.ClusterName,
+			"database":        databaseName,
+			"collection_name": collectionName,
+			"type":            indexType,
+		}
 	)
-	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
+	checks := addAttrChecks(nil, attributes)
+	checks = acc.AddAttrSetChecks(resourceName, checks, "project_id")
+	checks = acc.AddAttrSetChecks(datasourceName, checks, "project_id", "index_id")
 	checks = append(checks, resource.TestCheckResourceAttrWith(datasourceName, "fields", acc.JSONEquals(fieldsJSON)))
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -237,7 +244,6 @@ func commonChecks(indexName, indexType, mappingsDynamic, databaseName string, cl
 		"database":         databaseName,
 		"collection_name":  collectionName,
 		"type":             indexType,
-		"search_analyzer":  searchAnalyzer,
 		"mappings_dynamic": mappingsDynamic,
 	}
 	checks := addAttrChecks(nil, attributes)
