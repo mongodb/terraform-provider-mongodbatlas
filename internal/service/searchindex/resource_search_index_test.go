@@ -30,6 +30,13 @@ func TestAccSearchIndex_basic(t *testing.T) {
 				Config: configBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
 				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
+			{
+				Config:            configBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -142,30 +149,6 @@ func TestAccSearchIndexRS_updatedToEmptySynonyms(t *testing.T) {
 	})
 }
 
-func commonChecks(indexName, indexType, mappingsDynamic, databaseName string, clusterInfo acc.ClusterInfo) []resource.TestCheckFunc {
-	attributes := map[string]string{
-		"name":             indexName,
-		"cluster_name":     clusterInfo.ClusterName,
-		"database":         databaseName,
-		"collection_name":  collectionName,
-		"type":             indexType,
-		"search_analyzer":  searchAnalyzer,
-		"mappings_dynamic": mappingsDynamic,
-	}
-	checks := addAttrChecks(nil, attributes)
-	checks = acc.AddAttrSetChecks(resourceName, checks, "project_id")
-	return acc.AddAttrSetChecks(datasourceName, checks, "project_id", "index_id")
-}
-
-func addAttrChecks(checks []resource.TestCheckFunc, mapChecks map[string]string) []resource.TestCheckFunc {
-	checks = acc.AddAttrChecks(resourceName, checks, mapChecks)
-	return acc.AddAttrChecks(datasourceName, checks, mapChecks)
-}
-
-func addAttrSetChecks(checks []resource.TestCheckFunc, attrNames ...string) []resource.TestCheckFunc {
-	checks = acc.AddAttrSetChecks(resourceName, checks, attrNames...)
-	return acc.AddAttrSetChecks(datasourceName, checks, attrNames...)
-}
 func TestAccSearchIndexRS_updatedToEmptyAnalyzers(t *testing.T) {
 	var (
 		clusterInfo  = acc.GetClusterInfo(t, nil)
@@ -224,43 +207,16 @@ func TestAccSearchIndexRS_updatedToEmptyMappingsFields(t *testing.T) {
 	})
 }
 
-func TestAccSearchIndexRS_importBasic(t *testing.T) {
-	var (
-		clusterInfo  = acc.GetClusterInfo(t, nil)
-		indexName    = acc.RandomName()
-		databaseName = acc.RandomName()
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroySearchIndex,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", indexName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
-				),
-			},
-			{
-				Config:            configBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
 func TestAccSearchIndexRS_withVector(t *testing.T) {
 	var (
-		clusterInfo  = acc.GetClusterInfo(t, nil)
-		indexName    = acc.RandomName()
-		databaseName = acc.RandomName()
+		clusterInfo     = acc.GetClusterInfo(t, nil)
+		indexName       = acc.RandomName()
+		indexType       = "vectorSearch"
+		databaseName    = acc.RandomName()
+		mappingsDynamic = "true"
 	)
+	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
+	checks = append(checks, resource.TestCheckResourceAttrWith(datasourceName, "fields", acc.JSONEquals(fieldsJSON)))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -269,31 +225,34 @@ func TestAccSearchIndexRS_withVector(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configVector(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", indexName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
-					resource.TestCheckResourceAttr(resourceName, "database", databaseName),
-					resource.TestCheckResourceAttr(resourceName, "collection_name", collectionName),
-					resource.TestCheckResourceAttr(resourceName, "type", "vectorSearch"),
-					resource.TestCheckResourceAttrSet(resourceName, "fields"),
-					resource.TestCheckResourceAttrWith(resourceName, "fields", acc.JSONEquals(fieldsJSON)),
-
-					resource.TestCheckResourceAttr(datasourceName, "type", "vectorSearch"),
-					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
-					resource.TestCheckResourceAttrSet(datasourceName, "project_id"),
-					resource.TestCheckResourceAttr(datasourceName, "cluster_name", clusterInfo.ClusterName),
-					resource.TestCheckResourceAttr(datasourceName, "database", databaseName),
-					resource.TestCheckResourceAttr(datasourceName, "collection_name", collectionName),
-					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
-					resource.TestCheckResourceAttrSet(datasourceName, "index_id"),
-					resource.TestCheckResourceAttrSet(datasourceName, "fields"),
-					resource.TestCheckResourceAttrWith(datasourceName, "fields", acc.JSONEquals(fieldsJSON)),
-				),
+				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 		},
 	})
+}
+func commonChecks(indexName, indexType, mappingsDynamic, databaseName string, clusterInfo acc.ClusterInfo) []resource.TestCheckFunc {
+	attributes := map[string]string{
+		"name":             indexName,
+		"cluster_name":     clusterInfo.ClusterName,
+		"database":         databaseName,
+		"collection_name":  collectionName,
+		"type":             indexType,
+		"search_analyzer":  searchAnalyzer,
+		"mappings_dynamic": mappingsDynamic,
+	}
+	checks := addAttrChecks(nil, attributes)
+	checks = acc.AddAttrSetChecks(resourceName, checks, "project_id")
+	return acc.AddAttrSetChecks(datasourceName, checks, "project_id", "index_id")
+}
+
+func addAttrChecks(checks []resource.TestCheckFunc, mapChecks map[string]string) []resource.TestCheckFunc {
+	checks = acc.AddAttrChecks(resourceName, checks, mapChecks)
+	return acc.AddAttrChecks(datasourceName, checks, mapChecks)
+}
+
+func addAttrSetChecks(checks []resource.TestCheckFunc, attrNames ...string) []resource.TestCheckFunc {
+	checks = acc.AddAttrSetChecks(resourceName, checks, attrNames...)
+	return acc.AddAttrSetChecks(datasourceName, checks, attrNames...)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
