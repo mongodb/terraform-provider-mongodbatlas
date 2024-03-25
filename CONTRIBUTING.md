@@ -10,6 +10,7 @@ Thanks for your interest in contributing to MongoDB Atlas Terraform Provider, th
   - [Open a Pull Request](#open-a-pull-request)
   - [Testing the Provider](#testing-the-provider)
   - [Running Acceptance Tests](#running-acceptance-tests)
+  - [Replaying HTTP Requests with Hoverfly](#replaying-http-requests-with-hoverfly)
 - [Code and Test Best Practices](#code-and-test-best-practices)
   - [Creating New Resource and Data Sources](#creating-new-resources-and-data-sources)
     - [Scaffolding Initial Code and File Structure](#scaffolding-initial-code-and-file-structure)
@@ -252,7 +253,14 @@ You must also configure the following environment variables before running the t
 ~> **Notice:** Acceptance tests create real resources, and often cost money to run. Please note in any PRs made if you are unable to pay to run acceptance tests for your contribution. We will accept "best effort" implementations of acceptance tests in this case and run them for you on our side. This may delay the contribution but we do not want your contribution blocked by funding.
 - Run `make testacc`
 
+#### Replaying HTTP requests with hoverfly
 
+Some resources allow recording and replaying http requests using hoverfly when running tests. This is currently only configured for alert configuration resource acceptance tests.
+
+- For capturing http traffic of an execution you have to configure the environment variable `REPLAY_MODE=capture`. Captured request/responses will be present in the directory `./simulations`.
+- For replaying http traffic of an execution you have to configure the environment variable `REPLAY_MODE=simulate` which will use files present in the simulation directory.
+
+**Note**: [Hoverfly](https://docs.hoverfly.io/en/latest/pages/introduction/introduction.html) is the proxy server used for capturing and simulating request. You must use the following [installation docs](https://docs.hoverfly.io/en/latest/pages/introduction/downloadinstallation.html#download-and-installation) to have the CLI available, as well as setting up the [hoverfly CA cert](https://docs.hoverfly.io/en/latest/pages/tutorials/basic/https/https.html) in your trust store.
 
 ### Testing Atlas Provider Versions that are NOT hosted on Terraform Registry (i.e. pre-release versions)
 To test development / pre-release versions of the Terraform Atlas Provider that are not hosted on the Terraform Registry, you will need to create a [Terraform Provider Network Mirror](https://developer.hashicorp.com/terraform/internals/provider-network-mirror-protocol). 
