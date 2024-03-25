@@ -11,7 +11,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccSearchIndex_basic(t *testing.T) {
+func basicTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
 	var (
 		clusterInfo     = acc.GetClusterInfo(t, nil)
 		indexName       = acc.RandomName()
@@ -21,7 +22,7 @@ func TestAccSearchIndex_basic(t *testing.T) {
 	)
 	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
 
-	resource.ParallelTest(t, resource.TestCase{
+	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroySearchIndex,
@@ -38,7 +39,12 @@ func TestAccSearchIndex_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 		},
-	})
+	}
+}
+
+func TestAccSearchIndex_basic(t *testing.T) {
+	basicCase := basicTestCase(t)
+	resource.ParallelTest(t, *basicCase)
 }
 
 func TestAccSearchIndex_withSearchType(t *testing.T) {
@@ -206,8 +212,8 @@ func TestAccSearchIndex_updatedToEmptyMappingsFields(t *testing.T) {
 		},
 	})
 }
-
-func TestAccSearchIndex_withVector(t *testing.T) {
+func basicTestCaseVector(t *testing.T) *resource.TestCase {
+	t.Helper()
 	var (
 		clusterInfo  = acc.GetClusterInfo(t, nil)
 		indexName    = acc.RandomName()
@@ -225,7 +231,8 @@ func TestAccSearchIndex_withVector(t *testing.T) {
 	checks = acc.AddAttrSetChecks(resourceName, checks, "project_id")
 	checks = acc.AddAttrSetChecks(datasourceName, checks, "project_id", "index_id")
 	checks = append(checks, resource.TestCheckResourceAttrWith(datasourceName, "fields", acc.JSONEquals(fieldsJSON)))
-	resource.ParallelTest(t, resource.TestCase{
+
+	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroySearchIndex,
@@ -235,8 +242,13 @@ func TestAccSearchIndex_withVector(t *testing.T) {
 				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 		},
-	})
+	}
 }
+
+func TestAccSearchIndexRS_withVector(t *testing.T) {
+	resource.ParallelTest(t, *basicTestCaseVector(t))
+}
+
 func commonChecks(indexName, indexType, mappingsDynamic, databaseName string, clusterInfo acc.ClusterInfo) []resource.TestCheckFunc {
 	attributes := map[string]string{
 		"name":             indexName,
