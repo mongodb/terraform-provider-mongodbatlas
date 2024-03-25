@@ -116,7 +116,7 @@ func TestAccSearchIndex_withSynonyms(t *testing.T) {
 	})
 }
 
-func TestAccSearchIndexRS_updatedToEmptySynonyms(t *testing.T) {
+func TestAccSearchIndex_updatedToEmptySynonyms(t *testing.T) {
 	var (
 		clusterInfo     = acc.GetClusterInfo(t, nil)
 		indexName       = acc.RandomName()
@@ -149,7 +149,7 @@ func TestAccSearchIndexRS_updatedToEmptySynonyms(t *testing.T) {
 	})
 }
 
-func TestAccSearchIndexRS_updatedToEmptyAnalyzers(t *testing.T) {
+func TestAccSearchIndex_updatedToEmptyAnalyzers(t *testing.T) {
 	var (
 		clusterInfo  = acc.GetClusterInfo(t, nil)
 		indexName    = acc.RandomName()
@@ -178,7 +178,7 @@ func TestAccSearchIndexRS_updatedToEmptyAnalyzers(t *testing.T) {
 	})
 }
 
-func TestAccSearchIndexRS_updatedToEmptyMappingsFields(t *testing.T) {
+func TestAccSearchIndex_updatedToEmptyMappingsFields(t *testing.T) {
 	var (
 		clusterInfo  = acc.GetClusterInfo(t, nil)
 		indexName    = acc.RandomName()
@@ -207,7 +207,7 @@ func TestAccSearchIndexRS_updatedToEmptyMappingsFields(t *testing.T) {
 	})
 }
 
-func TestAccSearchIndexRS_withVector(t *testing.T) {
+func TestAccSearchIndex_withVector(t *testing.T) {
 	var (
 		clusterInfo  = acc.GetClusterInfo(t, nil)
 		indexName    = acc.RandomName()

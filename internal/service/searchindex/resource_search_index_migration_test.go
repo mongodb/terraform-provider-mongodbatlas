@@ -8,7 +8,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestMigSearchIndexRS_basic(t *testing.T) {
+func TestMigSearchIndex_basic(t *testing.T) {
 	var (
 		clusterInfo  = acc.GetClusterInfo(t, nil)
 		indexName    = acc.RandomName()
@@ -38,7 +38,7 @@ func TestMigSearchIndexRS_basic(t *testing.T) {
 	})
 }
 
-func TestMigSearchIndexRS_withVector(t *testing.T) {
+func TestMigSearchIndex_withVector(t *testing.T) {
 	var (
 		clusterInfo  = acc.GetClusterInfo(t, nil)
 		indexName    = acc.RandomName()
