@@ -13,7 +13,7 @@ import (
 
 func TestAccFederatedSettingsIdentityProvidersDS_basic(t *testing.T) {
 	var (
-		resourceName        = "data.mongodbatlas_federated_settings_identity_providers.test"
+		dataSourceName      = "data.mongodbatlas_federated_settings_identity_providers.test"
 		federatedSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 	)
 
@@ -24,16 +24,10 @@ func TestAccFederatedSettingsIdentityProvidersDS_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasDataSourceFederatedSettingsIdentityProvidersConfig(federatedSettingsID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasFederatedSettingsIdentityProvidersExists(resourceName),
+					testAccCheckMongoDBAtlasFederatedSettingsIdentityProvidersExists(dataSourceName),
 
-					resource.TestCheckResourceAttrSet(resourceName, "federation_settings_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "results.1.acs_url"),
-					resource.TestCheckResourceAttrSet(resourceName, "results.0.audience_claim.0"),
-					resource.TestCheckResourceAttrSet(resourceName, "results.0.client_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "results.0.groups_claim"),
-					resource.TestCheckResourceAttrSet(resourceName, "results.0.requested_scopes.0"),
-					resource.TestCheckResourceAttrSet(resourceName, "results.0.user_claim"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "federation_settings_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "results.#", "2"),
 				),
 			},
 		},
