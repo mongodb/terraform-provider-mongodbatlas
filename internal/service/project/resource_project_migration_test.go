@@ -1,7 +1,6 @@
 package project_test
 
 import (
-	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -9,7 +8,6 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -18,6 +16,7 @@ func TestMigProject_withNoProps(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
+		config      = configBasic(orgID, projectName, false, nil)
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -26,27 +25,12 @@ func TestMigProject_withNoProps(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config: fmt.Sprintf(`resource "mongodbatlas_project" "test" {
-					name   = "%s"
-					org_id = "%s"
-				  }`, projectName, orgID),
+				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config: fmt.Sprintf(`resource "mongodbatlas_project" "test" {
-					name   = "%s"
-					org_id = "%s"
-				  }`, projectName, orgID),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
@@ -58,10 +42,10 @@ func TestMigProject_withTeams(t *testing.T) {
 	}
 
 	var (
-		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName     = acc.RandomProjectName()
-		clusterCount    = "0"
-		configWithTeams = configBasic(orgID, projectName, false,
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acc.RandomProjectName()
+		clusterCount = "0"
+		config       = configBasic(orgID, projectName, false,
 			[]*admin.TeamRole{
 				{
 					TeamId:    &teamsIDs[0],
@@ -80,7 +64,7 @@ func TestMigProject_withTeams(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configWithTeams,
+				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
@@ -88,26 +72,17 @@ func TestMigProject_withTeams(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
 				),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configWithTeams,
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
 
 func TestMigProject_withFalseDefaultSettings(t *testing.T) {
 	var (
-		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectOwnerID  = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
-		projectName     = acc.RandomProjectName()
-		configWithTeams = configWithFalseDefaultSettings(orgID, projectName, projectOwnerID)
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+		projectName    = acc.RandomProjectName()
+		config         = configWithFalseDefaultSettings(orgID, projectName, projectOwnerID)
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -116,23 +91,14 @@ func TestMigProject_withFalseDefaultSettings(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configWithTeams,
+				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configWithTeams,
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
@@ -169,16 +135,7 @@ func TestMigProject_withLimits(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "limits.1.value", "2"),
 				),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   config,
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
