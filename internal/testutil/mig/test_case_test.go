@@ -108,8 +108,7 @@ func TestConvertToMigration(t *testing.T) {
 		asserter.Equal(config, newFirstStep.Config)
 
 		asserter.Equal("1.2.3", test.Steps[0].ExternalProviders["mongodbatlas"].VersionConstraint)
-		// must be upgraded when the aws provider version is changed
-		asserter.Equal("5.1.0", test.Steps[0].ExternalProviders["aws"].VersionConstraint)
-		asserter.Equal("5.1.0", test.Steps[1].ExternalProviders["aws"].VersionConstraint)
+		asserter.Equal(acc.AwsProviderVersion, test.Steps[0].ExternalProviders["aws"].VersionConstraint)
+		asserter.Equal(acc.AwsProviderVersion, test.Steps[1].ExternalProviders["aws"].VersionConstraint)
 	})
 }
