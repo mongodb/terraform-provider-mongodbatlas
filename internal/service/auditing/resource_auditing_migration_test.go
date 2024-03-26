@@ -1,23 +1,17 @@
 package auditing_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 func TestMigGenericAuditing_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_auditing.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		auditAuth    = true
-		auditFilter  = "{ 'atype': 'authenticate', 'param': {   'user': 'auditAdmin',   'db': 'admin',   'mechanism': 'SCRAM-SHA-1' }}"
-		enabled      = true
+		projectID   = mig.ProjectIDGlobal(t)
+		auditFilter = "{ 'atype': 'authenticate', 'param': {   'user': 'auditAdmin',   'db': 'admin',   'mechanism': 'SCRAM-SHA-1' }}"
+		config      = configBasic(projectID, auditFilter, true, true)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -25,30 +19,11 @@ func TestMigGenericAuditing_basic(t *testing.T) {
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:            configBasic(orgID, projectName, auditFilter, auditAuth, enabled),
+				Config:            config,
 				ExternalProviders: mig.ExternalProviders(),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "audit_filter"),
-					resource.TestCheckResourceAttrSet(resourceName, "audit_authorization_success"),
-					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
-					resource.TestCheckResourceAttr(resourceName, "audit_filter", auditFilter),
-					resource.TestCheckResourceAttr(resourceName, "audit_authorization_success", "true"),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "configuration_type", "FILTER_JSON"),
-				),
+				Check:             resource.ComposeTestCheckFunc(checks(auditFilter, true, true)...),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configBasic(orgID, projectName, auditFilter, auditAuth, enabled),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
