@@ -11,5 +11,5 @@ func TestMigSearchIndex_basic(t *testing.T) {
 }
 
 func TestMigSearchIndex_withVector(t *testing.T) {
-	mig.CreateAndRunTest(t, basicTestCaseVector(t))
+	mig.CreateAndRunTest(t, basicVectorTestCase(t))
 }
