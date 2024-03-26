@@ -11,6 +11,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+const (
+	dataSourceName = "data.mongodbatlas_auditing.test"
+)
+
 func TestAccGenericAuditing_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_auditing.test"
@@ -38,6 +42,12 @@ func TestAccGenericAuditing_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "audit_authorization_success", "true"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "configuration_type", "FILTER_JSON"),
+
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "audit_filter", auditFilter),
+					resource.TestCheckResourceAttr(dataSourceName, "audit_authorization_success", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "configuration_type", "FILTER_JSON"),
 				),
 			},
 			{
