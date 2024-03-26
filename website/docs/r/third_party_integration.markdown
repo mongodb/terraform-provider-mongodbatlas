@@ -26,8 +26,8 @@ description: |-
 resource "mongodbatlas_third_party_integration" "test_datadog" {
   project_id = "<PROJECT-ID>"
   type = "DATADOG"
-	api_key = "<API-KEY>"
-	region = "<REGION>"
+  api_key = "<API-KEY>"
+  region = "<REGION>"
 }
 
 ```
