@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"regexp"
 	"strconv"
@@ -11,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	tfversion "github.com/hashicorp/terraform/version"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -138,6 +140,14 @@ func NewSdkV2Provider() *schema.Provider {
 		ConfigureContextFunc: providerConfigure,
 	}
 	addPreviewFeatures(provider)
+	// tf version not set here
+	// tf version is set when a call is made
+
+	tfVersion := provider.TerraformVersion
+	log.Printf(tfVersion)
+	log.Printf(tfversion.Version)
+
+	// provider.ConfigureContextFunc
 	return provider
 }
 
@@ -312,7 +322,9 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (any, diag.D
 			return nil, append(diagnostics, diag.FromErr(err)...)
 		}
 	}
-
+	ver := tfversion.String()
+	log.Printf(ver)
+	// ctx = config.AppendToUserAgentInCtx(ctx, config.TerraformVersionUserAgentInfo(req.TerraformVersion))
 	client, err := cfg.NewClient(ctx)
 	if err != nil {
 		return nil, append(diagnostics, diag.FromErr(err)...)
