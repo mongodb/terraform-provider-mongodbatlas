@@ -19,11 +19,11 @@ const (
 	endPointSTSDefault = "https://sts.amazonaws.com"
 )
 
-func configureCredentialsSTS(cfg config.Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (config.Config, error) {
+func configureCredentialsSTS(cfg *config.Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (config.Config, error) {
 	ep, err := endpoints.GetSTSRegionalEndpoint("regional")
 	if err != nil {
 		log.Printf("GetSTSRegionalEndpoint error: %s", err)
-		return cfg, err
+		return *cfg, err
 	}
 
 	defaultResolver := endpoints.DefaultResolver()
@@ -56,35 +56,35 @@ func configureCredentialsSTS(cfg config.Config, secret, region, awsAccessKeyID, 
 	_, err = sess.Config.Credentials.Get()
 	if err != nil {
 		log.Printf("Session get credentials error: %s", err)
-		return cfg, err
+		return *cfg, err
 	}
 	_, err = creds.Get()
 	if err != nil {
 		log.Printf("STS get credentials error: %s", err)
-		return cfg, err
+		return *cfg, err
 	}
 	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
 	if err != nil {
 		log.Printf("Get Secrets error: %s", err)
-		return cfg, err
+		return *cfg, err
 	}
 
 	var secretData SecretData
 	err = json.Unmarshal([]byte(secretString), &secretData)
 	if err != nil {
-		return cfg, err
+		return *cfg, err
 	}
 	if secretData.PrivateKey == "" {
-		return cfg, fmt.Errorf("secret missing value for credential PrivateKey")
+		return *cfg, fmt.Errorf("secret missing value for credential PrivateKey")
 	}
 
 	if secretData.PublicKey == "" {
-		return cfg, fmt.Errorf("secret missing value for credential PublicKey")
+		return *cfg, fmt.Errorf("secret missing value for credential PublicKey")
 	}
 
 	cfg.PublicKey = secretData.PublicKey
 	cfg.PrivateKey = secretData.PrivateKey
-	return cfg, nil
+	return *cfg, nil
 }
 
 func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) (string, error) {

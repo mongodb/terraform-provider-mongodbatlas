@@ -45,7 +45,9 @@ const (
 	MissingAuthAttrError  = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
 )
 
-type MongodbtlasProvider struct{}
+type MongodbtlasProvider struct {
+	proxyPort *int
+}
 
 type tfMongodbAtlasProviderModel struct {
 	AssumeRole           types.List   `tfsdk:"assume_role"`
@@ -230,6 +232,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		BaseURL:      data.BaseURL.ValueString(),
 		RealmBaseURL: data.RealmBaseURL.ValueString(),
 		UserAgent:    config.TerraformVersionUserAgentInfo(req.TerraformVersion),
+		ProxyPort:    p.proxyPort,
 	}
 
 	var assumeRoles []tfAssumeRoleModel
@@ -244,7 +247,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		awsSessionToken := data.AwsSessionToken.ValueString()
 		endpoint := data.StsEndpoint.ValueString()
 		var err error
-		cfg, err = configureCredentialsSTS(cfg, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+		cfg, err = configureCredentialsSTS(&cfg, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
 		if err != nil {
 			resp.Diagnostics.AddError("failed to configure credentials STS", err.Error())
 			return
@@ -449,13 +452,23 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 	return resources
 }
 
-func NewFrameworkProvider() provider.Provider {
-	return &MongodbtlasProvider{}
+func NewFrameworkProvider(proxyPort *int) provider.Provider {
+	return &MongodbtlasProvider{
+		proxyPort: proxyPort,
+	}
 }
 
-func MuxedProviderFactory() func() tfprotov6.ProviderServer {
-	v2Provider := NewSdkV2Provider()
-	newProvider := NewFrameworkProvider()
+func MuxProviderFactory() func() tfprotov6.ProviderServer {
+	return muxProviderFactory(nil)
+}
+
+func MuxProviderFactoryForTesting(proxyPort *int) func() tfprotov6.ProviderServer {
+	return muxProviderFactory(proxyPort)
+}
+
+func muxProviderFactory(proxyPort *int) func() tfprotov6.ProviderServer {
+	v2Provider := NewSdkV2Provider(proxyPort)
+	newProvider := NewFrameworkProvider(proxyPort)
 	ctx := context.Background()
 	upgradedSdkProvider, err := tf5to6server.UpgradeServer(ctx, v2Provider.GRPCProvider)
 	if err != nil {

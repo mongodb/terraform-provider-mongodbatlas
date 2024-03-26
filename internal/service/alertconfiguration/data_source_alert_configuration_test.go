@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -236,4 +237,12 @@ func configWithPagerDutyDS(projectID, serviceKey string, enabled bool) string {
 			alert_configuration_id = mongodbatlas_alert_configuration.test.id
 		}
 	`, projectID, serviceKey, enabled)
+}
+
+func checkExists(resourceName string) resource.TestCheckFunc {
+	return checkExistsUsingProxy(nil, resourceName)
+}
+
+func checkDestroy(s *terraform.State) error {
+	return checkDestroyUsingProxy(nil)(s)
 }
