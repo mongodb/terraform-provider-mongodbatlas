@@ -15,7 +15,6 @@ import (
 )
 
 func TestAccEventTrigger_basic(t *testing.T) {
-	acc.SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -48,7 +47,7 @@ func TestAccEventTrigger_basic(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckTrigger(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -158,7 +157,7 @@ func TestAccEventTrigger_databaseEventProccesor(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckTrigger(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -216,7 +215,7 @@ func TestAccEventTrigger_authBasic(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckTrigger(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -276,7 +275,7 @@ func TestAccEventTrigger_authEventProcessor(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckTrigger(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -331,7 +330,7 @@ func TestAccEventTrigger_scheduleBasic(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckTrigger(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -388,7 +387,7 @@ func TestAccEventTrigger_scheduleEventProcessor(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckTrigger(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -443,7 +442,7 @@ func TestAccEventTrigger_functionBasic(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckTrigger(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
