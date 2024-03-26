@@ -58,7 +58,6 @@ func TestMigProject_withTeams(t *testing.T) {
 	}
 
 	var (
-		project         admin.Group
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName     = acc.RandomProjectName()
 		clusterCount    = "0"
@@ -83,7 +82,7 @@ func TestMigProject_withTeams(t *testing.T) {
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            configWithTeams,
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &project),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
@@ -105,7 +104,6 @@ func TestMigProject_withTeams(t *testing.T) {
 
 func TestMigProject_withFalseDefaultSettings(t *testing.T) {
 	var (
-		project         admin.Group
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID  = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 		projectName     = acc.RandomProjectName()
@@ -120,7 +118,7 @@ func TestMigProject_withFalseDefaultSettings(t *testing.T) {
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            configWithTeams,
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &project),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),

@@ -13,8 +13,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mocksvc"
@@ -502,7 +502,6 @@ const (
 
 func TestAccProject_basic(t *testing.T) {
 	var (
-		group        admin.Group
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		clusterCount = "0"
 		projectName  = acc.RandomProjectName()
@@ -526,7 +525,7 @@ func TestAccProject_basic(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
@@ -581,7 +580,7 @@ func TestAccProject_basic(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
@@ -603,7 +602,7 @@ func TestAccProject_basic(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
@@ -616,7 +615,6 @@ func TestAccProject_basic(t *testing.T) {
 
 func TestAccProject_withProjectOwner(t *testing.T) {
 	var (
-		group          admin.Group
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 		projectName    = acc.RandomProjectName()
@@ -630,7 +628,7 @@ func TestAccProject_withProjectOwner(t *testing.T) {
 			{
 				Config: acc.ConfigProjectWithOwner(projectName, orgID, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
@@ -642,7 +640,6 @@ func TestAccProject_withProjectOwner(t *testing.T) {
 func TestAccProjectGov_withProjectOwner(t *testing.T) {
 	acc.SkipTestForCI(t) // Gov test config not set
 	var (
-		group          admin.Group
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID_GOV")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID_GOV")
 		projectName    = acc.RandomProjectName()
@@ -656,7 +653,7 @@ func TestAccProjectGov_withProjectOwner(t *testing.T) {
 			{
 				Config: acc.ConfigProjectGovWithOwner(projectName, orgID, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
@@ -666,7 +663,6 @@ func TestAccProjectGov_withProjectOwner(t *testing.T) {
 }
 func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 	var (
-		group          admin.Group
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 		projectName    = acc.RandomProjectName()
@@ -680,7 +676,7 @@ func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 			{
 				Config: acc.ConfigProjectWithFalseDefaultSettings(projectName, orgID, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
@@ -691,7 +687,6 @@ func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 
 func TestAccProject_withUpdatedSettings(t *testing.T) {
 	var (
-		group          admin.Group
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 		projectName    = acc.RandomProjectName()
@@ -705,7 +700,7 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 			{
 				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "project_owner_id", projectOwnerID),
@@ -721,7 +716,7 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 			{
 				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, true),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"),
 					resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_enabled", "true"),
@@ -734,7 +729,7 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 			{
 				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_enabled", "false"),
@@ -783,7 +778,6 @@ func TestAccProject_withUpdatedRole(t *testing.T) {
 
 func TestAccProject_updatedToEmptyRoles(t *testing.T) {
 	var (
-		group       admin.Group
 		projectName = acc.RandomProjectName()
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
@@ -802,7 +796,7 @@ func TestAccProject_updatedToEmptyRoles(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "teams.0.team_id", acc.GetProjectTeamsIDsWithPos(0)),
 					resource.TestCheckResourceAttr(resourceName, "teams.0.role_names.#", "2"),
@@ -813,7 +807,7 @@ func TestAccProject_updatedToEmptyRoles(t *testing.T) {
 			{
 				Config: configBasic(orgID, projectName, false, nil),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "0"),
 				),
 			},
@@ -1030,6 +1024,22 @@ func TestAccProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 func createDataFederationLimit(limitName string) admin.DataFederationLimit {
 	return admin.DataFederationLimit{
 		Name: limitName,
+	}
+}
+
+func checkExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no ID is set")
+		}
+		if _, _, err := acc.ConnV2().ProjectsApi.GetProjectByName(context.Background(), rs.Primary.Attributes["name"]).Execute(); err == nil {
+			return nil
+		}
+		return fmt.Errorf("project (%s) does not exist", rs.Primary.ID)
 	}
 }
 

@@ -3,30 +3,11 @@ package acc
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
-
-func CheckProjectExists(resourceName string, project *admin.Group) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("no ID is set")
-		}
-		log.Printf("[DEBUG] projectID: %s", rs.Primary.ID)
-		if projectResp, _, err := ConnV2().ProjectsApi.GetProjectByName(context.Background(), rs.Primary.Attributes["name"]).Execute(); err == nil {
-			*project = *projectResp
-			return nil
-		}
-		return fmt.Errorf("project (%s) does not exist", rs.Primary.ID)
-	}
-}
 
 func CheckDestroyProject(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
