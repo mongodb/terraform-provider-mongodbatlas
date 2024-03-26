@@ -491,7 +491,11 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 	}
 }
 
-const resourceName = "mongodbatlas_project.test"
+const (
+	resourceName         = "mongodbatlas_project.test"
+	dataSourceNameByID   = "data.mongodbatlas_project.test"
+	dataSourceNameByName = "data.mongodbatlas_project.test2"
+)
 
 func TestAccProjectRSProject_basic(t *testing.T) {
 	var (
@@ -526,6 +530,32 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "2"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_addresses.services.clusters.#"),
+
+					resource.TestCheckResourceAttr(dataSourceNameByID, "name", projectName),
+					resource.TestCheckResourceAttr(dataSourceNameByID, "org_id", orgID),
+					resource.TestCheckResourceAttr(dataSourceNameByID, "cluster_count", clusterCount),
+					resource.TestCheckResourceAttr(dataSourceNameByID, "teams.#", "2"),
+					resource.TestCheckResourceAttrSet(dataSourceNameByID, "ip_addresses.services.clusters.#"),
+					resource.TestCheckResourceAttrSet(dataSourceNameByID, "is_collect_database_specifics_statistics_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourceNameByID, "is_data_explorer_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourceNameByID, "is_extended_storage_sizes_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourceNameByID, "is_performance_advisor_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourceNameByID, "is_realtime_performance_panel_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourceNameByID, "is_schema_advisor_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourceNameByID, "limits.0.name"),
+
+					resource.TestCheckResourceAttr(dataSourceNameByName, "name", projectName),
+					resource.TestCheckResourceAttr(dataSourceNameByName, "org_id", orgID),
+					resource.TestCheckResourceAttr(dataSourceNameByName, "cluster_count", clusterCount),
+					resource.TestCheckResourceAttr(dataSourceNameByName, "teams.#", "2"),
+					resource.TestCheckResourceAttrSet(dataSourceNameByName, "ip_addresses.services.clusters.#"),
+					resource.TestCheckResourceAttrSet(dataSourceNameByName, "is_collect_database_specifics_statistics_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourceNameByName, "is_data_explorer_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourceNameByName, "is_extended_storage_sizes_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourceNameByName, "is_performance_advisor_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourceNameByName, "is_realtime_performance_panel_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourceNameByName, "is_schema_advisor_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourceNameByName, "limits.0.name"),
 				),
 			},
 			{

@@ -73,6 +73,14 @@ func ConfigProject(projectName, orgID string, teams []*admin.TeamRole) string {
 
 			%s
 		}
+
+		data "mongodbatlas_project" "test" {
+			project_id = mongodbatlas_project.test.id
+		}
+
+		data "mongodbatlas_project" "test2" {
+			name = mongodbatlas_project.test.name
+		}
 	`, projectName, orgID, ts)
 }
 
