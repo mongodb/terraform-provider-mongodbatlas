@@ -500,7 +500,7 @@ const (
 	dataSourcePluralName = "data.mongodbatlas_projects.test"
 )
 
-func TestAccProjectRSProject_basic(t *testing.T) {
+func TestAccProject_basic(t *testing.T) {
 	var (
 		group        admin.Group
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -617,7 +617,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProject_withProjectOwner(t *testing.T) {
+func TestAccProject_withProjectOwner(t *testing.T) {
 	var (
 		group          admin.Group
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -643,7 +643,7 @@ func TestAccProjectRSProject_withProjectOwner(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSGovProject_withProjectOwner(t *testing.T) {
+func TestAccProjectGov_withProjectOwner(t *testing.T) {
 	acc.SkipTestForCI(t) // Gov test config not set
 	var (
 		group          admin.Group
@@ -669,7 +669,7 @@ func TestAccProjectRSGovProject_withProjectOwner(t *testing.T) {
 		},
 	})
 }
-func TestAccProjectRSProject_withFalseDefaultSettings(t *testing.T) {
+func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 	var (
 		group          admin.Group
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -695,7 +695,7 @@ func TestAccProjectRSProject_withFalseDefaultSettings(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProject_withUpdatedSettings(t *testing.T) {
+func TestAccProject_withUpdatedSettings(t *testing.T) {
 	var (
 		group          admin.Group
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -757,7 +757,7 @@ func TestAccProjectRSProject_withUpdatedSettings(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
+func TestAccProject_withUpdatedRole(t *testing.T) {
 	var (
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName     = acc.RandomProjectName()
@@ -790,7 +790,7 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProject_updatedToEmptyRoles(t *testing.T) {
+func TestAccProject_updatedToEmptyRoles(t *testing.T) {
 	var (
 		group       admin.Group
 		projectName = acc.RandomProjectName()
@@ -832,7 +832,7 @@ func TestAccProjectRSProject_updatedToEmptyRoles(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProject_importBasic(t *testing.T) {
+func TestAccProject_importBasic(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -857,7 +857,7 @@ func TestAccProjectRSProject_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
+func TestAccProject_withUpdatedLimits(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -950,7 +950,7 @@ func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProject_updatedToEmptyLimits(t *testing.T) {
+func TestAccProject_updatedToEmptyLimits(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -983,7 +983,7 @@ func TestAccProjectRSProject_updatedToEmptyLimits(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProject_withInvalidLimitName(t *testing.T) {
+func TestAccProject_withInvalidLimitName(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -1007,7 +1007,7 @@ func TestAccProjectRSProject_withInvalidLimitName(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProject_withInvalidLimitNameOnUpdate(t *testing.T) {
+func TestAccProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()

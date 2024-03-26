@@ -14,7 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestMigProjectRS_withNoProps(t *testing.T) {
+func TestMigProject_withNoProps(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -51,7 +51,7 @@ func TestMigProjectRS_withNoProps(t *testing.T) {
 	})
 }
 
-func TestMigProjectRS_withTeams(t *testing.T) {
+func TestMigProject_withTeams(t *testing.T) {
 	var teamsIDs = strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
 	if len(teamsIDs) < 2 {
 		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
@@ -104,7 +104,7 @@ func TestMigProjectRS_withTeams(t *testing.T) {
 	})
 }
 
-func TestMigProjectRS_withFalseDefaultSettings(t *testing.T) {
+func TestMigProject_withFalseDefaultSettings(t *testing.T) {
 	var (
 		project         admin.Group
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -141,7 +141,7 @@ func TestMigProjectRS_withFalseDefaultSettings(t *testing.T) {
 	})
 }
 
-func TestMigProjectRS_withLimits(t *testing.T) {
+func TestMigProject_withLimits(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
