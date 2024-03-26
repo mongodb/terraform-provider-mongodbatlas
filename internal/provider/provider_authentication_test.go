@@ -1,17 +1,21 @@
 package provider_test
 
 import (
+	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 func TestAccSTSAssumeRole_basic(t *testing.T) {
 	var (
-		dataSourceName = "data.mongodbatlas_project.test"
-		projectID      = acc.ProjectIDGlobal(t)
+		resourceName = "mongodbatlas_project.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = "test-acc-tf-p-temp-delete"
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckSTSAssumeRole(t); acc.PreCheckRegularCredsAreEmpty(t) },
@@ -19,21 +23,40 @@ func TestAccSTSAssumeRole_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID),
+				Config: configBasic(orgID, projectName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "id", projectID),
-					resource.TestCheckResourceAttrSet(dataSourceName, "cluster_count"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "teams.#"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", projectName),
+					resource.TestCheckResourceAttrSet(resourceName, "cluster_count"),
+					resource.TestCheckResourceAttrSet(resourceName, "teams.#"),
 				),
 			},
 		},
 	})
 }
 
-func configBasic(projectID string) string {
+func configBasic(orgID, projectName string) string {
 	return fmt.Sprintf(`
-		data "mongodbatlas_project" "test" {
-			project_id = %q
+		resource "mongodbatlas_project" "test" {
+			org_id 			 = %[1]q
+			name  			 = %[2]q
 		}
-`, projectID)
+`, orgID, projectName)
+}
+
+func checkExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no ID is set")
+		}
+		if resp, _, err := acc.ConnV2().ProjectsApi.GetProjectByName(context.Background(), rs.Primary.Attributes["name"]).Execute(); err == nil {
+			fmt.Printf("DEBUG HI: %s, org: %s\n", resp.GetId(), resp.GetOrgId())
+			return nil
+		}
+		return fmt.Errorf("project (%s) does not exist", rs.Primary.ID)
+	}
 }
