@@ -8,11 +8,9 @@ import (
 )
 
 func TestMigSearchIndex_basic(t *testing.T) {
-	testCase := mig.ConvertToMigrationTest(t, basicTestCase(t))
-	resource.ParallelTest(t, testCase)
+	resource.ParallelTest(t, mig.CreateTest(t, basicTestCase(t)))
 }
 
 func TestMigSearchIndex_withVector(t *testing.T) {
-	testCase := mig.ConvertToMigrationTest(t, basicTestCaseVector(t))
-	resource.ParallelTest(t, testCase)
+	resource.ParallelTest(t, mig.CreateTest(t, basicTestCaseVector(t)))
 }

@@ -28,7 +28,7 @@ func TestConvertToMigration(t *testing.T) {
 	asserter := assert.New(t)
 
 	convertAndCall := func(test resource.TestCase) resource.TestCase {
-		newTest := mig.ConvertToMigrationTest(t, &test)
+		newTest := mig.CreateTest(t, &test)
 		newTest.PreCheck()
 		if newTest.CheckDestroy != nil {
 			asserter.NoError(newTest.CheckDestroy(nil))
@@ -88,7 +88,7 @@ func TestConvertToMigration(t *testing.T) {
 	// ConvertToMigrationTestUseExternalProvider
 
 	t.Run("explicit ExternalProvider version an no additional providers", func(t *testing.T) {
-		test := mig.ConvertToMigrationTestUseExternalProvider(t, &resource.TestCase{
+		test := mig.CreateTestUseExternalProvider(t, &resource.TestCase{
 			PreCheck: preCheck,
 			Steps:    []resource.TestStep{firstStep},
 		}, acc.ExternalProviders("1.2.3"), nil)
@@ -99,7 +99,7 @@ func TestConvertToMigration(t *testing.T) {
 	})
 
 	t.Run("explicit ExternalProviders and additional providers", func(t *testing.T) {
-		test := mig.ConvertToMigrationTestUseExternalProvider(t, &resource.TestCase{
+		test := mig.CreateTestUseExternalProvider(t, &resource.TestCase{
 			PreCheck: preCheck,
 			Steps:    []resource.TestStep{firstStep},
 		}, acc.ExternalProvidersWithAWS("1.2.3"), acc.ExternalProvidersOnlyAWS())

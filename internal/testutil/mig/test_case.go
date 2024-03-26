@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// ConvertToMigrationTest returns an updated TestCase that reuses step 1 and adds a TestStepCheckEmptyPlan
+// CreateTest returns a new TestCase that reuses step 1 and adds a TestStepCheckEmptyPlan
 // Requires: `MONGODB_ATLAS_LAST_VERSION` to be present
-func ConvertToMigrationTest(t *testing.T, test *resource.TestCase) resource.TestCase {
+func CreateTest(t *testing.T, test *resource.TestCase) resource.TestCase {
 	t.Helper()
 	validateReusableCase(t, test)
 	firstStep := test.Steps[0]
@@ -20,11 +20,11 @@ func ConvertToMigrationTest(t *testing.T, test *resource.TestCase) resource.Test
 	return reuseCase(test, steps)
 }
 
-// ConvertToMigrationTestUseExternalProvider returns an updated TestCase that reuses step 1 and adds a TestStepCheckEmptyPlan with the additionalProviders
+// CreateTestUseExternalProvider returns a new TestCase that reuses step 1 and adds a TestStepCheckEmptyPlan with the additionalProviders
 // Requires: `MONGODB_ATLAS_LAST_VERSION` to be present
 // externalProviders: e.g., ExternalProvidersWithAWS() or ExternalProviders("specific_sem_ver")
 // additionalProviders: e.g., acc.ExternalProvidersOnlyAWS(), can also be nil
-func ConvertToMigrationTestUseExternalProvider(t *testing.T, test *resource.TestCase, externalProviders, additionalProviders map[string]resource.ExternalProvider) resource.TestCase {
+func CreateTestUseExternalProvider(t *testing.T, test *resource.TestCase, externalProviders, additionalProviders map[string]resource.ExternalProvider) resource.TestCase {
 	t.Helper()
 	validateReusableCase(t, test)
 	firstStep := test.Steps[0]

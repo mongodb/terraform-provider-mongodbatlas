@@ -11,10 +11,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func basicTestCase(t *testing.T) *resource.TestCase {
-	t.Helper()
+func basicTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
 	var (
-		clusterInfo     = acc.GetClusterInfo(t, nil)
+		clusterInfo     = acc.GetClusterInfo(tb, nil)
 		indexName       = acc.RandomName()
 		databaseName    = acc.RandomName()
 		indexType       = ""
@@ -23,7 +23,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
@@ -43,8 +43,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 }
 
 func TestAccSearchIndex_basic(t *testing.T) {
-	basicCase := basicTestCase(t)
-	resource.ParallelTest(t, *basicCase)
+	resource.ParallelTest(t, *basicTestCase(t))
 }
 
 func TestAccSearchIndex_withSearchType(t *testing.T) {
@@ -212,10 +211,10 @@ func TestAccSearchIndex_updatedToEmptyMappingsFields(t *testing.T) {
 		},
 	})
 }
-func basicTestCaseVector(t *testing.T) *resource.TestCase {
-	t.Helper()
+func basicTestCaseVector(tb testing.TB) *resource.TestCase {
+	tb.Helper()
 	var (
-		clusterInfo  = acc.GetClusterInfo(t, nil)
+		clusterInfo  = acc.GetClusterInfo(tb, nil)
 		indexName    = acc.RandomName()
 		indexType    = "vectorSearch"
 		databaseName = acc.RandomName()
@@ -233,7 +232,7 @@ func basicTestCaseVector(t *testing.T) *resource.TestCase {
 	checks = append(checks, resource.TestCheckResourceAttrWith(datasourceName, "fields", acc.JSONEquals(fieldsJSON)))
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
