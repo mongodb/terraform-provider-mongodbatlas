@@ -12,11 +12,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestMigProject_withNoProps(t *testing.T) {
+func TestMigProject_basic(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
-		config      = configBasic(orgID, projectName, false, nil)
+		config      = configBasic(orgID, projectName, "", false, nil)
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -45,7 +45,7 @@ func TestMigProject_withTeams(t *testing.T) {
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acc.RandomProjectName()
 		clusterCount = "0"
-		config       = configBasic(orgID, projectName, false,
+		config       = configBasic(orgID, projectName, "", false,
 			[]*admin.TeamRole{
 				{
 					TeamId:    &teamsIDs[0],

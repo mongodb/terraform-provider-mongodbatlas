@@ -502,9 +502,9 @@ const (
 
 func TestAccProject_basic(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterCount = "0"
-		projectName  = acc.RandomProjectName()
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acc.RandomProjectName()
+		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 3) },
@@ -512,7 +512,7 @@ func TestAccProject_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectName, true,
+				Config: configBasic(orgID, projectName, projectOwnerID, true,
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
@@ -528,13 +528,13 @@ func TestAccProject_basic(t *testing.T) {
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
+					resource.TestCheckResourceAttr(resourceName, "cluster_count", "0"),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "2"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_addresses.services.clusters.#"),
 
 					resource.TestCheckResourceAttr(dataSourceNameByID, "name", projectName),
 					resource.TestCheckResourceAttr(dataSourceNameByID, "org_id", orgID),
-					resource.TestCheckResourceAttr(dataSourceNameByID, "cluster_count", clusterCount),
+					resource.TestCheckResourceAttr(dataSourceNameByID, "cluster_count", "0"),
 					resource.TestCheckResourceAttr(dataSourceNameByID, "teams.#", "2"),
 					resource.TestCheckResourceAttrSet(dataSourceNameByID, "ip_addresses.services.clusters.#"),
 					resource.TestCheckResourceAttrSet(dataSourceNameByID, "is_collect_database_specifics_statistics_enabled"),
@@ -547,7 +547,7 @@ func TestAccProject_basic(t *testing.T) {
 
 					resource.TestCheckResourceAttr(dataSourceNameByName, "name", projectName),
 					resource.TestCheckResourceAttr(dataSourceNameByName, "org_id", orgID),
-					resource.TestCheckResourceAttr(dataSourceNameByName, "cluster_count", clusterCount),
+					resource.TestCheckResourceAttr(dataSourceNameByName, "cluster_count", "0"),
 					resource.TestCheckResourceAttr(dataSourceNameByName, "teams.#", "2"),
 					resource.TestCheckResourceAttrSet(dataSourceNameByName, "ip_addresses.services.clusters.#"),
 					resource.TestCheckResourceAttrSet(dataSourceNameByName, "is_collect_database_specifics_statistics_enabled"),
@@ -563,7 +563,7 @@ func TestAccProject_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic(orgID, projectName, false,
+				Config: configBasic(orgID, projectName, projectOwnerID, false,
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
@@ -583,12 +583,12 @@ func TestAccProject_basic(t *testing.T) {
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
+					resource.TestCheckResourceAttr(resourceName, "cluster_count", "0"),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "3"),
 				),
 			},
 			{
-				Config: configBasic(orgID, projectName, false,
+				Config: configBasic(orgID, projectName, projectOwnerID, false,
 
 					[]*admin.TeamRole{
 						{
@@ -605,32 +605,8 @@ func TestAccProject_basic(t *testing.T) {
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
+					resource.TestCheckResourceAttr(resourceName, "cluster_count", "0"),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "2"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccProject_withProjectOwner(t *testing.T) {
-	var (
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
-		projectName    = acc.RandomProjectName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasicOwnerID(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyProject,
-		Steps: []resource.TestStep{
-			{
-				Config: configWithOwner(orgID, projectName, projectOwnerID),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", projectName),
-					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
 			},
 		},
@@ -787,7 +763,7 @@ func TestAccProject_updatedToEmptyRoles(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectName, false,
+				Config: configBasic(orgID, projectName, "", false,
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
@@ -805,7 +781,7 @@ func TestAccProject_updatedToEmptyRoles(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic(orgID, projectName, false, nil),
+				Config: configBasic(orgID, projectName, "", false, nil),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "0"),
@@ -827,7 +803,7 @@ func TestAccProject_importBasic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectName, false, nil),
+				Config: configBasic(orgID, projectName, "", false, nil),
 			},
 			{
 				ResourceName:            resourceName,
@@ -1043,21 +1019,24 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func configBasic(orgID, projectName string, includePluralDataSource bool, teams []*admin.TeamRole) string {
-	var ts string
-	var plural string
-
+func configBasic(orgID, projectName, projectOwnerID string, includePluralDataSource bool, teams []*admin.TeamRole) string {
+	var pluralStr string
 	if includePluralDataSource {
-		plural = `
+		pluralStr = `
 			data "mongodbatlas_projects" "test" {
 			}
 		`
 	}
 
+	var additionalStr string
+	if projectOwnerID != "" {
+		additionalStr = fmt.Sprintf("project_owner_id = %q\n", projectOwnerID)
+	}
+
 	for _, t := range teams {
-		ts += fmt.Sprintf(`
+		additionalStr += fmt.Sprintf(`
 		teams {
-			team_id = "%s"
+			team_id = %q
 			role_names = %s
 		}
 		`, t.GetTeamId(), strings.ReplaceAll(fmt.Sprintf("%+q", *t.RoleNames), " ", ","))
@@ -1080,17 +1059,7 @@ func configBasic(orgID, projectName string, includePluralDataSource bool, teams 
 		}
 
 		%[4]s
-	`, orgID, projectName, ts, plural)
-}
-
-func configWithOwner(orgID, projectName, projectOwnerID string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			org_id 			 = %[1]q
-			name   			 = %[2]q
-		  project_owner_id = %[3]q
-		}
-	`, orgID, projectName, projectOwnerID)
+	`, orgID, projectName, additionalStr, pluralStr)
 }
 
 func configGovWithOwner(orgID, projectName, projectOwnerID string) string {
