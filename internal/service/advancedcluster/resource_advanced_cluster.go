@@ -424,15 +424,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	timeout := d.Timeout(schema.TimeoutCreate)
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
-		Target:     []string{"IDLE"},
-		Refresh:    resourceRefreshFunc(ctx, d.Get("name").(string), projectID, connV2),
-		Timeout:    timeout,
-		MinTimeout: 1 * time.Minute,
-		Delay:      3 * time.Minute,
-	}
-
+	stateConf := CreateStateChangeConfig(ctx, connV2, projectID, d.Get("name").(string), timeout)
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, err))
@@ -465,6 +457,17 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}))
 
 	return resourceRead(ctx, d, meta)
+}
+
+func CreateStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, name string, timeout time.Duration) retry.StateChangeConf {
+	return retry.StateChangeConf{
+		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
+		Target:     []string{"IDLE"},
+		Refresh:    resourceRefreshFunc(ctx, name, projectID, connV2),
+		Timeout:    timeout,
+		MinTimeout: 1 * time.Minute,
+		Delay:      3 * time.Minute,
+	}
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -763,15 +766,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	log.Println("[INFO] Waiting for MongoDB ClusterAdvanced to be destroyed")
 
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
-		Target:     []string{"DELETED"},
-		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, connV2),
-		Timeout:    d.Timeout(schema.TimeoutDelete),
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute, // Wait 30 secs before starting
-	}
-
+	stateConf := DeleteStateChangeConfig(ctx, connV2, projectID, clusterName, d.Timeout(schema.TimeoutDelete))
 	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
@@ -779,6 +774,17 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	return nil
+}
+
+func DeleteStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, name string, timeout time.Duration) retry.StateChangeConf {
+	return retry.StateChangeConf{
+		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
+		Target:     []string{"DELETED"},
+		Refresh:    resourceRefreshFunc(ctx, name, projectID, connV2),
+		Timeout:    timeout,
+		MinTimeout: 30 * time.Second,
+		Delay:      1 * time.Minute,
+	}
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {

@@ -10,10 +10,10 @@ import (
 
 func TestMigSearchIndex_basic(t *testing.T) {
 	var (
-		clusterInfo  = acc.GetClusterInfo(t, nil)
-		indexName    = acc.RandomName()
-		databaseName = acc.RandomName()
-		config       = configBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false)
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		indexName              = acc.RandomName()
+		databaseName           = acc.RandomName()
+		config                 = configBasic(projectID, indexName, databaseName, clusterName, false)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
@@ -26,7 +26,7 @@ func TestMigSearchIndex_basic(t *testing.T) {
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "database", databaseName),
 					resource.TestCheckResourceAttr(resourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(resourceName, "search_analyzer", searchAnalyzer),
@@ -40,10 +40,10 @@ func TestMigSearchIndex_basic(t *testing.T) {
 
 func TestMigSearchIndex_withVector(t *testing.T) {
 	var (
-		clusterInfo  = acc.GetClusterInfo(t, nil)
-		indexName    = acc.RandomName()
-		databaseName = acc.RandomName()
-		config       = configVector(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr)
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		indexName              = acc.RandomName()
+		databaseName           = acc.RandomName()
+		config                 = configVector(projectID, indexName, databaseName, clusterName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -57,7 +57,7 @@ func TestMigSearchIndex_withVector(t *testing.T) {
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", indexName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "database", databaseName),
 					resource.TestCheckResourceAttr(resourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(resourceName, "type", "vectorSearch"),

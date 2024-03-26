@@ -13,13 +13,13 @@ import (
 
 func TestAccSearchIndex_basic(t *testing.T) {
 	var (
-		clusterInfo     = acc.GetClusterInfo(t, nil)
-		indexName       = acc.RandomName()
-		databaseName    = acc.RandomName()
-		indexType       = ""
-		mappingsDynamic = "true"
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		indexName              = acc.RandomName()
+		databaseName           = acc.RandomName()
+		indexType              = ""
+		mappingsDynamic        = "true"
 	)
-	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
+	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -27,11 +27,11 @@ func TestAccSearchIndex_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
+				Config: configBasic(projectID, indexName, databaseName, clusterName, false),
 				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 			{
-				Config:            configBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
+				Config:            configBasic(projectID, indexName, databaseName, clusterName, false),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
@@ -43,20 +43,20 @@ func TestAccSearchIndex_basic(t *testing.T) {
 
 func TestAccSearchIndex_withSearchType(t *testing.T) {
 	var (
-		clusterInfo     = acc.GetClusterInfo(t, nil)
-		indexName       = acc.RandomName()
-		databaseName    = acc.RandomName()
-		indexType       = "search"
-		mappingsDynamic = "true"
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		indexName              = acc.RandomName()
+		databaseName           = acc.RandomName()
+		indexType              = "search"
+		mappingsDynamic        = "true"
 	)
-	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
+	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, true),
+				Config: configBasic(projectID, indexName, databaseName, clusterName, true),
 				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 		},
@@ -65,13 +65,13 @@ func TestAccSearchIndex_withSearchType(t *testing.T) {
 
 func TestAccSearchIndex_withMapping(t *testing.T) {
 	var (
-		clusterInfo     = acc.GetClusterInfo(t, nil)
-		indexName       = acc.RandomName()
-		databaseName    = acc.RandomName()
-		indexType       = ""
-		mappingsDynamic = "false"
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		indexName              = acc.RandomName()
+		databaseName           = acc.RandomName()
+		indexType              = ""
+		mappingsDynamic        = "false"
 	)
-	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
+	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName)
 	checks = addAttrSetChecks(checks, "mappings_fields", "analyzers")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -79,7 +79,7 @@ func TestAccSearchIndex_withMapping(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithMapping(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr),
+				Config: configWithMapping(projectID, indexName, databaseName, clusterName),
 				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 		},
@@ -88,19 +88,19 @@ func TestAccSearchIndex_withMapping(t *testing.T) {
 
 func TestAccSearchIndex_withSynonyms(t *testing.T) {
 	var (
-		clusterInfo     = acc.GetClusterInfo(t, nil)
-		indexName       = acc.RandomName()
-		databaseName    = acc.RandomName()
-		indexType       = ""
-		mappingsDynamic = "true"
-		mapChecks       = map[string]string{
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		indexName              = acc.RandomName()
+		databaseName           = acc.RandomName()
+		indexType              = ""
+		mappingsDynamic        = "true"
+		mapChecks              = map[string]string{
 			"synonyms.#":                   "1",
 			"synonyms.0.analyzer":          "lucene.simple",
 			"synonyms.0.name":              "synonym_test",
 			"synonyms.0.source_collection": collectionName,
 		}
 	)
-	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
+	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName)
 	checks = addAttrChecks(checks, mapChecks)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -109,7 +109,7 @@ func TestAccSearchIndex_withSynonyms(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, with),
+				Config: configWithSynonyms(projectID, indexName, databaseName, clusterName, with),
 				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 		},
@@ -118,13 +118,13 @@ func TestAccSearchIndex_withSynonyms(t *testing.T) {
 
 func TestAccSearchIndex_updatedToEmptySynonyms(t *testing.T) {
 	var (
-		clusterInfo     = acc.GetClusterInfo(t, nil)
-		indexName       = acc.RandomName()
-		databaseName    = acc.RandomName()
-		indexType       = ""
-		mappingsDynamic = "true"
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		indexName              = acc.RandomName()
+		databaseName           = acc.RandomName()
+		indexType              = ""
+		mappingsDynamic        = "true"
 	)
-	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
+	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName)
 	checks1 := addAttrChecks(checks, map[string]string{
 		"synonyms.#":                   "1",
 		"synonyms.0.analyzer":          "lucene.simple",
@@ -138,11 +138,11 @@ func TestAccSearchIndex_updatedToEmptySynonyms(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, with),
+				Config: configWithSynonyms(projectID, indexName, databaseName, clusterName, with),
 				Check:  resource.ComposeTestCheckFunc(checks1...),
 			},
 			{
-				Config: configWithSynonyms(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, without),
+				Config: configWithSynonyms(projectID, indexName, databaseName, clusterName, without),
 				Check:  resource.ComposeTestCheckFunc(checks2...),
 			},
 		},
@@ -151,9 +151,9 @@ func TestAccSearchIndex_updatedToEmptySynonyms(t *testing.T) {
 
 func TestAccSearchIndex_updatedToEmptyAnalyzers(t *testing.T) {
 	var (
-		clusterInfo  = acc.GetClusterInfo(t, nil)
-		indexName    = acc.RandomName()
-		databaseName = acc.RandomName()
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		indexName              = acc.RandomName()
+		databaseName           = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -161,14 +161,14 @@ func TestAccSearchIndex_updatedToEmptyAnalyzers(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdditional(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, analyzersTF),
+				Config: configAdditional(projectID, indexName, databaseName, clusterName, analyzersTF),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrWith(resourceName, "analyzers", acc.JSONEquals(analyzersJSON)),
 				),
 			},
 			{
-				Config: configAdditional(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, ""),
+				Config: configAdditional(projectID, indexName, databaseName, clusterName, ""),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "analyzers", ""),
@@ -180,9 +180,9 @@ func TestAccSearchIndex_updatedToEmptyAnalyzers(t *testing.T) {
 
 func TestAccSearchIndex_updatedToEmptyMappingsFields(t *testing.T) {
 	var (
-		clusterInfo  = acc.GetClusterInfo(t, nil)
-		indexName    = acc.RandomName()
-		databaseName = acc.RandomName()
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		indexName              = acc.RandomName()
+		databaseName           = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -190,14 +190,14 @@ func TestAccSearchIndex_updatedToEmptyMappingsFields(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdditional(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, mappingsFieldsTF),
+				Config: configAdditional(projectID, indexName, databaseName, clusterName, mappingsFieldsTF),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrWith(resourceName, "mappings_fields", acc.JSONEquals(mappingsFieldsJSON)),
 				),
 			},
 			{
-				Config: configAdditional(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, ""),
+				Config: configAdditional(projectID, indexName, databaseName, clusterName, ""),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "mappings_fields", ""),
@@ -209,13 +209,13 @@ func TestAccSearchIndex_updatedToEmptyMappingsFields(t *testing.T) {
 
 func TestAccSearchIndex_withVector(t *testing.T) {
 	var (
-		clusterInfo  = acc.GetClusterInfo(t, nil)
-		indexName    = acc.RandomName()
-		indexType    = "vectorSearch"
-		databaseName = acc.RandomName()
-		attributes   = map[string]string{
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		indexName              = acc.RandomName()
+		indexType              = "vectorSearch"
+		databaseName           = acc.RandomName()
+		attributes             = map[string]string{
 			"name":            indexName,
-			"cluster_name":    clusterInfo.ClusterName,
+			"cluster_name":    clusterName,
 			"database":        databaseName,
 			"collection_name": collectionName,
 			"type":            indexType,
@@ -231,16 +231,16 @@ func TestAccSearchIndex_withVector(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configVector(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr),
+				Config: configVector(projectID, indexName, databaseName, clusterName),
 				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 		},
 	})
 }
-func commonChecks(indexName, indexType, mappingsDynamic, databaseName string, clusterInfo acc.ClusterInfo) []resource.TestCheckFunc {
+func commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName string) []resource.TestCheckFunc {
 	attributes := map[string]string{
 		"name":             indexName,
-		"cluster_name":     clusterInfo.ClusterName,
+		"cluster_name":     clusterName,
 		"database":         databaseName,
 		"collection_name":  collectionName,
 		"type":             indexType,
@@ -279,15 +279,15 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func configBasic(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr string, explicitType bool) string {
+func configBasic(projectID, indexName, databaseName, clusterName string, explicitType bool) string {
 	var indexType string
 	if explicitType {
 		indexType = `type="search"`
 	}
-	return clusterTerraformStr + fmt.Sprintf(`
+	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
-			cluster_name     = %[1]s
-			project_id       = %[2]s
+			cluster_name     = %[1]q
+			project_id       = %[2]q
 			name             = %[3]q
 			database         = %[4]q
 			collection_name  = %[5]q
@@ -297,18 +297,18 @@ func configBasic(projectIDStr, indexName, databaseName, clusterNameStr, clusterT
 		}
 
 		data "mongodbatlas_search_index" "data_index" {
-			cluster_name     = %[1]s
-			project_id       = %[2]s
+			cluster_name     = %[1]q
+			project_id       = %[2]q
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
-	`, clusterNameStr, projectIDStr, indexName, databaseName, collectionName, searchAnalyzer, indexType)
+	`, clusterName, projectID, indexName, databaseName, collectionName, searchAnalyzer, indexType)
 }
 
-func configWithMapping(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr string) string {
-	return clusterTerraformStr + fmt.Sprintf(`
+func configWithMapping(projectID, indexName, databaseName, clusterName string) string {
+	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
-			cluster_name     = %[1]s
-			project_id       = %[2]s
+			cluster_name     = %[1]q
+			project_id       = %[2]q
 			name             = %[3]q
 			database         = %[4]q
 			collection_name  = %[5]q
@@ -319,14 +319,14 @@ func configWithMapping(projectIDStr, indexName, databaseName, clusterNameStr, cl
 		}
 
 		data "mongodbatlas_search_index" "data_index" {
-			cluster_name     = %[1]s
-			project_id       = %[2]s
+			cluster_name     = %[1]q
+			project_id       = %[2]q
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
-	`, clusterNameStr, projectIDStr, indexName, databaseName, collectionName, searchAnalyzer, analyzersTF, mappingsFieldsTF)
+	`, clusterName, projectID, indexName, databaseName, collectionName, searchAnalyzer, analyzersTF, mappingsFieldsTF)
 }
 
-func configWithSynonyms(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr string, has bool) string {
+func configWithSynonyms(projectID, indexName, databaseName, clusterName string, has bool) string {
 	var synonymsStr string
 	if has {
 		synonymsStr = fmt.Sprintf(`
@@ -338,10 +338,10 @@ func configWithSynonyms(projectIDStr, indexName, databaseName, clusterNameStr, c
 		`, collectionName)
 	}
 
-	return clusterTerraformStr + fmt.Sprintf(`
+	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
-			cluster_name     = %[1]s
-			project_id       = %[2]s
+			cluster_name     = %[1]q
+			project_id       = %[2]q
 			name             = %[3]q
 			database         = %[4]q
 			collection_name  = %[5]q
@@ -351,18 +351,18 @@ func configWithSynonyms(projectIDStr, indexName, databaseName, clusterNameStr, c
 		}
 
 		data "mongodbatlas_search_index" "data_index" {
-			cluster_name     = %[1]s
-			project_id       = %[2]s
+			cluster_name     = %[1]q
+			project_id       = %[2]q
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
-	`, clusterNameStr, projectIDStr, indexName, databaseName, collectionName, searchAnalyzer, synonymsStr)
+	`, clusterName, projectID, indexName, databaseName, collectionName, searchAnalyzer, synonymsStr)
 }
 
-func configAdditional(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr, additional string) string {
-	return clusterTerraformStr + fmt.Sprintf(`
+func configAdditional(projectID, indexName, databaseName, clusterName, additional string) string {
+	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
-			cluster_name     = %[1]s
-			project_id       = %[2]s
+			cluster_name     = %[1]q
+			project_id       = %[2]q
 			name             = %[3]q
 			database         = %[4]q
 			collection_name  = %[5]q
@@ -370,14 +370,14 @@ func configAdditional(projectIDStr, indexName, databaseName, clusterNameStr, clu
 			mappings_dynamic = true
 			%[7]s
 		}
-	`, clusterNameStr, projectIDStr, indexName, databaseName, collectionName, searchAnalyzer, additional)
+	`, clusterName, projectID, indexName, databaseName, collectionName, searchAnalyzer, additional)
 }
 
-func configVector(projectIDStr, indexName, databaseName, clusterNameStr, clusterTerraformStr string) string {
-	return clusterTerraformStr + fmt.Sprintf(`
+func configVector(projectID, indexName, databaseName, clusterName string) string {
+	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
-			cluster_name     = %[1]s
-			project_id       = %[2]s
+			cluster_name     = %[1]q
+			project_id       = %[2]q
 			name             = %[3]q
 			database         = %[4]q
 			collection_name  = %[5]q
@@ -390,11 +390,11 @@ func configVector(projectIDStr, indexName, databaseName, clusterNameStr, cluster
 		}
 	
 		data "mongodbatlas_search_index" "data_index" {
-			cluster_name     = %[1]s
-			project_id       = %[2]s
+			cluster_name     = %[1]q
+			project_id       = %[2]q
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
-	`, clusterNameStr, projectIDStr, indexName, databaseName, collectionName, fieldsJSON)
+	`, clusterName, projectID, indexName, databaseName, collectionName, fieldsJSON)
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
