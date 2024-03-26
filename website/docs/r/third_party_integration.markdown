@@ -24,7 +24,7 @@ description: |-
 ```terraform
 
 resource "mongodbatlas_third_party_integration" "test_datadog" {
-	project_id = "<PROJECT-ID>"
+  project_id = "<PROJECT-ID>"
   type = "DATADOG"
 	api_key = "<API-KEY>"
 	region = "<REGION>"
@@ -78,7 +78,7 @@ resource "mongodbatlas_third_party_integration" "test_datadog" {
 Third-Party Integration Settings can be imported using project ID and the integration type, in the format `project_id`-`type`, e.g.
 
 ```
-$ terraform import mongodbatlas_database_user.my_user 1112222b3bf99403840e8934-OPS_GENIE
+$ terraform import mongodbatlas_third_party_integration.test_datadog 1112222b3bf99403840e8934-DATADOG
 ```
 
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Third-Party-Integrations/operation/createThirdPartyIntegration) Documentation for more information.
