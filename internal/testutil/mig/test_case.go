@@ -7,6 +7,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func CreateAndRunTest(t *testing.T, test *resource.TestCase) {
+	t.Helper()
+	resource.ParallelTest(t, CreateTest(t, test))
+}
+
+func CreateTestAndRunUseExternalProvider(t *testing.T, test *resource.TestCase, externalProviders, additionalProviders map[string]resource.ExternalProvider) {
+	t.Helper()
+	resource.ParallelTest(t, CreateTestUseExternalProvider(t, test, externalProviders, additionalProviders))
+}
+
 // CreateTest returns a new TestCase that reuses step 1 and adds a TestStepCheckEmptyPlan
 // Requires: `MONGODB_ATLAS_LAST_VERSION` to be present
 func CreateTest(t *testing.T, test *resource.TestCase) resource.TestCase {
@@ -17,7 +27,8 @@ func CreateTest(t *testing.T, test *resource.TestCase) resource.TestCase {
 		useExternalProvider(&firstStep, ExternalProviders()),
 		TestStepCheckEmptyPlan(firstStep.Config),
 	}
-	return reuseCase(test, steps)
+	newTest := reuseCase(test, steps)
+	return newTest
 }
 
 // CreateTestUseExternalProvider returns a new TestCase that reuses step 1 and adds a TestStepCheckEmptyPlan with the additionalProviders
@@ -37,11 +48,11 @@ func CreateTestUseExternalProvider(t *testing.T, test *resource.TestCase, extern
 	return reuseCase(test, steps)
 }
 
-func validateReusableCase(t *testing.T, test *resource.TestCase) {
-	t.Helper()
-	checkLastVersion(t)
-	require.GreaterOrEqual(t, len(test.Steps), 1, "Must have at least 1 test step.")
-	require.NotEmpty(t, test.Steps[0].Config, "First step of migration test must use Config")
+func validateReusableCase(tb testing.TB, test *resource.TestCase) {
+	tb.Helper()
+	checkLastVersion(tb)
+	require.GreaterOrEqual(tb, len(test.Steps), 1, "Must have at least 1 test step.")
+	require.NotEmpty(tb, test.Steps[0].Config, "First step of migration test must use Config")
 }
 
 func useExternalProvider(step *resource.TestStep, provider map[string]resource.ExternalProvider) resource.TestStep {
