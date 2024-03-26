@@ -3,7 +3,6 @@ package auditing_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -12,17 +11,16 @@ import (
 )
 
 const (
+	resourceName   = "mongodbatlas_auditing.test"
 	dataSourceName = "data.mongodbatlas_auditing.test"
 )
 
 func TestAccGenericAuditing_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_auditing.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		auditAuth    = true
-		auditFilter  = "{ 'atype': 'authenticate', 'param': {   'user': 'auditAdmin',   'db': 'admin',   'mechanism': 'SCRAM-SHA-1' }}"
-		enabled      = true
+		projectID   = acc.ProjectIDExecution(t)
+		auditAuth   = true
+		auditFilter = "{ 'atype': 'authenticate', 'param': {   'user': 'auditAdmin',   'db': 'admin',   'mechanism': 'SCRAM-SHA-1' }}"
+		enabled     = true
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -31,7 +29,7 @@ func TestAccGenericAuditing_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectName, auditFilter, auditAuth, enabled),
+				Config: configBasic(projectID, auditFilter, auditAuth, enabled),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -51,7 +49,7 @@ func TestAccGenericAuditing_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic(orgID, projectName, "{}", false, false),
+				Config: configBasic(projectID, "{}", false, false),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -93,6 +91,9 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func checkDestroy(s *terraform.State) error {
+	if acc.UsingLocalResources() {
+		return nil
+	}
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_auditing" {
 			continue
@@ -116,21 +117,17 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func configBasic(orgID, projectName, auditFilter string, auditAuth, enabled bool) string {
+func configBasic(projectID, auditFilter string, auditAuth, enabled bool) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = %[2]q
-			org_id = %[1]q
-		}
 		resource "mongodbatlas_auditing" "test" {
-			project_id                  = mongodbatlas_project.test.id
-			audit_filter                = %[3]q
-			audit_authorization_success = %[4]t
-			enabled                     = %[5]t
+			project_id                  = %[1]q
+			audit_filter                = %[2]q
+			audit_authorization_success = %[3]t
+			enabled                     = %[4]t
 		}
 		
 		data "mongodbatlas_auditing" "test" {
 			project_id = mongodbatlas_auditing.test.id
 		}		
-	`, orgID, projectName, auditFilter, auditAuth, enabled)
+	`, projectID, auditFilter, auditAuth, enabled)
 }
