@@ -3,6 +3,7 @@ package auditing_test
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -18,9 +19,7 @@ const (
 func TestAccGenericAuditing_basic(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
-		auditAuth   = true
 		auditFilter = "{ 'atype': 'authenticate', 'param': {   'user': 'auditAdmin',   'db': 'admin',   'mechanism': 'SCRAM-SHA-1' }}"
-		enabled     = true
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -29,38 +28,12 @@ func TestAccGenericAuditing_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, auditFilter, auditAuth, enabled),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "audit_filter"),
-					resource.TestCheckResourceAttrSet(resourceName, "audit_authorization_success"),
-					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
-					resource.TestCheckResourceAttr(resourceName, "audit_filter", auditFilter),
-					resource.TestCheckResourceAttr(resourceName, "audit_authorization_success", "true"),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "configuration_type", "FILTER_JSON"),
-
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "audit_filter", auditFilter),
-					resource.TestCheckResourceAttr(dataSourceName, "audit_authorization_success", "true"),
-					resource.TestCheckResourceAttr(dataSourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(dataSourceName, "configuration_type", "FILTER_JSON"),
-				),
+				Config: configBasic(projectID, auditFilter, true, true),
+				Check:  resource.ComposeTestCheckFunc(checks(auditFilter, true, true)...),
 			},
 			{
 				Config: configBasic(projectID, "{}", false, false),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "audit_filter"),
-					resource.TestCheckResourceAttrSet(resourceName, "audit_authorization_success"),
-					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
-					resource.TestCheckResourceAttr(resourceName, "audit_filter", "{}"),
-					resource.TestCheckResourceAttr(resourceName, "audit_authorization_success", "false"),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "configuration_type", "FILTER_JSON"),
-				),
+				Check:  resource.ComposeTestCheckFunc(checks("{}", false, false)...),
 			},
 			{
 				ResourceName:            resourceName,
@@ -127,4 +100,17 @@ func configBasic(projectID, auditFilter string, auditAuth, enabled bool) string 
 			project_id = mongodbatlas_auditing.test.id
 		}		
 	`, projectID, auditFilter, auditAuth, enabled)
+}
+
+func checks(auditFilter string, auditAuth, enabled bool) []resource.TestCheckFunc {
+	commonChecks := map[string]string{
+		"audit_filter":                auditFilter,
+		"audit_authorization_success": strconv.FormatBool(auditAuth),
+		"enabled":                     strconv.FormatBool(auditAuth),
+		"configuration_type":          "FILTER_JSON",
+	}
+	checks := acc.AddAttrChecks(resourceName, nil, commonChecks)
+	checks = acc.AddAttrChecks(dataSourceName, checks, commonChecks)
+	checks = append(checks, checkExists(resourceName), checkExists(dataSourceName))
+	return checks
 }
