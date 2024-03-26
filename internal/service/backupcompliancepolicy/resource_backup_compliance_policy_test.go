@@ -3,6 +3,7 @@ package backupcompliancepolicy_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"regexp"
 	"testing"
 
@@ -75,8 +76,9 @@ func TestAccBackupCompliancePolicy_update(t *testing.T) {
 
 func TestAccBackupCompliancePolicy_overwriteBackupPolicies(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid conflicts with backup comliance policy
+		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -84,10 +86,10 @@ func TestAccBackupCompliancePolicy_overwriteBackupPolicies(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configClusterWithBackupSchedule(projectID, clusterName),
+				Config: configClusterWithBackupSchedule(projectName, orgID, projectOwnerID),
 			},
 			{
-				Config:      configOverwriteIncompatibleBackupPoliciesError(projectID, clusterName),
+				Config:      configOverwriteIncompatibleBackupPoliciesError(projectName, orgID, projectOwnerID),
 				ExpectError: regexp.MustCompile(`BACKUP_POLICIES_NOT_MEETING_BACKUP_COMPLIANCE_POLICY_REQUIREMENTS`),
 			},
 		},
@@ -284,126 +286,126 @@ func configWithoutRestoreDays(projectID string) string {
 	`, projectID)
 }
 
-func configOverwriteIncompatibleBackupPoliciesError(projectID, clusterName string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "test" {
-			project_id                 =  %[1]q
-			name                         = %[2]q
-			provider_name                = "AWS"
-			cluster_type                 = "REPLICASET"
-			mongo_db_major_version       = "6.0"
-			provider_instance_size_name  = "M10"
-			auto_scaling_compute_enabled = false
-			cloud_backup                 = true
-			auto_scaling_disk_gb_enabled = true
-			disk_size_gb                 = 12
-			provider_volume_type         = "STANDARD"
-			retain_backups_enabled       = true
-			
-			advanced_configuration {
-				oplog_min_retention_hours = 8
-			}
-			
-			replication_specs {
-				num_shards = 1
-				regions_config {
-				region_name     = "US_EAST_1"
-				electable_nodes = 3
-				priority        = 7
-				read_only_nodes = 0
-				}
-			}
+func configOverwriteIncompatibleBackupPoliciesError(projectName, orgID, projectOwnerID string) string {
+	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + `	  
+	resource "mongodbatlas_cluster" "test" {
+		project_id                 = mongodbatlas_project.test.id
+		name                         = "test1"
+		provider_name                = "AWS"
+		cluster_type                 = "REPLICASET"
+		mongo_db_major_version       = "6.0"
+		provider_instance_size_name  = "M10"
+		auto_scaling_compute_enabled = false
+		cloud_backup                 = true
+		auto_scaling_disk_gb_enabled = true
+		disk_size_gb                 = 12
+		provider_volume_type         = "STANDARD"
+		retain_backups_enabled       = true
+	  
+		advanced_configuration {
+		  oplog_min_retention_hours = 8
 		}
+	  
+		replication_specs {
+		  num_shards = 1
+		  regions_config {
+			region_name     = "US_EAST_1"
+			electable_nodes = 3
+			priority        = 7
+			read_only_nodes = 0
+		  }
+		}
+	  }
 
-		resource "mongodbatlas_cloud_backup_schedule" "test" {
-			project_id                 = mongodbatlas_cluster.test.project_id
-			cluster_name = mongodbatlas_cluster.test.name
-			
-			reference_hour_of_day    = 3
-			reference_minute_of_hour = 45
-			restore_window_days      = 2
-			
-			copy_settings {
-				cloud_provider      = "AWS"
-				frequencies         = ["DAILY"]
-				region_name         = "US_WEST_1"
-				replication_spec_id = one(mongodbatlas_cluster.test.replication_specs).id
-				should_copy_oplogs  = false
-			}
+	  resource "mongodbatlas_cloud_backup_schedule" "test" {
+		cluster_name = mongodbatlas_cluster.test.name
+		project_id                 = mongodbatlas_project.test.id
+	  
+		reference_hour_of_day    = 3
+		reference_minute_of_hour = 45
+		restore_window_days      = 2
+	  
+		copy_settings {
+		  cloud_provider      = "AWS"
+		  frequencies         = ["DAILY"]
+		  region_name         = "US_WEST_1"
+		  replication_spec_id = one(mongodbatlas_cluster.test.replication_specs).id
+		  should_copy_oplogs  = false
 		}
+	  }
 
-		resource "mongodbatlas_backup_compliance_policy" "test" {
-			project_id                 = mongodbatlas_cluster.test.project_id
-			authorized_email           = "test@example.com"
-				authorized_user_first_name = "First"
-				authorized_user_last_name  = "Last"
-			copy_protection_enabled    = true
-			pit_enabled                = false
-			encryption_at_rest_enabled = false
-			
-			on_demand_policy_item {
-				frequency_interval = 1
-				retention_unit     = "days"
-				retention_value    = 1
-			}
-			
-			policy_item_daily {
-				frequency_interval = 1
-				retention_unit     = "days"
-				retention_value    = 1
-			}
+	  resource "mongodbatlas_backup_compliance_policy" "test" {
+		project_id                 = mongodbatlas_project.test.id
+		authorized_email           = "test@example.com"
+		  authorized_user_first_name = "First"
+		  authorized_user_last_name  = "Last"
+		copy_protection_enabled    = true
+		pit_enabled                = false
+		encryption_at_rest_enabled = false
+	  
+		on_demand_policy_item {
+		  frequency_interval = 1
+		  retention_unit     = "days"
+		  retention_value    = 1
 		}
-	`, projectID, clusterName)
+	  
+		policy_item_daily {
+		  frequency_interval = 1
+		  retention_unit     = "days"
+		  retention_value    = 1
+		}
+	  }
+	`
 }
 
-func configClusterWithBackupSchedule(projectID, clusterName string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "test" {
-			project_id                 = %[1]q
-			name                         = %[2]q
-			provider_name                = "AWS"
-			cluster_type                 = "REPLICASET"
-			mongo_db_major_version       = "6.0"
-			provider_instance_size_name  = "M10"
-			auto_scaling_compute_enabled = false
-			cloud_backup                 = true
-			auto_scaling_disk_gb_enabled = true
-			disk_size_gb                 = 12
-			provider_volume_type         = "STANDARD"
-			retain_backups_enabled       = true
-			
-			advanced_configuration {
-				oplog_min_retention_hours = 8
-			}
-			
-			replication_specs {
-				num_shards = 1
-				regions_config {
-				region_name     = "US_EAST_1"
-				electable_nodes = 3
-				priority        = 7
-				read_only_nodes = 0
-				}
-			}
-			}
-
-			resource "mongodbatlas_cloud_backup_schedule" "test" {
-				project_id                 = mongodbatlas_cluster.test.project_id
-				cluster_name = mongodbatlas_cluster.test.name
-			
-			reference_hour_of_day    = 3
-			reference_minute_of_hour = 45
-			restore_window_days      = 2
-			
-			copy_settings {
-				cloud_provider      = "AWS"
-				frequencies         = ["DAILY"]
-				region_name         = "US_WEST_1"
-				replication_spec_id = one(mongodbatlas_cluster.test.replication_specs).id
-				should_copy_oplogs  = false
-			}
+func configClusterWithBackupSchedule(projectName, orgID, projectOwnerID string) string {
+	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + `	  
+	resource "mongodbatlas_cluster" "test" {
+		project_id                 = mongodbatlas_project.test.id
+		name                         = "test1"
+		provider_name                = "AWS"
+		cluster_type                 = "REPLICASET"
+		mongo_db_major_version       = "6.0"
+		provider_instance_size_name  = "M10"
+		auto_scaling_compute_enabled = false
+		cloud_backup                 = true
+		auto_scaling_disk_gb_enabled = true
+		disk_size_gb                 = 12
+		provider_volume_type         = "STANDARD"
+		retain_backups_enabled       = true
+	  
+		advanced_configuration {
+		  oplog_min_retention_hours = 8
 		}
-	`, projectID, clusterName)
+	  
+		replication_specs {
+		  num_shards = 1
+		  regions_config {
+			region_name     = "US_EAST_1"
+			electable_nodes = 3
+			priority        = 7
+			read_only_nodes = 0
+		  }
+		}
+	  }
+
+	  resource "mongodbatlas_cloud_backup_schedule" "test" {
+		cluster_name = mongodbatlas_cluster.test.name
+		project_id                 = mongodbatlas_project.test.id
+	  
+		reference_hour_of_day    = 3
+		reference_minute_of_hour = 45
+		restore_window_days      = 2
+	  
+		copy_settings {
+		  cloud_provider      = "AWS"
+		  frequencies         = ["DAILY"]
+		  region_name         = "US_WEST_1"
+		  replication_spec_id = one(mongodbatlas_cluster.test.replication_specs).id
+		  should_copy_oplogs  = false
+		}
+	  }
+	`
 }
 
 func checks() []resource.TestCheckFunc {
