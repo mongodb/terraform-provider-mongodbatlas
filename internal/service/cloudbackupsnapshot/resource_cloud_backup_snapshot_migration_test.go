@@ -43,7 +43,7 @@ func TestMigBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 
 func TestMigBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
 	var (
-		projectID       = mig.ProjectIDGlobal(t)
+		projectID       = acc.ProjectIDExecution(t) // No mig.ProjectIDGlobal to avoid conflicts with backup compliance policy
 		clusterName     = acc.RandomClusterName()
 		description     = "My description in my cluster"
 		retentionInDays = "4"

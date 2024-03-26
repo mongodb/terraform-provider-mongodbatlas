@@ -504,8 +504,8 @@ func configCopySettings(projectID, clusterName string, p *admin.DiskBackupSnapsh
 		}
 		
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
+			project_id   = %[1]q
 			cluster_name     = %[2]q
-			project_id       = mongodbatlas_project.backup_project.id
 
 			reference_hour_of_day    = %[3]d
 			reference_minute_of_hour = %[4]d
