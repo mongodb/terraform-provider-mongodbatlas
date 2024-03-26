@@ -11,37 +11,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func basicTestCase(tb testing.TB) *resource.TestCase {
-	tb.Helper()
-	var (
-		clusterInfo     = acc.GetClusterInfo(tb, nil)
-		indexName       = acc.RandomName()
-		databaseName    = acc.RandomName()
-		indexType       = ""
-		mappingsDynamic = "true"
-	)
-	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
-
-	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(tb) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroySearchIndex,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
-				Check:  resource.ComposeTestCheckFunc(checks...),
-			},
-			{
-				Config:            configBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	}
-}
-
 func TestAccSearchIndex_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t))
 }
@@ -211,7 +180,43 @@ func TestAccSearchIndex_updatedToEmptyMappingsFields(t *testing.T) {
 		},
 	})
 }
-func basicTestCaseVector(tb testing.TB) *resource.TestCase {
+
+func TestAccSearchIndex_withVector(t *testing.T) {
+	resource.ParallelTest(t, *basicVectorTestCase(t))
+}
+
+func basicTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+	var (
+		clusterInfo     = acc.GetClusterInfo(tb, nil)
+		indexName       = acc.RandomName()
+		databaseName    = acc.RandomName()
+		indexType       = ""
+		mappingsDynamic = "true"
+	)
+	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
+				Check:  resource.ComposeTestCheckFunc(checks...),
+			},
+			{
+				Config:            configBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	}
+}
+
+func basicVectorTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 	var (
 		clusterInfo  = acc.GetClusterInfo(tb, nil)
@@ -242,10 +247,6 @@ func basicTestCaseVector(tb testing.TB) *resource.TestCase {
 			},
 		},
 	}
-}
-
-func TestAccSearchIndex_withVector(t *testing.T) {
-	resource.ParallelTest(t, *basicTestCaseVector(t))
 }
 
 func commonChecks(indexName, indexType, mappingsDynamic, databaseName string, clusterInfo acc.ClusterInfo) []resource.TestCheckFunc {
