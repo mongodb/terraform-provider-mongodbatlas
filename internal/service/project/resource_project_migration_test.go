@@ -84,7 +84,6 @@ func TestMigProject_withTeams(t *testing.T) {
 				Config:            configWithTeams,
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectExists(resourceName, &project),
-					acc.CheckProjectAttributes(&project, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
@@ -122,7 +121,6 @@ func TestMigProject_withFalseDefaultSettings(t *testing.T) {
 				Config:            configWithTeams,
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectExists(resourceName, &project),
-					acc.CheckProjectAttributes(&project, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),

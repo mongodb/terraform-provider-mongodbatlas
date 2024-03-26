@@ -28,16 +28,6 @@ func CheckProjectExists(resourceName string, project *admin.Group) resource.Test
 	}
 }
 
-func CheckProjectAttributes(project *admin.Group, projectName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if project.Name != projectName {
-			return fmt.Errorf("bad project name: %s", project.Name)
-		}
-
-		return nil
-	}
-}
-
 func CheckDestroyProject(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_project" {

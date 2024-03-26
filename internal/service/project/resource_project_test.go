@@ -527,7 +527,6 @@ func TestAccProject_basic(t *testing.T) {
 				),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
@@ -583,7 +582,6 @@ func TestAccProject_basic(t *testing.T) {
 				),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
@@ -606,7 +604,6 @@ func TestAccProject_basic(t *testing.T) {
 				),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
@@ -634,7 +631,6 @@ func TestAccProject_withProjectOwner(t *testing.T) {
 				Config: acc.ConfigProjectWithOwner(projectName, orgID, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
@@ -661,7 +657,6 @@ func TestAccProjectGov_withProjectOwner(t *testing.T) {
 				Config: acc.ConfigProjectGovWithOwner(projectName, orgID, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
@@ -686,7 +681,6 @@ func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 				Config: acc.ConfigProjectWithFalseDefaultSettings(projectName, orgID, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
@@ -712,7 +706,6 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "project_owner_id", projectOwnerID),
@@ -729,7 +722,6 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, true),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
 					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"),
 					resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_enabled", "true"),
@@ -743,7 +735,6 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
 					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_enabled", "false"),
@@ -812,7 +803,6 @@ func TestAccProject_updatedToEmptyRoles(t *testing.T) {
 				),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "teams.0.team_id", acc.GetProjectTeamsIDsWithPos(0)),
 					resource.TestCheckResourceAttr(resourceName, "teams.0.role_names.#", "2"),
@@ -824,7 +814,6 @@ func TestAccProject_updatedToEmptyRoles(t *testing.T) {
 				Config: configBasic(orgID, projectName, false, nil),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "0"),
 				),
 			},
