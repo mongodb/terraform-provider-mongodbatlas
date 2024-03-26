@@ -62,7 +62,7 @@ func TestMigProjectRS_withTeams(t *testing.T) {
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName     = acc.RandomProjectName()
 		clusterCount    = "0"
-		configWithTeams = acc.ConfigProject(projectName, orgID,
+		configWithTeams = configBasic(orgID, projectName, false,
 			[]*admin.TeamRole{
 				{
 					TeamId:    &teamsIDs[0],

@@ -513,7 +513,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectName, orgID,
+				Config: configBasic(orgID, projectName, true,
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
@@ -565,7 +565,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic(projectName, orgID,
+				Config: configBasic(orgID, projectName, false,
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
@@ -591,7 +591,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic(projectName, orgID,
+				Config: configBasic(orgID, projectName, false,
 
 					[]*admin.TeamRole{
 						{
@@ -802,7 +802,7 @@ func TestAccProjectRSProject_updatedToEmptyRoles(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectName, orgID,
+				Config: configBasic(orgID, projectName, false,
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
@@ -821,7 +821,7 @@ func TestAccProjectRSProject_updatedToEmptyRoles(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic(projectName, orgID, nil),
+				Config: configBasic(orgID, projectName, false, nil),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectExists(resourceName, &group),
 					acc.CheckProjectAttributes(&group, projectName),
@@ -844,9 +844,7 @@ func TestAccProjectRSProject_importBasic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectName, orgID,
-					[]*admin.TeamRole{},
-				),
+				Config: configBasic(orgID, projectName, false, nil),
 			},
 			{
 				ResourceName:            resourceName,

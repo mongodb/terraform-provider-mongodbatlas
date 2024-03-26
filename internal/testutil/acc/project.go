@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -52,36 +51,6 @@ func CheckDestroyProject(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func ConfigProject(projectName, orgID string, teams []*admin.TeamRole) string {
-	var ts string
-
-	for _, t := range teams {
-		ts += fmt.Sprintf(`
-		teams {
-			team_id = "%s"
-			role_names = %s
-		}
-		`, t.GetTeamId(), strings.ReplaceAll(fmt.Sprintf("%+q", *t.RoleNames), " ", ","))
-	}
-
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name  			 = "%s"
-			org_id 			 = "%s"
-
-			%s
-		}
-
-		data "mongodbatlas_project" "test" {
-			project_id = mongodbatlas_project.test.id
-		}
-
-		data "mongodbatlas_project" "test2" {
-			name = mongodbatlas_project.test.name
-		}
-	`, projectName, orgID, ts)
 }
 
 func ConfigProjectWithUpdatedRole(projectName, orgID, teamID, roleName string) string {
