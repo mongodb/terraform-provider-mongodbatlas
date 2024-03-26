@@ -3,7 +3,6 @@ package backupcompliancepolicy_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -19,57 +18,23 @@ const (
 
 func TestAccBackupCompliancePolicy_basic(t *testing.T) {
 	var (
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
-		projectName    = acc.RandomProjectName()
+		projectID = acc.ProjectIDExecution(t)
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectName, orgID, projectOwnerID),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "copy_protection_enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "encryption_at_rest_enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "authorized_user_first_name", "First"),
-					resource.TestCheckResourceAttr(resourceName, "authorized_user_last_name", "Last"),
-					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "7"),
-
-					checkExists(dataSourceName),
-					resource.TestCheckResourceAttr(dataSourceName, "copy_protection_enabled", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "encryption_at_rest_enabled", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "authorized_user_first_name", "First"),
-					resource.TestCheckResourceAttr(dataSourceName, "authorized_user_last_name", "Last"),
-					resource.TestCheckResourceAttr(dataSourceName, "restore_window_days", "7"),
-				),
+				Config: configBasic(projectID),
+				Check:  resource.ComposeTestCheckFunc(checks()...),
 			},
-		},
-	})
-}
-
-func TestAccBackupCompliancePolicy_withFirstLastName(t *testing.T) {
-	var (
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
-		projectName    = acc.RandomProjectName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectName, orgID, projectOwnerID),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "authorized_user_first_name", "First"),
-					resource.TestCheckResourceAttr(resourceName, "authorized_user_last_name", "Last"),
-				),
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"state"},
 			},
 		},
 	})
@@ -77,18 +42,15 @@ func TestAccBackupCompliancePolicy_withFirstLastName(t *testing.T) {
 
 func TestAccBackupCompliancePolicy_withoutOptionals(t *testing.T) {
 	var (
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
-		projectName    = acc.RandomProjectName()
+		projectID = acc.ProjectIDExecution(t)
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithoutOptionals(projectName, orgID, projectOwnerID),
+				Config: configWithoutOptionals(projectID),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "authorized_user_first_name", "First"),
@@ -104,49 +66,20 @@ func TestAccBackupCompliancePolicy_withoutOptionals(t *testing.T) {
 
 func TestAccBackupCompliancePolicy_withoutRestoreWindowDays(t *testing.T) {
 	var (
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
-		projectName    = acc.RandomProjectName()
+		projectID = acc.ProjectIDExecution(t)
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithoutRestoreDays(projectName, orgID, projectOwnerID),
+				Config: configWithoutRestoreDays(projectID),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "copy_protection_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "encryption_at_rest_enabled", "false"),
 				),
-			},
-		},
-	})
-}
-
-func TestAccBackupCompliancePolicy_importBasic(t *testing.T) {
-	var (
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
-		projectName    = acc.RandomProjectName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(projectName, orgID, projectOwnerID),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"state"},
 			},
 		},
 	})
@@ -171,24 +104,6 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func checkDestroy(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_backup_compliance_policy" {
-			continue
-		}
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("no ID is set")
-		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		projectID := ids["project_id"]
-		policy, _, _ := acc.ConnV2().CloudBackupsApi.GetDataProtectionSettings(context.Background(), projectID).Execute()
-		if policy != nil {
-			return fmt.Errorf("Backup Compliance Policy (%s) still exists", rs.Primary.ID)
-		}
-	}
-	return nil
-}
-
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -200,10 +115,10 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func configBasic(projectName, orgID, projectOwnerID string) string {
-	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + `	  
+func configBasic(projectID string) string {
+	return fmt.Sprintf(`
 	  resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
-			project_id                 = mongodbatlas_project.test.id
+			project_id                 = %q
 			authorized_email           = "test@example.com"
 			authorized_user_first_name = "First"
 			authorized_user_last_name  = "Last"
@@ -247,13 +162,13 @@ func configBasic(projectName, orgID, projectOwnerID string) string {
 		data "mongodbatlas_backup_compliance_policy" "backup_policy" {
 			project_id = mongodbatlas_backup_compliance_policy.backup_policy_res.project_id
 		}
-	`
+	`, projectID)
 }
 
-func configWithoutOptionals(projectName, orgID, projectOwnerID string) string {
-	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + `	  
+func configWithoutOptionals(projectID string) string {
+	return fmt.Sprintf(`
 	  resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
-			project_id                 = mongodbatlas_project.test.id
+			project_id                 = %q
 			authorized_email           = "test@example.com"
 			authorized_user_first_name = "First"
 			authorized_user_last_name  = "Last"
@@ -290,13 +205,13 @@ func configWithoutOptionals(projectName, orgID, projectOwnerID string) string {
 				retention_value    = 12
 			}
 	  }
-	`
+		`, projectID)
 }
 
-func configWithoutRestoreDays(projectName, orgID, projectOwnerID string) string {
-	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + `	  
+func configWithoutRestoreDays(projectID string) string {
+	return fmt.Sprintf(`
 	  resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
-			project_id                 = mongodbatlas_project.test.id
+			project_id                 = %q
 			authorized_email           = "test@example.com"
 			authorized_user_first_name = "First"
 			authorized_user_last_name  = "Last"
@@ -336,5 +251,20 @@ func configWithoutRestoreDays(projectName, orgID, projectOwnerID string) string 
 				retention_value    = 12
 			}
 	  }
-	`
+	`, projectID)
+}
+
+func checks() []resource.TestCheckFunc {
+	commonChecks := map[string]string{
+		"copy_protection_enabled":    "false",
+		"encryption_at_rest_enabled": "false",
+		"authorized_user_first_name": "First",
+		"authorized_user_last_name":  "Last",
+		"authorized_email":           "test@example.com",
+		"restore_window_days":        "7",
+	}
+	checks := acc.AddAttrChecks(resourceName, nil, commonChecks)
+	checks = acc.AddAttrChecks(dataSourceName, checks, commonChecks)
+	checks = append(checks, checkExists(resourceName), checkExists(dataSourceName))
+	return checks
 }
