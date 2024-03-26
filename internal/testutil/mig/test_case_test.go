@@ -35,6 +35,7 @@ func TestConvertToMigration(t *testing.T) {
 		return newTest
 	}
 	defaultAssertions := func(test resource.TestCase) {
+		t.Helper()
 		asserter.Len(test.Steps, 2, "Expected 2 steps (one extra test step)")
 		newFirstStep := test.Steps[0]
 		asserter.Equal(config, newFirstStep.Config)
@@ -60,7 +61,7 @@ func TestConvertToMigration(t *testing.T) {
 		defaultAssertions(test)
 	})
 
-	t.Run("check destroy is nil has no panic", func(t *testing.T) {
+	t.Run("checkDestroy=nil has no panic", func(t *testing.T) {
 		test := convertAndCall(resource.TestCase{
 			PreCheck: preCheck,
 			Steps: []resource.TestStep{
@@ -83,27 +84,31 @@ func TestConvertToMigration(t *testing.T) {
 		})
 		defaultAssertions(test)
 	})
+	// ConvertToMigrationTestUseExternalProvider
 
-	t.Run("explicit ExternalProvider version", func(t *testing.T) {
-		test := mig.ConvertToMigrationTest(t, &resource.TestCase{
+	t.Run("explicit ExternalProvider version an no additional providers", func(t *testing.T) {
+		test := mig.ConvertToMigrationTestUseExternalProvider(t, &resource.TestCase{
 			PreCheck: preCheck,
 			Steps:    []resource.TestStep{firstStep},
-		}, acc.ExternalProviders("1.2.3"))
-		defaultAssertions(test)
+		}, acc.ExternalProviders("1.2.3"), nil)
+		asserter.Len(test.Steps, 2, "Expected 2 steps (one extra test step)")
+		newFirstStep := test.Steps[0]
+		asserter.Equal(config, newFirstStep.Config)
 		asserter.Equal("1.2.3", test.Steps[0].ExternalProviders["mongodbatlas"].VersionConstraint)
 	})
 
-	t.Run("multiple ExternalProviders", func(t *testing.T) {
-		test := mig.ConvertToMigrationTest(t, &resource.TestCase{
+	t.Run("explicit ExternalProviders and additional providers", func(t *testing.T) {
+		test := mig.ConvertToMigrationTestUseExternalProvider(t, &resource.TestCase{
 			PreCheck: preCheck,
 			Steps:    []resource.TestStep{firstStep},
-		}, acc.ExternalProviders("1.2.3"), acc.ExternalProvidersWithAWS("4.5.6"))
-		asserter.Len(test.Steps, 3)
+		}, acc.ExternalProvidersWithAWS("1.2.3"), acc.ExternalProvidersOnlyAWS())
+		asserter.Len(test.Steps, 2, "Expected 2 steps (one extra test step)")
+		newFirstStep := test.Steps[0]
+		asserter.Equal(config, newFirstStep.Config)
+
 		asserter.Equal("1.2.3", test.Steps[0].ExternalProviders["mongodbatlas"].VersionConstraint)
-		asserter.Equal("4.5.6", test.Steps[1].ExternalProviders["mongodbatlas"].VersionConstraint)
 		// must be upgraded when the aws provider version is changed
+		asserter.Equal("5.1.0", test.Steps[0].ExternalProviders["aws"].VersionConstraint)
 		asserter.Equal("5.1.0", test.Steps[1].ExternalProviders["aws"].VersionConstraint)
-		planStep := test.Steps[2]
-		asserter.Equal(mig.TestStepCheckEmptyPlan(config), planStep)
 	})
 }
