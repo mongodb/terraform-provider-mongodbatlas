@@ -245,7 +245,7 @@ func basicTestCaseVector(t *testing.T) *resource.TestCase {
 	}
 }
 
-func TestAccSearchIndexRS_withVector(t *testing.T) {
+func TestAccSearchIndex_withVector(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCaseVector(t))
 }
 
