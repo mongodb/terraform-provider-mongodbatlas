@@ -1,7 +1,6 @@
 package cloudbackupsnapshot_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -44,12 +43,11 @@ func TestMigBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 
 func TestMigBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
 	var (
-		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName     = acc.RandomProjectName()
+		projectID       = mig.ProjectIDGlobal(t)
 		clusterName     = acc.RandomClusterName()
 		description     = "My description in my cluster"
 		retentionInDays = "4"
-		config          = configSharded(orgID, projectName, clusterName, description, retentionInDays)
+		config          = configSharded(projectID, clusterName, description, retentionInDays)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
