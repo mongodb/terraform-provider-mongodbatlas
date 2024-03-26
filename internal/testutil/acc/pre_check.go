@@ -15,6 +15,9 @@ func PreCheckBasic(tb testing.TB) {
 	}
 }
 
+// PreCheck checks common Atlas environment variables and MONGODB_ATLAS_PROJECT_ID.
+// Deprecated: it should not be used as MONGODB_ATLAS_PROJECT_ID is not intended to be used in CI.
+// Use PreCheckBasic instead.
 func PreCheck(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
@@ -116,6 +119,7 @@ func PreCheckPeeringEnvAWS(tb testing.TB) {
 		os.Getenv("AWS_REGION") == "" {
 		tb.Fatal("`AWS_ACCOUNT_ID`, `AWS_VPC_ID`, `AWS_VPC_CIDR_BLOCK` and `AWS_VPC_ID` must be set for  network peering acceptance testing")
 	}
+	PreCheckBasic(tb)
 }
 
 func PreCheckPeeringEnvAzure(tb testing.TB) {

@@ -13,7 +13,7 @@ import (
 
 func TestMigConfigRSDatabaseUser_Basic(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = mig.ProjectIDGlobal(t)
 		username  = acc.RandomName()
 		config    = acc.ConfigDatabaseUserBasic(projectID, username, "atlasAdmin", "First Key", "First value")
 	)
@@ -40,7 +40,7 @@ func TestMigConfigRSDatabaseUser_Basic(t *testing.T) {
 
 func TestMigConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = mig.ProjectIDGlobal(t)
 		username  = acc.RandomLDAPName()
 		x509Type  = "CUSTOMER"
 		config    = acc.ConfigDatabaseUserWithX509Type(projectID, username, x509Type, "atlasAdmin", "First Key", "First value")
@@ -66,7 +66,7 @@ func TestMigConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 }
 func TestMigConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = mig.ProjectIDGlobal(t)
 		username  = acc.RandomIAMUser()
 		config    = acc.ConfigDatabaseUserWithAWSIAMType(projectID, username, "atlasAdmin", "First Key", "First value")
 	)
@@ -92,7 +92,7 @@ func TestMigConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 
 func TestMigConfigRSDatabaseUser_withLabels(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = mig.ProjectIDGlobal(t)
 		username  = acc.RandomName()
 		config    = acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin",
 			[]admin.ComponentLabel{
@@ -131,7 +131,7 @@ func TestMigConfigRSDatabaseUser_withLabels(t *testing.T) {
 
 func TestMigConfigRSDatabaseUser_withEmptyLabels(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = mig.ProjectIDGlobal(t)
 		username  = acc.RandomName()
 		config    = acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", nil)
 	)
@@ -157,7 +157,7 @@ func TestMigConfigRSDatabaseUser_withEmptyLabels(t *testing.T) {
 
 func TestMigConfigRSDatabaseUser_withRoles(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = mig.ProjectIDGlobal(t)
 		username  = acc.RandomName()
 		password  = acc.RandomName()
 		config    = acc.ConfigDatabaseUserWithRoles(projectID, username, password,
@@ -197,7 +197,7 @@ func TestMigConfigRSDatabaseUser_withRoles(t *testing.T) {
 
 func TestMigConfigRSDatabaseUser_withScopes(t *testing.T) {
 	var (
-		projectID     = acc.ProjectIDExecution(t)
+		projectID     = mig.ProjectIDGlobal(t)
 		userScopeName = acc.RandomName()
 		username      = acc.RandomName()
 		password      = acc.RandomName()
@@ -234,7 +234,7 @@ func TestMigConfigRSDatabaseUser_withScopes(t *testing.T) {
 
 func TestMigConfigRSDatabaseUser_withEmptyScopes(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = mig.ProjectIDGlobal(t)
 		username  = acc.RandomName()
 		password  = acc.RandomName()
 		config    = acc.ConfigDatabaseUserWithScopes(projectID, username, password, "atlasAdmin", nil)
@@ -261,7 +261,7 @@ func TestMigConfigRSDatabaseUser_withEmptyScopes(t *testing.T) {
 
 func TestMigConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = mig.ProjectIDGlobal(t)
 		username  = acc.RandomLDAPName()
 		config    = acc.ConfigDatabaseUserWithLDAPAuthType(projectID, username, "atlasAdmin", "First Key", "First value")
 	)

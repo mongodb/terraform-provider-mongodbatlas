@@ -1,20 +1,19 @@
 package provider_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 func TestAccSTSAssumeRole_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project.test"
-		projectName  = acc.RandomProjectName()
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterCount = "0"
+		projectName  = acc.RandomProjectName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckSTSAssumeRole(t); acc.PreCheckRegularCredsAreEmpty(t) },
@@ -22,13 +21,11 @@ func TestAccSTSAssumeRole_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProject(projectName, orgID,
-					[]*admin.TeamRole{},
-				),
+				Config: configProject(orgID, projectName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
+					resource.TestCheckResourceAttr(resourceName, "name", projectName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_count", "0"),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "0"),
 				),
 			},
@@ -41,4 +38,13 @@ func TestAccSTSAssumeRole_basic(t *testing.T) {
 			},
 		},
 	})
+}
+
+func configProject(orgID, projectName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id 			 = %[1]q
+			name  			 = %[2]q
+		}
+	`, orgID, projectName)
 }

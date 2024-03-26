@@ -1,153 +1,114 @@
 package projectipaccesslist_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T) {
+const (
+	resourceName   = "mongodbatlas_project_ip_access_list.test"
+	dataSourceName = "data.mongodbatlas_project_ip_access_list.test"
+)
+
+func TestAccProjectIPAccesslist_settingIPAddress(t *testing.T) {
 	var (
-		resourceName     = "mongodbatlas_project_ip_access_list.test"
-		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName      = acc.RandomProjectName()
+		projectID        = acc.ProjectIDExecution(t)
 		ipAddress        = acc.RandomIP(179, 154, 226)
 		comment          = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
 		updatedIPAddress = acc.RandomIP(179, 154, 228)
 		updatedComment   = fmt.Sprintf("TestAcc for ipAddress updated (%s)", updatedIPAddress)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectIPAccessListWithIPAddress(orgID, projectName, ipAddress, comment),
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-					resource.TestCheckResourceAttr(resourceName, "ip_address", ipAddress),
-					resource.TestCheckResourceAttr(resourceName, "comment", comment),
-				),
+				Config: configWithIPAddress(projectID, ipAddress, comment),
+				Check:  resource.ComposeTestCheckFunc(commonChecks(ipAddress, "", "", comment)...),
 			},
 			{
-				Config: acc.ConfigProjectIPAccessListWithIPAddress(orgID, projectName, updatedIPAddress, updatedComment),
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-					resource.TestCheckResourceAttr(resourceName, "ip_address", updatedIPAddress),
-					resource.TestCheckResourceAttr(resourceName, "comment", updatedComment),
-				),
+				Config: configWithIPAddress(projectID, updatedIPAddress, updatedComment),
+				Check:  resource.ComposeTestCheckFunc(commonChecks(updatedIPAddress, "", "", updatedComment)...),
 			},
 		},
 	})
 }
 
-func TestAccProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
+func TestAccProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 	var (
-		resourceName     = "mongodbatlas_project_ip_access_list.test"
-		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName      = acc.RandomProjectName()
+		projectID        = acc.ProjectIDExecution(t)
 		cidrBlock        = acc.RandomIP(179, 154, 226) + "/32"
 		comment          = fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
 		updatedCIDRBlock = acc.RandomIP(179, 154, 228) + "/32"
 		updatedComment   = fmt.Sprintf("TestAcc for cidrBlock updated (%s)", updatedCIDRBlock)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectIPAccessListWithCIDRBlock(orgID, projectName, cidrBlock, comment),
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "cidr_block"),
-					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-					resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),
-					resource.TestCheckResourceAttr(resourceName, "comment", comment),
-				),
+				Config: configWithCIDRBlock(projectID, cidrBlock, comment),
+				Check:  resource.ComposeTestCheckFunc(commonChecks("", cidrBlock, "", comment)...),
 			},
 			{
-				Config: acc.ConfigProjectIPAccessListWithCIDRBlock(orgID, projectName, updatedCIDRBlock, updatedComment),
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "cidr_block"),
-					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-					resource.TestCheckResourceAttr(resourceName, "cidr_block", updatedCIDRBlock),
-					resource.TestCheckResourceAttr(resourceName, "comment", updatedComment),
-				),
+				Config: configWithCIDRBlock(projectID, updatedCIDRBlock, updatedComment),
+				Check:  resource.ComposeTestCheckFunc(commonChecks("", updatedCIDRBlock, "", updatedComment)...),
 			},
 		},
 	})
 }
 
-func TestAccProjectRSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
+func TestAccProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 	var (
-		resourceName     = "mongodbatlas_project_ip_access_list.test"
+		projectID        = acc.ProjectIDExecution(t)
 		vpcID            = os.Getenv("AWS_VPC_ID")
 		vpcCIDRBlock     = os.Getenv("AWS_VPC_CIDR_BLOCK")
 		awsAccountID     = os.Getenv("AWS_ACCOUNT_ID")
 		awsRegion        = os.Getenv("AWS_REGION")
-		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		awsSGroup        = os.Getenv("AWS_SECURITY_GROUP_1")
 		updatedAWSSgroup = os.Getenv("AWS_SECURITY_GROUP_2")
 		providerName     = "AWS"
-		projectName      = acc.RandomProjectName()
 		comment          = fmt.Sprintf("TestAcc for awsSecurityGroup (%s)", awsSGroup)
 		updatedComment   = fmt.Sprintf("TestAcc for awsSecurityGroup updated (%s)", updatedAWSSgroup)
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckPeeringEnvAWS(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectIPAccessListWithAWSSecurityGroup(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "aws_security_group"),
-					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-
-					resource.TestCheckResourceAttr(resourceName, "aws_security_group", awsSGroup),
-					resource.TestCheckResourceAttr(resourceName, "comment", comment),
-				),
+				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
+				Check:  resource.ComposeTestCheckFunc(commonChecks("", "", awsSGroup, comment)...),
 			},
 			{
-				Config: acc.ConfigProjectIPAccessListWithAWSSecurityGroup(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, updatedAWSSgroup, updatedComment),
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "aws_security_group"),
-					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-
-					resource.TestCheckResourceAttr(resourceName, "aws_security_group", updatedAWSSgroup),
-					resource.TestCheckResourceAttr(resourceName, "comment", updatedComment),
-				),
+				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, updatedAWSSgroup, updatedComment),
+				Check:  resource.ComposeTestCheckFunc(commonChecks("", "", updatedAWSSgroup, updatedComment)...),
 			},
 		},
 	})
 }
 
-func TestAccProjectRSProjectIPAccessList_SettingMultiple(t *testing.T) {
+func TestAccProjectIPAccessList_settingMultiple(t *testing.T) {
 	var (
-		resourceName     = "mongodbatlas_project_ip_access_list.test_%d"
-		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName      = acc.RandomProjectName()
+		projectID        = acc.ProjectIDExecution(t)
+		resourceFmt      = "mongodbatlas_project_ip_access_list.test_%d"
 		ipWhiteListCount = 20
-		accessList       = make([]map[string]string, 0)
+		accessList       = []map[string]string{}
+		checks           = []resource.TestCheckFunc{}
 	)
 
 	for i := 0; i < ipWhiteListCount; i++ {
@@ -167,53 +128,44 @@ func TestAccProjectRSProjectIPAccessList_SettingMultiple(t *testing.T) {
 		entry["comment"] = fmt.Sprintf("TestAcc for %s (%s)", entryName, ipAddr)
 
 		accessList = append(accessList, entry)
+		checks = append(checks, checkExists(fmt.Sprintf(resourceFmt, i)))
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectIPAccessListWithMultiple(projectName, orgID, accessList, false),
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectIPAccessListExists(fmt.Sprintf(resourceName, 0)),
-					acc.CheckProjectIPAccessListExists(fmt.Sprintf(resourceName, 1)),
-					acc.CheckProjectIPAccessListExists(fmt.Sprintf(resourceName, 2)),
-				),
+				Config: configWithMultiple(projectID, accessList, false),
+				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 			{
-				Config: acc.ConfigProjectIPAccessListWithMultiple(projectName, orgID, accessList, true),
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectIPAccessListExists(fmt.Sprintf(resourceName, 0)),
-					acc.CheckProjectIPAccessListExists(fmt.Sprintf(resourceName, 1)),
-					acc.CheckProjectIPAccessListExists(fmt.Sprintf(resourceName, 2)),
-				),
+				Config: configWithMultiple(projectID, accessList, true),
+				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 		},
 	})
 }
 
-func TestAccProjectRSProjectIPAccessList_importBasic(t *testing.T) {
+func TestAccProjectIPAccessList_importBasic(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		ipAddress    = acc.RandomIP(179, 154, 226)
-		comment      = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
-		resourceName = "mongodbatlas_project_ip_access_list.test"
+		projectID = acc.ProjectIDExecution(t)
+		ipAddress = acc.RandomIP(179, 154, 226)
+		comment   = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectIPAccessListWithIPAddress(orgID, projectName, ipAddress, comment),
+				Config: configWithIPAddress(projectID, ipAddress, comment),
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: acc.ImportStateProjecIPAccessListtIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -221,22 +173,20 @@ func TestAccProjectRSProjectIPAccessList_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProjectIPAccessList_importIncorrectId(t *testing.T) {
+func TestAccProjectIPAccessList_importIncorrectId(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		ipAddress    = acc.RandomIP(179, 154, 226)
-		comment      = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
-		resourceName = "mongodbatlas_project_ip_access_list.test"
+		projectID = acc.ProjectIDExecution(t)
+		ipAddress = acc.RandomIP(179, 154, 226)
+		comment   = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyProjectIPAccessList,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectIPAccessListWithIPAddress(orgID, projectName, ipAddress, comment),
+				Config: configWithIPAddress(projectID, ipAddress, comment),
 			},
 			{
 				ResourceName:  resourceName,
@@ -246,4 +196,167 @@ func TestAccProjectRSProjectIPAccessList_importIncorrectId(t *testing.T) {
 			},
 		},
 	})
+}
+
+func checkExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no ID is set")
+		}
+		ids := conversion.DecodeStateID(rs.Primary.ID)
+		_, _, err := acc.ConnV2().ProjectIPAccessListApi.GetProjectIpList(context.Background(), ids["project_id"], ids["entry"]).Execute()
+		if err != nil {
+			return fmt.Errorf("project ip access list entry (%s) does not exist", ids["entry"])
+		}
+		return nil
+	}
+}
+
+func checkDestroy(s *terraform.State) error {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "mongodbatlas_project_ip_access_list" {
+			continue
+		}
+		ids := conversion.DecodeStateID(rs.Primary.ID)
+		_, _, err := acc.ConnV2().ProjectIPAccessListApi.GetProjectIpList(context.Background(), ids["project_id"], ids["entry"]).Execute()
+		if err == nil {
+			return fmt.Errorf("project ip access list entry (%s) still exists", ids["entry"])
+		}
+	}
+	return nil
+}
+
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+		ids := conversion.DecodeStateID(rs.Primary.ID)
+		return fmt.Sprintf("%s-%s", ids["project_id"], ids["entry"]), nil
+	}
+}
+
+func commonChecks(ipAddress, cidrBlock, awsSGroup, comment string) []resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{
+		checkExists(resourceName),
+		checkExists(dataSourceName),
+		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+		resource.TestCheckResourceAttr(resourceName, "comment", comment),
+		resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
+	}
+	if ipAddress != "" {
+		checks = append(checks,
+			resource.TestCheckResourceAttr(resourceName, "ip_address", ipAddress),
+			resource.TestCheckResourceAttr(dataSourceName, "ip_address", ipAddress))
+	}
+	if cidrBlock != "" {
+		checks = append(checks,
+			resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),
+			resource.TestCheckResourceAttr(dataSourceName, "cidr_block", cidrBlock))
+	}
+	if awsSGroup != "" {
+		checks = append(checks,
+			resource.TestCheckResourceAttr(resourceName, "aws_security_group", awsSGroup),
+			resource.TestCheckResourceAttr(dataSourceName, "aws_security_group", awsSGroup))
+	}
+	return checks
+}
+
+func configWithIPAddress(projectID, ipAddress, comment string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project_ip_access_list" "test" {
+			project_id = %[1]q
+			ip_address = %[2]q
+			comment    = %[3]q
+		}
+
+		data "mongodbatlas_project_ip_access_list" "test" {
+			project_id = mongodbatlas_project_ip_access_list.test.project_id
+			ip_address = mongodbatlas_project_ip_access_list.test.ip_address
+		}
+	`, projectID, ipAddress, comment)
+}
+
+func configWithCIDRBlock(projectID, cidrBlock, comment string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project_ip_access_list" "test" {
+			project_id = %[1]q
+			cidr_block = %[2]q
+			comment    = %[3]q
+		}
+
+		data "mongodbatlas_project_ip_access_list" "test" {
+			project_id = mongodbatlas_project_ip_access_list.test.project_id
+			cidr_block = mongodbatlas_project_ip_access_list.test.cidr_block
+		}
+	`, projectID, cidrBlock, comment)
+}
+
+func configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_network_container" "test" {
+			project_id   		  = %[1]q
+			atlas_cidr_block  = "192.168.208.0/21"
+			provider_name		  = %[2]q
+			region_name			  = %[6]q
+		}
+
+		resource "mongodbatlas_network_peering" "test" {
+			accepter_region_name	  = "us-east-1"
+			project_id    			    = %[1]q
+			container_id            = mongodbatlas_network_container.test.container_id
+			provider_name           = %[2]q
+			vpc_id					        = %[3]q
+			aws_account_id	        = %[4]q
+			route_table_cidr_block  = %[5]q
+		}
+
+		resource "mongodbatlas_project_ip_access_list" "test" {
+			project_id         = %[1]q
+			aws_security_group = %[7]q
+			comment            = %[8]q
+
+			depends_on = ["mongodbatlas_network_peering.test"]
+		}
+
+		data "mongodbatlas_project_ip_access_list" "test" {
+			project_id = %[1]q
+			aws_security_group = mongodbatlas_project_ip_access_list.test.aws_security_group
+		}
+	`, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment)
+}
+
+func configWithMultiple(projectID string, accessList []map[string]string, isUpdate bool) string {
+	var config strings.Builder
+	for i, entry := range accessList {
+		comment := entry["comment"]
+		if isUpdate {
+			comment = entry["comment"] + " update"
+		}
+
+		if cidr, ok := entry["cidr_block"]; ok {
+			config.WriteString(fmt.Sprintf(`
+				resource "mongodbatlas_project_ip_access_list" "test_%[1]d" {
+					project_id   = %[2]q
+					cidr_block = %[3]q
+					comment    = %[4]q
+				}
+			`, i, projectID, cidr, comment))
+		} else {
+			config.WriteString(fmt.Sprintf(`
+				resource "mongodbatlas_project_ip_access_list" "test_%[1]d" {
+					project_id   = %[2]q
+					ip_address = %[3]q
+					comment    = %[4]q
+				}
+			`, i, projectID, entry["ip_address"], comment))
+		}
+	}
+	return config.String()
 }

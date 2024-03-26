@@ -312,7 +312,7 @@ To do this you can:
 - Helper methods must have their own tests, e.g. `common_advanced_cluster_test.go` has tests for `common_advanced_cluster.go`.
 - `internal/testutils/acc` contains helper test methods for Acceptance and Migration tests.
 - Tests that need the provider binary like End-to-End tests don’t belong to the source code packages and go in `test/e2e`.
-- [Testify Mock](https://pkg.go.dev/github.com/stretchr/testify/mock) and [Mockery](https://github.com/vektra/mockery) are used for test doubles in unit tests. Mocked interfaces are generated in folder `internal/testutil/mocksvc`.
+- [Testify Mock](https://pkg.go.dev/github.com/stretchr/testify/mock) and [Mockery](https://github.com/vektra/mockery) are used for test doubles in Atlas Go SDK unit tests.
 
 
 ### Creating New Resource and Data Sources
