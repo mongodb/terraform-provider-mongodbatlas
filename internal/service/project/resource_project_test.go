@@ -3,16 +3,18 @@ package project_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"reflect"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/stretchr/testify/mock"
@@ -491,22 +493,50 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 	}
 }
 
-const resourceName = "mongodbatlas_project.test"
+const (
+	resourceName         = "mongodbatlas_project.test"
+	dataSourceNameByID   = "data.mongodbatlas_project.test"
+	dataSourceNameByName = "data.mongodbatlas_project.test2"
+	dataSourcePluralName = "data.mongodbatlas_projects.test"
+)
 
-func TestAccProjectRSProject_basic(t *testing.T) {
+func TestAccProject_basic(t *testing.T) {
 	var (
-		group        admin.Group
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		clusterCount = "0"
-		projectName  = acc.RandomProjectName()
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acc.RandomProjectName()
+		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 	)
+	commonChecks := map[string]string{
+		"name":          projectName,
+		"org_id":        orgID,
+		"cluster_count": "0",
+		"teams.#":       "2",
+	}
+	commonSetChecks := []string{
+		"ip_addresses.services.clusters.#",
+		"is_collect_database_specifics_statistics_enabled",
+		"is_data_explorer_enabled",
+		"is_extended_storage_sizes_enabled",
+		"is_performance_advisor_enabled",
+		"is_realtime_performance_panel_enabled",
+		"is_schema_advisor_enabled",
+	}
+	checks := acc.AddAttrChecks(resourceName, nil, commonChecks)
+	checks = acc.AddAttrChecks(dataSourceNameByID, checks, commonChecks)
+	checks = acc.AddAttrChecks(dataSourceNameByName, checks, commonChecks)
+	checks = acc.AddAttrSetChecks(resourceName, checks, commonSetChecks...)
+	checks = acc.AddAttrSetChecks(dataSourceNameByID, checks, commonSetChecks...)
+	checks = acc.AddAttrSetChecks(dataSourceNameByName, checks, commonSetChecks...)
+	checks = append(checks, checkExists(resourceName), checkExists(dataSourceNameByID), checkExists(dataSourceNameByName))
+	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, "total_count", "results.#")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 3) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProject(projectName, orgID,
+				Config: configBasic(orgID, projectName, projectOwnerID, true,
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
@@ -518,18 +548,10 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 						},
 					},
 				),
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
-					resource.TestCheckResourceAttr(resourceName, "name", projectName),
-					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
-					resource.TestCheckResourceAttr(resourceName, "teams.#", "2"),
-					resource.TestCheckResourceAttrSet(resourceName, "ip_addresses.services.clusters.#"),
-				),
+				Check: resource.ComposeTestCheckFunc(checks...),
 			},
 			{
-				Config: acc.ConfigProject(projectName, orgID,
+				Config: configBasic(orgID, projectName, projectOwnerID, false,
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
@@ -546,16 +568,15 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
+					resource.TestCheckResourceAttr(resourceName, "cluster_count", "0"),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "3"),
 				),
 			},
 			{
-				Config: acc.ConfigProject(projectName, orgID,
+				Config: configBasic(orgID, projectName, projectOwnerID, false,
 
 					[]*admin.TeamRole{
 						{
@@ -569,11 +590,10 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
+					resource.TestCheckResourceAttr(resourceName, "cluster_count", "0"),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "2"),
 				),
 			},
@@ -581,36 +601,9 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProject_withProjectOwner(t *testing.T) {
-	var (
-		group          admin.Group
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
-		projectName    = acc.RandomProjectName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasicOwnerID(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyProject,
-		Steps: []resource.TestStep{
-			{
-				Config: acc.ConfigProjectWithOwner(projectName, orgID, projectOwnerID),
-				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
-					resource.TestCheckResourceAttr(resourceName, "name", projectName),
-					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-				),
-			},
-		},
-	})
-}
-
-func TestAccProjectRSGovProject_withProjectOwner(t *testing.T) {
+func TestAccProjectGov_withProjectOwner(t *testing.T) {
 	acc.SkipTestForCI(t) // Gov test config not set
 	var (
-		group          admin.Group
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID_GOV")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID_GOV")
 		projectName    = acc.RandomProjectName()
@@ -622,10 +615,9 @@ func TestAccProjectRSGovProject_withProjectOwner(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectGovWithOwner(projectName, orgID, projectOwnerID),
+				Config: configGovWithOwner(projectName, orgID, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
@@ -633,9 +625,8 @@ func TestAccProjectRSGovProject_withProjectOwner(t *testing.T) {
 		},
 	})
 }
-func TestAccProjectRSProject_withFalseDefaultSettings(t *testing.T) {
+func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 	var (
-		group          admin.Group
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 		projectName    = acc.RandomProjectName()
@@ -647,10 +638,9 @@ func TestAccProjectRSProject_withFalseDefaultSettings(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectWithFalseDefaultSettings(projectName, orgID, projectOwnerID),
+				Config: configWithFalseDefaultSettings(orgID, projectName, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
@@ -659,9 +649,8 @@ func TestAccProjectRSProject_withFalseDefaultSettings(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProject_withUpdatedSettings(t *testing.T) {
+func TestAccProject_withUpdatedSettings(t *testing.T) {
 	var (
-		group          admin.Group
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 		projectName    = acc.RandomProjectName()
@@ -675,8 +664,7 @@ func TestAccProjectRSProject_withUpdatedSettings(t *testing.T) {
 			{
 				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "project_owner_id", projectOwnerID),
@@ -692,8 +680,7 @@ func TestAccProjectRSProject_withUpdatedSettings(t *testing.T) {
 			{
 				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, true),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"),
 					resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_enabled", "true"),
@@ -706,8 +693,7 @@ func TestAccProjectRSProject_withUpdatedSettings(t *testing.T) {
 			{
 				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_enabled", "false"),
@@ -721,7 +707,7 @@ func TestAccProjectRSProject_withUpdatedSettings(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
+func TestAccProject_withUpdatedRole(t *testing.T) {
 	var (
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName     = acc.RandomProjectName()
@@ -735,7 +721,7 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectWithUpdatedRole(projectName, orgID, acc.GetProjectTeamsIDsWithPos(0), roleName),
+				Config: configWithUpdatedRole(orgID, projectName, acc.GetProjectTeamsIDsWithPos(0), roleName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -743,7 +729,7 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigProjectWithUpdatedRole(projectName, orgID, acc.GetProjectTeamsIDsWithPos(0), roleNameUpdated),
+				Config: configWithUpdatedRole(orgID, projectName, acc.GetProjectTeamsIDsWithPos(0), roleNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -754,9 +740,8 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProject_updatedToEmptyRoles(t *testing.T) {
+func TestAccProject_updatedToEmptyRoles(t *testing.T) {
 	var (
-		group       admin.Group
 		projectName = acc.RandomProjectName()
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
@@ -766,7 +751,7 @@ func TestAccProjectRSProject_updatedToEmptyRoles(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProject(projectName, orgID,
+				Config: configBasic(orgID, projectName, "", false,
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
@@ -775,8 +760,7 @@ func TestAccProjectRSProject_updatedToEmptyRoles(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "teams.0.team_id", acc.GetProjectTeamsIDsWithPos(0)),
 					resource.TestCheckResourceAttr(resourceName, "teams.0.role_names.#", "2"),
@@ -785,10 +769,9 @@ func TestAccProjectRSProject_updatedToEmptyRoles(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigProject(projectName, orgID, nil),
+				Config: configBasic(orgID, projectName, "", false, nil),
 				Check: resource.ComposeTestCheckFunc(
-					acc.CheckProjectExists(resourceName, &group),
-					acc.CheckProjectAttributes(&group, projectName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "0"),
 				),
 			},
@@ -796,7 +779,7 @@ func TestAccProjectRSProject_updatedToEmptyRoles(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProject_importBasic(t *testing.T) {
+func TestAccProject_importBasic(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -808,9 +791,7 @@ func TestAccProjectRSProject_importBasic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProject(projectName, orgID,
-					[]*admin.TeamRole{},
-				),
+				Config: configBasic(orgID, projectName, "", false, nil),
 			},
 			{
 				ResourceName:            resourceName,
@@ -823,19 +804,35 @@ func TestAccProjectRSProject_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
+func TestAccProject_withUpdatedLimits(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
+		limitChecks = []map[string]string{
+			{
+				"name":  "atlas.project.deployment.clusters",
+				"value": "1",
+			},
+			{
+				"name":  "atlas.project.deployment.nodesPerPrivateLinkRegion",
+				"value": "1",
+			},
+		}
 	)
-
+	checks := []resource.TestCheckFunc{checkExists(resourceName), checkExists(dataSourceNameByID)}
+	for _, check := range limitChecks {
+		checks = append(checks,
+			resource.TestCheckTypeSetElemNestedAttrs(resourceName, "limits.*", check),
+			resource.TestCheckTypeSetElemNestedAttrs(dataSourceNameByID, "limits.*", check),
+		)
+	}
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+				Config: configWithLimits(orgID, projectName, []*admin.DataFederationLimit{
 					{
 						Name:  "atlas.project.deployment.clusters",
 						Value: 1,
@@ -845,17 +842,10 @@ func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
 						Value: 1,
 					},
 				}),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "name", projectName),
-					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "limits.0.name", "atlas.project.deployment.clusters"),
-					resource.TestCheckResourceAttr(resourceName, "limits.0.value", "1"),
-					resource.TestCheckResourceAttr(resourceName, "limits.1.name", "atlas.project.deployment.nodesPerPrivateLinkRegion"),
-					resource.TestCheckResourceAttr(resourceName, "limits.1.value", "1"),
-				),
+				Check: resource.ComposeTestCheckFunc(checks...),
 			},
 			{
-				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+				Config: configWithLimits(orgID, projectName, []*admin.DataFederationLimit{
 					{
 						Name:  "atlas.project.deployment.nodesPerPrivateLinkRegion",
 						Value: 2,
@@ -869,7 +859,7 @@ func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+				Config: configWithLimits(orgID, projectName, []*admin.DataFederationLimit{
 					{
 						Name:  "atlas.project.deployment.nodesPerPrivateLinkRegion",
 						Value: 3,
@@ -916,7 +906,7 @@ func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProject_updatedToEmptyLimits(t *testing.T) {
+func TestAccProject_updatedToEmptyLimits(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -927,7 +917,7 @@ func TestAccProjectRSProject_updatedToEmptyLimits(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+				Config: configWithLimits(orgID, projectName, []*admin.DataFederationLimit{
 					{
 						Name:  "atlas.project.deployment.clusters",
 						Value: 1,
@@ -940,7 +930,7 @@ func TestAccProjectRSProject_updatedToEmptyLimits(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigProjectWithLimits(projectName, orgID, nil),
+				Config: configWithLimits(orgID, projectName, nil),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "limits.#", "0"),
 				),
@@ -949,7 +939,7 @@ func TestAccProjectRSProject_updatedToEmptyLimits(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProject_withInvalidLimitName(t *testing.T) {
+func TestAccProject_withInvalidLimitName(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -961,7 +951,7 @@ func TestAccProjectRSProject_withInvalidLimitName(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+				Config: configWithLimits(orgID, projectName, []*admin.DataFederationLimit{
 					{
 						Name:  "incorrect.name",
 						Value: 1,
@@ -973,7 +963,7 @@ func TestAccProjectRSProject_withInvalidLimitName(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProject_withInvalidLimitNameOnUpdate(t *testing.T) {
+func TestAccProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -985,14 +975,14 @@ func TestAccProjectRSProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{}),
+				Config: configWithLimits(orgID, projectName, []*admin.DataFederationLimit{}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
 			},
 			{
-				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+				Config: configWithLimits(orgID, projectName, []*admin.DataFederationLimit{
 					{
 						Name:  "incorrect.name",
 						Value: 1,
@@ -1008,6 +998,127 @@ func createDataFederationLimit(limitName string) admin.DataFederationLimit {
 	return admin.DataFederationLimit{
 		Name: limitName,
 	}
+}
+
+func checkExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no ID is set")
+		}
+		if _, _, err := acc.ConnV2().ProjectsApi.GetProjectByName(context.Background(), rs.Primary.Attributes["name"]).Execute(); err == nil {
+			return nil
+		}
+		return fmt.Errorf("project (%s) does not exist", rs.Primary.ID)
+	}
+}
+
+func configBasic(orgID, projectName, projectOwnerID string, includeDataSource bool, teams []*admin.TeamRole) string {
+	var dataSourceStr string
+	if includeDataSource {
+		dataSourceStr = `
+			data "mongodbatlas_project" "test" {
+				project_id = mongodbatlas_project.test.id
+			}
+
+			data "mongodbatlas_project" "test2" {
+				name = mongodbatlas_project.test.name
+			}
+
+			data "mongodbatlas_projects" "test" {
+			}
+		`
+	}
+
+	var additionalStr string
+	if projectOwnerID != "" {
+		additionalStr = fmt.Sprintf("project_owner_id = %q\n", projectOwnerID)
+	}
+
+	for _, t := range teams {
+		additionalStr += fmt.Sprintf(`
+		teams {
+			team_id = %q
+			role_names = %s
+		}
+		`, t.GetTeamId(), strings.ReplaceAll(fmt.Sprintf("%+q", *t.RoleNames), " ", ","))
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id 			 = %[1]q
+			name  			 = %[2]q
+
+			%[3]s
+		}
+
+		%[4]s
+	`, orgID, projectName, additionalStr, dataSourceStr)
+}
+
+func configGovWithOwner(orgID, projectName, projectOwnerID string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id 			 = %[1]q
+			name   			 = %[2]q
+			project_owner_id = %[3]q
+			region_usage_restrictions = "GOV_REGIONS_ONLY"
+		}
+	`, orgID, projectName, projectOwnerID)
+}
+
+func configWithFalseDefaultSettings(orgID, projectName, projectOwnerID string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id 			 = %[1]q
+			name   			 = %[2]q
+			project_owner_id = %[3]q
+			with_default_alerts_settings = false
+		}
+	`, orgID, projectName, projectOwnerID)
+}
+
+func configWithLimits(orgID, projectName string, limits []*admin.DataFederationLimit) string {
+	var limitsString string
+
+	for _, limit := range limits {
+		limitsString += fmt.Sprintf(`
+		limits {
+			name = %[1]q
+			value = %[2]d
+		}
+		`, limit.Name, limit.Value)
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id 			 = %[1]q
+			name   			 = %[2]q
+
+			%[3]s
+		}
+
+		data "mongodbatlas_project" "test" {
+			project_id = mongodbatlas_project.test.id
+		}
+	`, orgID, projectName, limitsString)
+}
+
+func configWithUpdatedRole(orgID, projectName, teamID, roleName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id = %[1]q
+			name   = %[2]q
+
+			teams {
+				team_id = %[3]q
+				role_names = [ %[4]q ]
+			}
+		}
+	`, orgID, projectName, teamID, roleName)
 }
 
 type TeamRoleResponse struct {
