@@ -196,6 +196,10 @@ func configBasic(projectName, orgID, projectOwnerID string) string {
 				retention_value    = 12
 			}
 	  }
+
+		data "mongodbatlas_backup_compliance_policy" "backup_policy" {
+			project_id = mongodbatlas_backup_compliance_policy.backup_policy_res.project_id
+		}
 	`
 }
 
