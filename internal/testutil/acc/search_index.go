@@ -9,7 +9,7 @@ import (
 )
 
 func CheckDestroySearchIndex(state *terraform.State) error {
-	if UsingLocalResources() {
+	if ExistingClusterUsed() {
 		return nil
 	}
 	for _, rs := range state.RootModule().Resources {

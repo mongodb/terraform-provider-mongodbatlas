@@ -91,15 +91,12 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func checkDestroy(s *terraform.State) error {
-	if acc.UsingLocalResources() {
-		return nil
-	}
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_auditing" {
 			continue
 		}
 		auditingRes, _, _ := acc.ConnV2().AuditingApi.GetAuditingConfiguration(context.Background(), rs.Primary.ID).Execute()
-		if auditingRes != nil {
+		if auditingRes.GetEnabled() {
 			return fmt.Errorf("auditing (%s) exists", rs.Primary.ID)
 		}
 	}

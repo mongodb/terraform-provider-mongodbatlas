@@ -9,12 +9,11 @@ import (
 
 func TestMigGenericAuditing_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_auditing.test"
-		projectID    = mig.ProjectIDGlobal(t)
-		auditAuth    = true
-		auditFilter  = "{ 'atype': 'authenticate', 'param': {   'user': 'auditAdmin',   'db': 'admin',   'mechanism': 'SCRAM-SHA-1' }}"
-		enabled      = true
-		config       = configBasic(projectID, auditFilter, auditAuth, enabled)
+		projectID   = mig.ProjectIDGlobal(t)
+		auditAuth   = true
+		auditFilter = "{ 'atype': 'authenticate', 'param': {   'user': 'auditAdmin',   'db': 'admin',   'mechanism': 'SCRAM-SHA-1' }}"
+		enabled     = true
+		config      = configBasic(projectID, auditFilter, auditAuth, enabled)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

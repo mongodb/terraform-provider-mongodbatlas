@@ -401,7 +401,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func checkDestroy(s *terraform.State) error {
-	if acc.UsingLocalResources() {
+	if acc.ExistingClusterUsed() {
 		return nil
 	}
 	for _, rs := range s.RootModule().Resources {

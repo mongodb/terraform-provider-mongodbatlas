@@ -80,9 +80,8 @@ func GetClusterInfo(tb testing.TB, req *ClusterRequest) ClusterInfo {
 	}
 }
 
-// UsingLocalResources is normally used in CheckDestroy when an existing project or cluster is used in local.
-func UsingLocalResources() bool {
+func ExistingClusterUsed() bool {
 	clusterName := os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	return clusterName != "" || projectID != ""
+	return clusterName != "" && projectID != ""
 }
