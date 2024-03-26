@@ -14,7 +14,7 @@ func ConvertToMigrationTest(t *testing.T, test *resource.TestCase) resource.Test
 	validateReusableCase(t, test)
 	firstStep := test.Steps[0]
 	steps := []resource.TestStep{
-		*useExternalProvider(firstStep, ExternalProviders()),
+		useExternalProvider(&firstStep, ExternalProviders()),
 		TestStepCheckEmptyPlan(firstStep.Config),
 	}
 	return reuseCase(test, steps)
@@ -29,9 +29,10 @@ func ConvertToMigrationTestUseExternalProvider(t *testing.T, test *resource.Test
 	validateReusableCase(t, test)
 	firstStep := test.Steps[0]
 	require.NotContains(t, additionalProviders, "mongodbatlas", "Will use the local provider, cannot specify mongodbatlas provider")
+	emptyPlanStep := TestStepCheckEmptyPlan(firstStep.Config)
 	steps := []resource.TestStep{
-		*useExternalProvider(firstStep, externalProviders),
-		*useExternalProvider(TestStepCheckEmptyPlan(firstStep.Config), additionalProviders),
+		useExternalProvider(&firstStep, externalProviders),
+		useExternalProvider(&emptyPlanStep, additionalProviders),
 	}
 	return reuseCase(test, steps)
 }
@@ -43,12 +44,12 @@ func validateReusableCase(t *testing.T, test *resource.TestCase) {
 	require.NotEmpty(t, test.Steps[0].Config, "First step of migration test must use Config")
 }
 
-//nolint:gocritic
-func useExternalProvider(step resource.TestStep, provider map[string]resource.ExternalProvider) *resource.TestStep {
+func useExternalProvider(step *resource.TestStep, provider map[string]resource.ExternalProvider) resource.TestStep {
 	step.ExternalProviders = provider
-	return &step
+	return *step
 }
 
+// Note how we don't set ProtoV6ProviderFactories and instead specify providers on each step
 func reuseCase(test *resource.TestCase, steps []resource.TestStep) resource.TestCase {
 	return resource.TestCase{
 		PreCheck:     test.PreCheck,
