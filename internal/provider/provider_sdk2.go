@@ -139,7 +139,7 @@ func NewSdkV2Provider(proxyPort *int) *schema.Provider {
 	addPreviewFeatures(provider)
 
 	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-		return providerConfigure(ctx, d, provider, proxyPort)
+		return providerConfigure(provider, proxyPort)(ctx, d)
 	}
 
 	return provider
@@ -287,7 +287,7 @@ func addPreviewFeatures(provider *schema.Provider) {
 	}
 }
 
-func providerConfigure(ctx context.Context, d *schema.ResourceData, provider *schema.Provider, proxyPort *int) func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
+func providerConfigure(provider *schema.Provider, proxyPort *int) func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 	return func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		diagnostics := setDefaultsAndValidations(d)
 		if diagnostics.HasError() {
