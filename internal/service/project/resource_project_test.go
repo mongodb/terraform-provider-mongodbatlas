@@ -808,8 +808,24 @@ func TestAccProject_withUpdatedLimits(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
+		limitChecks = []map[string]string{
+			{
+				"name":  "atlas.project.deployment.clusters",
+				"value": "1",
+			},
+			{
+				"name":  "atlas.project.deployment.nodesPerPrivateLinkRegion",
+				"value": "1",
+			},
+		}
 	)
-
+	checks := []resource.TestCheckFunc{checkExists(resourceName), checkExists(dataSourceNameByID)}
+	for _, check := range limitChecks {
+		checks = append(checks,
+			resource.TestCheckTypeSetElemNestedAttrs(resourceName, "limits.*", check),
+			resource.TestCheckTypeSetElemNestedAttrs(dataSourceNameByID, "limits.*", check),
+		)
+	}
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -826,14 +842,7 @@ func TestAccProject_withUpdatedLimits(t *testing.T) {
 						Value: 1,
 					},
 				}),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "name", projectName),
-					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "limits.0.name", "atlas.project.deployment.clusters"),
-					resource.TestCheckResourceAttr(resourceName, "limits.0.value", "1"),
-					resource.TestCheckResourceAttr(resourceName, "limits.1.name", "atlas.project.deployment.nodesPerPrivateLinkRegion"),
-					resource.TestCheckResourceAttr(resourceName, "limits.1.value", "1"),
-				),
+				Check: resource.ComposeTestCheckFunc(checks...),
 			},
 			{
 				Config: configWithLimits(orgID, projectName, []*admin.DataFederationLimit{
@@ -1090,6 +1099,10 @@ func configWithLimits(orgID, projectName string, limits []*admin.DataFederationL
 			name   			 = %[2]q
 
 			%[3]s
+		}
+
+		data "mongodbatlas_project" "test" {
+			project_id = mongodbatlas_project.test.id
 		}
 	`, orgID, projectName, limitsString)
 }
