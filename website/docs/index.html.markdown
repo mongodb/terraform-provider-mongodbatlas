@@ -180,7 +180,9 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
 For more information on configuring and managing programmatic API Keys see the [MongoDB Atlas Documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html).
 
 ## [HashiCorp Terraform Version](https://www.terraform.io/downloads.html) Compatibility Matrix
- 
+
+<!-- DO NOT remove below placeholder comments as this table is auto-generated -->
+<!-- MATRIX_PLACEHOLDER_START -->
 | HashiCorp Terraform Release | HashiCorp Terraform Release Date  | HashiCorp Terraform Full Support End Date  | MongoDB Atlas Support End Date |
 |:-------:|:------------:|:------------:|:------------:|
 | 1.7.x | 2024-01-17 | 2026-01-31 | 2026-01-31 |
@@ -189,7 +191,7 @@ For more information on configuring and managing programmatic API Keys see the [
 | 1.4.x | 2023-03-08 | 2025-03-31 | 2025-03-31 |
 | 1.3.x | 2022-09-21 | 2024-09-30 | 2024-09-30 |
 | 1.2.x | 2022-05-18 | 2024-05-31 | 2024-05-31 |
-
+<!-- MATRIX_PLACEHOLDER_END -->
 For the safety of our users, we require only consuming versions of HashiCorp Terraform that are currently receiving Security / Maintenance Updates. For more details see [Support Period and End-of-Life (EOL) Policy](https://support.hashicorp.com/hc/en-us/articles/360021185113-Support-Period-and-End-of-Life-EOL-Policy).   
 
 HashiCorp Terraform versions that are not listed on this table are no longer supported by MongoDB Atlas. For latest HashiCorp Terraform versions see [here](https://endoflife.date/terraform ).

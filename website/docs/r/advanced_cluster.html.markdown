@@ -100,7 +100,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-### Example Multi-Cloud Cluster.
+### Example Multi-Cloud Cluster
 ```terraform
 resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = "PROJECT ID"
@@ -133,7 +133,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
   }
 }
 ```
-### Example of a Multi-Cloud Cluster.
+### Example of a Multi-Cloud Cluster
 
 ```terraform
 resource "mongodbatlas_advanced_cluster" "cluster" {
@@ -196,7 +196,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 }
 ```
 
-### Example of a Global Cluster.
+### Example of a Global Cluster
 ```terraform
 resource "mongodbatlas_advanced_cluster" "cluster" {
   project_id     = mongodbatlas_project.project.id
@@ -604,6 +604,18 @@ To prevent this a lifecycle customization should be used, i.e.:
 }`
 After adding the `lifecycle` block to explicitly change `disk_size_gb` comment out the `lifecycle` block and run `terraform apply`. Please be sure to uncomment the `lifecycle` block once done to prevent any accidental changes.
 
+```terraform
+// Example: ignore disk_size_gb and instance_size changes in a replica set
+lifecycle {
+  ignore_changes = [
+    disk_size_gb,
+    replication_specs[0].region_configs[0].electable_specs[0].instance_size,
+    replication_specs[0].region_configs[1].electable_specs[0].instance_size,
+    replication_specs[0].region_configs[2].electable_specs[0].instance_size,
+  ]
+}
+```
+
 * `compute_enabled` - (Optional) Flag that indicates whether instance size auto-scaling is enabled. This parameter defaults to false.
 
 ~> **IMPORTANT:** If `compute_enabled` is true, then Atlas will automatically scale up to the maximum provided and down to the minimum, if provided.
@@ -617,7 +629,6 @@ After adding the `lifecycle` block to explicitly change `instance_size` comment 
 * `compute_scale_down_enabled` - (Optional) Flag that indicates whether the instance size may scale down. Atlas requires this parameter if `replication_specs.#.region_configs.#.auto_scaling.0.compute_enabled` : true. If you enable this option, specify a value for `replication_specs.#.region_configs.#.auto_scaling.0.compute_min_instance_size`.
 * `compute_min_instance_size` - (Optional) Minimum instance size to which your cluster can automatically scale (such as M10). Atlas requires this parameter if `replication_specs.#.region_configs.#.auto_scaling.0.compute_scale_down_enabled` is true.
 * `compute_max_instance_size` - (Optional) Maximum instance size to which your cluster can automatically scale (such as M40). Atlas requires this parameter if `replication_specs.#.region_configs.#.auto_scaling.0.compute_enabled` is true.
-
 
 ### analytics_auto_scaling
 

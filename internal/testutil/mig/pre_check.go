@@ -46,3 +46,9 @@ func PreCheckPrivateEndpoint(tb testing.TB) {
 	checkLastVersion(tb)
 	acc.PreCheckPrivateEndpoint(tb)
 }
+
+func PreCheckPeeringEnvAWS(tb testing.TB) {
+	tb.Helper()
+	checkLastVersion(tb)
+	acc.PreCheckPeeringEnvAWS(tb)
+}

@@ -11,7 +11,7 @@ import (
 
 func TestMigNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
 	var (
-		projectID  = acc.ProjectIDExecution(t)
+		projectID  = acc.ProjectIDExecution(t) // No mig.ProjectIDGlobal because private link endpoint
 		endpointID = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
 		config     = resourceConfigBasic(projectID, endpointID, comment)
 	)

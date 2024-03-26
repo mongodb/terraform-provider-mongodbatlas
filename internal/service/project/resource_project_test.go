@@ -15,9 +15,9 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mocksvc"
 	"github.com/stretchr/testify/mock"
 	"go.mongodb.org/atlas-sdk/v20231115008/admin"
+	"go.mongodb.org/atlas-sdk/v20231115008/mockadmin"
 )
 
 var (
@@ -106,8 +106,8 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			teamsMock := mocksvc.NewTeamsApi(t)
-			projectsMock := mocksvc.NewProjectsApi(t)
+			teamsMock := mockadmin.NewTeamsApi(t)
+			projectsMock := mockadmin.NewProjectsApi(t)
 
 			teamsMock.EXPECT().ListProjectTeams(mock.Anything, mock.Anything).Return(admin.ListProjectTeamsApiRequest{ApiService: teamsMock})
 			teamsMock.EXPECT().ListProjectTeamsExecute(mock.Anything).Return(tc.teamRoleReponse.TeamRole, tc.teamRoleReponse.HTTPResponse, tc.teamRoleReponse.Err)
@@ -218,7 +218,7 @@ func TestUpdateProject(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			svc := mocksvc.NewProjectsApi(t)
+			svc := mockadmin.NewProjectsApi(t)
 			svc.EXPECT().UpdateProject(mock.Anything, mock.Anything, mock.Anything).Return(admin.UpdateProjectApiRequest{ApiService: svc}).Maybe()
 
 			svc.EXPECT().UpdateProjectExecute(mock.Anything).Return(tc.mockResponses.Project, tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
@@ -324,7 +324,7 @@ func TestUpdateProjectLimits(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			svc := mocksvc.NewProjectsApi(t)
+			svc := mockadmin.NewProjectsApi(t)
 
 			svc.EXPECT().DeleteProjectLimit(mock.Anything, mock.Anything, mock.Anything).Return(admin.DeleteProjectLimitApiRequest{ApiService: svc}).Maybe()
 			svc.EXPECT().DeleteProjectLimitExecute(mock.Anything).Return(tc.mockResponses.DeleteProjectLimit, tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
@@ -417,7 +417,7 @@ func TestUpdateProjectTeams(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			svc := mocksvc.NewTeamsApi(t)
+			svc := mockadmin.NewTeamsApi(t)
 
 			svc.EXPECT().AddAllTeamsToProject(mock.Anything, mock.Anything, mock.Anything).Return(admin.AddAllTeamsToProjectApiRequest{ApiService: svc}).Maybe()
 			svc.EXPECT().AddAllTeamsToProjectExecute(mock.Anything).Return(nil, nil, nil).Maybe()
@@ -477,7 +477,7 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			svc := mocksvc.NewClustersApi(t)
+			svc := mockadmin.NewClustersApi(t)
 
 			svc.EXPECT().ListClusters(mock.Anything, dummyProjectID).Return(admin.ListClustersApiRequest{ApiService: svc})
 			svc.EXPECT().ListClustersExecute(mock.Anything).Return(tc.mockResponses.AdvancedClusterDescription, tc.mockResponses.HTTPResponse, tc.mockResponses.Err)

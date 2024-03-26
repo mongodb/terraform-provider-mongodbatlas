@@ -4,13 +4,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 func TestMigConfigRSAlertConfiguration_withNotificationsMetricThreshold(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = mig.ProjectIDGlobal(t)
 		config    = configBasicRS(projectID, true)
 	)
 
@@ -34,7 +33,7 @@ func TestMigConfigRSAlertConfiguration_withNotificationsMetricThreshold(t *testi
 
 func TestMigConfigRSAlertConfiguration_withThreshold(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = mig.ProjectIDGlobal(t)
 		config    = configWithThresholdUpdated(projectID, true, 1)
 	)
 
@@ -60,7 +59,7 @@ func TestMigConfigRSAlertConfiguration_withThreshold(t *testing.T) {
 
 func TestMigConfigRSAlertConfiguration_withEmptyOptionalBlocks(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = mig.ProjectIDGlobal(t)
 		config    = configWithEmptyOptionalBlocks(projectID)
 	)
 
@@ -87,7 +86,7 @@ func TestMigConfigRSAlertConfiguration_withEmptyOptionalBlocks(t *testing.T) {
 
 func TestMigConfigRSAlertConfiguration_withMultipleMatchers(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = mig.ProjectIDGlobal(t)
 		config    = configWithMatchers(projectID, true, false, true,
 			map[string]interface{}{
 				"fieldName": "TYPE_NAME",
@@ -121,7 +120,7 @@ func TestMigConfigRSAlertConfiguration_withMultipleMatchers(t *testing.T) {
 
 func TestMigConfigRSAlertConfiguration_withEmptyOptionalAttributes(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = mig.ProjectIDGlobal(t)
 		config    = configWithEmptyOptionalAttributes(projectID)
 	)
 
