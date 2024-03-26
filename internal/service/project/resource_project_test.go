@@ -3,10 +3,12 @@ package project_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"reflect"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -495,6 +497,7 @@ const (
 	resourceName         = "mongodbatlas_project.test"
 	dataSourceNameByID   = "data.mongodbatlas_project.test"
 	dataSourceNameByName = "data.mongodbatlas_project.test2"
+	dataSourcePluralName = "data.mongodbatlas_projects.test"
 )
 
 func TestAccProjectRSProject_basic(t *testing.T) {
@@ -510,7 +513,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProject(projectName, orgID,
+				Config: configBasic(projectName, orgID,
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
@@ -556,10 +559,13 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceNameByName, "is_realtime_performance_panel_enabled"),
 					resource.TestCheckResourceAttrSet(dataSourceNameByName, "is_schema_advisor_enabled"),
 					resource.TestCheckResourceAttrSet(dataSourceNameByName, "limits.0.name"),
+
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "total_count"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
 				),
 			},
 			{
-				Config: acc.ConfigProject(projectName, orgID,
+				Config: configBasic(projectName, orgID,
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
@@ -585,7 +591,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigProject(projectName, orgID,
+				Config: configBasic(projectName, orgID,
 
 					[]*admin.TeamRole{
 						{
@@ -796,7 +802,7 @@ func TestAccProjectRSProject_updatedToEmptyRoles(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProject(projectName, orgID,
+				Config: configBasic(projectName, orgID,
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
@@ -815,7 +821,7 @@ func TestAccProjectRSProject_updatedToEmptyRoles(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigProject(projectName, orgID, nil),
+				Config: configBasic(projectName, orgID, nil),
 				Check: resource.ComposeTestCheckFunc(
 					acc.CheckProjectExists(resourceName, &group),
 					acc.CheckProjectAttributes(&group, projectName),
@@ -838,7 +844,7 @@ func TestAccProjectRSProject_importBasic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProject(projectName, orgID,
+				Config: configBasic(projectName, orgID,
 					[]*admin.TeamRole{},
 				),
 			},
@@ -1038,6 +1044,46 @@ func createDataFederationLimit(limitName string) admin.DataFederationLimit {
 	return admin.DataFederationLimit{
 		Name: limitName,
 	}
+}
+
+func configBasic(orgID, projectName string, includePluralDataSource bool, teams []*admin.TeamRole) string {
+	var ts string
+	var plural string
+
+	if includePluralDataSource {
+		plural = `
+			data "mongodbatlas_projects" "test" {
+			}
+		`
+	}
+
+	for _, t := range teams {
+		ts += fmt.Sprintf(`
+		teams {
+			team_id = "%s"
+			role_names = %s
+		}
+		`, t.GetTeamId(), strings.ReplaceAll(fmt.Sprintf("%+q", *t.RoleNames), " ", ","))
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id 			 = %[1]q
+			name  			 = %[2]q
+
+			%[3]s
+		}
+
+		data "mongodbatlas_project" "test" {
+			project_id = mongodbatlas_project.test.id
+		}
+
+		data "mongodbatlas_project" "test2" {
+			name = mongodbatlas_project.test.name
+		}
+
+		%[4]s
+	`, orgID, projectName, ts, plural)
 }
 
 type TeamRoleResponse struct {
