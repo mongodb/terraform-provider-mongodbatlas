@@ -251,7 +251,6 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		}
 	}
 
-	// ctx = config.AppendToUserAgentInCtx(ctx, config.TerraformVersionUserAgentInfo(req.TerraformVersion))
 	client, err := cfg.NewClient(ctx)
 
 	if err != nil {

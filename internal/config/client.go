@@ -78,8 +78,6 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 
 	client.Transport = logging.NewTransport("MongoDB Atlas", transport)
 
-	// ctx = AppendToUserAgentInCtx(ctx, userAgentProviderVersion)
-	// updatedUserAgent := ctx.Value(UserAgentKey{}).(string)
 	c.appendToUserAgent(userAgentProviderVersion)
 
 	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(c.UserAgent)}
@@ -112,23 +110,12 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	return clients, nil
 }
 
-func (c *Config) appendToUserAgent(additionalInfo string) {
-	currentUA := c.UserAgent
-	if !strings.Contains(currentUA, additionalInfo) {
-		if currentUA != "" {
-			currentUA += " "
-		}
-		currentUA += additionalInfo
-	}
-	c.UserAgent = currentUA
-}
-
 func (c *Config) newSDKV2Client(client *http.Client) (*admin.APIClient, error) {
 	opts := []admin.ClientModifier{
 		admin.UseHTTPClient(client),
 		admin.UseUserAgent(c.UserAgent),
 		admin.UseBaseURL(c.BaseURL),
-		admin.UseDebug(true)}
+		admin.UseDebug(false)}
 
 	// Initialize the MongoDB Versioned Atlas Client.
 	sdkv2, err := admin.NewClient(opts...)
@@ -144,7 +131,7 @@ func (c *Config) newSDK20231001002Client(client *http.Client) (*admin20231001002
 		admin20231001002.UseHTTPClient(client),
 		admin20231001002.UseUserAgent(c.UserAgent),
 		admin20231001002.UseBaseURL(c.BaseURL),
-		admin20231001002.UseDebug(true)}
+		admin20231001002.UseDebug(false)}
 
 	// Initialize the MongoDB Versioned Atlas Client.
 	sdkv2, err := admin20231001002.NewClient(opts...)
@@ -186,6 +173,17 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 	}
 
 	return realmClient, nil
+}
+
+func (c *Config) appendToUserAgent(additionalInfo string) {
+	currentUA := c.UserAgent
+	if !strings.Contains(currentUA, additionalInfo) {
+		if currentUA != "" {
+			currentUA += " "
+		}
+		currentUA += additionalInfo
+	}
+	c.UserAgent = currentUA
 }
 
 func TerraformVersionUserAgentInfo(tfVersion string) string {
