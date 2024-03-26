@@ -506,6 +506,30 @@ func TestAccProject_basic(t *testing.T) {
 		projectName    = acc.RandomProjectName()
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 	)
+	commonChecks := map[string]string{
+		"name":          projectName,
+		"org_id":        orgID,
+		"cluster_count": "0",
+		"teams.#":       "2",
+	}
+	commonSetChecks := []string{
+		"ip_addresses.services.clusters.#",
+		"is_collect_database_specifics_statistics_enabled",
+		"is_data_explorer_enabled",
+		"is_extended_storage_sizes_enabled",
+		"is_performance_advisor_enabled",
+		"is_realtime_performance_panel_enabled",
+		"is_schema_advisor_enabled",
+	}
+	checks := acc.AddAttrChecks(resourceName, nil, commonChecks)
+	checks = acc.AddAttrChecks(dataSourceNameByID, checks, commonChecks)
+	checks = acc.AddAttrChecks(dataSourceNameByName, checks, commonChecks)
+	checks = acc.AddAttrSetChecks(resourceName, checks, commonSetChecks...)
+	checks = acc.AddAttrSetChecks(dataSourceNameByID, checks, commonSetChecks...)
+	checks = acc.AddAttrSetChecks(dataSourceNameByName, checks, commonSetChecks...)
+	checks = append(checks, checkExists(resourceName), checkExists(dataSourceNameByID), checkExists(dataSourceNameByName))
+	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, "total_count", "results.#")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 3) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -524,43 +548,7 @@ func TestAccProject_basic(t *testing.T) {
 						},
 					},
 				),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", projectName),
-					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "cluster_count", "0"),
-					resource.TestCheckResourceAttr(resourceName, "teams.#", "2"),
-					resource.TestCheckResourceAttrSet(resourceName, "ip_addresses.services.clusters.#"),
-
-					resource.TestCheckResourceAttr(dataSourceNameByID, "name", projectName),
-					resource.TestCheckResourceAttr(dataSourceNameByID, "org_id", orgID),
-					resource.TestCheckResourceAttr(dataSourceNameByID, "cluster_count", "0"),
-					resource.TestCheckResourceAttr(dataSourceNameByID, "teams.#", "2"),
-					resource.TestCheckResourceAttrSet(dataSourceNameByID, "ip_addresses.services.clusters.#"),
-					resource.TestCheckResourceAttrSet(dataSourceNameByID, "is_collect_database_specifics_statistics_enabled"),
-					resource.TestCheckResourceAttrSet(dataSourceNameByID, "is_data_explorer_enabled"),
-					resource.TestCheckResourceAttrSet(dataSourceNameByID, "is_extended_storage_sizes_enabled"),
-					resource.TestCheckResourceAttrSet(dataSourceNameByID, "is_performance_advisor_enabled"),
-					resource.TestCheckResourceAttrSet(dataSourceNameByID, "is_realtime_performance_panel_enabled"),
-					resource.TestCheckResourceAttrSet(dataSourceNameByID, "is_schema_advisor_enabled"),
-					resource.TestCheckResourceAttrSet(dataSourceNameByID, "limits.0.name"),
-
-					resource.TestCheckResourceAttr(dataSourceNameByName, "name", projectName),
-					resource.TestCheckResourceAttr(dataSourceNameByName, "org_id", orgID),
-					resource.TestCheckResourceAttr(dataSourceNameByName, "cluster_count", "0"),
-					resource.TestCheckResourceAttr(dataSourceNameByName, "teams.#", "2"),
-					resource.TestCheckResourceAttrSet(dataSourceNameByName, "ip_addresses.services.clusters.#"),
-					resource.TestCheckResourceAttrSet(dataSourceNameByName, "is_collect_database_specifics_statistics_enabled"),
-					resource.TestCheckResourceAttrSet(dataSourceNameByName, "is_data_explorer_enabled"),
-					resource.TestCheckResourceAttrSet(dataSourceNameByName, "is_extended_storage_sizes_enabled"),
-					resource.TestCheckResourceAttrSet(dataSourceNameByName, "is_performance_advisor_enabled"),
-					resource.TestCheckResourceAttrSet(dataSourceNameByName, "is_realtime_performance_panel_enabled"),
-					resource.TestCheckResourceAttrSet(dataSourceNameByName, "is_schema_advisor_enabled"),
-					resource.TestCheckResourceAttrSet(dataSourceNameByName, "limits.0.name"),
-
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "total_count"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-				),
+				Check: resource.ComposeTestCheckFunc(checks...),
 			},
 			{
 				Config: configBasic(orgID, projectName, projectOwnerID, false,
@@ -1019,10 +1007,18 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func configBasic(orgID, projectName, projectOwnerID string, includePluralDataSource bool, teams []*admin.TeamRole) string {
-	var pluralStr string
-	if includePluralDataSource {
-		pluralStr = `
+func configBasic(orgID, projectName, projectOwnerID string, includeDataSource bool, teams []*admin.TeamRole) string {
+	var dataSourceStr string
+	if includeDataSource {
+		dataSourceStr = `
+			data "mongodbatlas_project" "test" {
+				project_id = mongodbatlas_project.test.id
+			}
+
+			data "mongodbatlas_project" "test2" {
+				name = mongodbatlas_project.test.name
+			}
+
 			data "mongodbatlas_projects" "test" {
 			}
 		`
@@ -1050,16 +1046,8 @@ func configBasic(orgID, projectName, projectOwnerID string, includePluralDataSou
 			%[3]s
 		}
 
-		data "mongodbatlas_project" "test" {
-			project_id = mongodbatlas_project.test.id
-		}
-
-		data "mongodbatlas_project" "test2" {
-			name = mongodbatlas_project.test.name
-		}
-
 		%[4]s
-	`, orgID, projectName, additionalStr, pluralStr)
+	`, orgID, projectName, additionalStr, dataSourceStr)
 }
 
 func configGovWithOwner(orgID, projectName, projectOwnerID string) string {
@@ -1081,7 +1069,7 @@ func configWithFalseDefaultSettings(orgID, projectName, projectOwnerID string) s
 			project_owner_id = %[3]q
 			with_default_alerts_settings = false
 		}
-	`, orgID, orgID, projectName, projectOwnerID)
+	`, orgID, projectName, projectOwnerID)
 }
 
 func configWithLimits(orgID, projectName string, limits []*admin.DataFederationLimit) string {
