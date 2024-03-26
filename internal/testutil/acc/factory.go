@@ -20,6 +20,14 @@ const (
 // TestAccProviderV6Factories is used in all tests for ProtoV6ProviderFactories.
 var TestAccProviderV6Factories map[string]func() (tfprotov6.ProviderServer, error)
 
+func TestAccProviderV6FactoriesWithProxy(proxyPort *int) map[string]func() (tfprotov6.ProviderServer, error) {
+	return map[string]func() (tfprotov6.ProviderServer, error){
+		ProviderNameMongoDBAtlas: func() (tfprotov6.ProviderServer, error) {
+			return provider.MuxProviderFactoryForTesting(proxyPort)(), nil
+		},
+	}
+}
+
 // MongoDBClient is used to configure client required for Framework-based acceptance tests.
 var MongoDBClient *config.MongoDBClient
 
@@ -31,10 +39,22 @@ func ConnV2() *admin.APIClient {
 	return MongoDBClient.AtlasV2
 }
 
+func ConnV2UsingProxy(proxyPort *int) *admin.APIClient {
+	cfg := config.Config{
+		PublicKey:    os.Getenv("MONGODB_ATLAS_PUBLIC_KEY"),
+		PrivateKey:   os.Getenv("MONGODB_ATLAS_PRIVATE_KEY"),
+		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
+		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
+		ProxyPort:    proxyPort,
+	}
+	client, _ := cfg.NewClient(context.Background())
+	return client.(*config.MongoDBClient).AtlasV2
+}
+
 func init() {
 	TestAccProviderV6Factories = map[string]func() (tfprotov6.ProviderServer, error){
 		ProviderNameMongoDBAtlas: func() (tfprotov6.ProviderServer, error) {
-			return provider.MuxedProviderFactory()(), nil
+			return provider.MuxProviderFactory()(), nil
 		},
 	}
 	cfg := config.Config{

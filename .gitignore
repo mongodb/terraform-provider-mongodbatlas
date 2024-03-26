@@ -32,6 +32,7 @@ log.*
 test.env
 __debug_*
 coverage.out
+simulations
 
 website/vendor
 
