@@ -229,6 +229,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		PrivateKey:   data.PrivateKey.ValueString(),
 		BaseURL:      data.BaseURL.ValueString(),
 		RealmBaseURL: data.RealmBaseURL.ValueString(),
+		UserAgent:    config.TerraformVersionUserAgentInfo(req.TerraformVersion),
 	}
 
 	var assumeRoles []tfAssumeRoleModel
@@ -250,7 +251,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		}
 	}
 
-	ctx = config.AppendToUserAgentInCtx(ctx, config.TerraformVersionUserAgentInfo(req.TerraformVersion))
+	// ctx = config.AppendToUserAgentInCtx(ctx, config.TerraformVersionUserAgentInfo(req.TerraformVersion))
 	client, err := cfg.NewClient(ctx)
 
 	if err != nil {

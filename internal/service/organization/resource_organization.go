@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -103,6 +104,7 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 		PublicKey:  *organization.ApiKey.PublicKey,
 		PrivateKey: *organization.ApiKey.PrivateKey,
 		BaseURL:    meta.(*config.MongoDBClient).Config.BaseURL,
+		UserAgent:  meta.(*config.Config).UserAgent,
 	}
 
 	clients, _ := cfg.NewClient(ctx)
@@ -143,6 +145,7 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 		PublicKey:  d.Get("public_key").(string),
 		PrivateKey: d.Get("private_key").(string),
 		BaseURL:    meta.(*config.MongoDBClient).Config.BaseURL,
+		UserAgent:  meta.(*config.Config).UserAgent,
 	}
 
 	clients, _ := cfg.NewClient(ctx)
@@ -192,6 +195,7 @@ func resourceMongoDBAtlasOrganizationUpdate(ctx context.Context, d *schema.Resou
 		PublicKey:  d.Get("public_key").(string),
 		PrivateKey: d.Get("private_key").(string),
 		BaseURL:    meta.(*config.MongoDBClient).Config.BaseURL,
+		UserAgent:  meta.(*config.Config).UserAgent,
 	}
 
 	clients, _ := cfg.NewClient(ctx)
@@ -223,6 +227,7 @@ func resourceMongoDBAtlasOrganizationDelete(ctx context.Context, d *schema.Resou
 		PublicKey:  d.Get("public_key").(string),
 		PrivateKey: d.Get("private_key").(string),
 		BaseURL:    meta.(*config.MongoDBClient).Config.BaseURL,
+		UserAgent:  meta.(*config.Config).UserAgent,
 	}
 
 	clients, _ := cfg.NewClient(ctx)

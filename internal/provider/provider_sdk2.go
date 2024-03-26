@@ -135,9 +135,9 @@ func NewSdkV2Provider() *schema.Provider {
 				Description: "AWS Security Token Service provided session token.",
 			},
 		},
-		DataSourcesMap:       getDataSourcesMap(),
-		ResourcesMap:         getResourcesMap(),
-		ConfigureContextFunc: providerConfigure,
+		DataSourcesMap: getDataSourcesMap(),
+		ResourcesMap:   getResourcesMap(),
+		// ConfigureContextFunc: providerConfigure,
 	}
 	addPreviewFeatures(provider)
 	// tf version not set here
@@ -146,6 +146,10 @@ func NewSdkV2Provider() *schema.Provider {
 	tfVersion := provider.TerraformVersion
 	log.Printf(tfVersion)
 	log.Printf(tfversion.Version)
+
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+		return providerConfigure(ctx, provider, d)
+	}
 
 	// provider.ConfigureContextFunc
 	return provider
@@ -293,7 +297,7 @@ func addPreviewFeatures(provider *schema.Provider) {
 	}
 }
 
-func providerConfigure(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
+func providerConfigure(ctx context.Context, provider *schema.Provider, d *schema.ResourceData) (any, diag.Diagnostics) {
 	diagnostics := setDefaultsAndValidations(d)
 	if diagnostics.HasError() {
 		return nil, diagnostics
@@ -304,6 +308,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (any, diag.D
 		PrivateKey:   d.Get("private_key").(string),
 		BaseURL:      d.Get("base_url").(string),
 		RealmBaseURL: d.Get("realm_base_url").(string),
+		UserAgent:    config.TerraformVersionUserAgentInfo(provider.TerraformVersion),
 	}
 
 	assumeRoleValue, ok := d.GetOk("assume_role")
@@ -322,9 +327,12 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (any, diag.D
 			return nil, append(diagnostics, diag.FromErr(err)...)
 		}
 	}
-	ver := tfversion.String()
-	log.Printf(ver)
-	// ctx = config.AppendToUserAgentInCtx(ctx, config.TerraformVersionUserAgentInfo(req.TerraformVersion))
+	// ver := provider.TerraformVersion
+	// log.Printf(ver)
+
+	// ver := tfversion.String()
+	// log.Printf(ver)
+	// ctx = config.AppendToUserAgentInCtx(ctx, config.TerraformVersionUserAgentInfo(ver))
 	client, err := cfg.NewClient(ctx)
 	if err != nil {
 		return nil, append(diagnostics, diag.FromErr(err)...)
