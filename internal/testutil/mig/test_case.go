@@ -17,8 +17,8 @@ func CreateTestAndRunUseExternalProvider(t *testing.T, test *resource.TestCase, 
 	resource.ParallelTest(t, CreateTestUseExternalProvider(t, test, externalProviders, additionalProviders))
 }
 
-// CreateTest returns a new TestCase that reuses step 1 and adds a TestStepCheckEmptyPlan
-// Requires: `MONGODB_ATLAS_LAST_VERSION` to be present
+// CreateTest returns a new TestCase that reuses step 1 and adds a TestStepCheckEmptyPlan.
+// Requires: `MONGODB_ATLAS_LAST_VERSION` to be present.
 func CreateTest(t *testing.T, test *resource.TestCase) resource.TestCase {
 	t.Helper()
 	validateReusableCase(t, test)
@@ -31,10 +31,10 @@ func CreateTest(t *testing.T, test *resource.TestCase) resource.TestCase {
 	return newTest
 }
 
-// CreateTestUseExternalProvider returns a new TestCase that reuses step 1 and adds a TestStepCheckEmptyPlan with the additionalProviders
-// Requires: `MONGODB_ATLAS_LAST_VERSION` to be present
-// externalProviders: e.g., ExternalProvidersWithAWS() or ExternalProviders("specific_sem_ver")
-// additionalProviders: e.g., acc.ExternalProvidersOnlyAWS(), can also be nil
+// CreateTestUseExternalProvider returns a new TestCase that reuses step 1 and adds a TestStepCheckEmptyPlan with the additionalProviders.
+// Requires: `MONGODB_ATLAS_LAST_VERSION` to be present.
+// externalProviders: e.g., ExternalProvidersWithAWS() or ExternalProviders("specific_sem_ver").
+// additionalProviders: e.g., acc.ExternalProvidersOnlyAWS(), can also be nil.
 func CreateTestUseExternalProvider(t *testing.T, test *resource.TestCase, externalProviders, additionalProviders map[string]resource.ExternalProvider) resource.TestCase {
 	t.Helper()
 	validateReusableCase(t, test)
@@ -60,7 +60,7 @@ func useExternalProvider(step *resource.TestStep, provider map[string]resource.E
 	return *step
 }
 
-// Note how we don't set ProtoV6ProviderFactories and instead specify providers on each step
+// Note how we don't set ProtoV6ProviderFactories and instead specify providers on each step.
 func reuseCase(test *resource.TestCase, steps []resource.TestStep) resource.TestCase {
 	return resource.TestCase{
 		PreCheck:     test.PreCheck,
