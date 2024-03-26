@@ -20,7 +20,9 @@ const (
 
 func TestAccBackupCompliancePolicy_basic(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid conflicts with backup comliance policy
+		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -28,7 +30,7 @@ func TestAccBackupCompliancePolicy_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID),
+				Config: configBasic(projectName, orgID, projectOwnerID),
 				Check:  resource.ComposeTestCheckFunc(checks()...),
 			},
 			{
@@ -44,7 +46,9 @@ func TestAccBackupCompliancePolicy_basic(t *testing.T) {
 
 func TestAccBackupCompliancePolicy_update(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid conflicts with backup comliance policy
+		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -52,7 +56,7 @@ func TestAccBackupCompliancePolicy_update(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithoutOptionals(projectID),
+				Config: configWithoutOptionals(projectName, orgID, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "authorized_user_first_name", "First"),
@@ -63,7 +67,7 @@ func TestAccBackupCompliancePolicy_update(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic(projectID),
+				Config: configBasic(projectName, orgID, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "authorized_user_first_name", "First"),
@@ -98,7 +102,9 @@ func TestAccBackupCompliancePolicy_overwriteBackupPolicies(t *testing.T) {
 
 func TestAccBackupCompliancePolicy_withoutRestoreWindowDays(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid conflicts with backup comliance policy
+		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -106,7 +112,7 @@ func TestAccBackupCompliancePolicy_withoutRestoreWindowDays(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithoutRestoreDays(projectID),
+				Config: configWithoutRestoreDays(projectName, orgID, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "copy_protection_enabled", "false"),
@@ -147,10 +153,10 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func configBasic(projectID string) string {
-	return fmt.Sprintf(`
+func configBasic(projectName, orgID, projectOwnerID string) string {
+	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + `	  
 	  resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
-			project_id                 = %q
+			project_id                 = mongodbatlas_project.test.id
 			authorized_email           = "test@example.com"
 			authorized_user_first_name = "First"
 			authorized_user_last_name  = "Last"
@@ -190,17 +196,13 @@ func configBasic(projectID string) string {
 				retention_value    = 12
 			}
 	  }
-
-		data "mongodbatlas_backup_compliance_policy" "backup_policy" {
-			project_id = mongodbatlas_backup_compliance_policy.backup_policy_res.project_id
-		}
-	`, projectID)
+	`
 }
 
-func configWithoutOptionals(projectID string) string {
-	return fmt.Sprintf(`
+func configWithoutOptionals(projectName, orgID, projectOwnerID string) string {
+	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + `	  
 	  resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
-			project_id                 = %q
+			project_id                 = mongodbatlas_project.test.id
 			authorized_email           = "test@example.com"
 			authorized_user_first_name = "First"
 			authorized_user_last_name  = "Last"
@@ -237,13 +239,13 @@ func configWithoutOptionals(projectID string) string {
 				retention_value    = 12
 			}
 	  }
-		`, projectID)
+	`
 }
 
-func configWithoutRestoreDays(projectID string) string {
-	return fmt.Sprintf(`
+func configWithoutRestoreDays(projectName, orgID, projectOwnerID string) string {
+	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + `	  
 	  resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
-			project_id                 = %q
+			project_id                 = mongodbatlas_project.test.id
 			authorized_email           = "test@example.com"
 			authorized_user_first_name = "First"
 			authorized_user_last_name  = "Last"
@@ -283,7 +285,7 @@ func configWithoutRestoreDays(projectID string) string {
 				retention_value    = 12
 			}
 	  }
-	`, projectID)
+	`
 }
 
 func configOverwriteIncompatibleBackupPoliciesError(projectName, orgID, projectOwnerID string) string {
