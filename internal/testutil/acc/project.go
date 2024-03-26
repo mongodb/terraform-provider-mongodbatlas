@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 func CheckDestroyProject(s *terraform.State) error {
@@ -24,52 +23,6 @@ func CheckDestroyProject(s *terraform.State) error {
 	return nil
 }
 
-func ConfigProjectWithUpdatedRole(projectName, orgID, teamID, roleName string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
-
-			teams {
-				team_id = "%s"
-				role_names = ["%s"]
-			}
-		}
-	`, projectName, orgID, teamID, roleName)
-}
-
-func ConfigProjectWithOwner(projectName, orgID, projectOwnerID string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   			 = "%[1]s"
-			org_id 			 = "%[2]s"
-		    project_owner_id = "%[3]s"
-		}
-	`, projectName, orgID, projectOwnerID)
-}
-
-func ConfigProjectGovWithOwner(projectName, orgID, projectOwnerID string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   			 = "%[1]s"
-			org_id 			 = "%[2]s"
-		    project_owner_id = "%[3]s"
-			region_usage_restrictions = "GOV_REGIONS_ONLY"
-		}
-	`, projectName, orgID, projectOwnerID)
-}
-
-func ConfigProjectWithFalseDefaultSettings(projectName, orgID, projectOwnerID string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   			 = "%[1]s"
-			org_id 			 = "%[2]s"
-			project_owner_id = "%[3]s"
-			with_default_alerts_settings = false
-		}
-	`, projectName, orgID, projectOwnerID)
-}
-
 func ConfigProjectWithSettings(projectName, orgID, projectOwnerID string, value bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
@@ -85,28 +38,6 @@ func ConfigProjectWithSettings(projectName, orgID, projectOwnerID string, value 
 			is_schema_advisor_enabled = %[4]t
 		}
 	`, projectName, orgID, projectOwnerID, value)
-}
-
-func ConfigProjectWithLimits(projectName, orgID string, limits []*admin.DataFederationLimit) string {
-	var limitsString string
-
-	for _, limit := range limits {
-		limitsString += fmt.Sprintf(`
-		limits {
-			name = "%s"
-			value = %d
-		}
-		`, limit.Name, limit.Value)
-	}
-
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   			 = "%s"
-			org_id 			 = "%s"
-
-			%s
-		}
-	`, projectName, orgID, limitsString)
 }
 
 func ImportStateProjectIDFunc(resourceName string) resource.ImportStateIdFunc {

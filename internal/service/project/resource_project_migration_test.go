@@ -107,7 +107,7 @@ func TestMigProject_withFalseDefaultSettings(t *testing.T) {
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID  = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 		projectName     = acc.RandomProjectName()
-		configWithTeams = acc.ConfigProjectWithFalseDefaultSettings(projectName, orgID, projectOwnerID)
+		configWithTeams = configWithFalseDefaultSettings(orgID, projectName, projectOwnerID)
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -141,7 +141,7 @@ func TestMigProject_withLimits(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
-		config      = acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+		config      = configWithLimits(orgID, projectName, []*admin.DataFederationLimit{
 			{
 				Name:  "atlas.project.deployment.clusters",
 				Value: 1,

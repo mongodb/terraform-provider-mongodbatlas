@@ -626,7 +626,7 @@ func TestAccProject_withProjectOwner(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectWithOwner(projectName, orgID, projectOwnerID),
+				Config: configWithOwner(orgID, projectName, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
@@ -651,7 +651,7 @@ func TestAccProjectGov_withProjectOwner(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectGovWithOwner(projectName, orgID, projectOwnerID),
+				Config: configGovWithOwner(projectName, orgID, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
@@ -674,7 +674,7 @@ func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectWithFalseDefaultSettings(projectName, orgID, projectOwnerID),
+				Config: configWithFalseDefaultSettings(orgID, projectName, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
@@ -757,7 +757,7 @@ func TestAccProject_withUpdatedRole(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectWithUpdatedRole(projectName, orgID, acc.GetProjectTeamsIDsWithPos(0), roleName),
+				Config: configWithUpdatedRole(orgID, projectName, acc.GetProjectTeamsIDsWithPos(0), roleName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -765,7 +765,7 @@ func TestAccProject_withUpdatedRole(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigProjectWithUpdatedRole(projectName, orgID, acc.GetProjectTeamsIDsWithPos(0), roleNameUpdated),
+				Config: configWithUpdatedRole(orgID, projectName, acc.GetProjectTeamsIDsWithPos(0), roleNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -852,7 +852,7 @@ func TestAccProject_withUpdatedLimits(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+				Config: configWithLimits(orgID, projectName, []*admin.DataFederationLimit{
 					{
 						Name:  "atlas.project.deployment.clusters",
 						Value: 1,
@@ -872,7 +872,7 @@ func TestAccProject_withUpdatedLimits(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+				Config: configWithLimits(orgID, projectName, []*admin.DataFederationLimit{
 					{
 						Name:  "atlas.project.deployment.nodesPerPrivateLinkRegion",
 						Value: 2,
@@ -886,7 +886,7 @@ func TestAccProject_withUpdatedLimits(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+				Config: configWithLimits(orgID, projectName, []*admin.DataFederationLimit{
 					{
 						Name:  "atlas.project.deployment.nodesPerPrivateLinkRegion",
 						Value: 3,
@@ -944,7 +944,7 @@ func TestAccProject_updatedToEmptyLimits(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+				Config: configWithLimits(orgID, projectName, []*admin.DataFederationLimit{
 					{
 						Name:  "atlas.project.deployment.clusters",
 						Value: 1,
@@ -957,7 +957,7 @@ func TestAccProject_updatedToEmptyLimits(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigProjectWithLimits(projectName, orgID, nil),
+				Config: configWithLimits(orgID, projectName, nil),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "limits.#", "0"),
 				),
@@ -978,7 +978,7 @@ func TestAccProject_withInvalidLimitName(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+				Config: configWithLimits(orgID, projectName, []*admin.DataFederationLimit{
 					{
 						Name:  "incorrect.name",
 						Value: 1,
@@ -1002,14 +1002,14 @@ func TestAccProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{}),
+				Config: configWithLimits(orgID, projectName, []*admin.DataFederationLimit{}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
 			},
 			{
-				Config: acc.ConfigProjectWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+				Config: configWithLimits(orgID, projectName, []*admin.DataFederationLimit{
 					{
 						Name:  "incorrect.name",
 						Value: 1,
@@ -1081,6 +1081,74 @@ func configBasic(orgID, projectName string, includePluralDataSource bool, teams 
 
 		%[4]s
 	`, orgID, projectName, ts, plural)
+}
+
+func configWithOwner(orgID, projectName, projectOwnerID string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id 			 = %[1]q
+			name   			 = %[2]q
+		  project_owner_id = %[3]q
+		}
+	`, orgID, projectName, projectOwnerID)
+}
+
+func configGovWithOwner(orgID, projectName, projectOwnerID string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id 			 = %[1]q
+			name   			 = %[2]q
+			project_owner_id = %[3]q
+			region_usage_restrictions = "GOV_REGIONS_ONLY"
+		}
+	`, orgID, projectName, projectOwnerID)
+}
+
+func configWithFalseDefaultSettings(orgID, projectName, projectOwnerID string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id 			 = %[1]q
+			name   			 = %[2]q
+			project_owner_id = %[3]q
+			with_default_alerts_settings = false
+		}
+	`, orgID, orgID, projectName, projectOwnerID)
+}
+
+func configWithLimits(orgID, projectName string, limits []*admin.DataFederationLimit) string {
+	var limitsString string
+
+	for _, limit := range limits {
+		limitsString += fmt.Sprintf(`
+		limits {
+			name = %[1]q
+			value = %[2]d
+		}
+		`, limit.Name, limit.Value)
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id 			 = %[1]q
+			name   			 = %[2]q
+
+			%[3]s
+		}
+	`, orgID, projectName, limitsString)
+}
+
+func configWithUpdatedRole(orgID, projectName, teamID, roleName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id = %[1]q
+			name   = %[2]q
+
+			teams {
+				team_id = %[3]q
+				role_names = [ %[4]q ]
+			}
+		}
+	`, orgID, projectName, teamID, roleName)
 }
 
 type TeamRoleResponse struct {
