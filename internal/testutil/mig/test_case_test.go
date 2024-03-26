@@ -11,6 +11,7 @@ import (
 )
 
 func TestConvertToMigration(t *testing.T) {
+	acc.SkipInUnitTest(t) // requires MONGODB_ATLAS_LAST_VERSION
 	var (
 		preCheckCalled     = false
 		checkDestroyCalled = false
