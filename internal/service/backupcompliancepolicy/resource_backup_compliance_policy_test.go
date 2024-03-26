@@ -12,9 +12,12 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-const resourceName = "mongodbatlas_backup_compliance_policy.backup_policy_res"
+const (
+	resourceName   = "mongodbatlas_backup_compliance_policy.backup_policy_res"
+	dataSourceName = "data.mongodbatlas_backup_compliance_policy.backup_policy"
+)
 
-func TestAccGenericBackupRSBackupCompliancePolicy_basic(t *testing.T) {
+func TestAccBackupCompliancePolicy_basic(t *testing.T) {
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
@@ -35,13 +38,20 @@ func TestAccGenericBackupRSBackupCompliancePolicy_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "authorized_user_first_name", "First"),
 					resource.TestCheckResourceAttr(resourceName, "authorized_user_last_name", "Last"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "7"),
+
+					checkExists(dataSourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "copy_protection_enabled", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "encryption_at_rest_enabled", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "authorized_user_first_name", "First"),
+					resource.TestCheckResourceAttr(dataSourceName, "authorized_user_last_name", "Last"),
+					resource.TestCheckResourceAttr(dataSourceName, "restore_window_days", "7"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccGenericBackupRSBackupCompliancePolicy_withFirstLastName(t *testing.T) {
+func TestAccBackupCompliancePolicy_withFirstLastName(t *testing.T) {
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
@@ -65,7 +75,7 @@ func TestAccGenericBackupRSBackupCompliancePolicy_withFirstLastName(t *testing.T
 	})
 }
 
-func TestAccGenericBackupRSBackupCompliancePolicy_withoutOptionals(t *testing.T) {
+func TestAccBackupCompliancePolicy_withoutOptionals(t *testing.T) {
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
@@ -92,7 +102,7 @@ func TestAccGenericBackupRSBackupCompliancePolicy_withoutOptionals(t *testing.T)
 	})
 }
 
-func TestAccGenericBackupRSBackupCompliancePolicy_withoutRestoreWindowDays(t *testing.T) {
+func TestAccBackupCompliancePolicy_withoutRestoreWindowDays(t *testing.T) {
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
@@ -116,7 +126,7 @@ func TestAccGenericBackupRSBackupCompliancePolicy_withoutRestoreWindowDays(t *te
 	})
 }
 
-func TestAccGenericBackupRSBackupCompliancePolicy_importBasic(t *testing.T) {
+func TestAccBackupCompliancePolicy_importBasic(t *testing.T) {
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
@@ -233,6 +243,10 @@ func configBasic(projectName, orgID, projectOwnerID string) string {
 				retention_value    = 12
 			}
 	  }
+
+		data "mongodbatlas_backup_compliance_policy" "backup_policy" {
+			project_id = mongodbatlas_backup_compliance_policy.backup_policy_res.project_id
+		}
 	`
 }
 
