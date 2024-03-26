@@ -255,7 +255,7 @@ You must also configure the following environment variables before running the t
 
 #### Replaying HTTP requests with hoverfly
 
-Some resources allow recording and replaying http requests using hoverfly when running tests. This is currently only configured for alert configuration resource acceptance tests.
+Some resources allow recording and replaying http requests using hoverfly when running tests (e.g. alert_configuration acceptance tests). You will be able to identify this if the test calls `replay.SetupReplayProxy(t)`.
 
 - For capturing http traffic of an execution you have to configure the environment variable `REPLAY_MODE=capture`. Captured request/responses will be present in the directory `./simulations`.
 - For replaying http traffic of an execution you have to configure the environment variable `REPLAY_MODE=simulate` which will use files present in the simulation directory.
