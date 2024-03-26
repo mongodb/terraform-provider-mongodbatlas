@@ -16,11 +16,11 @@ type ExecutionVariables struct {
 }
 
 // ManageProjectID is a function that will store the generated project id during capture mode,
-// and in case of simulate mode will simple fetch the project id defined in execution variables file
-func ManageProjectID(t *testing.T, projectIDProvider func() string) string {
+// and in case of simulate mode will simple fetch the project id defined in execution variables file.
+func ManageProjectID(t *testing.T, projectIDProvider func(t testing.TB) string) string {
 	t.Helper()
 	if IsInCaptureMode() {
-		id := projectIDProvider()
+		id := projectIDProvider(t)
 		serializeValueToEnvFile(t, id)
 		return id
 	}
@@ -34,7 +34,7 @@ func ManageProjectID(t *testing.T, projectIDProvider func() string) string {
 	}
 
 	// case where no replay mode is configured
-	return projectIDProvider()
+	return projectIDProvider(t)
 }
 
 func serializeValueToEnvFile(t *testing.T, projectID string) {
