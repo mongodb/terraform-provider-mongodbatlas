@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/atlas-sdk/v20231115008/admin"
@@ -65,11 +66,11 @@ func clusterReq(name, projectID string) admin.AdvancedClusterDescription {
 			{
 				RegionConfigs: &[]admin.CloudRegionConfig{
 					{
-						ProviderName: admin.PtrString("AWS"),
-						RegionName:   admin.PtrString("US_WEST_2"),
+						ProviderName: admin.PtrString(constant.AWS),
+						RegionName:   admin.PtrString(constant.UsWest2),
 						Priority:     admin.PtrInt(7),
 						ElectableSpecs: &admin.HardwareSpec{
-							InstanceSize: admin.PtrString("M10"),
+							InstanceSize: admin.PtrString(constant.M10),
 							NodeCount:    admin.PtrInt(3),
 						},
 					},
