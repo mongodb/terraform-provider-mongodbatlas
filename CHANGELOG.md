@@ -4,10 +4,6 @@
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.15.2...v1.15.3)
 
-**Enhancements**
-
-- feat: Allows user to specify to use an existing tag for release [\#2053](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2053) ([maastha](https://github.com/maastha))
-
 **Bug Fixes**
 
 - fix: Fixes `network_container` resource update [\#2055](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2055) ([lantoli](https://github.com/lantoli))
@@ -15,6 +11,7 @@
 
 **Internal Improvements**
 
+- chore: Allows user to specify to use an existing tag for release [\#2053](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2053) ([maastha](https://github.com/maastha))
 - chore: Fixes Slack notification button to GH action run text [\#2093](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2093) ([oarbusi](https://github.com/oarbusi))
 - doc: Fixes import command in `mongodbatlas_third_party_integration` doc [\#2083](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2083) ([zach-carr](https://github.com/zach-carr))
 - chore: Reuses project in tests - `mongodbatlas_auditing` [\#2082](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2082) ([lantoli](https://github.com/lantoli))
