@@ -4,6 +4,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+const AwsProviderVersion = "5.1.0"
+
 func ExternalProviders(versionAtlasProvider string) map[string]resource.ExternalProvider {
 	return map[string]resource.ExternalProvider{
 		"mongodbatlas": *providerAtlas(versionAtlasProvider),
@@ -32,7 +34,7 @@ func providerAtlas(versionAtlasProvider string) *resource.ExternalProvider {
 
 func providerAWS() *resource.ExternalProvider {
 	return &resource.ExternalProvider{
-		VersionConstraint: "5.1.0",
+		VersionConstraint: AwsProviderVersion,
 		Source:            "hashicorp/aws",
 	}
 }
