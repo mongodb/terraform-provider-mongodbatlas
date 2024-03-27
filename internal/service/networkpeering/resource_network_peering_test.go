@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -25,10 +24,6 @@ var (
 
 func TestAccNetworkNetworkPeering_basicAWS(t *testing.T) {
 	resource.ParallelTest(t, *basicAWSTestCase(t))
-}
-
-func TestMigNetworkNetworkPeering_basicAWS(t *testing.T) {
-	mig.CreateAndRunTest(t, basicAWSTestCase(t))
 }
 
 func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
