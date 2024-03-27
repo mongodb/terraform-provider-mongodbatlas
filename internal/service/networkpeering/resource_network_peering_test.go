@@ -119,7 +119,7 @@ func TestAccNetworkRSNetworkPeering_AWSDifferentRegionName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
-			acc.PreCheck(t)
+			acc.PreCheckBasic(t)
 			acc.PreCheckPeeringEnvAWS(t)
 			func() {
 				if strings.EqualFold(containerRegion, peerRegion) {
