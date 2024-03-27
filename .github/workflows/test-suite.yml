@@ -112,7 +112,7 @@ jobs:
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": ":github: $action_text"
+                            "text": ":github: Failed action"
                         },
                         "url": "${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
                     }
