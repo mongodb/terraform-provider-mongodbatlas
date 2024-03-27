@@ -12,33 +12,7 @@ import (
 )
 
 func TestAccSearchIndex_basic(t *testing.T) {
-	var (
-		clusterInfo     = acc.GetClusterInfo(t, nil)
-		indexName       = acc.RandomName()
-		databaseName    = acc.RandomName()
-		indexType       = ""
-		mappingsDynamic = "true"
-	)
-	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroySearchIndex,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
-				Check:  resource.ComposeTestCheckFunc(checks...),
-			},
-			{
-				Config:            configBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
+	resource.ParallelTest(t, *basicTestCase(t))
 }
 
 func TestAccSearchIndex_withSearchType(t *testing.T) {
@@ -208,8 +182,44 @@ func TestAccSearchIndex_updatedToEmptyMappingsFields(t *testing.T) {
 }
 
 func TestAccSearchIndex_withVector(t *testing.T) {
+	resource.ParallelTest(t, *basicVectorTestCase(t))
+}
+
+func basicTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
 	var (
-		clusterInfo  = acc.GetClusterInfo(t, nil)
+		clusterInfo     = acc.GetClusterInfo(tb, nil)
+		indexName       = acc.RandomName()
+		databaseName    = acc.RandomName()
+		indexType       = ""
+		mappingsDynamic = "true"
+	)
+	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterInfo)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
+				Check:  resource.ComposeTestCheckFunc(checks...),
+			},
+			{
+				Config:            configBasic(clusterInfo.ProjectIDStr, indexName, databaseName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr, false),
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	}
+}
+
+func basicVectorTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+	var (
+		clusterInfo  = acc.GetClusterInfo(tb, nil)
 		indexName    = acc.RandomName()
 		indexType    = "vectorSearch"
 		databaseName = acc.RandomName()
@@ -225,8 +235,9 @@ func TestAccSearchIndex_withVector(t *testing.T) {
 	checks = acc.AddAttrSetChecks(resourceName, checks, "project_id")
 	checks = acc.AddAttrSetChecks(datasourceName, checks, "project_id", "index_id")
 	checks = append(checks, resource.TestCheckResourceAttrWith(datasourceName, "fields", acc.JSONEquals(fieldsJSON)))
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
@@ -235,8 +246,9 @@ func TestAccSearchIndex_withVector(t *testing.T) {
 				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 		},
-	})
+	}
 }
+
 func commonChecks(indexName, indexType, mappingsDynamic, databaseName string, clusterInfo acc.ClusterInfo) []resource.TestCheckFunc {
 	attributes := map[string]string{
 		"name":             indexName,
