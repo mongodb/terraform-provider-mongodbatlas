@@ -13,7 +13,7 @@ import (
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJobsRead,
+		ReadContext: dataSourcePluralRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -110,7 +110,7 @@ func PluralDataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJobsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	requestParameters := &matlas.SnapshotReqPathParameters{

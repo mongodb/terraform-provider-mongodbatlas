@@ -237,8 +237,7 @@ func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 
 func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
+		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
 	)
 
@@ -248,7 +247,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configCopySettings(orgID, projectName, clusterName, &admin.DiskBackupSnapshotSchedule{
+				Config: configCopySettings(projectID, clusterName, &admin.DiskBackupSnapshotSchedule{
 					ReferenceHourOfDay:    conversion.Pointer(3),
 					ReferenceMinuteOfHour: conversion.Pointer(45),
 					RestoreWindowDays:     conversion.Pointer(1),
@@ -480,15 +479,11 @@ func configDefault(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule) s
 	`, info.ClusterNameStr, info.ProjectIDStr, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
-func configCopySettings(orgID, projectName, clusterName string, p *admin.DiskBackupSnapshotSchedule) string {
+func configCopySettings(projectID, clusterName string, p *admin.DiskBackupSnapshotSchedule) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "backup_project" {
-			org_id = %[1]q
-			name   = %[2]q
-		}
 		resource "mongodbatlas_cluster" "my_cluster" {
-			project_id   = mongodbatlas_project.backup_project.id
-			name         = %[3]q
+			project_id   = %[1]q
+			name         = %[2]q
 			
 			cluster_type = "REPLICASET"
 						replication_specs {
@@ -509,12 +504,12 @@ func configCopySettings(orgID, projectName, clusterName string, p *admin.DiskBac
 		}
 		
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
-			cluster_name     = %[3]q
-			project_id       = mongodbatlas_project.backup_project.id
+			project_id   = %[1]q
+			cluster_name     = %[2]q
 
-			reference_hour_of_day    = %[4]d
-			reference_minute_of_hour = %[5]d
-			restore_window_days      = %[6]d
+			reference_hour_of_day    = %[3]d
+			reference_minute_of_hour = %[4]d
+			restore_window_days      = %[5]d
 
 			policy_item_hourly {
 				frequency_interval = 1
@@ -548,7 +543,7 @@ func configCopySettings(orgID, projectName, clusterName string, p *admin.DiskBac
 				should_copy_oplogs = true
 			}
 		}
-	`, orgID, projectName, clusterName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
+	`, projectID, clusterName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
 func configOnePolicy(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule) string {

@@ -18,11 +18,11 @@ import (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasCloudBackupSnapshotRestoreJobCreate,
-		ReadContext:   resourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead,
-		DeleteContext: resourceMongoDBAtlasCloudBackupSnapshotRestoreJobDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasCloudBackupSnapshotRestoreJobImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -129,7 +129,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 
@@ -156,10 +156,10 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobCreate(ctx context.Context
 		"snapshot_restore_job_id": cloudProviderSnapshotRestoreJob.ID,
 	}))
 
-	return resourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
@@ -215,7 +215,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead(ctx context.Context, 
 	return nil
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
 
@@ -248,7 +248,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobDelete(ctx context.Context
 	return nil
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	projectID, clusterName, snapshotJobID, err := splitSnapshotRestoreJobImportID(d.Id())
