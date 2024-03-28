@@ -13,17 +13,15 @@ import (
 
 func TestMigLDAPVerify_basic(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		hostname    = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
-		username    = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
-		password    = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
-		port        = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
-		projectName = acc.RandomProjectName()
-		clusterName = acc.RandomClusterName()
-		config      = configBasic(projectName, orgID, clusterName, hostname, username, password, cast.ToInt(port))
+		hostname     = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
+		username     = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
+		password     = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
+		port         = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
+		projectID, _ = acc.ClusterNameExecution(t)
+		config       = configBasic(projectID, hostname, username, password, cast.ToInt(port))
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() { mig.PreCheckLDAP(t) },
 		Steps: []resource.TestStep{
 			{
