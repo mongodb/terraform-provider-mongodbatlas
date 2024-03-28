@@ -163,7 +163,7 @@ func configBasic(projectID, hostname, username, password string, port int) strin
 func configWithConfiguration(projectID, hostname, username, password, caCertificate string, port int, authEnabled bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_ldap_verify" "test" {
-			project_id                  = mongodbatlas_project.test.id
+			project_id                  = %[1]q
 			hostname = %[2]q
 			port                     = %[5]d
 			bind_username                     = %[3]q
