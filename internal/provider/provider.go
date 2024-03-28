@@ -231,6 +231,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		PrivateKey:   data.PrivateKey.ValueString(),
 		BaseURL:      data.BaseURL.ValueString(),
 		RealmBaseURL: data.RealmBaseURL.ValueString(),
+		UserAgent:    config.TerraformVersionUserAgentInfo(req.TerraformVersion),
 		ProxyPort:    p.proxyPort,
 	}
 

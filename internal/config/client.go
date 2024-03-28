@@ -6,17 +6,20 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
-	"github.com/mongodb-forks/digest"
-	"github.com/mongodb/terraform-provider-mongodbatlas/version"
-	"github.com/spf13/cast"
 	admin20231001002 "go.mongodb.org/atlas-sdk/v20231001002/admin"
 	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
+	"github.com/mongodb-forks/digest"
+	"github.com/spf13/cast"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
 const (
@@ -24,7 +27,7 @@ const (
 )
 
 var (
-	userAgent = fmt.Sprintf("%s/%s", toolName, version.ProviderVersion)
+	userAgentProviderVersion = fmt.Sprintf("%s/%s", toolName, version.ProviderVersion)
 )
 
 // MongoDBClient contains the mongodbatlas clients and configurations
@@ -43,6 +46,7 @@ type Config struct {
 	PrivateKey   string
 	BaseURL      string
 	RealmBaseURL string
+	UserAgent    string
 }
 
 type AssumeRole struct {
@@ -83,7 +87,9 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 
 	client.Transport = logging.NewTransport("MongoDB Atlas", transport)
 
-	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent)}
+	c.appendToUserAgent(userAgentProviderVersion)
+
+	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(c.UserAgent)}
 	if c.BaseURL != "" {
 		optsAtlas = append(optsAtlas, matlasClient.SetBaseURL(c.BaseURL))
 	}
@@ -116,7 +122,7 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 func (c *Config) newSDKV2Client(client *http.Client) (*admin.APIClient, error) {
 	opts := []admin.ClientModifier{
 		admin.UseHTTPClient(client),
-		admin.UseUserAgent(userAgent),
+		admin.UseUserAgent(c.UserAgent),
 		admin.UseBaseURL(c.BaseURL),
 		admin.UseDebug(false)}
 
@@ -132,7 +138,7 @@ func (c *Config) newSDKV2Client(client *http.Client) (*admin.APIClient, error) {
 func (c *Config) newSDK20231001002Client(client *http.Client) (*admin20231001002.APIClient, error) {
 	opts := []admin20231001002.ClientModifier{
 		admin20231001002.UseHTTPClient(client),
-		admin20231001002.UseUserAgent(userAgent),
+		admin20231001002.UseUserAgent(c.UserAgent),
 		admin20231001002.UseBaseURL(c.BaseURL),
 		admin20231001002.UseDebug(false)}
 
@@ -151,7 +157,9 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 		return nil, errors.New("please set `public_key` and `private_key` in order to use the realm client")
 	}
 
-	optsRealm := []realm.ClientOpt{realm.SetUserAgent(userAgent)}
+	c.Config.appendToUserAgent(userAgentProviderVersion)
+	optsRealm := []realm.ClientOpt{realm.SetUserAgent(c.Config.UserAgent)}
+
 	authConfig := realmAuth.NewConfig(nil)
 	if c.Config.BaseURL != "" && c.Config.RealmBaseURL != "" {
 		adminURL := c.Config.RealmBaseURL + "api/admin/v3.0/"
@@ -174,4 +182,19 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 	}
 
 	return realmClient, nil
+}
+
+func (c *Config) appendToUserAgent(additionalInfo string) {
+	currentUA := c.UserAgent
+	if !strings.Contains(currentUA, additionalInfo) {
+		if currentUA != "" {
+			currentUA += " "
+		}
+		currentUA += additionalInfo
+	}
+	c.UserAgent = currentUA
+}
+
+func TerraformVersionUserAgentInfo(tfVersion string) string {
+	return fmt.Sprintf("Terraform/%s", tfVersion)
 }
