@@ -75,9 +75,9 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 
 func TestAccStreamRSStreamConnection_cluster(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_stream_connection.test"
-		clusterInfo  = acc.GetClusterInfo(t, nil)
-		instanceName = acc.RandomName()
+		resourceName           = "mongodbatlas_stream_connection.test"
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		instanceName           = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckPreviewFlag(t); acc.PreCheckBasic(t) },
@@ -85,8 +85,8 @@ func TestAccStreamRSStreamConnection_cluster(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: clusterStreamConnectionConfig(clusterInfo.ProjectIDStr, instanceName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr),
-				Check:  clusterStreamConnectionAttributeChecks(resourceName, clusterInfo.ClusterName),
+				Config: clusterStreamConnectionConfig(projectID, instanceName, clusterName),
+				Check:  clusterStreamConnectionAttributeChecks(resourceName, clusterName),
 			},
 			{
 				ResourceName:      resourceName,
@@ -216,11 +216,10 @@ func kafkaStreamConnectionAttributeChecks(
 	return resource.ComposeTestCheckFunc(resourceChecks...)
 }
 
-func clusterStreamConnectionConfig(projectIDStr, instanceName, clusterNameStr, clusterTerraformStr string) string {
-	return clusterTerraformStr + fmt.Sprintf(`
-		
+func clusterStreamConnectionConfig(projectID, instanceName, clusterName string) string {
+	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_instance" "test" {
-			project_id = %[1]s
+			project_id = %[1]q
 			instance_name = %[2]q
 			data_process_region = {
 				region = "VIRGINIA_USA"
@@ -233,13 +232,13 @@ func clusterStreamConnectionConfig(projectIDStr, instanceName, clusterNameStr, c
 			instance_name = mongodbatlas_stream_instance.test.instance_name
 		 	connection_name = "ConnectionNameKafka"
 		 	type = "Cluster"
-		 	cluster_name = %[3]s
+		 	cluster_name = %[3]q
 			db_role_to_execute = {
 				role = "atlasAdmin"
 				type = "BUILT_IN"
 			}
 		}
-	`, projectIDStr, instanceName, clusterNameStr)
+	`, projectID, instanceName, clusterName)
 }
 
 func clusterStreamConnectionAttributeChecks(resourceName, clusterName string) resource.TestCheckFunc {

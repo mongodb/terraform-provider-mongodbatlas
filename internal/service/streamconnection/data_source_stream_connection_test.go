@@ -51,9 +51,9 @@ func TestAccStreamDSStreamConnection_kafkaSSL(t *testing.T) {
 
 func TestAccStreamDSStreamConnection_cluster(t *testing.T) {
 	var (
-		dataSourceName = "data.mongodbatlas_stream_connection.test"
-		clusterInfo    = acc.GetClusterInfo(t, nil)
-		instanceName   = acc.RandomName()
+		dataSourceName         = "data.mongodbatlas_stream_connection.test"
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		instanceName           = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckPreviewFlag(t); acc.PreCheckBasic(t) },
@@ -61,8 +61,8 @@ func TestAccStreamDSStreamConnection_cluster(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: streamConnectionDataSourceConfig(clusterStreamConnectionConfig(clusterInfo.ProjectIDStr, instanceName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr)),
-				Check:  clusterStreamConnectionAttributeChecks(dataSourceName, clusterInfo.ClusterName),
+				Config: streamConnectionDataSourceConfig(clusterStreamConnectionConfig(projectID, instanceName, clusterName)),
+				Check:  clusterStreamConnectionAttributeChecks(dataSourceName, clusterName),
 			},
 		},
 	})

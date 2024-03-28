@@ -77,9 +77,9 @@ func TestMigStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 
 func TestMigStreamRSStreamConnection_cluster(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_stream_connection.test"
-		clusterInfo  = acc.GetClusterInfo(t, nil)
-		instanceName = acc.RandomName()
+		resourceName           = "mongodbatlas_stream_connection.test"
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		instanceName           = acc.RandomName()
 	)
 	mig.SkipIfVersionBelow(t, "1.15.2")
 
@@ -89,12 +89,12 @@ func TestMigStreamRSStreamConnection_cluster(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            clusterStreamConnectionConfig(clusterInfo.ProjectIDStr, instanceName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr),
-				Check:             clusterStreamConnectionAttributeChecks(resourceName, clusterInfo.ClusterName),
+				Config:            clusterStreamConnectionConfig(projectID, instanceName, clusterName),
+				Check:             clusterStreamConnectionAttributeChecks(resourceName, clusterName),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   clusterStreamConnectionConfig(clusterInfo.ProjectIDStr, instanceName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr),
+				Config:                   clusterStreamConnectionConfig(projectID, instanceName, clusterName),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
