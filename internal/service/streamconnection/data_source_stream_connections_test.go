@@ -2,7 +2,6 @@ package streamconnection_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -13,8 +12,7 @@ import (
 func TestAccStreamDSStreamConnections_basic(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_stream_connections.test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
+		projectID      = acc.ProjectIDExecution(t)
 		instanceName   = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -23,7 +21,7 @@ func TestAccStreamDSStreamConnections_basic(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: streamConnectionsDataSourceConfig(kafkaStreamConnectionConfig(orgID, projectName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false)),
+				Config: streamConnectionsDataSourceConfig(kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false)),
 				Check:  streamConnectionsAttributeChecks(dataSourceName, nil, nil, 1),
 			},
 		},
@@ -33,8 +31,7 @@ func TestAccStreamDSStreamConnections_basic(t *testing.T) {
 func TestAccStreamDSStreamConnections_withPageConfig(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_stream_connections.test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
+		projectID      = acc.ProjectIDExecution(t)
 		instanceName   = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -43,7 +40,7 @@ func TestAccStreamDSStreamConnections_withPageConfig(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: streamConnectionsWithPageAttrDataSourceConfig(kafkaStreamConnectionConfig(orgID, projectName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false)),
+				Config: streamConnectionsWithPageAttrDataSourceConfig(kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false)),
 				Check:  streamConnectionsAttributeChecks(dataSourceName, admin.PtrInt(2), admin.PtrInt(1), 0),
 			},
 		},
