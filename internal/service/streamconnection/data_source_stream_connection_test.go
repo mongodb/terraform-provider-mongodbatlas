@@ -2,7 +2,6 @@ package streamconnection_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -12,8 +11,7 @@ import (
 func TestAccStreamDSStreamConnection_kafkaPlaintext(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_stream_connection.test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
+		projectID      = acc.ProjectIDExecution(t)
 		instanceName   = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -22,8 +20,8 @@ func TestAccStreamDSStreamConnection_kafkaPlaintext(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: streamConnectionDataSourceConfig(kafkaStreamConnectionConfig(orgID, projectName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false)),
-				Check:  kafkaStreamConnectionAttributeChecks(dataSourceName, orgID, projectName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false, false),
+				Config: streamConnectionDataSourceConfig(kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false)),
+				Check:  kafkaStreamConnectionAttributeChecks(dataSourceName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false, false),
 			},
 		},
 	})
@@ -31,8 +29,7 @@ func TestAccStreamDSStreamConnection_kafkaPlaintext(t *testing.T) {
 
 func TestAccStreamDSStreamConnection_kafkaSSL(t *testing.T) {
 	var (
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
+		projectID      = acc.ProjectIDExecution(t)
 		instanceName   = acc.RandomName()
 		dataSourceName = "data.mongodbatlas_stream_connection.test"
 	)
@@ -42,8 +39,8 @@ func TestAccStreamDSStreamConnection_kafkaSSL(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: streamConnectionDataSourceConfig(kafkaStreamConnectionConfig(orgID, projectName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true)),
-				Check:  kafkaStreamConnectionAttributeChecks(dataSourceName, orgID, projectName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true, false),
+				Config: streamConnectionDataSourceConfig(kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true)),
+				Check:  kafkaStreamConnectionAttributeChecks(dataSourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true, false),
 			},
 		},
 	})
@@ -71,8 +68,7 @@ func TestAccStreamDSStreamConnection_cluster(t *testing.T) {
 func TestAccStreamDSStreamConnection_sample(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_stream_connection.test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
+		projectID      = acc.ProjectIDExecution(t)
 		instanceName   = acc.RandomName()
 		sampleName     = "sample_stream_solar"
 	)
@@ -82,7 +78,7 @@ func TestAccStreamDSStreamConnection_sample(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: streamConnectionDataSourceConfig(sampleStreamConnectionConfig(orgID, projectName, instanceName, sampleName)),
+				Config: streamConnectionDataSourceConfig(sampleStreamConnectionConfig(projectID, instanceName, sampleName)),
 				Check:  sampleStreamConnectionAttributeChecks(dataSourceName, instanceName, sampleName),
 			},
 		},

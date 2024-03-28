@@ -3,7 +3,6 @@ package streaminstance_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -14,8 +13,7 @@ import (
 func TestAccStreamRSStreamInstance_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_stream_instance.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
+		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -24,7 +22,7 @@ func TestAccStreamRSStreamInstance_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.StreamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider), // as of now there are no values that can be updated because only one region is supported
+				Config: acc.StreamInstanceConfig(projectID, instanceName, region, cloudProvider), // as of now there are no values that can be updated because only one region is supported
 				Check: resource.ComposeTestCheckFunc(
 					streamInstanceAttributeChecks(resourceName, instanceName, region, cloudProvider),
 					resource.TestCheckResourceAttr(resourceName, "stream_config.tier", "SP30"),
@@ -43,8 +41,7 @@ func TestAccStreamRSStreamInstance_basic(t *testing.T) {
 func TestAccStreamRSStreamInstance_withStreamConfig(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_stream_instance.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
+		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -53,7 +50,7 @@ func TestAccStreamRSStreamInstance_withStreamConfig(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.StreamInstanceWithStreamConfigConfig(orgID, projectName, instanceName, region, cloudProvider), // as of now there are no values that can be updated because only one region is supported
+				Config: acc.StreamInstanceWithStreamConfigConfig(projectID, instanceName, region, cloudProvider), // as of now there are no values that can be updated because only one region is supported
 				Check: resource.ComposeTestCheckFunc(
 					streamInstanceAttributeChecks(resourceName, instanceName, region, cloudProvider),
 					resource.TestCheckResourceAttr(resourceName, "stream_config.tier", "SP30"),

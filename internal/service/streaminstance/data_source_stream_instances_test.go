@@ -2,7 +2,6 @@ package streaminstance_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -13,8 +12,7 @@ import (
 func TestAccStreamDSStreamInstances_basic(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_stream_instances.test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
+		projectID      = acc.ProjectIDExecution(t)
 		instanceName   = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -23,7 +21,7 @@ func TestAccStreamDSStreamInstances_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
 			{
-				Config: streamInstancesDataSourceConfig(orgID, projectName, instanceName, region, cloudProvider),
+				Config: streamInstancesDataSourceConfig(projectID, instanceName, region, cloudProvider),
 				Check:  streamInstancesAttributeChecks(dataSourceName, nil, nil, 1),
 			},
 		},
@@ -33,8 +31,7 @@ func TestAccStreamDSStreamInstances_basic(t *testing.T) {
 func TestAccStreamDSStreamInstances_withPageConfig(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_stream_instances.test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
+		projectID      = acc.ProjectIDExecution(t)
 		instanceName   = acc.RandomName()
 	)
 
@@ -44,24 +41,24 @@ func TestAccStreamDSStreamInstances_withPageConfig(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
 			{
-				Config: streamInstancesWithPageAttrDataSourceConfig(orgID, projectName, instanceName, region, cloudProvider),
+				Config: streamInstancesWithPageAttrDataSourceConfig(projectID, instanceName, region, cloudProvider),
 				Check:  streamInstancesAttributeChecks(dataSourceName, admin.PtrInt(2), admin.PtrInt(1), 0),
 			},
 		},
 	})
 }
 
-func streamInstancesDataSourceConfig(orgID, projectName, instanceName, region, cloudProvider string) string {
+func streamInstancesDataSourceConfig(projectID, instanceName, region, cloudProvider string) string {
 	return fmt.Sprintf(`
 		%s
 
 		data "mongodbatlas_stream_instances" "test" {
 			project_id = mongodbatlas_stream_instance.test.project_id
 		}
-	`, acc.StreamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider))
+	`, acc.StreamInstanceConfig(projectID, instanceName, region, cloudProvider))
 }
 
-func streamInstancesWithPageAttrDataSourceConfig(orgID, projectName, instanceName, region, cloudProvider string) string {
+func streamInstancesWithPageAttrDataSourceConfig(projectID, instanceName, region, cloudProvider string) string {
 	return fmt.Sprintf(`
 		%s
 
@@ -70,7 +67,7 @@ func streamInstancesWithPageAttrDataSourceConfig(orgID, projectName, instanceNam
 			page_num = 2
 			items_per_page = 1
 		}
-	`, acc.StreamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider))
+	`, acc.StreamInstanceConfig(projectID, instanceName, region, cloudProvider))
 }
 
 func streamInstancesAttributeChecks(resourceName string, pageNum, itemsPerPage *int, totalCount int) resource.TestCheckFunc {

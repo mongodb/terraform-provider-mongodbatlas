@@ -1,7 +1,6 @@
 package streaminstance_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -13,9 +12,8 @@ import (
 
 func TestMigStreamRSStreamInstance_basic(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		resourceName = "mongodbatlas_stream_instance.test"
-		projectName  = acc.RandomProjectName()
+		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomName()
 	)
 	mig.SkipIfVersionBelow(t, "1.14.0")
@@ -26,12 +24,12 @@ func TestMigStreamRSStreamInstance_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            acc.StreamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider),
+				Config:            acc.StreamInstanceConfig(projectID, instanceName, region, cloudProvider),
 				Check:             streamInstanceAttributeChecks(resourceName, instanceName, region, cloudProvider),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   acc.StreamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider),
+				Config:                   acc.StreamInstanceConfig(projectID, instanceName, region, cloudProvider),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
