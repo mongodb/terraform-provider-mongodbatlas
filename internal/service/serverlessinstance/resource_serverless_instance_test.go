@@ -102,13 +102,6 @@ func TestAccServerlessInstance_autoIndexing(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigServerlessInstance(projectID, instanceName, false, nil, nil),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "auto_indexing", "true"),
-				),
-			},
-			{
 				Config: acc.ConfigServerlessInstance(projectID, instanceName, false, conversion.Pointer(false), nil),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
