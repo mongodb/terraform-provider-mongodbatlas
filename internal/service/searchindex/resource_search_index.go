@@ -575,10 +575,10 @@ func unmarshalSearchIndexAnalyzersFields(str string) ([]admin.ApiAtlasFTSAnalyze
 func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID, indexID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		searchIndex, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
-		status := conversion.SafeString(searchIndex.Status)
 		if err != nil {
 			return nil, "ERROR", err
 		}
+		status := conversion.SafeString(searchIndex.Status)
 		return searchIndex, status, nil
 	}
 }
