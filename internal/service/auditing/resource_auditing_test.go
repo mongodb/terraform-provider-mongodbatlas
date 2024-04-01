@@ -106,7 +106,7 @@ func checks(auditFilter string, auditAuth, enabled bool) []resource.TestCheckFun
 	commonChecks := map[string]string{
 		"audit_filter":                auditFilter,
 		"audit_authorization_success": strconv.FormatBool(auditAuth),
-		"enabled":                     strconv.FormatBool(auditAuth),
+		"enabled":                     strconv.FormatBool(enabled),
 		"configuration_type":          "FILTER_JSON",
 	}
 	checks := acc.AddAttrChecks(resourceName, nil, commonChecks)
