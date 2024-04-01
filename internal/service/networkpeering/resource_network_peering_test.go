@@ -110,7 +110,7 @@ func TestAccNetworkRSNetworkPeering_AWSDifferentRegionName(t *testing.T) {
 		awsAccountID    = os.Getenv("AWS_ACCOUNT_ID")
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		containerRegion = "US_WEST_2"
-		peerRegion      = strings.ToLower(strings.ReplaceAll(os.Getenv("AWS_REGION"), "_", "-"))
+		peerRegion      = conversion.MongoDBRegionToAWSRegion(os.Getenv("AWS_REGION"))
 		providerName    = "AWS"
 		projectName     = acc.RandomProjectName()
 	)
@@ -152,7 +152,7 @@ func basicAWSTestCase(tb testing.TB) *resource.TestCase {
 		vpcCIDRBlock    = os.Getenv("AWS_VPC_CIDR_BLOCK")
 		awsAccountID    = os.Getenv("AWS_ACCOUNT_ID")
 		containerRegion = os.Getenv("AWS_REGION")
-		peerRegion      = strings.ToLower(strings.ReplaceAll(containerRegion, "_", "-"))
+		peerRegion      = conversion.MongoDBRegionToAWSRegion(containerRegion)
 		providerName    = "AWS"
 		projectName     = acc.RandomProjectName()
 	)
@@ -184,14 +184,14 @@ func commonChecksAWS(vpcID, providerName, awsAccountID, vpcCIDRBlock, regionPeer
 		"provider_name":          providerName,
 		"aws_account_id":         awsAccountID,
 		"route_table_cidr_block": vpcCIDRBlock,
+		"accepter_region_name":   regionPeer,
 	}
 	checks := []resource.TestCheckFunc{checkExists(resourceName, &matlas.Peer{})}
 	checks = acc.AddAttrChecks(resourceName, checks, attributes)
-	checks = append(checks, resource.TestCheckResourceAttr(resourceName, "accepter_region_name", regionPeer))
 	checks = acc.AddAttrChecks(dataSourceName, checks, attributes)
 	checks = acc.AddAttrSetChecks(resourceName, checks, "project_id", "container_id")
 	checks = acc.AddAttrSetChecks(dataSourceName, checks, "project_id", "container_id")
-	checks = acc.AddAttrSetChecks(pluralDataSourceName, checks, "results.#", "results.0.provider_name", "results.0.vpc_id", "results.0.aws_account_id")
+	checks = acc.AddAttrSetChecks(pluralDataSourceName, checks, "results.#", "results.0.provider_name", "results.0.vpc_id", "results.0.aws_account_id", "results.0.accepter_region_name")
 	return checks
 }
 
