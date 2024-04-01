@@ -22,30 +22,6 @@ func TestAccServerlessInstance_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t, acc.ProjectIDExecution(t)))
 }
 
-func TestAccServerlessInstance_autoIndexing(t *testing.T) {
-	var (
-		projectID    = acc.ProjectIDExecution(t)
-		instanceName = acc.RandomClusterName()
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: acc.ConfigServerlessInstance(projectID, instanceName, false, nil),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "auto_indexing", "false"),
-					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "0"),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.tags.#", "0"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccServerlessInstance_withTags(t *testing.T) {
 	var (
 		projectID    = acc.ProjectIDExecution(t)
@@ -57,7 +33,7 @@ func TestAccServerlessInstance_withTags(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigServerlessInstance(projectID, instanceName, false, nil),
+				Config: acc.ConfigServerlessInstance(projectID, instanceName, false, nil, nil),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", instanceName),
@@ -67,7 +43,7 @@ func TestAccServerlessInstance_withTags(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigServerlessInstance(projectID, instanceName, false, []admin.ResourceTag{
+				Config: acc.ConfigServerlessInstance(projectID, instanceName, false, nil, []admin.ResourceTag{
 					{
 						Key:   "key 1",
 						Value: "value 1",
@@ -93,7 +69,7 @@ func TestAccServerlessInstance_withTags(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigServerlessInstance(projectID, instanceName, false, []admin.ResourceTag{
+				Config: acc.ConfigServerlessInstance(projectID, instanceName, false, nil, []admin.ResourceTag{
 					{
 						Key:   "key 3",
 						Value: "value 3",
@@ -115,6 +91,41 @@ func TestAccServerlessInstance_withTags(t *testing.T) {
 	})
 }
 
+func TestAccServerlessInstance_autoIndexing(t *testing.T) {
+	var (
+		projectID    = acc.ProjectIDExecution(t)
+		instanceName = acc.RandomClusterName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.ConfigServerlessInstance(projectID, instanceName, false, nil, nil),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auto_indexing", "true"),
+				),
+			},
+			{
+				Config: acc.ConfigServerlessInstance(projectID, instanceName, false, conversion.Pointer(false), nil),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auto_indexing", "false"),
+				),
+			},
+			{
+				Config: acc.ConfigServerlessInstance(projectID, instanceName, false, conversion.Pointer(true), nil),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auto_indexing", "true"),
+				),
+			},
+		},
+	})
+}
+
 func basicTestCase(tb testing.TB, projectID string) *resource.TestCase {
 	tb.Helper()
 
@@ -127,7 +138,7 @@ func basicTestCase(tb testing.TB, projectID string) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigServerlessInstance(projectID, instanceName, true, nil),
+				Config: acc.ConfigServerlessInstance(projectID, instanceName, true, nil, nil),
 				Check:  resource.ComposeTestCheckFunc(basicChecks(projectID, instanceName)...),
 			},
 			{

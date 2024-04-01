@@ -75,7 +75,7 @@ func configBasic(projectID, instanceName string, ignoreConnectionStrings bool) s
 	}
 
 	%s
-	`, acc.ConfigServerlessInstance(projectID, instanceName, ignoreConnectionStrings, nil))
+	`, acc.ConfigServerlessInstance(projectID, instanceName, ignoreConnectionStrings, nil, nil))
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {

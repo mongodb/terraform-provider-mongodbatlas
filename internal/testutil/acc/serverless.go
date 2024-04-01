@@ -6,15 +6,20 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
-func ConfigServerlessInstance(projectID, name string, ignoreConnectionStrings bool, tags []admin.ResourceTag) string {
+func ConfigServerlessInstance(projectID, name string, ignoreConnectionStrings bool, autoIndexing *bool, tags []admin.ResourceTag) string {
 	var extra string
 
 	if ignoreConnectionStrings {
-		extra = `
+		extra += `
 			lifecycle {
 				ignore_changes = [connection_strings_private_endpoint_srv]
 			}
 		`
+	}
+	if autoIndexing != nil {
+		extra += fmt.Sprintf(`
+			auto_indexing = %t
+		`, *autoIndexing)
 	}
 	for _, label := range tags {
 		extra += fmt.Sprintf(`
