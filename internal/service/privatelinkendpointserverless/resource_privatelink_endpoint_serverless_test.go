@@ -3,7 +3,6 @@ package privatelinkendpointserverless_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -12,58 +11,44 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+const (
+	resourceName = "mongodbatlas_privatelink_endpoint_serverless.test"
+)
+
 func TestAccServerlessPrivateLinkEndpoint_basic(t *testing.T) {
+	resource.ParallelTest(t, *basicTestCase(t))
+}
+
+func basicTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+
 	var (
-		resourceName = "mongodbatlas_privatelink_endpoint_serverless.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
+		projectID    = acc.ProjectIDExecution(tb)
 		instanceName = acc.RandomClusterName()
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectName, instanceName, true),
+				Config: configBasic(projectID, instanceName, true),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
 				),
 			},
-		},
-	})
-}
-
-func TestAccServerlessPrivateLinkEndpoint_importBasic(t *testing.T) {
-	var (
-		resourceName = "mongodbatlas_privatelink_endpoint_serverless.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		instanceName = acc.RandomClusterName()
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectName, instanceName, true),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
-				),
-			},
-			{
-				Config:                  configBasic(orgID, projectName, instanceName, false),
+				Config:                  configBasic(projectID, instanceName, false),
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFuncBasic(resourceName),
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"connection_strings_private_endpoint_srv"},
 			},
 		},
-	})
+	}
 }
 
 func checkDestroy(state *terraform.State) error {
@@ -80,7 +65,7 @@ func checkDestroy(state *terraform.State) error {
 	return nil
 }
 
-func configBasic(orgID, projectName, instanceName string, ignoreConnectionStrings bool) string {
+func configBasic(projectID, instanceName string, ignoreConnectionStrings bool) string {
 	return fmt.Sprintf(`
 
 	resource "mongodbatlas_privatelink_endpoint_serverless" "test" {
@@ -90,7 +75,7 @@ func configBasic(orgID, projectName, instanceName string, ignoreConnectionString
 	}
 
 	%s
-	`, acc.ConfigServerlessInstanceBasic(orgID, projectName, instanceName, ignoreConnectionStrings))
+	`, acc.ConfigServerlessInstance(projectID, instanceName, ignoreConnectionStrings, nil, nil))
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
@@ -111,7 +96,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func importStateIDFuncBasic(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

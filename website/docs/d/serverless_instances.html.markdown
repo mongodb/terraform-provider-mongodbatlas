@@ -44,6 +44,7 @@ data "mongodbatlas_serverless_instances" "data_serverless" {
 * `state_name` - Stage of deployment of this serverless instance when the resource made its request.
 * `continuous_backup_enabled` - Flag that indicates whether the serverless instance uses Serverless Continuous Backup.
 * `termination_protection_enabled` - Flag that indicates whether termination protection is enabled on the cluster. If set to true, MongoDB Cloud won't delete the cluster. If set to false, MongoDB Cloud will delete the cluster.
+* `auto_indexing` - Flag that indicates whether the serverless instance uses [Serverless Auto Indexing](https://www.mongodb.com/docs/atlas/performance-advisor/auto-index-serverless/).
 * `tags` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#tags).
 
 ### Tags

@@ -92,6 +92,11 @@ func dataSourceSchema() map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 		},
+		"auto_indexing": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Computed: true,
+		},
 		"tags": &advancedcluster.DSTagsSchema,
 	}
 }
@@ -160,6 +165,15 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err := d.Set("continuous_backup_enabled", instance.ServerlessBackupOptions.GetServerlessContinuousBackupEnabled()); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "continuous_backup_enabled", d.Id(), err)
 	}
+
+	autoIndexing, _, err := connV2.PerformanceAdvisorApi.GetServerlessAutoIndexing(ctx, projectID.(string), instanceName.(string)).Execute()
+	if err != nil {
+		return diag.Errorf("error getting serverless instance information for auto_indexing: %s", err)
+	}
+	if err := d.Set("auto_indexing", autoIndexing); err != nil {
+		return diag.Errorf(errorServerlessInstanceSetting, "auto_indexing", d.Id(), err)
+	}
+
 	if err := d.Set("tags", conversion.FlattenTags(instance.GetTags())); err != nil {
 		return diag.Errorf(advancedcluster.ErrorClusterAdvancedSetting, "tags", d.Id(), err)
 	}

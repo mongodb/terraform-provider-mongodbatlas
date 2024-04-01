@@ -33,14 +33,15 @@ func PluralDataSource() *schema.Resource {
 
 func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	projectID, projectIDOK := d.GetOk("project_id")
+	projectIDValue, projectIDOK := d.GetOk("project_id")
 	if !(projectIDOK) {
 		return diag.Errorf("project_id must be configured")
 	}
+	projectID := projectIDValue.(string)
 	options := &admin.ListServerlessInstancesApiParams{
 		ItemsPerPage: conversion.IntPtr(500),
 		IncludeCount: conversion.Pointer(true),
-		GroupId:      projectID.(string),
+		GroupId:      projectID,
 	}
 
 	serverlessInstances, err := getServerlessList(ctx, connV2, options, 0)
@@ -48,7 +49,13 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.Errorf("error getting serverless instances information: %s", err)
 	}
 
-	flatServerlessInstances := flattenServerlessInstances(serverlessInstances)
+	autoIndexingList := make([]bool, len(serverlessInstances))
+	for i := range serverlessInstances {
+		resp, _, _ := connV2.PerformanceAdvisorApi.GetServerlessAutoIndexing(ctx, projectID, serverlessInstances[i].GetName()).Execute()
+		autoIndexingList[i] = resp
+	}
+
+	flatServerlessInstances := flattenServerlessInstances(serverlessInstances, autoIndexingList)
 	if err := d.Set("results", flatServerlessInstances); err != nil {
 		return diag.Errorf("error setting `results` for serverless instances: %s", err)
 	}
@@ -82,7 +89,7 @@ func getServerlessList(ctx context.Context, connV2 *admin.APIClient, options *ad
 	return list, nil
 }
 
-func flattenServerlessInstances(serverlessInstances []admin.ServerlessInstanceDescription) []map[string]any {
+func flattenServerlessInstances(serverlessInstances []admin.ServerlessInstanceDescription, autoIndexingList []bool) []map[string]any {
 	var serverlessInstancesMap []map[string]any
 	if len(serverlessInstances) == 0 {
 		return nil
@@ -104,6 +111,7 @@ func flattenServerlessInstances(serverlessInstances []admin.ServerlessInstanceDe
 			"termination_protection_enabled":          serverlessInstances[i].GetTerminationProtectionEnabled(),
 			"continuous_backup_enabled":               serverlessInstances[i].ServerlessBackupOptions.GetServerlessContinuousBackupEnabled(),
 			"tags":                                    conversion.FlattenTags(serverlessInstances[i].GetTags()),
+			"auto_indexing":                           autoIndexingList[i],
 		}
 	}
 	return serverlessInstancesMap
