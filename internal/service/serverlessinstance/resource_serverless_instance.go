@@ -169,7 +169,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.Errorf("error creating MongoDB Serverless Instance: %s", err)
 	}
 
-	if _, ok := d.GetOk("auto_indexing"); ok {
+	if _, ok := d.GetOkExists("auto_indexing"); ok {
 		params := &admin.SetServerlessAutoIndexingApiParams{
 			GroupId:     projectID,
 			ClusterName: name,

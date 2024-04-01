@@ -150,7 +150,6 @@ func basicChecks(projectID, instanceName string) []resource.TestCheckFunc {
 		"project_id":                     projectID,
 		"termination_protection_enabled": "false",
 		"continuous_backup_enabled":      "true",
-		"auto_indexing":                  "true",
 	}
 	commonSetChecks := []string{"state_name", "create_date", "mongo_db_version"}
 	pluralSetChecks := []string{
@@ -168,6 +167,7 @@ func basicChecks(projectID, instanceName string) []resource.TestCheckFunc {
 	checks = acc.AddAttrChecks(dataSourceName, checks, commonChecks)
 	checks = acc.AddAttrSetChecks(resourceName, checks, commonSetChecks...)
 	checks = acc.AddAttrSetChecks(dataSourceName, checks, commonSetChecks...)
+	checks = acc.AddAttrChecks(dataSourceName, checks, map[string]string{"auto_indexing": "true"})
 	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, pluralSetChecks...)
 
 	checks = append(checks, checkExists(resourceName), checkConnectionStringPrivateEndpointIsPresentWithNoElement(resourceName))
