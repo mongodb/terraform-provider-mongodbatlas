@@ -106,6 +106,8 @@ func TestAccServerlessInstance_autoIndexing(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "auto_indexing", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "auto_indexing", "false"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.auto_indexing"),
 				),
 			},
 			{
@@ -113,6 +115,8 @@ func TestAccServerlessInstance_autoIndexing(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "auto_indexing", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "auto_indexing", "true"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.auto_indexing"),
 				),
 			},
 		},
@@ -160,14 +164,12 @@ func basicChecks(projectID, instanceName string) []resource.TestCheckFunc {
 		"results.0.state_name",
 		"results.0.continuous_backup_enabled",
 		"results.0.termination_protection_enabled",
-		"results.0.auto_indexing",
 	}
 
 	checks := acc.AddAttrChecks(resourceName, nil, commonChecks)
 	checks = acc.AddAttrChecks(dataSourceName, checks, commonChecks)
 	checks = acc.AddAttrSetChecks(resourceName, checks, commonSetChecks...)
 	checks = acc.AddAttrSetChecks(dataSourceName, checks, commonSetChecks...)
-	checks = acc.AddAttrChecks(dataSourceName, checks, map[string]string{"auto_indexing": "true"})
 	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, pluralSetChecks...)
 
 	checks = append(checks, checkExists(resourceName), checkConnectionStringPrivateEndpointIsPresentWithNoElement(resourceName))
