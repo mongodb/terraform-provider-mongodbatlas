@@ -3,7 +3,6 @@ package serverlessinstance_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -20,9 +19,12 @@ const (
 )
 
 func TestAccServerlessInstance_basic(t *testing.T) {
+	resource.ParallelTest(t, *basicTestCase(t, acc.ProjectIDExecution(t)))
+}
+
+func TestAccServerlessInstance_autoIndexing(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
+		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomClusterName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -31,38 +33,22 @@ func TestAccServerlessInstance_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigServerlessInstanceBasic(orgID, projectName, instanceName, true),
+				Config: acc.ConfigServerlessInstance(projectID, instanceName, false, nil),
 				Check: resource.ComposeTestCheckFunc(
-					checkConnectionStringPrivateEndpointIsPresentWithNoElement(resourceName),
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", instanceName),
-					resource.TestCheckResourceAttr(resourceName, "termination_protection_enabled", "false"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "state_name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "create_date"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "mongo_db_version"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "continuous_backup_enabled"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "termination_protection_enabled"),
-					resource.TestCheckResourceAttr(dataSourceName, "auto_indexing", "true"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.id"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.state_name"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.continuous_backup_enabled"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.termination_protection_enabled"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.auto_indexing"),
+					resource.TestCheckResourceAttr(resourceName, "auto_indexing", "false"),
+					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "0"),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.tags.#", "0"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccServerlessInstance_WithTags(t *testing.T) {
+func TestAccServerlessInstance_withTags(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
+		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomClusterName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -71,7 +57,7 @@ func TestAccServerlessInstance_WithTags(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigServerlessInstanceWithTags(orgID, projectName, instanceName, []admin.ResourceTag{}),
+				Config: acc.ConfigServerlessInstance(projectID, instanceName, false, nil),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", instanceName),
@@ -81,7 +67,7 @@ func TestAccServerlessInstance_WithTags(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigServerlessInstanceWithTags(orgID, projectName, instanceName, []admin.ResourceTag{
+				Config: acc.ConfigServerlessInstance(projectID, instanceName, false, []admin.ResourceTag{
 					{
 						Key:   "key 1",
 						Value: "value 1",
@@ -107,7 +93,7 @@ func TestAccServerlessInstance_WithTags(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigServerlessInstanceWithTags(orgID, projectName, instanceName, []admin.ResourceTag{
+				Config: acc.ConfigServerlessInstance(projectID, instanceName, false, []admin.ResourceTag{
 					{
 						Key:   "key 3",
 						Value: "value 3",
@@ -129,20 +115,20 @@ func TestAccServerlessInstance_WithTags(t *testing.T) {
 	})
 }
 
-func TestAccServerlessInstance_importBasic(t *testing.T) {
+func basicTestCase(tb testing.TB, projectID string) *resource.TestCase {
+	tb.Helper()
+
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
 		instanceName = acc.RandomClusterName()
 	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigServerlessInstanceBasic(orgID, projectName, instanceName, true),
+				Config: acc.ConfigServerlessInstance(projectID, instanceName, true, nil),
+				Check:  resource.ComposeTestCheckFunc(basicChecks(projectID, instanceName)...),
 			},
 			{
 				ResourceName:      resourceName,
@@ -151,7 +137,37 @@ func TestAccServerlessInstance_importBasic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 		},
-	})
+	}
+}
+
+func basicChecks(projectID, instanceName string) []resource.TestCheckFunc {
+	commonChecks := map[string]string{
+		"name":                           instanceName,
+		"project_id":                     projectID,
+		"termination_protection_enabled": "false",
+		"continuous_backup_enabled":      "true",
+		"auto_indexing":                  "true",
+	}
+	commonSetChecks := []string{"state_name", "create_date", "mongo_db_version"}
+	pluralSetChecks := []string{
+		"project_id",
+		"results.#",
+		"results.0.id",
+		"results.0.name",
+		"results.0.state_name",
+		"results.0.continuous_backup_enabled",
+		"results.0.termination_protection_enabled",
+		"results.0.auto_indexing",
+	}
+
+	checks := acc.AddAttrChecks(resourceName, nil, commonChecks)
+	checks = acc.AddAttrChecks(dataSourceName, checks, commonChecks)
+	checks = acc.AddAttrSetChecks(resourceName, checks, commonSetChecks...)
+	checks = acc.AddAttrSetChecks(dataSourceName, checks, commonSetChecks...)
+	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, pluralSetChecks...)
+
+	checks = append(checks, checkExists(resourceName), checkConnectionStringPrivateEndpointIsPresentWithNoElement(resourceName))
+	return checks
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {

@@ -6,48 +6,38 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
-func ConfigServerlessInstanceBasic(orgID, projectName, name string, ignoreConnectionStrings bool) string {
-	lifecycle := ""
+func ConfigServerlessInstance(projectID, name string, ignoreConnectionStrings bool, tags []admin.ResourceTag) string {
+	var extra string
 
 	if ignoreConnectionStrings {
-		lifecycle = `
-
-		lifecycle {
-			ignore_changes = [connection_strings_private_endpoint_srv]
-		}
+		extra = `
+			lifecycle {
+				ignore_changes = [connection_strings_private_endpoint_srv]
+			}
 		`
 	}
-
-	return fmt.Sprintf(serverlessConfig, orgID, projectName, name, lifecycle)
-}
-
-func ConfigServerlessInstanceWithTags(orgID, projectName, name string, tags []admin.ResourceTag) string {
-	var tagsConf string
 	for _, label := range tags {
-		tagsConf += fmt.Sprintf(`
+		extra += fmt.Sprintf(`
 			tags {
 				key   = %q
 				value = %q
 			}
 		`, label.GetKey(), label.GetValue())
 	}
-	return fmt.Sprintf(serverlessConfig, orgID, projectName, name, tagsConf)
+
+	return fmt.Sprintf(serverlessConfig, projectID, name, extra)
 }
 
 const serverlessConfig = `
-	resource "mongodbatlas_project" "test" {
-		name   = %[2]q
-		org_id = %[1]q
-	}
 	resource "mongodbatlas_serverless_instance" "test" {
-		project_id   = mongodbatlas_project.test.id
-		name         = %[3]q
+		project_id   = %[1]q
+		name         = %[2]q
 
 		provider_settings_backing_provider_name = "AWS"
 		provider_settings_provider_name = "SERVERLESS"
 		provider_settings_region_name = "US_EAST_1"
 		continuous_backup_enabled = true
-		%[4]s
+		%[3]s
 	}
 
 	data "mongodbatlas_serverless_instance" "test" {
