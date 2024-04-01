@@ -31,7 +31,7 @@ func TestAccBackupCompliancePolicy_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectName, orgID, projectOwnerID),
-				Check:  resource.ComposeTestCheckFunc(checks()...),
+				Check:  resource.ComposeTestCheckFunc(basicChecks()...),
 			},
 			{
 				ResourceName:            resourceName,
@@ -414,7 +414,7 @@ func configClusterWithBackupSchedule(projectName, orgID, projectOwnerID string) 
 	`
 }
 
-func checks() []resource.TestCheckFunc {
+func basicChecks() []resource.TestCheckFunc {
 	commonChecks := map[string]string{
 		"copy_protection_enabled":    "false",
 		"encryption_at_rest_enabled": "false",

@@ -23,7 +23,7 @@ func TestMigBackupCompliancePolicy_basic(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check:             resource.ComposeTestCheckFunc(checks()...),
+				Check:             resource.ComposeTestCheckFunc(basicChecks()...),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},
