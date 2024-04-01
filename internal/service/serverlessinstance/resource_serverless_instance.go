@@ -114,6 +114,11 @@ func resourceSchema() map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 		},
+		"auto_indexing": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Computed: true,
+		},
 		"tags": &advancedcluster.RSTagsSchema,
 	}
 }
@@ -162,6 +167,18 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.Errorf("error creating MongoDB Serverless Instance: %s", err)
+	}
+
+	if _, ok := d.GetOk("auto_indexing"); ok {
+		params := &admin.SetServerlessAutoIndexingApiParams{
+			GroupId:     projectID,
+			ClusterName: name,
+			Enable:      conversion.Pointer(d.Get("auto_indexing").(bool)),
+		}
+		_, _, err := connV2.PerformanceAdvisorApi.SetServerlessAutoIndexingWithParams(ctx, params).Execute()
+		if err != nil {
+			return diag.Errorf("error creating MongoDB Serverless Instance setting auto_indexing: %s", err)
+		}
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -240,6 +257,14 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf(errorServerlessInstanceSetting, "tags", d.Id(), err)
 	}
 
+	autoIndexing, _, err := connV2.PerformanceAdvisorApi.GetServerlessAutoIndexing(ctx, projectID, instanceName).Execute()
+	if err != nil {
+		return diag.Errorf("error getting serverless instance information for auto_indexing: %s", err)
+	}
+	if err := d.Set("auto_indexing", autoIndexing); err != nil {
+		return diag.Errorf(errorServerlessInstanceSetting, "auto_indexing", d.Id(), err)
+	}
+
 	return nil
 }
 
@@ -247,7 +272,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
-	instanceName := ids["name"]
+	name := ids["name"]
 
 	if d.HasChange("termination_protection_enabled") || d.HasChange("continuous_backup_enabled") || d.HasChange("tags") {
 		serverlessBackupOptions := &admin.ClusterServerlessBackupOptions{
@@ -263,7 +288,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			params.Tags = conversion.ExpandTagsFromSetSchema(d)
 		}
 
-		_, _, err := connV2.ServerlessInstancesApi.UpdateServerlessInstance(ctx, projectID, instanceName, params).Execute()
+		_, _, err := connV2.ServerlessInstancesApi.UpdateServerlessInstance(ctx, projectID, name, params).Execute()
 		if err != nil {
 			return diag.Errorf("error updating serverless instance: %s", err)
 		}
@@ -282,6 +307,19 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.Errorf("error updating MongoDB Serverless Instance: %s", err)
 		}
 	}
+
+	if d.HasChange("auto_indexing") {
+		params := &admin.SetServerlessAutoIndexingApiParams{
+			GroupId:     projectID,
+			ClusterName: name,
+			Enable:      conversion.Pointer(d.Get("auto_indexing").(bool)),
+		}
+		_, _, err := connV2.PerformanceAdvisorApi.SetServerlessAutoIndexingWithParams(ctx, params).Execute()
+		if err != nil {
+			return diag.Errorf("error updating MongoDB Serverless Instance setting auto_indexing: %s", err)
+		}
+	}
+
 	return resourceRead(ctx, d, meta)
 }
 
