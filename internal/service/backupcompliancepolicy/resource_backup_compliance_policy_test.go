@@ -19,29 +19,7 @@ const (
 )
 
 func TestAccBackupCompliancePolicy_basic(t *testing.T) {
-	var (
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid conflicts with backup comliance policy
-		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(projectName, orgID, projectOwnerID),
-				Check:  resource.ComposeTestCheckFunc(basicChecks()...),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"state"},
-			},
-		},
-	})
+	resource.ParallelTest(t, *basicTestCase(t))
 }
 
 func TestAccBackupCompliancePolicy_update(t *testing.T) {
@@ -121,6 +99,34 @@ func TestAccBackupCompliancePolicy_withoutRestoreWindowDays(t *testing.T) {
 			},
 		},
 	})
+}
+
+func basicTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+
+	var (
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid conflicts with backup comliance policy
+		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+	)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(projectName, orgID, projectOwnerID),
+				Check:  resource.ComposeTestCheckFunc(basicChecks()...),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"state"},
+			},
+		},
+	}
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
