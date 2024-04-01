@@ -1,5 +1,67 @@
 # Changelog
 
+## [v1.15.3](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.15.3) (2024-03-27)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.15.2...v1.15.3)
+
+**Bug Fixes**
+
+- fix: Fixes `network_container` resource update [\#2055](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2055) ([lantoli](https://github.com/lantoli))
+- fix: Uses `overwriteBackupPolicies` in `mongodbatlas_backup_compliance_policy` to avoid overwriting non complying backup policies in updates [\#2054](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2054) ([maastha](https://github.com/maastha))
+
+**Internal Improvements**
+
+- chore: Allows user to specify to use an existing tag for release [\#2053](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2053) ([maastha](https://github.com/maastha))
+- chore: Fixes Slack notification button to GH action run text [\#2093](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2093) ([oarbusi](https://github.com/oarbusi))
+- doc: Fixes import command in `mongodbatlas_third_party_integration` doc [\#2083](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2083) ([zach-carr](https://github.com/zach-carr))
+- chore: Reuses project in tests - `mongodbatlas_auditing` [\#2082](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2082) ([lantoli](https://github.com/lantoli))
+- test: Converting a test case to a migration test [\#2081](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2081) ([EspenAlbert](https://github.com/EspenAlbert))
+- doc: Specifies that upgrades From Replica Sets to Multi-Sharded Instances of `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` might lead to error [\#2080](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2080) ([oarbusi](https://github.com/oarbusi))
+- chore: Reuses project in tests - `mongodbatlas_project` [\#2078](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2078) ([lantoli](https://github.com/lantoli))
+- doc: Adds an example using `ignore_changes` when `autoscaling` is enabled [\#2077](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2077) ([zach-carr](https://github.com/zach-carr))
+- chore: Uses mocks for unit tests in Atlas Go SDK [\#2075](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2075) ([lantoli](https://github.com/lantoli))
+- chore: Updates Atlas Go SDK [\#2074](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2074) ([github-actions[bot]](https://github.com/apps/github-actions))
+- doc: Improve Readme Requirements to point to section in HashiCorp Registry Docs  [\#2073](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2073) ([Zuhairahmed](https://github.com/Zuhairahmed))
+- doc: Updates bug report to include Terraform version support guidance [\#2072](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2072) ([maastha](https://github.com/maastha))
+- chore: Fixes send notification when test suite fails [\#2071](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2071) ([oarbusi](https://github.com/oarbusi))
+- chore: Fixes federated test [\#2070](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2070) ([lantoli](https://github.com/lantoli))
+- chore: Follow up to use global mig project in tests [\#2068](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2068) ([lantoli](https://github.com/lantoli))
+- chore: Reuses project in tests - `mongodbatlas_project_ip_access_list` [\#2067](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2067) ([lantoli](https://github.com/lantoli))
+- chore: Adds mig tests and refactor - `mongodbatlas_search_index` [\#2065](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2065) ([lantoli](https://github.com/lantoli))
+- chore: Corrects order of checks in `data_source_federated_settings_identity_providers_test` [\#2064](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2064) ([oarbusi](https://github.com/oarbusi))
+- chore: Removes old service from mockery [\#2063](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2063) ([EspenAlbert](https://github.com/EspenAlbert))
+- chore: Enables Github action linter and removes set terminal in release action [\#2062](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2062) ([lantoli](https://github.com/lantoli))
+- chore: Allows `MONGODB_ATLAS_PROJECT_ID` for local executions [\#2060](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2060) ([lantoli](https://github.com/lantoli))
+- doc: Clarifies private endpoint resource docs [\#2059](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2059) ([zach-carr](https://github.com/zach-carr))
+- chore: Automates changing Terraform supported versions in provider documentation [\#2058](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2058) ([maastha](https://github.com/maastha))
+- test: Enables simulation of cloud-dev using hoverfly in alert configuration acceptance tests [\#2057](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2057) ([AgustinBettati](https://github.com/AgustinBettati))
+- refactor: Uses mocks on `admin.APIClient` instead of custom `ClusterService` [\#2056](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2056) ([EspenAlbert](https://github.com/EspenAlbert))
+- chore: Send Slack message for Terraform Compatibility Matrix is executed [\#2052](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2052) ([oarbusi](https://github.com/oarbusi))
+- chore: Follow-up to Atlas SDK upgrade [\#2051](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2051) ([lantoli](https://github.com/lantoli))
+- chore: Fixes test names for `mongodbatlas_network_container` resource [\#2046](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2046) ([lantoli](https://github.com/lantoli))
+- refactor: Uses mocks on admin.APIClient for Project+Teams+ClustersAPIs instead of custom service [\#2045](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2045) ([EspenAlbert](https://github.com/EspenAlbert))
+- chore: Updates Atlas Go SDK [\#2044](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2044) ([github-actions[bot]](https://github.com/apps/github-actions))
+- test: Mocks the EncryptionAtRestUsingCustomerKeyManagementApi instead of using custom service [\#2043](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2043) ([EspenAlbert](https://github.com/EspenAlbert))
+- chore: Reuses project in tests for `mongodbatlas_advanced_cluster` resource [\#2042](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2042) ([lantoli](https://github.com/lantoli))
+- doc: Updates online archive resource docs [\#2041](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2041) ([zach-carr](https://github.com/zach-carr))
+- chore: Reuses project in tests for `mongodbatlas_cluster_outage_simulation` resource [\#2040](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2040) ([lantoli](https://github.com/lantoli))
+- chore: Reuses project in tests for `mongodbatlas_network_container` resource [\#2039](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2039) ([lantoli](https://github.com/lantoli))
+- chore: Reuses project in tests for `mongodbatlas_x509_authentication_database_user` resource [\#2038](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2038) ([lantoli](https://github.com/lantoli))
+- chore: Reuses project in tests for `mongodbatlas_project_api_key` resource [\#2037](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2037) ([lantoli](https://github.com/lantoli))
+- chore: Reuses project in tests for `mongodbatlas_cluster` resource [\#2036](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2036) ([lantoli](https://github.com/lantoli))
+- chore: Bump tj-actions/verify-changed-files from 843c0b95f87cd81a2efe729380c6d1f11fb3ea12 to 1e517a7f5663673148ceb7c09c1900e5af48e7a1 [\#2092](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2092) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore: Bump github.com/hashicorp/hcl/v2 from 2.20.0 to 2.20.1 [\#2091](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2091) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore: Bump github.com/zclconf/go-cty from 1.14.3 to 1.14.4 [\#2089](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2089) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore: Bump github.com/aws/aws-sdk-go from 1.51.3 to 1.51.8 [\#2088](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2088) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore: Bump github.com/mongodb-forks/digest from 1.0.5 to 1.1.0 [\#2087](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2087) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore: Bump github.com/aws/aws-sdk-go from 1.50.32 to 1.51.3 [\#2049](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2049) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore: Bump github.com/stretchr/testify from 1.8.4 to 1.9.0 [\#2048](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2048) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore: Bump actions/checkout from 4.1.1 to 4.1.2 [\#2047](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2047) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+**Closed Issues**
+
+- \[Bug\]: Removing `mongodbatlas_cloud_backup_schedule` resource is resulting in error `Continuous Cloud Backup cannot be on without an hourly policy item` [\#2029](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/2029)
+
 ## [v1.15.2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.15.2) (2024-03-15)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.15.1...v1.15.2)
