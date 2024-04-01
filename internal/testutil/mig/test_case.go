@@ -4,11 +4,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/stretchr/testify/require"
 )
 
 func CreateAndRunTest(t *testing.T, test *resource.TestCase) {
 	t.Helper()
+	acc.SkipInUnitTest(t)
 	resource.ParallelTest(t, CreateTest(t, test))
 }
 
