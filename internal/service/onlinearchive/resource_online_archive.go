@@ -693,17 +693,11 @@ func isEmpty(val any) bool {
 
 	switch v := val.(type) {
 	case *bool, *float64, *int64:
-		if v == nil {
-			return true
-		}
+		return v == nil
 	case string:
 		return v == ""
 	case *string:
-		if v == nil {
-			return true
-		}
-		return *v == ""
+		return v == nil || *v == ""
 	}
-
 	return false
 }

@@ -392,7 +392,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate(ctx context.Con
 
 func oldSDKUpdate(ctx context.Context, federationSettingsID, oktaIdpID string, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn20231001002 := meta.(*config.MongoDBClient).Atlas20231001002
-	var updateRequest *admin20231001002.SamlIdentityProviderUpdate
+	updateRequest := new(admin20231001002.SamlIdentityProviderUpdate)
 	_, _, err := conn20231001002.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID).Execute()
 
 	if err != nil {
