@@ -25,7 +25,7 @@ func TestAccBackupCompliancePolicy_basic(t *testing.T) {
 func TestAccBackupCompliancePolicy_update(t *testing.T) {
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid conflicts with backup comliance policy
+		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid conflicts with backup compliance policy
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 	)
 
@@ -59,7 +59,7 @@ func TestAccBackupCompliancePolicy_update(t *testing.T) {
 func TestAccBackupCompliancePolicy_overwriteBackupPolicies(t *testing.T) {
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid conflicts with backup comliance policy
+		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid conflicts with backup compliance policy
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 	)
 
@@ -81,7 +81,7 @@ func TestAccBackupCompliancePolicy_overwriteBackupPolicies(t *testing.T) {
 func TestAccBackupCompliancePolicy_withoutRestoreWindowDays(t *testing.T) {
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid conflicts with backup comliance policy
+		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid conflicts with backup compliance policy
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 	)
 
@@ -106,7 +106,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid conflicts with backup comliance policy
+		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid conflicts with backup compliance policy
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 	)
 
