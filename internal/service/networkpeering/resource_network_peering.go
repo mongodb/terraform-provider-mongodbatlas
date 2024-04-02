@@ -283,23 +283,11 @@ func resourceMongoDBAtlasNetworkPeeringRead(ctx context.Context, d *schema.Resou
 
 		return diag.FromErr(fmt.Errorf(errorPeersRead, peerID, err))
 	}
-
-	/* This fix the bug https://github.com/mongodb/terraform-provider-mongodbatlas/issues/53
-	 * If the region name of the peering connection resource is the same as the container resource,
-	 * the API returns it as a null value, so this causes the issue mentioned.
-	 */
-	var acepterRegionName string
-	if peer.AccepterRegionName != "" {
-		acepterRegionName = peer.AccepterRegionName
-	} else {
-		container, _, err := conn.Containers.Get(ctx, projectID, peer.ContainerID)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		acepterRegionName = strings.ToLower(strings.ReplaceAll(container.RegionName, "_", "-"))
+	accepterRegionName, err := ensureAccepterRegionName(ctx, peer, conn, projectID)
+	if err != nil {
+		return diag.FromErr(err)
 	}
-
-	if err := d.Set("accepter_region_name", acepterRegionName); err != nil {
+	if err := d.Set("accepter_region_name", accepterRegionName); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `accepter_region_name` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
@@ -391,6 +379,25 @@ func resourceMongoDBAtlasNetworkPeeringRead(ctx context.Context, d *schema.Resou
 	}
 
 	return nil
+}
+
+func ensureAccepterRegionName(ctx context.Context, peer *matlas.Peer, conn *matlas.Client, projectID string) (string, error) {
+	/* This fix the bug https://github.com/mongodb/terraform-provider-mongodbatlas/issues/53
+	 * If the region name of the peering connection resource is the same as the container resource,
+	 * the API returns it as a null value, so this causes the issue mentioned.
+	 */
+	var acepterRegionName string
+	if peer.AccepterRegionName != "" {
+		acepterRegionName = peer.AccepterRegionName
+	} else {
+		container, _, err := conn.Containers.Get(ctx, projectID, peer.ContainerID)
+		if err != nil {
+			return "", err
+		}
+		// network_peering resource must use region of format eu-west-2 while network_container uses EU_WEST_2.
+		acepterRegionName = conversion.MongoDBRegionToAWSRegion(container.RegionName)
+	}
+	return acepterRegionName, nil
 }
 
 func resourceMongoDBAtlasNetworkPeeringUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
