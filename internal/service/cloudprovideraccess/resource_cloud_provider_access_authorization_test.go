@@ -11,10 +11,9 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudprovideraccess"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccConfigRSCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
+func TestAccCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
 	var (
 		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		policyName      = acc.RandomName()
@@ -23,24 +22,23 @@ func TestAccConfigRSCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		// same as regular cloud provider access resource
-		CheckDestroy: testAccCheckMongoDBAtlasProviderAccessDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudProviderAccessAuthorizationConfig(projectID, policyName, roleName),
+				Config: configAuthorization(projectID, policyName, roleName),
 			},
 			{
-				Config: testAccMongoDBAtlasCloudProviderAccessAuthorizationConfig(projectID, policyName, roleNameUpdated),
+				Config: configAuthorization(projectID, policyName, roleNameUpdated),
 			},
 		},
 	},
 	)
 }
 
-func TestAccConfigRSCloudProviderAccessAuthorizationAzure_basic(t *testing.T) {
+func TestAccCloudProviderAccessAuthorizationAzure_basic(t *testing.T) {
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		atlasAzureAppID    = os.Getenv("AZURE_ATLAS_APP_ID")
@@ -52,7 +50,7 @@ func TestAccConfigRSCloudProviderAccessAuthorizationAzure_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckCloudProviderAccessAzure(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasProviderAccessDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudProviderAccessAuthorizationAzure(orgID, projectName, atlasAzureAppID, servicePrincipalID, tenantID),
@@ -62,7 +60,7 @@ func TestAccConfigRSCloudProviderAccessAuthorizationAzure_basic(t *testing.T) {
 	)
 }
 
-func testAccMongoDBAtlasCloudProviderAccessAuthorizationConfig(projectID, roleName, policyName string) string {
+func configAuthorization(projectID, roleName, policyName string) string {
 	return fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[2]q
@@ -151,7 +149,7 @@ func testAccMongoDBAtlasCloudProviderAccessAuthorizationAzure(orgID, projectName
 	`, orgID, projectName, atlasAzureAppID, servicePrincipalID, tenantID)
 }
 
-func testAccCheckMongoDBAtlasProviderAccessDestroy(s *terraform.State) error {
+func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_cloud_provider_access" {
 			continue
@@ -161,19 +159,13 @@ func testAccCheckMongoDBAtlasProviderAccessDestroy(s *terraform.State) error {
 		if err != nil {
 			return fmt.Errorf(cloudprovideraccess.ErrorCloudProviderGetRead, err)
 		}
-		var targetRole matlas.CloudProviderAccessRole
 
 		// searching in roles
 		for i := range roles.AWSIAMRoles {
 			role := &(roles.AWSIAMRoles[i])
 			if role.RoleID == ids["id"] && role.ProviderName == ids["provider_name"] {
-				targetRole = *role
+				return fmt.Errorf("error cloud Provider Access Role (%s) still exists", ids["id"])
 			}
-		}
-
-		//  Found !!
-		if targetRole.RoleID != "" {
-			return fmt.Errorf("error cloud Provider Access Role (%s) still exists", ids["id"])
 		}
 	}
 	return nil
