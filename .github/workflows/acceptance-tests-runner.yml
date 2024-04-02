@@ -481,7 +481,6 @@ jobs:
           AZURE_ATLAS_APP_ID: ${{ inputs.azure_atlas_app_id }}
           AZURE_SERVICE_PRINCIPAL_ID: ${{ inputs.azure_service_principal_id }}
           AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
-          AWS_REGION: ${{ vars.aws_region_federation }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           ACCTEST_PACKAGES: |

@@ -64,7 +64,7 @@ func basicAuthorizationTestCase(tb testing.TB) *resource.TestCase {
 	}
 }
 
-func configAuthorizationAWS(projectID, roleName, policyName string) string {
+func configAuthorizationAWS(projectID, policyName, roleName string) string {
 	return fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[2]q
