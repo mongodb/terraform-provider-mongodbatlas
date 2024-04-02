@@ -44,8 +44,8 @@ func basicAuthorizationTestCase(tb testing.TB) *resource.TestCase {
 	var (
 		projectID       = acc.ProjectIDExecution(tb)
 		policyName      = acc.RandomName()
-		roleName        = acc.RandomName()
-		roleNameUpdated = acc.RandomName()
+		roleName        = acc.RandomIAMRole()
+		roleNameUpdated = acc.RandomIAMRole()
 	)
 
 	return &resource.TestCase{

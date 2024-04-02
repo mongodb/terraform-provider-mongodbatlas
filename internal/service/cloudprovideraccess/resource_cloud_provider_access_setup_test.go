@@ -118,7 +118,7 @@ func configSetupAzure(projectID, atlasAzureAppID, servicePrincipalID, tenantID s
 
 	 data "mongodbatlas_cloud_provider_access_setup" "test" {
 		project_id = mongodbatlas_cloud_provider_access_setup.test.project_id
-		provider_name = mongodbatlas_cloud_provider_access_setup.test.provider_name
+		provider_name = "AWS"
 		role_id =  mongodbatlas_cloud_provider_access_setup.test.role_id
 	 }
 	`, projectID, atlasAzureAppID, servicePrincipalID, tenantID)
