@@ -4,24 +4,27 @@ import (
 	"context"
 	"testing"
 
+	"go.mongodb.org/atlas-sdk/v20231115008/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
-	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 const (
-	limitName           = "limitName"
-	limitValue          = int64(64)
-	limitCurrentUsage   = int64(64)
-	limitDefaultLimit   = int64(32)
-	limitMaximumLimit   = int64(16)
-	projectID           = "projectId"
-	projectName         = "projectName"
-	projectOrgID        = "orgId"
-	projectClusterCount = int64(1)
-	clusterCount        = 1
+	limitName               = "limitName"
+	limitValue              = int64(64)
+	limitCurrentUsage       = int64(64)
+	limitDefaultLimit       = int64(32)
+	limitMaximumLimit       = int64(16)
+	projectID               = "projectId"
+	projectName             = "projectName"
+	projectOrgID            = "orgId"
+	projectClusterCount     = int64(1)
+	clusterCount            = 1
+	regionUsageRestrictions = "GOV_REGIONS_ONLY"
 )
 
 var (
@@ -102,6 +105,13 @@ var (
 		Name:         projectName,
 		OrgId:        projectOrgID,
 		ClusterCount: int64(clusterCount),
+	}
+	projectGovSDK = admin.Group{
+		Id:                      admin.PtrString(projectID),
+		Name:                    projectName,
+		OrgId:                   projectOrgID,
+		ClusterCount:            int64(clusterCount),
+		RegionUsageRestrictions: admin.PtrString(regionUsageRestrictions),
 	}
 	projectSettingsSDK = admin.GroupSettings{
 		IsCollectDatabaseSpecificsStatisticsEnabled: admin.PtrBool(true),
@@ -226,6 +236,38 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
 			},
 		},
+		{
+			name:    "ProjectGov",
+			project: &projectGovSDK,
+			projectProps: project.AdditionalProperties{
+				Teams: &admin.PaginatedTeamRole{
+					Results:    &teamRolesSDK,
+					TotalCount: conversion.IntPtr(1),
+				},
+				Settings:    &projectSettingsSDK,
+				IPAddresses: &IPAddressesSDK,
+				Limits:      limitsSDK,
+			},
+			expectedTFModel: project.TFProjectDSModel{
+
+				ID:                      types.StringValue(projectID),
+				ProjectID:               types.StringValue(projectID),
+				Name:                    types.StringValue(projectName),
+				OrgID:                   types.StringValue(projectOrgID),
+				ClusterCount:            types.Int64Value(clusterCount),
+				RegionUsageRestrictions: types.StringValue(regionUsageRestrictions),
+				IsCollectDatabaseSpecificsStatisticsEnabled: types.BoolValue(true),
+				IsDataExplorerEnabled:                       types.BoolValue(true),
+				IsExtendedStorageSizesEnabled:               types.BoolValue(true),
+				IsPerformanceAdvisorEnabled:                 types.BoolValue(true),
+				IsRealtimePerformancePanelEnabled:           types.BoolValue(true),
+				IsSchemaAdvisorEnabled:                      types.BoolValue(true),
+				Teams:                                       teamsDSTF,
+				Limits:                                      limitsTF,
+				IPAddresses:                                 ipAddressesTF,
+				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -264,6 +306,37 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 				Name:         types.StringValue(projectName),
 				OrgID:        types.StringValue(projectOrgID),
 				ClusterCount: types.Int64Value(clusterCount),
+				IsCollectDatabaseSpecificsStatisticsEnabled: types.BoolValue(true),
+				IsDataExplorerEnabled:                       types.BoolValue(true),
+				IsExtendedStorageSizesEnabled:               types.BoolValue(true),
+				IsPerformanceAdvisorEnabled:                 types.BoolValue(true),
+				IsRealtimePerformancePanelEnabled:           types.BoolValue(true),
+				IsSchemaAdvisorEnabled:                      types.BoolValue(true),
+				Teams:                                       teamsTFSet,
+				Limits:                                      limitsTFSet,
+				IPAddresses:                                 ipAddressesTF,
+				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
+			},
+		},
+		{
+			name:    "ProjectGov",
+			project: &projectGovSDK,
+			projectProps: project.AdditionalProperties{
+				Teams: &admin.PaginatedTeamRole{
+					Results:    &teamRolesSDK,
+					TotalCount: conversion.IntPtr(1),
+				},
+				Settings:    &projectSettingsSDK,
+				IPAddresses: &IPAddressesSDK,
+				Limits:      limitsSDK,
+			},
+			expectedTFModel: project.TFProjectRSModel{
+
+				ID:                      types.StringValue(projectID),
+				Name:                    types.StringValue(projectName),
+				OrgID:                   types.StringValue(projectOrgID),
+				ClusterCount:            types.Int64Value(clusterCount),
+				RegionUsageRestrictions: types.StringValue(regionUsageRestrictions),
 				IsCollectDatabaseSpecificsStatisticsEnabled: types.BoolValue(true),
 				IsDataExplorerEnabled:                       types.BoolValue(true),
 				IsExtendedStorageSizesEnabled:               types.BoolValue(true),

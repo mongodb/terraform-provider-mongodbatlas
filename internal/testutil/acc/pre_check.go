@@ -94,14 +94,21 @@ func GetProjectTeamsIDsWithPos(pos int) string {
 	return teamsIDs[pos]
 }
 
-func PreCheckGov(tb testing.TB) {
+func PreCheckGovBasic(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
-		os.Getenv("MONGODB_ATLAS_PROJECT_ID_GOV") == "" ||
 		os.Getenv("MONGODB_ATLAS_ORG_ID_GOV") == "" {
-		tb.Fatal("`MONGODB_ATLAS_PUBLIC_KEY`, `MONGODB_ATLAS_PRIVATE_KEY`, `MONGODB_ATLAS_PROJECT_ID_GOV` and `MONGODB_ATLAS_ORG_ID_GOV` must be set for acceptance testing")
+		tb.Fatal("`MONGODB_ATLAS_PUBLIC_KEY`, `MONGODB_ATLAS_PRIVATE_KEY`and `MONGODB_ATLAS_ORG_ID_GOV` must be set for acceptance testing")
 	}
+}
+
+func PreCheckGov(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("MONGODB_ATLAS_PROJECT_ID_GOV") == "" {
+		tb.Fatal("`MONGODB_ATLAS_PROJECT_ID_GOV` must be set for acceptance testing")
+	}
+	PreCheckGovBasic(tb)
 }
 
 func PreCheckGPCEnv(tb testing.TB) {

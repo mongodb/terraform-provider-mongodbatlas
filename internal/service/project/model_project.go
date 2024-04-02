@@ -3,10 +3,12 @@ package project
 import (
 	"context"
 
+	"go.mongodb.org/atlas-sdk/v20231115008/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, projectProps AdditionalProperties) (*TFProjectDSModel, diag.Diagnostics) {
@@ -16,12 +18,13 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, proj
 	}
 	projectSettings := projectProps.Settings
 	return &TFProjectDSModel{
-		ID:           types.StringValue(project.GetId()),
-		ProjectID:    types.StringValue(project.GetId()),
-		Name:         types.StringValue(project.Name),
-		OrgID:        types.StringValue(project.OrgId),
-		ClusterCount: types.Int64Value(project.ClusterCount),
-		Created:      types.StringValue(conversion.TimeToString(project.Created)),
+		ID:                      types.StringValue(project.GetId()),
+		ProjectID:               types.StringValue(project.GetId()),
+		Name:                    types.StringValue(project.Name),
+		OrgID:                   types.StringValue(project.OrgId),
+		ClusterCount:            types.Int64Value(project.ClusterCount),
+		Created:                 types.StringValue(conversion.TimeToString(project.Created)),
+		RegionUsageRestrictions: types.StringPointerValue(project.RegionUsageRestrictions),
 		IsCollectDatabaseSpecificsStatisticsEnabled: types.BoolValue(*projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled),
 		IsDataExplorerEnabled:                       types.BoolValue(*projectSettings.IsDataExplorerEnabled),
 		IsExtendedStorageSizesEnabled:               types.BoolValue(*projectSettings.IsExtendedStorageSizesEnabled),
@@ -99,6 +102,7 @@ func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, pro
 		Name:                      types.StringValue(projectRes.Name),
 		OrgID:                     types.StringValue(projectRes.OrgId),
 		ClusterCount:              types.Int64Value(projectRes.ClusterCount),
+		RegionUsageRestrictions:   types.StringPointerValue(projectRes.RegionUsageRestrictions),
 		Created:                   types.StringValue(conversion.TimeToString(projectRes.Created)),
 		WithDefaultAlertsSettings: types.BoolPointerValue(projectRes.WithDefaultAlertsSettings),
 		Teams:                     newTFTeamsResourceModel(ctx, projectProps.Teams),
