@@ -15,7 +15,7 @@ import (
 
 func TestAccCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
 	var (
-		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID       = acc.ProjectIDExecution(t)
 		policyName      = acc.RandomName()
 		roleName        = acc.RandomName()
 		roleNameUpdated = acc.RandomName()
@@ -28,10 +28,10 @@ func TestAccCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configAuthorization(projectID, policyName, roleName),
+				Config: configAuthorizationAWS(projectID, policyName, roleName),
 			},
 			{
-				Config: configAuthorization(projectID, policyName, roleNameUpdated),
+				Config: configAuthorizationAWS(projectID, policyName, roleNameUpdated),
 			},
 		},
 	},
@@ -40,11 +40,10 @@ func TestAccCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
 
 func TestAccCloudProviderAccessAuthorizationAzure_basic(t *testing.T) {
 	var (
-		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		atlasAzureAppID    = os.Getenv("AZURE_ATLAS_APP_ID")
 		servicePrincipalID = os.Getenv("AZURE_SERVICE_PRINCIPAL_ID")
 		tenantID           = os.Getenv("AZURE_TENANT_ID")
-		projectName        = acc.RandomProjectName()
+		projectID          = acc.ProjectIDExecution(t)
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -53,14 +52,14 @@ func TestAccCloudProviderAccessAuthorizationAzure_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudProviderAccessAuthorizationAzure(orgID, projectName, atlasAzureAppID, servicePrincipalID, tenantID),
+				Config: configAuthorizationAzure(projectID, atlasAzureAppID, servicePrincipalID, tenantID),
 			},
 		},
 	},
 	)
 }
 
-func configAuthorization(projectID, roleName, policyName string) string {
+func configAuthorizationAWS(projectID, roleName, policyName string) string {
 	return fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[2]q
@@ -121,32 +120,28 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 	`, projectID, policyName, roleName)
 }
 
-func testAccMongoDBAtlasCloudProviderAccessAuthorizationAzure(orgID, projectName, atlasAzureAppID, servicePrincipalID, tenantID string) string {
+func configAuthorizationAzure(projectID, atlasAzureAppID, servicePrincipalID, tenantID string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_project" "test" {
-		name   = %[2]q
-		org_id = %[1]q
-	}
 	resource "mongodbatlas_cloud_provider_access_setup" "test" {
-		project_id = mongodbatlas_project.test.id
+		project_id = %[1]q
 		provider_name = "AZURE"
 		azure_config {
-			atlas_azure_app_id = %[3]q
-			service_principal_id = %[4]q
-			tenant_id = %[5]q
+			atlas_azure_app_id = %[2]q
+			service_principal_id = %[3]q
+			tenant_id = %[4]q
 		}
 	 }
 
    resource "mongodbatlas_cloud_provider_access_authorization" "test" {
-		project_id = mongodbatlas_project.test.id
+		project_id = %[1]q
     role_id = mongodbatlas_cloud_provider_access_setup.test.role_id
 		azure {
-			atlas_azure_app_id = %[3]q
-			service_principal_id = %[4]q
-			tenant_id = %[5]q
+			atlas_azure_app_id = %[2]q
+			service_principal_id = %[3]q
+			tenant_id = %[4]q
 		}
 	 }
-	`, orgID, projectName, atlasAzureAppID, servicePrincipalID, tenantID)
+	`, projectID, atlasAzureAppID, servicePrincipalID, tenantID)
 }
 
 func checkDestroy(s *terraform.State) error {

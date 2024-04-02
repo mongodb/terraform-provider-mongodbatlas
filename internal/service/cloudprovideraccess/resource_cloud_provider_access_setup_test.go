@@ -17,8 +17,7 @@ func TestAccCloudProviderAccessSetupAWS_basic(t *testing.T) {
 	var (
 		resourceName   = "mongodbatlas_cloud_provider_access_setup.test"
 		dataSourceName = "data.mongodbatlas_cloud_provider_access_setup.test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
+		projectID      = acc.ProjectIDExecution(t)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -27,7 +26,7 @@ func TestAccCloudProviderAccessSetupAWS_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configSetupAWS(orgID, projectName),
+				Config: configSetupAWS(projectID),
 				Check: resource.ComposeTestCheckFunc(
 					// same as regular cloud resource
 					checkExists(resourceName),
@@ -52,11 +51,10 @@ func TestAccCloudProviderAccessSetupAzure_basic(t *testing.T) {
 	var (
 		resourceName       = "mongodbatlas_cloud_provider_access_setup.test"
 		dataSourceName     = "data.mongodbatlas_cloud_provider_access_setup.test"
-		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		atlasAzureAppID    = os.Getenv("AZURE_ATLAS_APP_ID")
 		servicePrincipalID = os.Getenv("AZURE_SERVICE_PRINCIPAL_ID")
 		tenantID           = os.Getenv("AZURE_TENANT_ID")
-		projectName        = acc.RandomProjectName()
+		projectID          = acc.ProjectIDExecution(t)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -64,7 +62,7 @@ func TestAccCloudProviderAccessSetupAzure_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configSetupAzure(orgID, projectName, atlasAzureAppID, servicePrincipalID, tenantID),
+				Config: configSetupAzure(projectID, atlasAzureAppID, servicePrincipalID, tenantID),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "role_id"),
@@ -86,48 +84,40 @@ func TestAccCloudProviderAccessSetupAzure_basic(t *testing.T) {
 	)
 }
 
-func configSetupAWS(orgID, projectName string) string {
+func configSetupAWS(projectID string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_project" "test" {
-		name   = %[2]q
-		org_id = %[1]q
-	}
 	resource "mongodbatlas_cloud_provider_access_setup" "test" {
-		project_id = mongodbatlas_project.test.id
+		project_id = %[1]q
 		provider_name = "AWS"
 	 }
 
 	 data "mongodbatlas_cloud_provider_access_setup" "test" {
 		project_id = mongodbatlas_cloud_provider_access_setup.test.project_id
-		provider_name = "AWS"
+		provider_name = mongodbatlas_cloud_provider_access_setup.test.provider_name
 		role_id =  mongodbatlas_cloud_provider_access_setup.test.role_id
 	 }
 
-	`, orgID, projectName)
+	`, projectID)
 }
 
-func configSetupAzure(orgID, projectName, atlasAzureAppID, servicePrincipalID, tenantID string) string {
+func configSetupAzure(projectID, atlasAzureAppID, servicePrincipalID, tenantID string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_project" "test" {
-		name   = %[2]q
-		org_id = %[1]q
-	}
 	resource "mongodbatlas_cloud_provider_access_setup" "test" {
-		project_id = mongodbatlas_project.test.id
+		project_id = %[1]q
 		provider_name = "AZURE"
 		azure_config {
-			atlas_azure_app_id = %[3]q
-			service_principal_id = %[4]q
-			tenant_id = %[5]q
+			atlas_azure_app_id = %[2]q
+			service_principal_id = %[3]q
+			tenant_id = %[4]q
 		}
 	 }
 
 	 data "mongodbatlas_cloud_provider_access_setup" "test" {
 		project_id = mongodbatlas_cloud_provider_access_setup.test.project_id
-		provider_name = "AWS"
+		provider_name = mongodbatlas_cloud_provider_access_setup.test.provider_name
 		role_id =  mongodbatlas_cloud_provider_access_setup.test.role_id
 	 }
-	`, orgID, projectName, atlasAzureAppID, servicePrincipalID, tenantID)
+	`, projectID, atlasAzureAppID, servicePrincipalID, tenantID)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
