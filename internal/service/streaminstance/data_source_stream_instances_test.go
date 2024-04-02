@@ -2,7 +2,6 @@ package streaminstance_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -13,18 +12,25 @@ import (
 func TestAccStreamDSStreamInstances_basic(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_stream_instances.test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
+		projectID      = acc.ProjectIDExecution(t)
 		instanceName   = acc.RandomName()
 	)
+
+	checks := paginatedAttrChecks(dataSourceName, nil, nil)
+	// created instance is present in results
+	checks = append(checks, resource.TestCheckResourceAttrWith(dataSourceName, "results.#", acc.IntGreatThan(0)),
+		resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "results.*", map[string]string{
+			"instance_name": instanceName,
+		}))
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckPreviewFlag(t); acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
 			{
-				Config: streamInstancesDataSourceConfig(orgID, projectName, instanceName, region, cloudProvider),
-				Check:  streamInstancesAttributeChecks(dataSourceName, nil, nil, 1),
+				Config: streamInstancesDataSourceConfig(projectID, instanceName, region, cloudProvider),
+				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 		},
 	})
@@ -33,10 +39,13 @@ func TestAccStreamDSStreamInstances_basic(t *testing.T) {
 func TestAccStreamDSStreamInstances_withPageConfig(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_stream_instances.test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
+		projectID      = acc.ProjectIDExecution(t)
 		instanceName   = acc.RandomName()
+		pageNumber     = 1000 // high page number so no results are returned
 	)
+
+	checks := paginatedAttrChecks(dataSourceName, admin.PtrInt(pageNumber), admin.PtrInt(1))
+	checks = append(checks, resource.TestCheckResourceAttr(dataSourceName, "results.#", "0")) // expecting no results
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckPreviewFlag(t); acc.PreCheckBasic(t) },
@@ -44,46 +53,45 @@ func TestAccStreamDSStreamInstances_withPageConfig(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
 			{
-				Config: streamInstancesWithPageAttrDataSourceConfig(orgID, projectName, instanceName, region, cloudProvider),
-				Check:  streamInstancesAttributeChecks(dataSourceName, admin.PtrInt(2), admin.PtrInt(1), 0),
+				Config: streamInstancesWithPageAttrDataSourceConfig(projectID, instanceName, region, cloudProvider, pageNumber),
+				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 		},
 	})
 }
 
-func streamInstancesDataSourceConfig(orgID, projectName, instanceName, region, cloudProvider string) string {
+func streamInstancesDataSourceConfig(projectID, instanceName, region, cloudProvider string) string {
 	return fmt.Sprintf(`
 		%s
 
 		data "mongodbatlas_stream_instances" "test" {
 			project_id = mongodbatlas_stream_instance.test.project_id
 		}
-	`, acc.StreamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider))
+	`, acc.StreamInstanceConfig(projectID, instanceName, region, cloudProvider))
 }
 
-func streamInstancesWithPageAttrDataSourceConfig(orgID, projectName, instanceName, region, cloudProvider string) string {
+func streamInstancesWithPageAttrDataSourceConfig(projectID, instanceName, region, cloudProvider string, pageNum int) string {
 	return fmt.Sprintf(`
 		%s
 
 		data "mongodbatlas_stream_instances" "test" {
 			project_id = mongodbatlas_stream_instance.test.project_id
-			page_num = 2
+			page_num = %d
 			items_per_page = 1
 		}
-	`, acc.StreamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider))
+	`, acc.StreamInstanceConfig(projectID, instanceName, region, cloudProvider), pageNum)
 }
 
-func streamInstancesAttributeChecks(resourceName string, pageNum, itemsPerPage *int, totalCount int) resource.TestCheckFunc {
-	resourceChecks := []resource.TestCheckFunc{
+func paginatedAttrChecks(resourceName string, pageNum, itemsPerPage *int) []resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 		resource.TestCheckResourceAttrSet(resourceName, "total_count"),
-		resource.TestCheckResourceAttr(resourceName, "results.#", fmt.Sprint(totalCount)),
 	}
 	if pageNum != nil {
-		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "page_num", fmt.Sprint(*pageNum)))
+		checks = append(checks, resource.TestCheckResourceAttr(resourceName, "page_num", fmt.Sprint(*pageNum)))
 	}
 	if itemsPerPage != nil {
-		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "items_per_page", fmt.Sprint(*itemsPerPage)))
+		checks = append(checks, resource.TestCheckResourceAttr(resourceName, "items_per_page", fmt.Sprint(*itemsPerPage)))
 	}
-	return resource.ComposeTestCheckFunc(resourceChecks...)
+	return checks
 }

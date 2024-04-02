@@ -4,7 +4,6 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -18,8 +17,7 @@ var DummyCACert string
 func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_stream_connection.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
+		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -28,12 +26,12 @@ func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: kafkaStreamConnectionConfig(orgID, projectName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false),
-				Check:  kafkaStreamConnectionAttributeChecks(resourceName, orgID, projectName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false, true),
+				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false),
+				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false, true),
 			},
 			{
-				Config: kafkaStreamConnectionConfig(orgID, projectName, instanceName, "user2", "otherpassword", "localhost:9093", "latest", false),
-				Check:  kafkaStreamConnectionAttributeChecks(resourceName, orgID, projectName, instanceName, "user2", "otherpassword", "localhost:9093", "latest", false, true),
+				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user2", "otherpassword", "localhost:9093", "latest", false),
+				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user2", "otherpassword", "localhost:9093", "latest", false, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -49,8 +47,7 @@ func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_stream_connection.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
+		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -59,8 +56,8 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: kafkaStreamConnectionConfig(orgID, projectName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true),
-				Check:  kafkaStreamConnectionAttributeChecks(resourceName, orgID, projectName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true, true),
+				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true),
+				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -75,9 +72,9 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 
 func TestAccStreamRSStreamConnection_cluster(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_stream_connection.test"
-		clusterInfo  = acc.GetClusterInfo(t, nil)
-		instanceName = acc.RandomName()
+		resourceName           = "mongodbatlas_stream_connection.test"
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		instanceName           = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckPreviewFlag(t); acc.PreCheckBasic(t) },
@@ -85,8 +82,8 @@ func TestAccStreamRSStreamConnection_cluster(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: clusterStreamConnectionConfig(clusterInfo.ProjectIDStr, instanceName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr),
-				Check:  clusterStreamConnectionAttributeChecks(resourceName, clusterInfo.ClusterName),
+				Config: clusterStreamConnectionConfig(projectID, instanceName, clusterName),
+				Check:  clusterStreamConnectionAttributeChecks(resourceName, clusterName),
 			},
 			{
 				ResourceName:      resourceName,
@@ -101,8 +98,7 @@ func TestAccStreamRSStreamConnection_cluster(t *testing.T) {
 func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_stream_connection.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
+		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomName()
 		sampleName   = "sample_stream_solar"
 	)
@@ -112,7 +108,7 @@ func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: sampleStreamConnectionConfig(orgID, projectName, instanceName, sampleName),
+				Config: sampleStreamConnectionConfig(projectID, instanceName, sampleName),
 				Check:  sampleStreamConnectionAttributeChecks(resourceName, instanceName, sampleName),
 			},
 			{
@@ -125,8 +121,8 @@ func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 	})
 }
 
-func kafkaStreamConnectionConfig(orgID, projectName, instanceName, username, password, bootstrapServers, configValue string, useSSL bool) string {
-	projectAndStreamInstanceConfig := acc.StreamInstanceConfig(orgID, projectName, instanceName, "VIRGINIA_USA", "AWS")
+func kafkaStreamConnectionConfig(projectID, instanceName, username, password, bootstrapServers, configValue string, useSSL bool) string {
+	projectAndStreamInstanceConfig := acc.StreamInstanceConfig(projectID, instanceName, "VIRGINIA_USA", "AWS")
 	securityConfig := `
 		security = {
 			protocol = "PLAINTEXT"
@@ -144,7 +140,7 @@ func kafkaStreamConnectionConfig(orgID, projectName, instanceName, username, pas
 		%[1]s
 		
 		resource "mongodbatlas_stream_connection" "test" {
-		    project_id = mongodbatlas_project.test.id
+		    project_id = mongodbatlas_stream_instance.test.project_id
 			instance_name = mongodbatlas_stream_instance.test.instance_name
 		 	connection_name = "ConnectionNameKafka"
 		 	type = "Kafka"
@@ -162,19 +158,19 @@ func kafkaStreamConnectionConfig(orgID, projectName, instanceName, username, pas
 	`, projectAndStreamInstanceConfig, username, password, bootstrapServers, configValue, securityConfig)
 }
 
-func sampleStreamConnectionConfig(orgID, projectName, instanceName, sampleName string) string {
-	projectAndStreamInstanceConfig := acc.StreamInstanceConfig(orgID, projectName, instanceName, "VIRGINIA_USA", "AWS")
+func sampleStreamConnectionConfig(projectID, instanceName, sampleName string) string {
+	streamInstanceConfig := acc.StreamInstanceConfig(projectID, instanceName, "VIRGINIA_USA", "AWS")
 
 	return fmt.Sprintf(`
 		%[1]s
 		
 		resource "mongodbatlas_stream_connection" "test" {
-		    project_id = mongodbatlas_project.test.id
+		    project_id = mongodbatlas_stream_instance.test.project_id
 			instance_name = mongodbatlas_stream_instance.test.instance_name
 		 	connection_name = %[2]q
 		 	type = "Sample"
 		}
-	`, projectAndStreamInstanceConfig, sampleName)
+	`, streamInstanceConfig, sampleName)
 }
 
 func sampleStreamConnectionAttributeChecks(
@@ -190,7 +186,7 @@ func sampleStreamConnectionAttributeChecks(
 }
 
 func kafkaStreamConnectionAttributeChecks(
-	resourceName, orgID, projectName, instanceName, username, password, bootstrapServers, configValue string, usesSSL, checkPassword bool) resource.TestCheckFunc {
+	resourceName, instanceName, username, password, bootstrapServers, configValue string, usesSSL, checkPassword bool) resource.TestCheckFunc {
 	resourceChecks := []resource.TestCheckFunc{
 		checkStreamConnectionExists(),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -216,11 +212,10 @@ func kafkaStreamConnectionAttributeChecks(
 	return resource.ComposeTestCheckFunc(resourceChecks...)
 }
 
-func clusterStreamConnectionConfig(projectIDStr, instanceName, clusterNameStr, clusterTerraformStr string) string {
-	return clusterTerraformStr + fmt.Sprintf(`
-		
+func clusterStreamConnectionConfig(projectID, instanceName, clusterName string) string {
+	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_instance" "test" {
-			project_id = %[1]s
+			project_id = %[1]q
 			instance_name = %[2]q
 			data_process_region = {
 				region = "VIRGINIA_USA"
@@ -233,13 +228,13 @@ func clusterStreamConnectionConfig(projectIDStr, instanceName, clusterNameStr, c
 			instance_name = mongodbatlas_stream_instance.test.instance_name
 		 	connection_name = "ConnectionNameKafka"
 		 	type = "Cluster"
-		 	cluster_name = %[3]s
+		 	cluster_name = %[3]q
 			db_role_to_execute = {
 				role = "atlasAdmin"
 				type = "BUILT_IN"
 			}
 		}
-	`, projectIDStr, instanceName, clusterNameStr)
+	`, projectID, instanceName, clusterName)
 }
 
 func clusterStreamConnectionAttributeChecks(resourceName, clusterName string) resource.TestCheckFunc {

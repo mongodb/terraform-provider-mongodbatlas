@@ -2,7 +2,6 @@ package streaminstance_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -12,8 +11,7 @@ import (
 func TestAccStreamDSStreamInstance_basic(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_stream_instance.test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
+		projectID      = acc.ProjectIDExecution(t)
 		instanceName   = acc.RandomName()
 	)
 
@@ -23,7 +21,7 @@ func TestAccStreamDSStreamInstance_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
 			{
-				Config: streamInstanceDataSourceConfig(orgID, projectName, instanceName, region, cloudProvider),
+				Config: streamInstanceDataSourceConfig(projectID, instanceName, region, cloudProvider),
 				Check: resource.ComposeTestCheckFunc(
 					streamInstanceAttributeChecks(dataSourceName, instanceName, region, cloudProvider),
 					resource.TestCheckResourceAttr(dataSourceName, "stream_config.tier", "SP30"),
@@ -33,7 +31,7 @@ func TestAccStreamDSStreamInstance_basic(t *testing.T) {
 	})
 }
 
-func streamInstanceDataSourceConfig(orgID, projectName, instanceName, region, cloudProvider string) string {
+func streamInstanceDataSourceConfig(projectID, instanceName, region, cloudProvider string) string {
 	return fmt.Sprintf(`
 		%s
 
@@ -41,5 +39,5 @@ func streamInstanceDataSourceConfig(orgID, projectName, instanceName, region, cl
 			project_id = mongodbatlas_stream_instance.test.project_id
 			instance_name = mongodbatlas_stream_instance.test.instance_name
 		}
-	`, acc.StreamInstanceConfig(orgID, projectName, instanceName, region, cloudProvider))
+	`, acc.StreamInstanceConfig(projectID, instanceName, region, cloudProvider))
 }
