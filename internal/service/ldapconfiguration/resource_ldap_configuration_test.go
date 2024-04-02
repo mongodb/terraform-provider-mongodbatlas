@@ -37,7 +37,6 @@ func TestAccLDAPConfiguration_withVerify_CACertificateComplete(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckLDAPCert(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: configWithVerify(projectID, clusterName, hostname, username, password, caCertificate, cast.ToInt(port), true),
@@ -81,7 +80,6 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckLDAP(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, hostname, username, password, authEnabled, cast.ToInt(port)),
@@ -127,19 +125,6 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		}
 		return nil
 	}
-}
-
-func checkDestroy(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_ldap_configuration" {
-			continue
-		}
-		_, _, err := acc.ConnV2().LDAPConfigurationApi.GetLDAPConfiguration(context.Background(), rs.Primary.ID).Execute()
-		if err == nil {
-			return fmt.Errorf("ldapConfiguration (%s) still exists", rs.Primary.ID)
-		}
-	}
-	return nil
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
