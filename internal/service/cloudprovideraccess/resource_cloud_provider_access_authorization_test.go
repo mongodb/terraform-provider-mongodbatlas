@@ -14,28 +14,7 @@ import (
 )
 
 func TestAccCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
-	var (
-		projectID       = acc.ProjectIDExecution(t)
-		policyName      = acc.RandomName()
-		roleName        = acc.RandomName()
-		roleNameUpdated = acc.RandomName()
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configAuthorizationAWS(projectID, policyName, roleName),
-			},
-			{
-				Config: configAuthorizationAWS(projectID, policyName, roleNameUpdated),
-			},
-		},
-	},
-	)
+	resource.ParallelTest(t, *basicAuthorizationTestCase(t))
 }
 
 func TestAccCloudProviderAccessAuthorizationAzure_basic(t *testing.T) {
@@ -57,6 +36,32 @@ func TestAccCloudProviderAccessAuthorizationAzure_basic(t *testing.T) {
 		},
 	},
 	)
+}
+
+func basicAuthorizationTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+
+	var (
+		projectID       = acc.ProjectIDExecution(tb)
+		policyName      = acc.RandomName()
+		roleName        = acc.RandomName()
+		roleNameUpdated = acc.RandomName()
+	)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configAuthorizationAWS(projectID, policyName, roleName),
+			},
+			{
+				Config: configAuthorizationAWS(projectID, policyName, roleNameUpdated),
+			},
+		},
+	}
 }
 
 func configAuthorizationAWS(projectID, roleName, policyName string) string {

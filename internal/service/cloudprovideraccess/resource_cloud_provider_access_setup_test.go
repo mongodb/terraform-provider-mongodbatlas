@@ -14,37 +14,7 @@ import (
 )
 
 func TestAccCloudProviderAccessSetupAWS_basic(t *testing.T) {
-	var (
-		resourceName   = "mongodbatlas_cloud_provider_access_setup.test"
-		dataSourceName = "data.mongodbatlas_cloud_provider_access_setup.test"
-		projectID      = acc.ProjectIDExecution(t)
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configSetupAWS(projectID),
-				Check: resource.ComposeTestCheckFunc(
-					// same as regular cloud resource
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(dataSourceName, "aws_config.0.atlas_assumed_role_external_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "aws_config.0.atlas_aws_account_arn"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "created_date"),
-				),
-			},
-			{
-				ResourceName: resourceName,
-				// ID remains the same project-id, provider-name and id for consistency
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	},
-	)
+	resource.ParallelTest(t, *basicSetupTestCase(t))
 }
 
 func TestAccCloudProviderAccessSetupAzure_basic(t *testing.T) {
@@ -82,6 +52,40 @@ func TestAccCloudProviderAccessSetupAzure_basic(t *testing.T) {
 		},
 	},
 	)
+}
+
+func basicSetupTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+
+	var (
+		resourceName   = "mongodbatlas_cloud_provider_access_setup.test"
+		dataSourceName = "data.mongodbatlas_cloud_provider_access_setup.test"
+		projectID      = acc.ProjectIDExecution(tb)
+	)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configSetupAWS(projectID),
+				Check: resource.ComposeTestCheckFunc(
+					// same as regular cloud resource
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "aws_config.0.atlas_assumed_role_external_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "aws_config.0.atlas_aws_account_arn"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "created_date"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	}
 }
 
 func configSetupAWS(projectID string) string {
