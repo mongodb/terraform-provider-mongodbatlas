@@ -124,13 +124,13 @@ func dataSourceMongoDBAtlasNetworkPeeringRead(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf(errorPeersRead, peerID, err))
 	}
 
-	accepterRegionName, err := ensureAccepterRegionName(ctx, peer, conn, projectID)
-	if err != nil {
-		return diag.FromErr(err)
+	// Workaround until fix.
+	if peer.AccepterRegionName != "" {
+		if err := d.Set("accepter_region_name", peer.AccepterRegionName); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting `accepter_region_name` for Network Peering Connection (%s): %s", peerID, err))
+		}
 	}
-	if err := d.Set("accepter_region_name", accepterRegionName); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `accepter_region_name` for Network Peering Connection (%s): %s", peerID, err))
-	}
+
 	if err := d.Set("aws_account_id", peer.AWSAccountID); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `aws_account_id` for Network Peering Connection (%s): %s", peerID, err))
 	}

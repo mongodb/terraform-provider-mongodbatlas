@@ -184,14 +184,14 @@ func commonChecksAWS(vpcID, providerName, awsAccountID, vpcCIDRBlock, regionPeer
 		"provider_name":          providerName,
 		"aws_account_id":         awsAccountID,
 		"route_table_cidr_block": vpcCIDRBlock,
-		"accepter_region_name":   regionPeer,
 	}
 	checks := []resource.TestCheckFunc{checkExists(resourceName, &matlas.Peer{})}
 	checks = acc.AddAttrChecks(resourceName, checks, attributes)
+	checks = append(checks, resource.TestCheckResourceAttr(resourceName, "accepter_region_name", regionPeer))
 	checks = acc.AddAttrChecks(dataSourceName, checks, attributes)
-	checks = acc.AddAttrSetChecks(resourceName, checks, "project_id", "container_id")
+	checks = acc.AddAttrSetChecks(resourceName, checks, "project_id", "container_id", "accepter_region_name")
 	checks = acc.AddAttrSetChecks(dataSourceName, checks, "project_id", "container_id")
-	checks = acc.AddAttrSetChecks(pluralDataSourceName, checks, "results.#", "results.0.provider_name", "results.0.vpc_id", "results.0.aws_account_id", "results.0.accepter_region_name")
+	checks = acc.AddAttrSetChecks(pluralDataSourceName, checks, "results.#", "results.0.provider_name", "results.0.vpc_id", "results.0.aws_account_id")
 	return checks
 }
 
