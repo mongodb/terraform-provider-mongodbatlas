@@ -19,47 +19,7 @@ const (
 )
 
 func TestAccLDAPVerify_basic(t *testing.T) {
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		hostname    = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
-		username    = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
-		password    = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
-		port        = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
-		projectName = acc.RandomProjectName()
-		clusterName = acc.RandomClusterName()
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckLDAP(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(projectName, orgID, clusterName, hostname, username, password, cast.ToInt(port)),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "request_id"),
-					resource.TestCheckResourceAttr(resourceName, "hostname", hostname),
-					resource.TestCheckResourceAttr(resourceName, "bind_username", username),
-					resource.TestCheckResourceAttr(resourceName, "port", port),
-
-					checkExists(dataSourceName),
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "request_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "hostname", hostname),
-					resource.TestCheckResourceAttr(dataSourceName, "bind_username", username),
-					resource.TestCheckResourceAttr(dataSourceName, "port", port),
-				),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"project_id", "bind_password"},
-			},
-		},
-	})
+	resource.ParallelTest(t, *basicTestCase(t))
 }
 
 func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
@@ -97,6 +57,52 @@ func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
 			},
 		},
 	})
+}
+
+func basicTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		hostname    = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
+		username    = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
+		password    = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
+		port        = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckLDAP(tb) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(projectName, orgID, clusterName, hostname, username, password, cast.ToInt(port)),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "request_id"),
+					resource.TestCheckResourceAttr(resourceName, "hostname", hostname),
+					resource.TestCheckResourceAttr(resourceName, "bind_username", username),
+					resource.TestCheckResourceAttr(resourceName, "port", port),
+
+					checkExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "request_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "hostname", hostname),
+					resource.TestCheckResourceAttr(dataSourceName, "bind_username", username),
+					resource.TestCheckResourceAttr(dataSourceName, "port", port),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"project_id", "bind_password"},
+			},
+		},
+	}
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
