@@ -182,7 +182,7 @@ func configWithVerify(projectID, clusterName, hostname, username, password, caCe
 		}
 
 		resource "mongodbatlas_ldap_verify" "test" {
-			project_id                  = mongodbatlas_project.test.id
+			project_id                  = %[1]q
 			hostname = %[3]q
 			bind_username                     = %[4]q
 			bind_password                     = %[5]q
