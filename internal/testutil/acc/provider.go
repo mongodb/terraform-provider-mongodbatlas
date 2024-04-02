@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-const AwsProviderVersion = "5.43.0"
+const AwsProviderVersion = "5.1.0"
 
 func ExternalProviders(versionAtlasProvider string) map[string]resource.ExternalProvider {
 	return map[string]resource.ExternalProvider{
