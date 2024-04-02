@@ -16,6 +16,7 @@ func CreateAndRunTest(t *testing.T, test *resource.TestCase) {
 
 func CreateTestAndRunUseExternalProvider(t *testing.T, test *resource.TestCase, externalProviders, additionalProviders map[string]resource.ExternalProvider) {
 	t.Helper()
+	acc.SkipInUnitTest(t)
 	resource.ParallelTest(t, CreateTestUseExternalProvider(t, test, externalProviders, additionalProviders))
 }
 
