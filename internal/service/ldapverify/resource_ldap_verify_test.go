@@ -51,6 +51,13 @@ func TestAccLDAPVerify_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "port", port),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"project_id", "bind_password"},
+			},
 		},
 	})
 }
@@ -87,43 +94,6 @@ func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "validations.1.validation_type", "AUTHENTICATE"),
 					resource.TestCheckResourceAttr(resourceName, "validations.1.status", "OK"),
 				),
-			},
-		},
-	})
-}
-
-func TestAccLDAPVerify_importBasic(t *testing.T) {
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		hostname    = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
-		username    = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
-		password    = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
-		port        = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
-		projectName = acc.RandomProjectName()
-		clusterName = acc.RandomClusterName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckLDAP(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(projectName, orgID, clusterName, hostname, username, password, cast.ToInt(port)),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "request_id"),
-					resource.TestCheckResourceAttr(resourceName, "hostname", hostname),
-					resource.TestCheckResourceAttr(resourceName, "bind_username", username),
-					resource.TestCheckResourceAttr(resourceName, "port", port),
-				),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"project_id", "bind_password"},
 			},
 		},
 	})
