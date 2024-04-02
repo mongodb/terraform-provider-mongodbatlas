@@ -15,7 +15,6 @@ import (
 )
 
 func TestAccConfigRSCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
-	acc.SkipTestForCI(t)
 	var (
 		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		policyName      = acc.RandomName()
