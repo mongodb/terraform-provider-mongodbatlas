@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	resourceName = "mongodbatlas_ldap_configuration.test"
+	resourceName   = "mongodbatlas_ldap_configuration.test"
+	dataSourceName = "data.mongodbatlas_ldap_configuration.test"
 )
 
 func TestAccLDAPConfiguration_basic(t *testing.T) {
@@ -38,10 +39,17 @@ func TestAccLDAPConfiguration_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(resourceName, "bind_username"),
-					resource.TestCheckResourceAttrSet(resourceName, "authentication_enabled"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttr(resourceName, "hostname", hostname),
+					resource.TestCheckResourceAttr(resourceName, "bind_username", username),
+					resource.TestCheckResourceAttr(resourceName, "authentication_enabled", strconv.FormatBool(authEnabled)),
+					resource.TestCheckResourceAttr(resourceName, "port", port),
+
+					checkExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "hostname", hostname),
+					resource.TestCheckResourceAttr(dataSourceName, "bind_username", username),
+					resource.TestCheckResourceAttr(dataSourceName, "authentication_enabled", strconv.FormatBool(authEnabled)),
+					resource.TestCheckResourceAttr(dataSourceName, "port", port),
 				),
 			},
 		},

@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	resourceName = "mongodbatlas_ldap_verify.test"
+	resourceName   = "mongodbatlas_ldap_verify.test"
+	dataSourceName = "data.mongodbatlas_ldap_verify.test"
 )
 
 func TestAccLDAPVerify_basic(t *testing.T) {
@@ -41,6 +42,13 @@ func TestAccLDAPVerify_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "hostname", hostname),
 					resource.TestCheckResourceAttr(resourceName, "bind_username", username),
 					resource.TestCheckResourceAttr(resourceName, "port", port),
+
+					checkExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "request_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "hostname", hostname),
+					resource.TestCheckResourceAttr(dataSourceName, "bind_username", username),
+					resource.TestCheckResourceAttr(dataSourceName, "port", port),
 				),
 			},
 		},
