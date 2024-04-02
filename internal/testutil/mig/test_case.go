@@ -10,12 +10,13 @@ import (
 
 func CreateAndRunTest(t *testing.T, test *resource.TestCase) {
 	t.Helper()
-	acc.SkipInUnitTest(t)
+	acc.SkipInUnitTest(t) // Migration tests create external resources and use MONGODB_ATLAS_LAST_VERSION env-var.
 	resource.ParallelTest(t, CreateTest(t, test))
 }
 
 func CreateTestAndRunUseExternalProvider(t *testing.T, test *resource.TestCase, externalProviders, additionalProviders map[string]resource.ExternalProvider) {
 	t.Helper()
+	acc.SkipInUnitTest(t) // Migration tests create external resources and use MONGODB_ATLAS_LAST_VERSION env-var.
 	resource.ParallelTest(t, CreateTestUseExternalProvider(t, test, externalProviders, additionalProviders))
 }
 
