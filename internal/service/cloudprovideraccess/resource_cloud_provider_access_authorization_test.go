@@ -66,66 +66,62 @@ func basicAuthorizationTestCase(tb testing.TB) *resource.TestCase {
 
 func configAuthorizationAWS(projectID, policyName, roleName string) string {
 	return fmt.Sprintf(`
-		provider "aws" {
-			skip_credentials_validation = true
-		}
+resource "aws_iam_role_policy" "test_policy" {
+  name = %[2]q
+  role = aws_iam_role.test_role.id
 
-		resource "aws_iam_role_policy" "test_policy" {
-			name = %[2]q
-			role = aws_iam_role.test_role.id
+  policy = <<-EOF
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+		"Action": "*",
+		"Resource": "*"
+      }
+    ]
+  }
+  EOF
+}
 
-			policy = <<-EOF
-			{
-				"Version": "2012-10-17",
-				"Statement": [
-					{
-						"Effect": "Allow",
-				"Action": "*",
-				"Resource": "*"
-					}
-				]
-			}
-			EOF
-		}
+resource "aws_iam_role" "test_role" {
+  name = %[3]q
 
-		resource "aws_iam_role" "test_role" {
-			name = %[3]q
-
-			assume_role_policy = <<EOF
-		{
-			"Version": "2012-10-17",
-			"Statement": [
-				{
-					"Effect": "Allow",
-					"Principal": {
-						"AWS": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config.0.atlas_aws_account_arn}"
-					},
-					"Action": "sts:AssumeRole",
-					"Condition": {
-						"StringEquals": {
-							"sts:ExternalId": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config.0.atlas_assumed_role_external_id}"
-						}
-					}
-				}
-			]
-		}
-		EOF
-		}
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config.0.atlas_aws_account_arn}"
+      },
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "StringEquals": {
+          "sts:ExternalId": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config.0.atlas_assumed_role_external_id}"
+        }
+      }
+    }
+  ]
+}
+EOF
+}
 
 
-		resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
-			project_id    = %[1]q
-			provider_name = "AWS"
-		}
+resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
+  project_id    = %[1]q
+  provider_name = "AWS"
+}
 
-		resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
-			project_id = %[1]q
-			role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
+resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+  project_id = %[1]q
+  role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
 
-			aws {
-				iam_assumed_role_arn = aws_iam_role.test_role.arn
-			}
-		}
+  aws {
+    iam_assumed_role_arn = aws_iam_role.test_role.arn
+  }
+}
 	`, projectID, policyName, roleName)
 }
 
