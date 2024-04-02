@@ -19,7 +19,7 @@ const (
 )
 
 func TestAccLDAPVerify_basic(t *testing.T) {
-	resource.ParallelTest(t, *basicTestCase(t))
+	resource.Test(t, *basicTestCase(t)) // creating multiple ldap_verify resources for the same project at the same time leads to 500 errors.
 }
 
 func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
