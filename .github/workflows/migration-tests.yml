@@ -209,6 +209,7 @@ jobs:
           AZURE_ATLAS_APP_ID: ${{vars.AZURE_ATLAS_APP_ID}}
           AZURE_SERVICE_PRINCIPAL_ID: ${{vars.AZURE_SERVICE_PRINCIPAL_ID}}
           AZURE_TENANT_ID: ${{vars.AZURE_TENANT_ID}}
+          AWS_REGION: ${{ vars.AWS_REGION_LOWERCASE }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
