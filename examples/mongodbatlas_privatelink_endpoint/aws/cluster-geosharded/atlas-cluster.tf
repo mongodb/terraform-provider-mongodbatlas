@@ -3,7 +3,7 @@ resource "mongodbatlas_cluster" "geosharded" {
   name                         = var.cluster_name
   cloud_backup                 = true
   auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "5.0"
+  mongo_db_major_version       = "7.0"
   cluster_type                 = "GEOSHARDED"
   replication_specs {
     zone_name  = "Zone 1"

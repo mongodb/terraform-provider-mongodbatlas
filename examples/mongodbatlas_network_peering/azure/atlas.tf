@@ -19,7 +19,7 @@ resource "mongodbatlas_cluster" "azure-cluster" {
   }
   backup_enabled               = false
   auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "4.2"
+  mongo_db_major_version       = "7.0"
 
   # Provider settings block in this case it is Azure
   provider_name               = "AZURE"

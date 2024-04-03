@@ -23,7 +23,7 @@ resource "mongodbatlas_cluster" "cluster-atlas" {
   }
   cloud_backup                 = true
   auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "5.0"
+  mongo_db_major_version       = "7.0"
 
   # Provider Settings "block"
   provider_name               = "AWS"

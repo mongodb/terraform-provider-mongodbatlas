@@ -58,7 +58,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
   }
   cloud_backup = true
   auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "4.2"
+  mongo_db_major_version       = "7.0"
 
   # Provider Settings "block"
   provider_name               = "AWS"
@@ -84,7 +84,7 @@ resource "mongodbatlas_cluster" "test" {
   }
   cloud_backup     = true
   auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "4.2"
+  mongo_db_major_version       = "7.0"
 
   # Provider Settings "block"
   provider_name               = "AZURE"
@@ -111,7 +111,7 @@ resource "mongodbatlas_cluster" "test" {
   }
   cloud_backup                 = true
   auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "4.2"
+  mongo_db_major_version       = "7.0"
 
   # Provider Settings "block"
   provider_name               = "GCP"
