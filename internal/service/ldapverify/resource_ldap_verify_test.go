@@ -19,7 +19,7 @@ const (
 )
 
 func TestAccLDAPVerify_basic(t *testing.T) {
-	resource.Test(t, *basicTestCase(t)) // creating multiple ldap_verify resources for the same project at the same time leads to 500 errors.
+	resource.Test(t, *basicTestCase(t)) // cannot run in parallel as creating multiple ldap_verify resources for the same project at the same time leads to 500 errors.
 }
 
 func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
@@ -29,8 +29,7 @@ func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
 		password      = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
 		port          = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
 		caCertificate = os.Getenv("MONGODB_ATLAS_LDAP_CA_CERTIFICATE")
-		projectID     = acc.ProjectIDExecution(t)
-		clusterName   = acc.RandomClusterName()
+		projectID, _  = acc.ClusterNameExecution(t)
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -38,7 +37,7 @@ func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithConfiguration(projectID, clusterName, hostname, username, password, caCertificate, cast.ToInt(port), true),
+				Config: configWithConfiguration(projectID, hostname, username, password, caCertificate, cast.ToInt(port), true),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -62,12 +61,11 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 
 	var (
-		hostname    = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
-		username    = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
-		password    = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
-		port        = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
-		projectID   = acc.ProjectIDExecution(tb)
-		clusterName = acc.RandomClusterName()
+		hostname     = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
+		username     = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
+		password     = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
+		port         = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
+		projectID, _ = acc.ClusterNameExecution(tb) // cluster needed to avoid error: No clusters available to perform LDAP connectivity verification
 	)
 
 	return &resource.TestCase{
@@ -75,7 +73,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, clusterName, hostname, username, password, cast.ToInt(port)),
+				Config: configBasic(projectID, hostname, username, password, cast.ToInt(port)),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "request_id"),
@@ -130,72 +128,48 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func configBasic(projectID, clusterName, hostname, username, password string, port int) string {
+func configBasic(projectID, hostname, username, password string, port int) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "test" {
-			project_id   = %[1]q
-			name         = %[2]q
-			
-			// Provider Settings "block"
-			provider_name               = "AWS"
-			provider_region_name        = "US_EAST_2"
-			provider_instance_size_name = "M10"
-			cloud_backup                = true //enable cloud provider snapshots
-		}
-
 		resource "mongodbatlas_ldap_verify" "test" {
 			project_id               =  %[1]q
-			hostname 				 = %[3]q
-			bind_username            = %[4]q
-			bind_password            = %[5]q
-			port                     =  %[6]d
-			depends_on = ["mongodbatlas_cluster.test"]
+			hostname 				 = %[2]q
+			port                     =  %[5]d
+			bind_username            = %[3]q
+			bind_password            = %[4]q
 		}
 	
 		data "mongodbatlas_ldap_verify" "test" {
 			project_id = mongodbatlas_ldap_verify.test.project_id
 			request_id = mongodbatlas_ldap_verify.test.request_id
 		}		
-	`, projectID, clusterName, hostname, username, password, port)
+	`, projectID, hostname, username, password, port)
 }
 
-func configWithConfiguration(projectID, clusterName, hostname, username, password, caCertificate string, port int, authEnabled bool) string {
+func configWithConfiguration(projectID, hostname, username, password, caCertificate string, port int, authEnabled bool) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "test" {
-			project_id   = %[1]q
-			name         = %[2]q
-			
-			// Provider Settings "block"
-			provider_name               = "AWS"
-			provider_region_name        = "US_EAST_2"
-			provider_instance_size_name = "M10"
-			
-		}
-
 		resource "mongodbatlas_ldap_verify" "test" {
 			project_id                  = %[1]q
-			hostname = %[3]q
-			bind_username                     = %[4]q
-			bind_password                     = %[5]q
-			port                     = %[6]d
+			hostname = %[2]q
+			port                     = %[5]d
+			bind_username                     = %[3]q
+			bind_password                     = %[4]q
 			ca_certificate = <<-EOF
-%[8]s
+%[7]s
 			EOF
-			depends_on = [mongodbatlas_cluster.test]
 		}
 
 		resource "mongodbatlas_ldap_configuration" "test" {
 			project_id                  = %[1]q
-			authentication_enabled                = %[7]t
+			authentication_enabled                = %[6]t
 			authorization_enabled                = false
-			hostname = %[4]q
-			bind_username                     = %[4]q
-			bind_password                     = %[5]q
-			port                     = %[6]d
+			hostname = %[2]q
+			port                     = %[5]d
+			bind_username                     = %[3]q
+			bind_password                     = %[4]q
 			ca_certificate = <<-EOF
-%[8]s
+%[7]s
 			EOF
 			depends_on = [mongodbatlas_ldap_verify.test]
 		}
-	`, projectID, clusterName, hostname, username, password, port, authEnabled, caCertificate)
+	`, projectID, hostname, username, password, port, authEnabled, caCertificate)
 }
