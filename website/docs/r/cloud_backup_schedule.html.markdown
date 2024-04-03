@@ -174,10 +174,11 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
   copy_settings {
     cloud_provider = "AWS"
     frequencies = ["HOURLY",
-							"DAILY",
-							"WEEKLY",
-							"MONTHLY",
-							"ON_DEMAND"]
+		   "DAILY",
+		   "WEEKLY",
+		   "MONTHLY",
+                   "YEARLY",
+		   "ON_DEMAND"]
     region_name = "US_EAST_1"
     replication_spec_id = mongodbatlas_cluster.my_cluster.replication_specs.*.id[0]
     should_copy_oplogs = false
@@ -202,9 +203,8 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `policy_item_monthly` - (Optional) Monthly policy item
 * `policy_item_yearly` - (Optional) Yearly policy item
 * `auto_export_enabled` - Flag that indicates whether automatic export of cloud backup snapshots to the AWS bucket is enabled. Value can be one of the following:
-
-    true - enables automatic export of cloud backup snapshots to the AWS bucket
-    false - disables automatic export of cloud backup snapshots to the AWS bucket (default)
+	* true - enables automatic export of cloud backup snapshots to the AWS bucket
+ 	* false - disables automatic export of cloud backup snapshots to the AWS bucket (default)
 * `use_org_and_group_names_in_export_prefix` - Specify true to use organization and project names instead of organization and project UUIDs in the path for the metadata files that Atlas uploads to your S3 bucket after it finishes exporting the snapshots. To learn more about the metadata files that Atlas uploads, see [Export Cloud Backup Snapshot](https://www.mongodb.com/docs/atlas/backup/cloud-backup/export/#std-label-cloud-provider-snapshot-export).
 ### Export
 * `export_bucket_id` - Unique identifier of the mongodbatlas_cloud_backup_snapshot_export_bucket export_bucket_id value.
