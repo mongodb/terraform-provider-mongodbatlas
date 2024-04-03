@@ -19,6 +19,7 @@ const (
 	Daily                              = "daily"
 	Weekly                             = "weekly"
 	Monthly                            = "monthly"
+	Yearly                             = "yearly"
 	errorSnapshotBackupScheduleCreate  = "error creating a Cloud Backup Schedule: %s"
 	errorSnapshotBackupScheduleUpdate  = "error updating a Cloud Backup Schedule: %s"
 	errorSnapshotBackupScheduleRead    = "error getting a Cloud Backup Schedule for the cluster(%s): %s"

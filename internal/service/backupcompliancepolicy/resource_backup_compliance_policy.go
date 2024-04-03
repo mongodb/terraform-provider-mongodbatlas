@@ -227,6 +227,34 @@ func Resource() *schema.Resource {
 					},
 				},
 			},
+			"policy_item_yearly": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequency_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequency_interval": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+						"retention_unit": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"retention_value": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -286,6 +314,18 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			itemObj := s.(map[string]any)
 			backupPoliciesItem = append(backupPoliciesItem, admin.BackupComplianceScheduledPolicyItem{
 				FrequencyType:     cloudbackupschedule.Monthly,
+				RetentionUnit:     itemObj["retention_unit"].(string),
+				FrequencyInterval: itemObj["frequency_interval"].(int),
+				RetentionValue:    itemObj["retention_value"].(int),
+			})
+		}
+	}
+	if v, ok := d.GetOk("policy_item_yearly"); ok {
+		items := v.([]any)
+		for _, s := range items {
+			itemObj := s.(map[string]any)
+			backupPoliciesItem = append(backupPoliciesItem, admin.BackupComplianceScheduledPolicyItem{
+				FrequencyType:     cloudbackupschedule.Yearly,
 				RetentionUnit:     itemObj["retention_unit"].(string),
 				FrequencyInterval: itemObj["frequency_interval"].(int),
 				RetentionValue:    itemObj["retention_value"].(int),
@@ -387,6 +427,10 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_monthly", projectID, err)
 	}
 
+	if err := d.Set("policy_item_yearly", flattenBackupPolicyItems(policy.GetScheduledPolicyItems(), cloudbackupschedule.Yearly)); err != nil {
+		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_yearly", projectID, err)
+	}
+
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id": projectID,
 	}))
@@ -463,6 +507,18 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			itemObj := s.(map[string]any)
 			backupPoliciesItem = append(backupPoliciesItem, admin.BackupComplianceScheduledPolicyItem{
 				FrequencyType:     cloudbackupschedule.Monthly,
+				RetentionUnit:     itemObj["retention_unit"].(string),
+				FrequencyInterval: itemObj["frequency_interval"].(int),
+				RetentionValue:    itemObj["retention_value"].(int),
+			})
+		}
+	}
+	if v, ok := d.GetOk("policy_item_yearly"); ok {
+		items := v.([]any)
+		for _, s := range items {
+			itemObj := s.(map[string]any)
+			backupPoliciesItem = append(backupPoliciesItem, admin.BackupComplianceScheduledPolicyItem{
+				FrequencyType:     cloudbackupschedule.Yearly,
 				RetentionUnit:     itemObj["retention_unit"].(string),
 				FrequencyInterval: itemObj["frequency_interval"].(int),
 				RetentionValue:    itemObj["retention_value"].(int),
