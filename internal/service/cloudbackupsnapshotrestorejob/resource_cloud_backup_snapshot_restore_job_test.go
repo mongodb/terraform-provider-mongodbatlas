@@ -22,14 +22,13 @@ const (
 
 func TestAccCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
 	var (
-		cloudBackupSnapshotRestoreJob     = matlas.CloudProviderSnapshotRestoreJob{}
 		snapshotsDataSourceName           = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.test"
 		snapshotsDataSourcePaginationName = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.pagination"
 		projectID                         = acc.ProjectIDExecution(t)
 		clusterName                       = acc.RandomClusterName()
+		targetClusterName                 = acc.RandomClusterName()
 		description                       = fmt.Sprintf("My description in %s", clusterName)
 		retentionInDays                   = "1"
-		targetClusterName                 = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -40,8 +39,8 @@ func TestAccCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
 			{
 				Config: configBasic(projectID, clusterName, description, retentionInDays, targetClusterName),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cloudBackupSnapshotRestoreJob),
-					testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobAttributes(&cloudBackupSnapshotRestoreJob, "automated"),
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.automated", "true"),
 					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.target_cluster_name", targetClusterName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "cluster_name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "snapshot_id"),
@@ -62,12 +61,11 @@ func TestAccCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
 
 func TestAccCloudBackupSnapshotRestoreJob_basicDownload(t *testing.T) {
 	var (
-		cloudBackupSnapshotRestoreJob = matlas.CloudProviderSnapshotRestoreJob{}
-		projectID                     = acc.ProjectIDExecution(t)
-		clusterName                   = acc.RandomClusterName()
-		description                   = fmt.Sprintf("My description in %s", clusterName)
-		retentionInDays               = "1"
-		useSnapshotID                 = true
+		projectID       = acc.ProjectIDExecution(t)
+		clusterName     = acc.RandomClusterName()
+		description     = fmt.Sprintf("My description in %s", clusterName)
+		retentionInDays = "1"
+		useSnapshotID   = true
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -78,8 +76,7 @@ func TestAccCloudBackupSnapshotRestoreJob_basicDownload(t *testing.T) {
 			{
 				Config: configDownload(projectID, clusterName, description, retentionInDays, useSnapshotID),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &cloudBackupSnapshotRestoreJob),
-					testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobAttributes(&cloudBackupSnapshotRestoreJob, "download"),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.download", "true"),
 				),
 			},
@@ -116,7 +113,7 @@ func TestAccCloudBackupSnapshotRestoreJobWithPointTime_basic(t *testing.T) {
 	})
 }
 
-func checkExists(resourceName string, cloudBackupSnapshotRestoreJob *matlas.CloudProviderSnapshotRestoreJob) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -132,21 +129,10 @@ func checkExists(resourceName string, cloudBackupSnapshotRestoreJob *matlas.Clou
 			ClusterName: ids["cluster_name"],
 			JobID:       ids["snapshot_restore_job_id"],
 		}
-		if snapshotRes, _, err := acc.Conn().CloudProviderSnapshotRestoreJobs.Get(context.Background(), requestParameters); err == nil {
-			*cloudBackupSnapshotRestoreJob = *snapshotRes
+		if _, _, err := acc.Conn().CloudProviderSnapshotRestoreJobs.Get(context.Background(), requestParameters); err == nil {
 			return nil
 		}
 		return fmt.Errorf("cloudBackupSnapshotRestoreJob (%s) does not exist", rs.Primary.Attributes["snapshot_restore_job_id"])
-	}
-}
-
-func testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobAttributes(cloudBackupSnapshotRestoreJob *matlas.CloudProviderSnapshotRestoreJob, deliveryType string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if cloudBackupSnapshotRestoreJob.DeliveryType != deliveryType {
-			return fmt.Errorf("bad cloudBackupSnapshotRestoreJob deliveryType: %s", cloudBackupSnapshotRestoreJob.DeliveryType)
-		}
-
-		return nil
 	}
 }
 
