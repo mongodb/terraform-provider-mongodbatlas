@@ -80,23 +80,6 @@ func TestAccClusterRSGlobalCluster_withAWSAndBackup(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
 				),
 			},
-		},
-	})
-}
-
-func TestAccClusterRSGlobalCluster_importBasic(t *testing.T) {
-	var (
-		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true})
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(&clusterInfo, false, false),
-			},
 			{
 				ResourceName:            resourceName,
 				ImportStateIdFunc:       importStateIDFunc(resourceName),

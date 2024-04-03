@@ -41,6 +41,12 @@ func TestAccProjectIPAccesslist_settingIPAddress(t *testing.T) {
 				Config: configWithIPAddress(projectID, updatedIPAddress, updatedComment),
 				Check:  resource.ComposeTestCheckFunc(commonChecks(updatedIPAddress, "", "", updatedComment)...),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -143,31 +149,6 @@ func TestAccProjectIPAccessList_settingMultiple(t *testing.T) {
 			{
 				Config: configWithMultiple(projectID, accessList, true),
 				Check:  resource.ComposeTestCheckFunc(checks...),
-			},
-		},
-	})
-}
-
-func TestAccProjectIPAccessList_importBasic(t *testing.T) {
-	var (
-		projectID = acc.ProjectIDExecution(t)
-		ipAddress = acc.RandomIP(179, 154, 226)
-		comment   = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configWithIPAddress(projectID, ipAddress, comment),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 		},
 	})

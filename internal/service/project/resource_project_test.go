@@ -599,6 +599,13 @@ func TestAccProject_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "2"),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       acc.ImportStateProjectIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"with_default_alerts_settings"},
+			},
 		},
 	})
 }
@@ -777,31 +784,6 @@ func TestAccProject_updatedToEmptyRoles(t *testing.T) {
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "0"),
 				),
-			},
-		},
-	})
-}
-
-func TestAccProject_importBasic(t *testing.T) {
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyProject,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(orgID, projectName, "", false, nil),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       acc.ImportStateProjectIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"with_default_alerts_settings"},
 			},
 		},
 	})

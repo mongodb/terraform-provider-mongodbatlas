@@ -46,44 +46,6 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "endpoint_service_id"),
 				),
 			},
-		},
-	})
-}
-
-func TestAccNetworkRSPrivateLinkEndpointServiceAWS_import(t *testing.T) {
-	acc.SkipTestForCI(t)
-	var (
-		resourceSuffix = "test"
-		resourceName   = fmt.Sprintf("mongodbatlas_privatelink_endpoint_service.%s", resourceSuffix)
-
-		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
-		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
-
-		providerName    = "AWS"
-		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		region          = os.Getenv("AWS_REGION")
-		vpcID           = os.Getenv("AWS_VPC_ID")
-		subnetID        = os.Getenv("AWS_SUBNET_ID")
-		securityGroupID = os.Getenv("AWS_SECURITY_GROUP_ID")
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
-		CheckDestroy:             testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(
-					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, resourceSuffix,
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateLinkEndpointServiceExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "private_link_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "endpoint_service_id"),
-				),
-			},
 			{
 				ResourceName:            resourceName,
 				ImportStateIdFunc:       testAccCheckMongoDBAtlasPrivateLinkEndpointServiceImportStateIDFunc(resourceName),

@@ -40,30 +40,6 @@ func TestAccServerlessPrivateLinkEndpointService_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(datasourceEndpointsName, "instance_name"),
 				),
 			},
-		},
-	})
-}
-
-func TestAccServerlessPrivateLinkEndpointService_importBasic(t *testing.T) {
-	var (
-		resourceName  = "mongodbatlas_privatelink_endpoint_service_serverless.test"
-		orgID         = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName   = acc.RandomProjectName()
-		instanceName  = acc.RandomClusterName()
-		commentOrigin = "this is a comment for serverless private link endpoint"
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(orgID, projectName, instanceName, commentOrigin),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "provider_name", "AWS"),
-					resource.TestCheckResourceAttr(resourceName, "comment", commentOrigin),
-				),
-			},
 			{
 				Config:            configBasic(orgID, projectName, instanceName, commentOrigin),
 				ResourceName:      resourceName,

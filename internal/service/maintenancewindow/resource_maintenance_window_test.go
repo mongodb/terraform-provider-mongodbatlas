@@ -49,33 +49,6 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
 				),
 			},
-		},
-	})
-}
-
-func TestAccConfigRSMaintenanceWindow_importBasic(t *testing.T) {
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		dayOfWeek   = 1
-		hourOfDay   = 3
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDay),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
-					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDay)),
-					resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
-					resource.TestCheckResourceAttr(resourceName, "start_asap", "false"),
-				),
-			},
 			{
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),

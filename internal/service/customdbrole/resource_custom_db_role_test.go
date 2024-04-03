@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -52,6 +51,13 @@ func TestAccConfigRSCustomDBRoles_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "actions.0.action", "UPDATE"),
 					resource.TestCheckResourceAttr(resourceName, "actions.0.resources.#", "1"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasCustomDBRolesImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"actions.0.resources.0.cluster"},
 			},
 		},
 	})
@@ -400,42 +406,6 @@ func TestAccConfigRSCustomDBRoles_MultipleResources(t *testing.T) {
 			})
 		})
 	}
-}
-
-func TestAccConfigRSCustomDBRoles_importBasic(t *testing.T) {
-	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		roleName     = acc.RandomName()
-		databaseName = acc.RandomClusterName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(orgID, projectName, roleName, "INSERT", databaseName),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasCustomDBRolesImportStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"actions.0.resources.0.cluster"},
-			},
-			{
-				Config: configBasic(orgID, projectName, roleName, "INSERT", databaseName),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
-		},
-	})
 }
 
 func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {

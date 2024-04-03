@@ -60,6 +60,13 @@ func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "roles.0.role_name", "read"),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"password"},
+			},
 		},
 	})
 }
@@ -86,6 +93,13 @@ func TestAccConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"password"},
 			},
 		},
 	})
@@ -134,32 +148,6 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "aws_iam_type", "USER"),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccConfigRSDatabaseUser_withAWSIAMType_import(t *testing.T) {
-	var (
-		projectID = acc.ProjectIDExecution(t)
-		username  = acc.RandomIAMUser()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: acc.ConfigDatabaseUserWithAWSIAMType(projectID, username, "atlasAdmin", "First Key", "First value"),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "aws_iam_type", "USER"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
@@ -474,98 +462,6 @@ func TestAccConfigRSDatabaseUser_updateToEmptyLabels(t *testing.T) {
 }
 
 func TestAccConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
-	var (
-		projectID = acc.ProjectIDExecution(t)
-		username  = acc.RandomLDAPName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: acc.ConfigDatabaseUserWithLDAPAuthType(projectID, username, "atlasAdmin", "First Key", "First value"),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "ldap_auth_type", "USER"),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccConfigRSDatabaseUser_importBasic(t *testing.T) {
-	var (
-		projectID = acc.ProjectIDExecution(t)
-		username  = acc.RandomName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: acc.ConfigDatabaseUserBasic(projectID, username, "read", "First Key", "First value"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
-				),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password"},
-			},
-		},
-	})
-}
-
-func TestAccConfigRSDatabaseUser_importX509TypeCustomer(t *testing.T) {
-	var (
-		projectID = acc.ProjectIDExecution(t)
-		username  = acc.RandomLDAPName()
-		x509Type  = "CUSTOMER"
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: acc.ConfigDatabaseUserWithX509Type(projectID, username, x509Type, "atlasAdmin", "First Key", "First value"),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "x509_type", x509Type),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
-				),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password"},
-			},
-		},
-	})
-}
-
-func TestAccConfigRSDatabaseUser_importLDAPAuthType(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		username  = acc.RandomLDAPName()

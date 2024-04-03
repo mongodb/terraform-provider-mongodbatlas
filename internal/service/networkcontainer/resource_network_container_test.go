@@ -41,6 +41,13 @@ func TestAccNetworkContainer_basicAWS(t *testing.T) {
 				Config: configBasic(projectID, cidrBlockUpdated, constant.AWS, "US_EAST_2"),
 				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.AWS)...),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
+			},
 		},
 	})
 }
@@ -113,31 +120,6 @@ func TestAccNetworkContainer_withRegionsGCP(t *testing.T) {
 			{
 				Config: configBasic(projectID, gcpWithRegionsCidrBlock, constant.GCP, regions),
 				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.GCP)...),
-			},
-		},
-	})
-}
-
-func TestAccNetworkContainer_importBasic(t *testing.T) {
-	var (
-		projectID = acc.ProjectIDExecution(t)
-		randInt   = acctest.RandIntRange(0, 255)
-		cidrBlock = fmt.Sprintf("10.8.%d.0/24", randInt)
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(projectID, cidrBlock, constant.AWS, "US_WEST_2"),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{},
 			},
 		},
 	})

@@ -36,27 +36,6 @@ func TestAccBackupRSBackupSnapshotExportBucket_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "cloud_provider", "AWS"),
 				),
 			},
-		},
-	})
-}
-
-func TestAccBackupRSBackupSnapshotExportBucket_importBasic(t *testing.T) {
-	acc.SkipTestForCI(t)
-	var (
-		resourceName = "mongodbatlas_cloud_backup_snapshot_export_bucket.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		bucketName   = os.Getenv("AWS_S3_BUCKET")
-		iamRoleID    = os.Getenv("IAM_ROLE_ID")
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckS3Bucket(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasBackupSnapshotExportBucketDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMongoDBAtlasBackupSnapshotExportBucketConfig(projectID, bucketName, iamRoleID),
-			},
 			{
 				ResourceName:      resourceName,
 				ImportStateIdFunc: testAccCheckMongoDBAtlasBackupSnapshotExportBucketImportStateIDFunc(resourceName),
