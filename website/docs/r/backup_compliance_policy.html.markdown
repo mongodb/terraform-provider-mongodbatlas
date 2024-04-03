@@ -208,6 +208,14 @@ In addition to all arguments above, the following attributes are exported:
 * `retention_unit` - Scope of the backup policy item: `days`, `weeks`, or `months`.
 * `retention_value` - Value to associate with `retention_unit`. Monthly policy must have retention days of at least 31 days or 5 weeks or 1 month. Note that for less frequent policy items, Atlas requires that you specify a retention period greater than or equal to the retention period specified for more frequent policy items. For example: If the weekly policy item specifies a retention of two weeks, the montly retention policy must specify two weeks or greater.
 
+### Policy Item Yearly
+* `id` - Unique identifier of the backup policy item.
+* `frequency_type` - Frequency associated with the backup policy item. For yearly policies, the frequency type is defined as `yearly`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
+* `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (yearly in this case). The supported values for yearly policies are 
+  * `1` through `12` the first day of the month where the number represents the month, i.e. `1` is January and `12` is December.
+* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, `months`, or `years`.
+* `retention_value` - Value to associate with `retention_unit`. Yearly policy must have retention of at least 1 year.
+
 ## Import
 
 Backup Compliance Policy entries can be imported using project project_id  in the format `project_id`, e.g.
