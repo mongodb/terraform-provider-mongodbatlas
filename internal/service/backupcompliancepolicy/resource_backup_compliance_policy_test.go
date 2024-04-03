@@ -164,7 +164,7 @@ func configBasic(projectName, orgID, projectOwnerID string, useYearly bool) stri
 	if useYearly {
 		strYearly = `
 			policy_item_yearly {
-				frequency_interval = 0
+				frequency_interval = 1
 				retention_unit     = "years"
 				retention_value    = 1
 			}
@@ -264,7 +264,7 @@ func configWithoutOptionals(projectName, orgID, projectOwnerID string) string {
 			}
 
 			policy_item_yearly {
-				frequency_interval = 0
+				frequency_interval = 1
 				retention_unit     = "years"
 				retention_value    = 1
 			}
@@ -316,7 +316,7 @@ func configWithoutRestoreDays(projectName, orgID, projectOwnerID string) string 
 			}
 
 			policy_item_yearly {
-				frequency_interval = 0
+				frequency_interval = 1
 				retention_unit     = "years"
 				retention_value    = 1
 			}
