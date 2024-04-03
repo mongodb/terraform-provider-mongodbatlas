@@ -21,42 +21,7 @@ const (
 )
 
 func TestAccCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
-	var (
-		snapshotsDataSourceName           = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.test"
-		snapshotsDataSourcePaginationName = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.pagination"
-		projectID                         = acc.ProjectIDExecution(t)
-		clusterName                       = acc.RandomClusterName()
-		targetClusterName                 = acc.RandomClusterName()
-		description                       = fmt.Sprintf("My description in %s", clusterName)
-		retentionInDays                   = "1"
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(projectID, clusterName, description, retentionInDays, targetClusterName),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.automated", "true"),
-					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.target_cluster_name", targetClusterName),
-					resource.TestCheckResourceAttrSet(dataSourceName, "cluster_name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "snapshot_id"),
-					resource.TestCheckResourceAttrSet(snapshotsDataSourceName, "results.#"),
-					resource.TestCheckResourceAttrSet(snapshotsDataSourcePaginationName, "results.#"),
-				),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"retention_in_days", "snapshot_id"},
-			},
-		},
-	})
+	resource.ParallelTest(t, *basicTestCase(t))
 }
 
 func TestAccCloudBackupSnapshotRestoreJob_basicDownload(t *testing.T) {
@@ -110,6 +75,47 @@ func TestAccCloudBackupSnapshotRestoreJobWithPointTime_basic(t *testing.T) {
 			},
 		},
 	})
+}
+
+func basicTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+
+	var (
+		snapshotsDataSourceName           = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.test"
+		snapshotsDataSourcePaginationName = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.pagination"
+		projectID                         = acc.ProjectIDExecution(tb)
+		clusterName                       = acc.RandomClusterName()
+		targetClusterName                 = acc.RandomClusterName()
+		description                       = fmt.Sprintf("My description in %s", clusterName)
+		retentionInDays                   = "1"
+	)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(projectID, clusterName, description, retentionInDays, targetClusterName),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.automated", "true"),
+					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.target_cluster_name", targetClusterName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "cluster_name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "snapshot_id"),
+					resource.TestCheckResourceAttrSet(snapshotsDataSourceName, "results.#"),
+					resource.TestCheckResourceAttrSet(snapshotsDataSourcePaginationName, "results.#"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"retention_in_days", "snapshot_id"},
+			},
+		},
+	}
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
