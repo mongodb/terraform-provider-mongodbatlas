@@ -980,6 +980,38 @@ func TestAccProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 	})
 }
 
+func TestAccProject_withTags(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyProject,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithTags(orgID, projectName, nil),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", projectName),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+				),
+			},
+			{
+				Config: configWithTags(orgID, projectName, map[string]string{
+					"Name":        "my-tag-name",
+					"Environment": "test-acc",
+				}),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "tags.Name", "my-tag-name"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Environment", "test-acc"),
+				),
+			},
+		},
+	})
+}
+
 func createDataFederationLimit(limitName string) admin.DataFederationLimit {
 	return admin.DataFederationLimit{
 		Name: limitName,
@@ -1105,6 +1137,16 @@ func configWithUpdatedRole(orgID, projectName, teamID, roleName string) string {
 			}
 		}
 	`, orgID, projectName, teamID, roleName)
+}
+
+func configWithTags(orgID, projectName string, tags map[string]string) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_project" "test" {
+	org_id 			 = %[1]q
+	name   			 = %[2]q
+	%[3]s
+}
+`, orgID, projectName, acc.MapToHcl(tags, "\t", "tags"))
 }
 
 type TeamRoleResponse struct {

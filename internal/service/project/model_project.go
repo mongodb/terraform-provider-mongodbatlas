@@ -5,6 +5,7 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -108,6 +109,7 @@ func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, pro
 		Teams:                     newTFTeamsResourceModel(ctx, projectProps.Teams),
 		Limits:                    newTFLimitsResourceModel(ctx, projectProps.Limits),
 		IPAddresses:               ipAddressesModel,
+		Tags:                      convertToTagsValue(*projectRes.Tags),
 	}
 
 	projectSettings := projectProps.Settings
@@ -201,4 +203,14 @@ func UpdateProjectBool(plan, state types.Bool, setting **bool) bool {
 		return true
 	}
 	return false
+}
+
+func convertToTagsValue(tags []admin.ResourceTag) types.Map {
+	typesTags := make(map[string]attr.Value, len(tags))
+	for _, tag := range tags {
+		typesTags[tag.Key] = types.StringValue(tag.Value)
+	}
+	// todo: improve me
+	mapValue, _ := types.MapValue(types.StringType, typesTags)
+	return mapValue
 }

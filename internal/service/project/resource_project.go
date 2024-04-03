@@ -57,6 +57,7 @@ type projectRS struct {
 type TFProjectRSModel struct {
 	Limits                                      types.Set    `tfsdk:"limits"`
 	Teams                                       types.Set    `tfsdk:"teams"`
+	Tags                                        types.Map    `tfsdk:"tags"`
 	IPAddresses                                 types.Object `tfsdk:"ip_addresses"`
 	RegionUsageRestrictions                     types.String `tfsdk:"region_usage_restrictions"`
 	Name                                        types.String `tfsdk:"name"`
@@ -245,6 +246,11 @@ func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 					},
 				},
 			},
+			"tags": schema.MapAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Computed:    true,
+			},
 		},
 		Blocks: map[string]schema.Block{
 			"teams": schema.SetNestedBlock{
@@ -301,12 +307,30 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	var tags []admin.ResourceTag
+	if projectPlan.Tags.IsNull() || len(projectPlan.Tags.Elements()) == 0 {
+		tags = []admin.ResourceTag{}
+	} else {
+		elements := make(map[string]types.String, len(projectPlan.Tags.Elements()))
+		diags = projectPlan.Tags.ElementsAs(ctx, &elements, false)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		for key, tagValue := range elements {
+			tags = append(tags, admin.ResourceTag{
+				Key:   key,
+				Value: tagValue.ValueString(),
+			})
+		}
+	}
 
 	projectGroup := &admin.Group{
 		OrgId:                     projectPlan.OrgID.ValueString(),
 		Name:                      projectPlan.Name.ValueString(),
 		WithDefaultAlertsSettings: projectPlan.WithDefaultAlertsSettings.ValueBoolPointer(),
 		RegionUsageRestrictions:   projectPlan.RegionUsageRestrictions.ValueStringPointer(),
+		Tags:                      &tags,
 	}
 
 	projectAPIParams := &admin.CreateProjectApiParams{
