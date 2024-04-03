@@ -89,10 +89,9 @@ func TestAccCloudBackupSnapshotRestoreJob_basicDownload(t *testing.T) {
 }
 
 func TestAccCloudBackupSnapshotRestoreJobWithPointTime_basic(t *testing.T) {
-	acc.SkipTestForCI(t)
 	var (
 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName       = acc.RandomProjectName()
+		projectID         = acc.ProjectIDExecution(t)
 		targetProjectName = acc.RandomProjectName()
 		clusterName       = acc.RandomClusterName()
 		description       = fmt.Sprintf("My description in %s", clusterName)
@@ -106,7 +105,7 @@ func TestAccCloudBackupSnapshotRestoreJobWithPointTime_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configPointInTime(orgID, projectName, clusterName, description, retentionInDays, targetProjectName, timeUtc),
+				Config: configPointInTime(orgID, projectID, clusterName, description, retentionInDays, targetProjectName, timeUtc),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -264,61 +263,55 @@ func configDownload(projectID, clusterName, description, retentionInDays string,
 	`, projectID, clusterName, description, retentionInDays, snapshotIDField)
 }
 
-func configPointInTime(orgID, projectName, clusterName, description, retentionInDays, targetProjectName string, pointTimeUTC int64) string {
+func configPointInTime(orgID, projectID, clusterName, description, retentionInDays, targetProjectName string, pointTimeUTC int64) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "target_project" {
+			org_id = %[1]q
+			name   = %[6]q
+		}
 
-resource "mongodbatlas_project" "backup_project" {
-	org_id = %[1]q
-	name   = %[2]q
-}
+		resource "mongodbatlas_cluster" "target_cluster" {
+			project_id   = mongodbatlas_project.target_project.id
+			name         = "cluster-target"
+			disk_size_gb = 10
 
-resource "mongodbatlas_project" "target_project" {
-	org_id = %[1]q
-	name   = %[6]q
-}
+			// Provider Settings "block"
+			provider_name               = "AWS"
+			provider_region_name        = "US_EAST_1"
+			provider_instance_size_name = "M10"
+			cloud_backup                = true
+		}
 
-resource "mongodbatlas_cluster" "target_cluster" {
-  project_id   = mongodbatlas_project.target_project.id
-  name         = "cluster-target"
-  disk_size_gb = 10
+		resource "mongodbatlas_cluster" "my_cluster" {
+			project_id   = %[2]q
+			name         = %[3]q
+			disk_size_gb = 10
 
-  // Provider Settings "block"
-  provider_name               = "AWS"
-  provider_region_name        = "US_EAST_1"
-  provider_instance_size_name = "M10"
-  cloud_backup                = true
-}
+			// Provider Settings "block"
+			provider_name               = "AWS"
+			provider_region_name        = "US_EAST_1"
+			provider_instance_size_name = "M10"
+			cloud_backup                = true   // enable cloud provider snapshots
+		}
 
-resource "mongodbatlas_cluster" "my_cluster" {
-  project_id   = mongodbatlas_project.backup_project.id
-  name         = %[3]q
-  disk_size_gb = 10
+		resource "mongodbatlas_cloud_backup_snapshot" "test" {
+			project_id        = mongodbatlas_cluster.my_cluster.project_id
+			cluster_name      = mongodbatlas_cluster.my_cluster.name
+			description       = %[4]q
+			retention_in_days = %[5]q
+		}
 
-  // Provider Settings "block"
-  provider_name               = "AWS"
-  provider_region_name        = "US_EAST_1"
-  provider_instance_size_name = "M10"
-  cloud_backup                = true   // enable cloud provider snapshots
-}
+		resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
+			project_id   = mongodbatlas_cloud_backup_snapshot.test.project_id
+			cluster_name = mongodbatlas_cloud_backup_snapshot.test.cluster_name
 
-resource "mongodbatlas_cloud_backup_snapshot" "test" {
-  project_id        = mongodbatlas_cluster.my_cluster.project_id
-  cluster_name      = mongodbatlas_cluster.my_cluster.name
-  description       = %[4]q
-  retention_in_days = %[5]q
-}
-
-resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
-  project_id   = mongodbatlas_cloud_backup_snapshot.test.project_id
-  cluster_name = mongodbatlas_cloud_backup_snapshot.test.cluster_name
-
-  delivery_type_config {
-    point_in_time       = true
-    target_cluster_name = mongodbatlas_cluster.target_cluster.name
-    target_project_id   = mongodbatlas_cluster.target_cluster.project_id
-    oplog_ts            = %[7]d
-    oplog_inc           = 300
-  }
-}
-	`, orgID, projectName, clusterName, description, retentionInDays, targetProjectName, pointTimeUTC)
+			delivery_type_config {
+				point_in_time       = true
+				target_cluster_name = mongodbatlas_cluster.target_cluster.name
+				target_project_id   = mongodbatlas_cluster.target_cluster.project_id
+				oplog_ts            = %[7]d
+				oplog_inc           = 300
+			}
+		}
+	`, orgID, projectID, clusterName, description, retentionInDays, targetProjectName, pointTimeUTC)
 }
