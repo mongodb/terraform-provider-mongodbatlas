@@ -116,11 +116,11 @@ resource "mongodbatlas_backup_compliance_policy" "backup_policy" {
 			retention_value    = 12
 		  }
 
-      policy_item_yearly {
-        frequency_interval = 1
-        retention_unit     = "years"
-        retention_value    = 1
-      }
+	          policy_item_yearly {
+	            frequency_interval = 1
+	            retention_unit     = "years"
+	            retention_value    = 1
+	          }
 
 }
 ```
