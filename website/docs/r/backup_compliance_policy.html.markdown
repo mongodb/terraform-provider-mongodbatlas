@@ -86,6 +86,11 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
     retention_unit     = "months"
     retention_value    = 12
   }
+  policy_item_yearly {
+    frequency_interval = 1        # accepted values = 1 to 12 -> 1st day of nth month  
+    retention_unit     = "years"
+    retention_value    = 1
+  }
 
 }
 
@@ -139,6 +144,12 @@ resource "mongodbatlas_backup_compliance_policy" "backup_policy" {
 			retention_value    = 12
 		  }
 
+      policy_item_yearly {
+        frequency_interval = 1
+        retention_unit     = "years"
+        retention_value    = 1
+      }
+      
 }
 ```
 

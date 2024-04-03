@@ -58,6 +58,11 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
     retention_unit     = "months"
     retention_value    = 4
   }
+  policy_item_yearly {
+    frequency_interval = 1        # accepted values = 1 to 12 -> 1st day of nth month  
+    retention_unit     = "years"
+    retention_value    = 1
+  }
 
 }
 
@@ -111,6 +116,12 @@ resource "mongodbatlas_backup_compliance_policy" "backup_policy" {
 			retention_value    = 12
 		  }
 
+      policy_item_yearly {
+        frequency_interval = 1
+        retention_unit     = "years"
+        retention_value    = 1
+      }
+
 }
 ```
 
@@ -138,28 +149,28 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - Unique identifier of the backup policy item.
 * `frequency_type` - Frequency associated with the backup policy item. For hourly policies, the frequency type is defined as `ondemand`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
 * `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (hourly in this case). The supported values for hourly policies are `1`, `2`, `4`, `6`, `8` or `12` hours. Note that `12` hours is the only accepted value for NVMe clusters.
-* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, or `months`.
+* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, `months`, or `years`.
 * `retention_value` - Value to associate with `retention_unit`.
 * 
 ### Policy Item Hourly
 * `id` - Unique identifier of the backup policy item.
 * `frequency_type` - Frequency associated with the backup policy item. For hourly policies, the frequency type is defined as `hourly`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
 * `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (hourly in this case). The supported values for hourly policies are `1`, `2`, `4`, `6`, `8` or `12` hours. Note that `12` hours is the only accepted value for NVMe clusters.
-* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, or `months`.
+* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, `months`, or `years`.
 * `retention_value` - Value to associate with `retention_unit`.
 
 ### Policy Item Daily
 * `id` - Unique identifier of the backup policy item.
 * `frequency_type` - Frequency associated with the backup policy item. For daily policies, the frequency type is defined as `daily`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
 * `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (daily in this case). The only supported value for daily policies is `1` day.
-* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, or `months`.
+* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, `months`, or `years`.
 * `retention_value` - Value to associate with `retention_unit`.  Note that for less frequent policy items, Atlas requires that you specify a retention period greater than or equal to the retention period specified for more frequent policy items. For example: If the hourly policy item specifies a retention of two days, the daily retention policy must specify two days or greater.
 
 ### Policy Item Weekly
 * `id` - Unique identifier of the backup policy item.
 * `frequency_type` - Frequency associated with the backup policy item. For weekly policies, the frequency type is defined as `weekly`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
 * `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (weekly in this case). The supported values for weekly policies are `1` through `7`, where `1` represents Monday and `7` represents Sunday.
-* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, or `months`.
+* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, `months`, or `years`.
 * `retention_value` - Value to associate with `retention_unit`. Weekly policy must have retention of at least 7 days or 1 week. Note that for less frequent policy items, Atlas requires that you specify a retention period greater than or equal to the retention period specified for more frequent policy items. For example: If the daily policy item specifies a retention of two weeks, the weekly retention policy must specify two weeks or greater.
 
 ### Policy Item Monthly
@@ -168,7 +179,15 @@ In addition to all arguments above, the following attributes are exported:
 * `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (monthly in this case). The supported values for weekly policies are 
   * `1` through `28` where the number represents the day of the month i.e. `1` is the first of the month and `5` is the fifth day of the month.
   * `40` represents the last day of the month (depending on the month).
-* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, or `months`.
+* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, `months`, or `years`.
 * `retention_value` - Value to associate with `retention_unit`. Monthly policy must have retention days of at least 31 days or 5 weeks or 1 month. Note that for less frequent policy items, Atlas requires that you specify a retention period greater than or equal to the retention period specified for more frequent policy items. For example: If the weekly policy item specifies a retention of two weeks, the montly retention policy must specify two weeks or greater.
+
+### Policy Item Yearly
+* `id` - Unique identifier of the backup policy item.
+* `frequency_type` - Frequency associated with the backup policy item. For yearly policies, the frequency type is defined as `yearly`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
+* `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (yearly in this case). The supported values for yearly policies are 
+  * `1` through `12` the first day of the month where the number represents the month, i.e. `1` is January and `12` is December.
+* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, `months`, or `years`.
+* `retention_value` - Value to associate with `retention_unit`. Yearly policy must have retention of at least 1 year.
 
 For more information, see [MongoDB Atlas API Reference](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Cloud-Backups/operation/getDataProtectionSettings) and [Backup Compliance Policy Prohibited Actions](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#prohibited-actions)

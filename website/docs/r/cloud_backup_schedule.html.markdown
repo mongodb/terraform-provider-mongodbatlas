@@ -132,6 +132,11 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
     retention_unit     = "months"
     retention_value    = 4
   }
+  policy_item_yearly {
+    frequency_interval = 1        # accepted values = 1 to 12 -> 1st day of nth month  
+    retention_unit     = "years"
+    retention_value    = 1
+  }
 
 }
 ```
@@ -195,6 +200,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `policy_item_daily` - (Optional) Daily policy item
 * `policy_item_weekly` - (Optional) Weekly policy item
 * `policy_item_monthly` - (Optional) Monthly policy item
+* `policy_item_yearly` - (Optional) Yearly policy item
 * `auto_export_enabled` - Flag that indicates whether automatic export of cloud backup snapshots to the AWS bucket is enabled. Value can be one of the following:
 
     true - enables automatic export of cloud backup snapshots to the AWS bucket
