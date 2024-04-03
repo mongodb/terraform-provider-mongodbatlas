@@ -123,8 +123,11 @@ func dataSourceMongoDBAtlasNetworkPeeringsRead(ctx context.Context, d *schema.Re
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting network peering connections information: %s", err))
 	}
-
-	if err := d.Set("results", flattenNetworkPeerings(peers)); err != nil {
+	peersMap, err := flattenNetworkPeerings(ctx, conn, peers, projectID)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("results", peersMap); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `result` for network peering connections: %s", err))
 	}
 
@@ -133,16 +136,20 @@ func dataSourceMongoDBAtlasNetworkPeeringsRead(ctx context.Context, d *schema.Re
 	return nil
 }
 
-func flattenNetworkPeerings(peers []matlas.Peer) []map[string]any {
+func flattenNetworkPeerings(ctx context.Context, conn *matlas.Client, peers []matlas.Peer, projectID string) ([]map[string]any, error) {
 	var peersMap []map[string]any
 
 	if len(peers) > 0 {
 		peersMap = make([]map[string]any, len(peers))
 		for i := range peers {
+			accepterRegionName, err := ensureAccepterRegionName(ctx, &peers[i], conn, projectID)
+			if err != nil {
+				return nil, err
+			}
 			peersMap[i] = map[string]any{
 				"peering_id":             peers[i].ID,
 				"container_id":           peers[i].ContainerID,
-				"accepter_region_name":   peers[i].AccepterRegionName,
+				"accepter_region_name":   accepterRegionName,
 				"aws_account_id":         peers[i].AWSAccountID,
 				"provider_name":          getProviderNameByPeer(&peers[i]),
 				"route_table_cidr_block": peers[i].RouteTableCIDRBlock,
@@ -164,7 +171,7 @@ func flattenNetworkPeerings(peers []matlas.Peer) []map[string]any {
 		}
 	}
 
-	return peersMap
+	return peersMap, nil
 }
 
 func getProviderNameByPeer(peer *matlas.Peer) string {
