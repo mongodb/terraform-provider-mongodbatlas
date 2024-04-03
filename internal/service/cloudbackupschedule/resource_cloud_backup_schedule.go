@@ -19,6 +19,7 @@ const (
 	Daily                              = "daily"
 	Weekly                             = "weekly"
 	Monthly                            = "monthly"
+	Yearly                             = "yearly"
 	errorSnapshotBackupScheduleCreate  = "error creating a Cloud Backup Schedule: %s"
 	errorSnapshotBackupScheduleUpdate  = "error updating a Cloud Backup Schedule: %s"
 	errorSnapshotBackupScheduleRead    = "error getting a Cloud Backup Schedule for the cluster(%s): %s"
@@ -229,6 +230,34 @@ func Resource() *schema.Resource {
 					},
 				},
 			},
+			"policy_item_yearly": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequency_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequency_interval": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+						"retention_unit": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"retention_value": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+					},
+				},
+			},
 			"reference_hour_of_day": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -371,6 +400,10 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_monthly", clusterName, err)
 	}
 
+	if err := d.Set("policy_item_yearly", flattenPolicyItem(backupPolicy.GetPolicies()[0].GetPolicyItems(), Yearly)); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_yearly", clusterName, err)
+	}
+
 	if err := d.Set("copy_settings", flattenCopySettings(backupPolicy.GetCopySettings())); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_settings", clusterName, err)
 	}
@@ -483,6 +516,13 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 		for _, s := range items {
 			itemObj := s.(map[string]any)
 			policiesItem = append(policiesItem, expandPolicyItem(itemObj, Monthly))
+		}
+	}
+	if v, ok := d.GetOk("policy_item_yearly"); ok {
+		items := v.([]any)
+		for _, s := range items {
+			itemObj := s.(map[string]any)
+			policiesItem = append(policiesItem, expandPolicyItem(itemObj, Yearly))
 		}
 	}
 

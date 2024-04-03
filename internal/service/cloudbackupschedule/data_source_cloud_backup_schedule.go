@@ -213,6 +213,34 @@ func DataSource() *schema.Resource {
 					},
 				},
 			},
+			"policy_item_yearly": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequency_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequency_interval": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"retention_unit": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"retention_value": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -273,6 +301,10 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if err := d.Set("policy_item_monthly", flattenPolicyItem(backupPolicy.GetPolicies()[0].GetPolicyItems(), Monthly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_monthly", clusterName, err)
+	}
+
+	if err := d.Set("policy_item_yearly", flattenPolicyItem(backupPolicy.GetPolicies()[0].GetPolicyItems(), Yearly)); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_yearly", clusterName, err)
 	}
 
 	if err := d.Set("copy_settings", flattenCopySettings(backupPolicy.GetCopySettings())); err != nil {

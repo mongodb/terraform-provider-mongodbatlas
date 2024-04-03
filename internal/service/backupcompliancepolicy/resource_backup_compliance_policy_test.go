@@ -19,7 +19,7 @@ const (
 )
 
 func TestAccBackupCompliancePolicy_basic(t *testing.T) {
-	resource.ParallelTest(t, *basicTestCase(t))
+	resource.ParallelTest(t, *basicTestCase(t, true))
 }
 
 func TestAccBackupCompliancePolicy_update(t *testing.T) {
@@ -45,7 +45,7 @@ func TestAccBackupCompliancePolicy_update(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic(projectName, orgID, projectOwnerID),
+				Config: configBasic(projectName, orgID, projectOwnerID, true),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "authorized_user_first_name", "First"),
@@ -101,7 +101,7 @@ func TestAccBackupCompliancePolicy_withoutRestoreWindowDays(t *testing.T) {
 	})
 }
 
-func basicTestCase(tb testing.TB) *resource.TestCase {
+func basicTestCase(tb testing.TB, useYearly bool) *resource.TestCase {
 	tb.Helper()
 
 	var (
@@ -115,7 +115,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectName, orgID, projectOwnerID),
+				Config: configBasic(projectName, orgID, projectOwnerID, useYearly),
 				Check:  resource.ComposeTestCheckFunc(basicChecks()...),
 			},
 			{
@@ -159,8 +159,20 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func configBasic(projectName, orgID, projectOwnerID string) string {
-	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + `	  
+func configBasic(projectName, orgID, projectOwnerID string, useYearly bool) string {
+	var strYearly string
+	if useYearly {
+		strYearly = `
+			policy_item_yearly {
+				frequency_interval = 1
+				retention_unit     = "years"
+				retention_value    = 1
+			}
+		`
+	}
+
+	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) +
+		fmt.Sprintf(`	  
 	  resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
 			project_id                 = mongodbatlas_project.test.id
 			authorized_email           = "test@example.com"
@@ -201,12 +213,14 @@ func configBasic(projectName, orgID, projectOwnerID string) string {
 				retention_unit     = "months"
 				retention_value    = 12
 			}
-	  }
 
+			%s
+	  }
+		
 		data "mongodbatlas_backup_compliance_policy" "backup_policy" {
 			project_id = mongodbatlas_backup_compliance_policy.backup_policy_res.project_id
 		}
-	`
+	`, strYearly)
 }
 
 func configWithoutOptionals(projectName, orgID, projectOwnerID string) string {
@@ -247,6 +261,12 @@ func configWithoutOptionals(projectName, orgID, projectOwnerID string) string {
 				frequency_interval = 0
 				retention_unit     = "months"
 				retention_value    = 12
+			}
+
+			policy_item_yearly {
+				frequency_interval = 1
+				retention_unit     = "years"
+				retention_value    = 1
 			}
 	  }
 	`
@@ -293,6 +313,12 @@ func configWithoutRestoreDays(projectName, orgID, projectOwnerID string) string 
 				frequency_interval = 0
 				retention_unit     = "months"
 				retention_value    = 12
+			}
+
+			policy_item_yearly {
+				frequency_interval = 1
+				retention_unit     = "years"
+				retention_value    = 1
 			}
 	  }
 	`

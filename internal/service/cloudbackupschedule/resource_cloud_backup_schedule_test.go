@@ -45,6 +45,7 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "reference_hour_of_day"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "reference_minute_of_hour"),
@@ -52,14 +53,16 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "policy_item_hourly.#"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "policy_item_daily.#"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "policy_item_weekly.#"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "policy_item_monthly.#")),
+					resource.TestCheckResourceAttrSet(dataSourceName, "policy_item_monthly.#"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "policy_item_yearly.#"),
+				),
 			},
 			{
 				Config: configNewPolicies(&clusterInfo, &admin.DiskBackupSnapshotSchedule{
 					ReferenceHourOfDay:    conversion.Pointer(0),
 					ReferenceMinuteOfHour: conversion.Pointer(0),
 					RestoreWindowDays:     conversion.Pointer(7),
-				}),
+				}, true),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
@@ -70,6 +73,7 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "policy_item_hourly.0.id"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "2"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
@@ -86,6 +90,10 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.frequency_interval", "5"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_unit", "months"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_value", "3"),
+					resource.TestCheckResourceAttrSet(resourceName, "policy_item_yearly.0.id"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.frequency_interval", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.retention_unit", "years"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.retention_value", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterInfo.ClusterName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "reference_hour_of_day"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "reference_minute_of_hour"),
@@ -109,6 +117,7 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "policy_item_hourly.0.id"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "2"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
@@ -131,6 +140,9 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.1.frequency_interval", "6"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.1.retention_unit", "months"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.1.retention_value", "4"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.frequency_interval", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.retention_unit", "years"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.retention_value", "1"),
 				),
 			},
 		},
@@ -197,6 +209,7 @@ func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "1"),
@@ -209,6 +222,9 @@ func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.frequency_interval", "5"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_unit", "months"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_value", "4"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.frequency_interval", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.retention_unit", "years"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.retention_value", "1"),
 				),
 			},
 			{
@@ -229,6 +245,7 @@ func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.#", "0"),
 				),
 			},
 		},
@@ -262,6 +279,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "1"),
@@ -274,6 +292,9 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.frequency_interval", "5"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_unit", "months"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_value", "4"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.frequency_interval", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.retention_unit", "years"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.retention_value", "1"),
 					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.cloud_provider", "AWS"),
 					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.region_name", "US_EAST_1"),
 					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.should_copy_oplogs", "true"),
@@ -308,6 +329,7 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "1"),
@@ -320,6 +342,9 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.frequency_interval", "5"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_unit", "months"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_value", "4"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.frequency_interval", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.retention_unit", "years"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.retention_value", "1"),
 				),
 			},
 			{
@@ -470,6 +495,11 @@ func configDefault(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule) s
 				retention_unit     = "months"
 				retention_value    = 4
 			}
+			policy_item_yearly {
+				frequency_interval = 1
+				retention_unit     = "years"
+				retention_value    = 1
+			}
 		}
 
 		data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
@@ -531,12 +561,18 @@ func configCopySettings(projectID, clusterName string, p *admin.DiskBackupSnapsh
 				retention_unit     = "months"
 				retention_value    = 4
 			}
+			policy_item_yearly {
+				frequency_interval = 1
+				retention_unit     = "years"
+				retention_value    = 1
+			}
 			copy_settings {
 				cloud_provider = "AWS"
 				frequencies = ["HOURLY",
 							"DAILY",
 							"WEEKLY",
 							"MONTHLY",
+							"YEARLY",
 							"ON_DEMAND"]
 				region_name = "US_EAST_1"
 				replication_spec_id = mongodbatlas_cluster.my_cluster.replication_specs.*.id[0]
@@ -565,7 +601,18 @@ func configOnePolicy(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule)
 	`, info.ClusterNameStr, info.ProjectIDStr, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
-func configNewPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule) string {
+func configNewPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule, useYearly bool) string {
+	var strYearly string
+	if useYearly {
+		strYearly = `
+			policy_item_yearly {
+				frequency_interval = 1
+				retention_unit     = "years"
+				retention_value    = 1
+			}
+		`
+	}
+
 	return info.ClusterTerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
@@ -595,13 +642,14 @@ func configNewPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedul
 				retention_unit     = "months"
 				retention_value    = 3
 			}
+			%[6]s
 		}
 
 		data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
 			project_id       = %[2]s
 		 }	
-	`, info.ClusterNameStr, info.ProjectIDStr, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
+	`, info.ClusterNameStr, info.ProjectIDStr, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays(), strYearly)
 }
 
 func configAzure(info *acc.ClusterInfo, policy *admin.DiskBackupApiPolicyItem) string {
@@ -664,6 +712,11 @@ func configAdvancedPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSc
 				frequency_interval = 6
 				retention_unit     = "months"
 				retention_value    = 4
+			}
+			policy_item_yearly {
+				frequency_interval = 1
+				retention_unit     = "years"
+				retention_value    = 1
 			}
 		}
 	`, info.ClusterNameStr, info.ProjectIDStr, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
