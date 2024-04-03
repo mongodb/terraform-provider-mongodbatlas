@@ -144,7 +144,7 @@ func flattenNetworkPeerings(ctx context.Context, conn *matlas.Client, peers []ma
 		for i := range peers {
 			accepterRegionName, err := ensureAccepterRegionName(ctx, &peers[i], conn, projectID)
 			if err != nil {
-				return peersMap, err
+				return nil, err
 			}
 			peersMap[i] = map[string]any{
 				"peering_id":             peers[i].ID,
