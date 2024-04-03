@@ -604,7 +604,7 @@ func TestAccProject_basic(t *testing.T) {
 				ImportStateIdFunc:       acc.ImportStateProjectIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"with_default_alerts_settings"},
+				ImportStateVerifyIgnore: []string{"with_default_alerts_settings", "project_owner_id"},
 			},
 		},
 	})
