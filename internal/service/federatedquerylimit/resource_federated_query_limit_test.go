@@ -12,47 +12,65 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+var (
+	resourceName         = "mongodbatlas_federated_query_limit.test"
+	dataSourceName       = "data.mongodbatlas_federated_query_limit.test"
+	dataSourcePluralName = "data.mongodbatlas_federated_query_limits.test"
+)
+
 func TestAccFederatedDatabaseQueryLimit_basic(t *testing.T) {
-	acc.SkipTestForCI(t)
+	resource.ParallelTest(t, *basicTestCase(t))
+}
+
+func basicTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+	acc.SkipTestForCI(tb) // needs S3 bucket
+
 	var (
-		resourceName = "mongodbatlas_federated_query_limit.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		testS3Bucket = os.Getenv("AWS_S3_BUCKET")
-		region       = "VIRGINIA_USA"
 		limitName    = "bytesProcessed.monthly"
 		projectName  = acc.RandomProjectName()
 		tenantName   = acc.RandomName()
 		policyName   = acc.RandomName()
-		roleName     = acc.RandomName()
+		roleName     = acc.RandomIAMRole()
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheck(t); acc.PreCheckS3Bucket(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitDestroy,
+	return &resource.TestCase{
+		PreCheck:     func() { acc.PreCheck(tb); acc.PreCheckS3Bucket(tb) },
+		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccMongoDBAtlasFederatedDatabaseQueryLimitConfig(policyName, roleName, projectName, orgID, tenantName, testS3Bucket, region),
+				Config:                   configBasic(policyName, roleName, projectName, orgID, tenantName, testS3Bucket),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "tenant_name"),
 					resource.TestCheckResourceAttr(resourceName, "limit_name", limitName),
+
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "tenant_name"),
+					resource.TestCheckResourceAttr(dataSourceName, "limit_name", limitName),
+
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "tenant_name"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
 				),
 			},
 			{
 				ResourceName:             resourceName,
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				ImportStateIdFunc:        testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitImportStateIDFunc(resourceName),
+				ImportStateIdFunc:        importStateIDFunc(resourceName),
 				ImportState:              true,
 				ImportStateVerify:        true,
 			},
 		},
-	})
+	}
 }
 
-func testAccMongoDBAtlasFederatedDatabaseQueryLimitConfig(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion string) string {
-	stepConfig := testAccMongoDBAtlasFederatedDatabaseQueryLimitConfigFirstStep(name, testS3Bucket)
+func configBasic(policyName, roleName, projectName, orgID, name, testS3Bucket string) string {
+	stepConfig := configFirstStep(name, testS3Bucket)
 	return fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[1]q
@@ -120,7 +138,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 	`, policyName, roleName, projectName, orgID, stepConfig)
 }
 
-func testAccMongoDBAtlasFederatedDatabaseQueryLimitConfigFirstStep(name, testS3Bucket string) string {
+func configFirstStep(name, testS3Bucket string) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_federated_database_instance" "db_instance" {
    project_id         = mongodbatlas_project.test_project.id
@@ -184,11 +202,22 @@ resource "mongodbatlas_federated_query_limit" "test" {
 	limit_name = "bytesProcessed.monthly"
 	overrun_policy = "BLOCK"
 	value = 5147483648
-  }
+}
+
+data "mongodbatlas_federated_query_limit" "test" {
+	project_id = mongodbatlas_project.test_project.id
+	tenant_name = mongodbatlas_federated_database_instance.db_instance.name
+	limit_name = "bytesProcessed.monthly"
+}
+
+data "mongodbatlas_federated_query_limits" "test" {
+	project_id = mongodbatlas_project.test_project.id
+	tenant_name = mongodbatlas_federated_database_instance.db_instance.name
+}
 	`, name, testS3Bucket)
 }
 
-func testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -201,7 +230,7 @@ func testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitImportStateIDFunc(resour
 	}
 }
 
-func testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitDestroy(s *terraform.State) error {
+func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_federated_query_limit" {
 			continue
