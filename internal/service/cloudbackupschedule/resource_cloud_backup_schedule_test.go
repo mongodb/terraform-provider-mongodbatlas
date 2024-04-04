@@ -150,7 +150,8 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 }
 
 func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // needs AWS configuration
+
 	var (
 		clusterInfo  = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
 		policyName   = acc.RandomName()

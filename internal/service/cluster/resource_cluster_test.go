@@ -844,7 +844,8 @@ func TestAccClusterRSCluster_WithTags(t *testing.T) {
 }
 
 func TestAccClusterRSCluster_withPrivateEndpointLink(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // needs AWS configuration
+
 	var (
 		resourceName = "mongodbatlas_cluster.with_endpoint_link"
 
@@ -879,7 +880,8 @@ func TestAccClusterRSCluster_withPrivateEndpointLink(t *testing.T) {
 }
 
 func TestAccClusterRSCluster_withAzureNetworkPeering(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // needs Azure configuration
+
 	var (
 		resourceName = "mongodbatlas_cluster.with_azure_peering"
 
@@ -913,7 +915,8 @@ func TestAccClusterRSCluster_withAzureNetworkPeering(t *testing.T) {
 }
 
 func TestAccClusterRSCluster_withGCPNetworkPeering(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // needs GCP configuration
+
 	var (
 		projectID        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		gcpRegion        = os.Getenv("GCP_REGION_NAME")
@@ -946,7 +949,8 @@ func TestAccClusterRSCluster_withGCPNetworkPeering(t *testing.T) {
 }
 
 func TestAccClusterRSCluster_withAzureAndContainerID(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // needs Azure configuration
+
 	var (
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		clusterName       = acc.RandomClusterName()
@@ -976,7 +980,8 @@ func TestAccClusterRSCluster_withAzureAndContainerID(t *testing.T) {
 }
 
 func TestAccClusterRSCluster_withAWSAndContainerID(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // needs AWS configuration
+
 	var (
 		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
 		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
@@ -1006,7 +1011,8 @@ func TestAccClusterRSCluster_withAWSAndContainerID(t *testing.T) {
 }
 
 func TestAccClusterRSCluster_withGCPAndContainerID(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // needs GCP configuration
+
 	var (
 		gcpProjectID     = os.Getenv("GCP_PROJECT_ID")
 		gcpRegion        = os.Getenv("GCP_REGION_NAME")

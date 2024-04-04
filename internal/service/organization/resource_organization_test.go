@@ -19,7 +19,8 @@ import (
 )
 
 func TestAccConfigRSOrganization_Basic(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // affects the org
+
 	var (
 		resourceName = "mongodbatlas_organization.test"
 		orgOwnerID   = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
@@ -61,7 +62,8 @@ func TestAccConfigRSOrganization_Basic(t *testing.T) {
 }
 
 func TestAccConfigRSOrganization_BasicAccess(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // affects the org
+
 	var (
 		orgOwnerID  = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
 		name        = acc.RandomName()
@@ -83,7 +85,8 @@ func TestAccConfigRSOrganization_BasicAccess(t *testing.T) {
 }
 
 func TestAccConfigRSOrganization_Settings(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // affects the org
+
 	var (
 		resourceName = "mongodbatlas_organization.test"
 		orgOwnerID   = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")

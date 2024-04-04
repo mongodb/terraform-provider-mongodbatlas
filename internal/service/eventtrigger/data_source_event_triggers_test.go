@@ -12,7 +12,8 @@ import (
 )
 
 func TestAccEventTriggerDSPlural_basic(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // needs a project configured for triggers
+
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

@@ -103,7 +103,8 @@ data "aws_iam_role" "test" {
 )
 
 func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // needs AWS configuration
+
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -165,7 +166,8 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 }
 
 func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // needs Azure configuration
+
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -235,7 +237,8 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 }
 
 func TestAccEncryptionAtRest_basicGCP(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // needs GCP configuration
+
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

@@ -13,7 +13,8 @@ import (
 )
 
 func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // needs AWS configuration
+
 	var (
 		resourceSuffix = "test"
 		resourceName   = fmt.Sprintf("mongodbatlas_privatelink_endpoint_service.%s", resourceSuffix)

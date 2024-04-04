@@ -27,7 +27,8 @@ func TestAccNetworkNetworkPeering_basicAWS(t *testing.T) {
 }
 
 func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // needs Azure configuration
+
 	var (
 		peer              matlas.Peer
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -66,7 +67,8 @@ func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
 }
 
 func TestAccNetworkRSNetworkPeering_basicGCP(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // needs GCP configuration
+
 	var (
 		peer         matlas.Peer
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
