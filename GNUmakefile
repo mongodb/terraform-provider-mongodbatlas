@@ -112,14 +112,14 @@ update-atlas-sdk: ## Update the atlas-sdk dependency
 
 # e.g. run: make scaffold resource_name=streamInstance type=resource
 # - type argument can have the values: `resource`, `data-source`, `plural-data-source`.
-# details on usage can be found in CONTRIBUTING.md under "Scaffolding initial Code and File Structure"
+# details on usage can be found in contributing/development-best-practices.md under "Scaffolding initial Code and File Structure"
 .PHONY: scaffold
 scaffold:
 	@go run ./tools/scaffold/*.go $(resource_name) $(type)
 	@echo "Reminder: configure the new $(type) in provider.go"
 
 # e.g. run: make scaffold-schemas resource_name=streamInstance
-# details on usage can be found in CONTRIBUTING.md under "Scaffolding Schema and Model Definitions"
+# details on usage can be found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
 .PHONY: scaffold-schemas
 scaffold-schemas:
 	@scripts/schema-scaffold.sh $(resource_name)
