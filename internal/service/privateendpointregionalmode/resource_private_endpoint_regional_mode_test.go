@@ -103,7 +103,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "enabled", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "enabled", "true"),
 				),
 			},
 		},
