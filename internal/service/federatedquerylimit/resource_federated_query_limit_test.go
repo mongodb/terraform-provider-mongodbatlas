@@ -24,7 +24,6 @@ func TestAccFederatedDatabaseQueryLimit_basic(t *testing.T) {
 
 func basicTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
-	acc.SkipTestForCI(tb) // needs S3 bucket
 
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
