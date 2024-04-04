@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccConfigDSThirdPartyIntegrations_basic(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // needs Opsgenie, Datadog, and VictorOps config
 	var (
 		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		intgTypes       = []string{"OPS_GENIE", "DATADOG", "VICTOR_OPS", "WEBHOOK", "PROMETHEUS"}
