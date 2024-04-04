@@ -91,7 +91,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
 
   backup_enabled               = true
   auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "4.0"
+  mongo_db_major_version       = "7.0"
 
   //Provider Settings "block"
   provider_name               = "AWS"

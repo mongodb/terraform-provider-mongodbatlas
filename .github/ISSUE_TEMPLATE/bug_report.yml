@@ -6,14 +6,14 @@ body:
     attributes:
       value: |
         Thank you for opening an issue. **These GitHub issues** are only for community reporting and assistance; as such, we don't have a guaranteed SLA.
-        
+
         **If your issue relates to Terraform itself**, please open it in the [Terraform repository](https://github.com/hashicorp/terraform/issues).
 
         **If you have an active MongoDB Atlas Support contract**, the best way for us to assist you with the Terraform MongoDB Atlas Provider is through a support ticket.
 
         **Please note:** In order for us to provide the best experience in supporting our customers, we kindly ask to make sure that all the following sections are correctly filled with all the required information. 
         Our support will prioritise issues that contain all the required information that follows the [one-click reproducible issues principle](../../README.md#one-click-reproducible-issues-principle).
-  
+
   - type: checkboxes
     attributes:
       label: Is there an existing issue for this?
@@ -21,7 +21,7 @@ body:
       options:
         - label: I have searched the existing issues
           required: true
-  
+
   - type: input
     id: provider_version
     attributes:
@@ -59,7 +59,7 @@ body:
       description: A concise description of what you're experiencing.
     validations:
       required: true
- 
+
   - type: textarea
     id: tf_config
     attributes:
@@ -80,7 +80,7 @@ body:
         4. See error...
     validations:
       required: true
-  
+
   - type: textarea
     id: logs
     attributes:
@@ -94,8 +94,7 @@ body:
     id: terms
     attributes:
       label: Code of Conduct
-      description: By submitting this issue, you agree to follow our [Code of Conduct](../../CODE_OF_CONDUCT.md)
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/CODE_OF_CONDUCT.md)
       options:
         - label: I agree to follow this project's Code of Conduct
           required: true
-

@@ -3,7 +3,7 @@ resource "mongodbatlas_cluster" "aws_private_connection" {
   name                         = var.cluster_name
   cloud_backup                 = true
   auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "4.2"
+  mongo_db_major_version       = "7.0"
   cluster_type                 = "REPLICASET"
   replication_specs {
     num_shards = 1

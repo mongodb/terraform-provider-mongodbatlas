@@ -19,7 +19,7 @@ resource "mongodbatlas_cluster" "cluster" {
   }
   cloud_backup                            = true
   auto_scaling_disk_gb_enabled            = true
-  mongo_db_major_version                  = "4.4"
+  mongo_db_major_version                  = "7.0"
   auto_scaling_compute_enabled            = true
   auto_scaling_compute_scale_down_enabled = true
 

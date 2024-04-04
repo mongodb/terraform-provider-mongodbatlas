@@ -108,7 +108,7 @@ resource "mongodbatlas_cluster" "example_cluster" {
 
   provider_name               = "AZURE"
   provider_instance_size_name = "M10"
-  mongo_db_major_version      = "4.4"
+  mongo_db_major_version      = "7.0"
   encryption_at_rest_provider = "AZURE"
 }
 ```
