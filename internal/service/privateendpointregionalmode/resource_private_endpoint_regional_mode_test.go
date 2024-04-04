@@ -13,8 +13,12 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccNetworkRSPrivateEndpointRegionalMode_conn(t *testing.T) {
-	acc.SkipTestForCI(t)
+func TestAccPrivateEndpointRegionalMode_basic(t *testing.T) {
+	resource.ParallelTest(t, *basicTestCase(t))
+}
+
+func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
+	acc.SkipTestForCI(t) // needs AWS configuration
 	var (
 		endpointResourceSuffix = "atlasple"
 		resourceSuffix         = "atlasrm"
@@ -29,7 +33,7 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_conn(t *testing.T) {
 	)
 
 	clusterResource := acc.ConfigClusterGlobal(clusterResourceName, projectID, clusterName, "false")
-	clusterDataSource := testAccMongoDBAtlasPrivateEndpointRegionalModeClusterData(clusterResourceName, resourceSuffix, endpointResourceSuffix)
+	clusterDataSource := modeClusterData(clusterResourceName, resourceSuffix, endpointResourceSuffix)
 	endpointResources := testAccMongoDBAtlasPrivateLinkEndpointServiceConfigUnmanagedAWS(
 		awsAccessKey, awsSecretKey, projectID, providerName, region, endpointResourceSuffix,
 	)
@@ -42,20 +46,20 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_conn(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfigWithDependencies(resourceSuffix, projectID, false, dependencies),
+				Config: configWithDependencies(resourceSuffix, projectID, false, dependencies),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(projectID, clusterName, clusterResourceName),
+					checkModeClustersUpToDate(projectID, clusterName, clusterResourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfigWithDependencies(resourceSuffix, projectID, true, dependencies),
+				Config: configWithDependencies(resourceSuffix, projectID, true, dependencies),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(projectID, clusterName, clusterResourceName),
+					checkModeClustersUpToDate(projectID, clusterName, clusterResourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
@@ -65,40 +69,48 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_conn(t *testing.T) {
 	})
 }
 
-func TestAccNetworkRSPrivateEndpointRegionalMode_basic(t *testing.T) {
+func basicTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+
 	var (
-		resourceSuffix = "atlasrm"
-		resourceName   = fmt.Sprintf("mongodbatlas_private_endpoint_regional_mode.%s", resourceSuffix)
+		resourceName   = "mongodbatlas_private_endpoint_regional_mode.test"
+		dataSourceName = "data.mongodbatlas_private_endpoint_regional_mode.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName    = acc.RandomProjectName()
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(orgID, projectName, resourceSuffix, false),
+				Config: configBasic(orgID, projectName, false),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
+
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "enabled", "false"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(orgID, projectName, resourceSuffix, true),
+				Config: configBasic(orgID, projectName, true),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "enabled", "false"),
 				),
 			},
 		},
-	})
+	}
 }
 
-func testAccMongoDBAtlasPrivateEndpointRegionalModeClusterData(clusterResourceName, regionalModeResourceName, privateLinkResourceName string) string {
+func modeClusterData(clusterResourceName, regionalModeResourceName, privateLinkResourceName string) string {
 	return fmt.Sprintf(`
 		data "mongodbatlas_cluster" %[1]q {
 			project_id = mongodbatlas_cluster.%[1]s.project_id
@@ -111,16 +123,16 @@ func testAccMongoDBAtlasPrivateEndpointRegionalModeClusterData(clusterResourceNa
 	`, clusterResourceName, regionalModeResourceName, privateLinkResourceName)
 }
 
-func testAccMongoDBAtlasPrivateEndpointRegionalModeConfigWithDependencies(resourceName, projectID string, enabled bool, dependencies []string) string {
+func configWithDependencies(resourceName, projectID string, enabled bool, dependencies []string) string {
 	resources := make([]string, len(dependencies)+1)
 
-	resources[0] = testAccMongoDBAtlasPrivateEndpointRegionalModeConfigNoProject(resourceName, projectID, enabled)
+	resources[0] = configNoProject(resourceName, projectID, enabled)
 	copy(resources[1:], dependencies)
 
 	return strings.Join(resources, "\n\n")
 }
 
-func testAccMongoDBAtlasPrivateEndpointRegionalModeConfigNoProject(resourceName, projectID string, enabled bool) string {
+func configNoProject(resourceName, projectID string, enabled bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_private_endpoint_regional_mode" %[1]q {
 			project_id   = %[2]q
@@ -129,18 +141,23 @@ func testAccMongoDBAtlasPrivateEndpointRegionalModeConfigNoProject(resourceName,
 	`, resourceName, projectID, enabled)
 }
 
-func testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(orgID, projectName, resourceName string, enabled bool) string {
+func configBasic(orgID, projectName string, enabled bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "project" {
 			org_id = %[1]q
 			name   = %[2]q
 		}
 
-		resource "mongodbatlas_private_endpoint_regional_mode" %[3]q {
+		resource "mongodbatlas_private_endpoint_regional_mode" "test" {
 			project_id   = mongodbatlas_project.project.id
-			enabled      = %[4]t
+			enabled      = %[3]t
 		}
-	`, orgID, projectName, resourceName, enabled)
+
+		data "mongodbatlas_private_endpoint_regional_mode" "test" {
+			project_id = mongodbatlas_project.project.id
+			depends_on = [ mongodbatlas_private_endpoint_regional_mode.test ]
+		}
+	`, orgID, projectName, enabled)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
@@ -161,7 +178,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(projectID, clusterName, clusterResourceName string) resource.TestCheckFunc {
+func checkModeClustersUpToDate(projectID, clusterName, clusterResourceName string) resource.TestCheckFunc {
 	resourceName := strings.Join([]string{"data", "mongodbatlas_cluster", clusterResourceName}, ".")
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
