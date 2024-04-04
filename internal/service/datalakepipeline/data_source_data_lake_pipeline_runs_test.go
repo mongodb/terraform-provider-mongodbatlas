@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccDataLakeRunDSPlural_basic(t *testing.T) {
-	acc.SkipTestForCI(t) // needs a datada lake pipeline, can be joined to resource test
+	acc.SkipTestForCI(t) // needs a data lake pipeline, can be joined to resource test
 
 	var (
 		dataSourceName = "data.mongodbatlas_data_lake_pipeline_runs.test"
