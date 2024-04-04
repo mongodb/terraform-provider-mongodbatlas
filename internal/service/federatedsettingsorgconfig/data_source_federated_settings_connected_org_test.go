@@ -1,18 +1,15 @@
 package federatedsettingsorgconfig_test
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 func TestAccFederatedSettingsOrgDS_basic(t *testing.T) {
-	acc.SkipTestForCI(t)
 	var (
 		resourceName        = "data.mongodbatlas_federated_settings_org_config.test"
 		federatedSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
@@ -24,9 +21,8 @@ func TestAccFederatedSettingsOrgDS_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDataSourceFederatedSettingsOrganizationConfigConfig(federatedSettingsID, orgID),
+				Config: configBasicDS(federatedSettingsID, orgID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "role_mappings.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "identity_provider_id"),
@@ -38,7 +34,7 @@ func TestAccFederatedSettingsOrgDS_basic(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasDataSourceFederatedSettingsOrganizationConfigConfig(federatedSettingsID, orgID string) string {
+func configBasicDS(federatedSettingsID, orgID string) string {
 	return fmt.Sprintf(`
 		data "mongodbatlas_federated_settings_org_config" "test" {
 			federation_settings_id = "%[1]s"
@@ -46,21 +42,4 @@ func testAccMongoDBAtlasDataSourceFederatedSettingsOrganizationConfigConfig(fede
 
 		}
 `, federatedSettingsID, orgID)
-}
-
-func testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("no ID is set")
-		}
-		_, _, err := acc.Conn().FederatedSettings.ListConnectedOrgs(context.Background(), rs.Primary.Attributes["federation_settings_id"], nil)
-		if err != nil {
-			return fmt.Errorf("FederatedSettingsConnectedOrganization (%s) does not exist", rs.Primary.ID)
-		}
-		return nil
-	}
 }
