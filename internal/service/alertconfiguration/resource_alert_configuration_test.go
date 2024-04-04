@@ -48,6 +48,13 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "2"),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"project_id", "updated"},
+			},
 		},
 	})
 }
@@ -119,6 +126,13 @@ func TestAccConfigRSAlertConfiguration_withNotifications(t *testing.T) {
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"project_id", "updated"},
 			},
 		},
 	})
@@ -287,32 +301,6 @@ func TestAccConfigRSAlertConfiguration_withoutOptionalAttributes(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSAlertConfiguration_importBasic(t *testing.T) {
-	proxyPort := replay.SetupReplayProxy(t)
-
-	var (
-		projectID = replay.ManageProjectID(t, acc.ProjectIDExecution)
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
-		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
-		Steps: []resource.TestStep{
-			{
-				Config: configBasicRS(projectID, true),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"project_id", "updated"},
-			},
-		},
-	})
-}
-
 func TestAccConfigRSAlertConfiguration_importIncorrectId(t *testing.T) {
 	proxyPort := replay.SetupReplayProxy(t)
 
@@ -338,67 +326,9 @@ func TestAccConfigRSAlertConfiguration_importIncorrectId(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSAlertConfiguration_importConfigNotifications(t *testing.T) {
-	proxyPort := replay.SetupReplayProxy(t)
-
-	var (
-		projectID = replay.ManageProjectID(t, acc.ProjectIDExecution)
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
-		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
-		Steps: []resource.TestStep{
-			{
-				Config: configWithNotifications(projectID, true, true, false),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"project_id", "updated"},
-			},
-		},
-	})
-}
-
 // dummy keys used for credential values in third party notifications
 const dummy32CharKey = "11111111111111111111111111111111"
 const dummy36CharKey = "11111111-1111-1111-1111-111111111111"
-
-// used for testing notification that does not define interval_min attribute
-func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
-	proxyPort := replay.SetupReplayProxy(t)
-
-	var (
-		projectID  = replay.ManageProjectID(t, acc.ProjectIDExecution)
-		serviceKey = dummy32CharKey
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
-		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
-		Steps: []resource.TestStep{
-			{
-				Config: configWithPagerDuty(projectID, serviceKey, true),
-				Check: resource.ComposeTestCheckFunc(
-					checkExistsUsingProxy(proxyPort, resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-				),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"updated", "notification.0.service_key"}, // service key is not returned by api in import operation
-			},
-		},
-	})
-}
 
 func TestAccConfigRSAlertConfiguration_updatePagerDutyWithNotifierId(t *testing.T) {
 	proxyPort := replay.SetupReplayProxy(t)
@@ -479,6 +409,13 @@ func TestAccConfigRSAlertConfiguration_withPagerDuty(t *testing.T) {
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"updated", "notification.0.service_key"}, // service key is not returned by api in import operation
 			},
 		},
 	})

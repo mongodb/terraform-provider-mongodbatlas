@@ -51,34 +51,6 @@ func TestAccProjectRSProjectInvitation_basic(t *testing.T) {
 					resource.TestCheckTypeSetElemAttr(resourceName, "roles.*", updateRoles[0]),
 				),
 			},
-		},
-	})
-}
-
-func TestAccProjectRSProjectInvitation_importBasic(t *testing.T) {
-	var (
-		resourceName = "mongodbatlas_project_invitation.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		name         = acc.RandomEmail()
-		initialRole  = []string{"GROUP_OWNER"}
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(orgID, projectName, name, initialRole),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "invitation_id"),
-					resource.TestCheckResourceAttr(resourceName, "username", name),
-					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
-					resource.TestCheckTypeSetElemAttr(resourceName, "roles.*", initialRole[0]),
-				),
-			},
 			{
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),

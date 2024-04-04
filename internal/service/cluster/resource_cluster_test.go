@@ -72,6 +72,13 @@ func TestAccClusterRSCluster_basicAWS_simple(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "auto_scaling_disk_gb_enabled", "false"),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       acc.ImportStateClusterIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"cloud_backup", "retain_backups_enabled"},
+			},
 		},
 	})
 }
@@ -1079,31 +1086,6 @@ func TestAccClusterRSCluster_withAutoScalingAWS(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "provider_auto_scaling_compute_min_instance_size", minSizeUpdated),
 					resource.TestCheckResourceAttr(resourceName, "provider_auto_scaling_compute_max_instance_size", maxSizeUpdated),
 				),
-			},
-		},
-	})
-}
-
-func TestAccClusterRSCluster_importBasic(t *testing.T) {
-	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: configAWS(projectID, clusterName, true, false),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       acc.ImportStateClusterIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"cloud_backup", "retain_backups_enabled"},
 			},
 		},
 	})

@@ -47,44 +47,6 @@ func TestAccConfigRSThirdPartyIntegration_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "region", cfg.Region),
 				),
 			},
-		},
-	},
-	)
-}
-
-func TestAccConfigRSThirdPartyIntegration_importBasic(t *testing.T) {
-	acc.SkipTestForCI(t)
-	var (
-		targetIntegration = matlas.ThirdPartyIntegration{}
-		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		apiKey            = os.Getenv("OPS_GENIE_API_KEY")
-		cfg               = testAccCreateThirdPartyIntegrationConfig()
-		testExecutionName = "test_3rd_party_" + cfg.AccountID
-		resourceName      = "mongodbatlas_third_party_integration." + testExecutionName
-	)
-
-	cfg.Type = "OPS_GENIE"
-	cfg.APIKey = apiKey
-
-	seedConfig := thirdPartyConfig{
-		Name:        testExecutionName,
-		ProjectID:   projectID,
-		Integration: *cfg,
-	}
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasThirdPartyIntegrationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(&seedConfig),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckThirdPartyIntegrationExists(resourceName, &targetIntegration),
-					resource.TestCheckResourceAttr(resourceName, "type", cfg.Type),
-					resource.TestCheckResourceAttr(resourceName, "region", cfg.Region),
-				),
-			},
 			{
 				ResourceName:      resourceName,
 				ImportStateIdFunc: testAccCheckMongoDBAtlasThirdPartyIntegrationImportStateIDFunc(resourceName),

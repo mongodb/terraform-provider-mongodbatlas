@@ -55,36 +55,6 @@ func TestAccConfigRSTeam_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
 				),
 			},
-		},
-	})
-}
-
-func TestAccConfigRSTeam_importBasic(t *testing.T) {
-	var (
-		resourceName = "mongodbatlas_teams.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		username     = os.Getenv("MONGODB_ATLAS_USERNAME")
-		name         = acc.RandomName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckAtlasUsername(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyTeam,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(orgID, name, []string{username}),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "name"),
-					resource.TestCheckResourceAttrSet(resourceName, "usernames.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "team_id"),
-
-					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
-				),
-			},
 			{
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),

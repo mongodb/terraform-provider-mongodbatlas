@@ -37,35 +37,6 @@ func TestAccNetworkRSPrivateLinkEndpointAWS_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "region", region),
 				),
 			},
-		},
-	})
-}
-
-func TestAccNetworkRSPrivateLinkEndpointAWS_import(t *testing.T) {
-	var (
-		resourceName = "mongodbatlas_privatelink_endpoint.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		region       = "us-east-1"
-		providerName = "AWS"
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(orgID, projectName, providerName, region),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "region"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
-					resource.TestCheckResourceAttr(resourceName, "region", region),
-				),
-			},
 			{
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
@@ -75,36 +46,8 @@ func TestAccNetworkRSPrivateLinkEndpointAWS_import(t *testing.T) {
 		},
 	})
 }
+
 func TestAccNetworkRSPrivateLinkEndpointAzure_basic(t *testing.T) {
-	var (
-		resourceName = "mongodbatlas_privatelink_endpoint.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		region       = "US_EAST_2"
-		providerName = "AZURE"
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(orgID, projectName, providerName, region),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "region"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
-					resource.TestCheckResourceAttr(resourceName, "region", region),
-				),
-			},
-		},
-	})
-}
-
-func TestAccNetworkRSPrivateLinkEndpointAzure_import(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")

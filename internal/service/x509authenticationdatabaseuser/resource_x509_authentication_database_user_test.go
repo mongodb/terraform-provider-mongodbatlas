@@ -41,6 +41,11 @@ func TestAccGenericX509AuthDBUser_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "username", username),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFuncBasic(resourceName),
+				ImportState:       true,
+			},
 		},
 	})
 }
@@ -66,25 +71,6 @@ func TestAccGenericX509AuthDBUser_withCustomerX509(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "customer_x509_cas"),
 				),
-			},
-		},
-	})
-}
-
-func TestAccGenericX509AuthDBUser_importBasic(t *testing.T) {
-	var (
-		projectID = acc.ProjectIDExecution(t)
-		username  = acc.RandomName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck: func() {
-			acc.PreCheckBasic(t)
-		},
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(projectID, username),
 			},
 			{
 				ResourceName:      resourceName,
@@ -116,29 +102,6 @@ func TestAccGenericX509AuthDBUser_withDatabaseUser(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "months_until_expiration", cast.ToString(months)),
 				),
-			},
-		},
-	})
-}
-
-func TestAccGenericX509AuthDBUser_importWithCustomerX509(t *testing.T) {
-	var (
-		cas         = os.Getenv("CA_CERT")
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid CANNOT_GENERATE_CERT_IF_ADVANCED_X509
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckCert(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: configWithCustomerX509(orgID, projectName, cas),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFuncBasic(resourceName),
-				ImportState:       true,
 			},
 		},
 	})

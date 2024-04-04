@@ -37,25 +37,6 @@ func TestAccFederatedSettingsOrgRoleMapping_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "external_group_name", "newtestgroup"),
 				),
 			},
-		},
-	})
-}
-
-func TestAccFederatedSettingsOrgRoleMapping_importBasic(t *testing.T) {
-	acc.SkipTestForCI(t)
-	var (
-		resourceName         = "mongodbatlas_federated_settings_org_role_mapping.test"
-		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
-		orgID                = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
-		groupID              = os.Getenv("MONGODB_ATLAS_FEDERATED_GROUP_ID")
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckFederatedSettings(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy,
-		Steps: []resource.TestStep{
-
 			{
 				Config:            testAccMongoDBAtlasFederatedSettingsOrganizationRoleMappingConfig(federationSettingsID, orgID, groupID),
 				ResourceName:      resourceName,

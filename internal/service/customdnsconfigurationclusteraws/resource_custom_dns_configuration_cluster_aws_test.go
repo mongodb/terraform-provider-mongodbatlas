@@ -48,28 +48,6 @@ func TestAccConfigRSCustomDNSConfigurationAWS_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 				),
 			},
-		},
-	})
-}
-
-func TestAccConfigRSCustomDNSConfigurationAWS_importBasic(t *testing.T) {
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(orgID, projectName, true),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
-				),
-			},
 			{
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),

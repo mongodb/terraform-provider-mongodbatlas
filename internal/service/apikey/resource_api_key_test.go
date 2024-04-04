@@ -43,26 +43,6 @@ func TestAccConfigRSAPIKey_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", descriptionUpdate),
 				),
 			},
-		},
-	})
-}
-
-func TestAccConfigRSAPIKey_importBasic(t *testing.T) {
-	var (
-		resourceName = "mongodbatlas_api_key.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		description  = acc.RandomName()
-		roleName     = "ORG_MEMBER"
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(orgID, description, roleName),
-			},
 			{
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),

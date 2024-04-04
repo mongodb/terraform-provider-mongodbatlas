@@ -45,24 +45,6 @@ func TestAccFederatedSettingsIdentityProviderRS_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", "mongodb_federation_test"),
 				),
 			},
-		},
-	})
-}
-
-func TestAccFederatedSettingsIdentityProviderRS_importBasic(t *testing.T) {
-	var (
-		resourceName         = "mongodbatlas_federated_settings_identity_provider.test"
-		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
-		idpID                = os.Getenv("MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID")
-		ssoURL               = os.Getenv("MONGODB_ATLAS_FEDERATED_SSO_URL")
-		issuerURI            = os.Getenv("MONGODB_ATLAS_FEDERATED_ISSUER_URI")
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckFederatedSettings(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-
 			{
 				Config:            testAccMongoDBAtlasFederatedSettingsIdentityProviderConfig(federationSettingsID, ssoURL, issuerURI),
 				ResourceName:      resourceName,

@@ -42,6 +42,12 @@ func TestAccProjectRSAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "ip_address", updatedIPAddress),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -109,32 +115,6 @@ func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock_WideCIDR(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cidr_block", updatedCIDRBlock),
 				),
-			},
-		},
-	})
-}
-
-func TestAccProjectRSAccessListAPIKey_importBasic(t *testing.T) {
-	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		ipAddress    = acc.RandomIP(179, 154, 226)
-		resourceName = "mongodbatlas_access_list_api_key.test"
-		description  = acc.RandomName()
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configWithIPAddress(orgID, description, ipAddress),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 		},
 	})

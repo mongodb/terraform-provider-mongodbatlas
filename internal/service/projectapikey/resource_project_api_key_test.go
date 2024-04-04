@@ -39,6 +39,12 @@ func TestAccConfigRSProjectAPIKey_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: false,
+			},
 		},
 	})
 }
@@ -189,30 +195,6 @@ func TestAccConfigRSProjectAPIKey_updateDescription(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 					resource.TestCheckResourceAttr(resourceName, "description", updatedDescription),
 				),
-			},
-		},
-	})
-}
-
-func TestAccConfigRSProjectAPIKey_importBasic(t *testing.T) {
-	var (
-		projectID   = acc.ProjectIDExecution(t)
-		description = acc.RandomName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(projectID, description, roleName, false),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: false,
 			},
 		},
 	})

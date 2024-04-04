@@ -45,24 +45,6 @@ func TestAccFederatedSettingsOrg_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", "mongodb_federation_test"),
 				),
 			},
-		},
-	})
-}
-
-func TestAccFederatedSettingsOrg_importBasic(t *testing.T) {
-	acc.SkipTestForCI(t)
-	var (
-		resourceName         = "mongodbatlas_federated_settings_org_config.test"
-		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
-		orgID                = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
-		idpID                = os.Getenv("MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID")
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckFederatedSettings(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-
 			{
 				Config:            testAccMongoDBAtlasFederatedSettingsOrganizationConfig(federationSettingsID, orgID, idpID),
 				ResourceName:      resourceName,
