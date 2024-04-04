@@ -36,7 +36,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	)
 
 	return &resource.TestCase{
-		PreCheck:     func() { acc.PreCheck(tb); acc.PreCheckS3Bucket(tb) },
+		PreCheck:     func() { acc.PreCheckBasic(tb); acc.PreCheckS3Bucket(tb) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{

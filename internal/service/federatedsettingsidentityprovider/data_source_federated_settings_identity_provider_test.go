@@ -20,9 +20,8 @@ func TestAccFederatedSettingsIdentityProviderDS_samlBasic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDataSourceFederatedSettingsIdentityProviderConfig(federatedSettingsID, idpID),
+				Config: configBasicDS(federatedSettingsID, idpID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasFederatedSettingsIdentityProvidersExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "associated_orgs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "acs_url"),
@@ -48,9 +47,8 @@ func TestAccFederatedSettingsIdentityProviderDS_oidcBasic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDataSourceFederatedSettingsIdentityProviderConfig(federatedSettingsID, idpID),
+				Config: configBasicDS(federatedSettingsID, idpID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasFederatedSettingsIdentityProvidersExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "associated_orgs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "audience_claim.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "client_id"),
@@ -67,7 +65,7 @@ func TestAccFederatedSettingsIdentityProviderDS_oidcBasic(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasDataSourceFederatedSettingsIdentityProviderConfig(federatedSettingsID, idpID string) string {
+func configBasicDS(federatedSettingsID, idpID string) string {
 	return fmt.Sprintf(`
 		data "mongodbatlas_federated_settings_identity_provider" "test" {
 			federation_settings_id = "%[1]s"
