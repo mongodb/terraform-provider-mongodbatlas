@@ -10,7 +10,8 @@ import (
 )
 
 func TestAccNetworkDSPrivateLinkEndpointServiceAWS_basic(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // needs AWS configuration
+
 	resourceName := "data.mongodbatlas_privatelink_endpoint_service.test"
 
 	awsAccessKey := os.Getenv("AWS_ACCESS_KEY_ID")

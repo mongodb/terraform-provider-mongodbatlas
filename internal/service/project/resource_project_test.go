@@ -612,6 +612,7 @@ func TestAccProject_basic(t *testing.T) {
 
 func TestAccProjectGov_withProjectOwner(t *testing.T) {
 	acc.SkipTestForCI(t) // Gov test config not set
+
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID_GOV")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID_GOV")

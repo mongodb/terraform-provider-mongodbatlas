@@ -10,7 +10,8 @@ import (
 )
 
 func TestAccDataLakeRunDS_basic(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // needs a data lake pipeline, can be joined to resource test
+
 	var (
 		dataSourceName = "data.mongodbatlas_data_lake_pipeline_run.test"
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

@@ -12,7 +12,8 @@ import (
 )
 
 func TestMigConfigRSOrganization_Basic(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // affects the org
+
 	var (
 		resourceName = "mongodbatlas_organization.test"
 		orgOwnerID   = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
