@@ -1,4 +1,4 @@
-## 5.44.0 (Unreleased)
+# Changelog
 
 ## [v1.15.3](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.15.3) (2024-03-27)
 

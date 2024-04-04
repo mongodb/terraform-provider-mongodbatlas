@@ -1,3 +1,0 @@
-```release-note:bug
-resource/database_user: Avoid sending password in PATCH request when value is not modified
-```
