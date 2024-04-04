@@ -1,18 +1,17 @@
 package federatedsettingsorgrolemapping_test
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 func TestAccFederatedSettingsOrgRoleMappingDSPlural_basic(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // affects the org
+
 	var (
 		resourceName        = "data.mongodbatlas_federated_settings_org_role_mappings.test"
 		federatedSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
@@ -24,9 +23,8 @@ func TestAccFederatedSettingsOrgRoleMappingDSPlural_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDataSourceFederatedSettingsOrganizationRoleMappingsConfig(federatedSettingsID, orgID),
+				Config: configBasicPluralDS(federatedSettingsID, orgID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingsExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.0.external_group_name"),
@@ -37,7 +35,7 @@ func TestAccFederatedSettingsOrgRoleMappingDSPlural_basic(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasDataSourceFederatedSettingsOrganizationRoleMappingsConfig(federatedSettingsID, orgID string) string {
+func configBasicPluralDS(federatedSettingsID, orgID string) string {
 	return fmt.Sprintf(`
 		data "mongodbatlas_federated_settings_org_role_mappings" "test" {
 			federation_settings_id = "%[1]s"
@@ -46,21 +44,4 @@ func testAccMongoDBAtlasDataSourceFederatedSettingsOrganizationRoleMappingsConfi
 			items_per_page = 100
 		}
 `, federatedSettingsID, orgID)
-}
-
-func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingsExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("no ID is set")
-		}
-		_, _, err := acc.Conn().FederatedSettings.ListRoleMappings(context.Background(), rs.Primary.Attributes["federation_settings_id"], rs.Primary.Attributes["org_id"], nil)
-		if err != nil {
-			return fmt.Errorf("FederatedSettingsOrganizationRoleMappings (%s) does not exist", rs.Primary.ID)
-		}
-		return nil
-	}
 }

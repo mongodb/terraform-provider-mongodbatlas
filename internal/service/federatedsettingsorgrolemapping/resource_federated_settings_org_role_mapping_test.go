@@ -10,46 +10,50 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccFederatedSettingsOrgRoleMapping_basic(t *testing.T) {
-	acc.SkipTestForCI(t)
+	resource.ParallelTest(t, *basicTestCase(t))
+}
+
+func basicTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+	acc.SkipTestForCI(tb) // affects the org
+
 	var (
-		federatedSettingsOrganizationRoleMapping matlas.FederatedSettingsOrganizationRoleMapping
-		resourceName                             = "mongodbatlas_federated_settings_org_role_mapping.test"
-		federationSettingsID                     = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
-		orgID                                    = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
-		groupID                                  = os.Getenv("MONGODB_ATLAS_FEDERATED_GROUP_ID")
+		resourceName         = "mongodbatlas_federated_settings_org_role_mapping.test"
+		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
+		orgID                = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
+		groupID              = os.Getenv("MONGODB_ATLAS_FEDERATED_GROUP_ID")
 	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckFederatedSettings(t) },
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckFederatedSettings(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasFederatedSettingsOrganizationRoleMappingConfig(federationSettingsID, orgID, groupID),
+				Config: configBasic(federationSettingsID, orgID, groupID),
 
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingExists(resourceName, &federatedSettingsOrganizationRoleMapping),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "external_group_name", "newtestgroup"),
 				),
 			},
 			{
-				Config:            testAccMongoDBAtlasFederatedSettingsOrganizationRoleMappingConfig(federationSettingsID, orgID, groupID),
+				Config:            configBasic(federationSettingsID, orgID, groupID),
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingImportStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       false,
 				ImportStateVerify: false,
 			},
 		},
-	})
+	}
 }
 
-func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingExists(resourceName string,
-	federatedSettingsOrganizationRoleMapping *matlas.FederatedSettingsOrganizationRoleMapping) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -58,19 +62,18 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingExists(reso
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		response, _, err := acc.Conn().FederatedSettings.GetRoleMapping(context.Background(),
+		_, _, err := acc.Conn().FederatedSettings.GetRoleMapping(context.Background(),
 			rs.Primary.Attributes["federation_settings_id"],
 			rs.Primary.Attributes["org_id"],
 			rs.Primary.Attributes["role_mapping_id"])
 		if err == nil {
-			*federatedSettingsOrganizationRoleMapping = *response
 			return nil
 		}
 		return fmt.Errorf("role mapping (%s) does not exist", rs.Primary.Attributes["role_mapping_id"])
 	}
 }
 
-func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy(state *terraform.State) error {
+func checkDestroy(state *terraform.State) error {
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type != "mongodbatlas_federated_settings_org_role_mapping" {
 			continue
@@ -84,7 +87,7 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy(sta
 	return nil
 }
 
-func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -97,7 +100,7 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingImportState
 	}
 }
 
-func testAccMongoDBAtlasFederatedSettingsOrganizationRoleMappingConfig(federationSettingsID, orgID, groupID string) string {
+func configBasic(federationSettingsID, orgID, groupID string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_federated_settings_org_role_mapping" "test" {
 		federation_settings_id = "%[1]s"

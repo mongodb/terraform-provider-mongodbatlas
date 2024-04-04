@@ -13,7 +13,8 @@ import (
 )
 
 func TestAccFederatedSettingsDS_basic(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // affects the org
+
 	var (
 		federatedSettings matlas.FederatedSettings
 		resourceName      = "data.mongodbatlas_federated_settings.test"

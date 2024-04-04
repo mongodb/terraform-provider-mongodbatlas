@@ -10,54 +10,58 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccFederatedSettingsOrg_basic(t *testing.T) {
-	acc.SkipTestForCI(t)
+	resource.ParallelTest(t, *basicTestCase(t))
+}
+
+func basicTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+	acc.SkipTestForCI(tb) // affects the org
+
 	var (
-		federatedSettingsIdentityProvider matlas.FederatedSettingsConnectedOrganization
-		resourceName                      = "mongodbatlas_federated_settings_org_config.test"
-		federationSettingsID              = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
-		orgID                             = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
-		idpID                             = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
+		resourceName         = "mongodbatlas_federated_settings_org_config.test"
+		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
+		orgID                = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
+		idpID                = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
 	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckFederatedSettings(t) },
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckFederatedSettings(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:            testAccMongoDBAtlasFederatedSettingsOrganizationConfig(federationSettingsID, orgID, idpID),
+				Config:            configBasic(federationSettingsID, orgID, idpID),
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigImportStateIDFunc(resourceName, federationSettingsID, orgID),
+				ImportStateIdFunc: importStateIDFunc(resourceName, federationSettingsID, orgID),
 				ImportState:       true,
 				ImportStateVerify: false,
 			},
 			{
-				Config:            testAccMongoDBAtlasFederatedSettingsOrganizationConfig(federationSettingsID, orgID, idpID),
+				Config:            configBasic(federationSettingsID, orgID, idpID),
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigImportStateIDFunc(resourceName, federationSettingsID, orgID),
+				ImportStateIdFunc: importStateIDFunc(resourceName, federationSettingsID, orgID),
 
 				ImportState: true,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigRExists(resourceName, &federatedSettingsIdentityProvider),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
 					resource.TestCheckResourceAttr(resourceName, "name", "mongodb_federation_test"),
 				),
 			},
 			{
-				Config:            testAccMongoDBAtlasFederatedSettingsOrganizationConfig(federationSettingsID, orgID, idpID),
+				Config:            configBasic(federationSettingsID, orgID, idpID),
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigImportStateIDFunc(resourceName, federationSettingsID, orgID),
+				ImportStateIdFunc: importStateIDFunc(resourceName, federationSettingsID, orgID),
 				ImportState:       true,
 				ImportStateVerify: false,
 			},
 		},
-	})
+	}
 }
 
-func testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigRExists(resourceName string,
-	federatedSettingsIdentityProvider *matlas.FederatedSettingsConnectedOrganization) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -66,18 +70,17 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigRExists(resource
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		response, _, err := acc.Conn().FederatedSettings.GetConnectedOrg(context.Background(),
+		_, _, err := acc.Conn().FederatedSettings.GetConnectedOrg(context.Background(),
 			rs.Primary.Attributes["federation_settings_id"],
 			rs.Primary.Attributes["org_id"])
 		if err == nil {
-			*federatedSettingsIdentityProvider = *response
 			return nil
 		}
 		return fmt.Errorf("connected org  (%s) does not exist", rs.Primary.Attributes["org_id"])
 	}
 }
 
-func testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigImportStateIDFunc(resourceName, federationSettingsID, orgID string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName, federationSettingsID, orgID string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		ID := conversion.EncodeStateID(map[string]string{
 			"federation_settings_id": federationSettingsID,
@@ -89,7 +92,7 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigImportStateIDFun
 	}
 }
 
-func testAccMongoDBAtlasFederatedSettingsOrganizationConfig(federationSettingsID, orgID, identityProviderID string) string {
+func configBasic(federationSettingsID, orgID, identityProviderID string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_federated_settings_org_config" "test" {
 		federation_settings_id = "%[1]s"
