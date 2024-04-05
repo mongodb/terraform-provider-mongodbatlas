@@ -1,26 +1,13 @@
-# Contributing
-
-Thanks for your interest in contributing to MongoDB Atlas Terraform Provider, this document describes some guidelines necessary to participate in the community.
+## Development Setup
 
 ## Table of Contents
+- [Prerequisite Tools](#prerequisite-tools)
+- [Environment](#prerequisite-tools)
+- [Open a Pull Request](#open-a-pull-request)
+- [Testing the Provider](#testing-the-provider)
+- [Running Acceptance Tests](#running-acceptance-tests)
+- [Replaying HTTP Requests with Hoverfly](#replaying-http-requests-with-hoverfly)
 
-- [Development Setup](#development-setup)
-  - [Prerequisite Tools](#prerequisite-tools)
-  - [Environment](#prerequisite-tools)
-  - [Open a Pull Request](#open-a-pull-request)
-  - [Testing the Provider](#testing-the-provider)
-  - [Running Acceptance Tests](#running-acceptance-tests)
-  - [Replaying HTTP Requests with Hoverfly](#replaying-http-requests-with-hoverfly)
-- [Code and Test Best Practices](#code-and-test-best-practices)
-  - [Creating New Resource and Data Sources](#creating-new-resources-and-data-sources)
-    - [Scaffolding Initial Code and File Structure](#scaffolding-initial-code-and-file-structure)
-    - [Scaffolding Schema and Model Definitions](#scaffolding-schema-and-model-definitions)
-- [Documentation Best Practices](#documentation-best-practices)
-  - [Creating Resource and Data source Documentation](#creating-resource-and-data-source-documentation)
-- [Discovering New API features](#discovering-new-api-features)
-
-
-## Development Setup
 ### Prerequisite Tools
 
 - [Git](https://git-scm.com/)
@@ -310,110 +297,3 @@ To do this you can:
 - Next in the `tf_cache` directory replace existing terraform provider core files (Terraform Atlas Provider version binary, `CHANGELOG.md`, `LICENSE`, and `README.md`) with the version you seek to test locally. Make sure to keep folder structure the same. 
 
 - Lastly, in the terminal run `terraform init` again and this time terraform will pull provider version from `tf_cache` network mirror. You can confirm this by noting the `Terraform has been successfully initialized! Using mongodb/mongodbatlas Vx.x.x from the shared cache directory` message.  
-
-## Code and Test Best Practices
-
-- Each resource (and associated data sources) is in a package in `internal/service`.
-- There can be multiple helper files and they can also be used from other resources, e.g. `common_advanced_cluster.go` defines functions that are also used from other resources using `advancedcluster.FunctionName`.
-- Unit and Acceptances tests are in the same `_test.go` file. They are not in the same package as the code tests, e.g. `advancedcluster` tests are in `advancedcluster_test` package so coupling is minimized.
-- Migration tests are in `_migration_test.go` files.
-- Helper methods must have their own tests, e.g. `common_advanced_cluster_test.go` has tests for `common_advanced_cluster.go`.
-- `internal/testutils/acc` contains helper test methods for Acceptance and Migration tests.
-- Tests that need the provider binary like End-to-End tests don’t belong to the source code packages and go in `test/e2e`.
-- [Testify Mock](https://pkg.go.dev/github.com/stretchr/testify/mock) and [Mockery](https://github.com/vektra/mockery) are used for test doubles in Atlas Go SDK unit tests.
-
-
-### Creating New Resource and Data Sources
-
-A set of commands have been defined with the intention of speeding up development process, while also preserving common conventions throughout our codebase.
-
-#### Scaffolding Initial Code and File Structure
-
-This command can be used the following way:
-```bash
-make scaffold resource_name=streamInstance type=resource
-```
-- **resource_name**: The name of the resource, which must be defined in camel case.
-- **type**: Describes the type of resource being created. There are 3 different types: `resource`, `data-source`, `plural-data-source`.
-
-This will generate resource/data source files and accompanying test files needed for starting the development, and will contain multiple comments with `TODO:` statements which give guidance for the development.
-
-As a follow up step, use [Scaffolding Schema and Model Definitions](#scaffolding-schema-and-model-definitions) to autogenerate the schema via the Open API specification. This will require making adjustments to the generated `./internal/service/<resource_name>/tfplugingen/generator_config.yml` file.
-
-#### Scaffolding Schema and Model Definitions
-
-Complementary to the `scaffold` command, there is a command which generates the initial Terraform schema definition and associated Go types for a resource or data source. This processes leverages [Code Generation Tools](https://developer.hashicorp.com/terraform/plugin/code-generation) developed by HashiCorp, which in turn make use of the [Atlas Admin API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/) OpenAPI Specification.
-
-##### Running the command
-
-Both `tfplugingen-openapi` and `tfplugingen-framework` must be installed. This can be done by running `make tools`.
-
-The command takes a single argument which specifies the resource or data source where the code generation is run, defined in camel case, e.g.:
-```bash
-make scaffold-schemas resource_name=streamInstance
-```
-
-As a pre-requiste, the relevant resource/data source directory must define a configuration file in the path `./internal/service/<resource_name>/tfplugingen/generator_config.yml`. The content of this file will define which resource and/or data source schemas will be generated by providing the API endpoints they are mapped to. See the [Generator Config](https://developer.hashicorp.com/terraform/plugin/code-generation/openapi-generator#generator-config) documentation for more information on configuration options. An example defined in our repository can be found in [searchdeployment/tfplugingen/generator_config.yml](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/internal/service/searchdeployment/tfplugingen/generator_config.yml).
-
-As a result of the execution, the schema definitions and associated model types will be defined in separate files depending on the resources and data sources that were configured in the generator_config.yml file:
-- `data_source_<resource_name>_schema.go`
-- `resource_<resource_name>_schema.go`
-
-Note: if the resulting file paths already exist the content will be stored in files with a `_gen.go` postfix, and in this case any content will be overwritten. This can be useful for comparing the latest autogenerated schema against the existing implementation.
-
-Note: you can override the Open API description of a field with a custom description via the [overrides](https://developer.hashicorp.com/terraform/plugin/code-generation/openapi-generator#overriding-attribute-descriptions) param. See this [example](internal/service/searchdeployment/tfplugingen/generator_config.yml).
-
-##### Considerations over generated schema and types
-
-- Generated Go type should include a TF prefix to follow the convention in our codebase, this will not be present in generated code.
-- Some attribute names may need to be adjusted if there is a difference in how they are named in Terraform vs the API. An examples of this is `group_id` → `project_id`.
-- Inferred characteristics of an attribute (computed, optional, required) may not always be an accurate representation and should be revised. Details of inference logic can be found in [OAS Types to Provider Attributes](https://github.com/hashicorp/terraform-plugin-codegen-openapi/blob/main/DESIGN.md#oas-types-to-provider-attributes).
-- Missing [sensitive](https://developer.hashicorp.com/terraform/plugin/framework/handling-data/attributes/string#sensitive) field in attributes.
-- Missing plan modifiers such as `RequiresReplace()` in attributes.
-- Terraform specific attributes such as [timeouts](https://developer.hashicorp.com/terraform/plugin/framework/resources/timeouts#specifying-timeouts-in-configuration) need to be included manually.
-- If nested attributes are defined a set of helper functions are generated for using the model. The usage of the generated functions can be considered optional as the current documentation is not very clear on the usage (More details in [terraform-plugin-codegen-framework/issues/80](https://github.com/hashicorp/terraform-plugin-codegen-framework/issues/80)).
-
-
-## Documentation Best Practices
-
-- In our documentation, when a resource field allows a maximum of only one item, we do not format that field as an array. Instead, we create a subsection specifically for this field. Within this new subsection, we enumerate all the attributes of the field. Let's illustrate this with an example: [cloud_backup_schedule.html.markdown](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/r/cloud_backup_schedule.html.markdown?plain=1#L207)
-- You can check how the documentation is rendered on the Terraform Registry via [doc-preview](https://registry.terraform.io/tools/doc-preview).
-
-### Creating Resource and Data source Documentation
-We autogenerate the documentation of our provider resources and data sources via [tfplugindocs](https://github.com/hashicorp/terraform-plugin-docs).
-
-#### How to generate the documentation for a resource
-- Make sure that the resource and data source schemas have defined the fields `MarkdownDescription` and `Description`.
-  - We recommend to use [Scaffolding Schema and Model Definitions](#scaffolding-schema-and-model-definitions) to autogenerate the schema via the Open API specification.
-- Add the resource/data source templates to the [templates](templates) folder. See [README.md](templates/README.md) for more info.
-- Run the Makefile command `generate-doc`
-```bash
-export resource_name=search_deployment && make generate-doc
-```
-
-## Discovering New API features
-
-Most of the new features of the provider are using [atlas-sdk](https://github.com/mongodb/atlas-sdk-go)
-SDK is updated automatically, tracking all new Atlas features.
-
-
-### Updating Atlas SDK 
-
-To update Atlas SDK run:
-
-```bash
-make update-atlas-sdk
-```
-
-> NOTE: The update mechanism is only needed for major releases. Any other releases will be supported by dependabot.
-
-> NOTE: Command can make import changes to +500 files. Please make sure that you perform update on main branch without any uncommited changes.
-
-### SDK Major Release Update Procedure
-
-1. If the SDK update doesn’t cause any compilation issues create a new SDK update PR
-   1. Review [API Changelog](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/changelog) for any deprecated fields and breaking changes.
-2. For SDK updates introducing compilation issues without graceful workaround
-   1. Use the previous major version of the SDK (including the old client) for the affected resource
-   1. Create an issue to identify the root cause and mitigation paths based on changelog information  
-   2. If applicable: Make required notice/update to the end users based on the plan.

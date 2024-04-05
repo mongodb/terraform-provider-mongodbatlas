@@ -15,7 +15,7 @@ Link to any related issue(s):
 ## Required Checklist:
 
 - [ ] I have signed the [MongoDB CLA](https://www.mongodb.com/legal/contributor-agreement)
-- [ ] I have read the [contribution guidelines](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/CONTRIBUTING.md)
+- [ ] I have read the [contributing guides](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/contributing/README.md)
 - [ ] I have checked that this change does not generate any credentials and that **they are NOT accidentally logged anywhere**.
 - [ ] I have added tests that prove my fix is effective or that my feature works per HashiCorp requirements
 - [ ] I have added any necessary documentation (if appropriate)
