@@ -109,7 +109,7 @@ func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, pro
 		Teams:                     newTFTeamsResourceModel(ctx, projectProps.Teams),
 		Limits:                    newTFLimitsResourceModel(ctx, projectProps.Limits),
 		IPAddresses:               ipAddressesModel,
-		Tags:                      convertToTagsValue(*projectRes.Tags),
+		Tags:                      convertToTagsValue(projectRes.Tags),
 	}
 
 	projectSettings := projectProps.Settings
@@ -205,9 +205,13 @@ func UpdateProjectBool(plan, state types.Bool, setting **bool) bool {
 	return false
 }
 
-func convertToTagsValue(tags []admin.ResourceTag) types.Map {
-	typesTags := make(map[string]attr.Value, len(tags))
-	for _, tag := range tags {
+func convertToTagsValue(tags *[]admin.ResourceTag) types.Map {
+	if tags == nil {
+		return types.MapNull(types.StringType)
+	}
+
+	typesTags := make(map[string]attr.Value, len(*tags))
+	for _, tag := range *tags {
 		typesTags[tag.Key] = types.StringValue(tag.Value)
 	}
 	// todo: improve me
