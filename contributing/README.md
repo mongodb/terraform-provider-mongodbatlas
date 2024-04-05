@@ -4,5 +4,5 @@ Thanks for your interest in contributing to MongoDB Atlas Terraform Provider, th
 
 - [Development Setup](development-setup.md)
 - [Code and Test Best Practices](development-best-practices.md)
-- [Documentation](#documentation.md)
+- [Documentation](documentation.md)
 - [Atlas SDK](atlas-sdk.md)
