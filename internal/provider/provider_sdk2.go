@@ -293,12 +293,12 @@ func providerConfigure(provider *schema.Provider, proxyPort *int) func(ctx conte
 		}
 
 		cfg := config.Config{
-			PublicKey:    d.Get("public_key").(string),
-			PrivateKey:   d.Get("private_key").(string),
-			BaseURL:      d.Get("base_url").(string),
-			RealmBaseURL: d.Get("realm_base_url").(string),
-			ProxyPort:    proxyPort,
-			UserAgent:    config.TerraformVersionUserAgentInfo(provider.TerraformVersion),
+			PublicKey:        d.Get("public_key").(string),
+			PrivateKey:       d.Get("private_key").(string),
+			BaseURL:          d.Get("base_url").(string),
+			RealmBaseURL:     d.Get("realm_base_url").(string),
+			ProxyPort:        proxyPort,
+			TerraformVersion: provider.TerraformVersion,
 		}
 
 		assumeRoleValue, ok := d.GetOk("assume_role")
