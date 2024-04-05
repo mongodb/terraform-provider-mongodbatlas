@@ -227,11 +227,12 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	}
 
 	cfg := config.Config{
-		PublicKey:    data.PublicKey.ValueString(),
-		PrivateKey:   data.PrivateKey.ValueString(),
-		BaseURL:      data.BaseURL.ValueString(),
-		RealmBaseURL: data.RealmBaseURL.ValueString(),
-		ProxyPort:    p.proxyPort,
+		PublicKey:        data.PublicKey.ValueString(),
+		PrivateKey:       data.PrivateKey.ValueString(),
+		BaseURL:          data.BaseURL.ValueString(),
+		RealmBaseURL:     data.RealmBaseURL.ValueString(),
+		TerraformVersion: req.TerraformVersion,
+		ProxyPort:        p.proxyPort,
 	}
 
 	var assumeRoles []tfAssumeRoleModel

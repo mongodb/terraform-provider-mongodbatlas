@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -100,9 +101,10 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 	// update settings using new keys for this created organization because
 	// the provider/requesting API keys are not applicable for performing updates/delete for this new organization
 	cfg := config.Config{
-		PublicKey:  *organization.ApiKey.PublicKey,
-		PrivateKey: *organization.ApiKey.PrivateKey,
-		BaseURL:    meta.(*config.MongoDBClient).Config.BaseURL,
+		PublicKey:        *organization.ApiKey.PublicKey,
+		PrivateKey:       *organization.ApiKey.PrivateKey,
+		BaseURL:          meta.(*config.MongoDBClient).Config.BaseURL,
+		TerraformVersion: meta.(*config.Config).TerraformVersion,
 	}
 
 	clients, _ := cfg.NewClient(ctx)
@@ -140,9 +142,10 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	cfg := config.Config{
-		PublicKey:  d.Get("public_key").(string),
-		PrivateKey: d.Get("private_key").(string),
-		BaseURL:    meta.(*config.MongoDBClient).Config.BaseURL,
+		PublicKey:        d.Get("public_key").(string),
+		PrivateKey:       d.Get("private_key").(string),
+		BaseURL:          meta.(*config.MongoDBClient).Config.BaseURL,
+		TerraformVersion: meta.(*config.Config).TerraformVersion,
 	}
 
 	clients, _ := cfg.NewClient(ctx)
@@ -189,9 +192,10 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 func resourceMongoDBAtlasOrganizationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	cfg := config.Config{
-		PublicKey:  d.Get("public_key").(string),
-		PrivateKey: d.Get("private_key").(string),
-		BaseURL:    meta.(*config.MongoDBClient).Config.BaseURL,
+		PublicKey:        d.Get("public_key").(string),
+		PrivateKey:       d.Get("private_key").(string),
+		BaseURL:          meta.(*config.MongoDBClient).Config.BaseURL,
+		TerraformVersion: meta.(*config.Config).TerraformVersion,
 	}
 
 	clients, _ := cfg.NewClient(ctx)
@@ -220,9 +224,10 @@ func resourceMongoDBAtlasOrganizationUpdate(ctx context.Context, d *schema.Resou
 func resourceMongoDBAtlasOrganizationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	cfg := config.Config{
-		PublicKey:  d.Get("public_key").(string),
-		PrivateKey: d.Get("private_key").(string),
-		BaseURL:    meta.(*config.MongoDBClient).Config.BaseURL,
+		PublicKey:        d.Get("public_key").(string),
+		PrivateKey:       d.Get("private_key").(string),
+		BaseURL:          meta.(*config.MongoDBClient).Config.BaseURL,
+		TerraformVersion: meta.(*config.Config).TerraformVersion,
 	}
 
 	clients, _ := cfg.NewClient(ctx)

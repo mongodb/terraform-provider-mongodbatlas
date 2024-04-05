@@ -133,11 +133,13 @@ func NewSdkV2Provider(proxyPort *int) *schema.Provider {
 				Description: "AWS Security Token Service provided session token.",
 			},
 		},
-		DataSourcesMap:       getDataSourcesMap(),
-		ResourcesMap:         getResourcesMap(),
-		ConfigureContextFunc: providerConfigure(proxyPort),
+		DataSourcesMap: getDataSourcesMap(),
+		ResourcesMap:   getResourcesMap(),
 	}
 	addPreviewFeatures(provider)
+
+	provider.ConfigureContextFunc = providerConfigure(provider, proxyPort)
+
 	return provider
 }
 
@@ -283,7 +285,7 @@ func addPreviewFeatures(provider *schema.Provider) {
 	}
 }
 
-func providerConfigure(proxyPort *int) func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
+func providerConfigure(provider *schema.Provider, proxyPort *int) func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 	return func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		diagnostics := setDefaultsAndValidations(d)
 		if diagnostics.HasError() {
@@ -291,11 +293,12 @@ func providerConfigure(proxyPort *int) func(ctx context.Context, d *schema.Resou
 		}
 
 		cfg := config.Config{
-			PublicKey:    d.Get("public_key").(string),
-			PrivateKey:   d.Get("private_key").(string),
-			BaseURL:      d.Get("base_url").(string),
-			RealmBaseURL: d.Get("realm_base_url").(string),
-			ProxyPort:    proxyPort,
+			PublicKey:        d.Get("public_key").(string),
+			PrivateKey:       d.Get("private_key").(string),
+			BaseURL:          d.Get("base_url").(string),
+			RealmBaseURL:     d.Get("realm_base_url").(string),
+			ProxyPort:        proxyPort,
+			TerraformVersion: provider.TerraformVersion,
 		}
 
 		assumeRoleValue, ok := d.GetOk("assume_role")
