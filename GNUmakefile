@@ -135,5 +135,5 @@ update-tf-compatibility-matrix: ## Update Terraform Compatibility Matrix documen
 	./scripts/update-tf-compatibility-matrix.sh
 
 .PHONY: generate-changelog
-generate-changelog: ## Update changelog with latest commited changelog entry files
+generate-changelog: ## Updates Unreleased section of changelog file
 	./scripts/generate-changelog.sh

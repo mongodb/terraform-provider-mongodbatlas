@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Updates Unrealeased section of CHANGELOG.md by generating content with all commited changelog entry files defined after last release.
+# Content of existing unreleased header and previous releases is not modified.
+
 set -o errexit
 set -o nounset
 
@@ -18,6 +21,7 @@ if [ $TARGET_SHA == $PREVIOUS_RELEASE_SHA ]; then
   exit 0
 fi
 
+# contains all content of CHANGELOG.md starting from the last release (excludes Unreleased section)
 PREVIOUS_CHANGELOG=$(sed -n -e "/## $(echo ${PREVIOUS_RELEASE_TAG} | tr -d v)/,\$p" $__parent/$CHANGELOG_FILE_NAME)
 
 # this if then clause is only defined to handle legacy format, can be removed after coming release (succeeding 1.15.3)
