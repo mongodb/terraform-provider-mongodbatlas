@@ -56,7 +56,7 @@ jobs:
 
             Additionally, the subject of the title must start with an uppercase character (e.g. feat: New `search` component).
 
-            Details: [contributing development guide](https://github.com/mongodb/awscdk-resources-mongodbatlas/blob/master/contributing/development-setup.md#pr-title-format)
+            Details: [contributing development guide](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/contributing/development-setup.md#pr-title-format)
             
             ```
             ${{ steps.lint_pr_title.outputs.error_message }}
