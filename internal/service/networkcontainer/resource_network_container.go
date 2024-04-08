@@ -330,7 +330,7 @@ func resourceRefreshFunc(ctx context.Context, d *schema.ResourceData, client *ad
 			return nil, "", err
 		}
 
-		if *container.Provisioned && err == nil {
+		if *container.Provisioned {
 			return nil, "provisioned_container", nil
 		}
 

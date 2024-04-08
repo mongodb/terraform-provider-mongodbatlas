@@ -574,22 +574,11 @@ func unmarshalSearchIndexAnalyzersFields(str string) ([]admin.ApiAtlasFTSAnalyze
 
 func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID, indexID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		searchIndex, resp, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
-		status := conversion.SafeString(searchIndex.Status)
+		searchIndex, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 		if err != nil {
 			return nil, "ERROR", err
 		}
-		if err != nil && searchIndex == nil && resp == nil {
-			return nil, "", err
-		} else if err != nil {
-			if resp.StatusCode == 404 {
-				return "", "DELETED", nil
-			}
-			if resp.StatusCode == 503 {
-				return "", "PENDING", nil
-			}
-			return nil, "", err
-		}
+		status := conversion.SafeString(searchIndex.Status)
 		return searchIndex, status, nil
 	}
 }
