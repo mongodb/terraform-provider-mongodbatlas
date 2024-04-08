@@ -81,6 +81,7 @@ tools:  ## Install dev tools
 	go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
 	go install github.com/hashicorp/terraform-plugin-codegen-openapi/cmd/tfplugingen-openapi@latest
 	go install github.com/hashicorp/terraform-plugin-codegen-framework/cmd/tfplugingen-framework@latest
+	go install github.com/hashicorp/go-changelog/cmd/changelog-build@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
 
 .PHONY: website-lint
@@ -132,3 +133,7 @@ generate-doc: ## Generate the resource documentation via tfplugindocs
 .PHONY: update-tf-compatibility-matrix
 update-tf-compatibility-matrix: ## Update Terraform Compatibility Matrix documentation
 	./scripts/update-tf-compatibility-matrix.sh
+
+.PHONY: update-changelog-unreleased-section
+update-changelog-unreleased-section:
+	./scripts/update-changelog-unreleased-section.sh
