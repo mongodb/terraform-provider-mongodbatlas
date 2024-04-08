@@ -55,8 +55,9 @@ type projectRS struct {
 }
 
 type TFProjectRSModel struct {
-	Limits                                      types.Set    `tfsdk:"limits"`
-	Teams                                       types.Set    `tfsdk:"teams"`
+	Limits types.Set `tfsdk:"limits"`
+	Teams  types.Set `tfsdk:"teams"`
+	// Tags                                        types.Set    `tfsdk:"tags"`
 	Tags                                        types.Map    `tfsdk:"tags"`
 	IPAddresses                                 types.Object `tfsdk:"ip_addresses"`
 	RegionUsageRestrictions                     types.String `tfsdk:"region_usage_restrictions"`
@@ -78,6 +79,10 @@ type TFProjectRSModel struct {
 type TFTeamModel struct {
 	TeamID    types.String `tfsdk:"team_id"`
 	RoleNames types.Set    `tfsdk:"role_names"`
+}
+type TFTagModel struct {
+	Key   types.String `tfsdk:"key"`
+	Value types.String `tfsdk:"value"`
 }
 
 type TFLimitModel struct {
@@ -126,6 +131,10 @@ var TfLimitObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"current_usage": types.Int64Type,
 	"default_limit": types.Int64Type,
 	"maximum_limit": types.Int64Type,
+}}
+var TfTagObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"key":   types.StringType,
+	"value": types.StringType,
 }}
 
 // Resources that need to be cleaned up before a project can be deleted
@@ -246,6 +255,20 @@ func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 					},
 				},
 			},
+			// "tags": schema.SetNestedAttribute{
+			// 	NestedObject: schema.NestedAttributeObject{
+			// 		Attributes: map[string]schema.Attribute{
+			// 			"key": schema.StringAttribute{
+			// 				Required: true,
+			// 			},
+			// 			"value": schema.StringAttribute{
+			// 				Required: true,
+			// 			},
+			// 		},
+			// 	},
+			// 	Optional: true,
+			// 	Computed: true,
+			// },
 			"tags": schema.MapAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
@@ -307,24 +330,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	var tags []admin.ResourceTag
-	if projectPlan.Tags.IsNull() || len(projectPlan.Tags.Elements()) == 0 {
-		tags = []admin.ResourceTag{}
-	} else {
-		elements := make(map[string]types.String, len(projectPlan.Tags.Elements()))
-		diags = projectPlan.Tags.ElementsAs(ctx, &elements, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		for key, tagValue := range elements {
-			tags = append(tags, admin.ResourceTag{
-				Key:   key,
-				Value: tagValue.ValueString(),
-			})
-		}
-	}
-
+	tags := *AsAdminTags(ctx, projectPlan.Tags)
 	projectGroup := &admin.Group{
 		OrgId:                     projectPlan.OrgID.ValueString(),
 		Name:                      projectPlan.Name.ValueString(),
@@ -800,13 +806,15 @@ func hasLimitsChanged(planLimits, stateLimits []TFLimitModel) bool {
 }
 
 func UpdateProject(ctx context.Context, projectsAPI admin.ProjectsApi, projectState, projectPlan *TFProjectRSModel) error {
-	if projectPlan.Name.Equal(projectState.Name) {
+	tagsBefore := AsAdminTags(ctx, projectState.Tags)
+	tagsAfter := AsAdminTags(ctx, projectPlan.Tags)
+	if projectPlan.Name.Equal(projectState.Name) && reflect.DeepEqual(tagsBefore, tagsAfter) {
 		return nil
 	}
 
 	projectID := projectState.ID.ValueString()
 
-	if _, _, err := projectsAPI.UpdateProject(ctx, projectID, NewGroupUpdate(projectPlan)).Execute(); err != nil {
+	if _, _, err := projectsAPI.UpdateProject(ctx, projectID, NewGroupUpdate(ctx, projectPlan)).Execute(); err != nil {
 		return fmt.Errorf("error updating the project(%s): %s", projectID, err)
 	}
 

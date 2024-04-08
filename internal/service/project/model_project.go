@@ -5,6 +5,7 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 
+	// "github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -110,6 +111,7 @@ func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, pro
 		Limits:                    newTFLimitsResourceModel(ctx, projectProps.Limits),
 		IPAddresses:               ipAddressesModel,
 		Tags:                      convertToTagsValue(projectRes.Tags),
+		// Tags: convertToTagsValueList(ctx, projectRes.Tags),
 	}
 
 	projectSettings := projectProps.Settings
@@ -169,9 +171,10 @@ func NewTeamRoleList(ctx context.Context, teams []TFTeamModel) *[]admin.TeamRole
 	return &res
 }
 
-func NewGroupUpdate(tfProject *TFProjectRSModel) *admin.GroupUpdate {
+func NewGroupUpdate(ctx context.Context, tfProject *TFProjectRSModel) *admin.GroupUpdate {
 	return &admin.GroupUpdate{
 		Name: tfProject.Name.ValueStringPointer(),
+		Tags: AsAdminTags(ctx, tfProject.Tags),
 	}
 }
 
@@ -205,6 +208,21 @@ func UpdateProjectBool(plan, state types.Bool, setting **bool) bool {
 	return false
 }
 
+func convertToTagsValueList(ctx context.Context, tags *[]admin.ResourceTag) types.Set {
+	if tags == nil {
+		return types.SetNull(TfTagObjectType)
+	}
+	typesTags := make([]TFTagModel, len(*tags))
+	for i, tag := range *tags {
+		typesTags[i] = TFTagModel{
+			Key:   types.StringValue(tag.Key),
+			Value: types.StringValue(tag.Value),
+		}
+	}
+	setValue, _ := types.SetValueFrom(ctx, TfTagObjectType, typesTags)
+	return setValue
+}
+
 func convertToTagsValue(tags *[]admin.ResourceTag) types.Map {
 	if tags == nil {
 		return types.MapNull(types.StringType)
@@ -217,4 +235,20 @@ func convertToTagsValue(tags *[]admin.ResourceTag) types.Map {
 	// todo: improve me
 	mapValue, _ := types.MapValue(types.StringType, typesTags)
 	return mapValue
+}
+
+func AsAdminTags(ctx context.Context, tags types.Map) *[]admin.ResourceTag {
+	if tags.IsNull() || len(tags.Elements()) == 0 {
+		return &[]admin.ResourceTag{}
+	}
+	elements := make(map[string]types.String, len(tags.Elements()))
+	_ = tags.ElementsAs(ctx, &elements, false)
+	var tagsAdmin []admin.ResourceTag
+	for key, tagValue := range elements {
+		tagsAdmin = append(tagsAdmin, admin.ResourceTag{
+			Key:   key,
+			Value: tagValue.ValueString(),
+		})
+	}
+	return &tagsAdmin
 }
