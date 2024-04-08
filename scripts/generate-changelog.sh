@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Updates Unrealeased section of CHANGELOG.md by generating content with all commited changelog entry files defined after last release.
+# Updates Unreleased section of CHANGELOG.md by generating content with all commited changelog entry files defined after last release.
 # Content of existing unreleased header and previous releases is not modified.
 
 set -o errexit
