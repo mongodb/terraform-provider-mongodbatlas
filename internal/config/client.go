@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	admin20231001002 "go.mongodb.org/atlas-sdk/v20231001002/admin"
+	admin20231001002 "go.mongodb.org/atlas-sdk/v20231115008/admin"
 	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
