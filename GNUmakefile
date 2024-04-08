@@ -134,6 +134,6 @@ generate-doc: ## Generate the resource documentation via tfplugindocs
 update-tf-compatibility-matrix: ## Update Terraform Compatibility Matrix documentation
 	./scripts/update-tf-compatibility-matrix.sh
 
-.PHONY: generate-changelog
-generate-changelog: ## Updates Unreleased section of changelog file
-	./scripts/generate-changelog.sh
+.PHONY: update-changelog-unreleased-section
+update-changelog-unreleased-section:
+	./scripts/update-changelog-unreleased-section.sh
