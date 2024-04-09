@@ -2,39 +2,18 @@ name: Changelog check
 
 on:
   pull_request:
+    types: [opened, reopened, synchronize, edited, labeled, unlabeled]
 
 env:
+  EVENT_NAME: ${{ github.event_name }}
   TITLE: ${{ github.event.pull_request.title }}
   NUMBER: ${{ github.event.pull_request.number }}
-  LABELS: ${{ github.event.pull_request.labels }}
-  BODY: ${{ github.event.pull_request.body }}
-  COMMENTS: ${{ github.event.pull_request.comments }}
-  CHANGED_FILES: ${{ github.event.pull_request.changed_files }}
-  HEAD: ${{ github.event.pull_request.head }}
-  ALL_PR: ${{ toJson(github.event.pull_request) }}
-  ALL_EVENT: ${{ toJson(github.event) }}
-
+  LABEL_LIST: ${{ toJson(github.event.pull_request.labels.*.name) }}
+  LABEL_NAME: ${{ github.event.label.name }}
+  
 jobs:
-  echo-vars:
+  changelog-check:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
-    - run: echo title ${{ vars.TITLE }}
-    - run: echo number ${{ vars.NUMBER }}
-    - run: echo labels ${{ vars.LABELS }}
-    - run: echo body ${{ vars.BODY }}
-    - run: echo comments ${{ vars.COMMENTS }}
-    - run: echo changed_files ${{ vars.CHANGED_FILES }}
-    - run: echo head ${{ vars.HEAD }}
-
-  echo-all-pr:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
-    - run: echo all pr ${{ toJson(github.event.pull_request) }}
-
-  echo-all-event:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
-    - run: echo all event ${{ toJson(github.event) }}
+    - run: echo hello
