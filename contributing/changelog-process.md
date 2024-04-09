@@ -3,6 +3,7 @@
 - [Changelog format](#changelog-format)
 - [Changelog entry guidelines](#changelog-entry-guidelines)
 - [Script for creating changelog entry files](#script-for-creating-changelog-entry-files)
+- [PR Changelog check](#pr-changelog-check)
 
 HashiCorp’s open-source projects have always maintained user-friendly, readable CHANGELOG.md that allow users to tell at a glance whether a release should have any effect on them, and to gauge the risk of an upgrade.
 
@@ -143,3 +144,10 @@ make generate-changelog-entry
 ```
 
 - The `subcategory` input prompt refers to the prefix of the changelog entry, used for specifying the relevant resource/data source when needed (e.g. data-source/mongodbatlas_project)
+
+## PR Changelog check
+
+A PR check is included to validate the changelog file. 
+If a PR doesn't need a changelog its check can be skipped:
+- Adding the label `skip-changelog-check` to the PR.
+- Check in PRs with title `chore`, `test`, `doc` or `ci` is automatically skipped. However a changelog can still be added if needed.
