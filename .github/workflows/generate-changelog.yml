@@ -16,7 +16,7 @@ jobs:
           go-version-file: 'go.mod'
       - run: make update-changelog-unreleased-section
       - run: |
-          if [[ `git status --porcelain` ]]; then
+          if [[ $(git status --porcelain) ]]; then
             if ${{github.event_name == 'workflow_dispatch'}}; then
               MSG="Update CHANGELOG.md (Manual Trigger)"
             else
