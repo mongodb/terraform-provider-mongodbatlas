@@ -142,3 +142,7 @@ update-changelog-unreleased-section:
 .PHONY: generate-changelog-entry
 generate-changelog-entry:
 	./scripts/generate-changelog-entry.sh
+
+.PHONY: check-changelog
+check-changelog:
+	go run ./tools/check-changelog/*.go

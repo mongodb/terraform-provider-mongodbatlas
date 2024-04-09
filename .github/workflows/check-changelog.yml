@@ -1,4 +1,4 @@
-name: Changelog PR check
+name: Check changelog
 
 on:
   pull_request:
@@ -16,4 +16,4 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - run: make changelog-pr-check
+      - run: make check-changelog
