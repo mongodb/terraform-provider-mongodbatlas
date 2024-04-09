@@ -39,14 +39,19 @@ func main() {
 		return
 	}
 
-	fmt.Println("PR_TITLE", title)
-	fmt.Println("PR_NUMBER", number)
-	fmt.Println("PR_LABELS", labels)
+	filePath := fmt.Sprintf(".changelog/%s.txt", number)
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		log.Fatalf("Changelog file not found: %s, err: %v", filePath, err)
+	}
 
 	entry := changelog.Entry{
-		Body: "hello",
+		Body: string(content),
 	}
-	fmt.Println(entry)
+	if err := entry.Validate(); err != nil {
+		log.Fatalf("Error validating changelog file: %s, err: %v", filePath, err)
+	}
+	fmt.Printf("Changelog file is valid: %s\n", filePath)
 }
 
 func skipTitle(title string) bool {
