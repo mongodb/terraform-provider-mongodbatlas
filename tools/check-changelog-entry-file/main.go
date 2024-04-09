@@ -32,13 +32,7 @@ func main() {
 	filePath := fmt.Sprintf(".changelog/%s.txt", number)
 	content, errFile := os.ReadFile(filePath)
 	if errFile == nil { // Always validate changelog file if present, skip logic is not considered in this case
-		entry := changelog.Entry{
-			Body: string(content),
-		}
-		if err := entry.Validate(); err != nil {
-			log.Fatalf("Error validating changelog file: %s, err: %v", filePath, err)
-		}
-		fmt.Printf("Changelog entry file is valid: %s\n", filePath)
+		validateChangelog(filePath, string(content))
 		return
 	}
 
@@ -53,6 +47,16 @@ func main() {
 	}
 
 	log.Fatalf("Consider using label %s if this PR doesn't need a changelog entry file. Read contributing guides for more info.\nChangelog file not found: %s, err: %v", skipLabelName, filePath, errFile)
+}
+
+func validateChangelog(filePath, body string) {
+	entry := changelog.Entry{
+		Body: body,
+	}
+	if err := entry.Validate(); err != nil {
+		log.Fatalf("Error validating changelog file: %s, err: %v", filePath, err)
+	}
+	fmt.Printf("Changelog entry file is valid: %s\n", filePath)
 }
 
 func skipTitle(title string) bool {
