@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 )
@@ -19,11 +20,11 @@ func main() {
 		jsonLabels = os.Getenv("PR_LABELS")
 	)
 	if title == "" || number == "" || jsonLabels == "" {
-		panic("Environment variables PR_TITLE, PR_NUMBER and PR_LABELS are required")
+		log.Fatal("Environment variables PR_TITLE, PR_NUMBER and PR_LABELS are required")
 	}
 	var labels []string
 	if err := json.Unmarshal([]byte(jsonLabels), &labels); err != nil {
-		panic(fmt.Sprintf("PR_LABELS is not a stringified JSON array: %v", err))
+		log.Fatalf("PR_LABELS is not a stringified JSON array: %v", err)
 	}
 
 	if skipTitle(title) {
