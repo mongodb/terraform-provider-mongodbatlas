@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_project: Reads `region_usage_restrictions` attribute value from get request
+```
