@@ -52,7 +52,7 @@ func main() {
 		return
 	}
 
-	log.Fatalf("Consider using label %s if this PR doesn't need a changelog entry file.\nChangelog file not found: %s, err: %v", skipLabelName, filePath, errFile)
+	log.Fatalf("Consider using label %s if this PR doesn't need a changelog entry file. Read contributing guides for more info.\nChangelog file not found: %s, err: %v", skipLabelName, filePath, errFile)
 }
 
 func skipTitle(title string) bool {
