@@ -29,6 +29,19 @@ func main() {
 		log.Fatalf("PR_LABELS is not a stringified JSON array: %v", err)
 	}
 
+	filePath := fmt.Sprintf(".changelog/%s.txt", number)
+	content, errFile := os.ReadFile(filePath)
+	if errFile == nil { // if file exists then it's always validated, never skipped.
+		entry := changelog.Entry{
+			Body: string(content),
+		}
+		if err := entry.Validate(); err != nil {
+			log.Fatalf("Error validating changelog file: %s, err: %v", filePath, err)
+		}
+		fmt.Printf("Changelog file is valid: %s\n", filePath)
+		return
+	}
+
 	if skipTitle(title) {
 		fmt.Println("Skipping changelog check because PR title")
 		return
@@ -39,19 +52,7 @@ func main() {
 		return
 	}
 
-	filePath := fmt.Sprintf(".changelog/%s.txt", number)
-	content, err := os.ReadFile(filePath)
-	if err != nil {
-		log.Fatalf("Changelog file not found: %s, err: %v", filePath, err)
-	}
-
-	entry := changelog.Entry{
-		Body: string(content),
-	}
-	if err := entry.Validate(); err != nil {
-		log.Fatalf("Error validating changelog file: %s, err: %v", filePath, err)
-	}
-	fmt.Printf("Changelog file is valid: %s\n", filePath)
+	log.Fatalf("Changelog file not found: %s, err: %v", filePath, errFile)
 }
 
 func skipTitle(title string) bool {
