@@ -38,21 +38,21 @@ func main() {
 		if err := entry.Validate(); err != nil {
 			log.Fatalf("Error validating changelog file: %s, err: %v", filePath, err)
 		}
-		fmt.Printf("Changelog file is valid: %s\n", filePath)
+		fmt.Printf("Changelog entry file is valid: %s\n", filePath)
 		return
 	}
 
 	if skipTitle(title) {
-		fmt.Println("Skipping changelog check because PR title")
+		fmt.Println("Skipping changelog entry file check because PR title")
 		return
 	}
 
 	if skipLabel(labels) {
-		fmt.Printf("Skipping changelog check because PR label found: %s\n", skipLabelName)
+		fmt.Printf("Skipping changelog entry file check because PR label found: %s\n", skipLabelName)
 		return
 	}
 
-	log.Fatalf("Consider using label %s if this PR doesn't need a changelog.\nChangelog file not found: %s, err: %v", skipLabelName, filePath, errFile)
+	log.Fatalf("Consider using label %s if this PR doesn't need a changelog entry file.\nChangelog file not found: %s, err: %v", skipLabelName, filePath, errFile)
 }
 
 func skipTitle(title string) bool {
