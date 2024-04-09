@@ -2,6 +2,7 @@
 #
 # Generate a changelog entry for a suggested PR by grabbing the next available
 # auto incrementing ID in GitHub. User can choose to use another PR number
+set -euo pipefail
 
 if ! command -v curl &> /dev/null
 then
@@ -22,12 +23,12 @@ then
 fi
 
 current_pr=$(curl -s "https://api.github.com/repos/mongodb/terraform-provider-mongodbatlas/issues?state=all&per_page=1" | jq -r ".[].number")
-next_pr=$(($current_pr + 1))
+next_pr=$((current_pr + 1))
 
 echo "==> What is the new changelog entry? Suggested is $next_pr (next PR number)"
-read next_pr
+read -r next_pr
 
-changelog-entry -pr $next_pr -dir ".changelog"
+changelog-entry -pr "$next_pr" -dir ".changelog"
 
 echo
-echo "Successfully created $changelog_path. Don't forget to commit it and open the PR!"
+echo "Successfully created $next_pr. Don't forget to commit it and open the PR!"

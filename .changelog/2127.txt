@@ -1,0 +1,3 @@
+```release-note:improvement
+changelog: New script to generate changelog entries
+```
