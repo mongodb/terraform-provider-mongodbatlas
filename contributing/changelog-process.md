@@ -148,6 +148,6 @@ make generate-changelog-entry
 ## PR Changelog check
 
 A PR check is included to validate the changelog entry file. 
-If a PR doesn't need a changelog its check can be skipped:
+If a PR doesn't need a changelog entry its check can be skipped:
 - Adding the label `skip-changelog-check` to the PR.
 - Check in PRs with title `chore`, `test`, `doc` or `ci` is automatically skipped. However a changelog can still be added if needed.
