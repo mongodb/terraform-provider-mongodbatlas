@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 	"strings"
+
+	"github.com/hashicorp/go-changelog"
 )
 
 var (
@@ -40,6 +42,11 @@ func main() {
 	fmt.Println("PR_TITLE", title)
 	fmt.Println("PR_NUMBER", number)
 	fmt.Println("PR_LABELS", labels)
+
+	entry := changelog.Entry{
+		Body: "hello",
+	}
+	fmt.Println(entry)
 }
 
 func skipTitle(title string) bool {
