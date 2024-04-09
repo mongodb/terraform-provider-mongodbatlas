@@ -1,3 +1,0 @@
-```release-note:improvement
-chore: New script to generate changelog entries
-```
