@@ -31,7 +31,7 @@ func main() {
 
 	filePath := fmt.Sprintf(".changelog/%s.txt", number)
 	content, errFile := os.ReadFile(filePath)
-	if errFile == nil { // if file exists then it's always validated, never skipped.
+	if errFile == nil { // Always validate changelog file if present, skip logic is not considered in this case
 		entry := changelog.Entry{
 			Body: string(content),
 		}
