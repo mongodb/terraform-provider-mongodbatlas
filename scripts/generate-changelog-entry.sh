@@ -25,7 +25,7 @@ fi
 current_pr=$(curl -s "https://api.github.com/repos/mongodb/terraform-provider-mongodbatlas/issues?state=all&per_page=1" | jq -r ".[].number")
 next_pr=$((current_pr + 1))
 
-echo "==> What PR number should be used for this changelog entry? Leave emtpy to use $next_pr (next PR number)"
+echo "==> What PR number should be used for this changelog entry? Leave empty to use $next_pr (next PR number)"
 read -r changelog_entry
 
 if [ -n "$changelog_entry" ]; then
