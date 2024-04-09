@@ -137,3 +137,7 @@ update-tf-compatibility-matrix: ## Update Terraform Compatibility Matrix documen
 .PHONY: update-changelog-unreleased-section
 update-changelog-unreleased-section:
 	./scripts/update-changelog-unreleased-section.sh
+
+.PHONY: changelog-pr-check
+changelog-pr-check:
+	go run ./tools/changelog-pr-check/*.go
