@@ -109,8 +109,7 @@ func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, pro
 		Teams:                     newTFTeamsResourceModel(ctx, projectProps.Teams),
 		Limits:                    newTFLimitsResourceModel(ctx, projectProps.Limits),
 		IPAddresses:               ipAddressesModel,
-		// Tags:                      convertToTagsValue(projectRes.Tags),
-		Tags: convertToTagsValueList(ctx, projectRes.Tags),
+		Tags:                      convertToTagsValue(projectRes.Tags),
 	}
 
 	projectSettings := projectProps.Settings
@@ -221,47 +220,17 @@ func convertToTagsValue(tags *[]admin.ResourceTag) types.Map {
 	return mapValue
 }
 
-func convertToTagsValueList(ctx context.Context, tags *[]admin.ResourceTag) types.Set {
-	if tags == nil {
-		return types.SetNull(TfTagObjectType)
-	}
-	typesTags := make([]TFTagModel, len(*tags))
-	for i, tag := range *tags {
-		typesTags[i] = TFTagModel{
-			Key:   types.StringValue(tag.Key),
-			Value: types.StringValue(tag.Value),
-		}
-	}
-	setValue, _ := types.SetValueFrom(ctx, TfTagObjectType, typesTags)
-	return setValue
-}
-
-//	func AsAdminTags(ctx context.Context, tags types.Map) *[]admin.ResourceTag {
-//		if tags.IsNull() || len(tags.Elements()) == 0 {
-//			return &[]admin.ResourceTag{}
-//		}
-//		elements := make(map[string]types.String, len(tags.Elements()))
-//		_ = tags.ElementsAs(ctx, &elements, false)
-//		var tagsAdmin []admin.ResourceTag
-//		for key, tagValue := range elements {
-//			tagsAdmin = append(tagsAdmin, admin.ResourceTag{
-//				Key:   key,
-//				Value: tagValue.ValueString(),
-//			})
-//		}
-//		return &tagsAdmin
-//	}
-func AsAdminTags(ctx context.Context, tags types.Set) *[]admin.ResourceTag {
+func AsAdminTags(ctx context.Context, tags types.Map) *[]admin.ResourceTag {
 	if tags.IsNull() || len(tags.Elements()) == 0 {
 		return &[]admin.ResourceTag{}
 	}
-	var tagsAdmin []admin.ResourceTag
-	elements := make([]TFTagModel, len(tags.Elements()))
+	elements := make(map[string]types.String, len(tags.Elements()))
 	_ = tags.ElementsAs(ctx, &elements, false)
-	for _, tagValue := range elements {
+	var tagsAdmin []admin.ResourceTag
+	for key, tagValue := range elements {
 		tagsAdmin = append(tagsAdmin, admin.ResourceTag{
-			Key:   tagValue.Key.ValueString(),
-			Value: tagValue.Value.ValueString(),
+			Key:   key,
+			Value: tagValue.ValueString(),
 		})
 	}
 	return &tagsAdmin

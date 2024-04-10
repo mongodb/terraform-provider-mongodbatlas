@@ -11,8 +11,8 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 
-	// "github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
-	// "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	// "github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -60,7 +60,7 @@ type projectRS struct {
 type TFProjectRSModel struct {
 	Limits                                      types.Set    `tfsdk:"limits"`
 	Teams                                       types.Set    `tfsdk:"teams"`
-	Tags                                        types.Set    `tfsdk:"tags"`
+	Tags                                        types.Map    `tfsdk:"tags"`
 	IPAddresses                                 types.Object `tfsdk:"ip_addresses"`
 	RegionUsageRestrictions                     types.String `tfsdk:"region_usage_restrictions"`
 	Name                                        types.String `tfsdk:"name"`
@@ -133,11 +133,6 @@ var TfLimitObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"current_usage": types.Int64Type,
 	"default_limit": types.Int64Type,
 	"maximum_limit": types.Int64Type,
-}}
-
-var TfTagObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"key":   types.StringType,
-	"value": types.StringType,
 }}
 
 // Resources that need to be cleaned up before a project can be deleted
@@ -258,16 +253,16 @@ func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 					},
 				},
 			},
-			// "tags": schema.MapAttribute{
-			// 	ElementType: types.StringType,
-			// 	Optional:    true,
-			// 	Computed:    true,
-			// 	Validators: []validator.Map{
-			// 		mapvalidator.KeysAre(stringvalidator.LengthBetween(1, 255)),
-			// 		mapvalidator.ValueStringsAre(stringvalidator.LengthBetween(1, 255)),
-			// 		mapvalidator.SizeAtMost(50),
-			// 	},
-			// },
+			"tags": schema.MapAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Computed:    true,
+				Validators: []validator.Map{
+					mapvalidator.KeysAre(stringvalidator.LengthBetween(1, 255)),
+					mapvalidator.ValueStringsAre(stringvalidator.LengthBetween(1, 255)),
+					mapvalidator.SizeAtMost(50),
+				},
+			},
 		},
 		Blocks: map[string]schema.Block{
 			"teams": schema.SetNestedBlock{
@@ -279,18 +274,6 @@ func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 						"role_names": schema.SetAttribute{
 							Required:    true,
 							ElementType: types.StringType,
-						},
-					},
-				},
-			},
-			"tags": schema.SetNestedBlock{
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"key": schema.StringAttribute{
-							Required: true,
-						},
-						"value": schema.StringAttribute{
-							Required: true,
 						},
 					},
 				},

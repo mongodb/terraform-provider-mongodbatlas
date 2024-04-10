@@ -316,8 +316,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 				Limits:                                      limitsTFSet,
 				IPAddresses:                                 ipAddressesTF,
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
-				Tags:                                        types.SetNull(types.StringType),
-				// Tags: types.SetNull(project.TfTagObjectType),
+				Tags:                                        types.MapNull(types.StringType),
 			},
 		},
 		{
@@ -349,8 +348,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 				Limits:                                      limitsTFSet,
 				IPAddresses:                                 ipAddressesTF,
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
-				Tags:                                        types.SetNull(types.StringType),
-				// Tags: types.SetNull(project.TfTagObjectType),
+				Tags:                                        types.MapNull(types.StringType),
 			},
 		},
 	}
