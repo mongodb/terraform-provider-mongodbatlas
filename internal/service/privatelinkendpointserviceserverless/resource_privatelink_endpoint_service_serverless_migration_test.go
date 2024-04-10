@@ -47,7 +47,7 @@ func TestMigServerlessPrivateLinkEndpointService_noComment(t *testing.T) {
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acc.RandomProjectName()
 		instanceName = acc.RandomClusterName()
-		config       = configBasicNoComment(orgID, projectName, instanceName)
+		config       = configAWSEndpoint(orgID, projectName, instanceName, true, "test comment")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -55,7 +55,7 @@ func TestMigServerlessPrivateLinkEndpointService_noComment(t *testing.T) {
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: mig.ExternalProviders(),
+				ExternalProviders: mig.ExternalProvidersWithAWS(),
 				Config:            config,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
