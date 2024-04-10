@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpoint"
@@ -79,11 +80,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	instanceName := d.Get("instance_name").(string)
 
-	serverlessTenantCreateRequest := &admin.ServerlessTenantCreateRequest{
-		Comment: conversion.StringPtr("create"),
-	}
-
-	endPoint, _, err := connV2.ServerlessPrivateEndpointsApi.CreateServerlessPrivateEndpoint(ctx, projectID, instanceName, serverlessTenantCreateRequest).Execute()
+	endPoint, _, err := connV2.ServerlessPrivateEndpointsApi.CreateServerlessPrivateEndpoint(ctx, projectID, instanceName, &admin.ServerlessTenantCreateRequest{}).Execute()
 	if err != nil {
 		return diag.Errorf(privatelinkendpointserviceserverless.ErrorServerlessServiceEndpointAdd, endPoint.GetCloudProviderEndpointId(), err)
 	}

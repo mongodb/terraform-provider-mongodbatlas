@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -42,6 +43,41 @@ func TestAccServerlessPrivateLinkEndpointService_basic(t *testing.T) {
 			},
 			{
 				Config:            configBasic(orgID, projectName, instanceName, commentOrigin),
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccServerlessPrivateLinkEndpointService_noComment(t *testing.T) {
+	var (
+		resourceName            = "mongodbatlas_privatelink_endpoint_service_serverless.test"
+		datasourceEndpointsName = "data.mongodbatlas_privatelink_endpoints_service_serverless.test"
+		orgID                   = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName             = acc.RandomProjectName()
+		instanceName            = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasicNoComment(orgID, projectName, instanceName),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", "AWS"),
+					resource.TestCheckResourceAttrSet(datasourceEndpointsName, "project_id"),
+					resource.TestCheckResourceAttrSet(datasourceEndpointsName, "results.#"),
+					resource.TestCheckResourceAttrSet(datasourceEndpointsName, "instance_name"),
+				),
+			},
+			{
+				Config:            configBasicNoComment(orgID, projectName, instanceName),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
@@ -118,6 +154,60 @@ func configBasic(orgID, projectName, instanceName, comment string) string {
 	}
 
 	`, orgID, projectName, instanceName, comment)
+}
+
+func configBasicNoComment(orgID, projectName, instanceName string) string {
+	return fmt.Sprintf(`
+
+	resource "mongodbatlas_project" "test" {
+		name   = %[2]q
+		org_id = %[1]q
+	}
+
+	resource "mongodbatlas_privatelink_endpoint_serverless" "test" {
+		project_id   = mongodbatlas_project.test.id
+		instance_name = mongodbatlas_serverless_instance.test.name
+		provider_name = "AWS"
+	}
+
+
+	resource "mongodbatlas_privatelink_endpoint_service_serverless" "test" {
+		project_id   = mongodbatlas_privatelink_endpoint_serverless.test.project_id
+		instance_name = mongodbatlas_privatelink_endpoint_serverless.test.instance_name
+		endpoint_id = mongodbatlas_privatelink_endpoint_serverless.test.endpoint_id
+		provider_name = "AWS"
+	}
+
+	resource "mongodbatlas_serverless_instance" "test" {
+		project_id   = mongodbatlas_project.test.id
+		name         = %[3]q
+		provider_settings_backing_provider_name = "AWS"
+		provider_settings_provider_name = "SERVERLESS"
+		provider_settings_region_name = "US_EAST_1"
+		continuous_backup_enabled = true
+
+		lifecycle {
+			ignore_changes = [connection_strings_private_endpoint_srv]
+		}
+	}
+
+	data "mongodbatlas_serverless_instance" "test" {
+		project_id   = mongodbatlas_privatelink_endpoint_service_serverless.test.project_id
+		name         = mongodbatlas_serverless_instance.test.name
+	}
+
+	data "mongodbatlas_privatelink_endpoints_service_serverless" "test" {
+		project_id   = mongodbatlas_privatelink_endpoint_service_serverless.test.project_id
+		instance_name = mongodbatlas_serverless_instance.test.name
+	  }
+
+	data "mongodbatlas_privatelink_endpoint_service_serverless" "test" {
+		project_id   = mongodbatlas_privatelink_endpoint_service_serverless.test.project_id
+		instance_name = mongodbatlas_serverless_instance.test.name
+		endpoint_id = mongodbatlas_privatelink_endpoint_service_serverless.test.endpoint_id
+	}
+
+	`, orgID, projectName, instanceName)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
