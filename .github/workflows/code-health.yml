@@ -22,6 +22,7 @@ jobs:
         go-version-file: 'go.mod'
     - name: Build
       run: make build
+    - run: make jira-release-version
   unit-test:
     needs: build
     runs-on: ubuntu-latest
