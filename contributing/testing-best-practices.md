@@ -1,13 +1,13 @@
 
-## Testing Best Practices
+# Testing Best Practices
 
-### Types of test
+## Types of test
 
 - Unit tests: In Terraform terminology they refer to tests that [validate a resource schema](https://developer.hashicorp.com/terraform/plugin/framework/handling-data/schemas#unit-testing). That is done automatically [here](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/internal/provider/provider_test.go) for all resources and data sources using Terraform Framework Plugin. Here we’re referring to the broader concept of testing a resource or unit without calling the external systems like the Atlas Go SDK.
 - Acceptance (acc) tests: In Terraform terminology they refer to the use of real Terraform configurations to exercise the code in plan, apply, refresh, and destroy life cycles (real infrastructure resources are created as part of the test).
 - Migration (mig) tests: These tests are designed to ensure that after an upgrade to a new Atlas provider version, user configs do not result in unexpected plan changes. Migration tests are a subset of Acceptance tests.
 
-### File structure
+## File structure
 
 - Unit and Acceptances tests are in the same `_test.go` file. They are not in the same package as the code tests, e.g. `advancedcluster` tests are in `advancedcluster_test` package so coupling is minimized.
 - Migration tests are in `_migration_test.go` files.
@@ -17,20 +17,19 @@
 - `internal/testutils/mig` contains helper test functions specifically for Migration tests.
 - `internal/testutils/replay` contains helper test functions for [Hoverfly](https://docs.hoverfly.io/en/latest/). Hoverfly is used to capture and replay HTTP traffic with Atlas Cloud to speed up local development process.
 
-
-### Local development
+## Local development
 
 - Many tests support use of environment variables `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_CLUSTER_NAME` to resuse an exisiting project or cluster when runnning tests. This significantly reduces run duration for those tests.
 - Go test cache can be used without any special setup.
 - Some tests support [Hoverfly](https://docs.hoverfly.io/en/latest/).
 
-### Unit tests
+## Unit tests
 
 - Unit tests must not create Terraform resources or use external systems like [Atlas Go SDK](https://github.com/mongodb/atlas-sdk-go).
 - [Testify Mock](https://pkg.go.dev/github.com/stretchr/testify/mock) is used for test doubles.
 - Altlas Go SDK mocked interfaces are generated in [mockadmin](https://github.com/mongodb/atlas-sdk-go/tree/main/mockadmin) package using [Mockery](https://github.com/vektra/mockery).
 
-### Acceptance tests
+## Acceptance tests
 
 - There must be at least one `basic acceptance test` for each resource
 - `Basic import tests` are done as the last step in the `basic acceptance tests`, not as a different test. Exceptions apply for more specific import tests, e.g. testing with incorrect IDs.
@@ -44,7 +43,7 @@
   - Don't check for a specific total count as other tests can also create resources. As an example you can check that there are results using `acc.IntGreatThan(0)`.
   - Don't assume results are in a certain order, use functions like `resource.TestCheckTypeSetElemNestedAttrs` or `resource.TestCheckTypeSetElemAttr`.
 
-### Migration tests
+## Migration tests
 
 - Migration tests are also acceptance tests so most of the info above also applies here, e.g. use of `ProjectIDExecution` or `ClusterNameExecution`.
 - There must be at least one `basic migration test` for each resource that leverages on the `basic acceptance tests` using helper test functions such as `CreateAndRunTest`.
