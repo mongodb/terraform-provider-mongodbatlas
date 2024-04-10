@@ -151,3 +151,8 @@ A PR check is included to validate the changelog entry file.
 If a PR doesn't need a changelog entry its check can be skipped:
 - Adding the label `skip-changelog-check` to the PR.
 - Check in PRs with title `chore`, `test`, `doc` or `ci` is automatically skipped. However a changelog can still be added if needed.
+
+## Unreleased section of CHANGELOG.md automatic update
+
+After a PR is merged to with a new entry in `.changelog` directory, [Generate CHANGELOG workflow](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/generate-changelog.yml) will be triggered and it will update the `CHANGELOG.md` file with the new entry.
+The workflow can be triggered manually and it will update the `CHANGELOG.md` file with all entries in `.changelog` directory that are not present in the `CHANGELOG.md` file.
