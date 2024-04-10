@@ -986,27 +986,68 @@ func TestAccProject_withTags(t *testing.T) {
 		projectName = acc.RandomProjectName()
 	)
 
+	name1 := "my-tag-name"
+	name2 := "my-tag-name-updated"
+	envUnchanged := "unchanged"
+	newKeyValue := "new-value"
+	deletedValue := "short-lived"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
+			// no tags
 			{
 				Config: configWithTags(orgID, projectName, nil),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
 				),
 			},
+			// create tags
 			{
 				Config: configWithTags(orgID, projectName, map[string]string{
-					"Name":        "my-tag-name",
-					"Environment": "test-acc",
+					"Name":        name1,
+					"Environment": envUnchanged,
+					"Deleted":     deletedValue,
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "tags.Name", "my-tag-name"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Environment", "test-acc"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Name", name1),
+					resource.TestCheckResourceAttr(resourceName, "tags.Environment", envUnchanged),
+					resource.TestCheckResourceAttr(resourceName, "tags.Deleted", deletedValue),
 				),
+			},
+			// update & delete
+			{
+				Config: configWithTags(orgID, projectName, map[string]string{
+					"Name":        name2,
+					"Environment": envUnchanged,
+					"NewKey":      newKeyValue,
+				}),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "tags.Name", name2),
+					resource.TestCheckResourceAttr(resourceName, "tags.Environment", envUnchanged),
+					resource.TestCheckResourceAttr(resourceName, "tags.NewKey", newKeyValue),
+					resource.TestCheckNoResourceAttr(resourceName, "tags.Deleted"),
+				),
+			},
+			// ignore
+			{
+				Config: configWithTags(orgID, projectName, map[string]string{}, `tags["Name"]`),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "tags.Name", name2),
+					resource.TestCheckNoResourceAttr(resourceName, "tags.Environment"),
+					resource.TestCheckNoResourceAttr(resourceName, "tags.NewKey"),
+				),
+			},
+			// import
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       acc.ImportStateProjectIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"with_default_alerts_settings"},
 			},
 		},
 	})
@@ -1139,14 +1180,15 @@ func configWithUpdatedRole(orgID, projectName, teamID, roleName string) string {
 	`, orgID, projectName, teamID, roleName)
 }
 
-func configWithTags(orgID, projectName string, tags map[string]string) string {
+func configWithTags(orgID, projectName string, tags map[string]string, ignoreKeys ...string) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_project" "test" {
 	org_id 			 = %[1]q
 	name   			 = %[2]q
-	%[3]s
+%[3]s
+%[4]s
 }
-`, orgID, projectName, acc.MapToHcl(tags, "\t", "tags"))
+`, orgID, projectName, acc.HclMap(tags, "\t", "tags"), acc.HclLifecycleIgnore(ignoreKeys...))
 }
 
 type TeamRoleResponse struct {
