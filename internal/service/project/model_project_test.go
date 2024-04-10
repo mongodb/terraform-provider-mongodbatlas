@@ -6,6 +6,7 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 
@@ -539,6 +540,46 @@ func TestUpdateProjectBool(t *testing.T) {
 			setting := new(bool)
 			assert.Equal(t, tc.expected, project.UpdateProjectBool(tc.plan, tc.state, &setting))
 			assert.Equal(t, tc.expectedSetting, *setting)
+		})
+	}
+}
+
+func TestNewAdminTags(t *testing.T) {
+	testCases := []struct {
+		name     string
+		plan     types.Map
+		expected []admin.ResourceTag
+	}{
+		{"tags null", types.MapNull(types.StringType), []admin.ResourceTag{}},
+		{"tags unknown", types.MapUnknown(types.StringType), []admin.ResourceTag{}},
+		{"tags convert normally", types.MapValueMust(types.StringType, map[string]attr.Value{
+			"key1": types.StringValue("value1"),
+		}), []admin.ResourceTag{
+			*admin.NewResourceTag("key1", "value1"),
+		}},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, *project.NewAdminTags(context.Background(), tc.plan))
+		})
+	}
+}
+
+func TestNewTFTags(t *testing.T) {
+	testCases := []struct {
+		name      string
+		adminTags *[]admin.ResourceTag
+		expected  types.Map
+	}{
+		{"tags nil", nil, types.MapNull(types.StringType)},
+		{"tags empty", &[]admin.ResourceTag{}, types.MapValueMust(types.StringType, map[string]attr.Value{})},
+		{"tags single value", &[]admin.ResourceTag{*admin.NewResourceTag("key1", "value1")}, types.MapValueMust(types.StringType, map[string]attr.Value{
+			"key1": types.StringValue("value1"),
+		})},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, project.NewTFTags(tc.adminTags))
 		})
 	}
 }

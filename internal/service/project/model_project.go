@@ -109,7 +109,7 @@ func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, pro
 		Teams:                     newTFTeamsResourceModel(ctx, projectProps.Teams),
 		Limits:                    newTFLimitsResourceModel(ctx, projectProps.Limits),
 		IPAddresses:               ipAddressesModel,
-		Tags:                      convertToTagsValue(projectRes.Tags),
+		Tags:                      NewTFTags(projectRes.Tags),
 	}
 
 	projectSettings := projectProps.Settings
@@ -172,7 +172,7 @@ func NewTeamRoleList(ctx context.Context, teams []TFTeamModel) *[]admin.TeamRole
 func NewGroupUpdate(ctx context.Context, tfProject *TFProjectRSModel) *admin.GroupUpdate {
 	return &admin.GroupUpdate{
 		Name: tfProject.Name.ValueStringPointer(),
-		Tags: AsAdminTags(ctx, tfProject.Tags),
+		Tags: NewAdminTags(ctx, tfProject.Tags),
 	}
 }
 
@@ -206,7 +206,7 @@ func UpdateProjectBool(plan, state types.Bool, setting **bool) bool {
 	return false
 }
 
-func convertToTagsValue(tags *[]admin.ResourceTag) types.Map {
+func NewTFTags(tags *[]admin.ResourceTag) types.Map {
 	if tags == nil {
 		return types.MapNull(types.StringType)
 	}
@@ -215,16 +215,15 @@ func convertToTagsValue(tags *[]admin.ResourceTag) types.Map {
 	for _, tag := range *tags {
 		typesTags[tag.Key] = types.StringValue(tag.Value)
 	}
-	// todo: improve me
-	mapValue, _ := types.MapValue(types.StringType, typesTags)
-	return mapValue
+	return types.MapValueMust(types.StringType, typesTags)
 }
 
-func AsAdminTags(ctx context.Context, tags types.Map) *[]admin.ResourceTag {
+func NewAdminTags(ctx context.Context, tags types.Map) *[]admin.ResourceTag {
 	if tags.IsNull() || len(tags.Elements()) == 0 {
 		return &[]admin.ResourceTag{}
 	}
 	elements := make(map[string]types.String, len(tags.Elements()))
+	// todo: want to improve this.
 	_ = tags.ElementsAs(ctx, &elements, false)
 	var tagsAdmin []admin.ResourceTag
 	for key, tagValue := range elements {

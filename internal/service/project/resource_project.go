@@ -319,7 +319,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	tags := *AsAdminTags(ctx, projectPlan.Tags)
+	tags := *NewAdminTags(ctx, projectPlan.Tags)
 	projectGroup := &admin.Group{
 		OrgId:                     projectPlan.OrgID.ValueString(),
 		Name:                      projectPlan.Name.ValueString(),
@@ -795,8 +795,8 @@ func hasLimitsChanged(planLimits, stateLimits []TFLimitModel) bool {
 }
 
 func UpdateProject(ctx context.Context, projectsAPI admin.ProjectsApi, projectState, projectPlan *TFProjectRSModel) error {
-	tagsBefore := AsAdminTags(ctx, projectState.Tags)
-	tagsAfter := AsAdminTags(ctx, projectPlan.Tags)
+	tagsBefore := NewAdminTags(ctx, projectState.Tags)
+	tagsAfter := NewAdminTags(ctx, projectPlan.Tags)
 	if projectPlan.Name.Equal(projectState.Name) && reflect.DeepEqual(tagsBefore, tagsAfter) {
 		return nil
 	}
