@@ -176,7 +176,7 @@ To learn more, see [Resource Tags](https://dochub.mongodb.org/core/add-cluster-t
 
 ### Labels
 
-**WARNING:** This property is deprecated and will be removed by September 2024, use the `tags` attribute instead.
+**WARNING:** This property is deprecated and will be removed in the future, use the `tags` attribute instead.
 
 Key-value pairs that categorize the cluster. Each key and value has a maximum length of 255 characters.  You cannot set the key `Infrastructure Tool`, it is used for internal purposes to track aggregate usage.
 
