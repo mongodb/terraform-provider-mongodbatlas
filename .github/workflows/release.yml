@@ -32,9 +32,27 @@ jobs:
       atlas_cloud_env: "qa"
       ref: ${{ inputs.use_existing_tag == 'true' && inputs.version_number  || github.ref }}
 
+  update-changelog-header:
+    needs: [ run-qa-acceptance-tests ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
+        with:
+          fetch-depth: 0
+      - run: ./scripts/update-changelog-header-for-release.sh ${{inputs.version_number}}
+      - run: |
+          if [[ $(git status --porcelain) ]]; then
+            MSG="Update CHANGELOG.md header for ${{inputs.version_number}} release"
+            git config --local user.email changelogbot@mongodb.com
+            git config --local user.name changelogbot
+            git add CHANGELOG.md
+            git commit -m "$MSG"
+            git push
+          fi
+    
   release:
     runs-on: ubuntu-latest
-    needs: [ validate-version-input, run-qa-acceptance-tests ]
+    needs: [ validate-version-input, run-qa-acceptance-tests, update-changelog-header ]
     if: ${{ always() && needs.validate-version-input.result == 'success' && (needs.run-qa-acceptance-tests.result == 'skipped' || needs.run-qa-acceptance-tests.result == 'success') }}
     steps:
       - name: Checkout
