@@ -207,24 +207,9 @@ func UpdateProjectBool(plan, state types.Bool, setting **bool) bool {
 	return false
 }
 
-// func convertToTagsValueList(ctx context.Context, tags *[]admin.ResourceTag) types.Set {
-// 	if tags == nil {
-// 		return types.SetNull(TfTagObjectType)
-// 	}
-// 	typesTags := make([]TFTagModel, len(*tags))
-// 	for i, tag := range *tags {
-// 		typesTags[i] = TFTagModel{
-// 			Key:   types.StringValue(tag.Key),
-// 			Value: types.StringValue(tag.Value),
-// 		}
-// 	}
-// 	setValue, _ := types.SetValueFrom(ctx, TfTagObjectType, typesTags)
-// 	return setValue
-// }
-
-func convertToTagsValueList(ctx context.Context, tags *[]admin.ResourceTag) types.List {
+func convertToTagsValueList(ctx context.Context, tags *[]admin.ResourceTag) types.Set {
 	if tags == nil {
-		return types.ListNull(TfTagObjectType)
+		return types.SetNull(TfTagObjectType)
 	}
 	typesTags := make([]TFTagModel, len(*tags))
 	for i, tag := range *tags {
@@ -233,9 +218,24 @@ func convertToTagsValueList(ctx context.Context, tags *[]admin.ResourceTag) type
 			Value: types.StringValue(tag.Value),
 		}
 	}
-	setValue, _ := types.ListValueFrom(ctx, TfTagObjectType, typesTags)
+	setValue, _ := types.SetValueFrom(ctx, TfTagObjectType, typesTags)
 	return setValue
 }
+
+// func convertToTagsValueList(ctx context.Context, tags *[]admin.ResourceTag) types.List {
+// 	if tags == nil {
+// 		return types.ListNull(TfTagObjectType)
+// 	}
+// 	typesTags := make([]TFTagModel, len(*tags))
+// 	for i, tag := range *tags {
+// 		typesTags[i] = TFTagModel{
+// 			Key:   types.StringValue(tag.Key),
+// 			Value: types.StringValue(tag.Value),
+// 		}
+// 	}
+// 	setValue, _ := types.ListValueFrom(ctx, TfTagObjectType, typesTags)
+// 	return setValue
+// }
 
 // func convertToTagsValue(tags *[]admin.ResourceTag) types.Map {
 // 	if tags == nil {
@@ -267,23 +267,7 @@ func convertToTagsValueList(ctx context.Context, tags *[]admin.ResourceTag) type
 // 	return &tagsAdmin
 // }
 
-// func AsAdminTags(ctx context.Context, tags types.Set) *[]admin.ResourceTag {
-// 	if tags.IsNull() || len(tags.Elements()) == 0 {
-// 		return &[]admin.ResourceTag{}
-// 	}
-// 	var tagsAdmin []admin.ResourceTag
-// 	elements := make([]TFTagModel, len(tags.Elements()))
-// 	_ = tags.ElementsAs(ctx, &elements, false)
-// 	for _, tagValue := range elements {
-// 		tagsAdmin = append(tagsAdmin, admin.ResourceTag{
-// 			Key:   tagValue.Key.ValueString(),
-// 			Value: tagValue.Value.ValueString(),
-// 		})
-// 	}
-// 	return &tagsAdmin
-// }
-
-func AsAdminTags(ctx context.Context, tags types.List) *[]admin.ResourceTag {
+func AsAdminTags(ctx context.Context, tags types.Set) *[]admin.ResourceTag {
 	if tags.IsNull() || len(tags.Elements()) == 0 {
 		return &[]admin.ResourceTag{}
 	}
@@ -298,3 +282,19 @@ func AsAdminTags(ctx context.Context, tags types.List) *[]admin.ResourceTag {
 	}
 	return &tagsAdmin
 }
+
+// func AsAdminTags(ctx context.Context, tags types.List) *[]admin.ResourceTag {
+// 	if tags.IsNull() || len(tags.Elements()) == 0 {
+// 		return &[]admin.ResourceTag{}
+// 	}
+// 	var tagsAdmin []admin.ResourceTag
+// 	elements := make([]TFTagModel, len(tags.Elements()))
+// 	_ = tags.ElementsAs(ctx, &elements, false)
+// 	for _, tagValue := range elements {
+// 		tagsAdmin = append(tagsAdmin, admin.ResourceTag{
+// 			Key:   tagValue.Key.ValueString(),
+// 			Value: tagValue.Value.ValueString(),
+// 		})
+// 	}
+// 	return &tagsAdmin
+// }

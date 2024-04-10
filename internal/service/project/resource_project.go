@@ -57,9 +57,10 @@ type projectRS struct {
 type TFProjectRSModel struct {
 	// Tags   types.Set `tfsdk:"tags"`
 	// Tags                                        types.Map    `tfsdk:"tags"`
-	Limits                                      types.Set    `tfsdk:"limits"`
-	Teams                                       types.Set    `tfsdk:"teams"`
-	Tags                                        types.List   `tfsdk:"tags"`
+	Limits types.Set `tfsdk:"limits"`
+	Teams  types.Set `tfsdk:"teams"`
+	// Tags                                        types.List   `tfsdk:"tags"`
+	Tags                                        types.Set    `tfsdk:"tags"`
 	IPAddresses                                 types.Object `tfsdk:"ip_addresses"`
 	RegionUsageRestrictions                     types.String `tfsdk:"region_usage_restrictions"`
 	Name                                        types.String `tfsdk:"name"`
@@ -256,8 +257,8 @@ func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 					},
 				},
 			},
-			// "tags": schema.SetNestedAttribute{
-			"tags": schema.ListNestedAttribute{
+			"tags": schema.SetNestedAttribute{
+				// "tags": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"key": schema.StringAttribute{
