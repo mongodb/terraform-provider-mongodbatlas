@@ -991,6 +991,19 @@ func TestAccProject_withTags(t *testing.T) {
 	envUnchanged := "unchanged"
 	newKeyValue := "new-value"
 	deletedValue := "short-lived"
+	tags1 := map[string]string{
+		"Name":        name1,
+		"Environment": envUnchanged,
+		"Deleted":     deletedValue,
+	}
+	tagsOneUpdatedOneDeleted := map[string]string{
+		"Name":        name2,
+		"Environment": envUnchanged,
+		"NewKey":      newKeyValue,
+	}
+	tagsOnlyIgnored := map[string]string{
+		"Name": name2,
+	}
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -1003,43 +1016,23 @@ func TestAccProject_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceNameByID, "tags.#", "0"),
 				),
 			},
 			// create tags
 			{
-				Config: configWithTags(orgID, projectName, map[string]string{
-					"Name":        name1,
-					"Environment": envUnchanged,
-					"Deleted":     deletedValue,
-				}),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "tags.Name", name1),
-					resource.TestCheckResourceAttr(resourceName, "tags.Environment", envUnchanged),
-					resource.TestCheckResourceAttr(resourceName, "tags.Deleted", deletedValue),
-				),
+				Config: configWithTags(orgID, projectName, tags1),
+				Check:  tagChecks(tags1),
 			},
 			// update & delete
 			{
-				Config: configWithTags(orgID, projectName, map[string]string{
-					"Name":        name2,
-					"Environment": envUnchanged,
-					"NewKey":      newKeyValue,
-				}),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "tags.Name", name2),
-					resource.TestCheckResourceAttr(resourceName, "tags.Environment", envUnchanged),
-					resource.TestCheckResourceAttr(resourceName, "tags.NewKey", newKeyValue),
-					resource.TestCheckNoResourceAttr(resourceName, "tags.Deleted"),
-				),
+				Config: configWithTags(orgID, projectName, tagsOneUpdatedOneDeleted),
+				Check:  tagChecks(tagsOneUpdatedOneDeleted, "Deleted"),
 			},
 			// ignore
 			{
 				Config: configWithTags(orgID, projectName, map[string]string{}, `tags["Name"]`),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "tags.Name", name2),
-					resource.TestCheckNoResourceAttr(resourceName, "tags.Environment"),
-					resource.TestCheckNoResourceAttr(resourceName, "tags.NewKey"),
-				),
+				Check:  tagChecks(tagsOnlyIgnored, "Environment", "NewKey"),
 			},
 			// import
 			{
@@ -1057,6 +1050,17 @@ func createDataFederationLimit(limitName string) admin.DataFederationLimit {
 	return admin.DataFederationLimit{
 		Name: limitName,
 	}
+}
+
+func tagChecks(tags map[string]string, notFoundKeys ...string) resource.TestCheckFunc {
+	tagChecksValues := map[string]string{}
+	for k, v := range tags {
+		tagChecksValues[fmt.Sprintf("tags.%s", k)] = v
+	}
+	checks := acc.AddAttrChecks(resourceName, nil, tagChecksValues)
+	checks = acc.AddAttrChecks(dataSourceNameByID, checks, tagChecksValues)
+	checks = acc.AddNoAttrSetChecks(resourceName, checks, notFoundKeys...)
+	return resource.ComposeAggregateTestCheckFunc(acc.AddNoAttrSetChecks(dataSourceNameByID, checks, notFoundKeys...)...)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
@@ -1187,6 +1191,9 @@ resource "mongodbatlas_project" "test" {
 	name   			 = %[2]q
 %[3]s
 %[4]s
+}
+data "mongodbatlas_project" "test" {
+	project_id = mongodbatlas_project.test.id
 }
 `, orgID, projectName, acc.HclMap(tags, "\t", "tags"), acc.HclLifecycleIgnore(ignoreKeys...))
 }

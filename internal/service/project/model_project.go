@@ -35,6 +35,7 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, proj
 		Teams:                                       NewTFTeamsDataSourceModel(ctx, projectProps.Teams),
 		Limits:                                      NewTFLimitsDataSourceModel(ctx, projectProps.Limits),
 		IPAddresses:                                 ipAddressesModel,
+		Tags:                                        NewTFTags(project.Tags),
 	}, nil
 }
 
