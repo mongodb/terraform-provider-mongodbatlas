@@ -2,6 +2,7 @@ name: Generate CHANGELOG
 on:
   pull_request:
     types: [closed]
+    branches: [master]
   workflow_dispatch:
 jobs:
   generate-changelog:
