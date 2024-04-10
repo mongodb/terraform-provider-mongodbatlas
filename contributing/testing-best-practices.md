@@ -19,7 +19,7 @@
 
 ## Local development
 
-- Many tests support use of environment variables `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_CLUSTER_NAME` to resuse an exisiting project or cluster when runnning tests. This significantly reduces run duration for those tests.
+- Many tests support use of environment variables `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_CLUSTER_NAME` to re-use an exisiting project or cluster when runnning tests. This significantly reduces run duration for those tests.
 - Go test cache can be used without any special setup.
 - Some tests support [Hoverfly](https://docs.hoverfly.io/en/latest/).
 
