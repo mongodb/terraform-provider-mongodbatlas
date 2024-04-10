@@ -1,0 +1,3 @@
+```release-note:bug
+Removes default comment when creating resource mongodbatlas_privatelink_endpoint_serverless
+```
