@@ -2,6 +2,7 @@ package acc
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -13,7 +14,9 @@ func HclMap(m map[string]string, indent, varName string) string {
 		fmt.Sprintf("%s%s = {", indent, varName),
 	}
 	indentKeyValues := indent + "\t"
-	for k, v := range m {
+
+	for _, k := range sortStringMapKeys(m) {
+		v := m[k]
 		lines = append(lines, fmt.Sprintf("%s%s = %[3]q", indentKeyValues, k, v))
 	}
 	lines = append(lines, fmt.Sprintf("%s}", indent))
@@ -36,4 +39,14 @@ func HclLifecycleIgnore(keys ...string) string {
 		"\t}",
 	}
 	return strings.Join(lines, "\n")
+}
+
+func sortStringMapKeys(m map[string]string) []string {
+	keys := make([]string, 0)
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	return keys
 }

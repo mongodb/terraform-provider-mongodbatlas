@@ -22,8 +22,8 @@ resource "mongodbatlas_project" "test" {
 	org_id 			 = "some_org"
 	name   			 = "test-hcl"
 	tags = {
-		Name = "my-name"
 		Environment = "test"
+		Name = "my-name"
 	}
 }`
 
