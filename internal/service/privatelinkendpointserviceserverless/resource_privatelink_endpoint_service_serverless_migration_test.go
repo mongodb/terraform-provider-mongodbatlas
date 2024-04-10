@@ -47,7 +47,9 @@ func TestMigServerlessPrivateLinkEndpointService_noComment(t *testing.T) {
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acc.RandomProjectName()
 		instanceName = acc.RandomClusterName()
-		config       = configAWSEndpoint(orgID, projectName, instanceName, true, "test comment")
+		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
+		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
+		config       = configAWSEndpoint(orgID, projectName, instanceName, awsAccessKey, awsSecretKey, true, "test comment")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
