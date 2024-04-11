@@ -22,6 +22,7 @@
 ## Unit tests
 
 - Unit tests must not create Terraform resources or use external systems like [Atlas Go SDK](https://github.com/mongodb/atlas-sdk-go).
+- Mock of specific interfaces like `client.ProjectsApi` is prefered to use the whole `client`.
 - [Testify Mock](https://pkg.go.dev/github.com/stretchr/testify/mock) is used for test doubles.
 - Altlas Go SDK mocked interfaces are generated in [mockadmin](https://github.com/mongodb/atlas-sdk-go/tree/main/mockadmin) package using [Mockery](https://github.com/vektra/mockery).
 
