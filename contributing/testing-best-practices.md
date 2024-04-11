@@ -17,7 +17,7 @@
 - Helper methods must have their own tests, e.g. `common_advanced_cluster_test.go` has tests for `common_advanced_cluster.go`.
 - `internal/testutils/acc` contains helper test functions for Acceptance tests.
 - `internal/testutils/mig` contains helper test functions specifically for Migration tests.
-- `internal/testutils/replay` contains helper test functions for [Hoverfly](https://docs.hoverfly.io/en/latest/). Hoverfly is used to capture and replay HTTP traffic with Atlas Cloud to speed up local development process.
+- `internal/testutils/replay` contains helper test functions for [Hoverfly](https://docs.hoverfly.io/en/latest/). Hoverfly is used to capture and replay HTTP traffic with Atlas Cloud.
 
 ## Unit tests
 
@@ -37,9 +37,13 @@
 
 ## Local development
 
-- Many tests support use of environment variables `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_CLUSTER_NAME` to re-use an exisiting project or cluster when runnning tests. This significantly reduces run duration for those tests.
-- Go test cache can be used without any special setup.
-- Some tests support [Hoverfly](https://docs.hoverfly.io/en/latest/).
+These enviroment variables can be used in local to speed up development process.
+
+Enviroment Variable | Description
+--- | ---
+`MONGODB_ATLAS_PROJECT_ID` | Re-use an existing project reducing test run duration for resources supporting this variable
+`MONGODB_ATLAS_CLUSTER_NAME` | Re-use an existing cluster reducing significantly test run duration for resources supporting this variable
+`REPLAY_MODE` | Use [Hoverfly](https://docs.hoverfly.io/en/latest/), more info about possible variable values [here](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/contributing/development-setup.md#replaying-http-requests-with-hoverfly)
 
 ## Shared resources
 
