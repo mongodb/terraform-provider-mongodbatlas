@@ -82,6 +82,7 @@ type TFTeamModel struct {
 	TeamID    types.String `tfsdk:"team_id"`
 	RoleNames types.Set    `tfsdk:"role_names"`
 }
+
 type TFTagModel struct {
 	Key   types.String `tfsdk:"key"`
 	Value types.String `tfsdk:"value"`
@@ -803,7 +804,7 @@ func UpdateProject(ctx context.Context, projectsAPI admin.ProjectsApi, projectSt
 
 	projectID := projectState.ID.ValueString()
 
-	if _, _, err := projectsAPI.UpdateProject(ctx, projectID, NewGroupUpdate(ctx, projectPlan)).Execute(); err != nil {
+	if _, _, err := projectsAPI.UpdateProject(ctx, projectID, NewGroupUpdate(projectPlan, tagsAfter)).Execute(); err != nil {
 		return fmt.Errorf("error updating the project(%s): %s", projectID, err)
 	}
 

@@ -41,12 +41,12 @@ func HclLifecycleIgnore(keys ...string) string {
 	return strings.Join(lines, "\n")
 }
 
+// make test deterministic
 func sortStringMapKeys(m map[string]string) []string {
 	keys := make([]string, 0)
 	for k := range m {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
-
 	return keys
 }

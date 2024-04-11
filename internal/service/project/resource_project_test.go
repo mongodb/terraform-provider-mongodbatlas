@@ -982,28 +982,25 @@ func TestAccProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 
 func TestAccProject_withTags(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acc.RandomProjectName()
+		nameUpdated  = "my-tag-name-updated"
+		envUnchanged = "unchanged"
+		tags1        = map[string]string{
+			"Name":        "my-tag-name",
+			"Environment": envUnchanged,
+			"Deleted":     "short-lived",
+		}
+		tagsOneUpdatedOneDeleted = map[string]string{
+			"Name":        nameUpdated,
+			"Environment": envUnchanged,
+			"NewKey":      "new-value",
+		}
+		tagsOnlyIgnored = map[string]string{
+			"Name": nameUpdated,
+		}
 	)
 
-	name1 := "my-tag-name"
-	name2 := "my-tag-name-updated"
-	envUnchanged := "unchanged"
-	newKeyValue := "new-value"
-	deletedValue := "short-lived"
-	tags1 := map[string]string{
-		"Name":        name1,
-		"Environment": envUnchanged,
-		"Deleted":     deletedValue,
-	}
-	tagsOneUpdatedOneDeleted := map[string]string{
-		"Name":        name2,
-		"Environment": envUnchanged,
-		"NewKey":      newKeyValue,
-	}
-	tagsOnlyIgnored := map[string]string{
-		"Name": name2,
-	}
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -1024,17 +1021,16 @@ func TestAccProject_withTags(t *testing.T) {
 				Config: configWithTags(orgID, projectName, tags1),
 				Check:  tagChecks(tags1),
 			},
-			// update & delete
+			// update & delete, Name is updated, Deleted is removed
 			{
 				Config: configWithTags(orgID, projectName, tagsOneUpdatedOneDeleted),
 				Check:  tagChecks(tagsOneUpdatedOneDeleted, "Deleted"),
 			},
-			// ignore
+			// ignore, Name is ignored, Environment & NewKey should be deleted
 			{
 				Config: configWithTags(orgID, projectName, map[string]string{}, `tags["Name"]`),
 				Check:  tagChecks(tagsOnlyIgnored, "Environment", "NewKey"),
 			},
-			// import
 			{
 				ResourceName:            resourceName,
 				ImportStateIdFunc:       acc.ImportStateProjectIDFunc(resourceName),
@@ -1057,10 +1053,12 @@ func tagChecks(tags map[string]string, notFoundKeys ...string) resource.TestChec
 	for k, v := range tags {
 		tagChecksValues[fmt.Sprintf("tags.%s", k)] = v
 	}
-	checks := acc.AddAttrChecks(resourceName, nil, tagChecksValues)
+	checks := []resource.TestCheckFunc{checkExists(resourceName)}
+	checks = acc.AddAttrChecks(resourceName, checks, tagChecksValues)
 	checks = acc.AddAttrChecks(dataSourceNameByID, checks, tagChecksValues)
 	checks = acc.AddNoAttrSetChecks(resourceName, checks, notFoundKeys...)
-	return resource.ComposeAggregateTestCheckFunc(acc.AddNoAttrSetChecks(dataSourceNameByID, checks, notFoundKeys...)...)
+	checks = acc.AddNoAttrSetChecks(dataSourceNameByID, checks, notFoundKeys...)
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
