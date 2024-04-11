@@ -24,7 +24,8 @@ jobs:
 
   run-qa-acceptance-tests:
     needs: [ validate-version-input ]
-    # Skipped when explicit input parameter is used
+    # QA acceptance tests are skipped when explicit input parameter is used
+    # As this job may be skipped following jobs require using 'always()' to make sure they are still run
     if: needs.validate-version-input.result == 'success' && inputs.skip_tests != 'true'
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
@@ -35,8 +36,13 @@ jobs:
   update-changelog-header:
     runs-on: ubuntu-latest
     needs: [ validate-version-input, run-qa-acceptance-tests ]
-    # Skipped if use_existing_tag is defined to true or previous jobs failed.
-    if: ${{ always() && inputs.use_existing_tag != 'true' && needs.validate-version-input.result == 'success' && (needs.run-qa-acceptance-tests.result == 'skipped' || needs.run-qa-acceptance-tests.result == 'success') }}
+    # Skipped if use_existing_tag is defined, is a pre-release, or previous jobs failed.
+    if: >-
+      always() 
+      && inputs.use_existing_tag != 'true' 
+      && !contains(inputs.version_number, 'pre') 
+      && needs.validate-version-input.result == 'success' 
+      && (needs.run-qa-acceptance-tests.result == 'skipped' || needs.run-qa-acceptance-tests.result == 'success')
     steps:
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
@@ -55,8 +61,12 @@ jobs:
   release:
     runs-on: ubuntu-latest
     needs: [ validate-version-input, run-qa-acceptance-tests, update-changelog-header ]
-    # previous jobs must either be successful or skipped
-    if: ${{ always() && needs.validate-version-input.result == 'success' && (needs.run-qa-acceptance-tests.result == 'skipped' || needs.run-qa-acceptance-tests.result == 'success') && (needs.update-changelog-header.result == 'skipped' || needs.update-changelog-header.result == 'success') }}
+    # Release is skipped if there are failures in previous steps
+    if: >- 
+      always() 
+      && needs.validate-version-input.result == 'success' 
+      && (needs.run-qa-acceptance-tests.result == 'skipped' || needs.run-qa-acceptance-tests.result == 'success') 
+      && (needs.update-changelog-header.result == 'skipped' || needs.update-changelog-header.result == 'success')
     steps:
       - name: Checkout
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
