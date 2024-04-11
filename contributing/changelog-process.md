@@ -4,6 +4,7 @@
 - [Changelog entry guidelines](#changelog-entry-guidelines)
 - [Script for creating changelog entry files](#script-for-creating-changelog-entry-files)
 - [PR Changelog check](#pr-changelog-check)
+- [Unreleased section of CHANGELOG.md automatic update](#unreleased-section-of-CHANGELOG.md-automatic-update)
 
 HashiCorp’s open-source projects have always maintained user-friendly, readable CHANGELOG.md that allow users to tell at a glance whether a release should have any effect on them, and to gauge the risk of an upgrade.
 
@@ -151,3 +152,8 @@ A PR check is included to validate the changelog entry file.
 If a PR doesn't need a changelog entry its check can be skipped:
 - Adding the label `skip-changelog-check` to the PR.
 - Check in PRs with title `chore`, `test`, `doc` or `ci` is automatically skipped. However a changelog can still be added if needed.
+
+## Unreleased section of CHANGELOG.md automatic update
+
+After a PR is merged to master with a new entry in `.changelog` directory, [Generate Changelog workflow](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/generate-changelog.yml) will be triggered and it will update the `CHANGELOG.md` file with the new entry.
+This workflow can also be triggered manually and it will update the `CHANGELOG.md` file with all entries in `.changelog` directory that are not present in the `CHANGELOG.md` file.
