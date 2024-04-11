@@ -86,6 +86,7 @@ In addition to all arguments above, the following attributes are exported:
 * `org_id` - The ID of the organization you want to create the project within.
 * `cluster_count` - The number of Atlas clusters deployed in the project.
 * `created` - The ISO-8601-formatted timestamp of when Atlas created the project.
+* `tags` - Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. To learn more, see [Resource Tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas)
 * `teams` - Returns all teams to which the authenticated user has access in the project. See [Teams](#teams).
 * `limits` - The limits for the specified project. See [Limits](#limits).
 * `ip_addresses` - IP addresses in a project categorized by services. See [IP Addresses](#ip-addresses).
