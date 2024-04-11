@@ -8,12 +8,12 @@
 - [Migration (mig) tests](https://developer.hashicorp.com/terraform/plugin/framework/migrating/testing): These tests are designed to ensure that after an upgrade to a new Atlas provider version, user configs do not result in unexpected plan changes. Migration tests are a subset of Acceptance tests.
 
 ## File structure
-
+- A resource and associated data sources are implemented in a folder that is also a Go folder, e.g. `advancedcluster` implementation is in [`internal/service/advancedcluster`](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/internal/service/advancedcluster)
 - Acceptances tests are in corresponding `_test.go` file as the resource or data source source file.
 - General unit tests are in corresponding  `_test.go` file as the resource or data source source file.  If business logic is extracted into a separate file, unit testing for that logic will be including in its associated `_test.go` file (e.g. [state_transition_search_deployment_test.go](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/internal/service/searchdeployment/state_transition_search_deployment_test.go)).
 - Tests are not in the same package as the code it tests, e.g. `advancedcluster` tests are in `advancedcluster_test` package so coupling is minimized.
 - Migration tests are in `_migration_test.go` files.
-- All resources must have a `main_test.go` file to handle resource reuse lifecycle, e.g. [here](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/internal/service/advancedcluster/main_test.go).
+- All resource folders must have a `main_test.go` file to handle resource reuse lifecycle, e.g. [here](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/internal/service/advancedcluster/main_test.go).
 - Helper methods must have their own tests, e.g. `common_advanced_cluster_test.go` has tests for `common_advanced_cluster.go`.
 - `internal/testutils/acc` contains helper test functions for Acceptance tests.
 - `internal/testutils/mig` contains helper test functions specifically for Migration tests.
