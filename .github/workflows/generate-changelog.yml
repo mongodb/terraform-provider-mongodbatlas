@@ -31,3 +31,43 @@ jobs:
             git commit -m "$MSG"
             git push
           fi
+
+  slack-notification:
+    needs: [generate-changelog]
+    if: ${{ !cancelled() && needs.generate-changelog.result == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack message
+        id: slack
+        uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001
+        with:
+          payload: |
+            {
+              "text": "Automatic Changelog update failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Automatic Changelog update failed* ${{ secrets.SLACK_ONCALL_TAG }}"
+                  }
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": ":github: Failed action"
+                        },
+                        "url": "${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
+                    }
+                ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
