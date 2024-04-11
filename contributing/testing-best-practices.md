@@ -19,12 +19,6 @@
 - `internal/testutils/mig` contains helper test functions specifically for Migration tests.
 - `internal/testutils/replay` contains helper test functions for [Hoverfly](https://docs.hoverfly.io/en/latest/). Hoverfly is used to capture and replay HTTP traffic with Atlas Cloud to speed up local development process.
 
-## Local development
-
-- Many tests support use of environment variables `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_CLUSTER_NAME` to re-use an exisiting project or cluster when runnning tests. This significantly reduces run duration for those tests.
-- Go test cache can be used without any special setup.
-- Some tests support [Hoverfly](https://docs.hoverfly.io/en/latest/).
-
 ## Unit tests
 
 - Unit tests must not create Terraform resources or use external systems like [Atlas Go SDK](https://github.com/mongodb/atlas-sdk-go).
@@ -36,16 +30,26 @@
 - There must be at least one `basic acceptance test` for each resource
 - `Basic import tests` are done as the last step in the `basic acceptance tests`, not as a different test. Exceptions apply for more specific import tests, e.g. testing with incorrect IDs.
 - Data sources are tested in the same tests as the resources. There are not specific test files or tests for data sources as a resource must typically be created. (There are very few exceptions to this, e.g. when there is only data sources but not resource)
-- Main way to reduce use of projects is `ProjectIDExecution`. This function returns the ID of a project that is created for the current execution of tests for a resource.
-  - As the project is shared for all acceptance tests for a resource, sometimes tests can affect each other if they're using global resources to the project (e.g. network peering, maintenance window or LDAP config). In that case:
-    - Run the tests in serial (`resource.Test` instead of `resource.ParallelTest`) if the tests are fast and saving resources is prefered.
-    - Don’t use `ProjectIDExecution` and create a project for each test if a faster test execution is prefered even if more resources are needed.
-- Main way to reduce use of clusters is `ClusterNameExecution`. This function returns the name of a cluster that is created for the current execution of tests for a resource. Similar precautions to project reuse must be taken here. If a global resource to cluster is being tested (e.g. cluster global config) then it's prefered to run tests in serial or create their own clusters.
-- Plural data sources can be challenging to test when tests run in parallel or they share projects and/or clusters. In that case:
-  - Don't check for a specific total count as other tests can also create resources. As an example you can check that there are results using `acc.IntGreatThan(0)`.
-  - Don't assume results are in a certain order, use functions like `resource.TestCheckTypeSetElemNestedAttrs` or `resource.TestCheckTypeSetElemAttr`.
 
 ## Migration tests
 
-- Migration tests are also acceptance tests so most of the info above also applies here, e.g. use of `ProjectIDExecution` or `ClusterNameExecution`.
 - There must be at least one `basic migration test` for each resource that leverages on the `basic acceptance tests` using helper test functions such as `CreateAndRunTest`.
+
+## Local development
+
+- Many tests support use of environment variables `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_CLUSTER_NAME` to re-use an exisiting project or cluster when runnning tests. This significantly reduces run duration for those tests.
+- Go test cache can be used without any special setup.
+- Some tests support [Hoverfly](https://docs.hoverfly.io/en/latest/).
+
+## Shared resources
+
+Acceptance and migration tests can reuse projects and clusters in order to be more efficient in resource utilization.
+
+- A project can be reused using `ProjectIDExecution`. It returns the ID of a project that is created for the current execution of tests for a resource.
+  - As the project is shared for all tests for a resource, sometimes tests can affect each other if they're using global resources to the project (e.g. network peering, maintenance window or LDAP config). In that case:
+    - Run the tests in serial (`resource.Test` instead of `resource.ParallelTest`) if the tests are fast and saving resources is prefered.
+    - Don’t use `ProjectIDExecution` and create a project for each test if a faster test execution is prefered even if more resources are needed.
+- A cluster can be reused using `ClusterNameExecution`. This function returns the project id (created with `ProjectIDExecution`) and the name of a cluster that is created for the current execution of tests for a resource. Similar precautions to project reuse must be taken here. If a global resource to cluster is being tested (e.g. cluster global config) then it's prefered to run tests in serial or create their own clusters.
+- Plural data sources can be challenging to test when tests run in parallel or they share projects and/or clusters. In that case:
+  - Don't check for a specific total count as other tests can also create resources. As an example you can check that there are results using `acc.IntGreatThan(0)`.
+  - Don't assume results are in a certain order, use functions like `resource.TestCheckTypeSetElemNestedAttrs` or `resource.TestCheckTypeSetElemAttr`.
