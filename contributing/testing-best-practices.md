@@ -28,8 +28,8 @@
 
 ## Acceptance tests
 
-- There must be at least one `basic acceptance test` for each resource
-- `Basic import tests` are done as the last step in the `basic acceptance tests`, not as a different test. Exceptions apply for more specific import tests, e.g. testing with incorrect IDs.
+- There must be at least one `basic acceptance test` for each resource.
+- `Basic import tests` are done as the last step in the `basic acceptance tests`, not as a different test. Exceptions apply for more specific import tests, e.g. testing with incorrect IDs. [Import tests](https://developer.hashicorp.com/terraform/plugin/sdkv2/resources/import#resource-acceptance-testing-implementation) verify that the [Terraform Import](https://developer.hashicorp.com/terraform/cli/import) functionality is working fine.
 - Data sources are tested in the same tests as the resources. There are no separate files or tests for data sources as a resource must typically be created. (There are very few exceptions to this, e.g. when there is only data sources but not resource)
 - Helper functions such as `resource.TestCheckTypeSetElemNestedAttrs` or `resource.TestCheckTypeSetElemAttr` can be used to check resource and data source attributes more easily.
 
