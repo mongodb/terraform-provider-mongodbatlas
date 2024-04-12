@@ -9,19 +9,18 @@
 
 ## File structure
 - A resource and associated data sources are implemented in a folder that is also a Go folder, e.g. `advancedcluster` implementation is in [`internal/service/advancedcluster`](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/internal/service/advancedcluster)
-- Acceptances tests are in corresponding `_test.go` file as the resource or data source source file.
 - We enforce "black box" testing, tests must be in a separate "_test" package, e.g. `advancedcluster` tests are in `advancedcluster_test` package.
-- General unit tests are in corresponding  `_test.go` file as the resource or data source source file.  If business logic is extracted into a separate file, unit testing for that logic will be including in its associated `_test.go` file (e.g. [state_transition_search_deployment_test.go](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/internal/service/searchdeployment/state_transition_search_deployment_test.go)).
+- Acceptance and general unit tests are in corresponding  `_test.go` file as the resource or data source source file.  If business logic is extracted into a separate file, unit testing for that logic will be including in its associated `_test.go` file (e.g. [state_transition_search_deployment_test.go](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/internal/service/searchdeployment/state_transition_search_deployment_test.go)).
 - Migration tests are in `_migration_test.go` files.
 - All resource folders must have a `main_test.go` file to handle resource reuse lifecycle, e.g. [here](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/internal/service/advancedcluster/main_test.go).
 - Helper methods must have their own tests, e.g. `common_advanced_cluster_test.go` has tests for `common_advanced_cluster.go`.
 - `internal/testutils/acc` contains helper test functions for Acceptance tests.
 - `internal/testutils/mig` contains helper test functions specifically for Migration tests.
-- `internal/testutils/replay` contains helper test functions for [Hoverfly](https://docs.hoverfly.io/en/latest/). Hoverfly is used to capture and replay HTTP traffic with Atlas Cloud.
+- `internal/testutils/replay` contains helper test functions for [Hoverfly](https://docs.hoverfly.io/en/latest/). Hoverfly is used to capture and replay HTTP traffic with  MongoDB Atlas.
 
 ## Unit tests
 
-- Unit tests must not create Terraform resources or use external systems like [Atlas Go SDK](https://github.com/mongodb/atlas-sdk-go).
+- Unit tests must not create Terraform resources or use external systems, e.g unit tests using [Atlas Go SDK](https://github.com/mongodb/atlas-sdk-go) must not call MongoDB Atlas.
 - Mock of specific interfaces like `client.ProjectsApi` is prefered to use the whole `client`.
 - [Testify Mock](https://pkg.go.dev/github.com/stretchr/testify/mock) is used for test doubles.
 - Altlas Go SDK mocked interfaces are generated in [mockadmin](https://github.com/mongodb/atlas-sdk-go/tree/main/mockadmin) package using [Mockery](https://github.com/vektra/mockery).
