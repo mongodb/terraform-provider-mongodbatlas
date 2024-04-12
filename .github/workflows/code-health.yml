@@ -13,22 +13,6 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-    - run: exit 1
-  jira-release-version:
-    needs: [ release ]
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
-    - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
-      with:
-        go-version-file: 'go.mod'
-    - run: make jira-release-version
-      env:
-        JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
-        VERSION_NUMBER: CLOUDP241948-do-not-use
   build:
     runs-on: ubuntu-latest
     steps:
