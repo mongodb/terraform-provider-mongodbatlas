@@ -8,13 +8,15 @@ import (
 	"strings"
 	"time"
 
+	"go.mongodb.org/atlas-sdk/v20231115008/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 const (
@@ -28,6 +30,7 @@ func Resource() *schema.Resource {
 		CreateWithoutTimeout: resourceCreate,
 		ReadWithoutTimeout:   resourceRead,
 		DeleteWithoutTimeout: resourceDelete,
+		UpdateWithoutTimeout: resourceUpdate,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImport,
 		},
@@ -50,7 +53,6 @@ func Resource() *schema.Resource {
 			"comment": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"provider_name": {
 				Type:         schema.TypeString,
@@ -135,6 +137,36 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if _, err = clusterConf.WaitForStateContext(ctx); err != nil {
 		// error awaiting serverless instances to IDLE should not result in failure to apply changes to this resource
 		log.Printf(errorServerlessInstanceListStatus, err)
+	}
+
+	d.SetId(conversion.EncodeStateID(map[string]string{
+		"project_id":    projectID,
+		"instance_name": instanceName,
+		"endpoint_id":   endPoint.GetId(),
+	}))
+
+	return resourceRead(ctx, d, meta)
+}
+
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	if !d.HasChange("comment") {
+		return resourceRead(ctx, d, meta)
+	}
+
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	projectID := d.Get("project_id").(string)
+	instanceName := d.Get("instance_name").(string)
+	endpointID := d.Get("endpoint_id").(string)
+
+	// only "comment" attribute update is supported, updating other attributes forces replacement of this resource
+	updateRequest := admin.ServerlessTenantEndpointUpdate{
+		Comment:      conversion.StringPtr(d.Get("comment").(string)),
+		ProviderName: d.Get("provider_name").(string),
+	}
+
+	endPoint, _, err := connV2.ServerlessPrivateEndpointsApi.UpdateServerlessPrivateEndpoint(ctx, projectID, instanceName, endpointID, &updateRequest).Execute()
+	if err != nil {
+		return diag.Errorf(ErrorServerlessServiceEndpointAdd, endpointID, err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
