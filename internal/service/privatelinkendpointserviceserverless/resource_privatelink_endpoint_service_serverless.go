@@ -149,6 +149,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	if !d.HasChange("comment") {
+		return resourceRead(ctx, d, meta)
+	}
+
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	instanceName := d.Get("instance_name").(string)
@@ -170,19 +174,19 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.Errorf(ErrorServerlessServiceEndpointAdd, endpointID, err)
 	}
 
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"RESERVATION_REQUESTED", "INITIATING", "DELETING"},
-		Target:     []string{"RESERVED", "FAILED", "DELETED", "AVAILABLE"},
-		Refresh:    resourceRefreshFunc(ctx, connV2, projectID, instanceName, endpointID),
-		Timeout:    d.Timeout(schema.TimeoutCreate),
-		MinTimeout: 5 * time.Second,
-		Delay:      1 * time.Minute,
-	}
+	// stateConf := &retry.StateChangeConf{
+	// 	Pending:    []string{"RESERVATION_REQUESTED", "INITIATING", "DELETING"},
+	// 	Target:     []string{"RESERVED", "FAILED", "DELETED", "AVAILABLE"},
+	// 	Refresh:    resourceRefreshFunc(ctx, connV2, projectID, instanceName, endpointID),
+	// 	Timeout:    d.Timeout(schema.TimeoutCreate),
+	// 	MinTimeout: 5 * time.Second,
+	// 	Delay:      1 * time.Minute,
+	// }
 
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorServerlessServiceEndpointAdd, endpointID, err))
-	}
+	// _, err = stateConf.WaitForStateContext(ctx)
+	// if err != nil {
+	// 	return diag.FromErr(fmt.Errorf(ErrorServerlessServiceEndpointAdd, endpointID, err))
+	// }
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":    projectID,
