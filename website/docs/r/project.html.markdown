@@ -83,7 +83,7 @@ resource "mongodbatlas_project" "test" {
   }
 ```
 
-Key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.
+Key-value pairs between 1 to 255 characters in length for tagging and categorizing the project.
 
 To learn more, see [Resource Tags](https://www.mongodb.com/docs/atlas/tags/).
 
