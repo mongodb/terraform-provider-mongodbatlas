@@ -154,7 +154,8 @@ func configBasic(orgID, projectID, instanceName, comment string) string {
 	}
 
 	resource "mongodbatlas_serverless_instance" "test" {
-		project_id   = mongodbatlas_project.test.id
+	#	project_id   = mongodbatlas_project.test.id
+		project_id = %[2]q
 		name         = %[3]q
 		provider_settings_backing_provider_name = "AWS"
 		provider_settings_provider_name = "SERVERLESS"
@@ -276,7 +277,7 @@ func configAWSEndpoint(orgID, projectID, instanceName, awsAccessKey, awsSecretKe
 	#}
 
 	resource "mongodbatlas_serverless_instance" "test" {
-		#project_id   = mongodbatlas_project.test.id
+		# project_id   = mongodbatlas_project.test.id
 		project_id =  %[2]q
 		name         = %[3]q
 		provider_settings_backing_provider_name = "AWS"
@@ -286,7 +287,8 @@ func configAWSEndpoint(orgID, projectID, instanceName, awsAccessKey, awsSecretKe
 	  }
 
 	  resource "mongodbatlas_privatelink_endpoint_serverless" "test" {
-		project_id   = mongodbatlas_project.test.id
+		# project_id   = mongodbatlas_project.test.id
+		project_id =  %[2]q
 		provider_name = "AWS"
 		instance_name = mongodbatlas_serverless_instance.test.name
 	  }
