@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           fetch-depth: 0
-          token: ${{secrets.APIX_BOT_PAT}}
+          persist-credentials: false
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
@@ -26,6 +26,9 @@ jobs:
             else
               MSG="Update CHANGELOG.md for #${{ github.event.pull_request.number }}"
             fi
+            git config --local user.email svc-api-experience-integrations-escalation@mongodb.com
+            git config --local user.name svc-apix-bot
+            git remote set-url origin https://x-access-token/:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
             git add CHANGELOG.md
             git commit -m "$MSG"
             git push
