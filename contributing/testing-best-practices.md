@@ -7,7 +7,7 @@
 - Acceptance (acc) tests: In Terraform terminology they refer to the use of real Terraform configurations to exercise the code in plan, apply, refresh, and destroy life cycles (real infrastructure resources are created as part of the test), more info [here](https://developer.hashicorp.com/terraform/plugin/testing/acceptance-tests).
 - Migration (mig) tests: These tests are designed to ensure that after an upgrade to a new Atlas provider version, user configs do not result in unexpected plan changes, more info [here](https://developer.hashicorp.com/terraform/plugin/framework/migrating/testing). Migration tests are a subset of Acceptance tests.
 
-## File structure
+## Test Organization
 - A resource and associated data sources are implemented in a folder that is also a Go package, e.g. `advancedcluster` implementation is in [`internal/service/advancedcluster`](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/internal/service/advancedcluster)
 - We enforce "black box" testing, tests must be in a separate "_test" package, e.g. `advancedcluster` tests are in `advancedcluster_test` package.
 - Acceptance and general unit tests are in corresponding  `_test.go` file as the resource or data source source file.  If business logic is extracted into a separate file, unit testing for that logic will be including in its associated `_test.go` file, e.g. [state_transition_search_deployment_test.go](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/66c44e62c9afe04ffe8be0dbccaec682bab830e6/internal/service/searchdeployment/state_transition_search_deployment_test.go).
