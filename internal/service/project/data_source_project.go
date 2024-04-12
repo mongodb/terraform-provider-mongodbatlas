@@ -169,7 +169,6 @@ func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, re
 			},
 			"tags": schema.MapAttribute{
 				ElementType: types.StringType,
-				Optional:    true,
 				Computed:    true,
 			},
 		},
@@ -214,7 +213,7 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		return
 	}
 
-	newProjectState, diags := NewTFProjectDataSourceModel(ctx, project, *projectProps)
+	newProjectState, diags := NewTFProjectDataSourceModel(ctx, project, *projectProps, false)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

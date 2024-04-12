@@ -986,6 +986,7 @@ func TestAccProject_withTags(t *testing.T) {
 		projectName  = acc.RandomProjectName()
 		nameUpdated  = "my-tag-name-updated"
 		envUnchanged = "unchanged"
+		tagsEmpty    = map[string]string{}
 		tags1        = map[string]string{
 			"Name":        "my-tag-name",
 			"Environment": envUnchanged,
@@ -1012,6 +1013,14 @@ func TestAccProject_withTags(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceNameByID, "tags.#", "0"),
+				),
+			},
+			// empty tags
+			{
+				Config: configWithTags(orgID, projectName, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceNameByID, "tags.#", "0"),
 				),

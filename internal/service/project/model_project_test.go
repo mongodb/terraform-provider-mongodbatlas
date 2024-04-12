@@ -205,6 +205,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 		project         *admin.Group
 		projectProps    project.AdditionalProperties
 		expectedTFModel project.TFProjectDSModel
+		tagsAreNull     bool
 	}{
 		{
 			name:    "Project",
@@ -235,8 +236,9 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 				Limits:                                      limitsTF,
 				IPAddresses:                                 ipAddressesTF,
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
-				Tags:                                        types.MapNull(types.StringType),
+				Tags:                                        types.MapValueMust(types.StringType, map[string]attr.Value{}),
 			},
+			tagsAreNull: false,
 		},
 		{
 			name:    "ProjectGov",
@@ -270,12 +272,13 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
 				Tags:                                        types.MapNull(types.StringType),
 			},
+			tagsAreNull: true,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := project.NewTFProjectDataSourceModel(context.Background(), tc.project, tc.projectProps)
+			resultModel, diags := project.NewTFProjectDataSourceModel(context.Background(), tc.project, tc.projectProps, tc.tagsAreNull)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -290,6 +293,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 		project         *admin.Group
 		projectProps    project.AdditionalProperties
 		expectedTFModel project.TFProjectRSModel
+		tagsAreNull     bool
 	}{
 		{
 			name:    "Project",
@@ -321,6 +325,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
 				Tags:                                        types.MapNull(types.StringType),
 			},
+			tagsAreNull: true,
 		},
 		{
 			name:    "ProjectGov",
@@ -351,14 +356,15 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 				Limits:                                      limitsTFSet,
 				IPAddresses:                                 ipAddressesTF,
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
-				Tags:                                        types.MapNull(types.StringType),
+				Tags:                                        types.MapValueMust(types.StringType, map[string]attr.Value{}),
 			},
+			tagsAreNull: false,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := project.NewTFProjectResourceModel(context.Background(), tc.project, tc.projectProps)
+			resultModel, diags := project.NewTFProjectResourceModel(context.Background(), tc.project, tc.projectProps, tc.tagsAreNull)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -546,42 +552,49 @@ func TestUpdateProjectBool(t *testing.T) {
 	}
 }
 
-func TestNewAdminTags(t *testing.T) {
-	testCases := []struct {
-		name     string
+func TestNewResourceTags(t *testing.T) {
+	testCases := map[string]struct {
 		plan     types.Map
 		expected []admin.ResourceTag
 	}{
-		{"tags null", types.MapNull(types.StringType), []admin.ResourceTag{}},
-		{"tags unknown", types.MapUnknown(types.StringType), []admin.ResourceTag{}},
-		{"tags convert normally", types.MapValueMust(types.StringType, map[string]attr.Value{
+		"tags null":    {types.MapNull(types.StringType), []admin.ResourceTag{}},
+		"tags unknown": {types.MapUnknown(types.StringType), []admin.ResourceTag{}},
+		"tags convert normally": {types.MapValueMust(types.StringType, map[string]attr.Value{
 			"key1": types.StringValue("value1"),
 		}), []admin.ResourceTag{
 			*admin.NewResourceTag("key1", "value1"),
 		}},
 	}
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, *project.NewAdminTags(context.Background(), tc.plan))
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, project.NewResourceTags(context.Background(), tc.plan))
 		})
 	}
 }
 
 func TestNewTFTags(t *testing.T) {
-	testCases := []struct {
-		name      string
-		adminTags *[]admin.ResourceTag
-		expected  types.Map
+	var (
+		tfMapNull      = types.MapNull(types.StringType)
+		tfMapEmpty     = types.MapValueMust(types.StringType, map[string]attr.Value{})
+		apiListEmpty   = []admin.ResourceTag{}
+		apiSingleTag   = []admin.ResourceTag{*admin.NewResourceTag("key1", "value1")}
+		tfMapSingleTag = types.MapValueMust(types.StringType, map[string]attr.Value{"key1": types.StringValue("value1")})
+	)
+	testCases := map[string]struct {
+		expected    types.Map
+		adminTags   []admin.ResourceTag
+		tagsAreNull bool
 	}{
-		{"tags nil", nil, types.MapNull(types.StringType)},
-		{"tags empty", &[]admin.ResourceTag{}, types.MapValueMust(types.StringType, map[string]attr.Value{})},
-		{"tags single value", &[]admin.ResourceTag{*admin.NewResourceTag("key1", "value1")}, types.MapValueMust(types.StringType, map[string]attr.Value{
-			"key1": types.StringValue("value1"),
-		})},
+		"api nil tf null should give map null":                 {tfMapNull, nil, true},
+		"api nil tf empty map should give map empty":           {tfMapEmpty, nil, false},
+		"api empty list tf null should give map null":          {tfMapNull, apiListEmpty, true},
+		"api empty list tf empty map should give map empty":    {tfMapEmpty, apiListEmpty, false},
+		"tags single value tf null should give map single":     {tfMapSingleTag, apiSingleTag, true},
+		"tags single value tf non-null should give map single": {tfMapSingleTag, apiSingleTag, false},
 	}
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, project.NewTFTags(tc.adminTags))
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, project.NewTFTags(tc.adminTags, tc.tagsAreNull))
 		})
 	}
 }

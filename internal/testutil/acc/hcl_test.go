@@ -26,15 +26,38 @@ resource "mongodbatlas_project" "test" {
 		Name = "my-name"
 	}
 }`
+var projectWithEmptyTags = `
+resource "mongodbatlas_project" "test" {
+	org_id 			 = "some_org"
+	name   			 = "test-hcl"
+	tags = {
+	}
+}`
+var projectWithoutTags = `
+resource "mongodbatlas_project" "test" {
+	org_id 			 = "some_org"
+	name   			 = "test-hcl"
+
+}`
 
 func TestMapToHcl(t *testing.T) {
-	asserter := assert.New(t)
-
-	tags := acc.HclMap(map[string]string{
-		"Name":        "my-name",
-		"Environment": "test",
-	}, "\t", "tags")
-	asserter.Equal(projectWithTags, projectTemplateWithExtra(tags))
+	testCases := map[string]struct {
+		values   map[string]string
+		expected string
+	}{
+		"normal map": {map[string]string{
+			"Name":        "my-name",
+			"Environment": "test",
+		}, projectWithTags},
+		"empty map": {map[string]string{}, projectWithEmptyTags},
+		"nil map":   {nil, projectWithoutTags},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			tags := acc.HclMap(tc.values, "\t", "tags")
+			assert.Equal(t, tc.expected, projectTemplateWithExtra(tags))
+		})
+	}
 }
 
 var projectWithEmptyLifecycleIgnore = `

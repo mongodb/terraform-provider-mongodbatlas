@@ -11,8 +11,6 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -23,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -257,12 +254,6 @@ func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 			"tags": schema.MapAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
-				Computed:    true,
-				Validators: []validator.Map{
-					mapvalidator.KeysAre(stringvalidator.LengthBetween(1, 255)),
-					mapvalidator.ValueStringsAre(stringvalidator.LengthBetween(1, 255)),
-					mapvalidator.SizeAtMost(50),
-				},
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -320,7 +311,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	tags := *NewAdminTags(ctx, projectPlan.Tags)
+	tags := NewResourceTags(ctx, projectPlan.Tags)
 	projectGroup := &admin.Group{
 		OrgId:                     projectPlan.OrgID.ValueString(),
 		Name:                      projectPlan.Name.ValueString(),
@@ -429,7 +420,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, limits)
 	projectProps.Limits = filteredLimits
 
-	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
+	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps, projectPlan.Tags.IsNull())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -481,7 +472,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, limits)
 	projectProps.Limits = filteredLimits
 
-	projectStateNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
+	projectStateNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps, projectState.Tags.IsNull())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -558,7 +549,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, planLimits)
 	projectProps.Limits = filteredLimits
 
-	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
+	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps, projectPlan.Tags.IsNull())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -796,15 +787,15 @@ func hasLimitsChanged(planLimits, stateLimits []TFLimitModel) bool {
 }
 
 func UpdateProject(ctx context.Context, projectsAPI admin.ProjectsApi, projectState, projectPlan *TFProjectRSModel) error {
-	tagsBefore := NewAdminTags(ctx, projectState.Tags)
-	tagsAfter := NewAdminTags(ctx, projectPlan.Tags)
+	tagsBefore := NewResourceTags(ctx, projectState.Tags)
+	tagsAfter := NewResourceTags(ctx, projectPlan.Tags)
 	if projectPlan.Name.Equal(projectState.Name) && reflect.DeepEqual(tagsBefore, tagsAfter) {
 		return nil
 	}
 
 	projectID := projectState.ID.ValueString()
 
-	if _, _, err := projectsAPI.UpdateProject(ctx, projectID, NewGroupUpdate(projectPlan, tagsAfter)).Execute(); err != nil {
+	if _, _, err := projectsAPI.UpdateProject(ctx, projectID, NewGroupUpdate(projectPlan, &tagsAfter)).Execute(); err != nil {
 		return fmt.Errorf("error updating the project(%s): %s", projectID, err)
 	}
 
