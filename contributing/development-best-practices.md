@@ -1,5 +1,5 @@
 
-## Code and Test Best Practices
+## Development Best Practices
 
 ## Table of Contents
 - [Creating New Resource and Data Sources](#creating-new-resources-and-data-sources)
@@ -8,13 +8,6 @@
 
 - Each resource (and associated data sources) is in a package in `internal/service`.
 - There can be multiple helper files and they can also be used from other resources, e.g. `common_advanced_cluster.go` defines functions that are also used from other resources using `advancedcluster.FunctionName`.
-- Unit and Acceptances tests are in the same `_test.go` file. They are not in the same package as the code tests, e.g. `advancedcluster` tests are in `advancedcluster_test` package so coupling is minimized.
-- Migration tests are in `_migration_test.go` files.
-- Helper methods must have their own tests, e.g. `common_advanced_cluster_test.go` has tests for `common_advanced_cluster.go`.
-- `internal/testutils/acc` contains helper test methods for Acceptance and Migration tests.
-- Tests that need the provider binary like End-to-End tests don’t belong to the source code packages and go in `test/e2e`.
-- [Testify Mock](https://pkg.go.dev/github.com/stretchr/testify/mock) and [Mockery](https://github.com/vektra/mockery) are used for test doubles in Atlas Go SDK unit tests.
-
 
 ### Creating New Resource and Data Sources
 
