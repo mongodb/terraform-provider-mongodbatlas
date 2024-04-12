@@ -7,9 +7,9 @@ Variables Required to be set:
 - `private_key`: Atlas  private key
 - `org_id`: Organization ID where project will be created
 
-## How to ignore tags managed outside of terraform
+## How to ignore tags managed outside of Terraform
 
-### Single Tag Key(s) are managed outside terraform
+### Single Tag Key(s) are managed outside Terraform
 Consider this code:
 
 ```hcl
@@ -33,13 +33,13 @@ resource "mongodbatlas_project" "tags_example" {
 ```
 
 - Notice how `CostCenter` does **not** exist in the tags defined above.
-  - If someone adds the tag outside terraform and we run `terraform apply`, the output will be `No Changes`
+  - If someone adds the tag outside Terraform and we run `terraform apply`, the output will be `No Changes`
   - However, if `tag["CostCenter]` is excluded from the `ignore_changes` section, `terraform apply` would detect a plan drift and remove the `CostCenter` tag
 - Notice how `CurrentDRI` exists in the tags defined above
   - This can be useful when you want an initial empty value, but someone will update the value outside of Terraform
   - Terraform will only respect the `tags["CurrentDRI"] = "unset"` during resource creation. If you add this after the resource exists, the `tags["CurrentDRI"]` will **not** be set
 
-### All Tag Keys are managed outside terraform
+### All Tag Keys are managed outside Terraform
 You can ignore the `tags` field:
 
 ```hcl
