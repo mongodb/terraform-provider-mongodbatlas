@@ -6,8 +6,10 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	jira "github.com/andygrunwald/go-jira/v2/onpremise"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 const (
@@ -22,7 +24,9 @@ func main() {
 	client := getJiraClient()
 	versionName := versionPrefix + getVersion()
 	versionID := getVersionID(client, versionName)
-	fmt.Println(versionID)
+	setReleased(client, versionID)
+	url := fmt.Sprintf("%s/projects/%s/versions/%s", jiraURL, projectID, versionID)
+	fmt.Printf("Version released, please check all tickets are marked as done: %s\n", url)
 }
 
 func getJiraClient() *jira.Client {
@@ -51,8 +55,7 @@ func getVersion() string {
 }
 
 func getVersionID(client *jira.Client, versionName string) string {
-	ctx := context.Background()
-	projects, _, err := client.Project.Get(ctx, projectID)
+	projects, _, err := client.Project.Get(context.Background(), projectID)
 	if err != nil {
 		log.Fatalf("Error getting project info: %v", err)
 	}
@@ -64,4 +67,16 @@ func getVersionID(client *jira.Client, versionName string) string {
 	}
 	log.Fatalf("Version not found: %s", versionName)
 	return ""
+}
+
+func setReleased(client *jira.Client, versionID string) {
+	version := &jira.Version{
+		ID:          versionID,
+		Released:    conversion.Pointer(true),
+		ReleaseDate: time.Now().UTC().Format("2006-01-02"),
+	}
+	_, _, err := client.Version.Update(context.Background(), version)
+	if err != nil {
+		log.Fatalf("Error updating version %s: %v", versionID, err)
+	}
 }
