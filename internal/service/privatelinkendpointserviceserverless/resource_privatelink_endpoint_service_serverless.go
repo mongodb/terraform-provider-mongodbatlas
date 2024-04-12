@@ -158,11 +158,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	instanceName := d.Get("instance_name").(string)
 	endpointID := d.Get("endpoint_id").(string)
 
-	// _, _, err := connV2.ServerlessPrivateEndpointsApi.GetServerlessPrivateEndpoint(ctx, projectID, instanceName, endpointID).Execute()
-	// if err != nil {
-	// 	return diag.Errorf("error getting Serverless PrivateLink Endpoint Information: %s", err)
-	// }
-
 	// only "comment" attribute update is supported, updating other attributes forces replacement of this resource
 	updateRequest := admin.ServerlessTenantEndpointUpdate{
 		Comment:      conversion.StringPtr(d.Get("comment").(string)),
@@ -173,20 +168,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err != nil {
 		return diag.Errorf(ErrorServerlessServiceEndpointAdd, endpointID, err)
 	}
-
-	// stateConf := &retry.StateChangeConf{
-	// 	Pending:    []string{"RESERVATION_REQUESTED", "INITIATING", "DELETING"},
-	// 	Target:     []string{"RESERVED", "FAILED", "DELETED", "AVAILABLE"},
-	// 	Refresh:    resourceRefreshFunc(ctx, connV2, projectID, instanceName, endpointID),
-	// 	Timeout:    d.Timeout(schema.TimeoutCreate),
-	// 	MinTimeout: 5 * time.Second,
-	// 	Delay:      1 * time.Minute,
-	// }
-
-	// _, err = stateConf.WaitForStateContext(ctx)
-	// if err != nil {
-	// 	return diag.FromErr(fmt.Errorf(ErrorServerlessServiceEndpointAdd, endpointID, err))
-	// }
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":    projectID,
