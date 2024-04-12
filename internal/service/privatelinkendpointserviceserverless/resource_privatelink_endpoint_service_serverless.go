@@ -158,10 +158,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	instanceName := d.Get("instance_name").(string)
 	endpointID := d.Get("endpoint_id").(string)
 
-	_, _, err := connV2.ServerlessPrivateEndpointsApi.GetServerlessPrivateEndpoint(ctx, projectID, instanceName, endpointID).Execute()
-	if err != nil {
-		return diag.Errorf("error getting Serverless PrivateLink Endpoint Information: %s", err)
-	}
+	// _, _, err := connV2.ServerlessPrivateEndpointsApi.GetServerlessPrivateEndpoint(ctx, projectID, instanceName, endpointID).Execute()
+	// if err != nil {
+	// 	return diag.Errorf("error getting Serverless PrivateLink Endpoint Information: %s", err)
+	// }
 
 	// only "comment" attribute update is supported, updating other attributes forces replacement of this resource
 	updateRequest := admin.ServerlessTenantEndpointUpdate{
