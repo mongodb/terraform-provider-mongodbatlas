@@ -47,10 +47,6 @@ func getVersion() string {
 	if version == "" {
 		log.Fatalf("Environment variable %s is required", envVersion)
 	}
-	if strings.Contains(version, "pre") {
-		fmt.Printf("Skipping release version for pre-release: %s\n", version)
-		os.Exit(0)
-	}
 	return strings.TrimPrefix(version, "v")
 }
 
