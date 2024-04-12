@@ -25,8 +25,8 @@ resource "mongodbatlas_project" "tags_example" {
   }
   lifecycle {
     ignore_changes = [
-      tags["CostCenter"]
-      tags["CurrentDRI"]
+      tags["CostCenter"],
+      tags["CurrentDRI"],
     ]
   }
 }
@@ -37,6 +37,7 @@ resource "mongodbatlas_project" "tags_example" {
   - However, if `tag["CostCenter]` is excluded from the `ignore_changes` section, `terraform apply` would detect a plan drift and remove the `CostCenter` tag
 - Notice how `CurrentDRI` exists in the tags defined above
   - This can be useful when you want an initial empty value, but someone will update the value outside of Terraform
+  - Terraform will only respect the `tags["CurrentDRI"] = "unset"` during resource creation. If you add this after the resource exists, the `tags["CurrentDRI"]` will **not** be set
 
 ### All Tag Keys are managed outside terraform
 You can ignore the `tags` field:
