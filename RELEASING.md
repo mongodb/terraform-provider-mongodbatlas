@@ -3,7 +3,7 @@
 ## Steps
 
 ### Revise jira release
-Before triggering a release view the corresponding [unreleased jira page](https://jira.mongodb.org/projects/CLOUDP?selectedItem=com.atlassian.jira.jira-projects-plugin:release-page&status=unreleased&contains=terraform) to ensure there are no pending tickets. In case there are pending tickets, verify with the team if the expectation is to have them included within the current release. After release workflow is successful the version will be marked as released automatically.
+Before triggering a release, view the corresponding [unreleased jira page](https://jira.mongodb.org/projects/CLOUDP?selectedItem=com.atlassian.jira.jira-projects-plugin:release-page&status=unreleased&contains=terraform) to ensure there are no pending tickets. In case there are pending tickets, verify with the team if the expectation is to have them included within the current release. After release workflow is successful the version will be marked as released automatically.
 
 ### Make sure that the acceptance tests are successful
 While QA acceptance tests are run in the release process automatically, we check [workflows/test-suite.yml](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/test-suite.yml) and see if the latest run of the Test Suite action is successful (it runs every day at midnight UTC time). This can help detect failures before proceeding with the next steps.
