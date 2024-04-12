@@ -136,6 +136,7 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
+					resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.0.replication_specs.region_configs.#", acc.JSONEquals("3")),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", clusterName),
 				),
@@ -813,14 +814,22 @@ func configMultiCloud(orgID, projectName, name string) string {
 					priority      = 7
 					region_name   = "EU_WEST_1"
 				}
-				region_configs {
-					electable_specs {
-						instance_size = "M10"
-						node_count    = 2
-					}
-					provider_name = "GCP"
-					priority      = 6
-					region_name   = "NORTH_AMERICA_NORTHEAST_1"
+
+				dynamic "region_configs" {
+					for_each = [
+						"NORTH_AMERICA_NORTHEAST_1",
+						"US_EAST_4"
+					]
+
+					content {
+						provider_name = "GCP"
+						priority      = 0
+						region_name   = region_configs.value
+
+						read_only_specs {
+							instance_size = "M10"
+							node_count    = 2
+						}
 				}
 			}
 		}
