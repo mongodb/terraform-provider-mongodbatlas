@@ -28,7 +28,7 @@ jobs:
             fi
             git config --local user.email svc-api-experience-integrations-escalation@mongodb.com
             git config --local user.name svc-apix-bot
-            git remote set-url origin https://x-access-token/:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
+            git remote set-url origin https://svc-apix-bot/:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
             git add CHANGELOG.md
             git commit -m "$MSG"
             git push
