@@ -56,6 +56,6 @@ Acceptance and migration tests can reuse projects and clusters in order to be mo
     - Run the tests in serial (`resource.Test` instead of `resource.ParallelTest`) if the tests are fast and saving resources is prefered.
     - Don’t use `ProjectIDExecution` and create a project for each test if a faster test execution is prefered even if more resources are needed.
 - A cluster can be reused using `ClusterNameExecution`. This function returns the project id (created with `ProjectIDExecution`) and the name of a cluster that is created for the current execution of tests for a resource. Similar precautions to project reuse must be taken here. If a global resource to cluster is being tested (e.g. cluster global config) then it's prefered to run tests in serial or create their own clusters.
-- Plural data sources can be challenging to test when tests run in parallel or they share projects and/or clusters. In that case:
-  - Don't check for a specific total count as other tests can also create resources. As an example you can check that there are results using `acc.IntGreatThan(0)`.
-  - Don't assume results are in a certain order, use functions like `resource.TestCheckTypeSetElemNestedAttrs` or `resource.TestCheckTypeSetElemAttr`.
+- Plural data sources can be challenging to test when tests run in parallel or they share projects and/or clusters. In that case use functions like `resource.TestCheckTypeSetElemNestedAttrs` or `resource.TestCheckTypeSetElemAttr`.
+  - Avoid checking for a specific total count as other tests can also create resources.
+  - Don't assume results are in a certain order.
