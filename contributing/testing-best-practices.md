@@ -37,7 +37,7 @@
 
 - There must be at least one `basic migration test` for each resource that leverages on the `basic acceptance tests` using helper test functions such as `CreateAndRunTest`.
 
-## Local development
+## Local testing
 
 These enviroment variables can be used in local to speed up development process.
 
