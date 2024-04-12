@@ -14,11 +14,10 @@ func TestMigServerlessPrivateLinkEndpointService_basic(t *testing.T) {
 	var (
 		resourceName   = "mongodbatlas_privatelink_endpoint_service_serverless.test"
 		datasourceName = "data.mongodbatlas_privatelink_endpoint_service_serverless.test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectID      = acc.ProjectIDExecution(t)
 		instanceName   = acc.RandomClusterName()
 		commentOrigin  = "this is a comment for serverless private link endpoint"
-		config         = configBasic(orgID, projectID, instanceName, commentOrigin)
+		config         = configBasic(projectID, instanceName, commentOrigin)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -44,12 +43,11 @@ func TestMigServerlessPrivateLinkEndpointService_AWSVPC(t *testing.T) {
 	mig.SkipIfVersionBelow(t, "1.16.0") // bug fix included for https://github.com/mongodb/terraform-provider-mongodbatlas/issues/2011
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint_service_serverless.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomClusterName()
 		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
 		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
-		config       = configAWSEndpoint(orgID, projectID, instanceName, awsAccessKey, awsSecretKey, true, "test comment")
+		config       = configAWSEndpoint(projectID, instanceName, awsAccessKey, awsSecretKey, true, "test comment")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -18,7 +18,6 @@ func TestAccServerlessPrivateLinkEndpointService_basic(t *testing.T) {
 		resourceName            = "mongodbatlas_privatelink_endpoint_service_serverless.test"
 		datasourceName          = "data.mongodbatlas_privatelink_endpoint_service_serverless.test"
 		datasourceEndpointsName = "data.mongodbatlas_privatelink_endpoints_service_serverless.test"
-		orgID                   = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectID               = acc.ProjectIDExecution(t)
 		instanceName            = acc.RandomClusterName()
 		commentOrigin           = "this is a comment for serverless private link endpoint"
@@ -31,7 +30,7 @@ func TestAccServerlessPrivateLinkEndpointService_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectID, instanceName, commentOrigin),
+				Config: configBasic(projectID, instanceName, commentOrigin),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", "AWS"),
@@ -43,7 +42,7 @@ func TestAccServerlessPrivateLinkEndpointService_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic(orgID, projectID, instanceName, commentUpdated),
+				Config: configBasic(projectID, instanceName, commentUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", "AWS"),
@@ -55,7 +54,7 @@ func TestAccServerlessPrivateLinkEndpointService_basic(t *testing.T) {
 				),
 			},
 			{
-				Config:            configBasic(orgID, projectID, instanceName, commentOrigin),
+				Config:            configBasic(projectID, instanceName, commentOrigin),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
@@ -69,7 +68,6 @@ func TestAccServerlessPrivateLinkEndpointService_AWSEndpointCommentUpdate(t *tes
 	var (
 		resourceName            = "mongodbatlas_privatelink_endpoint_service_serverless.test"
 		datasourceEndpointsName = "data.mongodbatlas_privatelink_endpoints_service_serverless.test"
-		orgID                   = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectID               = acc.ProjectIDExecution(t)
 		instanceName            = acc.RandomClusterName()
 		commentUpdated          = "this is updated comment for serverless private link endpoint"
@@ -84,7 +82,7 @@ func TestAccServerlessPrivateLinkEndpointService_AWSEndpointCommentUpdate(t *tes
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configAWSEndpoint(orgID, projectID, instanceName, awsAccessKey, awsSecretKey, false, ""),
+				Config: configAWSEndpoint(projectID, instanceName, awsAccessKey, awsSecretKey, false, ""),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", "AWS"),
@@ -94,7 +92,7 @@ func TestAccServerlessPrivateLinkEndpointService_AWSEndpointCommentUpdate(t *tes
 				),
 			},
 			{
-				Config: configAWSEndpoint(orgID, projectID, instanceName, awsAccessKey, awsSecretKey, true, commentUpdated),
+				Config: configAWSEndpoint(projectID, instanceName, awsAccessKey, awsSecretKey, true, commentUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", "AWS"),
@@ -105,7 +103,7 @@ func TestAccServerlessPrivateLinkEndpointService_AWSEndpointCommentUpdate(t *tes
 				),
 			},
 			{
-				Config:            configAWSEndpoint(orgID, projectID, instanceName, awsAccessKey, awsSecretKey, true, commentUpdated),
+				Config:            configAWSEndpoint(projectID, instanceName, awsAccessKey, awsSecretKey, true, commentUpdated),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
@@ -129,17 +127,10 @@ func checkDestroy(state *terraform.State) error {
 	return nil
 }
 
-func configBasic(orgID, projectID, instanceName, comment string) string {
+func configBasic(projectID, instanceName, comment string) string {
 	return fmt.Sprintf(`
-
-	#resource "mongodbatlas_project" "test" {
-	#	name   = %[2]q
-	#	org_id = %[1]q
-	#}
-
 	resource "mongodbatlas_privatelink_endpoint_serverless" "test" {
-		# project_id   = mongodbatlas_project.test.id
-		project_id = %[2]q
+		project_id = %[1]q
 		instance_name = mongodbatlas_serverless_instance.test.name
 		provider_name = "AWS"
 	}
@@ -150,13 +141,12 @@ func configBasic(orgID, projectID, instanceName, comment string) string {
 		instance_name = mongodbatlas_privatelink_endpoint_serverless.test.instance_name
 		endpoint_id = mongodbatlas_privatelink_endpoint_serverless.test.endpoint_id
 		provider_name = "AWS"
-		comment = %[4]q
+		comment = %[3]q
 	}
 
 	resource "mongodbatlas_serverless_instance" "test" {
-	#	project_id   = mongodbatlas_project.test.id
-		project_id = %[2]q
-		name         = %[3]q
+		project_id = %[1]q
+		name         = %[2]q
 		provider_settings_backing_provider_name = "AWS"
 		provider_settings_provider_name = "SERVERLESS"
 		provider_settings_region_name = "US_EAST_1"
@@ -183,7 +173,7 @@ func configBasic(orgID, projectID, instanceName, comment string) string {
 		endpoint_id = mongodbatlas_privatelink_endpoint_service_serverless.test.endpoint_id
 	}
 
-	`, orgID, projectID, instanceName, comment)
+	`, projectID, instanceName, comment)
 }
 
 func configAWSVPCEndpoint() string {
@@ -245,7 +235,7 @@ resource "aws_security_group" "primary_default" {
 }`
 }
 
-func configAWSEndpoint(orgID, projectID, instanceName, awsAccessKey, awsSecretKey string, updateComment bool, comment string) string {
+func configAWSEndpoint(projectID, instanceName, awsAccessKey, awsSecretKey string, updateComment bool, comment string) string {
 	peServiceServerless := `resource "mongodbatlas_privatelink_endpoint_service_serverless" "test" {
 	project_id                 = mongodbatlas_privatelink_endpoint_serverless.test.project_id
 	instance_name              = mongodbatlas_serverless_instance.test.name
@@ -267,19 +257,13 @@ func configAWSEndpoint(orgID, projectID, instanceName, awsAccessKey, awsSecretKe
 	return fmt.Sprintf(`
 	provider "aws" {
 		region        = "us-east-1"
-		access_key = "%[6]s"
-		secret_key = "%[7]s"
+		access_key = "%[5]s"
+		secret_key = "%[6]s"
 	}
 
-	#resource "mongodbatlas_project" "test" {
-	#	name   = %[2]q
-	#	org_id = %[1]q
-	#}
-
 	resource "mongodbatlas_serverless_instance" "test" {
-		# project_id   = mongodbatlas_project.test.id
-		project_id =  %[2]q
-		name         = %[3]q
+		project_id =  %[1]q
+		name         = %[2]q
 		provider_settings_backing_provider_name = "AWS"
 		provider_settings_provider_name         = "SERVERLESS"
 		provider_settings_region_name           = "US_EAST_1"
@@ -287,14 +271,13 @@ func configAWSEndpoint(orgID, projectID, instanceName, awsAccessKey, awsSecretKe
 	  }
 
 	  resource "mongodbatlas_privatelink_endpoint_serverless" "test" {
-		# project_id   = mongodbatlas_project.test.id
-		project_id =  %[2]q
+		project_id =  %[1]q
 		provider_name = "AWS"
 		instance_name = mongodbatlas_serverless_instance.test.name
 	  }
 
 	  # aws_vpc config
-	  %[4]s
+	  %[3]s
 	  
 	  resource "aws_vpc_endpoint" "test" {
 		vpc_id             = aws_vpc.primary.id
@@ -304,7 +287,7 @@ func configAWSEndpoint(orgID, projectID, instanceName, awsAccessKey, awsSecretKe
 		security_group_ids = [aws_security_group.primary_default.id]
 	  }
 	  
-	  %[5]s
+	  %[4]s
 
 	  data "mongodbatlas_privatelink_endpoints_service_serverless" "test" {
 		project_id   = mongodbatlas_privatelink_endpoint_service_serverless.test.project_id
@@ -317,7 +300,7 @@ func configAWSEndpoint(orgID, projectID, instanceName, awsAccessKey, awsSecretKe
 		endpoint_id = mongodbatlas_privatelink_endpoint_service_serverless.test.endpoint_id
 	}
 
-	`, orgID, projectID, instanceName, configAWSVPCEndpoint(), peServiceServerless, awsAccessKey, awsSecretKey)
+	`, projectID, instanceName, configAWSVPCEndpoint(), peServiceServerless, awsAccessKey, awsSecretKey)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
