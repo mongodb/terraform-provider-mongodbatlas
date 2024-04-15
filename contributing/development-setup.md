@@ -69,10 +69,9 @@ Use [*Conventional Commits*](https://www.conventionalcommits.org/) to name pull 
 - `style: Description of the PR`: The commit updates or reformats the style of the source code, but does not otherwise change the product implementation (this correlates with Minor in Semantic Versioning).
 - `feat: Description of the PR`: a commit of the type feat introduces a new feature to the codebase (this correlates with MINOR in Semantic Versioning).
 - `deprecate: Description of the PR`: The commit deprecates existing functionality, but does not remove it from the product (this correlates with MINOR in Semantic Versioning).
-- `BREAKING CHANGE`: a commit that has a footer BREAKING CHANGE:, or appends a ! after the type/scope, introduces a breaking API change (correlating with MAJOR in Semantic Versioning). A BREAKING CHANGE can be part of commits of any type.
+- `a ! in the description of the PR`: The commit introduces a breaking change (correlating with MAJOR in Semantic Versioning). A breaking change can be part of commits of any type.
 Examples:
   - `fix!: Description of the ticket`
-  - If the PR has `BREAKING CHANGE`: in its description is a breaking change
 - `remove!: Description of the PR`: The commit removes a feature from the product. Typically features are deprecated first for a period of time before being removed. Removing a feature is a breaking change (correlating with MAJOR in Semantic Versioning).
 
 Example PR title:
