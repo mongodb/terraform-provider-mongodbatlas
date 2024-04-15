@@ -15,7 +15,7 @@ import (
 const (
 	envJira       = "JIRA_API_TOKEN"
 	envVersion    = "VERSION_NUMBER"
-	projectID     = "CLOUDP"
+	projectName   = "CLOUDP"
 	jiraURL       = "https://jira.mongodb.org"
 	versionPrefix = "terraform-provider-"
 )
@@ -25,7 +25,7 @@ func main() {
 	versionName := versionPrefix + getVersion()
 	versionID := getVersionID(client, versionName)
 	setReleased(client, versionID)
-	url := fmt.Sprintf("%s/projects/%s/versions/%s", jiraURL, projectID, versionID)
+	url := fmt.Sprintf("%s/projects/%s/versions/%s", jiraURL, projectName, versionID)
 	fmt.Printf("Version released, please check all tickets are marked as done: %s\n", url)
 }
 
@@ -51,18 +51,28 @@ func getVersion() string {
 }
 
 func getVersionID(client *jira.Client, versionName string) string {
-	projects, _, err := client.Project.Get(context.Background(), projectID)
+	var projectID int
+	ctx := context.Background()
+	projects, _, err := client.Project.Get(ctx, projectName)
 	if err != nil {
 		log.Fatalf("Error getting project info: %v", err)
 	}
 	for i := range projects.Versions {
 		v := &projects.Versions[i]
+		if projectID == 0 {
+			projectID = v.ProjectID
+		}
 		if v.Name == versionName {
 			return v.ID
 		}
 	}
-	log.Fatalf("Version not found: %s", versionName)
-	return ""
+
+	version, _, err := client.Version.Create(ctx, &jira.Version{ProjectID: projectID, Name: versionName})
+	if err != nil {
+		log.Fatalf("Error creating version %s: %v", versionName, err)
+	}
+	fmt.Printf("Version not found so it has been created: %s, id: %s\n", versionName, version.ID)
+	return version.ID
 }
 
 func setReleased(client *jira.Client, versionID string) {
