@@ -2,10 +2,11 @@ name: Check migration guide
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, edited]
+    types: [opened, reopened, synchronize, edited, labeled, unlabeled]
 
 jobs:
   check:
+    if: ${{ contains(toJson(github.event.pull_request.labels.*.name), 'breaking-change') }}  
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
