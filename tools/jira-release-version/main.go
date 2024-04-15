@@ -79,15 +79,16 @@ func getVersionID(client *jira.Client, versionName string) string {
 
 func moveDoneIssues(client *jira.Client, versionName string) {
 	jql := fmt.Sprintf("project = %s AND status in (Resolved, Closed) AND fixVersion = %s", projectKey, versionNameNext)
-	list, _, err := client.Issue.Search(context.Background(), jql, &jira.SearchOptions{MaxResults: 1000})
+	options := &jira.SearchOptions{MaxResults: 1000, Fields: []string{"NoFieldsNeeded"}}
+	list, _, err := client.Issue.Search(context.Background(), jql, options)
 	if err != nil {
 		log.Fatalf("Error retrieving issues: %v", err)
 	}
 	keys := make([]string, len(list))
 	for i := range list {
-		issue := &list[i]
-		keys[i] = issue.Key
-		moveIssue(client, issue.Key, versionName)
+		key := list[i].Key
+		keys[i] = key
+		moveIssue(client, key, versionName)
 	}
 	if len(keys) > 0 {
 		fmt.Println("Done issues moved:", strings.Join(keys, ", "))
