@@ -17,4 +17,4 @@ jobs:
             guides:
                 - 'website/docs/guides/**'
       - if: ${{ steps.changes.outputs.guides == 'false' }}
-        run: echo "PR with breaking change but no changes detected in guides" && exit 1
+        run: echo "PR with breaking changes but no migration guide was created or updated" && exit 1
