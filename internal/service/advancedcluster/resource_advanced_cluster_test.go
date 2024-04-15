@@ -136,7 +136,7 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
-					resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.0.replication_specs.region_configs.#", acc.JSONEquals("3")),
+					resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.0.replication_specs.0.region_configs.#", acc.JSONEquals("3")),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", clusterName),
 				),
