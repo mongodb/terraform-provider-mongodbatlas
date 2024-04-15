@@ -1,5 +1,6 @@
 name: Run Script and Commit Changes
 
+# Unifies logic for running a script and commit specific changes to master. Used during release process and for updating changelog on merged PRs.
 on:
   workflow_call:
     inputs:
