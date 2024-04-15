@@ -16,5 +16,5 @@ jobs:
           filters: |
             guides:
                 - 'website/docs/guides/**'
-      - if: ${{ !steps.changes.outputs.guides }}
-        run: echo "No changes detected in guides" && exit 1
+      - if: ${{ steps.changes.outputs.guides == 'false' }}
+        run: echo "PR with breaking change but no changes detected in guides" && exit 1
