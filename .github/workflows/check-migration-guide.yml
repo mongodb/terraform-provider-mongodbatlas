@@ -10,8 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
-      - run: |
-          if git diff --quiet ./website/docs/guides; then
-            echo "No changes found in migration guide folder"
-            exit 1
-          fi
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
+        id: changes
+        with:
+          filters: |
+            guides:
+                - 'website/docs/guides/**'
+      - if: ${{ steps.changes.outputs.guides == 'false' }}
+        run: echo "No changes detected in guides" && exit 1
