@@ -50,7 +50,7 @@ jobs:
       user_name: 'changelogbot'
 
   update-changelog-header:
-    needs: [ validate-version-input, run-qa-acceptance-tests ]
+    needs: [ validate-version-input, run-qa-acceptance-tests, update-examples-reference-in-docs ]
     if: >-
       always() 
       && inputs.use_existing_tag != 'true' 
