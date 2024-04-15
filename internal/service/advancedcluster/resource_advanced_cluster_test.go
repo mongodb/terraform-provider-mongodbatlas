@@ -817,8 +817,8 @@ func configMultiCloud(orgID, projectName, name string) string {
 
 				dynamic "region_configs" {
 					for_each = [
-						"NORTH_AMERICA_NORTHEAST_1",
-						"US_EAST_4"
+						"US_EAST_4",
+						"NORTH_AMERICA_NORTHEAST_1"
 					]
 
 					content {
