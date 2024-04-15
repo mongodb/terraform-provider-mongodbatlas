@@ -14,6 +14,7 @@ jobs:
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
@@ -27,7 +28,48 @@ jobs:
             fi
             git config --local user.email changelogbot@mongodb.com
             git config --local user.name changelogbot
+            git remote set-url origin https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
             git add CHANGELOG.md
             git commit -m "$MSG"
             git push
           fi
+
+  slack-notification:
+    needs: [generate-changelog]
+    if: ${{ !cancelled() && needs.generate-changelog.result == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack message
+        id: slack
+        uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001
+        with:
+          payload: |
+            {
+              "text": "Automatic Changelog update failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Automatic Changelog update failed* ${{ secrets.SLACK_ONCALL_TAG }}"
+                  }
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": ":github: Failed action"
+                        },
+                        "url": "${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
+                    }
+                ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+

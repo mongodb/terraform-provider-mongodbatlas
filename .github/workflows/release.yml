@@ -22,9 +22,10 @@ jobs:
         run: |
           echo "${{ inputs.version_number }}" | grep -P '^v\d+\.\d+\.\d+(-pre[A-Za-z0-9-]*)?$'  
 
-    # QA acceptance tests are skipped when explicit input parameter is used
   run-qa-acceptance-tests:
     needs: [ validate-version-input ]
+    # QA acceptance tests are skipped when explicit input parameter is used
+    # As this job may be skipped following jobs require using 'always()' to make sure they are still run
     if: needs.validate-version-input.result == 'success' && inputs.skip_tests != 'true'
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
@@ -32,21 +33,55 @@ jobs:
       atlas_cloud_env: "qa"
       ref: ${{ inputs.use_existing_tag == 'true' && inputs.version_number  || github.ref }}
 
-  release:
+  update-changelog-header:
     runs-on: ubuntu-latest
     needs: [ validate-version-input, run-qa-acceptance-tests ]
-    if: ${{ always() && needs.validate-version-input.result == 'success' && (needs.run-qa-acceptance-tests.result == 'skipped' || needs.run-qa-acceptance-tests.result == 'success') }}
+    # Skipped if use_existing_tag is defined, is a pre-release, or previous jobs failed.
+    if: >-
+      always() 
+      && inputs.use_existing_tag != 'true' 
+      && !contains(inputs.version_number, 'pre') 
+      && needs.validate-version-input.result == 'success' 
+      && (needs.run-qa-acceptance-tests.result == 'skipped' || needs.run-qa-acceptance-tests.result == 'success')
+    steps:
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
+        with:
+          fetch-depth: 0
+      - run: ./scripts/update-changelog-header-for-release.sh ${{inputs.version_number}}
+      - run: |
+          if [[ $(git status --porcelain) ]]; then
+            MSG="Update CHANGELOG.md header for ${{inputs.version_number}} release"
+            git config --local user.email changelogbot@mongodb.com
+            git config --local user.name changelogbot
+            git add CHANGELOG.md
+            git commit -m "$MSG"
+            git push
+          fi
+    
+  release:
+    runs-on: ubuntu-latest
+    needs: [ validate-version-input, run-qa-acceptance-tests, update-changelog-header ]
+    # Release is skipped if there are failures in previous steps
+    if: >- 
+      always() 
+      && needs.validate-version-input.result == 'success' 
+      && (needs.run-qa-acceptance-tests.result == 'skipped' || needs.run-qa-acceptance-tests.result == 'success') 
+      && (needs.update-changelog-header.result == 'skipped' || needs.update-changelog-header.result == 'success')
     steps:
       - name: Checkout
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
-          ref: ${{ inputs.use_existing_tag == 'true' && inputs.version_number || github.ref }}
+          ref: ${{ inputs.use_existing_tag == 'true' && inputs.version_number || 'master' }}
       - name: Unshallow
         run: git fetch --prune --unshallow
+      - name: Get the latest commit SHA
+        id: get-sha
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - name: Create release tag
         uses: rickstaa/action-create-tag@a1c7777fcb2fee4f19b0f283ba888afa11678b72
         with:
           tag: ${{ inputs.version_number }}
+          commit_sha: ${{ steps.get-sha.outputs.sha }}
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg_passphrase: ${{ secrets.PASSPHRASE }}
           tag_exists_error: ${{ inputs.use_existing_tag != 'true' }}
@@ -68,3 +103,17 @@ jobs:
         env:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  jira-release-version:
+    if: ${{ !contains(inputs.version_number, 'pre') }}
+    needs: [ release ]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
+    - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
+      with:
+        go-version-file: 'go.mod'
+    - run: make jira-release-version
+      env:
+        JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+        VERSION_NUMBER: ${{ inputs.version_number }}

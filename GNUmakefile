@@ -146,3 +146,7 @@ generate-changelog-entry:
 .PHONY: check-changelog-entry-file
 check-changelog-entry-file:
 	go run ./tools/check-changelog-entry-file/*.go
+
+.PHONY: jira-release-version
+jira-release-version:
+	go run ./tools/jira-release-version/*.go
