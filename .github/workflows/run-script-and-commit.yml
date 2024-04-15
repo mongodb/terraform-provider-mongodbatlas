@@ -1,0 +1,46 @@
+name: Run Script and Commit Changes
+
+# Unifies logic for running a script and commit specific changes to master. Used during release process and for updating changelog on merged PRs.
+on:
+  workflow_call:
+    inputs:
+      script_call:
+        required: true
+        type: string
+      file_to_commit:
+        required: true
+        type: string
+      commit_message:
+        required: true
+        type: string
+      user_email:
+        required: true
+        type: string
+      user_name:
+        required: true
+        type: string
+
+jobs:
+  run_script_and_commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
+        with:
+          fetch-depth: 0
+
+      - name: Run specified script
+        run: ${{ inputs.script_call }}
+
+      - name: Commit changes
+        run: |
+          if [[ $(git status --porcelain) ]]; then
+            git pull
+            git config --local user.email ${{ inputs.user_email }}
+            git config --local user.name ${{ inputs.user_name }}
+            git add ${{ inputs.file_to_commit }}
+            git commit -m "${{ inputs.commit_message }}"
+            git push
+          else
+            echo "No changes to commit."
+          fi
