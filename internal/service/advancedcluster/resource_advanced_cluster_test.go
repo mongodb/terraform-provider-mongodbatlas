@@ -830,6 +830,7 @@ func configMultiCloud(orgID, projectName, name string) string {
 							instance_size = "M10"
 							node_count    = 2
 						}
+					}
 				}
 			}
 		}
