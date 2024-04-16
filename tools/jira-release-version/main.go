@@ -24,7 +24,7 @@ const (
 func main() {
 	client := getJiraClient()
 	versionName := versionPrefix + getVersion()
-	versionID := getVersionID(client, versionName)
+	versionID := getOrCreateVersion(client, versionName)
 	moveDoneIssues(client, versionName)
 	setReleased(client, versionID)
 	url := fmt.Sprintf("%s/projects/%s/versions/%s", jiraURL, projectKey, versionID)
@@ -52,7 +52,7 @@ func getVersion() string {
 	return strings.TrimPrefix(version, "v")
 }
 
-func getVersionID(client *jira.Client, versionName string) string {
+func getOrCreateVersion(client *jira.Client, versionName string) string {
 	var projectID int
 	ctx := context.Background()
 	projects, _, err := client.Project.Get(ctx, projectKey)
