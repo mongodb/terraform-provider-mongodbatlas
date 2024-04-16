@@ -18,8 +18,8 @@ jobs:
       user_name: 'svc-apix-bot'
     secrets:
       remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
-      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-      PASSPHRASE: ${{ secrets.PASSPHRASE }}     
+      GPG_PRIVATE_KEY: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
+      PASSPHRASE: ${{ secrets.APIX_BOT_PASSPHRASE }}     
 
   slack-notification:
     needs: [generate-and-update-changelog]
