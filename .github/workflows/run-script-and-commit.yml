@@ -22,6 +22,10 @@ on:
     secrets:
       remote:
         required: false
+      GPG_PRIVATE_KEY:
+        required: true
+      PASSPHRASE:
+        required: true
 
 jobs:
   run_script_and_commit:
@@ -31,6 +35,9 @@ jobs:
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           fetch-depth: 0
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
+        with:
+          go-version-file: 'go.mod'
 
       - name: Run specified script
         run: ${{ inputs.script_call }}

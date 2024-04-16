@@ -48,6 +48,9 @@ jobs:
       commit_message: 'Update examples link in index.html.markdown for ${{ github.event.inputs.version_number }} release'
       user_email: 'releasebot@mongodb.com'
       user_name: 'releasebot'
+    secrets:
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      PASSPHRASE: ${{ secrets.PASSPHRASE }}     
 
   update-changelog-header:
     needs: [ validate-version-input, run-qa-acceptance-tests, update-examples-reference-in-docs ]
@@ -64,6 +67,9 @@ jobs:
       commit_message: 'Update CHANGELOG.md header for ${{ github.event.inputs.version_number }} release'
       user_email: 'releasebot@mongodb.com'
       user_name: 'releasebot'
+    secrets:
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      PASSPHRASE: ${{ secrets.PASSPHRASE }} 
   
   release:
     runs-on: ubuntu-latest

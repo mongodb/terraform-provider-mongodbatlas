@@ -17,7 +17,9 @@ jobs:
       user_email: 'svc-api-experience-integrations-escalation@mongodb.com'
       user_name: 'svc-apix-bot'
     secrets:
-      remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}       
+      remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      PASSPHRASE: ${{ secrets.PASSPHRASE }}     
 
   slack-notification:
     needs: [generate-and-update-changelog]
