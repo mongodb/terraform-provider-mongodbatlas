@@ -7,36 +7,21 @@ on:
       - .changelog/**
   workflow_dispatch:
 jobs:
-  generate-changelog:
+  generate-and-update-changelog:
     if: github.event.pull_request.merged || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
-        with:
-          go-version-file: 'go.mod'
-      - run: make tools update-changelog-unreleased-section
-      - run: |
-          if [[ $(git status --porcelain) ]]; then
-            if ${{github.event_name == 'workflow_dispatch'}}; then
-              MSG="Update CHANGELOG.md (Manual Trigger)"
-            else
-              MSG="Update CHANGELOG.md for #${{ github.event.pull_request.number }}"
-            fi
-            git config --local user.email changelogbot@mongodb.com
-            git config --local user.name changelogbot
-            git remote set-url origin https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
-            git add CHANGELOG.md
-            git commit -m "$MSG"
-            git push
-          fi
+    uses: ./.github/workflows/run-script-and-commit.yml
+    with:
+      script_call: 'make tools update-changelog-unreleased-section'
+      file_to_commit: 'CHANGELOG.md'
+      commit_message: ${{ github.event_name == 'workflow_dispatch' && 'Update CHANGELOG.md (Manual Trigger)' || format('{0}{1}', 'Update CHANGELOG.md for \#', github.event.pull_request.number) }}
+      user_email: 'svc-api-experience-integrations-escalation@mongodb.com'
+      user_name: 'svc-apix-bot'
+    secrets:
+      remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}       
 
   slack-notification:
-    needs: [generate-changelog]
-    if: ${{ !cancelled() && needs.generate-changelog.result == 'failure' }}
+    needs: [generate-and-update-changelog]
+    if: ${{ !cancelled() && needs.generate-and-update-changelog.result == 'failure' }}
     runs-on: ubuntu-latest
     steps:
       - name: Send Slack message
