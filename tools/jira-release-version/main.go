@@ -13,19 +13,21 @@ import (
 )
 
 const (
-	envJira       = "JIRA_API_TOKEN"
-	envVersion    = "VERSION_NUMBER"
-	projectID     = "CLOUDP"
-	jiraURL       = "https://jira.mongodb.org"
-	versionPrefix = "terraform-provider-"
+	envJira         = "JIRA_API_TOKEN"
+	envVersion      = "VERSION_NUMBER"
+	projectKey      = "CLOUDP"
+	jiraURL         = "https://jira.mongodb.org"
+	versionPrefix   = "terraform-provider-"
+	versionNameNext = "next-terraform-provider-release"
 )
 
 func main() {
 	client := getJiraClient()
 	versionName := versionPrefix + getVersion()
-	versionID := getVersionID(client, versionName)
+	versionID := getOrCreateVersion(client, versionName)
+	moveDoneIssues(client, versionName)
 	setReleased(client, versionID)
-	url := fmt.Sprintf("%s/projects/%s/versions/%s", jiraURL, projectID, versionID)
+	url := fmt.Sprintf("%s/projects/%s/versions/%s", jiraURL, projectKey, versionID)
 	fmt.Printf("Version released, please check all tickets are marked as done: %s\n", url)
 }
 
@@ -50,19 +52,60 @@ func getVersion() string {
 	return strings.TrimPrefix(version, "v")
 }
 
-func getVersionID(client *jira.Client, versionName string) string {
-	projects, _, err := client.Project.Get(context.Background(), projectID)
+func getOrCreateVersion(client *jira.Client, versionName string) string {
+	var projectID int
+	ctx := context.Background()
+	projects, _, err := client.Project.Get(ctx, projectKey)
 	if err != nil {
 		log.Fatalf("Error getting project info: %v", err)
 	}
 	for i := range projects.Versions {
 		v := &projects.Versions[i]
+		if projectID == 0 {
+			projectID = v.ProjectID
+		}
 		if v.Name == versionName {
 			return v.ID
 		}
 	}
-	log.Fatalf("Version not found: %s", versionName)
-	return ""
+
+	version, _, err := client.Version.Create(ctx, &jira.Version{ProjectID: projectID, Name: versionName})
+	if err != nil {
+		log.Fatalf("Error creating version %s: %v", versionName, err)
+	}
+	fmt.Printf("Version not found so it has been created: %s, id: %s\n", versionName, version.ID)
+	return version.ID
+}
+
+func moveDoneIssues(client *jira.Client, versionName string) {
+	jql := fmt.Sprintf("project = %s AND status in (Resolved, Closed) AND fixVersion = %s", projectKey, versionNameNext)
+	options := &jira.SearchOptions{MaxResults: 1000, Fields: []string{"NoFieldsNeeded"}}
+	list, _, err := client.Issue.Search(context.Background(), jql, options)
+	if err != nil {
+		log.Fatalf("Error retrieving issues: %v", err)
+	}
+	keys := make([]string, len(list))
+	for i := range list {
+		key := list[i].Key
+		keys[i] = key
+		moveIssue(client, key, versionName)
+	}
+	if len(keys) > 0 {
+		fmt.Println("Done issues moved:", strings.Join(keys, ", "))
+	}
+}
+
+func moveIssue(client *jira.Client, issueKey, versionName string) {
+	issue := &jira.Issue{
+		Key: issueKey,
+		Fields: &jira.IssueFields{
+			FixVersions: []*jira.FixVersion{{Name: versionName}},
+		},
+	}
+	_, _, err := client.Issue.Update(context.Background(), issue, nil)
+	if err != nil {
+		log.Fatalf("Error moving issue %s: %v", issueKey, err)
+	}
 }
 
 func setReleased(client *jira.Client, versionID string) {
