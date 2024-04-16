@@ -18,15 +18,17 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
-      creates_new_tag: ${{ steps.condition_check.outputs.creates_new_tag }}
-      is_official_release: ${{ steps.condition_check.outputs.is_official_release }}
-      runs_tests: ${{ steps.condition_check.outputs.runs_tests }}
+      creates_new_tag: ${{ steps.evaluate_inputs.outputs.creates_new_tag }}
+      is_official_release: ${{ steps.evaluate_inputs.outputs.is_official_release }}
+      runs_tests: ${{ steps.evaluate_inputs.outputs.runs_tests }}
     steps:
-      - id: condition_check
+      - id: evaluate_inputs
         run: |
-          echo "creates_new_tag=$(if [ '${{ inputs.use_existing_tag }}' = 'true' ]; then echo 'false'; else echo 'true'; fi)" >> $GITHUB_ENV
-          echo "is_official_release=$(if echo '${{ inputs.version_number }}' | grep -q 'pre'; then echo 'false'; else echo 'true'; fi)" >> $GITHUB_ENV
-          echo "runs_tests=$(if [ '${{ inputs.skip_tests }}' = 'true' ]; then echo 'false'; else echo 'true'; fi)" >> $GITHUB_ENV
+          {
+            echo "creates_new_tag=$(if [ '${{ inputs.use_existing_tag }}' = 'true' ]; then echo 'false'; else echo 'true'; fi)"
+            echo "is_official_release=$(if echo '${{ inputs.version_number }}' | grep -q 'pre'; then echo 'false'; else echo 'true'; fi)"
+            echo "runs_tests=$(if [ '${{ inputs.skip_tests }}' = 'true' ]; then echo 'false'; else echo 'true'; fi)"
+          } >> "$GITHUB_OUTPUT"
 
   validate-version-input:
     runs-on: ubuntu-latest
