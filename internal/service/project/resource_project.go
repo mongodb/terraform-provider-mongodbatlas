@@ -254,6 +254,7 @@ func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 			"tags": schema.MapAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
+				Computed:    true,
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -420,7 +421,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, limits)
 	projectProps.Limits = filteredLimits
 
-	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps, projectPlan.Tags.IsNull())
+	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -472,7 +473,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, limits)
 	projectProps.Limits = filteredLimits
 
-	projectStateNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps, projectState.Tags.IsNull())
+	projectStateNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -549,7 +550,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, planLimits)
 	projectProps.Limits = filteredLimits
 
-	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps, projectPlan.Tags.IsNull())
+	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

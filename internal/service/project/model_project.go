@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
-func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, projectProps AdditionalProperties, tagsAreNull bool) (*TFProjectDSModel, diag.Diagnostics) {
+func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, projectProps AdditionalProperties) (*TFProjectDSModel, diag.Diagnostics) {
 	ipAddressesModel, diags := NewTFIPAddressesModel(ctx, projectProps.IPAddresses)
 	if diags.HasError() {
 		return nil, diags
@@ -35,7 +35,7 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, proj
 		Teams:                                       NewTFTeamsDataSourceModel(ctx, projectProps.Teams),
 		Limits:                                      NewTFLimitsDataSourceModel(ctx, projectProps.Limits),
 		IPAddresses:                                 ipAddressesModel,
-		Tags:                                        NewTFTags(project.GetTags(), tagsAreNull),
+		Tags:                                        NewTFTags(project.GetTags()),
 	}, nil
 }
 
@@ -94,7 +94,7 @@ func NewTFIPAddressesModel(ctx context.Context, ipAddresses *admin.GroupIPAddres
 	return obj, diags
 }
 
-func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, projectProps AdditionalProperties, tagsAreNull bool) (*TFProjectRSModel, diag.Diagnostics) {
+func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, projectProps AdditionalProperties) (*TFProjectRSModel, diag.Diagnostics) {
 	ipAddressesModel, diags := NewTFIPAddressesModel(ctx, projectProps.IPAddresses)
 	if diags.HasError() {
 		return nil, diags
@@ -110,7 +110,7 @@ func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, pro
 		Teams:                     newTFTeamsResourceModel(ctx, projectProps.Teams),
 		Limits:                    newTFLimitsResourceModel(ctx, projectProps.Limits),
 		IPAddresses:               ipAddressesModel,
-		Tags:                      NewTFTags(projectRes.GetTags(), tagsAreNull),
+		Tags:                      NewTFTags(projectRes.GetTags()),
 	}
 
 	projectSettings := projectProps.Settings
@@ -207,19 +207,8 @@ func UpdateProjectBool(plan, state types.Bool, setting **bool) bool {
 	return false
 }
 
-func NewTFTags(tags []admin.ResourceTag, useNullForEmpty bool) types.Map {
-	if tags == nil {
-		if useNullForEmpty {
-			return types.MapNull(types.StringType)
-		}
-		return types.MapValueMust(types.StringType, map[string]attr.Value{})
-	}
-
-	tagsLen := len(tags)
-	if useNullForEmpty && tagsLen == 0 {
-		return types.MapNull(types.StringType)
-	}
-	typesTags := make(map[string]attr.Value, tagsLen)
+func NewTFTags(tags []admin.ResourceTag) types.Map {
+	typesTags := make(map[string]attr.Value, len(tags))
 	for _, tag := range tags {
 		typesTags[tag.Key] = types.StringValue(tag.Value)
 	}

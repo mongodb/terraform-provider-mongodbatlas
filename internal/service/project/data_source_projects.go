@@ -210,7 +210,7 @@ func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClien
 		project := input[i]
 		projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, project.GetId())
 		if err == nil { // if the project is still valid, e.g. could have just been deleted
-			projectModel, diags := NewTFProjectDataSourceModel(ctx, &project, *projectProps, false)
+			projectModel, diags := NewTFProjectDataSourceModel(ctx, &project, *projectProps)
 			diagnostics = append(diagnostics, diags...)
 			if projectModel != nil {
 				results = append(results, projectModel)

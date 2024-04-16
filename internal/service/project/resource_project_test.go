@@ -987,7 +987,10 @@ func TestAccProject_withTags(t *testing.T) {
 		nameUpdated  = "my-tag-name-updated"
 		envUnchanged = "unchanged"
 		tagsEmpty    = map[string]string{}
-		tags1        = map[string]string{
+		// tagsLong     = map[string]string{
+		// 	"Long": strings.Repeat("a", 257),
+		// }
+		tags1 = map[string]string{
 			"Name":        "my-tag-name",
 			"Environment": envUnchanged,
 			"Deleted":     "short-lived",
@@ -1007,6 +1010,11 @@ func TestAccProject_withTags(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
+			// tag errors, must be fixed in backend.
+			// {
+			// 	Config:      configWithTags(orgID, projectName, tagsLong),
+			// 	ExpectError: regexp.MustCompile("xaczxcvzvczcv"),
+			// },
 			// no tags
 			{
 				Config: configWithTags(orgID, projectName, nil),

@@ -213,7 +213,7 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		return
 	}
 
-	newProjectState, diags := NewTFProjectDataSourceModel(ctx, project, *projectProps, false)
+	newProjectState, diags := NewTFProjectDataSourceModel(ctx, project, *projectProps)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
