@@ -18,7 +18,7 @@ jobs:
       user_name: 'svc-apix-bot'
     secrets:
       remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
-      GPG_PRIVATE_KEY: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
-      PASSPHRASE: ${{ secrets.APIX_BOT_PASSPHRASE }}     
+      gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
+      passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}     
 
   

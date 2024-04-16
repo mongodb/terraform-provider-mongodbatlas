@@ -49,8 +49,9 @@ jobs:
       user_email: 'releasebot@mongodb.com'
       user_name: 'releasebot'
     secrets:
-      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-      PASSPHRASE: ${{ secrets.PASSPHRASE }}     
+      remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
+      gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+      passphrase: ${{ secrets.PASSPHRASE }}     
 
   update-changelog-header:
     needs: [ validate-version-input, run-qa-acceptance-tests, update-examples-reference-in-docs ]
@@ -68,8 +69,9 @@ jobs:
       user_email: 'releasebot@mongodb.com'
       user_name: 'releasebot'
     secrets:
-      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-      PASSPHRASE: ${{ secrets.PASSPHRASE }} 
+      remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
+      gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+      passphrase: ${{ secrets.PASSPHRASE }} 
   
   release:
     runs-on: ubuntu-latest
