@@ -31,6 +31,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/pushbasedlogexport"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
@@ -420,6 +421,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		atlasuser.DataSource,
 		atlasuser.PluralDataSource,
 		searchdeployment.DataSource,
+		pushbasedlogexport.DataSource,
 	}
 	previewDataSources := []func() datasource.DataSource{
 		streaminstance.DataSource,
@@ -441,6 +443,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		alertconfiguration.Resource,
 		projectipaccesslist.Resource,
 		searchdeployment.Resource,
+		pushbasedlogexport.Resource,
 	}
 	previewResources := []func() resource.Resource{
 		streaminstance.Resource,
