@@ -67,7 +67,8 @@ func TestMigProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 		config       = configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment)
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	// Serial so it doesn't conflict with TestAccProjectIPAccessList_settingAWSSecurityGroup
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckPeeringEnvAWS(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{

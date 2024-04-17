@@ -15,11 +15,12 @@ func TestMigNetworkContainer_basicAWS(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		randInt   = acctest.RandIntRange(0, 255)
-		cidrBlock = fmt.Sprintf("11.8.%d.0/24", randInt)
+		cidrBlock = fmt.Sprintf("10.8.%d.0/24", randInt)
 		config    = configBasic(projectID, cidrBlock, constant.AWS, "US_EAST_1")
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	// Serial so it doesn't conflict with TestAccNetworkContainer_basicAWS
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasic(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
@@ -37,11 +38,12 @@ func TestMigNetworkContainer_basicAzure(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		randInt   = acctest.RandIntRange(0, 255)
-		cidrBlock = fmt.Sprintf("11.8.%d.0/24", randInt)
+		cidrBlock = fmt.Sprintf("10.8.%d.0/24", randInt)
 		config    = configBasic(projectID, cidrBlock, constant.AZURE, "US_EAST_2")
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	// Serial so it doesn't conflict with TestAccNetworkContainer_basicAzure
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasic(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
@@ -59,11 +61,12 @@ func TestMigNetworkContainer_basicGCP(t *testing.T) {
 	var (
 		projectID    = acc.ProjectIDExecution(t)
 		randInt      = acctest.RandIntRange(0, 255)
-		gcpCidrBlock = fmt.Sprintf("11.%d.0.0/18", randInt)
+		gcpCidrBlock = fmt.Sprintf("10.%d.0.0/18", randInt)
 		config       = configBasic(projectID, gcpCidrBlock, constant.GCP, "")
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	// Serial so it doesn't conflict with TestAccNetworkContainer_basicGCP
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasic(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
