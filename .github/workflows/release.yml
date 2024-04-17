@@ -46,8 +46,10 @@ jobs:
       script_call: './scripts/update-examples-reference-in-docs.sh ${{inputs.version_number}}'
       file_to_commit: 'website/docs/index.html.markdown'
       commit_message: 'Update examples link in index.html.markdown for ${{ github.event.inputs.version_number }} release'
-      user_email: 'releasebot@mongodb.com'
-      user_name: 'releasebot'
+    secrets:
+      remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
+      gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
+      passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}      
 
   update-changelog-header:
     needs: [ validate-version-input, run-qa-acceptance-tests, update-examples-reference-in-docs ]
@@ -62,8 +64,10 @@ jobs:
       script_call: './scripts/update-changelog-header-for-release.sh ${{inputs.version_number}}'
       file_to_commit: 'CHANGELOG.md'
       commit_message: 'Update CHANGELOG.md header for ${{ github.event.inputs.version_number }} release'
-      user_email: 'releasebot@mongodb.com'
-      user_name: 'releasebot'
+    secrets:
+      remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
+      gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
+      passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}     
   
   release:
     runs-on: ubuntu-latest
