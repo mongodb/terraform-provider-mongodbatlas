@@ -70,8 +70,3 @@ jobs:
     needs: [build, lint, shellcheck, unit-test, website-lint]
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
-  call-migration-tests-workflow:
-    needs: [build, lint, shellcheck, unit-test, website-lint]
-    secrets: inherit
-    uses: ./.github/workflows/migration-tests.yml
-

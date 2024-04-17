@@ -48,7 +48,7 @@ jobs:
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
 
-  mig-tests:
+  tests:
     needs: [clean-before, versions]
     if: ${{ !cancelled() }}
     strategy:
@@ -57,37 +57,23 @@ jobs:
       matrix:
         terraform_version: ${{ fromJSON(needs.versions.outputs.terraform_matrix) }}
         provider_version: ${{ fromJSON(needs.versions.outputs.provider_matrix) }}
-    name: mig-tests-${{ matrix.terraform_version || 'latest' }}-${{ matrix.provider_version || 'latest' }}
-    secrets: inherit
-    uses: ./.github/workflows/migration-tests.yml
-    with:
-      terraform_version: ${{ matrix.terraform_version }}
-      provider_version: ${{ matrix.provider_version }}
-
-  acc-tests:
-    needs: [clean-before, versions]
-    if: ${{ !cancelled() }}
-    strategy:
-      max-parallel: 1
-      fail-fast: false
-      matrix:
-        terraform_version: ${{ fromJSON(needs.versions.outputs.terraform_matrix) }}
-    name: acc-tests-${{ matrix.terraform_version || 'latest' }}
+    name: tests-${{ matrix.terraform_version || 'latest' }}-${{ matrix.provider_version || 'latest' }}
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
       terraform_version: ${{ matrix.terraform_version }}
+      provider_version: ${{ matrix.provider_version }}
       atlas_cloud_env: ${{ inputs.atlas_cloud_env }}
 
   clean-after:
-    needs: [mig-tests, acc-tests]
+    needs: tests
     if: ${{ !cancelled() }}
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
   
   slack-notification:
-    needs: [mig-tests, acc-tests, clean-after]
-    if: ${{ !cancelled() && github.event_name == 'schedule' && (needs.mig-tests.result == 'failure' || needs.acc-tests.result == 'failure')}}
+    needs: [tests, clean-after]
+    if: ${{ !cancelled() && github.event_name == 'schedule' && needs.tests.result == 'failure'}}
     runs-on: ubuntu-latest
     steps:
       - name: Send Slack message

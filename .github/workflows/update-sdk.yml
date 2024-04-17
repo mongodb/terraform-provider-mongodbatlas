@@ -18,10 +18,10 @@ jobs:
       - name: Update files
         run:  make tools update-atlas-sdk
       - name: Verify Changed files
-        uses: tj-actions/verify-changed-files@3da26b2ca2b2791d4783124ead45684e860c7ee9
+        uses: tj-actions/verify-changed-files@5c70053821ef986fa44bfb3e3efd1b8c040046f0
         id: verify-changed-files
       - name: Create PR
-        uses: peter-evans/create-pull-request@70a41aba780001da0a30141984ae2a0c95d8704e
+        uses: peter-evans/create-pull-request@c55203cfde3e5c11a452d352b4393e68b85b4533
         if: steps.verify-changed-files.outputs.files_changed == 'true'
         with:
           title: "chore: Updates Atlas Go SDK"
