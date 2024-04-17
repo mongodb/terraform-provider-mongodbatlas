@@ -32,27 +32,14 @@ jobs:
         with:
           payload: |
             {
-              "text": "PR to review",
+              "text": "Terraform PR to review",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*PR to review* for Terraform repo @cloud-docs-on-call"
+                    "text": "hi @cloud-docs-on-call, can you please review doc for <${{ github.event.pull_request.html_url }}|this Terraform PR>? thanks a lot!"
                   }
-                },
-                {
-                  "type": "actions",
-                  "elements": [
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": ":github: PR"
-                        },
-                        "url": "${{ github.event.pull_request.html_url }}"
-                    }
-                ]
                 }
               ]
             }
