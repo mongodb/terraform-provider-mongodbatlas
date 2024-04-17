@@ -13,12 +13,6 @@ on:
       commit_message:
         required: true
         type: string
-      user_email:
-        required: true
-        type: string
-      user_name:
-        required: true
-        type: string
     secrets:
       remote:
         required: true
@@ -56,8 +50,8 @@ jobs:
         run: |
           if [[ $(git status --porcelain) ]]; then
             git pull
-            git config --local user.email ${{ inputs.user_email }}
-            git config --local user.name ${{ inputs.user_name }}
+            git config --local user.email svc-api-experience-integrations-escalation@mongodb.com
+            git config --local user.name svc-apix-bot
             git remote set-url origin ${{ secrets.remote }}
             git add ${{ inputs.file_to_commit }}
             git commit -m "${{ inputs.commit_message }}"

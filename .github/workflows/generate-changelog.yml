@@ -14,8 +14,6 @@ jobs:
       script_call: 'make tools update-changelog-unreleased-section'
       file_to_commit: 'CHANGELOG.md'
       commit_message: ${{ github.event_name == 'workflow_dispatch' && 'Update CHANGELOG.md (Manual Trigger)' || format('{0}{1}', 'Update CHANGELOG.md for \#', github.event.pull_request.number) }}
-      user_email: 'svc-api-experience-integrations-escalation@mongodb.com'
-      user_name: 'svc-apix-bot'
     secrets:
       remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
       gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
