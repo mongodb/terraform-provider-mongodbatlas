@@ -16,6 +16,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/stretchr/testify/mock"
 
@@ -1035,10 +1036,20 @@ func TestAccProject_withTags(t *testing.T) {
 				Config: configWithTags(orgID, projectName, tagsOneUpdatedOneDeleted),
 				Check:  tagChecks(tagsOneUpdatedOneDeleted, "Deleted"),
 			},
-			// ignore, Name is ignored, Environment & NewKey should be deleted
+			// ignore, tags["Name"] is ignored, Environment & NewKey should be deleted
 			{
 				Config: configWithTags(orgID, projectName, map[string]string{}, `tags["Name"]`),
 				Check:  tagChecks(tagsOnlyIgnored, "Environment", "NewKey"),
+			},
+			// remove the lifecycle {ignore = [tags.["Name"]]}, No changes should be expected
+			{
+				Config: configWithTags(orgID, projectName, tagsOnlyIgnored),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						acc.DebugPlan(),
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
 			},
 			{
 				ResourceName:            resourceName,
@@ -1202,7 +1213,7 @@ resource "mongodbatlas_project" "test" {
 data "mongodbatlas_project" "test" {
 	project_id = mongodbatlas_project.test.id
 }
-`, orgID, projectName, acc.HclMap(tags, "\t", "tags"), acc.HclLifecycleIgnore(ignoreKeys...))
+`, orgID, projectName, acc.FormatToHCLMap(tags, "\t", "tags"), acc.FormatToHCLLifecycleIgnore(ignoreKeys...))
 }
 
 type TeamRoleResponse struct {
