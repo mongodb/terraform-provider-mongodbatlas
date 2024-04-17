@@ -2,7 +2,7 @@ name: Notify Docs team
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, edited, ready_for_review]
+    types: [ready_for_review]
 
 jobs:
   check:
