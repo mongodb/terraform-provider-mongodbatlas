@@ -1,3 +1,5 @@
+# Example - Alert Configuration
+
 ## Using the data source
 Example exists in `alert-configurations-data.tf`. To use this example exactly:
 - Copy directory to local disk
