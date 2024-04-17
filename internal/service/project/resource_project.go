@@ -254,7 +254,6 @@ func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 			"tags": schema.MapAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
-				Computed:    true,
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -588,6 +587,9 @@ func updatePlanFromConfig(projectPlanNewPtr, projectPlan *TFProjectRSModel) {
 	// https://discuss.hashicorp.com/t/boolean-optional-default-value-migration-to-framework/55932
 	projectPlanNewPtr.WithDefaultAlertsSettings = projectPlan.WithDefaultAlertsSettings
 	projectPlanNewPtr.ProjectOwnerID = projectPlan.ProjectOwnerID
+	if projectPlan.Tags.IsNull() {
+		projectPlanNewPtr.Tags = types.MapNull(types.StringType)
+	}
 }
 
 func FilterUserDefinedLimits(allAtlasLimits []admin.DataFederationLimit, tflimits []TFLimitModel) []admin.DataFederationLimit {
