@@ -82,7 +82,7 @@ func Resource() *schema.Resource {
 			"auto_defer_once_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
+				// Computed: true, -- just a temp change to trigger changelog error
 			},
 		},
 	}
