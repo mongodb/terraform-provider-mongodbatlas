@@ -96,11 +96,6 @@ func addAttrChecks(checks []resource.TestCheckFunc, mapChecks map[string]string)
 	return acc.AddAttrChecks(datasourceName, checks, mapChecks)
 }
 
-// func addAttrSetChecks(checks []resource.TestCheckFunc, attrNames ...string) []resource.TestCheckFunc {
-// 	checks = acc.AddAttrSetChecks(resourceName, checks, attrNames...)
-// 	return acc.AddAttrSetChecks(datasourceName, checks, attrNames...)
-// }
-
 func configBasic(projectName, orgID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath string, usePrefixPath bool) string {
 	test := fmt.Sprintf(`
 	 	locals {
@@ -141,19 +136,6 @@ func configBasicUpdated(projectName, orgID, s3BucketName1, s3BucketName2, s3Buck
 	return test
 }
 
-// func localVarsConfig(projectName, orgID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName string) string {
-// 	return fmt.Sprintf(`
-// 	locals {
-// 		project_name = %[1]q
-// 		org_id = %[2]q
-// 		s3_bucket_name = %[3]q
-// 		s3_bucket_policy_name = %[4]q
-// 		aws_iam_role_policy_name = %[5]q
-// 		aws_iam_role_name = %[6]q
-// 	  }
-// `, projectName, orgID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName)
-// }
-
 // pushBasedLogExportConfig returns config for mongodbatlas_push_based_log_export resource and data source.
 // This method uses the project and S3 bucket created in awsIAMroleAuthAndS3Config()
 func pushBasedLogExportConfig(useBucket2, usePrefixPath bool, prefixPath string) string {
@@ -182,29 +164,6 @@ func pushBasedLogExportConfig(useBucket2, usePrefixPath bool, prefixPath string)
 	%[2]s
 	`, bucketNameAttr, pushBasedLogExportDataSourceConfig())
 }
-
-// func pushBasedLogExportConfigUpdatedBucket(usePrefixPath bool, prefixPath string) string {
-// 	if usePrefixPath {
-// 		return fmt.Sprintf(`resource "mongodbatlas_push_based_log_export" "test" {
-// 			project_id  = mongodbatlas_project.project-tf.id
-// 			bucket_name = aws_s3_bucket.log_bucket_2.bucket
-// 			iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-// 			prefix_path = %[1]q
-// 		}
-
-// 		%[2]s
-// 		`, prefixPath, pushBasedLogExportDataSourceConfig())
-// 	}
-
-// 	return fmt.Sprintf(`resource "mongodbatlas_push_based_log_export" "test" {
-// 		project_id  = mongodbatlas_project.project-tf.id
-// 		bucket_name = aws_s3_bucket.log_bucket_2.bucket
-// 		iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-// 	}
-
-// 	%[1]s
-// 	`, pushBasedLogExportDataSourceConfig())
-// }
 
 func pushBasedLogExportDataSourceConfig() string {
 	return `data "mongodbatlas_push_based_log_export" "test" {
@@ -325,109 +284,6 @@ resource "aws_iam_role_policy" "s3_bucket_policy" {
 }
 		`
 }
-
-// func awsS3Config() string {
-// 	return `
-// 	resource "aws_s3_bucket" "log_bucket" {
-// 		bucket = local.s3_bucket_name
-// 		force_destroy = true  # required as atlas creates a test folder in the bucket when mongodbatlas_push_based_log_export is set up
-// 	  }
-
-// 	  resource "aws_iam_role_policy" "s3_bucket_policy" {
-// 		name = local.s3_bucket_policy_name
-// 		role = aws_iam_role.test_role.id
-
-// 		policy = <<-EOF
-// 		{
-// 		  "Version": "2012-10-17",
-// 		  "Statement": [
-// 			  {
-// 				  "Effect": "Allow",
-// 				  "Action": [
-// 					  "s3:ListBucket",
-// 					  "s3:PutObject",
-// 					  "s3:GetObject",
-// 					  "s3:GetBucketLocation"
-// 				  ],
-// 				  "Resource": [
-// 					  "arn:aws:s3:::maastha-test",
-// 					  "arn:aws:s3:::maastha-test/*"
-// 				  ]
-// 			  }
-// 		  ]
-// 	  }
-// 		EOF
-// 	  }
-// 	`
-// }
-
-// func atlasProjectCloudProviderSetupConfig() string {
-// 	return `
-// 	resource "mongodbatlas_project" "project-tf" {
-// 		name     = local.project_name
-// 		org_id = local.org_id
-// 	}
-
-// 	resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
-// 		project_id    = mongodbatlas_project.project-tf.id
-// 		provider_name = "AWS"
-// 	}
-
-// 	resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
-// 		project_id    = mongodbatlas_project.project-tf.id
-// 		role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
-
-// 		aws {
-// 		  iam_assumed_role_arn = aws_iam_role.test_role.arn
-// 		}
-// 	}`
-// }
-
-// func awsIAMRoleConfig() string {
-// 	return `
-// resource "aws_iam_role_policy" "test_policy" {
-//   name = local.aws_iam_role_policy_name
-//   role = aws_iam_role.test_role.id
-
-//   policy = <<-EOF
-//   {
-//     "Version": "2012-10-17",
-//     "Statement": [
-//       {
-//         "Effect": "Allow",
-// 		"Action": "*",
-// 		"Resource": "*"
-//       }
-//     ]
-//   }
-//   EOF
-// }
-
-// resource "aws_iam_role" "test_role" {
-//   name = local.aws_iam_role_name
-//   max_session_duration = 43200
-
-//   assume_role_policy = <<EOF
-// {
-//   "Version": "2012-10-17",
-//   "Statement": [
-//     {
-//       "Effect": "Allow",
-//       "Principal": {
-//         "AWS": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_aws_account_arn}"
-//       },
-//       "Action": "sts:AssumeRole",
-//       "Condition": {
-//         "StringEquals": {
-//           "sts:ExternalId": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_assumed_role_external_id}"
-//         }
-//       }
-//     }
-//   ]
-// }
-// EOF
-// }`
-// }
 
 func checkDestroy(state *terraform.State) error {
 	if projectDestroyedErr := acc.CheckDestroyProject(state); projectDestroyedErr != nil {

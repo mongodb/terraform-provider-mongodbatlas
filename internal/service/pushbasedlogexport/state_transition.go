@@ -19,9 +19,6 @@ const (
 	UnconfiguredState   = "UNCONFIGURED"
 	InitiatingState     = "INITIATING"
 	BucketVerifiedState = "BUCKET_VERIFIED"
-
-	BucketVerificationFailedState = "BUCKET_VERIFICATION_FAILED"
-	AssumeRoleFailedState         = "ASSUME_ROLE_FAILED"
 )
 
 func WaitStateTransition(ctx context.Context, projectID string, client admin.PushBasedLogExportApi,
@@ -68,9 +65,6 @@ func refreshFunc(ctx context.Context, projectID string, client admin.PushBasedLo
 			if resp.StatusCode == 404 {
 				return "", retrystrategy.RetryStrategyDeletedState, nil
 			}
-			// if resp.StatusCode == 503 {
-			// 	return "", retrystrategy.RetryStrategyUpdatingState, nil
-			// }
 			return nil, "", err
 		}
 

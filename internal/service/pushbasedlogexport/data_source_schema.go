@@ -51,11 +51,6 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 							MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
 						},
 					},
-					// CustomType: LinksType{
-					// 	ObjectType: types.ObjectType{
-					// 		AttrTypes: LinksValue{}.AttributeTypes(ctx),
-					// 	},
-					// },
 				},
 				Computed:            true,
 				Description:         "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
