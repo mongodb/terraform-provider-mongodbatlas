@@ -46,7 +46,7 @@ func main() {
 		return
 	}
 
-	log.Fatalf("Changelog file %s not found due to the following reason: %v.\nHave you ran the `make generate-changelog-entry` command?\nIf this PR doesn't need a changelog entry file, Consider using label %s.\nRead contributing guides (https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/contributing/changelog-process.md) for more info.", filePath, errFile, skipLabelName)
+	log.Fatalf("Changelog file %s not found due to the following reason: %v.\nHave you ran the `make generate-changelog-entry` command?\nIf this PR doesn't need a changelog entry file, consider using label %s.\nRead contributing guides (https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/contributing/changelog-process.md) for more info.", filePath, errFile, skipLabelName)
 }
 
 func validateChangelog(filePath, body string) {
