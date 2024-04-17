@@ -1,4 +1,4 @@
-## Development Setup
+# Development Setup
 
 ## Table of Contents
 - [Prerequisite Tools](#prerequisite-tools)
