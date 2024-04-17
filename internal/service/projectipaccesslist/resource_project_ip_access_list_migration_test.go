@@ -12,8 +12,8 @@ import (
 
 func TestMigProjectIPAccessList_settingIPAddress(t *testing.T) {
 	var (
-		projectID = mig.ProjectIDGlobal(t)
-		ipAddress = acc.RandomIP(179, 154, 226)
+		projectID = acc.ProjectIDExecution(t)
+		ipAddress = acc.RandomIP(180, 154, 226)
 		comment   = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
 		config    = configWithIPAddress(projectID, ipAddress, comment)
 	)
@@ -34,8 +34,8 @@ func TestMigProjectIPAccessList_settingIPAddress(t *testing.T) {
 
 func TestMigProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 	var (
-		projectID = mig.ProjectIDGlobal(t)
-		cidrBlock = acc.RandomIP(179, 154, 226) + "/32"
+		projectID = acc.ProjectIDExecution(t)
+		cidrBlock = acc.RandomIP(180, 154, 226) + "/32"
 		comment   = fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
 		config    = configWithCIDRBlock(projectID, cidrBlock, comment)
 	)
@@ -56,7 +56,7 @@ func TestMigProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 
 func TestMigProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 	var (
-		projectID    = acc.ProjectIDExecution(t) // No mig.ProjectIDGlobal because network container
+		projectID    = acc.ProjectIDExecution(t)
 		awsSGroup    = os.Getenv("AWS_SECURITY_GROUP_1")
 		vpcID        = os.Getenv("AWS_VPC_ID")
 		vpcCIDRBlock = os.Getenv("AWS_VPC_CIDR_BLOCK")

@@ -13,9 +13,9 @@ import (
 
 func TestMigNetworkContainer_basicAWS(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t) // No mig.ProjectIDGlobal because network container
+		projectID = acc.ProjectIDExecution(t)
 		randInt   = acctest.RandIntRange(0, 255)
-		cidrBlock = fmt.Sprintf("10.8.%d.0/24", randInt)
+		cidrBlock = fmt.Sprintf("11.8.%d.0/24", randInt)
 		config    = configBasic(projectID, cidrBlock, constant.AWS, "US_EAST_1")
 	)
 
@@ -35,9 +35,9 @@ func TestMigNetworkContainer_basicAWS(t *testing.T) {
 
 func TestMigNetworkContainer_basicAzure(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t) // No mig.ProjectIDGlobal because network container
+		projectID = acc.ProjectIDExecution(t)
 		randInt   = acctest.RandIntRange(0, 255)
-		cidrBlock = fmt.Sprintf("10.8.%d.0/24", randInt)
+		cidrBlock = fmt.Sprintf("11.8.%d.0/24", randInt)
 		config    = configBasic(projectID, cidrBlock, constant.AZURE, "US_EAST_2")
 	)
 
@@ -57,9 +57,9 @@ func TestMigNetworkContainer_basicAzure(t *testing.T) {
 
 func TestMigNetworkContainer_basicGCP(t *testing.T) {
 	var (
-		projectID    = acc.ProjectIDExecution(t) // No mig.ProjectIDGlobal because network container
+		projectID    = acc.ProjectIDExecution(t)
 		randInt      = acctest.RandIntRange(0, 255)
-		gcpCidrBlock = fmt.Sprintf("10.%d.0.0/18", randInt)
+		gcpCidrBlock = fmt.Sprintf("11.%d.0.0/18", randInt)
 		config       = configBasic(projectID, gcpCidrBlock, constant.GCP, "")
 	)
 
