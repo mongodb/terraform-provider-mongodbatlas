@@ -1,8 +1,6 @@
 provider:
   name: mongodbatlas
 
-# TODO: Endpoints from Atlas Admin API must be specified for schema and model generation. Singular or plural data sources can be removed if not used.
-
 resources:
   push_based_log_export:
     read:
