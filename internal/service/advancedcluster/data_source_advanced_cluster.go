@@ -100,7 +100,7 @@ func DataSource() *schema.Resource {
 				Computed: true,
 			},
 			"replication_specs": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -113,7 +113,7 @@ func DataSource() *schema.Resource {
 							Computed: true,
 						},
 						"region_configs": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -208,6 +208,7 @@ func DataSource() *schema.Resource {
 						},
 					},
 				},
+				Set: replicationSpecsHashSet,
 			},
 			"root_cert_type": {
 				Type:     schema.TypeString,
@@ -298,7 +299,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "pit_enabled", clusterName, err))
 	}
 
-	replicationSpecs, err := flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), d.Get("replication_specs").([]any), d, connV2)
+	replicationSpecs, err := flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), d.Get("replication_specs").(*schema.Set).List(), d, connV2)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 	}
