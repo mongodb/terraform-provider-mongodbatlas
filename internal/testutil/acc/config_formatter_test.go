@@ -40,7 +40,7 @@ resource "mongodbatlas_project" "test" {
 
 }`
 
-func TestMapToHcl(t *testing.T) {
+func TestFormatToHCLMap(t *testing.T) {
 	testCases := map[string]struct {
 		values   map[string]string
 		expected string
@@ -54,7 +54,7 @@ func TestMapToHcl(t *testing.T) {
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			tags := acc.HclMap(tc.values, "\t", "tags")
+			tags := acc.FormatToHCLMap(tc.values, "\t", "tags")
 			assert.Equal(t, tc.expected, projectTemplateWithExtra(tags))
 		})
 	}
@@ -88,7 +88,7 @@ resource "mongodbatlas_project" "test" {
 	}
 }`
 
-func TestHclLifecycleIgnore(t *testing.T) {
+func TestFormatToHCLLifecycleIgnore(t *testing.T) {
 	testCases := []struct {
 		name     string
 		expected string
@@ -100,7 +100,7 @@ func TestHclLifecycleIgnore(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, projectTemplateWithExtra(acc.HclLifecycleIgnore(tc.keys...)))
+			assert.Equal(t, tc.expected, projectTemplateWithExtra(acc.FormatToHCLLifecycleIgnore(tc.keys...)))
 		})
 	}
 }

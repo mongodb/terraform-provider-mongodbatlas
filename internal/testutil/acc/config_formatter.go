@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func HclMap(m map[string]string, indent, varName string) string {
+func FormatToHCLMap(m map[string]string, indent, varName string) string {
 	if m == nil {
 		return ""
 	}
@@ -23,7 +23,7 @@ func HclMap(m map[string]string, indent, varName string) string {
 	return strings.Join(lines, "\n")
 }
 
-func HclLifecycleIgnore(keys ...string) string {
+func FormatToHCLLifecycleIgnore(keys ...string) string {
 	if len(keys) == 0 {
 		return ""
 	}
