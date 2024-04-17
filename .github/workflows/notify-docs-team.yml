@@ -2,10 +2,11 @@ name: Notify Docs team
 
 on:
   pull_request:
-    types: [ready_for_review]
+    types: [opened, ready_for_review]
 
 jobs:
   check:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     outputs:
       files: ${{ steps.changes.outputs.files }}
