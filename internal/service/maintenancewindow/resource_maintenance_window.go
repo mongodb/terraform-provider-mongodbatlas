@@ -183,10 +183,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	params := new(admin.GroupMaintenanceWindow)
-
-	if d.HasChange("day_of_week") {
-		params.DayOfWeek = cast.ToInt(d.Get("day_of_week"))
-	}
+	params.DayOfWeek = cast.ToInt(d.Get("day_of_week"))
 
 	if d.HasChange("hour_of_day") {
 		params.HourOfDay = conversion.Pointer(cast.ToInt(d.Get("hour_of_day")))

@@ -40,12 +40,32 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic(orgID, projectName, dayOfWeekUpdated, hourOfDayUpdated),
+				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDayUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
+					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDayUpdated)),
+					resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
+				),
+			},
+			{
+				Config: configBasic(orgID, projectName, dayOfWeekUpdated, hourOfDay),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeekUpdated)),
-					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDayUpdated)),
+					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDay)),
+					resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
+				),
+			},
+			{
+				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDay),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
+					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDay)),
 					resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
 				),
 			},
