@@ -42,5 +42,5 @@ Once a tag has been created in a previous execution, you can make use of the inp
 Depending on the nature of the failure, you may want to introduce new changes into the current release. In this case you must:
 - Delete the existing tag.
 - Incorporate any new fixes into master.
-- Manually trigger the [Generate Changelog workflow](https://github.com/AgustinBettati/terraform-provider-mongodbatlas/actions/workflows/generate-changelog.yml) to remove the current header and including any new entries that have been merged. This will run automatically if you have merged PRs after deleting the tag.
+- Manually trigger the [Generate Changelog workflow](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/generate-changelog.yml) to remove the current header and including any new entries that have been merged. This will run automatically if you have merged PRs after deleting the tag.
 - Trigger a new release process, this will create a tag that includes your latest fixes.
