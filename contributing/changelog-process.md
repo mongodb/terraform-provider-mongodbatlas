@@ -1,9 +1,9 @@
 # Changelog Process
 
-- [PR Changelog check](#pr-changelog-check)
+- [Script for creating changelog entry files](#script-for-creating-changelog-entry-files)
 - [Changelog format](#changelog-format)
 - [Changelog entry guidelines](#changelog-entry-guidelines)
-- [Script for creating changelog entry files](#script-for-creating-changelog-entry-files)
+- [PR Changelog check](#pr-changelog-check)
 - [Unreleased section of CHANGELOG.md automatic update](#unreleased-section-of-CHANGELOG.md-automatic-update)
 
 HashiCorp’s open-source projects have always maintained user-friendly, readable CHANGELOG.md that allow users to tell at a glance whether a release should have any effect on them, and to gauge the risk of an upgrade.
