@@ -1,5 +1,5 @@
 
-## Development Best Practices
+# Development Best Practices
 
 ## Table of Contents
 - [Creating New Resource and Data Sources](#creating-new-resources-and-data-sources)

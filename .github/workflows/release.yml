@@ -32,40 +32,52 @@ jobs:
     with:
       atlas_cloud_env: "qa"
       ref: ${{ inputs.use_existing_tag == 'true' && inputs.version_number  || github.ref }}
-
-  update-changelog-header:
-    runs-on: ubuntu-latest
+  
+  update-examples-reference-in-docs:
     needs: [ validate-version-input, run-qa-acceptance-tests ]
-    # Skipped if use_existing_tag is defined, is a pre-release, or previous jobs failed.
     if: >-
       always() 
       && inputs.use_existing_tag != 'true' 
       && !contains(inputs.version_number, 'pre') 
       && needs.validate-version-input.result == 'success' 
       && (needs.run-qa-acceptance-tests.result == 'skipped' || needs.run-qa-acceptance-tests.result == 'success')
-    steps:
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
-        with:
-          fetch-depth: 0
-      - run: ./scripts/update-changelog-header-for-release.sh ${{inputs.version_number}}
-      - run: |
-          if [[ $(git status --porcelain) ]]; then
-            MSG="Update CHANGELOG.md header for ${{inputs.version_number}} release"
-            git config --local user.email changelogbot@mongodb.com
-            git config --local user.name changelogbot
-            git add CHANGELOG.md
-            git commit -m "$MSG"
-            git push
-          fi
-    
+    uses: ./.github/workflows/run-script-and-commit.yml
+    with:
+      script_call: './scripts/update-examples-reference-in-docs.sh ${{inputs.version_number}}'
+      file_to_commit: 'website/docs/index.html.markdown'
+      commit_message: 'Update examples link in index.html.markdown for ${{ github.event.inputs.version_number }} release'
+    secrets:
+      remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
+      gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
+      passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}      
+
+  update-changelog-header:
+    needs: [ validate-version-input, run-qa-acceptance-tests, update-examples-reference-in-docs ]
+    if: >-
+      always() 
+      && inputs.use_existing_tag != 'true' 
+      && !contains(inputs.version_number, 'pre') 
+      && needs.validate-version-input.result == 'success' 
+      && (needs.run-qa-acceptance-tests.result == 'skipped' || needs.run-qa-acceptance-tests.result == 'success')
+    uses: ./.github/workflows/run-script-and-commit.yml
+    with:
+      script_call: './scripts/update-changelog-header-for-release.sh ${{inputs.version_number}}'
+      file_to_commit: 'CHANGELOG.md'
+      commit_message: 'Update CHANGELOG.md header for ${{ github.event.inputs.version_number }} release'
+    secrets:
+      remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
+      gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
+      passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}     
+  
   release:
     runs-on: ubuntu-latest
-    needs: [ validate-version-input, run-qa-acceptance-tests, update-changelog-header ]
+    needs: [ validate-version-input, run-qa-acceptance-tests, update-examples-reference-in-docs, update-changelog-header ]
     # Release is skipped if there are failures in previous steps
     if: >- 
       always() 
       && needs.validate-version-input.result == 'success' 
       && (needs.run-qa-acceptance-tests.result == 'skipped' || needs.run-qa-acceptance-tests.result == 'success') 
+      && (needs.update-examples-reference-in-docs.result == 'skipped' || needs.update-examples-reference-in-docs.result == 'success')
       && (needs.update-changelog-header.result == 'skipped' || needs.update-changelog-header.result == 'success')
     steps:
       - name: Checkout
