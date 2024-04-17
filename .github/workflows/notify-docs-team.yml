@@ -38,7 +38,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "hi @cloud-docs-on-call, can you please review doc for <${{ github.event.pull_request.html_url }}|this Terraform PR>? thanks a lot!"
+                    "text": "hey @cloud-docs-on-call, can you please review <${{ github.event.pull_request.html_url }}|this PR>? thanks a lot!"
                   }
                 }
               ]
