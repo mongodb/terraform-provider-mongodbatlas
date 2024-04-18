@@ -1,8 +1,8 @@
 # Changelog Process
 
+- [Script for creating changelog entry files](#script-for-creating-changelog-entry-files)
 - [Changelog format](#changelog-format)
 - [Changelog entry guidelines](#changelog-entry-guidelines)
-- [Script for creating changelog entry files](#script-for-creating-changelog-entry-files)
 - [PR Changelog check](#pr-changelog-check)
 - [Unreleased section of CHANGELOG.md automatic update](#unreleased-section-of-CHANGELOG.md-automatic-update)
 
@@ -11,6 +11,16 @@ HashiCorp’s open-source projects have always maintained user-friendly, readabl
 We use the [go-changelog](https://github.com/hashicorp/go-changelog) to generate and update the changelog automatically from files created in the `.changelog/` directory. It is important that when you raise your Pull Request, there is a changelog entry which describes the changes your contribution makes. Not all changes require an entry in the changelog, guidance follows on what changes do.
 
 `@mongodb/docs-cloud-team` will be required reviewers for new changelog entry files contained in a Pull Request. We will wait up to 24 hours for a review, and after that proceed with the merge. Exceptions for merging ahead of the 24 hours may also apply.
+
+## Script for creating changelog entry files
+
+A script is defined to guide the creation of new entry files, simplifying the process and avoiding errors. You can invoke the script using the following make command:
+
+```
+make generate-changelog-entry
+```
+
+- The `subcategory` input prompt refers to the prefix of the changelog entry, used for specifying the relevant resource/data source when needed (e.g. data-source/mongodbatlas_project)
 
 ## Changelog format
 
@@ -135,16 +145,6 @@ data-source/mongodbatlas_search_indexes: Removes `page_num` and `items_per_page`
 - Testing updates
 - Code refactoring
 - Dependency updates
-
-## Script for creating changelog entry files
-
-A script is defined to guide the creation of new entry files, simplifying the process and avoiding errors. You can invoke the script using the following make command:
-
-```
-make generate-changelog-entry
-```
-
-- The `subcategory` input prompt refers to the prefix of the changelog entry, used for specifying the relevant resource/data source when needed (e.g. data-source/mongodbatlas_project)
 
 ## PR Changelog check
 

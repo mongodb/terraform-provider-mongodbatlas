@@ -28,3 +28,19 @@ Pre-releases are not needed for a regular release process, but they can be gener
 - You will see the release in the [GitHub Release page](https://github.com/mongodb/terraform-provider-mongodbatlas/releases) once the [release action](.github/workflows/release.yml) has completed. HashiCorp has a process in place that will retrieve the latest release from the GitHub repository and add the binaries to the HashiCorp Terraform Registry (more details [here](https://developer.hashicorp.com/terraform/registry/providers/publishing#webhooks)).
 - **CDKTF Update - Only for major release, i.e. the left most version digit increment (see this [comment](https://github.com/cdktf/cdktf-repository-manager/pull/202#issuecomment-1602562201))**: Once the provider has been released, we need to update the provider version in our CDKTF. Raise a PR against [cdktf/cdktf-repository-manager](https://github.com/cdktf/cdktf-repository-manager).
   - Example PR: [#183](https://github.com/cdktf/cdktf-repository-manager/pull/183)
+
+## FAQ
+
+**What happens if a release execution fails to create the tag but generated automatic commits into master?**
+
+All steps before creating the tag are idempotent, meaning you can run the process again and no additional commits will be generated in the second run.
+
+**What happens if a release execution creates a tag but fails during acceptance tests or creating the release (go releaser step)?**
+
+Once a tag has been created in a previous execution, you can make use of the input `Using an existing tag` to run a new release process. 
+
+Depending on the nature of the failure, you may want to introduce new changes into the current release. In this case you must:
+- Delete the existing tag.
+- Incorporate any new fixes into master.
+- Manually trigger the [Generate Changelog workflow](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/generate-changelog.yml) to remove the current header and including any new entries that have been merged. This will run automatically if you have merged PRs after deleting the tag.
+- Trigger a new release process, this will create a tag that includes your latest fixes.
