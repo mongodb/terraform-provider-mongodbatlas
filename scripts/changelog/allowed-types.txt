@@ -1,6 +1,6 @@
 breaking-change
 new-resource
-new-data-source
+new-datasource
 new-guide
 note
 enhancement
