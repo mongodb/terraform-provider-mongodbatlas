@@ -78,7 +78,7 @@ resource "mongodbatlas_project" "test" {
   
   lifecycle {
     ignore_changes = [
-      tags["CostCenter"] # useful if `CostCenter` is managed outside terraform
+      tags["CostCenter"] # useful if `CostCenter` key is managed outside terraform
     ]
   }
 ```
