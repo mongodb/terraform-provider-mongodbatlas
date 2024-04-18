@@ -1008,7 +1008,6 @@ func TestAccProject_withTags(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
-			// no tags
 			{
 				Config: configWithTags(orgID, projectName, nil),
 				Check: resource.ComposeTestCheckFunc(
@@ -1018,7 +1017,6 @@ func TestAccProject_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceNameByID, "tags.#", "0"),
 				),
 			},
-			// empty tags
 			{
 				Config: configWithTags(orgID, projectName, tagsEmpty),
 				Check: resource.ComposeTestCheckFunc(
@@ -1026,22 +1024,18 @@ func TestAccProject_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceNameByID, "tags.#", "0"),
 				),
 			},
-			// create tags
 			{
 				Config: configWithTags(orgID, projectName, tags1),
 				Check:  tagChecks(tags1),
 			},
-			// update & delete, Name is updated, Deleted is removed
 			{
 				Config: configWithTags(orgID, projectName, tagsOneUpdatedOneDeleted),
 				Check:  tagChecks(tagsOneUpdatedOneDeleted, "Deleted"),
 			},
-			// ignore, tags["Name"] is ignored, Environment & NewKey should be deleted
 			{
 				Config: configWithTags(orgID, projectName, map[string]string{}, `tags["Name"]`),
 				Check:  tagChecks(tagsOnlyIgnored, "Environment", "NewKey"),
 			},
-			// remove the lifecycle {ignore = [tags.["Name"]]}, No changes should be expected
 			{
 				Config: configWithTags(orgID, projectName, tagsOnlyIgnored),
 				ConfigPlanChecks: resource.ConfigPlanChecks{

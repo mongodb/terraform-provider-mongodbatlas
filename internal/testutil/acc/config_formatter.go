@@ -43,7 +43,7 @@ func FormatToHCLLifecycleIgnore(keys ...string) string {
 
 // make test deterministic
 func sortStringMapKeys(m map[string]string) []string {
-	keys := make([]string, 0)
+	keys := make([]string, 0, len(m))
 	for k := range m {
 		keys = append(keys, k)
 	}
