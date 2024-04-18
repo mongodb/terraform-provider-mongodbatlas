@@ -2,6 +2,6 @@
 resource/mongodbatlas_push_based_log_export: Adds support for Push-Based logging to S3.
 ```
 
-```release-note:new-data-source
-resource/mongodbatlas_push_based_log_export: Adds support for Push-Based logging to S3.
+```release-note:new-datasource
+data-source/mongodbatlas_push_based_log_export: Adds support for Push-Based logging to S3.
 ```

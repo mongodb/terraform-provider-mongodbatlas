@@ -169,6 +169,14 @@ func PreCheckPeeringEnvGCP(tb testing.TB) {
 	}
 }
 
+func PreCheckAwsEnvBasic(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("AWS_ACCESS_KEY_ID") == "" ||
+		os.Getenv("AWS_SECRET_ACCESS_KEY") == "" {
+		tb.Fatal("`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` must be set for acceptance testing")
+	}
+}
+
 func PreCheckAwsEnv(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("AWS_ACCESS_KEY_ID") == "" ||
