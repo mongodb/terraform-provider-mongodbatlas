@@ -10,7 +10,7 @@ import (
 
 func TestMigOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 	var (
-		projectID   = mig.ProjectIDGlobal(t)
+		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
 		config      = configSingleRegion(projectID, clusterName)
 	)
@@ -38,7 +38,7 @@ func TestMigOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 
 func TestMigOutageSimulationCluster_MultiRegion_basic(t *testing.T) {
 	var (
-		projectID   = mig.ProjectIDGlobal(t)
+		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
 		config      = configMultiRegion(projectID, clusterName)
 	)

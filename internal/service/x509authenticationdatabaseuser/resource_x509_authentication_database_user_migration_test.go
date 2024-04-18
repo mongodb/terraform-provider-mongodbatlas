@@ -11,7 +11,7 @@ import (
 
 func TestMigGenericX509AuthDBUser_basic(t *testing.T) {
 	var (
-		projectID = mig.ProjectIDGlobal(t)
+		projectID = acc.ProjectIDExecution(t)
 		username  = acc.RandomName()
 		config    = configBasic(projectID, username)
 	)
@@ -41,7 +41,7 @@ func TestMigGenericX509AuthDBUser_withCustomerX509(t *testing.T) {
 	var (
 		cas         = os.Getenv("CA_CERT")
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName() // No ProjectIDExecution or ProjectIDGlobal to avoid CANNOT_GENERATE_CERT_IF_ADVANCED_X509
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid CANNOT_GENERATE_CERT_IF_ADVANCED_X509
 		config      = configWithCustomerX509(orgID, projectName, cas)
 	)
 

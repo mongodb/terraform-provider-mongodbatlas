@@ -19,7 +19,7 @@ const (
 )
 
 func TestAccServerlessInstance_basic(t *testing.T) {
-	resource.ParallelTest(t, *basicTestCase(t, acc.ProjectIDExecution(t)))
+	resource.ParallelTest(t, *basicTestCase(t))
 }
 
 func TestAccServerlessInstance_withTags(t *testing.T) {
@@ -123,10 +123,11 @@ func TestAccServerlessInstance_autoIndexing(t *testing.T) {
 	})
 }
 
-func basicTestCase(tb testing.TB, projectID string) *resource.TestCase {
+func basicTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 
 	var (
+		projectID    = acc.ProjectIDExecution(tb)
 		instanceName = acc.RandomClusterName()
 	)
 	return &resource.TestCase{
