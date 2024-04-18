@@ -136,7 +136,8 @@ func TestAccNetworkContainer_updateIndividualFields(t *testing.T) {
 		regionUpdated    = "EU_WEST_2"
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	// Serial so it doesn't conflict with TestAccNetworkContainer_basicAWS
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
