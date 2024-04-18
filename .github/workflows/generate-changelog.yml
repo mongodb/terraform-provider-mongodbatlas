@@ -15,6 +15,7 @@ jobs:
       file_to_commit: 'CHANGELOG.md'
       commit_message: ${{ github.event_name == 'workflow_dispatch' && 'Update CHANGELOG.md (Manual Trigger)' || format('{0}{1}', 'Update CHANGELOG.md for \#', github.event.pull_request.number) }}
     secrets:
+      apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
       remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
       gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
       passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}     

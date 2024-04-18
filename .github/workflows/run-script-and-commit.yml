@@ -14,6 +14,8 @@ on:
         required: true
         type: string
     secrets:
+      apix_bot_pat:
+        required: true
       remote:
         required: true
       gpg_private_key:
@@ -29,6 +31,7 @@ jobs:
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           fetch-depth: 0
+          token: ${{ secrets.apix_bot_pat }}
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
