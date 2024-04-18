@@ -32,13 +32,12 @@ jobs:
         with:
           payload: |
             {
-              "text": "Terraform PR to review",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "hey @cloud-docs-on-call, this is :apix: bot, can you please review <${{ github.event.pull_request.html_url }}|this PR>? thanks a lot!"
+                    "text": "hey @cloud-docs-on-call, this is :apix: bot, can you please review Terraform <${{ github.event.pull_request.html_url }}|PR ${{ github.event.pull_request.number }}>? thanks a lot!"
                   }
                 }
               ]
