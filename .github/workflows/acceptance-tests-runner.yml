@@ -345,7 +345,7 @@ jobs:
             ./internal/service/streamconnection
         run: make testacc
 
-  generic: # Acceptance tests that do not use any time-consuming resource (example: cluster)
+  generic:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.generic == 'true' || inputs.test_group == 'generic' }}
     runs-on: ubuntu-latest
