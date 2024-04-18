@@ -7,5 +7,5 @@ import (
 )
 
 func TestMigServerlessInstance_basic(t *testing.T) {
-	mig.CreateAndRunTest(t, basicTestCase(t, mig.ProjectIDGlobal(t)))
+	mig.CreateAndRunTest(t, basicTestCase(t))
 }
