@@ -15,7 +15,8 @@ func TestMigGenericAuditing_basic(t *testing.T) {
 		config      = configBasic(projectID, auditFilter, true, true)
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	// Serial so it doesn't conflict with TestAccGenericAuditing_basic
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
