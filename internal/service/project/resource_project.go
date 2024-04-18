@@ -80,11 +80,6 @@ type TFTeamModel struct {
 	RoleNames types.Set    `tfsdk:"role_names"`
 }
 
-type TFTagModel struct {
-	Key   types.String `tfsdk:"key"`
-	Value types.String `tfsdk:"value"`
-}
-
 type TFLimitModel struct {
 	Name         types.String `tfsdk:"name"`
 	Value        types.Int64  `tfsdk:"value"`
