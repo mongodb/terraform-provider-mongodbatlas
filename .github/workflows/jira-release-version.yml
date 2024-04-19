@@ -1,0 +1,32 @@
+name: Jira Release Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_number:
+        description: 'Version number, no pre-releases (e.g., v1.0.0)'
+        type: string
+        required: true
+
+  workflow_call:
+    inputs:
+      version_number:
+        description: 'Version number, no pre-releases (e.g., v1.0.0)'
+        type: string
+        required: true
+
+jobs:
+  release-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
+      - name: Validation of version format, no pre-releases
+        run: |
+          echo "${{ inputs.version_number }}" | grep -P '^v\d+\.\d+\.\d+$'
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
+        with:
+          go-version-file: 'go.mod'
+      - run: make jira-release-version
+        env:
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          VERSION_NUMBER: ${{ inputs.version_number }}

@@ -44,3 +44,7 @@ Depending on the nature of the failure, you may want to introduce new changes in
 - Incorporate any new fixes into master.
 - Manually trigger the [Generate Changelog workflow](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/generate-changelog.yml) to remove the current header and including any new entries that have been merged. This will run automatically if you have merged PRs after deleting the tag.
 - Trigger a new release process, this will create a tag that includes your latest fixes.
+
+**What happens if all the release process works except the last step to release the version in Jira?**
+
+In this case there is no need to run the full release process again. Once the problem is found and fixed, the [Jira Release Version action](.github/workflows/jira-release-version.yml) can be run manually.
