@@ -25,7 +25,7 @@ jobs:
     if: ${{ needs.check.outputs.files == 'true' }}
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: write
+      pull-requests: write # Needed by sticky-pull-request-comment
     steps:
       - uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001
         env:
