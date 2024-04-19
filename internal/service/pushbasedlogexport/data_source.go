@@ -59,7 +59,6 @@ func convertToDSModel(inputModel *TFPushBasedLogExportRSModel) TFPushBasedLogExp
 		ProjectID:  inputModel.ProjectID,
 		IamRoleID:  inputModel.IamRoleID,
 		PrefixPath: inputModel.PrefixPath,
-		Links:      inputModel.Links,
 		State:      inputModel.State,
 	}
 }
