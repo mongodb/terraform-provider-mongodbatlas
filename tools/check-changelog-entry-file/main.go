@@ -55,6 +55,7 @@ func validateChangelog(filePath, body string) {
 	entry := changelog.Entry{
 		Body: body,
 	}
+	// grabbing validation logic from https://github.com/hashicorp/go-changelog/blob/main/entry.go#L66, if it becomes configurable we can invoke entry.Validate() directly
 	notes := changelog.NotesFromEntry(entry)
 
 	if len(notes) < 1 {
@@ -74,9 +75,9 @@ func validateChangelog(filePath, body string) {
 	fmt.Printf("Changelog entry file is valid: %s\n", filePath)
 }
 
-func isValidType(t string) bool {
+func isValidType(entryType string) bool {
 	for _, a := range allowedTypeValues {
-		if a == t {
+		if a == entryType {
 			return true
 		}
 	}
