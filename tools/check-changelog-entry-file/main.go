@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -55,7 +54,7 @@ func validateChangelog(filePath, body string) {
 	entry := changelog.Entry{
 		Body: body,
 	}
-	// grabbing validation logic from https://github.com/hashicorp/go-changelog/blob/main/entry.go#L66, if it becomes configurable we can invoke entry.Validate() directly
+	// grabbing validation logic from https://github.com/hashicorp/go-changelog/blob/main/entry.go#L66, if entry types become configurable we can invoke entry.Validate() directly
 	notes := changelog.NotesFromEntry(entry)
 
 	if len(notes) < 1 {
@@ -103,19 +102,11 @@ func skipLabel(labels []string) bool {
 }
 
 func getValidTypes(path string) []string {
-	file, err := os.Open(path)
-	if err != nil {
+	content, errFile := os.ReadFile(path)
+	if errFile != nil {
 		log.Fatalf("Error getting allowed entry types from %s", path)
 	}
-	defer file.Close()
-
-	var lines []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line != "" {
-			lines = append(lines, line)
-		}
-	}
-	return lines
+	lines := strings.Split(string(content), "\n")
+	allowedTypes := lines[:len(lines)-1] // remove last element as it is an empty string
+	return allowedTypes
 }
