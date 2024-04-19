@@ -26,7 +26,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: write # Permission is required to use sticky-pull-request-comment. See https://github.com/marocchino/sticky-pull-request-comment?tab=readme-ov-file#error-resource-not-accessible-by-integration
+      pull-requests: write # Needed by sticky-pull-request-comment
     steps:
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
