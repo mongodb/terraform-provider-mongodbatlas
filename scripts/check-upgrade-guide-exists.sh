@@ -13,7 +13,7 @@ if [ "$PATCH" -eq 0 ]; then
     UPGRADE_GUIDE_PATH="website/docs/guides/$MAJOR.$MINOR.$PATCH-upgrade-guide.html.markdown"
     echo "Checking for the presence of $UPGRADE_GUIDE_PATH"
     if [ ! -f "$UPGRADE_GUIDE_PATH" ]; then
-        echo "Stopping release process, upgrade guide $UPGRADE_GUIDE_PATH does not exist. Please visit our releasing documentation for more details."
+        echo "Stopping release process, upgrade guide $UPGRADE_GUIDE_PATH does not exist. Please visit our docs for more details: https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/RELEASING.md"
         exit 1
     else
         echo "Upgrade guide $UPGRADE_GUIDE_PATH exists."
