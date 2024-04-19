@@ -11,11 +11,13 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-const pushBasedLogExportName = "push_based_log_export"
-
-const defaultTimeout time.Duration = 15 * time.Minute
-const minTimeoutCreateUpdate time.Duration = 1 * time.Minute
-const minTimeoutDelete time.Duration = 30 * time.Second
+const (
+	pushBasedLogExportName               = "push_based_log_export"
+	defaultTimeout         time.Duration = 15 * time.Minute
+	minTimeoutCreateUpdate time.Duration = 1 * time.Minute
+	minTimeoutDelete       time.Duration = 30 * time.Second
+	retryTimeDelay         time.Duration = 10 * time.Second
+)
 
 var _ resource.ResourceWithConfigure = &pushBasedLogExportRS{}
 var _ resource.ResourceWithImportState = &pushBasedLogExportRS{}
@@ -169,6 +171,6 @@ func retryTimeConfig(configuredTimeout, minTimeout time.Duration) retrystrategy.
 	return retrystrategy.TimeConfig{
 		Timeout:    configuredTimeout,
 		MinTimeout: minTimeout,
-		Delay:      10 * time.Second,
+		Delay:      retryTimeDelay,
 	}
 }

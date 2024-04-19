@@ -3,12 +3,12 @@ package pushbasedlogexport_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/pushbasedlogexport"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -20,9 +20,14 @@ const (
 )
 
 func TestAccPushBasedLogExport_basic(t *testing.T) {
+	resource.Test(t, *basicTestCase(t))
+}
+
+func basicTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+
 	var (
-		orgID                = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName          = acc.RandomProjectName()
+		projectID            = acc.ProjectIDExecution(tb)
 		s3BucketNamePrefix   = fmt.Sprintf("tf-%s", acc.RandomName())
 		s3BucketName1        = fmt.Sprintf("%s-1", s3BucketNamePrefix)
 		s3BucketName2        = fmt.Sprintf("%s-2", s3BucketNamePrefix)
@@ -30,22 +35,23 @@ func TestAccPushBasedLogExport_basic(t *testing.T) {
 		awsIAMRoleName       = acc.RandomIAMRole()
 		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
 	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb); acc.PreCheckAwsEnvBasic(tb) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectName, orgID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true),
+				Config: configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true),
 				Check:  resource.ComposeTestCheckFunc(commonChecks(s3BucketName1, nonEmptyPrefixPath)...),
 			},
 			{
-				Config: configBasicUpdated(projectName, orgID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true),
+				Config: configBasicUpdated(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true),
 				Check:  resource.ComposeTestCheckFunc(commonChecks(s3BucketName2, nonEmptyPrefixPath)...),
 			},
 			{
-				Config:                               configBasicUpdated(projectName, orgID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true),
+				Config:                               configBasicUpdated(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true),
 				ResourceName:                         resourceName,
 				ImportStateIdFunc:                    importStateIDFunc(resourceName),
 				ImportState:                          true,
@@ -53,13 +59,18 @@ func TestAccPushBasedLogExport_basic(t *testing.T) {
 				ImportStateVerifyIdentifierAttribute: "project_id",
 			},
 		},
-	})
+	}
 }
 
 func TestAccPushBasedLogExport_noPrefixPath(t *testing.T) {
+	resource.Test(t, *noPrefixPathTestCase(t))
+}
+
+func noPrefixPathTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+
 	var (
-		orgID                = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName          = acc.RandomProjectName()
+		projectID            = acc.ProjectIDExecution(tb)
 		s3BucketNamePrefix   = fmt.Sprintf("tf-%s", acc.RandomName())
 		s3BucketName1        = fmt.Sprintf("%s-1", s3BucketNamePrefix)
 		s3BucketName2        = fmt.Sprintf("%s-2", s3BucketNamePrefix)
@@ -67,18 +78,18 @@ func TestAccPushBasedLogExport_noPrefixPath(t *testing.T) {
 		awsIAMRoleName       = acc.RandomIAMRole()
 		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
 	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb); acc.PreCheckAwsEnvBasic(tb) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectName, orgID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, defaultPrefixPath, false),
+				Config: configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, defaultPrefixPath, false),
 				Check:  resource.ComposeTestCheckFunc(commonChecks(s3BucketName1, defaultPrefixPath)...),
 			},
 		},
-	})
+	}
 }
 
 func commonChecks(s3BucketName, prefixPath string) []resource.TestCheckFunc {
@@ -96,42 +107,44 @@ func addAttrChecks(checks []resource.TestCheckFunc, mapChecks map[string]string)
 	return acc.AddAttrChecks(datasourceName, checks, mapChecks)
 }
 
-func configBasic(projectName, orgID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath string, usePrefixPath bool) string {
+func configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath string, usePrefixPath bool) string {
 	test := fmt.Sprintf(`
 	 	locals {
-		 		project_name = %[1]q
-		 		org_id = %[2]q
-		 		s3_bucket_name_1 = %[3]q
-				s3_bucket_name_2 = %[4]q
-		 		s3_bucket_policy_name = %[5]q
-		 		aws_iam_role_policy_name = %[6]q
-		 		aws_iam_role_name = %[7]q
+		 		#project_name = %[1]q
+				project_id = %[1]q
+		 		#org_id = %[2]q
+		 		s3_bucket_name_1 = %[2]q
+				s3_bucket_name_2 = %[3]q
+		 		s3_bucket_policy_name = %[4]q
+		 		aws_iam_role_policy_name = %[5]q
+		 		aws_iam_role_name = %[6]q
 		 	  }
 
-			   %[8]s
+			   %[7]s
 
-			   %[9]s
-	`, projectName, orgID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName,
+			   %[8]s
+	`, projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName,
 		awsIAMroleAuthAndS3Config(), pushBasedLogExportConfig(false, usePrefixPath, prefixPath))
 	return test
 }
 
-func configBasicUpdated(projectName, orgID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath string, usePrefixPath bool) string {
+func configBasicUpdated(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath string, usePrefixPath bool) string {
 	test := fmt.Sprintf(`
 	 	locals {
-		 		project_name = %[1]q
-		 		org_id = %[2]q
-		 		s3_bucket_name_1 = %[3]q
-				s3_bucket_name_2 = %[4]q
-		 		s3_bucket_policy_name = %[5]q
-		 		aws_iam_role_policy_name = %[6]q
-		 		aws_iam_role_name = %[7]q
+			#project_name = %[1]q
+				project_id = %[1]q
+		 		#org_id = %[2]q
+		 		s3_bucket_name_1 = %[2]q
+				s3_bucket_name_2 = %[3]q
+		 		s3_bucket_policy_name = %[4]q
+		 		aws_iam_role_policy_name = %[5]q
+		 		aws_iam_role_name = %[6]q
 		 	  }
 
-			   %[8]s
+			   %[7]s
 
-			   %[9]s
-	`, projectName, orgID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName,
+			   %[8]s
+	`, projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName,
 		awsIAMroleAuthAndS3Config(), pushBasedLogExportConfig(true, usePrefixPath, prefixPath)) // updating the S3 bucket to use for push-based log config
 	return test
 }
@@ -145,7 +158,7 @@ func pushBasedLogExportConfig(useBucket2, usePrefixPath bool, prefixPath string)
 	}
 	if usePrefixPath {
 		return fmt.Sprintf(`resource "mongodbatlas_push_based_log_export" "test" {
-			project_id  = mongodbatlas_project.project-tf.id
+			project_id  = local.project_id
 			%[1]s
 			iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
 			prefix_path = %[2]q
@@ -156,7 +169,7 @@ func pushBasedLogExportConfig(useBucket2, usePrefixPath bool, prefixPath string)
 	}
 
 	return fmt.Sprintf(`resource "mongodbatlas_push_based_log_export" "test" {
-		project_id  = mongodbatlas_project.project-tf.id
+		project_id  = local.project_id
 		%[1]s
 		iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
 	}
@@ -167,7 +180,7 @@ func pushBasedLogExportConfig(useBucket2, usePrefixPath bool, prefixPath string)
 
 func pushBasedLogExportDataSourceConfig() string {
 	return `data "mongodbatlas_push_based_log_export" "test" {
-		project_id    = mongodbatlas_project.project-tf.id
+		project_id    = local.project_id
 
 		depends_on = ["mongodbatlas_push_based_log_export.test"]
 	  }`
@@ -224,18 +237,18 @@ EOF
 }
 
 // Set up cloud provider access in Atlas for a project using the created IAM role
-resource "mongodbatlas_project" "project-tf" {
-  name     = local.project_name
-  org_id = local.org_id
-}
+# resource "mongodbatlas_project" "project-tf" {
+	#   name     = local.project_name
+	#   org_id = local.org_id
+	# }
 
 resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
-  project_id    = mongodbatlas_project.project-tf.id
+  project_id    = local.project_id
   provider_name = "AWS"
 }
 
 resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
-  project_id    = mongodbatlas_project.project-tf.id
+  project_id    = local.project_id
   role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
 
   aws {
@@ -291,8 +304,11 @@ func checkDestroy(state *terraform.State) error {
 	}
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type == "mongodbatlas_push_based_log_export" {
-			_, _, err := acc.ConnV2().PushBasedLogExportApi.GetPushBasedLogConfiguration(context.Background(), rs.Primary.Attributes["project_id"]).Execute()
-			if err == nil {
+			resp, _, err := acc.ConnV2().PushBasedLogExportApi.GetPushBasedLogConfiguration(context.Background(), rs.Primary.Attributes["project_id"]).Execute()
+			if err == nil && *resp.State != pushbasedlogexport.UnconfiguredState {
+				return fmt.Errorf("push-based log export for project_id %s still configured with state %s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["state"])
+			}
+			if err != nil {
 				return fmt.Errorf("push-based log export for project_id %s still configured", rs.Primary.Attributes["project_id"])
 			}
 		}

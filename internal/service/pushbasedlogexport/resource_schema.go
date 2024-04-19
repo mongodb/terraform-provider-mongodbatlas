@@ -18,7 +18,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"bucket_name": schema.StringAttribute{
-				Optional:            true,
+				Required:            true,
 				Description:         "The name of the bucket to which the agent will send the logs to.",
 				MarkdownDescription: "The name of the bucket to which the agent will send the logs to.",
 			},
@@ -40,7 +40,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"iam_role_id": schema.StringAttribute{
-				Optional:            true,
+				Required:            true,
 				Description:         "ID of the AWS IAM role that will be used to write to the S3 bucket.",
 				MarkdownDescription: "ID of the AWS IAM role that will be used to write to the S3 bucket.",
 			},
@@ -48,8 +48,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				Computed:            true,
 				Default:             stringdefault.StaticString(""),
-				Description:         "S3 directory in which vector will write to in order to store the logs.",
-				MarkdownDescription: "S3 directory in which vector will write to in order to store the logs.",
+				Description:         "S3 directory in which vector will write to in order to store the logs. An empty string denotes the root directory.",
+				MarkdownDescription: "S3 directory in which vector will write to in order to store the logs. An empty string denotes the root directory.",
 			},
 			"state": schema.StringAttribute{
 				Computed:            true,

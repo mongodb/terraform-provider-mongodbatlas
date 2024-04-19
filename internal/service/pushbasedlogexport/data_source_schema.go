@@ -39,8 +39,8 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 			},
 			"prefix_path": schema.StringAttribute{
 				Computed:            true,
-				Description:         "S3 directory in which vector will write to in order to store the logs.",
-				MarkdownDescription: "S3 directory in which vector will write to in order to store the logs.",
+				Description:         "S3 directory in which vector will write to in order to store the logs. An empty string denotes the root directory.",
+				MarkdownDescription: "S3 directory in which vector will write to in order to store the logs. An empty string denotes the root directory.",
 			},
 			"state": schema.StringAttribute{
 				Computed:            true,
