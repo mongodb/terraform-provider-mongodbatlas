@@ -366,7 +366,6 @@ func TestAccConfigRSAlertConfiguration_updatePagerDutyWithNotifierId(t *testing.
 }
 
 func TestAccConfigRSAlertConfiguration_withDataDog(t *testing.T) {
-	acc.SkipTestForCI(t) // Skipped until this ticket is resolved: https://jira.mongodb.org/browse/CLOUDP-244183
 	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
