@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -11,8 +12,9 @@ import (
 )
 
 var (
-	skipLabelName = "skip-changelog-check"
-	skipTitles    = []string{"chore", "test", "doc", "ci"} // Dependabot uses chore.
+	skipLabelName     = "skip-changelog-check"
+	skipTitles        = []string{"chore", "test", "doc", "ci"} // Dependabot uses chore.
+	allowedTypeValues = getValidTypes("scripts/changelog/allowed-types.txt")
 )
 
 func main() {
@@ -53,10 +55,32 @@ func validateChangelog(filePath, body string) {
 	entry := changelog.Entry{
 		Body: body,
 	}
-	if err := entry.Validate(); err != nil {
-		log.Fatalf("Error validating changelog file: %s, err: %v", filePath, err)
+	notes := changelog.NotesFromEntry(entry)
+
+	if len(notes) < 1 {
+		log.Fatalf("Error validating changelog file: %s, no changelog entry found", filePath)
 	}
+
+	var unknownTypes []string
+	for _, note := range notes {
+		if !isValidType(note.Type) {
+			unknownTypes = append(unknownTypes, note.Type)
+		}
+	}
+	if len(unknownTypes) > 0 {
+		log.Fatalf("Error validating changelog file: %s. Unknown changelog types %v, please use only the configured changelog entry types %v", filePath, unknownTypes, allowedTypeValues)
+	}
+
 	fmt.Printf("Changelog entry file is valid: %s\n", filePath)
+}
+
+func isValidType(t string) bool {
+	for _, a := range allowedTypeValues {
+		if a == t {
+			return true
+		}
+	}
+	return false
 }
 
 func skipTitle(title string) bool {
@@ -75,4 +99,22 @@ func skipLabel(labels []string) bool {
 		}
 	}
 	return false
+}
+
+func getValidTypes(path string) []string {
+	file, err := os.Open(path)
+	if err != nil {
+		log.Fatalf("Error getting allowed entry types from %s", path)
+	}
+	defer file.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line != "" {
+			lines = append(lines, line)
+		}
+	}
+	return lines
 }
