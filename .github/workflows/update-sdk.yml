@@ -24,6 +24,7 @@ jobs:
         uses: peter-evans/create-pull-request@c55203cfde3e5c11a452d352b4393e68b85b4533
         if: steps.verify-changed-files.outputs.files_changed == 'true'
         with:
+          token: ${{ secrets.APIX_BOT_PAT }}
           title: "chore: Updates Atlas Go SDK"
           commit-message: "build(deps): bump go.mongodb.org/atlas-sdk"
           delete-branch: true
