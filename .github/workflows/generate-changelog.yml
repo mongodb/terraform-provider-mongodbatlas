@@ -37,22 +37,9 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Automatic Changelog update failed* ${{ secrets.SLACK_ONCALL_TAG }}"
+                    "text": "*Automatic Changelog update failed* ${{ secrets.SLACK_ONCALL_TAG }}. <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|Failed action >"
                   }
                 },
-                {
-                  "type": "actions",
-                  "elements": [
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": ":github: Failed action"
-                        },
-                        "url": "${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
-                    }
-                ]
-                }
               ]
             }
         env:
