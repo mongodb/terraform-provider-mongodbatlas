@@ -31,5 +31,5 @@ data "mongodbatlas_push_based_log_export" "test" {
 }
 
 output "test" {
-   value = data.mongodbatlas_push_based_log_export.test.prefix_path
+  value = data.mongodbatlas_push_based_log_export.test.prefix_path
 }
