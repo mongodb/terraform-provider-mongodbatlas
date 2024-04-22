@@ -166,12 +166,12 @@ jobs:
           assume_role:
             - 'internal/provider/*.go'
           backup:
-            - 'internal/service/onlinearchive/*.go'
             - 'internal/service/cloudbackupschedule/*.go'
             - 'internal/service/cloudbackupsnapshot/*.go'
             - 'internal/service/cloudbackupsnapshotexportbucket/*.go'
             - 'internal/service/cloudbackupsnapshotexportjob/*.go'
             - 'internal/service/cloudbackupsnapshotrestorejob/*.go'  
+            - 'internal/service/onlinearchive/*.go'
           cluster:
             - 'internal/service/cluster/*.go'
             - 'internal/service/globalclusterconfig/*.go'
@@ -179,18 +179,18 @@ jobs:
             - 'internal/service/clusteroutagesimulation/*.go'  
           config:
             - 'internal/service/alertconfiguration/*.go'
-            - 'internal/service/atlasuser/*.go'
-            - 'internal/service/databaseuser/*.go'
-            - 'internal/service/projectapikey/*.go'
             - 'internal/service/apikey/*.go'
-            - 'internal/service/teams/*.go'
+            - 'internal/service/atlasuser/*.go'
             - 'internal/service/cloudprovideraccess/*.go'
             - 'internal/service/customdbrole/*.go'
-            - 'internal/service/maintenancewindow/*.go'
             - 'internal/service/customdnsconfigurationclusteraws/*.go'
-            - 'internal/service/rolesorgid/*.go'
-            - 'internal/service/orginvitation/*.go'
+            - 'internal/service/databaseuser/*.go'
+            - 'internal/service/maintenancewindow/*.go'
             - 'internal/service/organization/*.go'
+            - 'internal/service/orginvitation/*.go'
+            - 'internal/service/projectapikey/*.go'
+            - 'internal/service/rolesorgid/*.go'
+            - 'internal/service/teams/*.go'
             - 'internal/service/thirdpartyintegration/*.go'
           data_lake:
             - 'internal/service/datalakepipeline/*.go'
@@ -199,14 +199,14 @@ jobs:
           event_trigger:
             - 'internal/service/eventtrigger/*.go'  
           federated:
-            - 'internal/service/federatedsettingsidentityprovider/*.go'
             - 'internal/service/federateddatabaseinstance/*.go'
+            - 'internal/service/federatedquerylimit/*.go'  
+            - 'internal/service/federatedsettingsidentityprovider/*.go'
             - 'internal/service/federatedsettingsorgconfig/*.go'
             - 'internal/service/federatedsettingsorgrolemapping/*.go'
-            - 'internal/service/federatedquerylimit/*.go'  
           generic:
-            - 'internal/service/backupcompliancepolicy/*.go'
             - 'internal/service/auditing/*.go'
+            - 'internal/service/backupcompliancepolicy/*.go'
             - 'internal/service/x509authenticationdatabaseuser/*.go'  
           ldap:
             - 'internal/service/ldapconfiguration/*.go'
@@ -219,21 +219,21 @@ jobs:
             - 'internal/service/privatelinkendpointservice/*.go'
             - 'internal/service/privatelinkendpointservicedatafederationonlinearchive/*.go' 
           project:
-            - 'internal/service/project/*.go'
-            - 'internal/service/projectipaccesslist/*.go'
             - 'internal/service/accesslistapikey/*.go'
+            - 'internal/service/project/*.go'
             - 'internal/service/projectinvitation/*.go'  
+            - 'internal/service/projectipaccesslist/*.go'
           search_deployment:
             - 'internal/service/searchdeployment/*.go'
           search_index:
             - 'internal/service/searchindex/*.go'
           serverless:
-            - 'internal/service/serverlessinstance/*.go'
             - 'internal/service/privatelinkendpointserverless/*.go'
             - 'internal/service/privatelinkendpointserviceserverless/*.go'
+            - 'internal/service/serverlessinstance/*.go'
           stream:
-            - 'internal/service/streaminstance/*.go'
             - 'internal/service/streamconnection/*.go'
+            - 'internal/service/streaminstance/*.go'
 
   advanced_cluster:
     needs: [ change-detection, get-provider-version ]
@@ -315,12 +315,12 @@ jobs:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
-            ./internal/service/onlinearchive
             ./internal/service/cloudbackupschedule
             ./internal/service/cloudbackupsnapshot
             ./internal/service/cloudbackupsnapshotexportbucket
             ./internal/service/cloudbackupsnapshotexportjob
             ./internal/service/cloudbackupsnapshotrestorejob
+            ./internal/service/onlinearchive
         run: make testacc
 
   cluster:
@@ -396,17 +396,17 @@ jobs:
           ACCTEST_PACKAGES: |
             ./internal/service/alertconfiguration
             ./internal/service/atlasuser
-            ./internal/service/databaseuser
-            ./internal/service/projectapikey
-            ./internal/service/apikey
-            ./internal/service/teams
             ./internal/service/cloudprovideraccess
             ./internal/service/customdbrole
-            ./internal/service/maintenancewindow
             ./internal/service/customdnsconfigurationclusteraws
-            ./internal/service/rolesorgid
-            ./internal/service/orginvitation
+            ./internal/service/databaseuser
+            ./internal/service/maintenancewindow
             ./internal/service/organization
+            ./internal/service/orginvitation
+            ./internal/service/projectapikey
+            ./internal/service/apikey
+            ./internal/service/rolesorgid
+            ./internal/service/teams
             ./internal/service/thirdpartyintegration
         run: make testacc
       
@@ -503,11 +503,11 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
-            ./internal/service/federatedsettingsidentityprovider
             ./internal/service/federateddatabaseinstance
+            ./internal/service/federatedquerylimit
+            ./internal/service/federatedsettingsidentityprovider
             ./internal/service/federatedsettingsorgconfig
             ./internal/service/federatedsettingsorgrolemapping
-            ./internal/service/federatedquerylimit
         run: make testacc
 
   generic:
@@ -531,8 +531,8 @@ jobs:
           CA_CERT: ${{ secrets.ca_cert }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
-            ./internal/service/backupcompliancepolicy
             ./internal/service/auditing
+            ./internal/service/backupcompliancepolicy
             ./internal/service/x509authenticationdatabaseuser
         run: make testacc
       
@@ -630,10 +630,10 @@ jobs:
           AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
-            ./internal/service/project
-            ./internal/service/projectipaccesslist
             ./internal/service/accesslistapikey
+            ./internal/service/project
             ./internal/service/projectinvitation
+            ./internal/service/projectipaccesslist
         run: make testacc
 
   search_deployment:
@@ -699,9 +699,9 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
-            ./internal/service/serverlessinstance
             ./internal/service/privatelinkendpointserverless
             ./internal/service/privatelinkendpointserviceserverless
+            ./internal/service/serverlessinstance
         run: make testacc
   
   stream:
@@ -724,6 +724,6 @@ jobs:
           MONGODB_ATLAS_ENABLE_PREVIEW: "true"
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
-            ./internal/service/streaminstance
             ./internal/service/streamconnection
+            ./internal/service/streaminstance
         run: make testacc
