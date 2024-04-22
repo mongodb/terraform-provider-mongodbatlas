@@ -161,47 +161,22 @@ jobs:
       if: ${{ inputs.test_group == '' && env.mustTrigger == 'false' }}
       with:
         filters: |
-          assume_role:
-            - 'internal/provider/*.go'
-          cluster_outage_simulation:
-            - 'internal/service/clusteroutagesimulation/*.go'
           advanced_cluster:
             - 'internal/service/advancedcluster/*.go'
-          cluster:
-            - 'internal/service/cluster/*.go'
-            - 'internal/service/globalclusterconfig/*.go'
-          search_deployment:
-            - 'internal/service/searchdeployment/*.go'
-          stream:
-            - 'internal/service/streaminstance/*.go'
-            - 'internal/service/streamconnection/*.go'
-          generic:
-            - 'internal/service/backupcompliancepolicy/*.go'
-            - 'internal/service/auditing/*.go'
-            - 'internal/service/x509authenticationdatabaseuser/*.go'
+          assume_role:
+            - 'internal/provider/*.go'
           backup:
             - 'internal/service/onlinearchive/*.go'
             - 'internal/service/cloudbackupschedule/*.go'
             - 'internal/service/cloudbackupsnapshot/*.go'
             - 'internal/service/cloudbackupsnapshotexportbucket/*.go'
             - 'internal/service/cloudbackupsnapshotexportjob/*.go'
-            - 'internal/service/cloudbackupsnapshotrestorejob/*.go'
-          project:
-            - 'internal/service/project/*.go'
-            - 'internal/service/projectipaccesslist/*.go'
-            - 'internal/service/accesslistapikey/*.go'
-            - 'internal/service/projectinvitation/*.go'
-          serverless:
-            - 'internal/service/serverlessinstance/*.go'
-            - 'internal/service/privatelinkendpointserverless/*.go'
-            - 'internal/service/privatelinkendpointserviceserverless/*.go'
-          network:
-            - 'internal/service/networkcontainer/*.go'
-            - 'internal/service/networkpeering/*.go'
-            - 'internal/service/privateendpointregionalmode/*.go'
-            - 'internal/service/privatelinkendpoint/*.go'
-            - 'internal/service/privatelinkendpointservice/*.go'
-            - 'internal/service/privatelinkendpointservicedatafederationonlinearchive/*.go'
+            - 'internal/service/cloudbackupsnapshotrestorejob/*.go'  
+          cluster:
+            - 'internal/service/cluster/*.go'
+            - 'internal/service/globalclusterconfig/*.go'
+          cluster_outage_simulation:
+            - 'internal/service/clusteroutagesimulation/*.go'  
           config:
             - 'internal/service/alertconfiguration/*.go'
             - 'internal/service/atlasuser/*.go'
@@ -217,24 +192,49 @@ jobs:
             - 'internal/service/orginvitation/*.go'
             - 'internal/service/organization/*.go'
             - 'internal/service/thirdpartyintegration/*.go'
+          data_lake:
+            - 'internal/service/datalakepipeline/*.go'
+          encryption:
+            - 'internal/service/encryptionatrest/*.go'  
           event_trigger:
-            - 'internal/service/eventtrigger/*.go'
-          search_index:
-            - 'internal/service/searchindex/*.go'
+            - 'internal/service/eventtrigger/*.go'  
           federated:
             - 'internal/service/federatedsettingsidentityprovider/*.go'
             - 'internal/service/federateddatabaseinstance/*.go'
             - 'internal/service/federatedsettingsorgconfig/*.go'
             - 'internal/service/federatedsettingsorgrolemapping/*.go'
-            - 'internal/service/federatedquerylimit/*.go'
-          data_lake:
-            - 'internal/service/datalakepipeline/*.go'
+            - 'internal/service/federatedquerylimit/*.go'  
+          generic:
+            - 'internal/service/backupcompliancepolicy/*.go'
+            - 'internal/service/auditing/*.go'
+            - 'internal/service/x509authenticationdatabaseuser/*.go'  
           ldap:
             - 'internal/service/ldapconfiguration/*.go'
-            - 'internal/service/ldapverify/*.go'
-          encryption:
-            - 'internal/service/encryptionatrest/*.go'
-        
+            - 'internal/service/ldapverify/*.go'  
+          network:
+            - 'internal/service/networkcontainer/*.go'
+            - 'internal/service/networkpeering/*.go'
+            - 'internal/service/privateendpointregionalmode/*.go'
+            - 'internal/service/privatelinkendpoint/*.go'
+            - 'internal/service/privatelinkendpointservice/*.go'
+            - 'internal/service/privatelinkendpointservicedatafederationonlinearchive/*.go' 
+          project:
+            - 'internal/service/project/*.go'
+            - 'internal/service/projectipaccesslist/*.go'
+            - 'internal/service/accesslistapikey/*.go'
+            - 'internal/service/projectinvitation/*.go'  
+          search_deployment:
+            - 'internal/service/searchdeployment/*.go'
+          search_index:
+            - 'internal/service/searchindex/*.go'
+          serverless:
+            - 'internal/service/serverlessinstance/*.go'
+            - 'internal/service/privatelinkendpointserverless/*.go'
+            - 'internal/service/privatelinkendpointserviceserverless/*.go'
+          stream:
+            - 'internal/service/streaminstance/*.go'
+            - 'internal/service/streamconnection/*.go'
+    
   cluster_outage_simulation:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || inputs.test_group == 'cluster_outage_simulation' }}
