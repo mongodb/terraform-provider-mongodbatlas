@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	admin20231001002 "go.mongodb.org/atlas-sdk/v20231001002/admin"
 	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
@@ -28,9 +29,10 @@ const (
 
 // MongoDBClient contains the mongodbatlas clients and configurations
 type MongoDBClient struct {
-	Atlas   *matlasClient.Client
-	AtlasV2 *admin.APIClient
-	Config  *Config
+	Atlas            *matlasClient.Client
+	AtlasV2          *admin.APIClient
+	Atlas20231001002 *admin20231001002.APIClient // Needed to avoid breaking changes in federated_settings_identity_provider resource.
+	Config           *Config
 }
 
 // Config contains the configurations needed to use SDKs
@@ -102,11 +104,16 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+	sdk20231001002Client, err := c.newSDK20231001002Client(client)
+	if err != nil {
+		return nil, err
+	}
 
 	clients := &MongoDBClient{
-		Atlas:   atlasClient,
-		AtlasV2: sdkV2Client,
-		Config:  c,
+		Atlas:            atlasClient,
+		AtlasV2:          sdkV2Client,
+		Atlas20231001002: sdk20231001002Client,
+		Config:           c,
 	}
 
 	return clients, nil
@@ -121,6 +128,22 @@ func (c *Config) newSDKV2Client(client *http.Client) (*admin.APIClient, error) {
 
 	// Initialize the MongoDB Versioned Atlas Client.
 	sdkv2, err := admin.NewClient(opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return sdkv2, nil
+}
+
+func (c *Config) newSDK20231001002Client(client *http.Client) (*admin20231001002.APIClient, error) {
+	opts := []admin20231001002.ClientModifier{
+		admin20231001002.UseHTTPClient(client),
+		admin20231001002.UseUserAgent(userAgent(c)),
+		admin20231001002.UseBaseURL(c.BaseURL),
+		admin20231001002.UseDebug(false)}
+
+	// Initialize the MongoDB Versioned Atlas Client.
+	sdkv2, err := admin20231001002.NewClient(opts...)
 	if err != nil {
 		return nil, err
 	}
