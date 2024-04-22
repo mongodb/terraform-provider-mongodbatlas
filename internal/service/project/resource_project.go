@@ -57,6 +57,7 @@ type projectRS struct {
 type TFProjectRSModel struct {
 	Limits                                      types.Set    `tfsdk:"limits"`
 	Teams                                       types.Set    `tfsdk:"teams"`
+	Tags                                        types.Map    `tfsdk:"tags"`
 	IPAddresses                                 types.Object `tfsdk:"ip_addresses"`
 	RegionUsageRestrictions                     types.String `tfsdk:"region_usage_restrictions"`
 	Name                                        types.String `tfsdk:"name"`
@@ -245,6 +246,10 @@ func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 					},
 				},
 			},
+			"tags": schema.MapAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+			},
 		},
 		Blocks: map[string]schema.Block{
 			"teams": schema.SetNestedBlock{
@@ -301,12 +306,13 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
+	tags := NewResourceTags(ctx, projectPlan.Tags)
 	projectGroup := &admin.Group{
 		OrgId:                     projectPlan.OrgID.ValueString(),
 		Name:                      projectPlan.Name.ValueString(),
 		WithDefaultAlertsSettings: projectPlan.WithDefaultAlertsSettings.ValueBoolPointer(),
 		RegionUsageRestrictions:   projectPlan.RegionUsageRestrictions.ValueStringPointer(),
+		Tags:                      &tags,
 	}
 
 	projectAPIParams := &admin.CreateProjectApiParams{
@@ -576,6 +582,9 @@ func updatePlanFromConfig(projectPlanNewPtr, projectPlan *TFProjectRSModel) {
 	// https://discuss.hashicorp.com/t/boolean-optional-default-value-migration-to-framework/55932
 	projectPlanNewPtr.WithDefaultAlertsSettings = projectPlan.WithDefaultAlertsSettings
 	projectPlanNewPtr.ProjectOwnerID = projectPlan.ProjectOwnerID
+	if projectPlan.Tags.IsNull() && len(projectPlanNewPtr.Tags.Elements()) == 0 {
+		projectPlanNewPtr.Tags = types.MapNull(types.StringType)
+	}
 }
 
 func FilterUserDefinedLimits(allAtlasLimits []admin.DataFederationLimit, tflimits []TFLimitModel) []admin.DataFederationLimit {
@@ -776,13 +785,15 @@ func hasLimitsChanged(planLimits, stateLimits []TFLimitModel) bool {
 }
 
 func UpdateProject(ctx context.Context, projectsAPI admin.ProjectsApi, projectState, projectPlan *TFProjectRSModel) error {
-	if projectPlan.Name.Equal(projectState.Name) {
+	tagsBefore := NewResourceTags(ctx, projectState.Tags)
+	tagsAfter := NewResourceTags(ctx, projectPlan.Tags)
+	if projectPlan.Name.Equal(projectState.Name) && reflect.DeepEqual(tagsBefore, tagsAfter) {
 		return nil
 	}
 
 	projectID := projectState.ID.ValueString()
 
-	if _, _, err := projectsAPI.UpdateProject(ctx, projectID, NewGroupUpdate(projectPlan)).Execute(); err != nil {
+	if _, _, err := projectsAPI.UpdateProject(ctx, projectID, NewGroupUpdate(projectPlan, &tagsAfter)).Execute(); err != nil {
 		return fmt.Errorf("error updating the project(%s): %s", projectID, err)
 	}
 

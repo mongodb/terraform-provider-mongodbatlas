@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIntGreaterThan(t *testing.T) {
@@ -55,4 +56,15 @@ func TestJSONEquals(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAddNoAttrSetChecks(t *testing.T) {
+	asserter := assert.New(t)
+	targetName := "unitTestTarget"
+	asserter.Empty(acc.AddNoAttrSetChecks(targetName, nil), "an empty and no attributes should have length 0")
+	checks1 := acc.AddNoAttrSetChecks(targetName, nil, "attr1")
+	asserter.Len(checks1, 1, "empty list 1 extra should have 1 element")
+	asserter.Len(acc.AddNoAttrSetChecks(targetName, checks1, "attr2"), 2, "existing list + 1 extra should have 2 elements")
+	asserter.Len(checks1, 1, "existing list should not be modified")
+	asserter.Len(acc.AddNoAttrSetChecks(targetName, checks1, "attr2", "attr3"), 3, "existing list + 2 extra should have 3 elements")
 }

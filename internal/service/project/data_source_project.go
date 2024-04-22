@@ -38,6 +38,7 @@ type TFProjectDSModel struct {
 	ID                                          types.String     `tfsdk:"id"`
 	Name                                        types.String     `tfsdk:"name"`
 	ProjectID                                   types.String     `tfsdk:"project_id"`
+	Tags                                        types.Map        `tfsdk:"tags"`
 	Teams                                       []*TFTeamDSModel `tfsdk:"teams"`
 	Limits                                      []*TFLimitModel  `tfsdk:"limits"`
 	ClusterCount                                types.Int64      `tfsdk:"cluster_count"`
@@ -165,6 +166,10 @@ func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, re
 						},
 					},
 				},
+			},
+			"tags": schema.MapAttribute{
+				ElementType: types.StringType,
+				Computed:    true,
 			},
 		},
 	}
