@@ -81,13 +81,13 @@ func NewMetricThreshold(tfMetricThresholdConfigSlice []TfMetricThresholdConfigMo
 	}
 }
 
-func NewMatcherList(list []TfMatcherModel) *[]map[string]any {
-	matchers := make([]map[string]any, len(list))
+func NewMatcherList(list []TfMatcherModel) *[]admin.StreamsMatcher {
+	matchers := make([]admin.StreamsMatcher, len(list))
 	for i, matcher := range list {
-		matchers[i] = map[string]any{
-			"fieldName": matcher.FieldName.ValueString(),
-			"operator":  matcher.Operator.ValueString(),
-			"value":     matcher.Value.ValueString(),
+		matchers[i] = admin.StreamsMatcher{
+			FieldName: matcher.FieldName.ValueString(),
+			Operator:  matcher.Operator.ValueString(),
+			Value:     matcher.Value.ValueString(),
 		}
 	}
 	return &matchers
@@ -250,17 +250,14 @@ func NewTFThresholdConfigModel(t *admin.GreaterThanRawThreshold, currStateSlice 
 	return []TfThresholdConfigModel{newState}
 }
 
-func NewTFMatcherModelList(m []map[string]any, currStateSlice []TfMatcherModel) []TfMatcherModel {
+func NewTFMatcherModelList(m []admin.StreamsMatcher, currStateSlice []TfMatcherModel) []TfMatcherModel {
 	matchers := make([]TfMatcherModel, len(m))
 	if len(m) != len(currStateSlice) { // matchers were modified elsewhere from terraform, or import statement is being called
 		for i, matcher := range m {
-			fieldName, _ := matcher["fieldName"].(string)
-			operator, _ := matcher["operator"].(string)
-			value, _ := matcher["value"].(string)
 			matchers[i] = TfMatcherModel{
-				FieldName: conversion.StringNullIfEmpty(fieldName),
-				Operator:  conversion.StringNullIfEmpty(operator),
-				Value:     conversion.StringNullIfEmpty(value),
+				FieldName: types.StringValue(matcher.FieldName),
+				Operator:  types.StringValue(matcher.Operator),
+				Value:     types.StringValue(matcher.Value),
 			}
 		}
 		return matchers
@@ -269,16 +266,13 @@ func NewTFMatcherModelList(m []map[string]any, currStateSlice []TfMatcherModel) 
 		currState := currStateSlice[i]
 		newState := TfMatcherModel{}
 		if !currState.FieldName.IsNull() {
-			fieldName, _ := matcher["fieldName"].(string)
-			newState.FieldName = conversion.StringNullIfEmpty(fieldName)
+			newState.FieldName = types.StringValue(matcher.FieldName)
 		}
 		if !currState.Operator.IsNull() {
-			operator, _ := matcher["operator"].(string)
-			newState.Operator = conversion.StringNullIfEmpty(operator)
+			newState.Operator = types.StringValue(matcher.Operator)
 		}
 		if !currState.Value.IsNull() {
-			value, _ := matcher["value"].(string)
-			newState.Value = conversion.StringNullIfEmpty(value)
+			newState.Value = types.StringValue(matcher.Value)
 		}
 		matchers[i] = newState
 	}

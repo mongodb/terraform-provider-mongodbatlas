@@ -176,16 +176,16 @@ func TestThresholdConfigSDKToTFModel(t *testing.T) {
 func TestMatcherSDKToTFModel(t *testing.T) {
 	testCases := []struct {
 		name                string
-		SDKResp             []map[string]interface{}
+		SDKResp             []admin.StreamsMatcher
 		currentStateMatcher []alertconfiguration.TfMatcherModel
 		expectedTFModel     []alertconfiguration.TfMatcherModel
 	}{
 		{
 			name: "Complete SDK response",
-			SDKResp: []map[string]interface{}{{
-				"fieldName": "HOSTNAME",
-				"operator":  "EQUALS",
-				"value":     "PRIMARY",
+			SDKResp: []admin.StreamsMatcher{{
+				FieldName: "HOSTNAME",
+				Operator:  "EQUALS",
+				Value:     "PRIMARY",
 			},
 			},
 			currentStateMatcher: []alertconfiguration.TfMatcherModel{

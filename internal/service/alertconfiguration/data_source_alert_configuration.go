@@ -343,14 +343,11 @@ func outputAlertConfigurationResourceImport(label string, alert *admin.GroupAler
 	return fmt.Sprintf("terraform import mongodbatlas_alert_configuration.%s %s-%s\n", label, *alert.GroupId, *alert.Id)
 }
 
-func convertMatcherToCtyValues(matcher map[string]any) map[string]cty.Value {
-	fieldName, _ := matcher["fieldName"].(string)
-	operator, _ := matcher["operator"].(string)
-	value, _ := matcher["value"].(string)
+func convertMatcherToCtyValues(matcher admin.StreamsMatcher) map[string]cty.Value {
 	return map[string]cty.Value{
-		"field_name": cty.StringVal(fieldName),
-		"operator":   cty.StringVal(operator),
-		"value":      cty.StringVal(value),
+		"field_name": cty.StringVal(matcher.FieldName),
+		"operator":   cty.StringVal(matcher.Operator),
+		"value":      cty.StringVal(matcher.Value),
 	}
 }
 
