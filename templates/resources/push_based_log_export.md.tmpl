@@ -1,0 +1,29 @@
+---
+layout: "mongodbatlas"
+page_title: "MongoDB Atlas: {{.Name}}"
+sidebar_current: "docs-{{ .ProviderShortName }}-{{ $arr := split .Type " "}}{{ range $element := $arr }}{{ $element | lower}}{{ end }}{{ $name := slice (split .Name "_") 1 }}{{ range $element := $name }}-{{ $element | lower}}{{end}}"
+description: |-
+    "Provides resource for push-based log export feature."
+---
+
+# {{.Type}}: {{.Name}}
+
+{{ .Description | trimspace }}
+`mongodbatlas_push_based_log_export` provides a resource for push-based log export feature. The resource lets you configure, enable & disable the project level settings for the push-based log export feature. Using this resource you 
+can continually push logs from mongod, mongos, and audit logs to an AWS S3 bucket. Atlas exports logs every 5 minutes.
+
+
+## Example Usages
+
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+# Import 
+Push-based log export resource can be imported using the project ID, e.g.
+
+```
+$ terraform import mongodbatlas_push_based_log_export.test 650972848269185c55f40ca1
+```
+
+For more information see: [MongoDB Atlas API - Push-Based Log Export](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Push-Based-Log-Export) Documentation.
