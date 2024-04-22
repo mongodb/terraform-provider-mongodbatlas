@@ -22,7 +22,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	var (
 		resourceName         = "mongodbatlas_federated_settings_identity_provider.test"
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
-		idpID                = os.Getenv("MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID")
+		idpID                = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
 		ssoURL               = os.Getenv("MONGODB_ATLAS_FEDERATED_SSO_URL")
 		issuerURI            = os.Getenv("MONGODB_ATLAS_FEDERATED_ISSUER_URI")
 	)
