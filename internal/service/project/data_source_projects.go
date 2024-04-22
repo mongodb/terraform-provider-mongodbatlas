@@ -163,6 +163,10 @@ func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, r
 								},
 							},
 						},
+						"tags": schema.MapAttribute{
+							ElementType: types.StringType,
+							Computed:    true,
+						},
 					},
 				},
 			},

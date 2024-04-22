@@ -58,10 +58,10 @@ The CHANGELOG is intended to show operator-impacting changes to the codebase for
 ``````
 
  `HEADER`
- - Must be one of the following values: `breaking-change`, `new-resource`, `new-data-source`, `new-guide`, `note`, `enhancement`, `bug`. Examples for each type can be seen below.
+ - Must be one of the following values: `breaking-change`, `new-resource`, `new-datasource`, `new-guide`, `note`, `enhancement`, `bug`. Examples for each type can be seen below.
 
 `ENTRY`
- - In the case of feature entry types (new-resource, new-data-source, new-guide) only the name of the new resource or guide is defined in the entry.
+ - In the case of feature entry types (new-resource, new-datasource, new-guide) only the name of the new resource or guide is defined in the entry.
  - For other entry types:
     - Entry starts with the resource type, followed by its name (e.g. `resource/mongodbatlas_project: `). Use a `provider: ` prefix for provider-level changes.
     - For the description use a third person point of view, [active voice](https://www.mongodb.com/docs/meta/style-guide/writing/use-active-voice/#std-label-use-active-voice), and start with an uppercase character.
@@ -81,10 +81,10 @@ mongodbatlas_stream_connection
 
 #### New data source
 
-A new data source entry should only contain the name of the data source, and use the `release-note:new-data-source` header.
+A new data source entry should only contain the name of the data source, and use the `release-note:new-datasource` header.
 
 ``````markdown
-```release-note:new-data-source
+```release-note:new-datasource
 mongodbatlas_stream_connection
 ```
 ``````

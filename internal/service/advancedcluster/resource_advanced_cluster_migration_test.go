@@ -13,7 +13,7 @@ import (
 
 func TestMigAdvancedCluster_singleAWSProvider(t *testing.T) {
 	var (
-		projectID   = mig.ProjectIDGlobal(t)
+		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
 		config      = configSingleProvider(projectID, clusterName)
 	)
@@ -70,7 +70,7 @@ func TestMigAdvancedCluster_multiCloud(t *testing.T) {
 
 func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 	var (
-		projectID   = mig.ProjectIDGlobal(t)
+		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
 		extraArgs   = `
 			advanced_configuration  {

@@ -22,7 +22,8 @@ func TestAccGenericAuditing_basic(t *testing.T) {
 		auditFilter = "{ 'atype': 'authenticate', 'param': {   'user': 'auditAdmin',   'db': 'admin',   'mechanism': 'SCRAM-SHA-1' }}"
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	// Serial so it doesn't conflict with TestMigGenericAuditing_basic
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,

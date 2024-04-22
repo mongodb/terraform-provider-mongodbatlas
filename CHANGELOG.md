@@ -8,14 +8,21 @@ ENHANCEMENTS:
 
 * data-source/mongodbatlas_backup_compliance_policy: Adds `policy_item_yearly` attribute ([#2109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2109))
 * data-source/mongodbatlas_cloud_backup_schedule: Adds `policy_item_yearly` attribute ([#2109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2109))
+* data-source/mongodbatlas_project: Adds `tags` attribute ([#2135](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2135))
+* data-source/mongodbatlas_projects: Adds `tags` attribute ([#2135](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2135))
 * data-source/mongodbatlas_serverless_instance: Adds `auto_indexing` attribute ([#2100](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2100))
 * resource/mongodbatlas_backup_compliance_policy: Adds `policy_item_yearly` attribute ([#2109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2109))
 * resource/mongodbatlas_cloud_backup_schedule: Adds `policy_item_yearly` attribute ([#2109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2109))
+* resource/mongodbatlas_privatelink_endpoint_service_serverless: Adds support for updating `comment` attribute in-place. ([#2133](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2133))
+* resource/mongodbatlas_project: Adds `tags` attribute ([#2135](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2135))
 * resource/mongodbatlas_serverless_instance: Adds `auto_indexing` attribute ([#2100](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2100))
 
 BUG FIXES:
 
 * data-source/mongodbatlas_network_peering: Ensures `accepter_region_name` is set when it is has the same value as the container resource ([#2105](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2105))
+* resource/mongodbatlas_cluster: Fixes nil pointer dereference if `advanced_configuration` update fails ([#2139](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2139))
+* resource/mongodbatlas_maintenance_window: Fixes `day_of_week` param as **required** when calling the API ([#2163](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2163))
+* resource/mongodbatlas_privatelink_endpoint_serverless: Removes setting default comment during create. ([#2133](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2133))
 * resource/mongodbatlas_project: Reads `region_usage_restrictions` attribute value from get request ([#2104](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2104))
 
 ## [v1.15.3](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.15.3) (2024-03-27)

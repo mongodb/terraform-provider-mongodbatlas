@@ -2,17 +2,26 @@
 
 ## Steps
 
+### Remove deprecated attributes
+
+**Note**: Only applies if the right most version digit is 0 (considered a major or minor version in [semantic versioning](https://semver.org/)).
+
+- If some deprecated attributes need to be removed in the following release, create a Jira ticket and merge the corresponding PR before starting the release workflow.
+You can search in the code for the constansts in [deprecation.go](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/internal/common/constant/deprecation.go) to find them.
+
 ### Revise jira release
+
 Before triggering a release, view the corresponding [unreleased jira page](https://jira.mongodb.org/projects/CLOUDP?selectedItem=com.atlassian.jira.jira-projects-plugin:release-page&status=unreleased&contains=terraform) to ensure there are no pending tickets. In case there are pending tickets, verify with the team if the expectation is to have them included within the current release. After release workflow is successful the version will be marked as released automatically.
 
 ### Make sure that the acceptance tests are successful
+
 While QA acceptance tests are run in the release process automatically, we check [workflows/test-suite.yml](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/test-suite.yml) and see if the latest run of the Test Suite action is successful (it runs every day at midnight UTC time). This can help detect failures before proceeding with the next steps.
 
 ### Verify upgrade guide is defined
 
 **Note**: Only applies if the right most version digit is 0 (considered a major or minor version in [semantic versioning](https://semver.org/)).
 
-- A doc in /website/docs/guides/X.Y.0-upgrade-guide.html must be defined containing a summary of the most significant features, breaking changes, and additional information that can be helpful. The expectation is that this file is created during relevant pull requests and not during the release process.
+- A doc in /website/docs/guides/X.Y.0-upgrade-guide.html must be defined containing a summary of the most significant features, breaking changes, and additional information that can be helpful. If not defined the release process will be stopped automatically. The expectation is that this file is created during relevant pull requests (breaking changes, significant features), and not before the release process.
 
 ### Trigger release workflow
 
@@ -44,3 +53,7 @@ Depending on the nature of the failure, you may want to introduce new changes in
 - Incorporate any new fixes into master.
 - Manually trigger the [Generate Changelog workflow](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/generate-changelog.yml) to remove the current header and including any new entries that have been merged. This will run automatically if you have merged PRs after deleting the tag.
 - Trigger a new release process, this will create a tag that includes your latest fixes.
+
+**What happens if all the release process works except the last step to release the version in Jira?**
+
+In this case there is no need to run the full release process again. Once the problem is found and fixed, the [Jira Release Version action](.github/workflows/jira-release-version.yml) can be run manually.

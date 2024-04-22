@@ -16,6 +16,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/stretchr/testify/mock"
 
@@ -980,10 +981,98 @@ func TestAccProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 	})
 }
 
+func TestAccProject_withTags(t *testing.T) {
+	var (
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acc.RandomProjectName()
+		nameUpdated  = "my-tag-name-updated"
+		envUnchanged = "unchanged"
+		tagsEmpty    = map[string]string{}
+		tags1        = map[string]string{
+			"Name":        "my-tag-name",
+			"Environment": envUnchanged,
+			"Deleted":     "short-lived",
+		}
+		tagsOneUpdatedOneDeleted = map[string]string{
+			"Name":        nameUpdated,
+			"Environment": envUnchanged,
+			"NewKey":      "new-value",
+		}
+		tagsOnlyIgnored = map[string]string{
+			"Name": nameUpdated,
+		}
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyProject,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithTags(orgID, projectName, nil),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", projectName),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceNameByID, "tags.#", "0"),
+				),
+			},
+			{
+				Config: configWithTags(orgID, projectName, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceNameByID, "tags.#", "0"),
+				),
+			},
+			{
+				Config: configWithTags(orgID, projectName, tags1),
+				Check:  tagChecks(tags1),
+			},
+			{
+				Config: configWithTags(orgID, projectName, tagsOneUpdatedOneDeleted),
+				Check:  tagChecks(tagsOneUpdatedOneDeleted, "Deleted"),
+			},
+			{
+				Config: configWithTags(orgID, projectName, map[string]string{}, `tags["Name"]`),
+				Check:  tagChecks(tagsOnlyIgnored, "Environment", "NewKey"),
+			},
+			{
+				Config: configWithTags(orgID, projectName, tagsOnlyIgnored),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						acc.DebugPlan(),
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       acc.ImportStateProjectIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"with_default_alerts_settings"},
+			},
+		},
+	})
+}
+
 func createDataFederationLimit(limitName string) admin.DataFederationLimit {
 	return admin.DataFederationLimit{
 		Name: limitName,
 	}
+}
+
+func tagChecks(tags map[string]string, notFoundKeys ...string) resource.TestCheckFunc {
+	tagChecksValues := map[string]string{}
+	for k, v := range tags {
+		tagChecksValues[fmt.Sprintf("tags.%s", k)] = v
+	}
+	checks := []resource.TestCheckFunc{checkExists(resourceName)}
+	checks = acc.AddAttrChecks(resourceName, checks, tagChecksValues)
+	checks = acc.AddAttrChecks(dataSourceNameByID, checks, tagChecksValues)
+	checks = acc.AddNoAttrSetChecks(resourceName, checks, notFoundKeys...)
+	checks = acc.AddNoAttrSetChecks(dataSourceNameByID, checks, notFoundKeys...)
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
@@ -1105,6 +1194,20 @@ func configWithUpdatedRole(orgID, projectName, teamID, roleName string) string {
 			}
 		}
 	`, orgID, projectName, teamID, roleName)
+}
+
+func configWithTags(orgID, projectName string, tags map[string]string, ignoreKeys ...string) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_project" "test" {
+	org_id 			 = %[1]q
+	name   			 = %[2]q
+%[3]s
+%[4]s
+}
+data "mongodbatlas_project" "test" {
+	project_id = mongodbatlas_project.test.id
+}
+`, orgID, projectName, acc.FormatToHCLMap(tags, "\t", "tags"), acc.FormatToHCLLifecycleIgnore(ignoreKeys...))
 }
 
 type TeamRoleResponse struct {

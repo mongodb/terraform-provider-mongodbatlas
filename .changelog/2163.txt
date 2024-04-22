@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_maintenance_window: Fixes `day_of_week` param as **required** when calling the API
+```

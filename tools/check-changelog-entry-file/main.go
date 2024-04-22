@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	skipLabelName = "skip-changelog-check"
-	skipTitles    = []string{"chore", "test", "doc", "ci"} // Dependabot uses chore.
+	skipLabelName     = "skip-changelog-check"
+	skipTitles        = []string{"chore", "test", "doc", "ci"} // Dependabot uses chore.
+	allowedTypeValues = getValidTypes("scripts/changelog/allowed-types.txt")
 )
 
 func main() {
@@ -53,10 +54,33 @@ func validateChangelog(filePath, body string) {
 	entry := changelog.Entry{
 		Body: body,
 	}
-	if err := entry.Validate(); err != nil {
-		log.Fatalf("Error validating changelog file: %s, err: %v", filePath, err)
+	// grabbing validation logic from https://github.com/hashicorp/go-changelog/blob/main/entry.go#L66, if entry types become configurable we can invoke entry.Validate() directly
+	notes := changelog.NotesFromEntry(entry)
+
+	if len(notes) < 1 {
+		log.Fatalf("Error validating changelog file: %s, no changelog entry found", filePath)
 	}
+
+	var unknownTypes []string
+	for _, note := range notes {
+		if !isValidType(note.Type) {
+			unknownTypes = append(unknownTypes, note.Type)
+		}
+	}
+	if len(unknownTypes) > 0 {
+		log.Fatalf("Error validating changelog file: %s. Unknown changelog types %v, please use only the configured changelog entry types %v", filePath, unknownTypes, allowedTypeValues)
+	}
+
 	fmt.Printf("Changelog entry file is valid: %s\n", filePath)
+}
+
+func isValidType(entryType string) bool {
+	for _, a := range allowedTypeValues {
+		if a == entryType {
+			return true
+		}
+	}
+	return false
 }
 
 func skipTitle(title string) bool {
@@ -75,4 +99,14 @@ func skipLabel(labels []string) bool {
 		}
 	}
 	return false
+}
+
+func getValidTypes(path string) []string {
+	content, errFile := os.ReadFile(path)
+	if errFile != nil {
+		log.Fatalf("Error getting allowed entry types from %s", path)
+	}
+	lines := strings.Split(string(content), "\n")
+	allowedTypes := lines[:len(lines)-1] // remove last element as it is an empty string
+	return allowedTypes
 }
