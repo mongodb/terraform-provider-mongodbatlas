@@ -8,10 +8,13 @@ ENHANCEMENTS:
 
 * data-source/mongodbatlas_backup_compliance_policy: Adds `policy_item_yearly` attribute ([#2109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2109))
 * data-source/mongodbatlas_cloud_backup_schedule: Adds `policy_item_yearly` attribute ([#2109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2109))
+* data-source/mongodbatlas_project: Adds `tags` attribute ([#2135](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2135))
+* data-source/mongodbatlas_projects: Adds `tags` attribute ([#2135](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2135))
 * data-source/mongodbatlas_serverless_instance: Adds `auto_indexing` attribute ([#2100](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2100))
 * resource/mongodbatlas_backup_compliance_policy: Adds `policy_item_yearly` attribute ([#2109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2109))
 * resource/mongodbatlas_cloud_backup_schedule: Adds `policy_item_yearly` attribute ([#2109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2109))
 * resource/mongodbatlas_privatelink_endpoint_service_serverless: Adds support for updating `comment` attribute in-place. ([#2133](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2133))
+* resource/mongodbatlas_project: Adds `tags` attribute ([#2135](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2135))
 * resource/mongodbatlas_serverless_instance: Adds `auto_indexing` attribute ([#2100](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2100))
 
 BUG FIXES:

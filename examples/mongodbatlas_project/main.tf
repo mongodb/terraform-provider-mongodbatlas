@@ -11,4 +11,15 @@ resource "mongodbatlas_project" "test" {
     name  = "atlas.project.deployment.nodesPerPrivateLinkRegion"
     value = 3
   }
+  tags = {
+    Owner       = "Terraform"
+    Environment = "Example"
+    Team        = "tf-experts"
+    CurrentDRI  = "unset"
+  }
+  lifecycle {
+    ignore_changes = [
+      tags["CostCenter"]
+    ]
+  }
 }

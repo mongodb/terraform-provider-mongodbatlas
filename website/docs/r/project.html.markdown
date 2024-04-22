@@ -57,6 +57,7 @@ resource "mongodbatlas_project" "test" {
 * `name` - (Required) The name of the project you want to create.
 * `org_id` - (Required) The ID of the organization you want to create the project within.
 * `project_owner_id` - (Optional) Unique 24-hexadecimal digit string that identifies the Atlas user account to be granted the [Project Owner](https://docs.atlas.mongodb.com/reference/user-roles/#mongodb-authrole-Project-Owner) role on the specified project. If you set this parameter, it overrides the default value of the oldest [Organization Owner](https://docs.atlas.mongodb.com/reference/user-roles/#mongodb-authrole-Organization-Owner).
+* `tags` - (Optional) Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the project. See [below](#tags).
 * `with_default_alerts_settings` - (Optional) It allows users to disable the creation of the default alert settings. By default, this flag is set to true.
 * `is_collect_database_specifics_statistics_enabled` - (Optional) Flag that indicates whether to enable statistics in [cluster metrics](https://www.mongodb.com/docs/atlas/monitor-cluster-metrics/) collection for the project. By default, this flag is set to true.
 * `is_data_explorer_enabled` - (Optional) Flag that indicates whether to enable Data Explorer for the project. If enabled, you can query your database with an easy to use interface.  When Data Explorer is disabled, you cannot terminate slow operations from the [Real-Time Performance Panel](https://www.mongodb.com/docs/atlas/real-time-performance-panel/#std-label-real-time-metrics-status-tab) or create indexes from the [Performance Advisor](https://www.mongodb.com/docs/atlas/performance-advisor/#std-label-performance-advisor). You can still view Performance Advisor recommendations, but you must create those indexes from [mongosh](https://www.mongodb.com/docs/mongodb-shell/#mongodb-binary-bin.mongosh). By default, this flag is set to true.
@@ -66,6 +67,25 @@ resource "mongodbatlas_project" "test" {
 * `is_schema_advisor_enabled` - (Optional) Flag that indicates whether to enable Schema Advisor for the project. If enabled, you receive customized recommendations to optimize your data model and enhance performance. Disable this setting to disable schema suggestions in the [Performance Advisor](https://www.mongodb.com/docs/atlas/performance-advisor/#std-label-performance-advisor) and the [Data Explorer](https://www.mongodb.com/docs/atlas/atlas-ui/#std-label-atlas-ui). By default, this flag is set to true.
 * `region_usage_restrictions` - (Optional - set value to GOV_REGIONS_ONLY) Designates that this project can be used for government regions only.  If not set the project will default to standard regions.   You cannot deploy clusters across government and standard regions in the same project. AWS is the only cloud provider for AtlasGov.  For more information see [MongoDB Atlas for Government](https://www.mongodb.com/docs/atlas/government/api/#creating-a-project).
 
+### Tags
+
+ ```terraform
+ tags = {
+    Owner       = "Terraform"
+    Environment = "Example"
+    Team        = "tf-experts"
+  }
+  
+  lifecycle {
+    ignore_changes = [
+      tags["CostCenter"] # useful if `CostCenter` key is managed outside terraform
+    ]
+  }
+```
+
+Key-value pairs between 1 to 255 characters in length for tagging and categorizing the project.
+
+To learn more, see [Resource Tags](https://www.mongodb.com/docs/atlas/tags/).
 
 ### Teams
 Teams attribute is optional
