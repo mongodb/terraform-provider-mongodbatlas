@@ -7,13 +7,12 @@ import (
 	"net/http"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20231115008/admin"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
+	admin20231115008 "go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 const SAML = "SAML"
@@ -224,7 +223,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate(ctx context.Con
 	federationSettingsID := ids["federation_settings_id"]
 	oktaIdpID := ids["okta_idp_id"]
 
-	updateRequest := new(admin.FederationIdentityProviderUpdate)
+	updateRequest := new(admin20231115008.FederationIdentityProviderUpdate)
 	_, _, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID).Execute()
 
 	if err != nil {
