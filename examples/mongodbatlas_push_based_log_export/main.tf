@@ -3,7 +3,7 @@ resource "mongodbatlas_project" "project-tf" {
   org_id = var.atlas_org_id
 }
 
-// Set up cloud provider access in Atlas using the created IAM role
+# Set up cloud provider access in Atlas using the created IAM role
 resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
   project_id    = mongodbatlas_project.project-tf.id
   provider_name = "AWS"
@@ -18,7 +18,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
   }
 }
 
-// Set up push-based log export with authorized IAM role
+# Set up push-based log export with authorized IAM role
 resource "mongodbatlas_push_based_log_export" "test" {
   project_id  = mongodbatlas_project.project-tf.id
   bucket_name = aws_s3_bucket.log_bucket.bucket

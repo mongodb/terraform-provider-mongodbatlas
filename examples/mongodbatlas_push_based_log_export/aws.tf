@@ -1,4 +1,4 @@
-// Create IAM role & policy to authorize with Atlas
+# Create IAM role & policy to authorize with Atlas
 resource "aws_iam_role_policy" "test_policy" {
   name = var.aws_iam_role_policy_name
   role = aws_iam_role.test_role.id
@@ -43,13 +43,13 @@ resource "aws_iam_role" "test_role" {
 EOF
 }
 
-// Create S3 buckets
+# Create S3 buckets
 resource "aws_s3_bucket" "log_bucket" {
   bucket        = var.s3_bucket_name
-  force_destroy = true // required for destroying as Atlas may create a test folder in the bucket when push-based log export is set up 
+  force_destroy = true # required for destroying as Atlas may create a test folder in the bucket when push-based log export is set up 
 }
 
-// Add authorization policy to existing IAM role
+# Add authorization policy to existing IAM role
 resource "aws_iam_role_policy" "s3_bucket_policy" {
   name = var.s3_bucket_policy_name
   role = aws_iam_role.test_role.id
