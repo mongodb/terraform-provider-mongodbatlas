@@ -119,6 +119,22 @@ resource "mongodbatlas_alert_configuration" "test" {
 }
 ```
 
+### Create third party notification using credentials from existing third party integration
+
+
+```terraform
+resource "mongodbatlas_alert_configuration" "test" {
+  project_id = "PROJECT ID"
+  enabled    = true
+  event_type = "USERS_WITHOUT_MULTI_FACTOR_AUTH"
+
+  notification {
+    type_name     = "PAGER_DUTY"
+    integration_id = "THIRD PARTY INTEGRATION ID"
+  }
+}
+```
+
 ## Argument Reference
 
 * `project_id` - (Required) The ID of the project where the alert configuration will create.
@@ -223,6 +239,7 @@ List of notifications to send when an alert condition is detected.
     - `WEBHOOK`
     - `MICROSOFT_TEAMS`
 
+* `integration_id` - The id of the associated integration, the credentials of which to use for requests.
 * `notifier_id` - The notifier id is a system-generated unique identifier assigned to each notification method. This is needed when updating third-party notifications without requiring explicit authentication credentials.
 * `username` - Name of the Atlas user to which to send notifications. Only a user in the project that owns the alert configuration is allowed here. Required for the `USER` notifications type.
 * `victor_ops_api_key` - VictorOps API key. Required for the `VICTOR_OPS` notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.

@@ -206,6 +206,9 @@ var alertConfigDSSchemaAttributes = map[string]schema.Attribute{
 				"notifier_id": schema.StringAttribute{
 					Computed: true,
 				},
+				"integration_id": schema.StringAttribute{
+					Computed: true,
+				},
 				"type_name": schema.StringAttribute{
 					Computed: true,
 				},

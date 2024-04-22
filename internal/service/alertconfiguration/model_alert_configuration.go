@@ -46,6 +46,7 @@ func NewNotificationList(list []TfNotificationModel) (*[]admin.AlertsNotificatio
 			MicrosoftTeamsWebhookUrl: n.MicrosoftTeamsWebhookURL.ValueStringPointer(),
 			WebhookSecret:            n.WebhookSecret.ValueStringPointer(),
 			WebhookUrl:               n.WebhookURL.ValueStringPointer(),
+			IntegrationId:            n.IntegrationID.ValueStringPointer(),
 		}
 		if !n.NotifierID.IsUnknown() {
 			notifications[i].NotifierId = n.NotifierID.ValueStringPointer()
@@ -127,6 +128,7 @@ func NewTFNotificationModelList(n []admin.AlertsNotificationRootForGroup, currSt
 				OpsGenieRegion: conversion.StringPtrNullIfEmpty(value.OpsGenieRegion),
 				TeamID:         conversion.StringPtrNullIfEmpty(value.TeamId),
 				NotifierID:     types.StringPointerValue(value.NotifierId),
+				IntegrationID:  types.StringPointerValue(value.IntegrationId),
 				TypeName:       conversion.StringPtrNullIfEmpty(value.TypeName),
 				Username:       conversion.StringPtrNullIfEmpty(value.Username),
 				EmailEnabled:   types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled),
@@ -153,6 +155,7 @@ func NewTFNotificationModelList(n []admin.AlertsNotificationRootForGroup, currSt
 			WebhookSecret:            conversion.StringNullIfEmpty(currState.WebhookSecret.ValueString()),
 			MicrosoftTeamsWebhookURL: conversion.StringNullIfEmpty(currState.MicrosoftTeamsWebhookURL.ValueString()),
 			NotifierID:               types.StringPointerValue(value.NotifierId),
+			IntegrationID:            types.StringPointerValue(value.IntegrationId),
 			IntervalMin:              types.Int64PointerValue(conversion.IntPtrToInt64Ptr(value.IntervalMin)),
 			DelayMin:                 types.Int64PointerValue(conversion.IntPtrToInt64Ptr(value.DelayMin)),
 			EmailEnabled:             types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled),

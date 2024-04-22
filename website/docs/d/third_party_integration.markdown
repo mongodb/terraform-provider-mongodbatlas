@@ -25,6 +25,7 @@ resource "mongodbatlas_third_party_integration" "test_datadog" {
 
 data "mongodbatlas_third_party_integration" "test" {
 	project_id = mongodbatlas_third_party_integration.test_datadog.project_id
+  type = "DATADOG"
 }
 ```
 
