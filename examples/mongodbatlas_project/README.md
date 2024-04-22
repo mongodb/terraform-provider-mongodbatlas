@@ -1,5 +1,5 @@
 # MongoDB Atlas Provider -- Atlas Project with custom limits
-This example creates a Project with tags and defines custom values for certain limits.
+This example creates a project with tags and defines custom values for certain limits.
 It also shows how you can ignore a specific tag key.
 
 Variables Required to be set:
