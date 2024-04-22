@@ -34,14 +34,14 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			{
 				Config:            configBasic(federationSettingsID, ssoURL, issuerURI),
 				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName, federationSettingsID, idpID),
+				ImportStateIdFunc: importStateIDFunc(federationSettingsID, idpID),
 				ImportState:       true,
 				ImportStateVerify: false,
 			},
 			{
 				Config:            configBasic(federationSettingsID, ssoURL, issuerURI),
 				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName, federationSettingsID, idpID),
+				ImportStateIdFunc: importStateIDFunc(federationSettingsID, idpID),
 
 				ImportState: true,
 				Check: resource.ComposeTestCheckFunc(
@@ -53,7 +53,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			{
 				Config:            configBasic(federationSettingsID, ssoURL, issuerURI),
 				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName, federationSettingsID, idpID),
+				ImportStateIdFunc: importStateIDFunc(federationSettingsID, idpID),
 				ImportState:       true,
 				ImportStateVerify: false,
 			},
@@ -80,7 +80,7 @@ func checkExists(resourceName, idpID string) resource.TestCheckFunc {
 	}
 }
 
-func importStateIDFunc(resourceName, federationSettingsID, idpID string) resource.ImportStateIdFunc {
+func importStateIDFunc(federationSettingsID, idpID string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		ID := conversion.EncodeStateID(map[string]string{
 			"federation_settings_id": federationSettingsID,
