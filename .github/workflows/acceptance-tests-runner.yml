@@ -727,5 +727,3 @@ jobs:
             ./internal/service/streaminstance
             ./internal/service/streamconnection
         run: make testacc
-
-      
