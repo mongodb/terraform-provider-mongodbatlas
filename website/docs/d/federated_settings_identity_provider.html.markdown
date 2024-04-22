@@ -29,7 +29,7 @@ resource "mongodbatlas_federated_settings_identity_provider" "identity_provider"
 
 data "mongodbatlas_federated_settings_identity_provider" "identity_provider_ds" {
   federation_settings_id = mongodbatlas_federated_settings_identity_provider.identity_provider.id
-  identity_provider_id   = "0oad47f7fXnk1297"
+  identity_provider_id   = "0oad4fas87jL5Xnk12971234"
 }
 
 ```
@@ -37,9 +37,7 @@ data "mongodbatlas_federated_settings_identity_provider" "identity_provider_ds" 
 ## Argument Reference
 
 * `federation_settings_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
-* `identity_provider_id` - (Required) Unique 20-hexadecimal or 24-hexadecimal digit string that identifies the IdP. 
-
-**WARNING:** Starting from terraform provider version 1.16.0, the only allowed format for `identity_provider_id` will be 24-hexadecimal digit string. See more [here](../guides/1.15.0-upgrade-guide.html.markdown)
+* `identity_provider_id` - (Required) Unique 24-hexadecimal digit string that identifies the IdP. 
 
 ## Attributes Reference
 

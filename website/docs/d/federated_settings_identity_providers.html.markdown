@@ -16,7 +16,7 @@ description: |-
 
 ```terraform
 resource "mongodbatlas_federated_settings_identity_provider" "identity_provider" {
-  federation_settings_id     = "627a9687f7f7f7f774de306f14"
+  federation_settings_id     = "627a9687f7f7f7f774de306f"
   name = "mongodb_federation_test"
   associated_domains           = ["yourdomain.com"]
   sso_debug_enabled = true
@@ -77,7 +77,7 @@ In addition to all arguments above, the following attributes are exported:
 * `audience_uri` - Identifier for the intended audience of the SAML Assertion.
 * `display_name` - Human-readable label that identifies the IdP.
 * `issuer_uri` - Identifier for the issuer of the SAML Assertion.
-* `idp_id` - Unique 20-hexadecimal digit string that identifies the IdP.
+* `idp_id` - Unique 24-hexadecimal digit string that identifies the IdP.
 ### Pem File Info - List that contains the file information, including: start date, and expiration date for the identity provider's PEM-encoded public key certificate.
 * `not_after` - Expiration  Date.
 * `not_before` - Start Date.
