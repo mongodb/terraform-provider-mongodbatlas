@@ -11,7 +11,7 @@ MongoDB Atlas Provider 1.16.0: Upgrade and Information Guide
 The Terraform MongoDB Atlas Provider version 1.16.0 has a number of new and exciting features.
 
 **New Resources, Data Sources, and Features:**
-
+- You can now configure [Push-based log export to Amazon S3](https://www.mongodb.com/docs/atlas/push-logs/) with `mongodbatlas_push_based_log_export` [resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/push_based_log_export).
 
 
 **Deprecations and Removals:**
