@@ -49,7 +49,7 @@ func ConfigClusterGlobal(orgID, projectName, clusterName string) string {
 		}
 
 		resource "mongodbatlas_cluster" test {
-			project_id              = mongodbatlas_project.test.project_id
+			project_id              = mongodbatlas_project.test.id
 			name                    = %[3]q
 			disk_size_gb            = 80
 			num_shards              = 1
