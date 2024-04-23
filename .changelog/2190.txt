@@ -1,4 +1,8 @@
 ```release-note:breaking-change
+resource/mongodbatlas_project_api_key: Removes `project_id` attribute
+```
+
+```release-note:breaking-change
 data-source/mongodbatlas_database_user: Removes `password` attribute
 ```
 

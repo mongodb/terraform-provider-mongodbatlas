@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115008/admin"
@@ -30,12 +29,6 @@ func Resource() *schema.Resource {
 			StateContext: resourceMongoDBAtlasProjectAPIKeyImportState,
 		},
 		Schema: map[string]*schema.Schema{
-			"project_id": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Optional:   true,
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.16.0"),
-			},
 			"api_key_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -132,12 +125,7 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
 	}
 
-	firstProjectID, err := getFirstProjectIDFromAssignments(d)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("could not obtain a project id from state: %s", err))
-	}
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"project_id": *firstProjectID, // defined to avoid breaking changes (preserve id format), can be removed when root project_id is removed.
 		"api_key_id": apiKey.ID,
 	}))
 
@@ -347,7 +335,6 @@ func resourceMongoDBAtlasProjectAPIKeyImportState(ctx context.Context, d *schema
 			}
 
 			d.SetId(conversion.EncodeStateID(map[string]string{
-				"project_id": projectID,
 				"api_key_id": val.ID,
 			}))
 		}

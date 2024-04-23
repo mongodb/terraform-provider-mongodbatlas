@@ -15,13 +15,12 @@ func TestMigConfigRSProjectAPIKey_RemovingOptionalRootProjectID(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasic(t) },
-		CheckDestroy: checkDestroy,
+		CheckDestroy: checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders("1.13.1"), // fixed version as this is the last version where root project id was required.
 				Config:            configBasic(projectID, description, roleName, true),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
 					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
@@ -31,7 +30,6 @@ func TestMigConfigRSProjectAPIKey_RemovingOptionalRootProjectID(t *testing.T) {
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configBasic(projectID, description, roleName, true),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
 					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),

@@ -29,7 +29,7 @@ func TestAccConfigRSProjectAPIKey_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, description, roleName, false),
@@ -58,12 +58,11 @@ func TestAccConfigRSProjectAPIKey_basicWithLegacyRootProjectID(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, description, roleName, true),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
 					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
@@ -84,7 +83,7 @@ func TestAccConfigRSProjectAPIKey_changingSingleProject(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             checkDestroy(projectID1),
 		Steps: []resource.TestStep{
 			{
 				Config: configChangingProject(orgID, projectName2, description, fmt.Sprintf("%q", projectID1)),
@@ -115,12 +114,11 @@ func TestAccConfigRSProjectAPIKey_removingOptionalRootProjectID(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, description, roleName, true),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
 					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
@@ -149,7 +147,7 @@ func TestAccConfigRSProjectAPIKey_multiple(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
 				Config: configMultiple(projectID, description, roleName),
@@ -180,7 +178,7 @@ func TestAccConfigRSProjectAPIKey_updateDescription(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, description, roleName, false),
@@ -213,7 +211,7 @@ func TestAccConfigRSProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
 				Config: projectAPIKeyConfig,
@@ -246,7 +244,7 @@ func TestAccConfigRSProjectAPIKey_deleteProjectAndAssignment(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             checkDestroy(projectID1),
 		Steps: []resource.TestStep{
 			{
 				Config: configDeletedProjectAndAssignment(orgID, projectID1, projectName2, description, true),
@@ -275,7 +273,7 @@ func TestAccConfigRSProjectAPIKey_invalidRole(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
 				Config:      configBasic(projectID, description, roleName, false),
@@ -300,23 +298,25 @@ func deleteAPIKeyManually(orgID, descriptionPrefix string) error {
 	return nil
 }
 
-func checkDestroy(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_project_api_key" {
-			continue
-		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		projectAPIKeys, _, err := acc.Conn().ProjectAPIKeys.List(context.Background(), ids["project_id"], nil)
-		if err != nil {
-			return nil
-		}
-		for _, val := range projectAPIKeys {
-			if val.ID == ids["api_key_id"] {
-				return fmt.Errorf("Project API Key (%s) still exists", ids["role_name"])
+func checkDestroy(projectID string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		for _, rs := range s.RootModule().Resources {
+			if rs.Type != "mongodbatlas_project_api_key" {
+				continue
+			}
+			projectAPIKeys, _, err := acc.Conn().ProjectAPIKeys.List(context.Background(), projectID, nil)
+			if err != nil {
+				return nil
+			}
+			ids := conversion.DecodeStateID(rs.Primary.ID)
+			for _, val := range projectAPIKeys {
+				if val.ID == ids["api_key_id"] {
+					return fmt.Errorf("Project API Key (%s) still exists", ids["role_name"])
+				}
 			}
 		}
+		return nil
 	}
-	return nil
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
