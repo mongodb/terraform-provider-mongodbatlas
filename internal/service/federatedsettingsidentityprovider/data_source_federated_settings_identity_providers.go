@@ -5,10 +5,12 @@ import (
 	"errors"
 	"fmt"
 
+	admin20231115008 "go.mongodb.org/atlas-sdk/v20231115008/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -247,7 +249,7 @@ func PluralDataSource() *schema.Resource {
 }
 func dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).Atlas20231115008
 
 	federationSettingsID, federationSettingsIDOk := d.GetOk("federation_settings_id")
 
@@ -255,7 +257,7 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead(ctx context.Co
 		return diag.FromErr(errors.New("federation_settings_id must be configured"))
 	}
 
-	params := &admin.ListIdentityProvidersApiParams{
+	params := &admin20231115008.ListIdentityProvidersApiParams{
 		FederationSettingsId: federationSettingsID.(string),
 		Protocol:             &[]string{OIDC, SAML},
 	}

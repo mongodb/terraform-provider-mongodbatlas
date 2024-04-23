@@ -45,12 +45,12 @@ func (r *pushBasedLogExportRS) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	logExportConfigReq := NewPushBasedLogExportReq(&tfPlan)
+	logExportConfigReq := NewPushBasedLogExportCreateReq(&tfPlan)
 
 	connV2 := r.Client.AtlasV2
 	projectID := tfPlan.ProjectID.ValueString()
 	if _, err := connV2.PushBasedLogExportApi.CreatePushBasedLogConfiguration(ctx, projectID, logExportConfigReq).Execute(); err != nil {
-		resp.Diagnostics.AddError("error during push-based log export configuration create", err.Error())
+		resp.Diagnostics.AddError("eError when creating push-based log export configuration", err.Error())
 		return
 	}
 
@@ -63,7 +63,7 @@ func (r *pushBasedLogExportRS) Create(ctx context.Context, req resource.CreateRe
 	logExportConfigResp, err := WaitStateTransition(ctx, projectID, connV2.PushBasedLogExportApi,
 		retryTimeConfig(timeout, minTimeoutCreateUpdate))
 	if err != nil {
-		resp.Diagnostics.AddError("error during push-based log export configuration create", err.Error())
+		resp.Diagnostics.AddError("Error when creating push-based log export configuration", err.Error())
 		return
 	}
 
@@ -86,7 +86,7 @@ func (r *pushBasedLogExportRS) Read(ctx context.Context, req resource.ReadReques
 	projectID := tfState.ProjectID.ValueString()
 	logConfig, _, err := connV2.PushBasedLogExportApi.GetPushBasedLogConfiguration(ctx, projectID).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("error getting push-based log export configuration", err.Error())
+		resp.Diagnostics.AddError("Error when getting push-based log export configuration", err.Error())
 		return
 	}
 
@@ -105,12 +105,12 @@ func (r *pushBasedLogExportRS) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	logExportConfigReq := NewPushBasedLogExportReq(&tfPlan)
+	logExportConfigReq := NewPushBasedLogExportUpdateReq(&tfPlan)
 
 	connV2 := r.Client.AtlasV2
 	projectID := tfPlan.ProjectID.ValueString()
 	if _, err := connV2.PushBasedLogExportApi.UpdatePushBasedLogConfiguration(ctx, projectID, logExportConfigReq).Execute(); err != nil {
-		resp.Diagnostics.AddError("error during push-based log export configuration update", err.Error())
+		resp.Diagnostics.AddError("Error when updating push-based log export configuration", err.Error())
 		return
 	}
 
@@ -123,7 +123,7 @@ func (r *pushBasedLogExportRS) Update(ctx context.Context, req resource.UpdateRe
 	logExportConfigResp, err := WaitStateTransition(ctx, projectID, connV2.PushBasedLogExportApi,
 		retryTimeConfig(timeout, minTimeoutCreateUpdate))
 	if err != nil {
-		resp.Diagnostics.AddError("error during push-based log export configuration update", err.Error())
+		resp.Diagnostics.AddError("Error when updating push-based log export configuration", err.Error())
 		return
 	}
 
@@ -145,7 +145,7 @@ func (r *pushBasedLogExportRS) Delete(ctx context.Context, req resource.DeleteRe
 	connV2 := r.Client.AtlasV2
 	projectID := tfState.ProjectID.ValueString()
 	if _, err := connV2.PushBasedLogExportApi.DeletePushBasedLogConfiguration(ctx, projectID).Execute(); err != nil {
-		resp.Diagnostics.AddError("error during push-based log export configuration delete", err.Error())
+		resp.Diagnostics.AddError("Error when deleting push-based log export configuration", err.Error())
 		return
 	}
 
@@ -155,7 +155,7 @@ func (r *pushBasedLogExportRS) Delete(ctx context.Context, req resource.DeleteRe
 		return
 	}
 	if err := WaitResourceDelete(ctx, projectID, connV2.PushBasedLogExportApi, retryTimeConfig(deleteTimeout, minTimeoutDelete)); err != nil {
-		resp.Diagnostics.AddError("error during push-based log export configuration delete", err.Error())
+		resp.Diagnostics.AddError("Error when deleting push-based log export configuration", err.Error())
 		return
 	}
 }

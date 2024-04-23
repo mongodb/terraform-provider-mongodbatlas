@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115008/admin"
+	"go.mongodb.org/atlas-sdk/v20231115010/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -108,7 +108,7 @@ func PluralDataSource() *schema.Resource {
 							Computed: true,
 						},
 						"replication_specs": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -121,7 +121,7 @@ func PluralDataSource() *schema.Resource {
 										Computed: true,
 									},
 									"region_configs": {
-										Type:     schema.TypeSet,
+										Type:     schema.TypeList,
 										Computed: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -216,7 +216,6 @@ func PluralDataSource() *schema.Resource {
 									},
 								},
 							},
-							Set: replicationSpecsHashSet,
 						},
 						"root_cert_type": {
 							Type:     schema.TypeString,

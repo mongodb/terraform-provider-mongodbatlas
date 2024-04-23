@@ -21,7 +21,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20231115008/admin"
+	"go.mongodb.org/atlas-sdk/v20231115010/admin"
 )
 
 const (
@@ -290,7 +290,6 @@ func Resource() *schema.Resource {
 						},
 					},
 				},
-				// Set: replicationSpecsHashSet,
 			},
 			"root_cert_type": {
 				Type:     schema.TypeString,
