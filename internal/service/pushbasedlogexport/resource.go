@@ -45,7 +45,7 @@ func (r *pushBasedLogExportRS) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	logExportConfigReq := NewPushBasedLogExportReq(&tfPlan)
+	logExportConfigReq := NewPushBasedLogExportCreateReq(&tfPlan)
 
 	connV2 := r.Client.AtlasV2
 	projectID := tfPlan.ProjectID.ValueString()
@@ -105,7 +105,7 @@ func (r *pushBasedLogExportRS) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	logExportConfigReq := NewPushBasedLogExportReq(&tfPlan)
+	logExportConfigReq := NewPushBasedLogExportUpdateReq(&tfPlan)
 
 	connV2 := r.Client.AtlasV2
 	projectID := tfPlan.ProjectID.ValueString()

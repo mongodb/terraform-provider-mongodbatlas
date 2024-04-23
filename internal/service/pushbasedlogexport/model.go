@@ -3,7 +3,7 @@ package pushbasedlogexport
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20231115008/admin"
+	"go.mongodb.org/atlas-sdk/v20231115010/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -28,7 +28,15 @@ func NewTFPushBasedLogExport(ctx context.Context, projectID string, apiResp *adm
 	return tfModel, nil
 }
 
-func NewPushBasedLogExportReq(plan *TFPushBasedLogExportRSModel) *admin.PushBasedLogExportProject {
+func NewPushBasedLogExportCreateReq(plan *TFPushBasedLogExportRSModel) *admin.CreatePushBasedLogExportProjectRequest {
+	return &admin.CreatePushBasedLogExportProjectRequest{
+		BucketName: plan.BucketName.ValueString(),
+		IamRoleId:  plan.IamRoleID.ValueString(),
+		PrefixPath: plan.PrefixPath.ValueString(),
+	}
+}
+
+func NewPushBasedLogExportUpdateReq(plan *TFPushBasedLogExportRSModel) *admin.PushBasedLogExportProject {
 	return &admin.PushBasedLogExportProject{
 		BucketName: plan.BucketName.ValueStringPointer(),
 		IamRoleId:  plan.IamRoleID.ValueStringPointer(),
