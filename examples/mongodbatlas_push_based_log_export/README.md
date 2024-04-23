@@ -1,4 +1,4 @@
-# MongoDB Atlas Provider -- Cloud Provider Access Role with AWS
+# MongoDB Atlas Provider -- Push-Based Log Export 
 This example shows how to configure push-based log export for an Atlas project.
 
 ## Dependencies
