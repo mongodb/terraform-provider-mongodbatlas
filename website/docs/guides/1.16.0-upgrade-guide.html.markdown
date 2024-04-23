@@ -16,7 +16,7 @@ The Terraform MongoDB Atlas Provider version 1.16.0 has a number of new and exci
 
 **Deprecations and Removals:**
 
-- The HashiCorp Terraform Version Compatibility Matrix has been published for the Terraform MongoDB Atlas Provider. See full details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#hashicorp-terraform-version-compatibility-matrix
+- The HashiCorp Terraform Version Compatibility Matrix has been published for the Terraform MongoDB Atlas Provider. See full details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#hashicorp-terraform-versionhttpswwwterraformiodownloadshtml-compatibility-matrix 
 
 
 ### Helpful Links
