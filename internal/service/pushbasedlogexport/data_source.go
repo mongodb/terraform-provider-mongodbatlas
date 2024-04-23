@@ -38,7 +38,7 @@ func (d *pushBasedLogExportDS) Read(ctx context.Context, req datasource.ReadRequ
 	projectID := tfConfig.ProjectID.ValueString()
 	logConfig, _, err := connV2.PushBasedLogExportApi.GetPushBasedLogConfiguration(ctx, projectID).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("error getting push-based log export configuration", err.Error())
+		resp.Diagnostics.AddError("Error when getting push-based log export configuration", err.Error())
 		return
 	}
 

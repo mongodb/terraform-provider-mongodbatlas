@@ -15,8 +15,8 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 		Attributes: map[string]schema.Attribute{
 			"bucket_name": schema.StringAttribute{
 				Computed:            true,
-				Description:         "The name of the bucket to which the agent will send the logs to.",
-				MarkdownDescription: "The name of the bucket to which the agent will send the logs to.",
+				Description:         "The name of the bucket to which the agent sends the logs to.",
+				MarkdownDescription: "The name of the bucket to which the agent sends the logs to.",
 			},
 			"create_date": schema.StringAttribute{
 				Computed:            true,
@@ -34,13 +34,13 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 			},
 			"iam_role_id": schema.StringAttribute{
 				Computed:            true,
-				Description:         "ID of the AWS IAM role that will be used to write to the S3 bucket.",
-				MarkdownDescription: "ID of the AWS IAM role that will be used to write to the S3 bucket.",
+				Description:         "ID of the AWS IAM role that is used to write to the S3 bucket.",
+				MarkdownDescription: "ID of the AWS IAM role that is used to write to the S3 bucket.",
 			},
 			"prefix_path": schema.StringAttribute{
 				Computed:            true,
-				Description:         "S3 directory in which vector will write to in order to store the logs. An empty string denotes the root directory.",
-				MarkdownDescription: "S3 directory in which vector will write to in order to store the logs. An empty string denotes the root directory.",
+				Description:         "S3 directory in which vector writes in order to store the logs. An empty string denotes the root directory.",
+				MarkdownDescription: "S3 directory in which vector writes in order to store the logs. An empty string denotes the root directory.",
 			},
 			"state": schema.StringAttribute{
 				Computed:            true,
