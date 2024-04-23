@@ -50,9 +50,9 @@ resource "mongodbatlas_push_based_log_export" "test" {
 
 ### Required
 
-- `bucket_name` (String) The name of the bucket to which the agent will send the logs to.
-- `iam_role_id` (String) ID of the AWS IAM role that will be used to write to the S3 bucket.
-- `prefix_path` (String) S3 directory in which vector will write to in order to store the logs. An empty string denotes the root directory.
+- `bucket_name` (String) The name of the bucket to which the agent sends the logs to.
+- `iam_role_id` (String) ID of the AWS IAM role that is used to write to the S3 bucket.
+- `prefix_path` (String) S3 directory in which vector writes in order to store the logs. An empty string denotes the root directory.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
 
 **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.

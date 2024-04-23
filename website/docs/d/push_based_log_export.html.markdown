@@ -57,10 +57,10 @@ data "mongodbatlas_push_based_log_export" "test" {
 
 ### Read-Only
 
-- `bucket_name` (String) The name of the bucket to which the agent will send the logs to.
+- `bucket_name` (String) The name of the bucket to which the agent sends the logs to.
 - `create_date` (String) Date and time that this feature was enabled on.
-- `iam_role_id` (String) ID of the AWS IAM role that will be used to write to the S3 bucket.
-- `prefix_path` (String) S3 directory in which vector will write to in order to store the logs. An empty string denotes the root directory.
+- `iam_role_id` (String) ID of the AWS IAM role that is used to write to the S3 bucket.
+- `prefix_path` (String) S3 directory in which vector writes in order to store the logs. An empty string denotes the root directory.
 - `state` (String) Describes whether or not the feature is enabled and what status it is in.
 
 For more information see: [MongoDB Atlas API - Push-Based Log Export](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Push-Based-Log-Export) Documentation.
