@@ -2,8 +2,12 @@
 
 BREAKING CHANGES:
 
+* data-source/mongodbatlas_database_user: Removes `password` attribute ([#2190](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2190))
+* data-source/mongodbatlas_database_users: Removes `password` attribute ([#2190](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2190))
 * data-source/mongodbatlas_federated_settings_identity_provider: The only allowed format for `identity_provider_id` is a 24-hexadecimal digit string ([#2185](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2185))
+* data-source/mongodbatlas_organizations: Removes `include_deleted_orgs` attribute ([#2190](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2190))
 * resource/mongodbatlas_federated_settings_identity_provider: Import can only use a 24-hexadecimal digit string that identifies the IdP, `idp_id`, instead of `okta_idp_id` ([#2185](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2185))
+* resource/mongodbatlas_project_api_key: Removes `project_id` attribute ([#2190](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2190))
 
 NOTES:
 
