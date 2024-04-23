@@ -108,7 +108,7 @@ func PluralDataSource() *schema.Resource {
 							Computed: true,
 						},
 						"replication_specs": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -121,7 +121,7 @@ func PluralDataSource() *schema.Resource {
 										Computed: true,
 									},
 									"region_configs": {
-										Type:     schema.TypeSet,
+										Type:     schema.TypeList,
 										Computed: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -216,7 +216,6 @@ func PluralDataSource() *schema.Resource {
 									},
 								},
 							},
-							Set: replicationSpecsHashSet,
 						},
 						"root_cert_type": {
 							Type:     schema.TypeString,

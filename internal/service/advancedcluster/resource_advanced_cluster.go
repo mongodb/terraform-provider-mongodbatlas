@@ -290,7 +290,6 @@ func Resource() *schema.Resource {
 						},
 					},
 				},
-				// Set: replicationSpecsHashSet,
 			},
 			"root_cert_type": {
 				Type:     schema.TypeString,
