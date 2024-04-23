@@ -1,5 +1,10 @@
 ## (Unreleased)
 
+BREAKING CHANGES:
+
+* data-source/mongodbatlas_federated_settings_identity_provider: The only allowed format for `identity_provider_id` is a 24-hexadecimal digit string ([#2185](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2185))
+* resource/mongodbatlas_federated_settings_identity_provider: Import can only use a 24-hexadecimal digit string that identifies the IdP, `idp_id`, instead of `okta_idp_id` ([#2185](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2185))
+
 NOTES:
 
 * provider: New changelog format has been incorporated following [Terraform Changelog Specification](https://developer.hashicorp.com/terraform/plugin/best-practices/versioning#changelog-specification) ([#2124](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2124))
