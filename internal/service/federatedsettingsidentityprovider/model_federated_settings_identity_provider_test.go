@@ -4,12 +4,10 @@ import (
 	"testing"
 	"time"
 
-	admin20231115008 "go.mongodb.org/atlas-sdk/v20231115008/admin"
-
-	"github.com/stretchr/testify/assert"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsidentityprovider"
+	"github.com/stretchr/testify/assert"
+	admin20231115008 "go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 var (

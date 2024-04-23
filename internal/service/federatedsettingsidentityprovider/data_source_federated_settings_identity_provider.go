@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -236,7 +235,7 @@ func DataSource() *schema.Resource {
 }
 func dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	connV2 := meta.(*config.MongoDBClient).Atlas20231115008
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	federationSettingsID, federationSettingsIDOk := d.GetOk("federation_settings_id")
 

@@ -7,14 +7,12 @@ import (
 	"net/http"
 	"regexp"
 
-	admin20231115008 "go.mongodb.org/atlas-sdk/v20231115008/admin"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/spf13/cast"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/spf13/cast"
+	admin20231115008 "go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 const SAML = "SAML"
@@ -114,7 +112,7 @@ func Resource() *schema.Resource {
 
 func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	connV2 := meta.(*config.MongoDBClient).Atlas20231115008
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	if d.Id() == "" {
 		d.SetId("")
@@ -220,7 +218,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 
 func resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	connV2 := meta.(*config.MongoDBClient).Atlas20231115008
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
 	oktaIdpID := ids["okta_idp_id"]
