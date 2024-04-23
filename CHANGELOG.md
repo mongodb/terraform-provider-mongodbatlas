@@ -9,6 +9,11 @@ NOTES:
 
 * provider: New changelog format has been incorporated following [Terraform Changelog Specification](https://developer.hashicorp.com/terraform/plugin/best-practices/versioning#changelog-specification) ([#2124](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2124))
 
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_push_based_log_export` ([#2169](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2169))
+* **New Resource:** `resource/mongodbatlas_push_based_log_export` ([#2169](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2169))
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_backup_compliance_policy: Adds `policy_item_yearly` attribute ([#2109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2109))
