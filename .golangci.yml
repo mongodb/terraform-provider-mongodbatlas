@@ -122,7 +122,10 @@ issues:
       text: "SA1019:" # d.GetOkExists is deprecated: usage is discouraged due to undefined behaviors and may be removed in a future version of the SDK
     - linters:
         - gocritic
-      text: "^hugeParam: req is heavy"
+      text: "^hugeParam: req is heavy|^dupImport" # TEMPORARY until SDK goes over v20231115008, then keep only first part
+    - linters:
+        - stylecheck
+      text: "^ST1019" # TEMPORARY until SDK goes over v20231115008
 
 run:
   timeout: 10m

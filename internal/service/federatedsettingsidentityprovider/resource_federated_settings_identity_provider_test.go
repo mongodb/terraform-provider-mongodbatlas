@@ -22,7 +22,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	var (
 		resourceName         = "mongodbatlas_federated_settings_identity_provider.test"
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
-		idpID                = os.Getenv("MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID")
+		idpID                = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
 		ssoURL               = os.Getenv("MONGODB_ATLAS_FEDERATED_SSO_URL")
 		issuerURI            = os.Getenv("MONGODB_ATLAS_FEDERATED_ISSUER_URI")
 	)
@@ -34,14 +34,14 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			{
 				Config:            configBasic(federationSettingsID, ssoURL, issuerURI),
 				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName, federationSettingsID, idpID),
+				ImportStateIdFunc: importStateIDFunc(federationSettingsID, idpID),
 				ImportState:       true,
 				ImportStateVerify: false,
 			},
 			{
 				Config:            configBasic(federationSettingsID, ssoURL, issuerURI),
 				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName, federationSettingsID, idpID),
+				ImportStateIdFunc: importStateIDFunc(federationSettingsID, idpID),
 
 				ImportState: true,
 				Check: resource.ComposeTestCheckFunc(
@@ -53,7 +53,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			{
 				Config:            configBasic(federationSettingsID, ssoURL, issuerURI),
 				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName, federationSettingsID, idpID),
+				ImportStateIdFunc: importStateIDFunc(federationSettingsID, idpID),
 				ImportState:       true,
 				ImportStateVerify: false,
 			},
@@ -80,7 +80,7 @@ func checkExists(resourceName, idpID string) resource.TestCheckFunc {
 	}
 }
 
-func importStateIDFunc(resourceName, federationSettingsID, idpID string) resource.ImportStateIdFunc {
+func importStateIDFunc(federationSettingsID, idpID string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		ID := conversion.EncodeStateID(map[string]string{
 			"federation_settings_id": federationSettingsID,

@@ -7,7 +7,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsidentityprovider"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20231115008/admin"
+	admin20231115008 "go.mongodb.org/atlas-sdk/v20231115008/admin"
 )
 
 var (
@@ -47,7 +47,7 @@ var (
 	requestedScopes            = []string{"requestedScopes"}
 	userClaim                  = "userClaim"
 
-	roleAssignments = []admin.RoleAssignment{
+	roleAssignments = []admin20231115008.RoleAssignment{
 		{
 			GroupId: &groupID,
 			OrgId:   &organizationID,
@@ -61,7 +61,7 @@ var (
 			"role":     &role,
 		},
 	}
-	pemCertificates = []admin.X509Certificate{
+	pemCertificates = []admin20231115008.X509Certificate{
 		{
 			NotAfter:  &notAfter,
 			NotBefore: &notBefore,
@@ -73,7 +73,7 @@ var (
 			"not_before": conversion.TimePtrToStringPtr(&notBefore),
 		},
 	}
-	federationRoleMapping = []admin.AuthFederationRoleMapping{
+	federationRoleMapping = []admin20231115008.AuthFederationRoleMapping{
 		{
 			ExternalGroupName: externalGroupName,
 			Id:                &roleAssignmentsID,
@@ -87,7 +87,7 @@ var (
 			"role_assignments":    flattenedRoleAssignments,
 		},
 	}
-	federatedUser = []admin.FederatedUser{
+	federatedUser = []admin20231115008.FederatedUser{
 		{
 			EmailAddress:         emailAddress,
 			FederationSettingsId: federationSettingsID,
@@ -105,7 +105,7 @@ var (
 			"user_id":                &userID,
 		},
 	}
-	associatedOrgs = []admin.ConnectedOrgConfig{
+	associatedOrgs = []admin20231115008.ConnectedOrgConfig{
 		{
 			DomainAllowList:          &domainAllowList,
 			DomainRestrictionEnabled: domainRestrictionEnabled,
@@ -127,7 +127,7 @@ var (
 			"user_conflicts":             nil,
 		},
 	}
-	pemFileInfo = admin.PemFileInfo{
+	pemFileInfo = admin20231115008.PemFileInfo{
 		FileName:     &fileName,
 		Certificates: &pemCertificates,
 	}
@@ -142,7 +142,7 @@ var (
 func TestFlattenRoleAssignments(t *testing.T) {
 	testCases := []struct {
 		name   string
-		input  []admin.RoleAssignment
+		input  []admin20231115008.RoleAssignment
 		output []map[string]any
 	}{
 		{
@@ -152,7 +152,7 @@ func TestFlattenRoleAssignments(t *testing.T) {
 		},
 		{
 			name:   "Empty FlattenRoleAssignments",
-			input:  []admin.RoleAssignment{},
+			input:  []admin20231115008.RoleAssignment{},
 			output: nil,
 		},
 	}
@@ -167,7 +167,7 @@ func TestFlattenRoleAssignments(t *testing.T) {
 func TestFlattenFederatedUser(t *testing.T) {
 	testCases := []struct {
 		name   string
-		input  []admin.FederatedUser
+		input  []admin20231115008.FederatedUser
 		output []map[string]any
 	}{
 		{
@@ -177,7 +177,7 @@ func TestFlattenFederatedUser(t *testing.T) {
 		},
 		{
 			name:   "Empty FlattenFederatedUser",
-			input:  []admin.FederatedUser{},
+			input:  []admin20231115008.FederatedUser{},
 			output: nil,
 		},
 	}
@@ -192,7 +192,7 @@ func TestFlattenFederatedUser(t *testing.T) {
 func TestFlattenAuthFederationRoleMapping(t *testing.T) {
 	testCases := []struct {
 		name   string
-		input  []admin.AuthFederationRoleMapping
+		input  []admin20231115008.AuthFederationRoleMapping
 		output []map[string]any
 	}{
 		{
@@ -202,7 +202,7 @@ func TestFlattenAuthFederationRoleMapping(t *testing.T) {
 		},
 		{
 			name:   "Empty FlattenAuthFederationRoleMapping",
-			input:  []admin.AuthFederationRoleMapping{},
+			input:  []admin20231115008.AuthFederationRoleMapping{},
 			output: nil,
 		},
 	}
@@ -217,7 +217,7 @@ func TestFlattenAuthFederationRoleMapping(t *testing.T) {
 func TestFlattenFederatedSettingsCertificates(t *testing.T) {
 	testCases := []struct {
 		name   string
-		input  []admin.X509Certificate
+		input  []admin20231115008.X509Certificate
 		output []map[string]any
 	}{
 		{
@@ -227,7 +227,7 @@ func TestFlattenFederatedSettingsCertificates(t *testing.T) {
 		},
 		{
 			name:   "Empty FlattenFederatedSettingsCertificates",
-			input:  []admin.X509Certificate{},
+			input:  []admin20231115008.X509Certificate{},
 			output: nil,
 		},
 	}
@@ -242,7 +242,7 @@ func TestFlattenFederatedSettingsCertificates(t *testing.T) {
 func TestFlattenPemFileInfo(t *testing.T) {
 	testCases := []struct {
 		name   string
-		input  admin.PemFileInfo
+		input  admin20231115008.PemFileInfo
 		output []map[string]any
 	}{
 		{
@@ -252,7 +252,7 @@ func TestFlattenPemFileInfo(t *testing.T) {
 		},
 		{
 			name:   "Empty FlattenPemFileInfo",
-			input:  admin.PemFileInfo{},
+			input:  admin20231115008.PemFileInfo{},
 			output: nil,
 		},
 	}
@@ -267,7 +267,7 @@ func TestFlattenPemFileInfo(t *testing.T) {
 func TestFlattenAssociatedOrgs(t *testing.T) {
 	testCases := []struct {
 		name   string
-		input  []admin.ConnectedOrgConfig
+		input  []admin20231115008.ConnectedOrgConfig
 		output []map[string]any
 	}{
 		{
@@ -277,7 +277,7 @@ func TestFlattenAssociatedOrgs(t *testing.T) {
 		},
 		{
 			name: "Non empty FlattenAssociatedOrgs with UserConflics",
-			input: []admin.ConnectedOrgConfig{
+			input: []admin20231115008.ConnectedOrgConfig{
 				{
 					DomainAllowList:          &domainAllowList,
 					DomainRestrictionEnabled: domainRestrictionEnabled,
@@ -302,7 +302,7 @@ func TestFlattenAssociatedOrgs(t *testing.T) {
 		},
 		{
 			name:   "Empty FlattenAssociatedOrgs",
-			input:  []admin.ConnectedOrgConfig{},
+			input:  []admin20231115008.ConnectedOrgConfig{},
 			output: nil,
 		},
 	}
@@ -322,12 +322,12 @@ func TestFlattenFederatedSettingsIdentityProvider(t *testing.T) {
 	var nilBoolPtr *bool
 	testCases := []struct {
 		name   string
-		input  []admin.FederationIdentityProvider
+		input  []admin20231115008.FederationIdentityProvider
 		output []map[string]any
 	}{
 		{
 			name: "Non empty SAML FlattenFederatedSettingsIdentityProvider",
-			input: []admin.FederationIdentityProvider{
+			input: []admin20231115008.FederationIdentityProvider{
 				{
 					AcsUrl:                     &acsURL,
 					AssociatedDomains:          &associatedDomains,
@@ -373,7 +373,7 @@ func TestFlattenFederatedSettingsIdentityProvider(t *testing.T) {
 		},
 		{
 			name: "Non empty OIDC FlattenFederatedSettingsIdentityProvider",
-			input: []admin.FederationIdentityProvider{
+			input: []admin20231115008.FederationIdentityProvider{
 				{
 					AssociatedDomains: &associatedDomains,
 					AssociatedOrgs:    &associatedOrgs,
@@ -415,7 +415,7 @@ func TestFlattenFederatedSettingsIdentityProvider(t *testing.T) {
 		},
 		{
 			name:   "Empty FlattenFederatedSettingsIdentityProvider",
-			input:  []admin.FederationIdentityProvider{},
+			input:  []admin20231115008.FederationIdentityProvider{},
 			output: nil,
 		},
 	}
