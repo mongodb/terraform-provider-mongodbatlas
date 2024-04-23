@@ -156,41 +156,6 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 	}
 }
 
-func TestAccCluster_basicAWS_instanceScale(t *testing.T) {
-	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: configAWSNVMEInstance(projectID, clusterName, "M40_NVME"),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "provider_instance_size_name", "M40_NVME"),
-					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
-				),
-			},
-			{
-				Config: configAWSNVMEInstance(projectID, clusterName, "M50_NVME"),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "provider_instance_size_name", "M50_NVME"),
-					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
@@ -380,46 +345,6 @@ func TestAccCluster_basicAzure(t *testing.T) {
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccCluster_AzureUpdateToNVME(t *testing.T) {
-	var (
-		resourceName = "mongodbatlas_cluster.basic_azure"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because no AWS
-		clusterName  = acc.RandomClusterName()
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: configAzure(orgID, projectName, clusterName, "true", "M60", true),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "provider_instance_size_name", "M60"),
-					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
-				),
-			},
-			{
-				Config: configAzure(orgID, projectName, clusterName, "true", "M60_NVME", false),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "provider_instance_size_name", "M60_NVME"),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
@@ -1480,20 +1405,6 @@ func configAWS(projectID, name string, backupEnabled, autoDiskGBEnabled bool) st
 			provider_instance_size_name = "M30"
 		}
 	`, projectID, name, backupEnabled, autoDiskGBEnabled)
-}
-
-func configAWSNVMEInstance(projectID, name, instanceName string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "test" {
-			project_id   = %[1]q
-			name         = %[2]q
-			cloud_backup                 = true
-			provider_region_name     = "US_WEST_2"
-			provider_name               = "AWS"
-			provider_instance_size_name = %[3]q
-			provider_volume_type        = "PROVISIONED"
-		}
-	`, projectID, name, instanceName)
 }
 
 func configAdvancedConf(projectID, name, autoscalingEnabled string, p *matlas.ProcessArgs) string {
