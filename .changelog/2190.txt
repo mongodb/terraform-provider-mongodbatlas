@@ -5,3 +5,7 @@ data-source/mongodbatlas_database_user: Removes `password` attribute
 ```release-note:breaking-change
 data-source/mongodbatlas_database_users: Removes `password` attribute
 ```
+
+```release-note:breaking-change
+data-source/mongodbatlas_organizations: Removes `include_deleted_orgs` attribute
+```

@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -22,11 +21,6 @@ func PluralDataSource() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Optional: true,
-			},
-			"include_deleted_orgs": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.16.0"),
 			},
 			"page_num": {
 				Type:     schema.TypeInt,

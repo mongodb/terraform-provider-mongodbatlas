@@ -21,6 +21,8 @@ More info can be found in the [previous upgrade guide](https://registry.terrafor
 
 - Removal of `password` attribute in `mongodbatlas_database_user` and `mongodbatlas_database_users` data sources.
 
+- Removal of `include_deleted_orgs` attribute in `mongodbatlas_organizations` data source.
+
 
 ### Helpful Links
 
