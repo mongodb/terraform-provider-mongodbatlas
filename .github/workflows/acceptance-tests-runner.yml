@@ -154,6 +154,7 @@ jobs:
       search_index: ${{ steps.filter.outputs.search_index == 'true' || env.mustTrigger == 'true' }}
       serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
+      push_based_log_export: ${{ steps.filter.outputs.push_based_log_export == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
     - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
@@ -234,6 +235,8 @@ jobs:
           stream:
             - 'internal/service/streamconnection/*.go'
             - 'internal/service/streaminstance/*.go'
+          push_based_log_export:
+            - 'internal/service/pushbasedlogexport/*.go'
 
   advanced_cluster:
     needs: [ change-detection, get-provider-version ]
@@ -726,4 +729,28 @@ jobs:
           ACCTEST_PACKAGES: |
             ./internal/service/streamconnection
             ./internal/service/streaminstance
+        run: make testacc
+
+  push_based_log_export:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.push_based_log_export == 'true' || inputs.test_group == 'push_based_log_export' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false  
+      - name: Acceptance Tests
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_PACKAGES: ./internal/service/pushbasedlogexport
         run: make testacc

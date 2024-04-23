@@ -110,9 +110,7 @@ func addAttrChecks(checks []resource.TestCheckFunc, mapChecks map[string]string)
 func configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath string, usePrefixPath bool) string {
 	test := fmt.Sprintf(`
 	 	locals {
-		 		#project_name = %[1]q
 				project_id = %[1]q
-		 		#org_id = %[2]q
 		 		s3_bucket_name_1 = %[2]q
 				s3_bucket_name_2 = %[3]q
 		 		s3_bucket_policy_name = %[4]q
@@ -131,9 +129,7 @@ func configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, aw
 func configBasicUpdated(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath string, usePrefixPath bool) string {
 	test := fmt.Sprintf(`
 	 	locals {
-			#project_name = %[1]q
 				project_id = %[1]q
-		 		#org_id = %[2]q
 		 		s3_bucket_name_1 = %[2]q
 				s3_bucket_name_2 = %[3]q
 		 		s3_bucket_policy_name = %[4]q
