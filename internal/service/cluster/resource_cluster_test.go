@@ -23,14 +23,20 @@ const (
 	dataSourceName = "data.mongodbatlas_cluster.test"
 )
 
-func TestAccClusterRSCluster_basicAWS_simple(t *testing.T) {
+func TestAccCluster_basicAWS_simple(t *testing.T) {
+	resource.ParallelTest(t, *basicTestCase(t))
+}
+
+func basicTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+
 	var (
-		projectID   = acc.ProjectIDExecution(t)
+		projectID   = acc.ProjectIDExecution(tb)
 		clusterName = acc.RandomClusterName()
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -80,52 +86,22 @@ func TestAccClusterRSCluster_basicAWS_simple(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"cloud_backup", "retain_backups_enabled"},
 			},
 		},
-	})
+	}
 }
 
-func TestAccClusterRSCluster_basicAWS_instanceScale(t *testing.T) {
+func TestAccCluster_partial_advancedConf(t *testing.T) {
+	resource.ParallelTest(t, *partialAdvancedConfTestCase(t))
+}
+func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+
 	var (
-		projectID   = acc.ProjectIDExecution(t)
+		projectID   = acc.ProjectIDExecution(tb)
 		clusterName = acc.RandomClusterName()
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: configAWSNVMEInstance(projectID, clusterName, "M40_NVME"),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "provider_instance_size_name", "M40_NVME"),
-					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
-				),
-			},
-			{
-				Config: configAWSNVMEInstance(projectID, clusterName, "M50_NVME"),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "provider_instance_size_name", "M50_NVME"),
-					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccClusterRSCluster_basic_Partial_AdvancedConf(t *testing.T) {
-	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -177,10 +153,45 @@ func TestAccClusterRSCluster_basic_Partial_AdvancedConf(t *testing.T) {
 				),
 			},
 		},
+	}
+}
+
+func TestAccCluster_basicAWS_instanceScale(t *testing.T) {
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configAWSNVMEInstance(projectID, clusterName, "M40_NVME"),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "provider_instance_size_name", "M40_NVME"),
+					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+				),
+			},
+			{
+				Config: configAWSNVMEInstance(projectID, clusterName, "M50_NVME"),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "provider_instance_size_name", "M50_NVME"),
+					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+				),
+			},
+		},
 	})
 }
 
-func TestAccClusterRSCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
+func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -236,7 +247,7 @@ func TestAccClusterRSCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_emptyAdvancedConf(t *testing.T) {
+func TestAccCluster_emptyAdvancedConf(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -278,7 +289,7 @@ func TestAccClusterRSCluster_emptyAdvancedConf(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_basicAdvancedConf(t *testing.T) {
+func TestAccCluster_basicAdvancedConf(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -339,7 +350,7 @@ func TestAccClusterRSCluster_basicAdvancedConf(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_basicAzure(t *testing.T) {
+func TestAccCluster_basicAzure(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cluster.basic_azure"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -378,7 +389,7 @@ func TestAccClusterRSCluster_basicAzure(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_AzureUpdateToNVME(t *testing.T) {
+func TestAccCluster_AzureUpdateToNVME(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cluster.basic_azure"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -418,7 +429,7 @@ func TestAccClusterRSCluster_AzureUpdateToNVME(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_basicGCP(t *testing.T) {
+func TestAccCluster_basicGCP(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cluster.basic_gcp"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -459,7 +470,7 @@ func TestAccClusterRSCluster_basicGCP(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_WithBiConnectorGCP(t *testing.T) {
+func TestAccCluster_WithBiConnectorGCP(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cluster.basic_gcp"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -502,7 +513,7 @@ func TestAccClusterRSCluster_WithBiConnectorGCP(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_MultiRegion(t *testing.T) {
+func TestAccCluster_MultiRegion(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cluster.multi_region"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -575,7 +586,7 @@ func TestAccClusterRSCluster_MultiRegion(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_ProviderRegionName(t *testing.T) {
+func TestAccCluster_ProviderRegionName(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cluster.multi_region"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -654,12 +665,11 @@ func TestAccClusterRSCluster_ProviderRegionName(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_Global(t *testing.T) {
+func TestAccCluster_Global(t *testing.T) {
 	var (
-		resourceSuffix = "global_cluster"
-		resourceName   = fmt.Sprintf("mongodbatlas_cluster.%s", resourceSuffix)
-		projectID      = acc.ProjectIDExecution(t)
-		clusterName    = acc.RandomClusterName()
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		clusterName = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -668,7 +678,7 @@ func TestAccClusterRSCluster_Global(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigClusterGlobal(resourceSuffix, projectID, clusterName, "false"),
+				Config: acc.ConfigClusterGlobal(orgID, projectName, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
@@ -688,7 +698,7 @@ func TestAccClusterRSCluster_Global(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_AWSWithLabels(t *testing.T) {
+func TestAccCluster_AWSWithLabels(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cluster.aws_with_labels"
 		projectID    = acc.ProjectIDExecution(t)
@@ -763,7 +773,7 @@ func TestAccClusterRSCluster_AWSWithLabels(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_WithTags(t *testing.T) {
+func TestAccCluster_WithTags(t *testing.T) {
 	var (
 		dataSourceClustersName = "data.mongodbatlas_clusters.test"
 		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -843,7 +853,7 @@ func TestAccClusterRSCluster_WithTags(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_withPrivateEndpointLink(t *testing.T) {
+func TestAccCluster_withPrivateEndpointLink(t *testing.T) {
 	acc.SkipTestForCI(t) // needs AWS configuration
 
 	var (
@@ -879,7 +889,7 @@ func TestAccClusterRSCluster_withPrivateEndpointLink(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_withAzureNetworkPeering(t *testing.T) {
+func TestAccCluster_withAzureNetworkPeering(t *testing.T) {
 	acc.SkipTestForCI(t) // needs Azure configuration
 
 	var (
@@ -914,7 +924,7 @@ func TestAccClusterRSCluster_withAzureNetworkPeering(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_withGCPNetworkPeering(t *testing.T) {
+func TestAccCluster_withGCPNetworkPeering(t *testing.T) {
 	acc.SkipTestForCI(t) // needs GCP configuration
 
 	var (
@@ -948,7 +958,7 @@ func TestAccClusterRSCluster_withGCPNetworkPeering(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_withAzureAndContainerID(t *testing.T) {
+func TestAccCluster_withAzureAndContainerID(t *testing.T) {
 	acc.SkipTestForCI(t) // needs Azure configuration
 
 	var (
@@ -979,7 +989,7 @@ func TestAccClusterRSCluster_withAzureAndContainerID(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_withAWSAndContainerID(t *testing.T) {
+func TestAccCluster_withAWSAndContainerID(t *testing.T) {
 	acc.SkipTestForCI(t) // needs AWS configuration
 
 	var (
@@ -1010,7 +1020,7 @@ func TestAccClusterRSCluster_withAWSAndContainerID(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_withGCPAndContainerID(t *testing.T) {
+func TestAccCluster_withGCPAndContainerID(t *testing.T) {
 	acc.SkipTestForCI(t) // needs GCP configuration
 
 	var (
@@ -1043,7 +1053,7 @@ func TestAccClusterRSCluster_withGCPAndContainerID(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_withAutoScalingAWS(t *testing.T) {
+func TestAccCluster_withAutoScalingAWS(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -1097,7 +1107,7 @@ func TestAccClusterRSCluster_withAutoScalingAWS(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_tenant(t *testing.T) {
+func TestAccCluster_tenant(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cluster.tenant"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -1136,7 +1146,7 @@ func TestAccClusterRSCluster_tenant(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_tenant_m5(t *testing.T) {
+func TestAccCluster_tenant_m5(t *testing.T) {
 	var (
 		resourceName   = "mongodbatlas_cluster.tenant"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -1164,7 +1174,7 @@ func TestAccClusterRSCluster_tenant_m5(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_basicGCPRegionNameWesternUS(t *testing.T) {
+func TestAccCluster_basicGCPRegionNameWesternUS(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because no AWS
@@ -1189,7 +1199,7 @@ func TestAccClusterRSCluster_basicGCPRegionNameWesternUS(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_basicGCPRegionNameUSWest2(t *testing.T) {
+func TestAccCluster_basicGCPRegionNameUSWest2(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -1214,7 +1224,7 @@ func TestAccClusterRSCluster_basicGCPRegionNameUSWest2(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_RegionsConfig(t *testing.T) {
+func TestAccCluster_RegionsConfig(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -1332,7 +1342,7 @@ func TestAccClusterRSCluster_RegionsConfig(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_basicAWS_UnpauseToPaused(t *testing.T) {
+func TestAccCluster_basicAWS_UnpauseToPaused(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -1380,7 +1390,7 @@ func TestAccClusterRSCluster_basicAWS_UnpauseToPaused(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_basicAWS_PausedToUnpaused(t *testing.T) {
+func TestAccCluster_basicAWS_PausedToUnpaused(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
