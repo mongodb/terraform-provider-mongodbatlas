@@ -52,3 +52,9 @@ func PreCheckPeeringEnvAWS(tb testing.TB) {
 	checkLastVersion(tb)
 	acc.PreCheckPeeringEnvAWS(tb)
 }
+
+func PreCheckAwsEnvBasic(tb testing.TB) {
+	tb.Helper()
+	checkLastVersion(tb)
+	acc.PreCheckAwsEnvBasic(tb)
+}
