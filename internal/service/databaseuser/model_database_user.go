@@ -102,7 +102,6 @@ func NewTFDatabaseDSUserModel(ctx context.Context, dbUser *admin.CloudDatabaseUs
 		ProjectID:        types.StringValue(dbUser.GroupId),
 		AuthDatabaseName: types.StringValue(dbUser.DatabaseName),
 		Username:         types.StringValue(dbUser.Username),
-		Password:         types.StringValue(dbUser.GetPassword()),
 		X509Type:         types.StringValue(dbUser.GetX509Type()),
 		OIDCAuthType:     types.StringValue(dbUser.GetOidcAuthType()),
 		LDAPAuthType:     types.StringValue(dbUser.GetLdapAuthType()),
