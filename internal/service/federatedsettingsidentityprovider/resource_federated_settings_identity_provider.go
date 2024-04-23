@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
-	admin20231115008 "go.mongodb.org/atlas-sdk/v20231115008/admin"
+	admin20231115008 "go.mongodb.org/atlas-sdk/v20231115010/admin"
 )
 
 const SAML = "SAML"

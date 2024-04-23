@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	admin20231115008 "go.mongodb.org/atlas-sdk/v20231115008/admin"
+	admin20231115008 "go.mongodb.org/atlas-sdk/v20231115010/admin"
 )
 
 func FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider []admin20231115008.FederationIdentityProvider) []map[string]any {
