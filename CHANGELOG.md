@@ -24,8 +24,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* data-source/mongodbatlas_advanced_cluster: Converts `replication_specs` from TypeSet to TypeList. This fixes an issue where some items were not returned in the results.
-data-source/mongodbatlas_advanced_clusters: Converts `replication_specs` from TypeSet to TypeList. This fixes an issue where some items were not returned in the results. ([#2145](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2145))
+* data-source/mongodbatlas_advanced_cluster: Converts `replication_specs` from TypeSet to TypeList. This fixes an issue where some items were not returned in the results. ([#2145](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2145))
+* data-source/mongodbatlas_advanced_clusters: Converts `replication_specs` from TypeSet to TypeList. This fixes an issue where some items were not returned in the results. ([#2145](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2145))
 * data-source/mongodbatlas_network_peering: Ensures `accepter_region_name` is set when it is has the same value as the container resource ([#2105](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2105))
 * resource/mongodbatlas_cluster: Fixes nil pointer dereference if `advanced_configuration` update fails ([#2139](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2139))
 * resource/mongodbatlas_maintenance_window: Fixes `day_of_week` param as **required** when calling the API ([#2163](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2163))
