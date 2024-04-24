@@ -25,6 +25,11 @@ More info can be found in the [previous upgrade guide](https://registry.terrafor
 
 - Removal of `include_deleted_orgs` attribute in `mongodbatlas_organizations` data source.
 
+- `mongodbatlas_teams` resource has been deprecated in favor of `mongodbatlas_team` which has the same implementation. This aligns the name of the resource with the implementation which handles a single team.
+    - For transitioning to the new name you can adjust the name of the resource in your configuration and in terraform state under `resources.#.type` from `mongodbatlas_teams` to `mongodbatlas_team`.
+
+- `mongodbatlas_teams` data source has been deprecated in favor of `mongodbatlas_team` which has the same implementation. This aligns the name of the resource with the implementation which fetches a single team. This also enables implementing a plural data source in the future under the name `mongodbatlas_teams`.
+
 ### Helpful Links
 
 * [Report bugs](https://github.com/mongodb/terraform-provider-mongodbatlas/issues)
