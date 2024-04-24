@@ -260,8 +260,8 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead(ctx context.Co
 		return diag.FromErr(errors.New("federation_settings_id must be configured"))
 	}
 
-	// once the SDK is upgraded to version v20231115010 we can use pagination parameters to iterate over all results
-	// pagination attribute are deprecated and can be removed as we move towards not exposing these pagination options to the user
+	// once the SDK is upgraded above version v20231115010 we can use pagination parameters to iterate over all results (and adjust documentation)
+	// pagination attributes are deprecated and can be removed as we move towards not exposing these pagination options to the user
 	params := &admin20231115008.ListIdentityProvidersApiParams{
 		FederationSettingsId: federationSettingsID.(string),
 		Protocol:             &[]string{OIDC, SAML},
