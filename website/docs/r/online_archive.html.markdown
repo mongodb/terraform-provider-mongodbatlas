@@ -83,6 +83,32 @@ resource "mongodbatlas_online_archive" "test" {
 
 ```
 
+Defining custom provider and region example
+
+```terraform
+resource "mongodbatlas_online_archive" "test" {
+    project_id   = var.project_id
+    cluster_name = var.cluster_name
+    coll_name    = var.collection_name
+    db_name      = var.database_name
+
+    data_process_region {
+        cloud_provider = "AZURE"
+        region = "US_EAST_2"
+    }
+
+    partition_fields {
+        field_name = "firstName"
+        order      = 0 
+    }
+
+    criteria {
+        type  = "CUSTOM"
+        query =  "{ \"department\": \"engineering\" }"
+    }
+}
+```
+
 ## Argument Reference
 * `project_id` - (Required) The unique ID for the project
 * `cluster_name` - (Required) Name of the cluster that contains the collection.
@@ -120,7 +146,7 @@ The only field required for criteria type `CUSTOM`
 * `expire_after_days` - Number of days used in the date criteria for nominating documents for deletion. Value must be between 7 and 9215.
 
 ### Data Process Region
-* `cloud_provider` - Human-readable label that identifies the Cloud service provider where you wish to store your archived data.
+* `cloud_provider` - Human-readable label that identifies the Cloud service provider where you wish to store your archived data. `AZURE` may be selected only if Azure is the Cloud service provider for the cluster and no AWS online archive has been created for the cluster.
 * `region` - Human-readable label that identifies the geographic location of the region where you wish to store your archived data. For allowed values, see [MongoDB Atlas API documentation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Online-Archive/operation/createOnlineArchive)
 
 ### Schedule

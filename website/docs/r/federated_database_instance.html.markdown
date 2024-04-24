@@ -96,13 +96,13 @@ resource "mongodbatlas_federated_database_instance" "test" {
 
 * `project_id` - (Required) The unique ID for the project to create a Federated Database Instance.
 * `name` - (Required) Name of the Atlas Federated Database Instance.
-  ### `cloud_provider_config` - (Optional) Cloud provider linked to this data federated instance.
-  #### `aws` - (Required) AWS provider of the cloud service where the Federated Database Instance can access the S3 Bucket. Note this parameter is only required if using `cloud_provider_config` since AWS is currently the only supported Cloud vendor on this feature at this time. 
-  * `role_id` - (Required) Unique identifier of the role that the Federated Instance can use to access the data stores. If necessary, use the Atlas [UI](https://docs.atlas.mongodb.com/security/manage-iam-roles/) or [API](https://docs.atlas.mongodb.com/reference/api/cloud-provider-access-get-roles/) to retrieve the role ID. You must also specify the `test_s3_bucket`.
-  * `test_s3_bucket` - (Required) Name of the S3 data bucket that the provided role ID is authorized to access. You must also specify the `role_id`.
-  ### `data_process_region` - (Optional) The cloud provider region to which the Federated Instance routes client connections for data processing.
-  * `cloud_provider` - (Required) Name of the cloud service provider. Atlas Federated Database only supports AWS.
-  * `region` - (Required) Name of the region to which the Federanted Instnace routes client connections for data processing. See the [documention](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createFederatedDatabase) for the available region.
+* `cloud_provider_config` - (Optional) Cloud provider linked to this data federated instance.
+  * `cloud_provider_config.aws` - (Required) AWS provider of the cloud service where the Federated Database Instance can access the S3 Bucket. Note this parameter is only required if using `cloud_provider_config` since AWS is currently the only supported Cloud vendor on this feature at this time. 
+      * `cloud_provider_config.aws.role_id` - (Required) Unique identifier of the role that the Federated Instance can use to access the data stores. If necessary, use the Atlas [UI](https://docs.atlas.mongodb.com/security/manage-iam-roles/) or [API](https://docs.atlas.mongodb.com/reference/api/cloud-provider-access-get-roles/) to retrieve the role ID. You must also specify the `test_s3_bucket`.
+      * `cloud_provider_config.aws.test_s3_bucket` - (Required) Name of the S3 data bucket that the provided role ID is authorized to access. You must also specify the `role_id`.
+* `data_process_region` - (Optional) The cloud provider region to which the Federated Instance routes client connections for data processing.
+  * `data_process_region.cloud_provider` - (Required) Name of the cloud service provider. Atlas Federated Database only supports AWS.
+  * `data_process_region.region` - (Required) Name of the region to which the Federanted Instnace routes client connections for data processing. See the [documention](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createFederatedDatabase) for the available region.
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
@@ -154,18 +154,16 @@ In addition to all arguments above, the following attributes are exported:
       * `storage_stores.#.read_preference.tags` - List of all tags within a tag set
         * `storage_stores.#.read_preference.tags.name` - Human-readable label of the tag.
         * `storage_stores.#.read_preference.tags.value` - Value of the tag.
-
-### `aws` - Name of the cloud service that hosts the data lake's data stores.
-* `iam_assumed_role_arn` - Amazon Resource Name (ARN) of the IAM Role that the Federated Database Instance assumes when accessing S3 Bucket data stores. The IAM Role must support the following actions against each S3 bucket:
-  * `s3:GetObject`
-  * `s3:ListBucket`
-  * `s3:GetObjectVersion` 
+* `cloud_provider_config.aws` - Name of the cloud service that hosts the data lake's data stores.
+  * `iam_assumed_role_arn` - Amazon Resource Name (ARN) of the IAM Role that the Federated Database Instance assumes when accessing S3 Bucket data stores. The IAM Role must support the following actions against each S3 bucket:
+      * `s3:GetObject`
+      * `s3:ListBucket`
+      * `s3:GetObjectVersion` 
     
   For more information on S3 actions, see [Actions, Resources, and Condition Keys for Amazon S3](https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazons3.html).
-
-* `iam_user_arn` - Amazon Resource Name (ARN) of the user that the Federated Database Instance assumes when accessing S3 Bucket data stores.
-* `external_id` - Unique identifier associated with the IAM Role that the Federated Database Instance assumes when accessing the data stores.
-* `role_id` - Unique identifier of the role that the data lake can use to access the data stores.
+  * `iam_user_arn` - Amazon Resource Name (ARN) of the user that the Federated Database Instance assumes when accessing S3 Bucket data stores.
+  * `external_id` - Unique identifier associated with the IAM Role that the Federated Database Instance assumes when accessing the data stores.
+  * `role_id` - Unique identifier of the role that the data lake can use to access the data stores.
 
 
 
