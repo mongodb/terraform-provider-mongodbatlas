@@ -7,11 +7,12 @@ import (
 )
 
 const (
-	prefixName    = "test-acc-tf"
-	prefixProject = prefixName + "-p"
-	prefixCluster = prefixName + "-c"
-	prefixIAMRole = "mongodb-atlas-" + prefixName
-	prefixIAMUser = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
+	prefixName     = "test-acc-tf"
+	prefixProject  = prefixName + "-p"
+	prefixCluster  = prefixName + "-c"
+	prefixIAMRole  = "mongodb-atlas-" + prefixName
+	prefixIAMUser  = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
+	prefixS3Bucket = "mongodb-atlas"
 )
 
 func RandomName() string {
@@ -44,4 +45,8 @@ func RandomEmail() string {
 
 func RandomLDAPName() string {
 	return fmt.Sprintf("CN=%s-%s@example.com,OU=users,DC=example,DC=com", prefixName, acctest.RandString(10))
+}
+
+func RandomS3BucketName() string {
+	return fmt.Sprintf("%s-%s", prefixS3Bucket, acctest.RandString(10))
 }

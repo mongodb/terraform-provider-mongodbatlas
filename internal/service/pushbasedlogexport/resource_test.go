@@ -3,7 +3,6 @@ package pushbasedlogexport_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -20,12 +19,6 @@ const (
 	defaultPrefixPath  = ""
 )
 
-var (
-	awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
-	awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
-	awsRegion    = os.Getenv("AWS_REGION")
-)
-
 func TestAccPushBasedLogExport_basic(t *testing.T) {
 	resource.Test(t, *basicTestCase(t))
 }
@@ -35,7 +28,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 
 	var (
 		projectID            = acc.ProjectIDExecution(tb)
-		s3BucketNamePrefix   = fmt.Sprintf("tf-%s", acc.RandomName())
+		s3BucketNamePrefix   = acc.RandomS3BucketName()
 		s3BucketName1        = fmt.Sprintf("%s-1", s3BucketNamePrefix)
 		s3BucketName2        = fmt.Sprintf("%s-2", s3BucketNamePrefix)
 		s3BucketPolicyName   = fmt.Sprintf("%s-s3-policy", s3BucketNamePrefix)
@@ -127,11 +120,9 @@ func configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, aw
 
 			   %[7]s
 
-			   %[8]s
-
-			   %[9]s
+			   %[8]s		
 	`, projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName,
-		awsProviderConfig(), awsIAMroleAuthAndS3Config(), pushBasedLogExportConfig(false, usePrefixPath, prefixPath))
+		awsIAMroleAuthAndS3Config(), pushBasedLogExportConfig(false, usePrefixPath, prefixPath))
 	return test
 }
 
@@ -149,10 +140,8 @@ func configBasicUpdated(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyN
 			   %[7]s
 
 			   %[8]s
-
-			   %[9]s
 	`, projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName,
-		awsProviderConfig(), awsIAMroleAuthAndS3Config(), pushBasedLogExportConfig(true, usePrefixPath, prefixPath)) // updating the S3 bucket to use for push-based log config
+		awsIAMroleAuthAndS3Config(), pushBasedLogExportConfig(true, usePrefixPath, prefixPath)) // updating the S3 bucket to use for push-based log config
 	return test
 }
 
@@ -303,15 +292,6 @@ resource "aws_iam_role_policy" "s3_bucket_policy" {
   EOF
 }
 		`
-}
-
-func awsProviderConfig() string {
-	return fmt.Sprintf(`
-	provider "aws" {
-		region        = "%[1]s"
-		access_key = "%[2]s"
-		secret_key = "%[3]s"
-	}`, awsRegion, awsAccessKey, awsSecretKey)
 }
 
 func checkDestroy(state *terraform.State) error {
