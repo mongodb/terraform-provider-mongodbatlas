@@ -13,7 +13,7 @@ The Terraform MongoDB Atlas Provider version 1.16.0 has a number of new and exci
 **New Resources, Data Sources, and Features:**
 
 - [Atlas Stream Processing](https://www.mongodb.com/docs/atlas/atlas-sp/overview/) reaches GA (General Availability). 
-There is no need to use use enviroment variable `MONGODB_ATLAS_ENABLE_PREVIEW` any more for `mongodbatlas_stream_connection` and `mongodbatlas_stream_instance` resources and data sources.
+There is no need to use use environment variable `MONGODB_ATLAS_ENABLE_PREVIEW` any more for `mongodbatlas_stream_connection` and `mongodbatlas_stream_instance` resources and data sources.
 
 - The HashiCorp Terraform Version Compatibility Matrix has been published for the Terraform MongoDB Atlas Provider. See full details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#hashicorp-terraform-versionhttpswwwterraformiodownloadshtml-compatibility-matrix 
 
