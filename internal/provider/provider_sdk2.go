@@ -3,9 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
-	"os"
 	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -60,10 +58,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teams"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/thirdpartyintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/x509authenticationdatabaseuser"
-)
-
-var (
-	ProviderEnablePreview, _ = strconv.ParseBool(os.Getenv("MONGODB_ATLAS_ENABLE_PREVIEW"))
 )
 
 type SecretData struct {
@@ -136,10 +130,7 @@ func NewSdkV2Provider(proxyPort *int) *schema.Provider {
 		DataSourcesMap: getDataSourcesMap(),
 		ResourcesMap:   getResourcesMap(),
 	}
-	addPreviewFeatures(provider)
-
 	provider.ConfigureContextFunc = providerConfigure(provider, proxyPort)
-
 	return provider
 }
 
@@ -277,12 +268,6 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_cluster_outage_simulation":                                   clusteroutagesimulation.Resource(),
 	}
 	return resourcesMap
-}
-
-func addPreviewFeatures(provider *schema.Provider) {
-	if ProviderEnablePreview {
-		return
-	}
 }
 
 func providerConfigure(provider *schema.Provider, proxyPort *int) func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
