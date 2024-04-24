@@ -113,7 +113,7 @@ func TestNewPushBasedLogExportReq(t *testing.T) {
 			},
 		},
 		{
-			name: "Valid TF state",
+			name: "Valid TF state with empty prefix path",
 			input: &pushbasedlogexport.TFPushBasedLogExportRSModel{
 				BucketName: types.StringValue(testBucketName),
 				IamRoleID:  types.StringValue(testIAMRoleID),
