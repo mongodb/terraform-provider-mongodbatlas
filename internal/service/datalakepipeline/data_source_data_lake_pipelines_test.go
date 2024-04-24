@@ -45,48 +45,47 @@ func configDSPlural(orgID, projectName, firstClusterName, secondClusterName, fir
 			name   = %[2]q
 		}
 
-
-		resource "mongodbatlas_advanced_cluster" "aws_conf" {
+		resource "mongodbatlas_advanced_cluster" "gcp_conf" {
 			project_id   = mongodbatlas_project.project.id
 			name         = %[3]q
 			cluster_type = "REPLICASET"
 		
 			replication_specs {
-			region_configs {
-				electable_specs {
-				instance_size = "M10"
-				node_count    = 3
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					provider_name = "GCP"
+					priority      = 7
+					region_name   = "NORTH_AMERICA_NORTHEAST_1"
 				}
-				provider_name = "AWS"
-				priority      = 7
-				region_name   = "US_EAST_1"
-			}
 			}
 			backup_enabled               = true
 		}
 
-		resource "mongodbatlas_advanced_cluster" "aws_conf2" {
+		resource "mongodbatlas_advanced_cluster" "gcp_conf2" {
 			project_id   = mongodbatlas_project.project.id
 			name         = %[4]q
 			cluster_type = "REPLICASET"
 		
 			replication_specs {
-			region_configs {
-				electable_specs {
-				instance_size = "M10"
-				node_count    = 3
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					provider_name = "GCP"
+					priority      = 7
+					region_name   = "US_EAST_4"
 				}
-				provider_name = "AWS"
-				priority      = 7
-				region_name   = "US_EAST_1"
-			}
 			}
 			backup_enabled               = true
 		}
 
 		resource "mongodbatlas_data_lake_pipeline" "test" {
-			project_id       =  mongodbatlas_project.project.id
-			name = %[5]q
+			project_id 	=  mongodbatlas_project.project.id
+			name 		= %[5]q
 			sink {
 				type = "DLS"
 				partition_fields {
@@ -97,7 +96,7 @@ func configDSPlural(orgID, projectName, firstClusterName, secondClusterName, fir
 	
 			source {
 				type = "ON_DEMAND_CPS"
-				cluster_name = mongodbatlas_advanced_cluster.aws_conf.name
+				cluster_name = mongodbatlas_advanced_cluster.gcp_conf.name
 				database_name = "sample_airbnb"
 				collection_name = "listingsAndReviews"
 			}
@@ -121,7 +120,7 @@ func configDSPlural(orgID, projectName, firstClusterName, secondClusterName, fir
 	
 			source {
 				type = "ON_DEMAND_CPS"
-				cluster_name = mongodbatlas_advanced_cluster.aws_conf2.name
+				cluster_name = mongodbatlas_advanced_cluster.gcp_conf2.name
 				database_name = "sample_airbnb"
 				collection_name = "listingsAndReviews"
 			}

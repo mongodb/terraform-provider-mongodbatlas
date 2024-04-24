@@ -11,11 +11,12 @@ import (
 
 func TestAccDataLakeDS_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_data_lake_pipeline.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		clusterName  = acc.RandomClusterName()
-		name         = acc.RandomName()
+		resourceName   = "mongodbatlas_data_lake_pipeline.test"
+		dataSourceName = "data.mongodbatlas_data_lake_pipeline.testDataSource"
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acc.RandomProjectName()
+		clusterName    = acc.RandomClusterName()
+		name           = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -26,9 +27,9 @@ func TestAccDataLakeDS_basic(t *testing.T) {
 				Config: configDS(orgID, projectName, clusterName, name),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "state", "ACTIVE"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "name", name),
+					resource.TestCheckResourceAttr(dataSourceName, "state", "ACTIVE"),
 				),
 			},
 		},
@@ -42,21 +43,21 @@ func configDS(orgID, projectName, clusterName, pipelineName string) string {
 			name   = %[2]q
 		}
 
-		resource "mongodbatlas_advanced_cluster" "aws_conf" {
+		resource "mongodbatlas_advanced_cluster" "gcp_conf" {
 			project_id   = mongodbatlas_project.project.id
 			name         = %[3]q
 			cluster_type = "REPLICASET"
 		
 			replication_specs {
-			region_configs {
-				electable_specs {
-				instance_size = "M10"
-				node_count    = 3
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					provider_name = "GCP"
+					priority      = 7
+					region_name   = "NORTH_AMERICA_NORTHEAST_1"
 				}
-				provider_name = "AWS"
-				priority      = 7
-				region_name   = "US_EAST_1"
-			}
 			}
 			backup_enabled               = true
 		}
@@ -74,7 +75,7 @@ func configDS(orgID, projectName, clusterName, pipelineName string) string {
 	
 			source {
 				type = "ON_DEMAND_CPS"
-				cluster_name = mongodbatlas_advanced_cluster.aws_conf.name
+				cluster_name = mongodbatlas_advanced_cluster.gcp_conf.name
 				database_name = "sample_airbnb"
 				collection_name = "listingsAndReviews"
 			}
