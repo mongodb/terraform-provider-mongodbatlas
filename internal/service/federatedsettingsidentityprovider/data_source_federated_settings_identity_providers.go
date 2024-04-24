@@ -261,7 +261,7 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead(ctx context.Co
 	}
 
 	// once the SDK is upgraded to version v20231115010 we can use pagination parameters to iterate over all results
-	// pagination attribute are deprecated and can be removed as we move towards not exposing these pagination options
+	// pagination attribute are deprecated and can be removed as we move towards not exposing these pagination options to the user
 	params := &admin20231115008.ListIdentityProvidersApiParams{
 		FederationSettingsId: federationSettingsID.(string),
 		Protocol:             &[]string{OIDC, SAML},
