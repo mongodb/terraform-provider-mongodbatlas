@@ -11,14 +11,15 @@ import (
 
 func TestAccDataLakeDSPlural_basic(t *testing.T) {
 	var (
-		resourceName       = "mongodbatlas_data_lake_pipeline.test"
-		dataSourceName     = "data.mongodbatlas_data_lake_pipelines.testDataSource"
-		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		firstClusterName   = acc.RandomClusterName()
-		secondClusterName  = acc.RandomClusterName()
-		firstPipelineName  = acc.RandomName()
-		secondPipelineName = acc.RandomName()
-		projectName        = acc.RandomProjectName()
+		resourceName         = "mongodbatlas_data_lake_pipeline.test"
+		dataSourceName       = "data.mongodbatlas_data_lake_pipeline.testDataSource"
+		pluralDataSourceName = "data.mongodbatlas_data_lake_pipelines.testDataSource"
+		orgID                = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		firstClusterName     = acc.RandomClusterName()
+		secondClusterName    = acc.RandomClusterName()
+		firstPipelineName    = acc.RandomName()
+		secondPipelineName   = acc.RandomName()
+		projectName          = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -30,7 +31,10 @@ func TestAccDataLakeDSPlural_basic(t *testing.T) {
 				Config: configDSPlural(orgID, projectName, firstClusterName, secondClusterName, firstPipelineName, secondPipelineName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(dataSourceName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "name", firstPipelineName),
+					resource.TestCheckResourceAttr(dataSourceName, "state", "ACTIVE"),
+					resource.TestCheckResourceAttrSet(pluralDataSourceName, "results.#"),
 				),
 			},
 		},
