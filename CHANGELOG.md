@@ -11,6 +11,7 @@ BREAKING CHANGES:
 
 NOTES:
 
+* data-source/mongodbatlas_federated_settings_identity_providers: Deprecates `page_num` and `items_per_page` attributes. They are not being used and will not be relevant once all results are fetched internally. ([#2207](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2207))
 * provider: New changelog format has been incorporated following [Terraform Changelog Specification](https://developer.hashicorp.com/terraform/plugin/best-practices/versioning#changelog-specification) ([#2124](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2124))
 
 FEATURES:
