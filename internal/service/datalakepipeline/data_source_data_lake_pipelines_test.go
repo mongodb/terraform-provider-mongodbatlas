@@ -135,6 +135,10 @@ func configDSPlural(orgID, projectName, firstClusterName, secondClusterName, fir
 			}
 		}
 
+		data "mongodbatlas_data_lake_pipeline" "testDataSource" {
+			project_id       = mongodbatlas_data_lake_pipeline.test.project_id
+		}
+
 		data "mongodbatlas_data_lake_pipelines" "testDataSource" {
 			project_id       = mongodbatlas_data_lake_pipeline.test.project_id
 		}
