@@ -45,7 +45,7 @@ func configDSPlural(orgID, projectName, firstClusterName, secondClusterName, fir
 			name   = %[2]q
 		}
 
-		resource "mongodbatlas_advanced_cluster" "gcp_conf" {
+		resource "mongodbatlas_advanced_cluster" "azure_conf" {
 			project_id   = mongodbatlas_project.project.id
 			name         = %[3]q
 			cluster_type = "REPLICASET"
@@ -56,15 +56,15 @@ func configDSPlural(orgID, projectName, firstClusterName, secondClusterName, fir
 						instance_size = "M10"
 						node_count    = 3
 					}
-					provider_name = "GCP"
+					provider_name = "AZURE"
 					priority      = 7
-					region_name   = "NORTH_AMERICA_NORTHEAST_1"
+					region_name   = "UK_SOUTH"
 				}
 			}
 			backup_enabled               = true
 		}
 
-		resource "mongodbatlas_advanced_cluster" "gcp_conf2" {
+		resource "mongodbatlas_advanced_cluster" "azure_conf2" {
 			project_id   = mongodbatlas_project.project.id
 			name         = %[4]q
 			cluster_type = "REPLICASET"
@@ -75,9 +75,9 @@ func configDSPlural(orgID, projectName, firstClusterName, secondClusterName, fir
 						instance_size = "M10"
 						node_count    = 3
 					}
-					provider_name = "GCP"
+					provider_name = "AZURE"
 					priority      = 7
-					region_name   = "US_EAST_4"
+					region_name   = "UK_WEST"
 				}
 			}
 			backup_enabled               = true
@@ -96,7 +96,7 @@ func configDSPlural(orgID, projectName, firstClusterName, secondClusterName, fir
 	
 			source {
 				type = "ON_DEMAND_CPS"
-				cluster_name = mongodbatlas_advanced_cluster.gcp_conf.name
+				cluster_name = mongodbatlas_advanced_cluster.azure_conf.name
 				database_name = "sample_airbnb"
 				collection_name = "listingsAndReviews"
 			}
@@ -120,7 +120,7 @@ func configDSPlural(orgID, projectName, firstClusterName, secondClusterName, fir
 	
 			source {
 				type = "ON_DEMAND_CPS"
-				cluster_name = mongodbatlas_advanced_cluster.gcp_conf2.name
+				cluster_name = mongodbatlas_advanced_cluster.azure_conf2.name
 				database_name = "sample_airbnb"
 				collection_name = "listingsAndReviews"
 			}

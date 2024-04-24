@@ -43,7 +43,7 @@ func configDS(orgID, projectName, clusterName, pipelineName string) string {
 			name   = %[2]q
 		}
 
-		resource "mongodbatlas_advanced_cluster" "gcp_conf" {
+		resource "mongodbatlas_advanced_cluster" "azure_conf" {
 			project_id   = mongodbatlas_project.project.id
 			name         = %[3]q
 			cluster_type = "REPLICASET"
@@ -54,9 +54,9 @@ func configDS(orgID, projectName, clusterName, pipelineName string) string {
 						instance_size = "M10"
 						node_count    = 3
 					}
-					provider_name = "GCP"
+					provider_name = "AZURE"
 					priority      = 7
-					region_name   = "NORTH_AMERICA_NORTHEAST_1"
+					region_name   = "UK_WEST"
 				}
 			}
 			backup_enabled               = true
@@ -75,7 +75,7 @@ func configDS(orgID, projectName, clusterName, pipelineName string) string {
 	
 			source {
 				type = "ON_DEMAND_CPS"
-				cluster_name = mongodbatlas_advanced_cluster.gcp_conf.name
+				cluster_name = mongodbatlas_advanced_cluster.azure_conf.name
 				database_name = "sample_airbnb"
 				collection_name = "listingsAndReviews"
 			}
