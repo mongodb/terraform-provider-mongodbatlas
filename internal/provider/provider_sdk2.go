@@ -57,7 +57,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchindex"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serverlessinstance"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/sharedtier"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teams"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/team"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/thirdpartyintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/x509authenticationdatabaseuser"
 )
@@ -164,8 +164,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_network_peerings":                  networkpeering.PluralDataSource(),
 		"mongodbatlas_maintenance_window":                maintenancewindow.DataSource(),
 		"mongodbatlas_auditing":                          auditing.DataSource(),
-		"mongodbatlas_team":                              teams.DataSource(),
-		"mongodbatlas_teams":                             teams.DataSource(),
+		"mongodbatlas_team":                              team.DataSource(),
+		"mongodbatlas_teams":                             team.DataSource(),
 		"mongodbatlas_global_cluster_config":             globalclusterconfig.DataSource(),
 		"mongodbatlas_x509_authentication_database_user": x509authenticationdatabaseuser.DataSource(),
 		"mongodbatlas_private_endpoint_regional_mode":    privateendpointregionalmode.DataSource(),
@@ -239,8 +239,8 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_network_peering":                   networkpeering.Resource(),
 		"mongodbatlas_maintenance_window":                maintenancewindow.Resource(),
 		"mongodbatlas_auditing":                          auditing.Resource(),
-		"mongodbatlas_team":                              teams.Resource(),
-		"mongodbatlas_teams":                             teams.Resource(),
+		"mongodbatlas_team":                              team.Resource(),
+		"mongodbatlas_teams":                             team.Resource(),
 		"mongodbatlas_global_cluster_config":             globalclusterconfig.Resource(),
 		"mongodbatlas_x509_authentication_database_user": x509authenticationdatabaseuser.Resource(),
 		"mongodbatlas_private_endpoint_regional_mode":    privateendpointregionalmode.Resource(),

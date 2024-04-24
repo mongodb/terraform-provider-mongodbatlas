@@ -1,4 +1,4 @@
-package teams_test
+package team_test
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 
 func TestAccConfigDSTeam_basic(t *testing.T) {
 	var (
-		dataSourceName = "data.mongodbatlas_teams.test"
+		dataSourceName = "data.mongodbatlas_team.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		username       = os.Getenv("MONGODB_ATLAS_USERNAME")
 		name           = acc.RandomName()
@@ -37,7 +37,7 @@ func TestAccConfigDSTeam_basic(t *testing.T) {
 
 func TestAccConfigDSTeamByName_basic(t *testing.T) {
 	var (
-		dataSourceName = "data.mongodbatlas_teams.test2"
+		dataSourceName = "data.mongodbatlas_team.test2"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		username       = os.Getenv("MONGODB_ATLAS_USERNAME")
 		name           = acc.RandomName()
@@ -63,15 +63,15 @@ func TestAccConfigDSTeamByName_basic(t *testing.T) {
 
 func dataSourceConfigBasic(orgID, name, username string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_teams" "test" {
+		resource "mongodbatlas_team" "test" {
 			org_id     = "%s"
 			name       = "%s"
 			usernames  = ["%s"]
 		}
 
-		data "mongodbatlas_teams" "test" {
-			org_id     = mongodbatlas_teams.test.org_id
-			team_id    = mongodbatlas_teams.test.team_id
+		data "mongodbatlas_team" "test" {
+			org_id     = mongodbatlas_team.test.org_id
+			team_id    = mongodbatlas_team.test.team_id
 		}
 
 	`, orgID, name, username)
@@ -79,15 +79,15 @@ func dataSourceConfigBasic(orgID, name, username string) string {
 
 func dataSourceConfigBasicByName(orgID, name, username string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_teams" "test" {
+		resource "mongodbatlas_team" "test" {
 			org_id     = "%s"
 			name       = "%s"
 			usernames  = ["%s"]
 		}
 
-		data "mongodbatlas_teams" "test2" {
-			org_id     = mongodbatlas_teams.test.org_id
-			name    = mongodbatlas_teams.test.name
+		data "mongodbatlas_team" "test2" {
+			org_id     = mongodbatlas_team.test.org_id
+			name    = mongodbatlas_team.test.name
 		}
 	`, orgID, name, username)
 }

@@ -1,4 +1,4 @@
-package teams_test
+package team_test
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 
 func TestAccConfigRSTeam_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_teams.test"
+		resourceName = "mongodbatlas_team.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		usernames    = []string{os.Getenv("MONGODB_ATLAS_USERNAME")}
 		name         = acc.RandomName()
@@ -99,7 +99,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 
 func configBasic(orgID, name string, usernames []string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_teams" "test" {
+		resource "mongodbatlas_team" "test" {
 			org_id     = "%s"
 			name       = "%s"
 			usernames  = %s

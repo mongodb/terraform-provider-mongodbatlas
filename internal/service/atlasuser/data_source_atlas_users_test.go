@@ -251,7 +251,7 @@ func testAccDSMongoDBAtlasUsersByProjectID(projectName, orgID, projectOwnerID st
 
 func testAccDSMongoDBAtlasUsersByTeamID(orgID, teamName, username string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_teams" "test" {
+		resource "mongodbatlas_team" "test" {
 			org_id     = %[1]q
 			name       = %[2]q
 			usernames  = [%[3]q]
@@ -259,14 +259,14 @@ func testAccDSMongoDBAtlasUsersByTeamID(orgID, teamName, username string) string
 		
 		data "mongodbatlas_atlas_users" "test" {
 			org_id = %[1]q
-			team_id = mongodbatlas_teams.test.team_id
+			team_id = mongodbatlas_team.test.team_id
 		}
 	`, orgID, teamName, username)
 }
 
 func testAccDSMongoDBAtlasUsersByTeamWithPagination(orgID, teamName, username string, itemsPerPage, pageNum int) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_teams" "test" {
+		resource "mongodbatlas_team" "test" {
 			org_id     = %[1]q
 			name       = %[2]q
 			usernames  = [%[3]q]
@@ -274,7 +274,7 @@ func testAccDSMongoDBAtlasUsersByTeamWithPagination(orgID, teamName, username st
 		
 		data "mongodbatlas_atlas_users" "test" {
 			org_id = %[1]q
-			team_id = mongodbatlas_teams.test.team_id
+			team_id = mongodbatlas_team.test.team_id
 			items_per_page = %[4]d
 			page_num = %[5]d
 		}

@@ -1,43 +1,43 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: teams"
-sidebar_current: "docs-mongodbatlas-datasource-teams"
+page_title: "MongoDB Atlas: team"
+sidebar_current: "docs-mongodbatlas-datasource-team"
 description: |-
     Describes a Team.
 ---
 
-# Data Source: mongodbatlas_teams
+# Data Source: mongodbatlas_team
 
-`mongodbatlas_teams` describes a Team. The resource requires your Organization ID, Project ID and Team ID.
+`mongodbatlas_team` describes a Team. The resource requires your Organization ID, Project ID and Team ID.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
 ## Example Usage
 
 ```terraform
-resource "mongodbatlas_teams" "test" {
+resource "mongodbatlas_team" "test" {
   org_id     = "<ORGANIZATION-ID>"
   name       = "myNewTeam"
   usernames  = ["user1", "user2", "user3"]
 }
 
-data "mongodbatlas_teams" "test" {
-	org_id     = mongodbatlas_teams.test.org_id
-	team_id    = mongodbatlas_teams.test.team_id
+data "mongodbatlas_team" "test" {
+	org_id     = mongodbatlas_team.test.org_id
+	team_id    = mongodbatlas_team.test.team_id
 }
 
 ```
 
 ```terraform
-resource "mongodbatlas_teams" "test" {
+resource "mongodbatlas_team" "test" {
   org_id     = "<ORGANIZATION-ID>"
   name       = "myNewTeam"
   usernames  = ["user1", "user2", "user3"]
 }
 
-data "mongodbatlas_teams" "test2" {
-	org_id     = mongodbatlas_teams.test.org_id
-	name       = mongodbatlas_teams.test.name
+data "mongodbatlas_team" "test2" {
+	org_id     = mongodbatlas_team.test.org_id
+	name       = mongodbatlas_team.test.name
 }
 ```
 
