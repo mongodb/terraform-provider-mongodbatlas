@@ -38,7 +38,7 @@ $ cat ~/.aws/credentials
 aws_access_key_id = your key id
 aws_secret_access_key = your secret key
 ```
-... or follow as in the `variables.tf` file and create **terraform.tfvars** file with all the variable values, ex:
+... or follow as in the `variables.tf` file and create **terraform.tfvars** file with all the variable values. For example:
 ```
 access_key           = "<AWS_ACCESS_KEY_ID>"
 secret_key           = "<AWS_SECRET_ACCESS_KEY>"
@@ -48,12 +48,12 @@ private_key          = "<MONGODB_ATLAS_PRIVATE_KEY>"
 
 **2\. Review the Terraform plan.**
 
-Execute the below command and ensure you are happy with the plan.
+Execute the following command and ensure you are happy with the plan.
 
 ``` bash
 $ terraform plan
 ```
-This project currently supports the below deployments:
+This project currently supports the following deployments:
 
 - An AWS IAM Policy
 - An AWS IAM Role
@@ -73,7 +73,7 @@ $ terraform apply
 
 **4\. Destroy the resources.**
 
-Once you are finished your testing, ensure you destroy the resources to avoid unnecessary Atlas charges.
+When you have finished your testing, ensure you destroy the resources to avoid unnecessary Atlas charges.
 
 ``` bash
 $ terraform destroy
