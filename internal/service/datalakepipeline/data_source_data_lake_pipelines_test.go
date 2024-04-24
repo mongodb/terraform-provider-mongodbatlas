@@ -58,7 +58,7 @@ func configDSPlural(orgID, projectName, firstClusterName, secondClusterName, fir
 					}
 					provider_name = "AZURE"
 					priority      = 7
-					region_name   = "UK_SOUTH"
+					region_name   = "UK_WEST"
 				}
 			}
 			backup_enabled               = true
