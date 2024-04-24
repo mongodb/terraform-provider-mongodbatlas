@@ -71,7 +71,7 @@ func noPrefixPathTestCase(tb testing.TB) *resource.TestCase {
 
 	var (
 		projectID            = acc.ProjectIDExecution(tb)
-		s3BucketNamePrefix   = fmt.Sprintf("tf-%s", acc.RandomName())
+		s3BucketNamePrefix   = acc.RandomS3BucketName()
 		s3BucketName1        = fmt.Sprintf("%s-1", s3BucketNamePrefix)
 		s3BucketName2        = fmt.Sprintf("%s-2", s3BucketNamePrefix)
 		s3BucketPolicyName   = fmt.Sprintf("%s-s3-policy", s3BucketNamePrefix)
