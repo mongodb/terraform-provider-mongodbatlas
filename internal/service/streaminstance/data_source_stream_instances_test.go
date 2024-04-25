@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20231115010/admin"
+	"go.mongodb.org/atlas-sdk/v20231115012/admin"
 )
 
 func TestAccStreamDSStreamInstances_basic(t *testing.T) {
@@ -24,7 +24,7 @@ func TestAccStreamDSStreamInstances_basic(t *testing.T) {
 		}))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckPreviewFlag(t); acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
@@ -48,7 +48,7 @@ func TestAccStreamDSStreamInstances_withPageConfig(t *testing.T) {
 	checks = append(checks, resource.TestCheckResourceAttr(dataSourceName, "results.#", "0")) // expecting no results
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckPreviewFlag(t); acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
