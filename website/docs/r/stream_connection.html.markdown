@@ -10,8 +10,6 @@ description: |-
 
 `mongodbatlas_stream_connection` provides a Stream Connection resource. The resource lets you create, edit, and delete stream instance connections.
 
--> **NOTE:** Atlas Stream Processing is currently in preview, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_PREVIEW=true` to use this resource. To learn more about stream processing and existing limitations, see the [Atlas Stream Processing Documentation](https://www.mongodb.com/docs/atlas/atlas-sp/overview/#atlas-stream-processing-overview).
-
 ~> **IMPORTANT:** All arguments including the Kafka authentication password will be stored in the raw state as plaintext. [Read more about sensitive data in state.](https://www.terraform.io/docs/state/sensitive-data.html)
 
 

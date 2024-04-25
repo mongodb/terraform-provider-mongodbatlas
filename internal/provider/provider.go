@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -36,6 +37,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
+)
+
+var (
+	providerEnablePreview, _ = strconv.ParseBool(os.Getenv("MONGODB_ATLAS_ENABLE_PREVIEW"))
 )
 
 const (
@@ -422,14 +427,13 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		atlasuser.PluralDataSource,
 		searchdeployment.DataSource,
 		pushbasedlogexport.DataSource,
-	}
-	previewDataSources := []func() datasource.DataSource{
 		streaminstance.DataSource,
 		streaminstance.PluralDataSource,
 		streamconnection.DataSource,
 		streamconnection.PluralDataSource,
 	}
-	if ProviderEnablePreview {
+	previewDataSources := []func() datasource.DataSource{} // Data sources not yet in GA
+	if providerEnablePreview {
 		dataSources = append(dataSources, previewDataSources...)
 	}
 	return dataSources
@@ -444,12 +448,11 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		projectipaccesslist.Resource,
 		searchdeployment.Resource,
 		pushbasedlogexport.Resource,
-	}
-	previewResources := []func() resource.Resource{
 		streaminstance.Resource,
 		streamconnection.Resource,
 	}
-	if ProviderEnablePreview {
+	previewResources := []func() resource.Resource{} // Resources not yet in GA
+	if providerEnablePreview {
 		resources = append(resources, previewResources...)
 	}
 	return resources

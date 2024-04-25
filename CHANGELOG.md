@@ -2,12 +2,22 @@
 
 BREAKING CHANGES:
 
+* data-source/mongodbatlas_database_user: Removes `password` attribute ([#2190](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2190))
+* data-source/mongodbatlas_database_users: Removes `password` attribute ([#2190](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2190))
 * data-source/mongodbatlas_federated_settings_identity_provider: The only allowed format for `identity_provider_id` is a 24-hexadecimal digit string ([#2185](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2185))
+* data-source/mongodbatlas_organizations: Removes `include_deleted_orgs` attribute ([#2190](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2190))
 * resource/mongodbatlas_federated_settings_identity_provider: Import can only use a 24-hexadecimal digit string that identifies the IdP, `idp_id`, instead of `okta_idp_id` ([#2185](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2185))
+* resource/mongodbatlas_project_api_key: Removes `project_id` attribute ([#2190](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2190))
 
 NOTES:
 
+* data-source/mongodbatlas_federated_settings_identity_providers: Deprecates `page_num` and `items_per_page` attributes. They are not being used and will not be relevant once all results are fetched internally. ([#2207](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2207))
 * provider: New changelog format has been incorporated following [Terraform Changelog Specification](https://developer.hashicorp.com/terraform/plugin/best-practices/versioning#changelog-specification) ([#2124](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2124))
+
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_push_based_log_export` ([#2169](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2169))
+* **New Resource:** `resource/mongodbatlas_push_based_log_export` ([#2169](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2169))
 
 ENHANCEMENTS:
 
@@ -16,11 +26,17 @@ ENHANCEMENTS:
 * data-source/mongodbatlas_project: Adds `tags` attribute ([#2135](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2135))
 * data-source/mongodbatlas_projects: Adds `tags` attribute ([#2135](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2135))
 * data-source/mongodbatlas_serverless_instance: Adds `auto_indexing` attribute ([#2100](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2100))
+* data-source/mongodbatlas_stream_connection: Reaches GA (General Availability) ([#2209](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2209))
+* data-source/mongodbatlas_stream_connections: Reaches GA (General Availability) ([#2209](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2209))
+* data-source/mongodbatlas_stream_instance: Reaches GA (General Availability) ([#2209](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2209))
+* data-source/mongodbatlas_stream_instances: Reaches GA (General Availability) ([#2209](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2209))
 * resource/mongodbatlas_backup_compliance_policy: Adds `policy_item_yearly` attribute ([#2109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2109))
 * resource/mongodbatlas_cloud_backup_schedule: Adds `policy_item_yearly` attribute ([#2109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2109))
 * resource/mongodbatlas_privatelink_endpoint_service_serverless: Adds support for updating `comment` attribute in-place. ([#2133](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2133))
 * resource/mongodbatlas_project: Adds `tags` attribute ([#2135](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2135))
 * resource/mongodbatlas_serverless_instance: Adds `auto_indexing` attribute ([#2100](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2100))
+* resource/mongodbatlas_stream_connection: Reaches GA (General Availability) ([#2209](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2209))
+* resource/mongodbatlas_stream_instance: Reaches GA (General Availability) ([#2209](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2209))
 
 BUG FIXES:
 

@@ -34,8 +34,8 @@ data "mongodbatlas_federated_settings_identity_providers" "identitty_provider" {
 ## Argument Reference
 
 * `federation_settings_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
-* `page_num` - (Optional)  	The page to return. Defaults to `1`.
-* `items_per_page` - (Optional) Number of items to return per page, up to a maximum of 500. Defaults to `100`.
+* `page_num` - (Optional) The page to return. Defaults to `1`. **Note**: This attribute is deprecated and not being used.
+* `items_per_page` - (Optional) Number of items to return per page, up to a maximum of 500. Defaults to `100`. **Note**: This attribute is deprecated and not being used. The implementation is currently limited to returning a maximum of 100 results.
 
 ## Attributes Reference
 

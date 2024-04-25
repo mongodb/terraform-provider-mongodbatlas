@@ -246,7 +246,7 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -267,7 +267,7 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false    
@@ -306,7 +306,7 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -334,7 +334,7 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -357,7 +357,7 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -378,7 +378,7 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -421,7 +421,7 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false    
@@ -442,7 +442,7 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -463,7 +463,7 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -484,7 +484,7 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false    
@@ -521,7 +521,7 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -547,7 +547,7 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -575,7 +575,7 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -612,7 +612,7 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -647,7 +647,7 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -668,7 +668,7 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false    
@@ -689,7 +689,7 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false    
@@ -715,13 +715,12 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_ENABLE_PREVIEW: "true"
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
             ./internal/service/streamconnection

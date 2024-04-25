@@ -16,7 +16,7 @@ func TestAccStreamDSStreamConnections_basic(t *testing.T) {
 		instanceName   = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckPreviewFlag(t); acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
@@ -35,7 +35,7 @@ func TestAccStreamDSStreamConnections_withPageConfig(t *testing.T) {
 		instanceName   = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckPreviewFlag(t); acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{

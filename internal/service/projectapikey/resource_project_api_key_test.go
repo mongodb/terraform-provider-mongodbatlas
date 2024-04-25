@@ -20,19 +20,25 @@ const (
 	roleName     = "GROUP_OWNER"
 )
 
-func TestAccConfigRSProjectAPIKey_basic(t *testing.T) {
+func TestAccProjectAPIKey_basic(t *testing.T) {
+	resource.ParallelTest(t, *basicTestCase(t))
+}
+
+func basicTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+
 	var (
-		projectID   = acc.ProjectIDExecution(t)
+		projectID   = acc.ProjectIDExecution(tb)
 		description = acc.RandomName()
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, description, roleName, false),
+				Config: configBasic(projectID, description, roleName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
@@ -46,34 +52,10 @@ func TestAccConfigRSProjectAPIKey_basic(t *testing.T) {
 				ImportStateVerify: false,
 			},
 		},
-	})
+	}
 }
 
-func TestAccConfigRSProjectAPIKey_basicWithLegacyRootProjectID(t *testing.T) {
-	var (
-		projectID   = acc.ProjectIDExecution(t)
-		description = acc.RandomName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(projectID, description, roleName, true),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "description", description),
-					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
-					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccConfigRSProjectAPIKey_changingSingleProject(t *testing.T) {
+func TestAccProjectAPIKey_changingSingleProject(t *testing.T) {
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectID1   = acc.ProjectIDExecution(t)
@@ -84,7 +66,7 @@ func TestAccConfigRSProjectAPIKey_changingSingleProject(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             checkDestroy(projectID1),
 		Steps: []resource.TestStep{
 			{
 				Config: configChangingProject(orgID, projectName2, description, fmt.Sprintf("%q", projectID1)),
@@ -106,39 +88,7 @@ func TestAccConfigRSProjectAPIKey_changingSingleProject(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSProjectAPIKey_removingOptionalRootProjectID(t *testing.T) {
-	var (
-		projectID   = acc.ProjectIDExecution(t)
-		description = acc.RandomName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(projectID, description, roleName, true),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "description", description),
-					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
-					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
-				),
-			},
-			{
-				Config: configBasic(projectID, description, roleName, false),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "description", description),
-					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
-					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccConfigRSProjectAPIKey_multiple(t *testing.T) {
+func TestAccProjectAPIKey_multiple(t *testing.T) {
 	var (
 		dataSourceName  = "data.mongodbatlas_project_api_key.test"
 		dataSourcesName = "data.mongodbatlas_project_api_keys.test"
@@ -149,7 +99,7 @@ func TestAccConfigRSProjectAPIKey_multiple(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
 				Config: configMultiple(projectID, description, roleName),
@@ -170,7 +120,7 @@ func TestAccConfigRSProjectAPIKey_multiple(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSProjectAPIKey_updateDescription(t *testing.T) {
+func TestAccProjectAPIKey_updateDescription(t *testing.T) {
 	var (
 		projectID          = acc.ProjectIDExecution(t)
 		description        = acc.RandomName()
@@ -180,17 +130,17 @@ func TestAccConfigRSProjectAPIKey_updateDescription(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, description, roleName, false),
+				Config: configBasic(projectID, description, roleName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 				),
 			},
 			{
-				Config: configBasic(projectID, updatedDescription, roleName, false),
+				Config: configBasic(projectID, updatedDescription, roleName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 					resource.TestCheckResourceAttr(resourceName, "description", updatedDescription),
@@ -200,7 +150,7 @@ func TestAccConfigRSProjectAPIKey_updateDescription(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
+func TestAccProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 	var (
 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectID         = acc.ProjectIDExecution(t)
@@ -208,12 +158,12 @@ func TestAccConfigRSProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 		description       = descriptionPrefix + "-" + acc.RandomName()
 	)
 
-	projectAPIKeyConfig := configBasic(projectID, description, roleName, false)
+	projectAPIKeyConfig := configBasic(projectID, description, roleName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
 				Config: projectAPIKeyConfig,
@@ -235,7 +185,7 @@ func TestAccConfigRSProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSProjectAPIKey_deleteProjectAndAssignment(t *testing.T) {
+func TestAccProjectAPIKey_deleteProjectAndAssignment(t *testing.T) {
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectID1   = acc.ProjectIDExecution(t)
@@ -246,7 +196,7 @@ func TestAccConfigRSProjectAPIKey_deleteProjectAndAssignment(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             checkDestroy(projectID1),
 		Steps: []resource.TestStep{
 			{
 				Config: configDeletedProjectAndAssignment(orgID, projectID1, projectName2, description, true),
@@ -265,7 +215,7 @@ func TestAccConfigRSProjectAPIKey_deleteProjectAndAssignment(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSProjectAPIKey_invalidRole(t *testing.T) {
+func TestAccProjectAPIKey_invalidRole(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		description = fmt.Sprintf("desc-%s", projectID)
@@ -275,10 +225,10 @@ func TestAccConfigRSProjectAPIKey_invalidRole(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
-				Config:      configBasic(projectID, description, roleName, false),
+				Config:      configBasic(projectID, description, roleName),
 				ExpectError: regexp.MustCompile("INVALID_ENUM_VALUE"),
 			},
 		},
@@ -300,23 +250,25 @@ func deleteAPIKeyManually(orgID, descriptionPrefix string) error {
 	return nil
 }
 
-func checkDestroy(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_project_api_key" {
-			continue
-		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		projectAPIKeys, _, err := acc.Conn().ProjectAPIKeys.List(context.Background(), ids["project_id"], nil)
-		if err != nil {
-			return nil
-		}
-		for _, val := range projectAPIKeys {
-			if val.ID == ids["api_key_id"] {
-				return fmt.Errorf("Project API Key (%s) still exists", ids["role_name"])
+func checkDestroy(projectID string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		for _, rs := range s.RootModule().Resources {
+			if rs.Type != "mongodbatlas_project_api_key" {
+				continue
+			}
+			projectAPIKeys, _, err := acc.Conn().ProjectAPIKeys.List(context.Background(), projectID, nil)
+			if err != nil {
+				return nil
+			}
+			ids := conversion.DecodeStateID(rs.Primary.ID)
+			for _, val := range projectAPIKeys {
+				if val.ID == ids["api_key_id"] {
+					return fmt.Errorf("Project API Key (%s) still exists", ids["role_name"])
+				}
 			}
 		}
+		return nil
 	}
-	return nil
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
@@ -332,11 +284,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func configBasic(projectID, description, roleNames string, includeRootProjID bool) string {
-	var rootProjectID string
-	if includeRootProjID {
-		rootProjectID = fmt.Sprintf("project_id = %q", projectID)
-	}
+func configBasic(projectID, description, roleNames string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project_api_key" "test" {
 			description  = %[2]q
@@ -344,9 +292,8 @@ func configBasic(projectID, description, roleNames string, includeRootProjID boo
 				project_id = %[1]q
 				role_names = [%[3]q]
 			}
-			%[4]s
 		}
-	`, projectID, description, roleNames, rootProjectID)
+	`, projectID, description, roleNames)
 }
 
 func configChangingProject(orgID, projectName2, description, assignedProject string) string {

@@ -17,7 +17,7 @@ func TestAccStreamRSStreamInstance_basic(t *testing.T) {
 		instanceName = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckPreviewFlag(t); acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
@@ -45,7 +45,7 @@ func TestAccStreamRSStreamInstance_withStreamConfig(t *testing.T) {
 		instanceName = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckPreviewFlag(t); acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{

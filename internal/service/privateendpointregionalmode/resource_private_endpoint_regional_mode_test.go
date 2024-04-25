@@ -29,17 +29,17 @@ func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
 		providerName           = "AWS"
 		region                 = os.Getenv("AWS_REGION")
 		projectID              = acc.ProjectIDExecution(t)
+		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName            = acc.RandomProjectName()
 		clusterName            = acc.RandomClusterName()
-		clusterResourceName    = "global_cluster"
+		clusterResourceName    = "test"
+		clusterResource        = acc.ConfigClusterGlobal(orgID, projectName, clusterName)
+		clusterDataSource      = modeClusterData(clusterResourceName, resourceSuffix, endpointResourceSuffix)
+		endpointResources      = testAccMongoDBAtlasPrivateLinkEndpointServiceConfigUnmanagedAWS(
+			awsAccessKey, awsSecretKey, projectID, providerName, region, endpointResourceSuffix,
+		)
+		dependencies = []string{clusterResource, clusterDataSource, endpointResources}
 	)
-
-	clusterResource := acc.ConfigClusterGlobal(clusterResourceName, projectID, clusterName, "false")
-	clusterDataSource := modeClusterData(clusterResourceName, resourceSuffix, endpointResourceSuffix)
-	endpointResources := testAccMongoDBAtlasPrivateLinkEndpointServiceConfigUnmanagedAWS(
-		awsAccessKey, awsSecretKey, projectID, providerName, region, endpointResourceSuffix,
-	)
-
-	dependencies := []string{clusterResource, clusterDataSource, endpointResources}
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },

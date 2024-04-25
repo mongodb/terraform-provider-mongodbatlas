@@ -17,7 +17,7 @@ func TestAccConfigDSOrganizations_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasOrganizationsConfigWithDS(true),
+				Config: testAccMongoDBAtlasOrganizationsConfigWithDS(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(datasourceName, "results.#"),
 					resource.TestCheckResourceAttrSet(datasourceName, "results.0.name"),
@@ -48,14 +48,11 @@ func TestAccConfigDSOrganizations_withPagination(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasOrganizationsConfigWithDS(includedeletedorgs bool) string {
-	config := fmt.Sprintf(`
-		
+func testAccMongoDBAtlasOrganizationsConfigWithDS() string {
+	return `	
 		data "mongodbatlas_organizations" "test" {
-			include_deleted_orgs = %t
 		}
-	`, includedeletedorgs)
-	return config
+	`
 }
 
 func testAccMongoDBAtlasOrganizationsConfigWithPagination(pageNum, itemPage int) string {

@@ -12,8 +12,9 @@ The Terraform MongoDB Atlas Provider version 1.16.0 has a number of new and exci
 
 **New Resources, Data Sources, and Features:**
 
-
 - You can now configure [Push-based log export to Amazon S3](https://www.mongodb.com/docs/atlas/push-logs/) with `mongodbatlas_push_based_log_export` [resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/push_based_log_export).
+- [Atlas Stream Processing](https://www.mongodb.com/docs/atlas/atlas-sp/overview/) reaches GA (General Availability). 
+There is no need to use the environment variable `MONGODB_ATLAS_ENABLE_PREVIEW` any more for `mongodbatlas_stream_connection` and `mongodbatlas_stream_instance` resources and data sources.
 - The HashiCorp Terraform Version Compatibility Matrix has been published for the Terraform MongoDB Atlas Provider. See full details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#hashicorp-terraform-versionhttpswwwterraformiodownloadshtml-compatibility-matrix 
 
 **Deprecations and Removals:**
@@ -21,6 +22,11 @@ The Terraform MongoDB Atlas Provider version 1.16.0 has a number of new and exci
 - Format of IdP Id that uniquely identifies the identity provider when importing [`mongodbatlas_federated_settings_identity_provider`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/federated_settings_identity_provider) resource and [`mongodbatlas_federated_settings_identity_provider`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/federated_settings_identity_provider) data source only accepts the new IdP Id format that is a 24-hex characters long string.
 More info can be found in the [previous upgrade guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.15.0-upgrade-guide).
 
+- Removal of `project_id` attribute in `mongodbatlas_project_api_key` resource.
+
+- Removal of `password` attribute in `mongodbatlas_database_user` and `mongodbatlas_database_users` data sources.
+
+- Removal of `include_deleted_orgs` attribute in `mongodbatlas_organizations` data source.
 
 ### Helpful Links
 

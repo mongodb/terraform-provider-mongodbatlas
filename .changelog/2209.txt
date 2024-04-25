@@ -1,0 +1,23 @@
+```release-note:enhancement
+resource/mongodbatlas_stream_connection: Reaches GA (General Availability)
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_stream_connection: Reaches GA (General Availability)
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_stream_connections: Reaches GA (General Availability)
+```
+
+```release-note:enhancement
+resource/mongodbatlas_stream_instance: Reaches GA (General Availability)
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_stream_instance: Reaches GA (General Availability)
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_stream_instances: Reaches GA (General Availability)
+```
