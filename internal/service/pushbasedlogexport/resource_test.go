@@ -28,7 +28,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 
 	var (
 		projectID            = acc.ProjectIDExecution(tb)
-		s3BucketNamePrefix   = fmt.Sprintf("tf-%s", acc.RandomName())
+		s3BucketNamePrefix   = acc.RandomS3BucketName()
 		s3BucketName1        = fmt.Sprintf("%s-1", s3BucketNamePrefix)
 		s3BucketName2        = fmt.Sprintf("%s-2", s3BucketNamePrefix)
 		s3BucketPolicyName   = fmt.Sprintf("%s-s3-policy", s3BucketNamePrefix)
@@ -71,7 +71,7 @@ func noPrefixPathTestCase(tb testing.TB) *resource.TestCase {
 
 	var (
 		projectID            = acc.ProjectIDExecution(tb)
-		s3BucketNamePrefix   = fmt.Sprintf("tf-%s", acc.RandomName())
+		s3BucketNamePrefix   = acc.RandomS3BucketName()
 		s3BucketName1        = fmt.Sprintf("%s-1", s3BucketNamePrefix)
 		s3BucketName2        = fmt.Sprintf("%s-2", s3BucketNamePrefix)
 		s3BucketPolicyName   = fmt.Sprintf("%s-s3-policy", s3BucketNamePrefix)
@@ -110,9 +110,7 @@ func addAttrChecks(checks []resource.TestCheckFunc, mapChecks map[string]string)
 func configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath string, usePrefixPath bool) string {
 	test := fmt.Sprintf(`
 	 	locals {
-		 		#project_name = %[1]q
 				project_id = %[1]q
-		 		#org_id = %[2]q
 		 		s3_bucket_name_1 = %[2]q
 				s3_bucket_name_2 = %[3]q
 		 		s3_bucket_policy_name = %[4]q
@@ -122,7 +120,7 @@ func configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, aw
 
 			   %[7]s
 
-			   %[8]s
+			   %[8]s		
 	`, projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName,
 		awsIAMroleAuthAndS3Config(), pushBasedLogExportConfig(false, usePrefixPath, prefixPath))
 	return test
@@ -131,9 +129,7 @@ func configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, aw
 func configBasicUpdated(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath string, usePrefixPath bool) string {
 	test := fmt.Sprintf(`
 	 	locals {
-			#project_name = %[1]q
 				project_id = %[1]q
-		 		#org_id = %[2]q
 		 		s3_bucket_name_1 = %[2]q
 				s3_bucket_name_2 = %[3]q
 		 		s3_bucket_policy_name = %[4]q
