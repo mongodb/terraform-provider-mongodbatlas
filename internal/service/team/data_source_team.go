@@ -47,7 +47,7 @@ func DataSource() *schema.Resource {
 
 func LegacyTeamsDataSource() *schema.Resource {
 	res := DataSource()
-	res.DeprecationMessage = fmt.Sprintf(constant.DeprecationDataSourceByDateWithReplacement, "April 2025", "mongodbatlas_team")
+	res.DeprecationMessage = fmt.Sprintf(constant.DeprecationDataSourceByDateWithReplacement, "November 2024", "mongodbatlas_team")
 	return res
 }
 

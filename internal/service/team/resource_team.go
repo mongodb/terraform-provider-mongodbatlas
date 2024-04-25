@@ -63,7 +63,7 @@ func Resource() *schema.Resource {
 
 func LegacyTeamsResource() *schema.Resource {
 	res := Resource()
-	res.DeprecationMessage = fmt.Sprintf(constant.DeprecationResourceByDateWithReplacement, "April 2025", "mongodbatlas_team")
+	res.DeprecationMessage = fmt.Sprintf(constant.DeprecationResourceByDateWithReplacement, "November 2024", "mongodbatlas_team")
 	return res
 }
 
