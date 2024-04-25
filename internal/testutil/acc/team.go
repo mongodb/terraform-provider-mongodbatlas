@@ -10,7 +10,7 @@ import (
 
 func CheckDestroyTeam(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_teams" {
+		if rs.Type != "mongodbatlas_team" {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)

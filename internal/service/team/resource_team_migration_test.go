@@ -1,4 +1,4 @@
-package teams_test
+package team_test
 
 import (
 	"os"
@@ -11,7 +11,7 @@ import (
 
 func TestMigConfigTeams_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_teams.test"
+		resourceName = "mongodbatlas_team.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		username     = os.Getenv("MONGODB_ATLAS_USERNAME")
 		name         = acc.RandomName()

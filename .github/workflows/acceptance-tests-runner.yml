@@ -191,7 +191,7 @@ jobs:
             - 'internal/service/orginvitation/*.go'
             - 'internal/service/projectapikey/*.go'
             - 'internal/service/rolesorgid/*.go'
-            - 'internal/service/teams/*.go'
+            - 'internal/service/team/*.go'
             - 'internal/service/thirdpartyintegration/*.go'
           data_lake:
             - 'internal/service/datalakepipeline/*.go'
@@ -409,7 +409,7 @@ jobs:
             ./internal/service/projectapikey
             ./internal/service/apikey
             ./internal/service/rolesorgid
-            ./internal/service/teams
+            ./internal/service/team
             ./internal/service/thirdpartyintegration
         run: make testacc
       

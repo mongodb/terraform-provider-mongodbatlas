@@ -1,4 +1,4 @@
-package teams
+package team
 
 import (
 	"context"
@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115012/admin"
@@ -58,6 +59,12 @@ func Resource() *schema.Resource {
 			},
 		},
 	}
+}
+
+func LegacyTeamsResource() *schema.Resource {
+	res := Resource()
+	res.DeprecationMessage = fmt.Sprintf(constant.DeprecationResourceByDateWithReplacement, "November 2024", "mongodbatlas_team")
+	return res
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
