@@ -16,10 +16,10 @@ func TestMigStreamRSStreamInstance_basic(t *testing.T) {
 		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomName()
 	)
-	mig.SkipIfVersionBelow(t, "1.14.0")
+	mig.SkipIfVersionBelow(t, "1.16.0") // when reached GA
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckPreviewFlag(t); acc.PreCheckBasic(t) },
+		PreCheck:     func() { acc.PreCheckBasic(t) },
 		CheckDestroy: acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
 			{

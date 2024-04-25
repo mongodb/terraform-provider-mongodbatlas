@@ -10,8 +10,6 @@ description: |-
 
 `mongodbatlas_stream_connections` describes all connections of a stream instance for the specified project.
 
--> **NOTE:** Atlas Stream Processing is currently in preview, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_PREVIEW=true` to use this data source. To learn more about stream processing and existing limitations, see the [Atlas Stream Processing Documentation](https://www.mongodb.com/docs/atlas/atlas-sp/overview/#atlas-stream-processing-overview).
-
 ## Example Usage
 
 ```terraform

@@ -38,6 +38,7 @@ func PreCheckCert(tb testing.TB) {
 	}
 }
 
+// PreCheckPreviewFlag is used for resources not yet in GA
 func PreCheckPreviewFlag(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_ENABLE_PREVIEW") == "" {
