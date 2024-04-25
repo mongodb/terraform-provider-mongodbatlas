@@ -1,12 +1,12 @@
 package alertconfiguration_test
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
+	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/atlas-sdk/v20231115012/admin"
 )
 
@@ -78,9 +78,7 @@ func TestNotificationSDKToTFModel(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := alertconfiguration.NewTFNotificationModelList(*tc.SDKResp, tc.currentStateNotifications)
-			if !reflect.DeepEqual(resultModel, tc.expectedTFModel) {
-				t.Errorf("created terraform model did not match expected output.\n Expected: %s \n Result: %s", tc.expectedTFModel, resultModel)
-			}
+			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
@@ -125,9 +123,7 @@ func TestMetricThresholdSDKToTFModel(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := alertconfiguration.NewTFMetricThresholdConfigModel(tc.SDKResp, tc.currentStateMetricThreshold)
-			if !reflect.DeepEqual(resultModel, tc.expectedTFModel) {
-				t.Errorf("created terraform model did not match expected output.\n Expected: %s \n Result: %s", tc.expectedTFModel, resultModel)
-			}
+			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
@@ -166,9 +162,7 @@ func TestThresholdConfigSDKToTFModel(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := alertconfiguration.NewTFThresholdConfigModel(tc.SDKResp, tc.currentStateThresholdConfig)
-			if !reflect.DeepEqual(resultModel, tc.expectedTFModel) {
-				t.Errorf("created terraform model did not match expected output.\n Expected: %s \n Result: %s", tc.expectedTFModel, resultModel)
-			}
+			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
@@ -208,9 +202,7 @@ func TestMatcherSDKToTFModel(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := alertconfiguration.NewTFMatcherModelList(tc.SDKResp, tc.currentStateMatcher)
-			if !reflect.DeepEqual(resultModel, tc.expectedTFModel) {
-				t.Errorf("created terraform model did not match expected output.\n Expected: %s \n Result: %s", tc.expectedTFModel, resultModel)
-			}
+			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
@@ -258,9 +250,7 @@ func TestAlertConfigurationSDKToTFModel(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := alertconfiguration.NewTFAlertConfigurationModel(tc.SDKResp, tc.currentStateAlertConfiguration)
-			if !reflect.DeepEqual(resultModel, tc.expectedTFModel) {
-				t.Errorf("created terraform model did not match expected output.\n Expected: %s \n Result: %s", tc.expectedTFModel, resultModel)
-			}
+			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
@@ -299,9 +289,7 @@ func TestNotificationTFModelToSDK(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			apiReqResult, _ := alertconfiguration.NewNotificationList(tc.tfModel)
-			if !reflect.DeepEqual(*apiReqResult, *tc.expectedSDKReq) {
-				t.Errorf("created sdk model did not match expected output")
-			}
+			assert.Equal(t, *tc.expectedSDKReq, *apiReqResult, "created sdk model did not match expected output")
 		})
 	}
 }
@@ -337,9 +325,7 @@ func TestThresholdTFModelToSDK(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			apiReqResult := alertconfiguration.NewThreshold(tc.tfModel)
-			if !reflect.DeepEqual(apiReqResult, tc.expectedSDKReq) {
-				t.Errorf("created sdk model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedSDKReq, apiReqResult, "created sdk model did not match expected output")
 		})
 	}
 }
@@ -379,9 +365,7 @@ func TestMetricThresholdTFModelToSDK(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			apiReqResult := alertconfiguration.NewMetricThreshold(tc.tfModel)
-			if !reflect.DeepEqual(apiReqResult, tc.expectedSDKReq) {
-				t.Errorf("created sdk model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedSDKReq, apiReqResult, "created sdk model did not match expected output")
 		})
 	}
 }
@@ -389,13 +373,13 @@ func TestMetricThresholdTFModelToSDK(t *testing.T) {
 func TestMatcherTFModelToSDK(t *testing.T) {
 	testCases := []struct {
 		name           string
-		expectedSDKReq []map[string]interface{}
+		expectedSDKReq []admin.StreamsMatcher
 		tfModel        []alertconfiguration.TfMatcherModel
 	}{
 		{
 			name:           "Empty TF model",
 			tfModel:        []alertconfiguration.TfMatcherModel{},
-			expectedSDKReq: make([]map[string]interface{}, 0),
+			expectedSDKReq: make([]admin.StreamsMatcher, 0),
 		},
 		{
 			name: "Complete TF model",
@@ -406,10 +390,10 @@ func TestMatcherTFModelToSDK(t *testing.T) {
 					Value:     types.StringValue("PRIMARY"),
 				},
 			},
-			expectedSDKReq: []map[string]interface{}{{
-				"fieldName": "HOSTNAME",
-				"operator":  "EQUALS",
-				"value":     "PRIMARY",
+			expectedSDKReq: []admin.StreamsMatcher{{
+				FieldName: "HOSTNAME",
+				Operator:  "EQUALS",
+				Value:     "PRIMARY",
 			}},
 		},
 	}
@@ -417,9 +401,7 @@ func TestMatcherTFModelToSDK(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			apiReqResult := *alertconfiguration.NewMatcherList(tc.tfModel)
-			if !reflect.DeepEqual(apiReqResult, tc.expectedSDKReq) {
-				t.Errorf("created sdk model did not match expected output.\n Expected: %s \n Result: %s", tc.expectedSDKReq, apiReqResult)
-			}
+			assert.Equal(t, tc.expectedSDKReq, apiReqResult, "created sdk model did not match expected output")
 		})
 	}
 }
@@ -460,9 +442,7 @@ func TestAlertConfigurationSdkToTFDSModel(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := alertconfiguration.NewTfAlertConfigurationDSModel(tc.apiRespConfig, tc.projectID)
-			if !reflect.DeepEqual(resultModel, tc.expectedTFModel) {
-				t.Errorf("created terraform model did not match expected output.\n Expected: %s \n Result: %s", tc.expectedTFModel, resultModel)
-			}
+			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
@@ -516,9 +496,7 @@ func TestAlertConfigurationSdkToDSModelList(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel := alertconfiguration.NewTFAlertConfigurationDSModelList(tc.alerts, tc.projectID, tc.definedOutputs)
-			if !reflect.DeepEqual(resultModel, tc.expectedTfModel) {
-				t.Errorf("created terraform model did not match expected output.\n Expected: %s \n Result: %s", tc.expectedTfModel, resultModel)
-			}
+			assert.Equal(t, tc.expectedTfModel, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
