@@ -55,7 +55,7 @@ data "mongodbatlas_team" "test2" {
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` -	The Terraform's unique identifier used internally for state management.
+* `id` - Terraform's unique identifier used internally for state management.
 * `team_id` -  The unique identifier for the team.
 * `name` -  The name of the team you want to create.
 * `usernames` - The users who are part of the organization.
