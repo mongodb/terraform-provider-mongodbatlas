@@ -12,7 +12,9 @@ BREAKING CHANGES:
 NOTES:
 
 * data-source/mongodbatlas_federated_settings_identity_providers: Deprecates `page_num` and `items_per_page` attributes. They are not being used and will not be relevant once all results are fetched internally. ([#2207](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2207))
+* data-source/mongodbatlas_teams: Deprecates data source in favour of `mongodbatlas_team` which has the same implementation. This aligns the name of the resource with the implementation which fetches a single team. ([#2208](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2208))
 * provider: New changelog format has been incorporated following [Terraform Changelog Specification](https://developer.hashicorp.com/terraform/plugin/best-practices/versioning#changelog-specification) ([#2124](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2124))
+* resource/mongodbatlas_teams: Deprecates resource in favour of `mongodbatlas_team` which has the same implementation. This aligns the name of the resource with the implementation which manages a single team. ([#2208](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2208))
 
 FEATURES:
 
