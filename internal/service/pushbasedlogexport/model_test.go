@@ -2,7 +2,6 @@ package pushbasedlogexport_test
 
 import (
 	"context"
-	"reflect"
 	"testing"
 	"time"
 
@@ -10,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/pushbasedlogexport"
@@ -78,7 +78,7 @@ func TestNewTFPushBasedLogExport(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel, _ := pushbasedlogexport.NewTFPushBasedLogExport(context.Background(), tc.projectID, tc.apiResp, tc.timeout)
-			if !reflect.DeepEqual(resultModel, tc.expectedTFModel) {
+			if !assert.Equal(t, tc.expectedTFModel, resultModel) {
 				t.Errorf("result model does not match expected output: expected %+v, got %+v", tc.expectedTFModel, resultModel)
 			}
 		})
@@ -135,13 +135,13 @@ func TestNewPushBasedLogExportReq(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name+" Create", func(t *testing.T) {
 			createReq := pushbasedlogexport.NewPushBasedLogExportCreateReq(tc.input)
-			if !reflect.DeepEqual(createReq, tc.expectedCreateReq) {
+			if !assert.Equal(t, tc.expectedCreateReq, createReq) {
 				t.Errorf("Create request does not match expected output: expected %+v, got %+v", tc.expectedCreateReq, createReq)
 			}
 		})
 		t.Run(tc.name+" Update", func(t *testing.T) {
 			updateReq := pushbasedlogexport.NewPushBasedLogExportUpdateReq(tc.input)
-			if !reflect.DeepEqual(updateReq, tc.expectedUpdateReq) {
+			if !assert.Equal(t, tc.expectedUpdateReq, updateReq) {
 				t.Errorf("Update request does not match expected output: expected %+v, got %+v", tc.expectedUpdateReq, updateReq)
 			}
 		})

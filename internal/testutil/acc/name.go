@@ -12,7 +12,7 @@ const (
 	prefixCluster  = prefixName + "-c"
 	prefixIAMRole  = "mongodb-atlas-" + prefixName
 	prefixIAMUser  = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
-	prefixS3Bucket = "mongodb-atlas"
+	prefixS3Bucket = "mongodb-atlas-tf"
 )
 
 func RandomName() string {
