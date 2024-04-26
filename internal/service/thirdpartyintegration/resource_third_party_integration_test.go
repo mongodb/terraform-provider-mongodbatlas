@@ -22,34 +22,74 @@ const dataSourceName = "data." + resourceName
 const dataSourcePluralName = "data.mongodbatlas_third_party_integrations.test"
 
 func TestAccThirdPartyIntegration_basicPagerDuty(t *testing.T) {
-	resource.Test(t, *basicPagerDuty(t))
+	// basic test also include testing of plural data source which is why it cannot run in parallel
+	resource.Test(t, *basicPagerDutyTest(t))
 }
 
-func TestAccThirdPartyIntegration_basicOpsGenie(t *testing.T) {
-	resource.Test(t, *basicOpsGenie(t))
+func TestAccThirdPartyIntegration_opsGenie(t *testing.T) {
+	resource.ParallelTest(t, *opsGenieTest(t))
 }
 
-func TestAccThirdPartyIntegration_basicVictorOps(t *testing.T) {
-	resource.Test(t, *basicVictorOps(t))
+func TestAccThirdPartyIntegration_victorOps(t *testing.T) {
+	resource.ParallelTest(t, *victorOpsTest(t))
 }
 
-func TestAccThirdPartyIntegration_basicDatadog(t *testing.T) {
-	resource.Test(t, *basicDatadog(t))
+func TestAccThirdPartyIntegration_datadog(t *testing.T) {
+	resource.ParallelTest(t, *datadogTest(t))
 }
 
-func TestAccThirdPartyIntegration_basicPrometheus(t *testing.T) {
-	resource.Test(t, *basicPrometheus(t))
+func TestAccThirdPartyIntegration_prometheus(t *testing.T) {
+	resource.ParallelTest(t, *prometheusTest(t))
 }
 
-func TestAccThirdPartyIntegration_basicMicrosoftTeams(t *testing.T) {
-	resource.Test(t, *basicMicrosoftTeams(t))
+func TestAccThirdPartyIntegration_microsoftTeams(t *testing.T) {
+	resource.ParallelTest(t, *microsoftTeamsTest(t))
 }
 
-func TestAccThirdPartyIntegration_basicWebhook(t *testing.T) {
-	resource.Test(t, *basicWebhook(t))
+func TestAccThirdPartyIntegration_webhook(t *testing.T) {
+	resource.ParallelTest(t, *webhookTest(t))
 }
 
-func basicOpsGenie(tb testing.TB) *resource.TestCase {
+func basicPagerDutyTest(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+	var (
+		projectID         = acc.ProjectIDExecution(tb)
+		serviceKey        = dummy32CharKey
+		updatedServiceKey = dummy32CharKeyUpdated
+		intType           = "PAGER_DUTY"
+	)
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasicPagerDuty(projectID, serviceKey),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "type", intType),
+					resource.TestCheckResourceAttr(resourceName, "service_key", serviceKey),
+					resource.TestCheckResourceAttr(dataSourceName, "type", intType),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.type", intType),
+				),
+			},
+			{
+				Config: configBasicPagerDuty(projectID, updatedServiceKey),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "type", intType),
+					resource.TestCheckResourceAttr(resourceName, "service_key", updatedServiceKey),
+				),
+			},
+			importStep(resourceName),
+		},
+	}
+}
+
+func opsGenieTest(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 	var (
 		projectID     = acc.ProjectIDExecution(tb)
@@ -71,10 +111,6 @@ func basicOpsGenie(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "region", "US"),
 					resource.TestCheckResourceAttr(dataSourceName, "type", intType),
 					resource.TestCheckResourceAttr(dataSourceName, "region", "US"),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.type"),
 				),
 			},
 			{
@@ -91,46 +127,7 @@ func basicOpsGenie(tb testing.TB) *resource.TestCase {
 	}
 }
 
-func basicPagerDuty(tb testing.TB) *resource.TestCase {
-	tb.Helper()
-	var (
-		projectID         = acc.ProjectIDExecution(tb)
-		serviceKey        = dummy32CharKey
-		updatedServiceKey = dummy32CharKeyUpdated
-		intType           = "PAGER_DUTY"
-	)
-	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(tb) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configPagerDuty(projectID, serviceKey),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "type", intType),
-					resource.TestCheckResourceAttr(resourceName, "service_key", serviceKey),
-					resource.TestCheckResourceAttr(dataSourceName, "type", intType),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.type"),
-				),
-			},
-			{
-				Config: configPagerDuty(projectID, updatedServiceKey),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "type", intType),
-					resource.TestCheckResourceAttr(resourceName, "service_key", updatedServiceKey),
-				),
-			},
-			importStep(resourceName),
-		},
-	}
-}
-
-func basicVictorOps(tb testing.TB) *resource.TestCase {
+func victorOpsTest(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 	var (
 		projectID     = acc.ProjectIDExecution(tb)
@@ -152,10 +149,6 @@ func basicVictorOps(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttrSet(resourceName, "routing_key"),
 					resource.TestCheckResourceAttr(dataSourceName, "type", intType),
 					resource.TestCheckResourceAttrSet(dataSourceName, "routing_key"),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.type"),
 				),
 			},
 			{
@@ -171,7 +164,7 @@ func basicVictorOps(tb testing.TB) *resource.TestCase {
 	}
 }
 
-func basicDatadog(tb testing.TB) *resource.TestCase {
+func datadogTest(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 	var (
 		projectID     = acc.ProjectIDExecution(tb)
@@ -194,10 +187,6 @@ func basicDatadog(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "region", region),
 					resource.TestCheckResourceAttr(dataSourceName, "type", intType),
 					resource.TestCheckResourceAttr(dataSourceName, "region", region),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.type"),
 				),
 			},
 			{
@@ -214,7 +203,7 @@ func basicDatadog(tb testing.TB) *resource.TestCase {
 	}
 }
 
-func basicPrometheus(tb testing.TB) *resource.TestCase {
+func prometheusTest(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 	var (
 		projectID        = acc.ProjectIDExecution(tb)
@@ -243,10 +232,6 @@ func basicPrometheus(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(dataSourceName, "user_name", username),
 					resource.TestCheckResourceAttr(dataSourceName, "service_discovery", serviceDiscovery),
 					resource.TestCheckResourceAttr(dataSourceName, "scheme", scheme),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.type"),
 				),
 			},
 			{
@@ -262,7 +247,7 @@ func basicPrometheus(tb testing.TB) *resource.TestCase {
 	}
 }
 
-func basicMicrosoftTeams(tb testing.TB) *resource.TestCase {
+func microsoftTeamsTest(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 	var (
 		projectID = acc.ProjectIDExecution(tb)
@@ -288,10 +273,6 @@ func basicMicrosoftTeams(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
 					resource.TestCheckResourceAttr(resourceName, "microsoft_teams_webhook_url", url),
 					resource.TestCheckResourceAttr(dataSourceName, "type", intType),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.type"),
 				),
 			},
 			{
@@ -307,7 +288,7 @@ func basicMicrosoftTeams(tb testing.TB) *resource.TestCase {
 	}
 }
 
-func basicWebhook(tb testing.TB) *resource.TestCase {
+func webhookTest(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 	var (
 		projectID  = acc.ProjectIDExecution(tb)
@@ -327,10 +308,6 @@ func basicWebhook(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
 					resource.TestCheckResourceAttr(resourceName, "url", url),
 					resource.TestCheckResourceAttr(dataSourceName, "type", intType),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.type"),
 				),
 			},
 			{
@@ -382,16 +359,18 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-var dataStr = `
+var singularDataStr = `
 data "mongodbatlas_third_party_integration" "test" {
 	project_id = mongodbatlas_third_party_integration.test.project_id
 	type = mongodbatlas_third_party_integration.test.type
 }
 
+`
+
+var pluralDataStr = `
 data "mongodbatlas_third_party_integrations" "test" {
 	project_id = mongodbatlas_third_party_integration.test.project_id
-}
-`
+}`
 
 func configOpsGenie(projectID, apiKey string) string {
 	return fmt.Sprintf(`
@@ -405,10 +384,10 @@ func configOpsGenie(projectID, apiKey string) string {
 		"OPS_GENIE",
 		apiKey,
 		"US",
-	) + dataStr
+	) + singularDataStr
 }
 
-func configPagerDuty(projectID, serviceKey string) string {
+func configBasicPagerDuty(projectID, serviceKey string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_third_party_integration" "test" {
 		project_id = "%[1]s"
@@ -419,7 +398,7 @@ func configPagerDuty(projectID, serviceKey string) string {
 		projectID,
 		"PAGER_DUTY",
 		serviceKey,
-	) + dataStr
+	) + singularDataStr + pluralDataStr
 }
 
 func configVictorOps(projectID, apiKey string) string {
@@ -434,7 +413,7 @@ func configVictorOps(projectID, apiKey string) string {
 		projectID,
 		"VICTOR_OPS",
 		apiKey,
-	) + dataStr
+	) + singularDataStr
 }
 
 func configDatadog(projectID, apiKey, region string) string {
@@ -450,7 +429,7 @@ func configDatadog(projectID, apiKey, region string) string {
 		"DATADOG",
 		apiKey,
 		region,
-	) + dataStr
+	) + singularDataStr
 }
 
 func configPrometheus(projectID, username, password, serviceDiscovery, scheme string) string {
@@ -471,7 +450,7 @@ func configPrometheus(projectID, username, password, serviceDiscovery, scheme st
 		password,
 		serviceDiscovery,
 		scheme,
-	) + dataStr
+	) + singularDataStr
 }
 
 func configMicrosoftTeams(projectID, url string) string {
@@ -481,7 +460,7 @@ func configMicrosoftTeams(projectID, url string) string {
 		type = "MICROSOFT_TEAMS"
 		microsoft_teams_webhook_url = "%[2]s"	
 	}
-	`, projectID, url) + dataStr
+	`, projectID, url) + singularDataStr
 }
 
 func configWebhook(projectID, url string) string {
@@ -491,7 +470,7 @@ func configWebhook(projectID, url string) string {
 		type = "WEBHOOK"
 		url = "%[2]s"	
 	}
-	`, projectID, url) + dataStr
+	`, projectID, url) + singularDataStr
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
