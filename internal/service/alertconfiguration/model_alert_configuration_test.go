@@ -22,6 +22,7 @@ const (
 	threshold           float64 = 99.0
 	units               string  = "RAW"
 	mode                string  = "AVERAGE"
+	integrationID       string  = "fake-intregration-id"
 )
 
 var (
@@ -39,14 +40,15 @@ func TestNotificationSDKToTFModel(t *testing.T) {
 			name: "Complete SDK response",
 			SDKResp: &[]admin.AlertsNotificationRootForGroup{
 				{
-					TypeName:     admin.PtrString(group),
-					IntervalMin:  admin.PtrInt(intervalMin),
-					DelayMin:     admin.PtrInt(delayMin),
-					SmsEnabled:   admin.PtrBool(disabled),
-					EmailEnabled: admin.PtrBool(enabled),
-					ChannelName:  admin.PtrString("#channel"),
-					Roles:        &roles,
-					ApiToken:     admin.PtrString("newApiToken"),
+					TypeName:      admin.PtrString(group),
+					IntervalMin:   admin.PtrInt(intervalMin),
+					DelayMin:      admin.PtrInt(delayMin),
+					SmsEnabled:    admin.PtrBool(disabled),
+					EmailEnabled:  admin.PtrBool(enabled),
+					ChannelName:   admin.PtrString("#channel"),
+					Roles:         &roles,
+					ApiToken:      admin.PtrString("newApiToken"),
+					IntegrationId: admin.PtrString(integrationID),
 				},
 			},
 			currentStateNotifications: []alertconfiguration.TfNotificationModel{
@@ -62,14 +64,15 @@ func TestNotificationSDKToTFModel(t *testing.T) {
 			},
 			expectedTFModel: []alertconfiguration.TfNotificationModel{
 				{
-					TypeName:     types.StringValue(group),
-					IntervalMin:  types.Int64Value(int64(intervalMin)),
-					DelayMin:     types.Int64Value(int64(delayMin)),
-					SMSEnabled:   types.BoolValue(disabled),
-					EmailEnabled: types.BoolValue(enabled),
-					ChannelName:  types.StringNull(),
-					APIToken:     types.StringValue("apiToken"),
-					Roles:        roles,
+					TypeName:      types.StringValue(group),
+					IntervalMin:   types.Int64Value(int64(intervalMin)),
+					DelayMin:      types.Int64Value(int64(delayMin)),
+					SMSEnabled:    types.BoolValue(disabled),
+					EmailEnabled:  types.BoolValue(enabled),
+					ChannelName:   types.StringNull(),
+					APIToken:      types.StringValue("apiToken"),
+					Roles:         roles,
+					IntegrationID: types.StringValue(integrationID),
 				},
 			},
 		},
@@ -265,22 +268,24 @@ func TestNotificationTFModelToSDK(t *testing.T) {
 			name: "Complete TF model",
 			tfModel: []alertconfiguration.TfNotificationModel{
 				{
-					TypeName:     types.StringValue(group),
-					IntervalMin:  types.Int64Value(int64(intervalMin)),
-					DelayMin:     types.Int64Value(int64(delayMin)),
-					SMSEnabled:   types.BoolValue(disabled),
-					EmailEnabled: types.BoolValue(enabled),
-					Roles:        roles,
+					TypeName:      types.StringValue(group),
+					IntervalMin:   types.Int64Value(int64(intervalMin)),
+					DelayMin:      types.Int64Value(int64(delayMin)),
+					SMSEnabled:    types.BoolValue(disabled),
+					EmailEnabled:  types.BoolValue(enabled),
+					Roles:         roles,
+					IntegrationID: types.StringValue(integrationID),
 				},
 			},
 			expectedSDKReq: &[]admin.AlertsNotificationRootForGroup{
 				{
-					TypeName:     admin.PtrString(group),
-					IntervalMin:  admin.PtrInt(intervalMin),
-					DelayMin:     admin.PtrInt(delayMin),
-					SmsEnabled:   admin.PtrBool(disabled),
-					EmailEnabled: admin.PtrBool(enabled),
-					Roles:        &roles,
+					TypeName:      admin.PtrString(group),
+					IntervalMin:   admin.PtrInt(intervalMin),
+					DelayMin:      admin.PtrInt(delayMin),
+					SmsEnabled:    admin.PtrBool(disabled),
+					EmailEnabled:  admin.PtrBool(enabled),
+					Roles:         &roles,
+					IntegrationId: admin.PtrString(integrationID),
 				},
 			},
 		},

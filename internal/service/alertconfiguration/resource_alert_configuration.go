@@ -101,6 +101,7 @@ type TfNotificationModel struct {
 	TeamID                   types.String `tfsdk:"team_id"`
 	TeamName                 types.String `tfsdk:"team_name"`
 	NotifierID               types.String `tfsdk:"notifier_id"`
+	IntegrationID            types.String `tfsdk:"integration_id"`
 	TypeName                 types.String `tfsdk:"type_name"`
 	ChannelName              types.String `tfsdk:"channel_name"`
 	VictorOpsAPIKey          types.String `tfsdk:"victor_ops_api_key"`
@@ -319,6 +320,9 @@ func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 						},
 						"notifier_id": schema.StringAttribute{
 							Computed: true,
+							Optional: true,
+						},
+						"integration_id": schema.StringAttribute{
 							Optional: true,
 						},
 						"type_name": schema.StringAttribute{
