@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_third_party_integration: Allows defining `routing_key` attribute for victor ops integration
+```
