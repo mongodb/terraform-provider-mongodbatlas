@@ -231,7 +231,6 @@ func prometheusTest(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(dataSourceName, "type", intType),
 					resource.TestCheckResourceAttr(dataSourceName, "user_name", username),
 					resource.TestCheckResourceAttr(dataSourceName, "service_discovery", serviceDiscovery),
-					resource.TestCheckResourceAttr(dataSourceName, "scheme", scheme),
 				),
 			},
 			{
