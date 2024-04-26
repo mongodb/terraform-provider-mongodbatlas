@@ -27,7 +27,7 @@ var requiredPerType = map[string][]string{
 	"PAGER_DUTY":      {"service_key"},
 	"DATADOG":         {"api_key", "region"},
 	"OPS_GENIE":       {"api_key", "region"},
-	"VICTOR_OPS":      {"api_key", "routing_key"},
+	"VICTOR_OPS":      {"api_key"},
 	"WEBHOOK":         {"url"},
 	"MICROSOFT_TEAMS": {"microsoft_teams_webhook_url"},
 	"PROMETHEUS":      {"user_name", "password", "service_discovery", "scheme", "enabled"},
