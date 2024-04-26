@@ -66,6 +66,28 @@ func flattenIntegrations(d *schema.ResourceData, integrations *matlas.ThirdParty
 func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyIntegration) map[string]any {
 	integrationSchema := schemaToIntegration(d)
 
+	if integrationSchema.APIKey == "" {
+		integrationSchema.APIKey = integration.APIKey
+	}
+	if integrationSchema.ServiceKey == "" {
+		integrationSchema.ServiceKey = integration.ServiceKey
+	}
+	if integrationSchema.APIToken == "" {
+		integrationSchema.APIToken = integration.APIToken
+	}
+	if integrationSchema.RoutingKey == "" {
+		integrationSchema.RoutingKey = integration.RoutingKey
+	}
+	if integrationSchema.Secret == "" {
+		integrationSchema.Secret = integration.Secret
+	}
+	if integrationSchema.Password == "" {
+		integrationSchema.Password = integration.Password
+	}
+	if integrationSchema.URL == "" {
+		integrationSchema.URL = integration.URL
+	}
+
 	out := map[string]any{
 		"type":                        integration.Type,
 		"api_key":                     integrationSchema.APIKey,
