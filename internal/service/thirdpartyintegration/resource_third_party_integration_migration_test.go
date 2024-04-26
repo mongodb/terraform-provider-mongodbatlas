@@ -7,5 +7,6 @@ import (
 )
 
 func TestMigThirdPartyIntegration_basic(t *testing.T) {
-	mig.CreateAndRunTest(t, basicTestCase(t))
+	// does not run in parallel to reuse same execution project
+	mig.CreateAndRunTestNonParallel(t, basicPagerDutyTest(t))
 }

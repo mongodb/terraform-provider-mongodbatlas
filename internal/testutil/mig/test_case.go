@@ -14,6 +14,13 @@ func CreateAndRunTest(t *testing.T, test *resource.TestCase) {
 	resource.ParallelTest(t, CreateTest(t, test))
 }
 
+// avoids running migration test in parallel
+func CreateAndRunTestNonParallel(t *testing.T, test *resource.TestCase) {
+	t.Helper()
+	acc.SkipInUnitTest(t) // Migration tests create external resources and use MONGODB_ATLAS_LAST_VERSION env-var.
+	resource.Test(t, CreateTest(t, test))
+}
+
 func CreateTestAndRunUseExternalProvider(t *testing.T, test *resource.TestCase, externalProviders, additionalProviders map[string]resource.ExternalProvider) {
 	t.Helper()
 	acc.SkipInUnitTest(t) // Migration tests create external resources and use MONGODB_ATLAS_LAST_VERSION env-var.
