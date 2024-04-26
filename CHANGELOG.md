@@ -23,6 +23,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_alert_configuration: Adds `integration_id` attribute ([#2212](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2212))
+* data-source/mongodbatlas_alert_configurations: Adds `integration_id` attribute ([#2212](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2212))
 * data-source/mongodbatlas_backup_compliance_policy: Adds `policy_item_yearly` attribute ([#2109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2109))
 * data-source/mongodbatlas_cloud_backup_schedule: Adds `policy_item_yearly` attribute ([#2109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2109))
 * data-source/mongodbatlas_project: Adds `tags` attribute ([#2135](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2135))
@@ -32,6 +34,7 @@ ENHANCEMENTS:
 * data-source/mongodbatlas_stream_connections: Reaches GA (General Availability) ([#2209](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2209))
 * data-source/mongodbatlas_stream_instance: Reaches GA (General Availability) ([#2209](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2209))
 * data-source/mongodbatlas_stream_instances: Reaches GA (General Availability) ([#2209](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2209))
+* resource/mongodbatlas_alert_configuration: Adds `integration_id` attribute ([#2212](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2212))
 * resource/mongodbatlas_backup_compliance_policy: Adds `policy_item_yearly` attribute ([#2109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2109))
 * resource/mongodbatlas_cloud_backup_schedule: Adds `policy_item_yearly` attribute ([#2109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2109))
 * resource/mongodbatlas_privatelink_endpoint_service_serverless: Adds support for updating `comment` attribute in-place. ([#2133](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2133))
