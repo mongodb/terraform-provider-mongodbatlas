@@ -3,6 +3,7 @@ package alertconfiguration_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"regexp"
 	"testing"
 
@@ -422,22 +423,22 @@ func TestAccConfigRSAlertConfiguration_withPagerDuty(t *testing.T) {
 }
 
 func TestAccConfigAlertConfiguration_PagerDutyUsingIntegrationID(t *testing.T) {
-	proxyPort := replay.SetupReplayProxy(t)
-
+	// create a new project as it need to ensure no third party integration has already been created
 	var (
-		projectID  = replay.ManageProjectID(t, acc.ProjectIDExecution)
-		serviceKey = dummy32CharKey
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		serviceKey  = dummy32CharKey
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
-		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(nil),
+		CheckDestroy:             checkDestroyUsingProxy(nil),
 		Steps: []resource.TestStep{
 			{
-				Config: configWithPagerDutyIntegrationID(projectID, serviceKey),
+				Config: configWithPagerDutyIntegrationID(orgID, projectName, serviceKey),
 				Check: resource.ComposeTestCheckFunc(
-					checkExistsUsingProxy(proxyPort, resourceName),
+					checkExistsUsingProxy(nil, resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "notification.0.integration_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "notification.0.integration_id"),
 				),
@@ -797,16 +798,21 @@ func configWithPagerDuty(projectID, serviceKey string, enabled bool) string {
 	`, projectID, serviceKey, enabled)
 }
 
-func configWithPagerDutyIntegrationID(projectID, serviceKey string) string {
+func configWithPagerDutyIntegrationID(orgID, projectName, serviceKey string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+	
 		resource "mongodbatlas_third_party_integration" "test" {
-			project_id = %[1]q
+			project_id = mongodbatlas_project.test.id
 			type = "PAGER_DUTY"
-			service_key = %[2]q
+			service_key = %[3]q
 		}
 
 		resource "mongodbatlas_alert_configuration" "test" {
-			project_id = %[1]q
+			project_id = mongodbatlas_project.test.id
 			enabled    = true
 			event_type = "USERS_WITHOUT_MULTI_FACTOR_AUTH"
 		  
@@ -820,7 +826,7 @@ func configWithPagerDutyIntegrationID(projectID, serviceKey string) string {
 			project_id             = mongodbatlas_alert_configuration.test.project_id
 			alert_configuration_id = mongodbatlas_alert_configuration.test.id
 		}
-	`, projectID, serviceKey)
+	`, orgID, projectName, serviceKey)
 }
 
 func configWithPagerDutyNotifierID(projectID, notifierID string, delayMin int, serviceKey *string) string {
