@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -44,6 +43,10 @@ func Resource() *schema.Resource {
 			StateContext: resourceMongoDBAtlasThirdPartyIntegrationImportState,
 		},
 		Schema: map[string]*schema.Schema{
+			"id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -161,21 +164,14 @@ func resourceMongoDBAtlasThirdPartyIntegrationCreate(ctx context.Context, d *sch
 		return diag.FromErr(fmt.Errorf("error creating third party integration %s", err))
 	}
 
-	// ID is equal to project_id+type need to ask
-	d.SetId(conversion.EncodeStateID(map[string]string{
-		"project_id": projectID,
-		"type":       integrationType,
-	}))
-
 	return resourceMongoDBAtlasThirdPartyIntegrationRead(ctx, d, meta)
 }
 
 func resourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	ids := conversion.DecodeStateID(d.Id())
 
-	projectID := ids["project_id"]
-	integrationType := ids["type"]
+	projectID := d.Get("project_id").(string)
+	integrationType := d.Get("type").(string)
 
 	integration, resp, err := connV2.ThirdPartyIntegrationsApi.GetThirdPartyIntegration(ctx, projectID, integrationType).Execute()
 	if err != nil {
@@ -195,20 +191,15 @@ func resourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schem
 		}
 	}
 
-	d.SetId(conversion.EncodeStateID(map[string]string{
-		"project_id": projectID,
-		"type":       integrationType,
-	}))
-
+	d.SetId(integration.GetId())
 	return nil
 }
 
 func resourceMongoDBAtlasThirdPartyIntegrationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	ids := conversion.DecodeStateID(d.Id())
 
-	projectID := ids["project_id"]
-	integrationType := ids["type"]
+	projectID := d.Get("project_id").(string)
+	integrationType := d.Get("type").(string)
 
 	integration, _, err := connV2.ThirdPartyIntegrationsApi.GetThirdPartyIntegration(ctx, projectID, integrationType).Execute()
 
@@ -231,10 +222,9 @@ func resourceMongoDBAtlasThirdPartyIntegrationUpdate(ctx context.Context, d *sch
 
 func resourceMongoDBAtlasThirdPartyIntegrationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	ids := conversion.DecodeStateID(d.Id())
 
-	projectID := ids["project_id"]
-	integrationType := ids["type"]
+	projectID := d.Get("project_id").(string)
+	integrationType := d.Get("type").(string)
 
 	_, err := conn.Integrations.Delete(ctx, projectID, integrationType)
 
@@ -246,7 +236,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationDelete(ctx context.Context, d *sch
 }
 
 func resourceMongoDBAtlasThirdPartyIntegrationImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID, integrationType, err := splitIntegrationTypeID(d.Id())
 
@@ -254,7 +244,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationImportState(ctx context.Context, d
 		return nil, err
 	}
 
-	integration, _, err := conn.Integrations.Get(ctx, projectID, integrationType)
+	_, _, err = connV2.ThirdPartyIntegrationsApi.GetThirdPartyIntegration(ctx, projectID, integrationType).Execute()
 
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import third party integration (%s) in project(%s), error: %w", integrationType, projectID, err)
@@ -264,14 +254,9 @@ func resourceMongoDBAtlasThirdPartyIntegrationImportState(ctx context.Context, d
 		return nil, fmt.Errorf("error setting `project_id` for third party integration (%s): %w", d.Id(), err)
 	}
 
-	if err := d.Set("type", integration.Type); err != nil {
+	if err := d.Set("type", integrationType); err != nil {
 		return nil, fmt.Errorf("error setting `type` for third party integration (%s): %w", d.Id(), err)
 	}
-
-	d.SetId(conversion.EncodeStateID(map[string]string{
-		"project_id": projectID,
-		"type":       integrationType,
-	}))
 
 	return []*schema.ResourceData{d}, nil
 }

@@ -48,8 +48,9 @@ In addition to all arguments above, the following attributes are exported:
 
 ### Third-Party Service Integration 
 
-* `project_id`  - (Required) ID of the Atlas project the Third-Party Service Integration belongs to.
-* `type`        - (Required) Thirt-Party service integration type.
+* `project_id` - ID of the Atlas project the Third-Party Service Integration belongs to.
+* `type` - Thirt-Party service integration type.
+* `id` - Unique identifier of the integration.
 
      * PAGER_DUTY
      * DATADOG
