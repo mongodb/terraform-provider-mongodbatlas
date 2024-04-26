@@ -3,7 +3,6 @@ package alertconfiguration_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"regexp"
 	"testing"
 
@@ -423,12 +422,11 @@ func TestAccConfigRSAlertConfiguration_withPagerDuty(t *testing.T) {
 }
 
 func TestAccConfigAlertConfiguration_PagerDutyUsingIntegrationID(t *testing.T) {
-	acc.SkipTestForCI(t) // currently skipped as third party integration id cannot be created and obtained during test
 	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
-		pagerDutyIntegrationID = os.Getenv("MONGODB_ATLAS_PAGER_DUTY_THIRD_PARTY_INTEGRATION_ID")
-		projectID              = replay.ManageProjectID(t, acc.ProjectIDExecution)
+		projectID  = replay.ManageProjectID(t, acc.ProjectIDExecution)
+		serviceKey = dummy32CharKey
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -437,11 +435,11 @@ func TestAccConfigAlertConfiguration_PagerDutyUsingIntegrationID(t *testing.T) {
 		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
 			{
-				Config: configWithPagerDutyIntegrationID(projectID, pagerDutyIntegrationID),
+				Config: configWithPagerDutyIntegrationID(projectID, serviceKey),
 				Check: resource.ComposeTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
-					resource.TestCheckResourceAttr(resourceName, "notification.0.integration_id", pagerDutyIntegrationID),
-					resource.TestCheckResourceAttr(dataSourceName, "notification.0.integration_id", pagerDutyIntegrationID),
+					resource.TestCheckResourceAttrSet(resourceName, "notification.0.integration_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "notification.0.integration_id"),
 				),
 			},
 		},
@@ -799,8 +797,14 @@ func configWithPagerDuty(projectID, serviceKey string, enabled bool) string {
 	`, projectID, serviceKey, enabled)
 }
 
-func configWithPagerDutyIntegrationID(projectID, pagerDutyIntegrationID string) string {
+func configWithPagerDutyIntegrationID(projectID, serviceKey string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_third_party_integration" "test" {
+			project_id = %[1]q
+			type = "PAGER_DUTY"
+			service_key = %[2]q
+		}
+
 		resource "mongodbatlas_alert_configuration" "test" {
 			project_id = %[1]q
 			enabled    = true
@@ -808,7 +812,7 @@ func configWithPagerDutyIntegrationID(projectID, pagerDutyIntegrationID string) 
 		  
 			notification {
 				type_name     = "PAGER_DUTY"
-				integration_id = %[2]q
+				integration_id = mongodbatlas_third_party_integration.test.id
 			}
 		}
 
@@ -816,7 +820,7 @@ func configWithPagerDutyIntegrationID(projectID, pagerDutyIntegrationID string) 
 			project_id             = mongodbatlas_alert_configuration.test.project_id
 			alert_configuration_id = mongodbatlas_alert_configuration.test.id
 		}
-	`, projectID, pagerDutyIntegrationID)
+	`, projectID, serviceKey)
 }
 
 func configWithPagerDutyNotifierID(projectID, notifierID string, delayMin int, serviceKey *string) string {
