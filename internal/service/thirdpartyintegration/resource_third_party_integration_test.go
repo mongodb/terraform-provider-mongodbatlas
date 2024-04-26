@@ -2,63 +2,75 @@ package thirdpartyintegration_test
 
 import (
 	"context"
-	"crypto/rand"
 	"fmt"
-	"math/big"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccThirdPartyIntegration_basic(t *testing.T) {
-	resource.ParallelTest(t, *basicTestCase(t))
+// dummy keys used for credential values in third party notifications
+const dummy32CharKey = "11111111111111111111111111111111"
+const dummy32CharKeyUpdated = "11111111111111111111111111111112"
+const dummy36CharKey = "11111111-1111-1111-1111-111111111111"
+const dummy36CharKeyUpdated = "11111111-1111-1111-1111-111111111112"
+
+const resourceName = "mongodbatlas_third_party_integration.test"
+const dataSourceName = "data." + resourceName
+const dataSourcePluralName = "data.mongodbatlas_third_party_integrations.test"
+
+func TestAccThirdPartyIntegration_basicPagerDuty(t *testing.T) {
+	resource.Test(t, *basicPagerDuty(t))
 }
 
-func basicTestCase(tb testing.TB) *resource.TestCase {
+func TestAccThirdPartyIntegration_basicOpsGenie(t *testing.T) {
+	resource.Test(t, *basicOpsGenie(t))
+}
+
+func TestAccThirdPartyIntegration_basicVictorOps(t *testing.T) {
+	resource.Test(t, *basicVictorOps(t))
+}
+
+func TestAccThirdPartyIntegration_basicDatadog(t *testing.T) {
+	resource.Test(t, *basicDatadog(t))
+}
+
+func TestAccThirdPartyIntegration_basicPrometheus(t *testing.T) {
+	resource.Test(t, *basicPrometheus(t))
+}
+
+func TestAccThirdPartyIntegration_basicMicrosoftTeams(t *testing.T) {
+	resource.Test(t, *basicMicrosoftTeams(t))
+}
+
+func TestAccThirdPartyIntegration_basicWebhook(t *testing.T) {
+	resource.Test(t, *basicWebhook(t))
+}
+
+func basicOpsGenie(tb testing.TB) *resource.TestCase {
 	tb.Helper()
-	acc.SkipTestForCI(tb) // needs Opsgenie config
-
 	var (
-		projectID            = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		apiKey               = os.Getenv("OPS_GENIE_API_KEY")
-		cfg                  = createIntegrationConfig()
-		testExecutionName    = "test_3rd_party_" + cfg.AccountID
-		resourceName         = "mongodbatlas_third_party_integration." + testExecutionName
-		dataSourceName       = "data." + resourceName
-		dataSourcePluralName = "data.mongodbatlas_third_party_integrations.test"
+		projectID     = acc.ProjectIDExecution(tb)
+		apiKey        = dummy36CharKey
+		updatedAPIKey = dummy36CharKeyUpdated
+		intType       = "OPS_GENIE"
 	)
-
-	cfg.Type = "OPS_GENIE"
-	cfg.APIKey = apiKey
-
-	seedConfig := thirdPartyConfig{
-		Name:        testExecutionName,
-		ProjectID:   projectID,
-		Integration: *cfg,
-	}
-
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(tb) },
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(&seedConfig),
+				Config: configOpsGenie(projectID, apiKey),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "type", cfg.Type),
-					resource.TestCheckResourceAttr(resourceName, "api_key", cfg.APIKey),
-					resource.TestCheckResourceAttr(resourceName, "region", cfg.Region),
-
-					resource.TestCheckResourceAttr(dataSourceName, "type", cfg.Type),
-					resource.TestCheckResourceAttr(dataSourceName, "api_key", cfg.APIKey),
-					resource.TestCheckResourceAttr(dataSourceName, "region", cfg.Region),
-
+					resource.TestCheckResourceAttr(resourceName, "type", intType),
+					resource.TestCheckResourceAttr(resourceName, "api_key", apiKey),
+					resource.TestCheckResourceAttr(resourceName, "region", "US"),
+					resource.TestCheckResourceAttr(dataSourceName, "type", intType),
+					resource.TestCheckResourceAttr(dataSourceName, "region", "US"),
 					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "project_id"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
@@ -66,72 +78,281 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: false, // API Obfuscation will always make import mismatch
+				Config: configOpsGenie(projectID, updatedAPIKey),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "type", intType),
+					resource.TestCheckResourceAttr(resourceName, "api_key", updatedAPIKey),
+					resource.TestCheckResourceAttr(resourceName, "region", "US"),
+				),
 			},
+			importStep(resourceName),
 		},
 	}
 }
 
-func TestAccThirdPartyIntegration_updateBasic(t *testing.T) {
-	acc.SkipTestForCI(t) // needs Opsgenie config
-
+func basicPagerDuty(tb testing.TB) *resource.TestCase {
+	tb.Helper()
 	var (
-		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		apiKey            = os.Getenv("OPS_GENIE_API_KEY")
-		cfg               = createIntegrationConfig()
-		updatedConfig     = createIntegrationConfig()
-		testExecutionName = "test_3rd_party_" + cfg.AccountID
-		resourceName      = "mongodbatlas_third_party_integration." + testExecutionName
+		projectID         = acc.ProjectIDExecution(tb)
+		serviceKey        = dummy32CharKey
+		updatedServiceKey = dummy32CharKeyUpdated
+		intType           = "PAGER_DUTY"
 	)
-
-	// setting type
-	cfg.Type = "OPS_GENIE"
-	updatedConfig.Type = "OPS_GENIE"
-	updatedConfig.Region = "US"
-	cfg.APIKey = apiKey
-	updatedConfig.APIKey = apiKey
-
-	seedInitialConfig := thirdPartyConfig{
-		Name:        testExecutionName,
-		ProjectID:   projectID,
-		Integration: *cfg,
-	}
-
-	seedUpdatedConfig := thirdPartyConfig{
-		Name:        testExecutionName,
-		ProjectID:   projectID,
-		Integration: *updatedConfig,
-	}
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(&seedInitialConfig),
+				Config: configPagerDuty(projectID, serviceKey),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "type", cfg.Type),
-					resource.TestCheckResourceAttr(resourceName, "api_key", cfg.APIKey),
-					resource.TestCheckResourceAttr(resourceName, "region", cfg.Region),
+					resource.TestCheckResourceAttr(resourceName, "type", intType),
+					resource.TestCheckResourceAttr(resourceName, "service_key", serviceKey),
+					resource.TestCheckResourceAttr(dataSourceName, "type", intType),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.type"),
 				),
 			},
 			{
-				Config: configBasic(&seedUpdatedConfig),
+				Config: configPagerDuty(projectID, updatedServiceKey),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "type", updatedConfig.Type),
-					resource.TestCheckResourceAttr(resourceName, "api_key", updatedConfig.APIKey),
-					resource.TestCheckResourceAttr(resourceName, "region", updatedConfig.Region),
+					resource.TestCheckResourceAttr(resourceName, "type", intType),
+					resource.TestCheckResourceAttr(resourceName, "service_key", updatedServiceKey),
 				),
 			},
+			importStep(resourceName),
 		},
-	},
+	}
+}
+
+func basicVictorOps(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+	var (
+		projectID     = acc.ProjectIDExecution(tb)
+		apiKey        = dummy36CharKey
+		updatedAPIKey = dummy36CharKeyUpdated
+		intType       = "VICTOR_OPS"
 	)
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configVictorOps(projectID, apiKey),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "type", intType),
+					resource.TestCheckResourceAttr(resourceName, "api_key", apiKey),
+					resource.TestCheckResourceAttrSet(resourceName, "routing_key"),
+					resource.TestCheckResourceAttr(dataSourceName, "type", intType),
+					resource.TestCheckResourceAttrSet(dataSourceName, "routing_key"),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.type"),
+				),
+			},
+			{
+				Config: configVictorOps(projectID, updatedAPIKey),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "type", intType),
+					resource.TestCheckResourceAttr(resourceName, "api_key", updatedAPIKey),
+				),
+			},
+			importStep(resourceName),
+		},
+	}
+}
+
+func basicDatadog(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+	var (
+		projectID     = acc.ProjectIDExecution(tb)
+		apiKey        = dummy32CharKey
+		updatedAPIKey = dummy32CharKeyUpdated
+		region        = "US"
+		intType       = "DATADOG"
+	)
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configDatadog(projectID, apiKey, "US"),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "type", intType),
+					resource.TestCheckResourceAttr(resourceName, "api_key", apiKey),
+					resource.TestCheckResourceAttr(resourceName, "region", region),
+					resource.TestCheckResourceAttr(dataSourceName, "type", intType),
+					resource.TestCheckResourceAttr(dataSourceName, "region", region),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.type"),
+				),
+			},
+			{
+				Config: configDatadog(projectID, updatedAPIKey, "US"),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "type", intType),
+					resource.TestCheckResourceAttr(resourceName, "api_key", updatedAPIKey),
+					resource.TestCheckResourceAttr(resourceName, "region", region),
+				),
+			},
+			importStep(resourceName),
+		},
+	}
+}
+
+func basicPrometheus(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+	var (
+		projectID        = acc.ProjectIDExecution(tb)
+		username         = "someuser"
+		updatedUsername  = "otheruser"
+		password         = "somepassword"
+		serviceDiscovery = "http"
+		scheme           = "https"
+		intType          = "PROMETHEUS"
+	)
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configPrometheus(projectID, username, password, serviceDiscovery, scheme),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "type", intType),
+					resource.TestCheckResourceAttr(resourceName, "user_name", username),
+					resource.TestCheckResourceAttr(resourceName, "password", password),
+					resource.TestCheckResourceAttr(resourceName, "service_discovery", serviceDiscovery),
+					resource.TestCheckResourceAttr(resourceName, "scheme", scheme),
+					resource.TestCheckResourceAttr(dataSourceName, "type", intType),
+					resource.TestCheckResourceAttr(dataSourceName, "user_name", username),
+					resource.TestCheckResourceAttr(dataSourceName, "service_discovery", serviceDiscovery),
+					resource.TestCheckResourceAttr(dataSourceName, "scheme", scheme),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.type"),
+				),
+			},
+			{
+				Config: configPrometheus(projectID, updatedUsername, password, serviceDiscovery, scheme),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "type", intType),
+					resource.TestCheckResourceAttr(resourceName, "user_name", updatedUsername),
+				),
+			},
+			importStep(resourceName),
+		},
+	}
+}
+
+func basicMicrosoftTeams(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+	var (
+		projectID = acc.ProjectIDExecution(tb)
+		intType   = "MICROSOFT_TEAMS"
+		url       = "https://apps.webhook.office.com/webhookb2/" +
+			"c9c5fafc-d9fe-4ffb-9773-77d804ea4372@c9656" +
+			"3a8-841b-4ef9-af16-33548fffc958/IncomingWebhook" +
+			"/484cccf0a678fffff86388b63203110a/42a0070b-5f35-ffff-be83-ac7e7f55d7d3"
+		updatedURL = "https://apps.webhook.office.com/webhookb2/" +
+			"c9c5fafc-d9fe-4ffb-9773-77d804ea4372@c9656" +
+			"3a8-841b-4ef9-af16-33548fffc958/IncomingWebhook" +
+			"/484cccf0a678fffff86388b63203110a/42a0070b-5f35-ffff-be83-ac7e7f55d7d4"
+	)
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configMicrosoftTeams(projectID, url),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "type", intType),
+					resource.TestCheckResourceAttr(resourceName, "microsoft_teams_webhook_url", url),
+					resource.TestCheckResourceAttr(dataSourceName, "type", intType),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.type"),
+				),
+			},
+			{
+				Config: configMicrosoftTeams(projectID, updatedURL),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "type", intType),
+					resource.TestCheckResourceAttr(resourceName, "microsoft_teams_webhook_url", updatedURL),
+				),
+			},
+			importStep(resourceName),
+		},
+	}
+}
+
+func basicWebhook(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+	var (
+		projectID  = acc.ProjectIDExecution(tb)
+		intType    = "WEBHOOK"
+		url        = "https://www.mongodb.com/webhook"
+		updatedURL = "https://www.mongodb.com/webhook/updated"
+	)
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWebhook(projectID, url),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "type", intType),
+					resource.TestCheckResourceAttr(resourceName, "url", url),
+					resource.TestCheckResourceAttr(dataSourceName, "type", intType),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.type"),
+				),
+			},
+			{
+				Config: configWebhook(projectID, updatedURL),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "type", intType),
+					resource.TestCheckResourceAttr(resourceName, "url", updatedURL),
+				),
+			},
+			importStep(resourceName),
+		},
+	}
+}
+
+func importStep(resourceName string) resource.TestStep {
+	return resource.TestStep{
+		ResourceName:      resourceName,
+		ImportStateIdFunc: importStateIDFunc(resourceName),
+		ImportState:       true,
+		ImportStateVerify: false, // API Obfuscation will always make import mismatch
+	}
 }
 
 func checkDestroy(s *terraform.State) error {
@@ -161,196 +382,116 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-const (
-	Unknown3rdParty = `
-	resource "mongodbatlas_third_party_integration" "%[1]s" {
-		project_id = "%[2]s"
-		type = "%[3]s"
-	}
-	`
+var dataStr = `
+data "mongodbatlas_third_party_integration" "test" {
+	project_id = mongodbatlas_third_party_integration.test.project_id
+	type = mongodbatlas_third_party_integration.test.type
+}
 
-	PAGERDUTY = `
-	resource "mongodbatlas_third_party_integration" "%[1]s" {
-		project_id = "%[2]s"
-		type = "%[3]s"
-		service_key = "%[4]s"
-	}
-	`
+data "mongodbatlas_third_party_integrations" "test" {
+	project_id = mongodbatlas_third_party_integration.test.project_id
+}
+`
 
-	DATADOG = `
-	resource "mongodbatlas_third_party_integration" "%[1]s" {
-		project_id = "%[2]s"
-		type = "%[3]s"
-		api_key = "%[4]s"
-		region  ="%[5]s"
-	}
-	`
+func configOpsGenie(projectID, apiKey string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_third_party_integration" "test" {
+		project_id = "%[1]s"
+		type = "%[2]s"
+		api_key = "%[3]s"
+		region  = "%[4]s"
+	}`,
+		projectID,
+		"OPS_GENIE",
+		apiKey,
+		"US",
+	) + dataStr
+}
 
-	OPSGENIE = `
-	resource "mongodbatlas_third_party_integration" "%[1]s" {
-		project_id = "%[2]s"
-		type = "%[3]s"
-		api_key = "%[4]s"
-		region  = "%[5]s"
+func configPagerDuty(projectID, serviceKey string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_third_party_integration" "test" {
+		project_id = "%[1]s"
+		type = "%[2]s"
+		service_key = "%[3]s"
 	}
-	`
-	VICTOROPS = `
-	resource "mongodbatlas_third_party_integration" "%[1]s" {
-		project_id = "%[2]s"
-		type = "%[3]s"
-		api_key = "%[4]s"
-		routing_key = "%[5]s"
-	}
-	`
+	`,
+		projectID,
+		"PAGER_DUTY",
+		serviceKey,
+	) + dataStr
+}
 
-	MICROSOFTTEAMS = `
-	resource "mongodbatlas_third_party_integration" "%[1]s" {
-		project_id = "%[2]s"
-		type = "%[3]s"
-		microsoft_teams_webhook_url = "%[4]s"	
+func configVictorOps(projectID, apiKey string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_third_party_integration" "test" {
+		project_id = "%[1]s"
+		type = "%[2]s"
+		api_key = "%[3]s"
+		routing_key = "testing"
 	}
-	`
+	`,
+		projectID,
+		"VICTOR_OPS",
+		apiKey,
+	) + dataStr
+}
 
-	PROMETHEUS = `
-	resource "mongodbatlas_third_party_integration" "%[1]s" {
-		project_id = "%[2]s"
-		type = "%[3]s"
-		user_name = "%[4]s"	
-		password  = "%[5]s"
-		service_discovery = "%[6]s" 
-		scheme = "%[7]s"
+func configDatadog(projectID, apiKey, region string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_third_party_integration" "test" {
+		project_id = "%[1]s"
+		type = "%[2]s"
+		api_key = "%[3]s"
+		region  ="%[4]s"
+	}
+	`,
+		projectID,
+		"DATADOG",
+		apiKey,
+		region,
+	) + dataStr
+}
+
+func configPrometheus(projectID, username, password, serviceDiscovery, scheme string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_third_party_integration" "test" {
+		project_id = "%[1]s"
+		type = "%[2]s"
+		user_name = "%[3]s"	
+		password  = "%[4]s"
+		service_discovery = "%[5]s" 
+		scheme = "%[6]s"
 		enabled = true
 	}
-	`
-
-	WEBHOOK = `
-	resource "mongodbatlas_third_party_integration" "%[1]s" {
-		project_id = "%[2]s"
-		type = "%[3]s"
-		url = "%[4]s"	
-	}
-`
-	alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	numeric  = "0123456789"
-	alphaNum = alphabet + numeric
-)
-
-type thirdPartyConfig struct {
-	Name        string
-	ProjectID   string
-	Integration matlas.ThirdPartyIntegration
+	`,
+		projectID,
+		"PROMETHEUS",
+		username,
+		password,
+		serviceDiscovery,
+		scheme,
+	) + dataStr
 }
 
-func configBasic(cfg *thirdPartyConfig) string {
-	dataStr := fmt.Sprintf(`
-		data "mongodbatlas_third_party_integration" %[1]q {
-			project_id = mongodbatlas_third_party_integration.%[1]s.project_id
-			type = mongodbatlas_third_party_integration.%[1]s.type
-		}
-
-		data "mongodbatlas_third_party_integrations" "test" {
-			project_id = mongodbatlas_third_party_integration.%[1]s.project_id
-		}
-	`, cfg.Name)
-
-	switch cfg.Integration.Type {
-	case "PAGER_DUTY":
-		return fmt.Sprintf(PAGERDUTY,
-			cfg.Name,
-			cfg.ProjectID,
-			cfg.Integration.Type,
-			cfg.Integration.ServiceKey,
-		) + dataStr
-	case "DATADOG":
-		return fmt.Sprintf(DATADOG,
-			cfg.Name,
-			cfg.ProjectID,
-			cfg.Integration.Type,
-			cfg.Integration.APIKey,
-			cfg.Integration.Region,
-		) + dataStr
-	case "OPS_GENIE":
-		return fmt.Sprintf(OPSGENIE,
-			cfg.Name,
-			cfg.ProjectID,
-			cfg.Integration.Type,
-			cfg.Integration.APIKey,
-			cfg.Integration.Region,
-		) + dataStr
-	case "VICTOR_OPS":
-		return fmt.Sprintf(VICTOROPS,
-			cfg.Name,
-			cfg.ProjectID,
-			cfg.Integration.Type,
-			cfg.Integration.APIKey,
-			cfg.Integration.RoutingKey,
-		) + dataStr
-	case "WEBHOOK":
-		return fmt.Sprintf(WEBHOOK,
-			cfg.Name,
-			cfg.ProjectID,
-			cfg.Integration.Type,
-			cfg.Integration.URL,
-		) + dataStr
-	case "MICROSOFT_TEAMS":
-		return fmt.Sprintf(MICROSOFTTEAMS,
-			cfg.Name,
-			cfg.ProjectID,
-			cfg.Integration.Type,
-			cfg.Integration.MicrosoftTeamsWebhookURL,
-		) + dataStr
-	case "PROMETHEUS":
-		return fmt.Sprintf(PROMETHEUS,
-			cfg.Name,
-			cfg.ProjectID,
-			cfg.Integration.Type,
-			cfg.Integration.UserName,
-			cfg.Integration.Password,
-			cfg.Integration.ServiceDiscovery,
-			cfg.Integration.Scheme,
-		) + dataStr
-	default:
-		return fmt.Sprintf(Unknown3rdParty,
-			cfg.Name,
-			cfg.ProjectID,
-			cfg.Integration.Type,
-		) + dataStr
+func configMicrosoftTeams(projectID, url string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_third_party_integration" "test" {
+		project_id = "%[1]s"
+		type = "MICROSOFT_TEAMS"
+		microsoft_teams_webhook_url = "%[2]s"	
 	}
+	`, projectID, url) + dataStr
 }
 
-func createIntegrationConfig() *matlas.ThirdPartyIntegration {
-	account := testGenString(6, numeric)
-	return &matlas.ThirdPartyIntegration{
-		Type:        "OPS_GENIE",
-		TeamName:    "MongoSlackTestTeam " + account,
-		ChannelName: "MongoSlackTestChannel " + account,
-		// DataDog 40
-		APIKey:           testGenString(40, alphaNum),
-		Region:           "EU",
-		ReadToken:        "read-test-" + testGenString(20, alphaNum),
-		RoutingKey:       testGenString(40, alphaNum),
-		URL:              "https://www.mongodb.com/webhook",
-		Secret:           account,
-		UserName:         "PROM_USER",
-		Password:         "PROM_PASSWORD",
-		ServiceDiscovery: "http",
-		Scheme:           "https",
-		Enabled:          false,
-		MicrosoftTeamsWebhookURL: "https://apps.webhook.office.com/webhookb2/" +
-			"c9c5fafc-d9fe-4ffb-9773-77d804ea4372@c9656" +
-			"3a8-841b-4ef9-af16-33548fffc958/IncomingWebhook" +
-			"/484cccf0a678fffff86388b63203110a/42a0070b-5f35-ffff-be83-ac7e7f55d7d3",
+func configWebhook(projectID, url string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_third_party_integration" "test" {
+		project_id = "%[1]s"
+		type = "WEBHOOK"
+		url = "%[2]s"	
 	}
-}
-
-func testGenString(length int, charSet string) string {
-	sequence := make([]byte, length)
-	upperBound := big.NewInt(int64(len(charSet)))
-	for i := range sequence {
-		n, _ := rand.Int(rand.Reader, upperBound)
-		sequence[i] = charSet[int(n.Int64())]
-	}
-	return string(sequence)
+	`, projectID, url) + dataStr
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {

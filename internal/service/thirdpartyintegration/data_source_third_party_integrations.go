@@ -65,30 +65,6 @@ func flattenIntegrations(d *schema.ResourceData, integrations *matlas.ThirdParty
 
 func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyIntegration) map[string]any {
 	integrationSchema := schemaToIntegration(d)
-	if integrationSchema.APIKey == "" {
-		integrationSchema.APIKey = integration.APIKey
-	}
-	if integrationSchema.ServiceKey == "" {
-		integrationSchema.APIKey = integration.ServiceKey
-	}
-	if integrationSchema.APIToken == "" {
-		integrationSchema.APIKey = integration.APIToken
-	}
-	if integrationSchema.RoutingKey == "" {
-		integrationSchema.APIKey = integration.RoutingKey
-	}
-	if integrationSchema.Secret == "" {
-		integrationSchema.APIKey = integration.Secret
-	}
-	if integrationSchema.Password == "" {
-		integrationSchema.APIKey = integration.Password
-	}
-	if integrationSchema.UserName == "" {
-		integrationSchema.APIKey = integration.UserName
-	}
-	if integrationSchema.URL == "" {
-		integrationSchema.URL = integration.URL
-	}
 
 	out := map[string]any{
 		"type":                        integration.Type,
@@ -97,11 +73,11 @@ func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyI
 		"service_key":                 integrationSchema.ServiceKey,
 		"team_name":                   integration.TeamName,
 		"channel_name":                integration.ChannelName,
-		"routing_key":                 integrationSchema.RoutingKey,
+		"routing_key":                 integration.RoutingKey,
 		"url":                         integrationSchema.URL,
 		"secret":                      integrationSchema.Secret,
 		"microsoft_teams_webhook_url": integrationSchema.MicrosoftTeamsWebhookURL,
-		"user_name":                   integrationSchema.UserName,
+		"user_name":                   integration.UserName,
 		"password":                    integrationSchema.Password,
 		"service_discovery":           integration.ServiceDiscovery,
 		"scheme":                      integration.Scheme,
