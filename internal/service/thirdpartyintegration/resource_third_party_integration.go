@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -30,7 +31,7 @@ var requiredPerType = map[string][]string{
 	"VICTOR_OPS":      {"api_key"},
 	"WEBHOOK":         {"url"},
 	"MICROSOFT_TEAMS": {"microsoft_teams_webhook_url"},
-	"PROMETHEUS":      {"user_name", "password", "service_discovery", "scheme", "enabled"},
+	"PROMETHEUS":      {"user_name", "password", "service_discovery", "enabled"},
 }
 
 func Resource() *schema.Resource {
@@ -122,9 +123,10 @@ func Resource() *schema.Resource {
 				Sensitive: true,
 			},
 			"scheme": {
-				Type:     schema.TypeString,
-				Computed: true,
-				Optional: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Optional:   true,
+				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0"),
 			},
 			"enabled": {
 				Type:     schema.TypeBool,
@@ -136,7 +138,7 @@ func Resource() *schema.Resource {
 }
 
 func resourceMongoDBAtlasThirdPartyIntegrationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	integrationType := d.Get("type").(string)
 
@@ -153,7 +155,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationCreate(ctx context.Context, d *sch
 
 	requestBody := schemaToIntegration(d)
 
-	_, _, err := conn.Integrations.Create(ctx, projectID, integrationType, requestBody)
+	_, _, err := connV2.ThirdPartyIntegrationsApi.CreateThirdPartyIntegration(ctx, integrationType, projectID, requestBody).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error creating third party integration %s", err))
@@ -169,13 +171,13 @@ func resourceMongoDBAtlasThirdPartyIntegrationCreate(ctx context.Context, d *sch
 }
 
 func resourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 
 	projectID := ids["project_id"]
 	integrationType := ids["type"]
 
-	integration, resp, err := conn.Integrations.Get(context.Background(), projectID, integrationType)
+	integration, resp, err := connV2.ThirdPartyIntegrationsApi.GetThirdPartyIntegration(ctx, projectID, integrationType).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -202,13 +204,13 @@ func resourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schem
 }
 
 func resourceMongoDBAtlasThirdPartyIntegrationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 
 	projectID := ids["project_id"]
 	integrationType := ids["type"]
 
-	integration, _, err := conn.Integrations.Get(ctx, projectID, integrationType)
+	integration, _, err := connV2.ThirdPartyIntegrationsApi.GetThirdPartyIntegration(ctx, projectID, integrationType).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting third party integration resource info %s %w", integrationType, err))
@@ -218,7 +220,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationUpdate(ctx context.Context, d *sch
 
 	updateIntegrationFromSchema(d, integration)
 
-	_, _, err = conn.Integrations.Replace(ctx, projectID, integrationType, integration)
+	_, _, err = connV2.ThirdPartyIntegrationsApi.UpdateThirdPartyIntegration(ctx, integrationType, projectID, integration).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating third party integration type `%s` (%s): %w", integrationType, d.Id(), err))

@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -95,8 +96,9 @@ func thirdPartyIntegrationSchema() *schema.Resource {
 				Optional:  true,
 			},
 			"scheme": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:       schema.TypeString,
+				Optional:   true,
+				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0"),
 			},
 			"enabled": {
 				Type:     schema.TypeBool,
@@ -110,9 +112,9 @@ func dataSourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *sch
 	projectID := d.Get("project_id").(string)
 	queryType := d.Get("type").(string)
 
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
-	integration, _, err := conn.Integrations.Get(ctx, projectID, queryType)
+	integration, _, err := connV2.ThirdPartyIntegrationsApi.GetThirdPartyIntegration(ctx, projectID, queryType).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting third party integration for type %s %w", queryType, err))

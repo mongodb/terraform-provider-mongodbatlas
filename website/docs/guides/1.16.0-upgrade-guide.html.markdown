@@ -33,6 +33,8 @@ More info can be found in the [previous upgrade guide](https://registry.terrafor
 
 - `mongodbatlas_teams` data source has been deprecated in favor of `mongodbatlas_team` which has the same implementation. This aligns the name of the resource with the implementation which fetches a single team. This also enables implementing a plural data source in the future under the name `mongodbatlas_teams`.
 
+- `sheme` attribute has been deprecated in `mongodbatlas_third_party_integration` resource and data sources as its value is not being used.
+
 ### Helpful Links
 
 * [Report bugs](https://github.com/mongodb/terraform-provider-mongodbatlas/issues)
