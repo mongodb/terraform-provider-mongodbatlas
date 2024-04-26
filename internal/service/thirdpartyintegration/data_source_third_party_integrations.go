@@ -7,8 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115012/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -29,10 +30,10 @@ func PluralDataSource() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasThirdPartyIntegrationsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
-	integrations, _, err := conn.Integrations.List(ctx, projectID)
+	integrations, _, err := connV2.ThirdPartyIntegrationsApi.ListThirdPartyIntegrations(ctx, projectID).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting third party integration list: %s", err))
@@ -47,15 +48,16 @@ func dataSourceMongoDBAtlasThirdPartyIntegrationsRead(ctx context.Context, d *sc
 	return nil
 }
 
-func flattenIntegrations(d *schema.ResourceData, integrations *matlas.ThirdPartyIntegrations, projectID string) (list []map[string]any) {
-	if len(integrations.Results) == 0 {
+func flattenIntegrations(d *schema.ResourceData, integrations *admin.PaginatedIntegration, projectID string) (list []map[string]any) {
+	results := integrations.GetResults()
+	if len(results) == 0 {
 		return
 	}
 
-	list = make([]map[string]any, 0, len(integrations.Results))
+	list = make([]map[string]any, 0, len(results))
 
-	for _, integration := range integrations.Results {
-		service := integrationToSchema(d, integration)
+	for i := range results {
+		service := integrationToSchema(d, &results[i])
 		service["project_id"] = projectID
 		list = append(list, service)
 	}
@@ -63,46 +65,45 @@ func flattenIntegrations(d *schema.ResourceData, integrations *matlas.ThirdParty
 	return
 }
 
-func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyIntegration) map[string]any {
+func integrationToSchema(d *schema.ResourceData, integration *admin.ThirdPartyIntegration) map[string]any {
 	integrationSchema := schemaToIntegration(d)
 
-	if integrationSchema.APIKey == "" {
-		integrationSchema.APIKey = integration.APIKey
+	if integrationSchema.ApiKey == nil {
+		integrationSchema.ApiKey = integration.ApiKey
 	}
-	if integrationSchema.ServiceKey == "" {
+	if integrationSchema.ServiceKey == nil {
 		integrationSchema.ServiceKey = integration.ServiceKey
 	}
-	if integrationSchema.APIToken == "" {
-		integrationSchema.APIToken = integration.APIToken
+	if integrationSchema.ApiToken == nil {
+		integrationSchema.ApiToken = integration.ApiToken
 	}
-	if integrationSchema.RoutingKey == "" {
+	if integrationSchema.RoutingKey == nil {
 		integrationSchema.RoutingKey = integration.RoutingKey
 	}
-	if integrationSchema.Secret == "" {
+	if integrationSchema.Secret == nil {
 		integrationSchema.Secret = integration.Secret
 	}
-	if integrationSchema.Password == "" {
+	if integrationSchema.Password == nil {
 		integrationSchema.Password = integration.Password
 	}
-	if integrationSchema.URL == "" {
-		integrationSchema.URL = integration.URL
+	if integrationSchema.Url == nil {
+		integrationSchema.Url = integration.Url
 	}
 
 	out := map[string]any{
 		"type":                        integration.Type,
-		"api_key":                     integrationSchema.APIKey,
+		"api_key":                     integrationSchema.ApiKey,
 		"region":                      integration.Region,
 		"service_key":                 integrationSchema.ServiceKey,
 		"team_name":                   integration.TeamName,
 		"channel_name":                integration.ChannelName,
 		"routing_key":                 integration.RoutingKey,
-		"url":                         integrationSchema.URL,
+		"url":                         integrationSchema.Url,
 		"secret":                      integrationSchema.Secret,
-		"microsoft_teams_webhook_url": integrationSchema.MicrosoftTeamsWebhookURL,
-		"user_name":                   integration.UserName,
+		"microsoft_teams_webhook_url": integrationSchema.MicrosoftTeamsWebhookUrl,
+		"user_name":                   integration.Username,
 		"password":                    integrationSchema.Password,
 		"service_discovery":           integration.ServiceDiscovery,
-		"scheme":                      integration.Scheme,
 		"enabled":                     integration.Enabled,
 	}
 
@@ -112,8 +113,8 @@ func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyI
 
 	for _, attr := range optionals {
 		if val, ok := out[attr]; ok {
-			strval, okT := val.(string)
-			if okT && strval == "" {
+			stringPtr, okT := val.(*string)
+			if okT && !conversion.IsStringPresent(stringPtr) {
 				delete(out, attr)
 			}
 		}
@@ -122,124 +123,116 @@ func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyI
 	return out
 }
 
-func schemaToIntegration(in *schema.ResourceData) (out *matlas.ThirdPartyIntegration) {
-	out = &matlas.ThirdPartyIntegration{}
+func schemaToIntegration(in *schema.ResourceData) (out *admin.ThirdPartyIntegration) {
+	out = &admin.ThirdPartyIntegration{}
 
 	if _type, ok := in.GetOk("type"); ok {
-		out.Type = _type.(string)
+		out.Type = admin.PtrString(_type.(string))
 	}
 
 	if apiKey, ok := in.GetOk("api_key"); ok {
-		out.APIKey = apiKey.(string)
+		out.ApiKey = admin.PtrString(apiKey.(string))
 	}
 
 	if region, ok := in.GetOk("region"); ok {
-		out.Region = region.(string)
+		out.Region = admin.PtrString(region.(string))
 	}
 
 	if serviceKey, ok := in.GetOk("service_key"); ok {
-		out.ServiceKey = serviceKey.(string)
+		out.ServiceKey = admin.PtrString(serviceKey.(string))
 	}
 
 	if teamName, ok := in.GetOk("team_name"); ok {
-		out.TeamName = teamName.(string)
+		out.TeamName = admin.PtrString(teamName.(string))
 	}
 
 	if channelName, ok := in.GetOk("channel_name"); ok {
-		out.ChannelName = channelName.(string)
+		out.ChannelName = admin.PtrString(channelName.(string))
 	}
 
 	if routingKey, ok := in.GetOk("routing_key"); ok {
-		out.RoutingKey = routingKey.(string)
+		out.RoutingKey = admin.PtrString(routingKey.(string))
 	}
 
 	if url, ok := in.GetOk("url"); ok {
-		out.URL = url.(string)
+		out.Url = admin.PtrString(url.(string))
 	}
 
 	if secret, ok := in.GetOk("secret"); ok {
-		out.Secret = secret.(string)
+		out.Secret = admin.PtrString(secret.(string))
 	}
 
 	if microsoftTeamsWebhookURL, ok := in.GetOk("microsoft_teams_webhook_url"); ok {
-		out.MicrosoftTeamsWebhookURL = microsoftTeamsWebhookURL.(string)
+		out.MicrosoftTeamsWebhookUrl = admin.PtrString(microsoftTeamsWebhookURL.(string))
 	}
 
 	if userName, ok := in.GetOk("user_name"); ok {
-		out.UserName = userName.(string)
+		out.Username = admin.PtrString(userName.(string))
 	}
 
 	if password, ok := in.GetOk("password"); ok {
-		out.Password = password.(string)
+		out.Password = admin.PtrString(password.(string))
 	}
 
 	if serviceDiscovery, ok := in.GetOk("service_discovery"); ok {
-		out.ServiceDiscovery = serviceDiscovery.(string)
-	}
-
-	if scheme, ok := in.GetOk("scheme"); ok {
-		out.Scheme = scheme.(string)
+		out.ServiceDiscovery = admin.PtrString(serviceDiscovery.(string))
 	}
 
 	if enabled, ok := in.GetOk("enabled"); ok {
-		out.Enabled = enabled.(bool)
+		out.Enabled = admin.PtrBool(enabled.(bool))
 	}
 
 	return out
 }
 
-func updateIntegrationFromSchema(d *schema.ResourceData, integration *matlas.ThirdPartyIntegration) {
-	integration.APIKey = d.Get("api_key").(string)
+func updateIntegrationFromSchema(d *schema.ResourceData, integration *admin.ThirdPartyIntegration) {
+	integration.ApiKey = conversion.StringPtr(d.Get("api_key").(string))
 
 	if d.HasChange("region") {
-		integration.Region = d.Get("region").(string)
+		integration.Region = conversion.StringPtr(d.Get("region").(string))
 	}
 
 	if d.HasChange("service_key") {
-		integration.ServiceKey = d.Get("service_key").(string)
+		integration.ServiceKey = conversion.StringPtr(d.Get("service_key").(string))
 	}
 
 	if d.HasChange("team_name") {
-		integration.TeamName = d.Get("team_name").(string)
+		integration.TeamName = conversion.StringPtr(d.Get("team_name").(string))
 	}
 
 	if d.HasChange("channel_name") {
-		integration.ChannelName = d.Get("channel_name").(string)
+		integration.ChannelName = conversion.StringPtr(d.Get("channel_name").(string))
 	}
 
 	if d.HasChange("routing_key") {
-		integration.RoutingKey = d.Get("routing_key").(string)
+		integration.RoutingKey = conversion.StringPtr(d.Get("routing_key").(string))
 	}
 
 	if d.HasChange("url") {
-		integration.URL = d.Get("url").(string)
+		integration.Url = conversion.StringPtr(d.Get("url").(string))
 	}
 
 	if d.HasChange("secret") {
-		integration.Secret = d.Get("secret").(string)
+		integration.Secret = conversion.StringPtr(d.Get("secret").(string))
 	}
 
 	if d.HasChange("microsoft_teams_webhook_url") {
-		integration.MicrosoftTeamsWebhookURL = d.Get("microsoft_teams_webhook_url").(string)
+		integration.MicrosoftTeamsWebhookUrl = conversion.StringPtr(d.Get("microsoft_teams_webhook_url").(string))
 	}
 
 	if d.HasChange("user_name") {
-		integration.UserName = d.Get("user_name").(string)
+		integration.Username = conversion.StringPtr(d.Get("user_name").(string))
 	}
 
 	if d.HasChange("password") {
-		integration.Password = d.Get("password").(string)
+		integration.Password = conversion.StringPtr(d.Get("password").(string))
 	}
 
 	if d.HasChange("service_discovery") {
-		integration.ServiceDiscovery = d.Get("service_discovery").(string)
-	}
-
-	if d.HasChange("scheme") {
-		integration.Scheme = d.Get("scheme").(string)
+		integration.ServiceDiscovery = conversion.StringPtr(d.Get("service_discovery").(string))
 	}
 
 	if d.HasChange("enabled") {
-		integration.Enabled = d.Get("enabled").(bool)
+		integration.Enabled = admin.PtrBool(d.Get("enabled").(bool))
 	}
 }
