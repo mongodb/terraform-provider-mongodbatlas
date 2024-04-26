@@ -277,10 +277,3 @@ func PreCheckS3Bucket(tb testing.TB) {
 		tb.Fatal("`AWS_S3_BUCKET` must be set ")
 	}
 }
-
-func PreCheckPagerDutyIntegrationID(tb testing.TB) {
-	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_PAGER_DUTY_THIRD_PARTY_INTEGRATION_ID") == "" {
-		tb.Fatal("`MONGODB_ATLAS_PAGER_DUTY_THIRD_PARTY_INTEGRATION_ID` must be set ")
-	}
-}

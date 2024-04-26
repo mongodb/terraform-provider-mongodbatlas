@@ -430,7 +430,7 @@ func TestAccConfigAlertConfiguration_PagerDutyUsingIntegrationID(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckPagerDutyIntegrationID(t); acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
 		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
