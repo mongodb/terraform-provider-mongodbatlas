@@ -123,6 +123,11 @@ resource "mongodbatlas_alert_configuration" "test" {
 
 
 ```terraform
+data "mongodbatlas_third_party_integration" "test" {
+    project_id = "PROJECT ID"
+    type = "PAGER_DUTY"
+}
+
 resource "mongodbatlas_alert_configuration" "test" {
   project_id = "PROJECT ID"
   enabled    = true
@@ -130,7 +135,7 @@ resource "mongodbatlas_alert_configuration" "test" {
 
   notification {
     type_name     = "PAGER_DUTY"
-    integration_id = "THIRD PARTY INTEGRATION ID"
+    integration_id = data.mongodbatlas_third_party_integration.test.id
   }
 }
 ```

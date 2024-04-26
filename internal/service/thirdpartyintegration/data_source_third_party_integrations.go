@@ -91,6 +91,7 @@ func integrationToSchema(d *schema.ResourceData, integration *admin.ThirdPartyIn
 	}
 
 	out := map[string]any{
+		"id":                          integration.Id,
 		"type":                        integration.Type,
 		"api_key":                     integrationSchema.ApiKey,
 		"region":                      integration.Region,

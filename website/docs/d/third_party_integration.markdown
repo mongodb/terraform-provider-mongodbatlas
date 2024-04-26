@@ -45,8 +45,7 @@ data "mongodbatlas_third_party_integration" "test" {
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - Unique identifier used for terraform for internal manages and can be used to import.
-* `type` -  Property equal to its own integration type
+* `id` - Unique identifier of the integration.
 
 Additional values based on Type
 
