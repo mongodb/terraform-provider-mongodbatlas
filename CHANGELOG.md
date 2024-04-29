@@ -1,6 +1,6 @@
 ## (Unreleased)
 
-## 1.16.0 (April 29, 2024)
+## 1.16.0 (2024-04-29)
 
 BREAKING CHANGES:
 
