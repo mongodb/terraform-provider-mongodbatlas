@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -32,6 +31,10 @@ func DataSource() *schema.Resource {
 func thirdPartyIntegrationSchema() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
+			"id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"project_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -128,10 +131,6 @@ func dataSourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *sch
 		}
 	}
 
-	d.SetId(conversion.EncodeStateID(map[string]string{
-		"project_id": projectID,
-		"type":       queryType,
-	}))
-
+	d.SetId(integration.GetId())
 	return nil
 }

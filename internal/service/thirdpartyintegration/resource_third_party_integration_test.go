@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -336,10 +335,16 @@ func checkDestroy(s *terraform.State) error {
 		if rs.Type != "mongodbatlas_third_party_integration" {
 			continue
 		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.Conn().Integrations.Get(context.Background(), ids["project_id"], ids["type"])
+		attrs := rs.Primary.Attributes
+		if attrs["project_id"] == "" {
+			return fmt.Errorf("no project id is set")
+		}
+		if attrs["type"] == "" {
+			return fmt.Errorf("no type is set")
+		}
+		_, _, err := acc.Conn().Integrations.Get(context.Background(), attrs["project_id"], attrs["type"])
 		if err == nil {
-			return fmt.Errorf("third party integration service (%s) still exists", ids["type"])
+			return fmt.Errorf("third party integration service (%s) still exists", attrs["type"])
 		}
 	}
 	return nil
@@ -352,9 +357,15 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := conversion.DecodeStateID(rs.Primary.ID)
+		attrs := rs.Primary.Attributes
+		if attrs["project_id"] == "" {
+			return "", fmt.Errorf("no project id is set")
+		}
+		if attrs["type"] == "" {
+			return "", fmt.Errorf("no type is set")
+		}
 
-		return fmt.Sprintf("%s-%s", ids["project_id"], ids["type"]), nil
+		return fmt.Sprintf("%s-%s", attrs["project_id"], attrs["type"]), nil
 	}
 }
 
@@ -478,13 +489,16 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-		if rs.Primary.Attributes["project_id"] == "" {
-			return fmt.Errorf("no ID is set")
+		attrs := rs.Primary.Attributes
+		if attrs["project_id"] == "" {
+			return fmt.Errorf("no project id is set")
 		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		if _, _, err := acc.Conn().Integrations.Get(context.Background(), ids["project_id"], ids["type"]); err == nil {
+		if attrs["type"] == "" {
+			return fmt.Errorf("no type is set")
+		}
+		if _, _, err := acc.Conn().Integrations.Get(context.Background(), attrs["project_id"], attrs["type"]); err == nil {
 			return nil
 		}
-		return fmt.Errorf("third party integration (%s) does not exist", ids["project_id"])
+		return fmt.Errorf("third party integration (%s) does not exist", attrs["project_id"])
 	}
 }

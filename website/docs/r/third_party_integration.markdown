@@ -71,7 +71,7 @@ resource "mongodbatlas_third_party_integration" "test_datadog" {
 
 ## Attributes Reference
 
-* `id` - Unique identifier used by terraform for internal management, which can also be used to import.
+* `id` - Unique identifier of the integration.
 
 ## Import
 
