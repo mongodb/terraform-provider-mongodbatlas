@@ -16,8 +16,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115012/admin"
 )
 
 const (
@@ -29,11 +28,11 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext:      resourceMongoDBAtlasPrivateEndpointServiceLinkCreate,
-		ReadWithoutTimeout: resourceMongoDBAtlasPrivateEndpointServiceLinkRead,
-		DeleteContext:      resourceMongoDBAtlasPrivateEndpointServiceLinkDelete,
+		CreateContext:      resourceCreate,
+		ReadWithoutTimeout: resourceRead,
+		DeleteContext:      resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasPrivateEndpointServiceLinkImportState,
+			StateContext: resourceImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -139,8 +138,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	privateLinkID := conversion.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
@@ -150,27 +148,27 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d
 	gPI, gPIOk := d.GetOk("gcp_project_id")
 	e, eOk := d.GetOk("endpoints")
 
-	request := &matlas.InterfaceEndpointConnection{}
+	createEndpointRequest := &admin.CreateEndpointRequest{}
 
 	switch providerName {
 	case "AWS":
-		request.ID = endpointServiceID
+		createEndpointRequest.Id = &endpointServiceID
 	case "AZURE":
 		if !pEIAOk {
 			return diag.FromErr(errors.New("`private_endpoint_ip_address` must be set when `provider_name` is `AZURE`"))
 		}
-		request.ID = endpointServiceID
-		request.PrivateEndpointIPAddress = pEIA.(string)
+		createEndpointRequest.Id = &endpointServiceID
+		createEndpointRequest.PrivateEndpointIPAddress = conversion.Pointer(pEIA.(string))
 	case "GCP":
 		if !gPIOk || !eOk {
 			return diag.FromErr(errors.New("`gcp_project_id`, `endpoints` must be set when `provider_name` is `GCP`"))
 		}
-		request.EndpointGroupName = endpointServiceID
-		request.GCPProjectID = gPI.(string)
-		request.Endpoints = expandGCPEndpoints(e.([]any))
+		createEndpointRequest.EndpointGroupName = &endpointServiceID
+		createEndpointRequest.GcpProjectId = conversion.Pointer(gPI.(string))
+		createEndpointRequest.Endpoints = expandGCPEndpoints(e.([]any))
 	}
 
-	_, _, err := conn.PrivateEndpoints.AddOnePrivateEndpoint(ctx, projectID, providerName, privateLinkID, request)
+	_, _, err := connV2.PrivateEndpointServicesApi.CreatePrivateEndpoint(ctx, projectID, providerName, privateLinkID, createEndpointRequest).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorServiceEndpointAdd, providerName, privateLinkID, err))
 	}
@@ -178,7 +176,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"NONE", "INITIATING", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "VERIFIED"},
 		Target:     []string{"AVAILABLE", "REJECTED", "DELETED", "FAILED"},
-		Refresh:    resourceServiceEndpointRefreshFunc(ctx, conn, projectID, providerName, privateLinkID, endpointServiceID),
+		Refresh:    resourceRefreshFunc(ctx, connV2, projectID, providerName, privateLinkID, endpointServiceID),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 5 * time.Second,
 		Delay:      5 * time.Minute,
@@ -210,11 +208,11 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d
 		"provider_name":       providerName,
 	}))
 
-	return resourceMongoDBAtlasPrivateEndpointServiceLinkRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -222,7 +220,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(ctx context.Context, d *
 	endpointServiceID := ids["endpoint_service_id"]
 	providerName := ids["provider_name"]
 
-	privateEndpoint, resp, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, endpointServiceID)
+	privateEndpoint, resp, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, endpointServiceID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -232,37 +230,37 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(ctx context.Context, d *
 		return diag.FromErr(fmt.Errorf(ErrorServiceEndpointRead, endpointServiceID, err))
 	}
 
-	if err := d.Set("delete_requested", cast.ToBool(privateEndpoint.DeleteRequested)); err != nil {
+	if err := d.Set("delete_requested", privateEndpoint.GetDeleteRequested()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "delete_requested", endpointServiceID, err))
 	}
 
-	if err := d.Set("error_message", privateEndpoint.ErrorMessage); err != nil {
+	if err := d.Set("error_message", privateEndpoint.GetErrorMessage()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "error_message", endpointServiceID, err))
 	}
 
-	if err := d.Set("aws_connection_status", privateEndpoint.AWSConnectionStatus); err != nil {
+	if err := d.Set("aws_connection_status", privateEndpoint.GetConnectionStatus()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "aws_connection_status", endpointServiceID, err))
 	}
 
 	if providerName == "AZURE" {
-		if err := d.Set("azure_status", privateEndpoint.Status); err != nil {
+		if err := d.Set("azure_status", privateEndpoint.GetStatus()); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "azure_status", endpointServiceID, err))
 		}
 	}
 
-	if err := d.Set("interface_endpoint_id", privateEndpoint.InterfaceEndpointID); err != nil {
+	if err := d.Set("interface_endpoint_id", privateEndpoint.GetInterfaceEndpointId()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "connection_status", endpointServiceID, err))
 	}
 
-	if err := d.Set("private_endpoint_connection_name", privateEndpoint.PrivateEndpointConnectionName); err != nil {
+	if err := d.Set("private_endpoint_connection_name", privateEndpoint.GetPrivateEndpointConnectionName()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "connection_status", endpointServiceID, err))
 	}
 
-	if err := d.Set("private_endpoint_ip_address", privateEndpoint.PrivateEndpointIPAddress); err != nil {
+	if err := d.Set("private_endpoint_ip_address", privateEndpoint.GetPrivateEndpointIPAddress()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "connection_status", endpointServiceID, err))
 	}
 
-	if err := d.Set("private_endpoint_resource_id", privateEndpoint.PrivateEndpointResourceID); err != nil {
+	if err := d.Set("private_endpoint_resource_id", privateEndpoint.GetPrivateEndpointResourceId()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "connection_status", endpointServiceID, err))
 	}
 
@@ -275,7 +273,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(ctx context.Context, d *
 	}
 
 	if providerName == "GCP" {
-		if err := d.Set("gcp_status", privateEndpoint.Status); err != nil {
+		if err := d.Set("gcp_status", privateEndpoint.GetStatus()); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "gcp_status", endpointServiceID, err))
 		}
 	}
@@ -283,8 +281,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(ctx context.Context, d *
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
@@ -294,7 +291,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d
 	providerName := ids["provider_name"]
 
 	if endpointServiceID != "" {
-		_, err := conn.PrivateEndpoints.DeleteOnePrivateEndpoint(ctx, projectID, providerName, privateLinkID, endpointServiceID)
+		_, _, err := connV2.PrivateEndpointServicesApi.DeletePrivateEndpoint(ctx, projectID, providerName, privateLinkID, endpointServiceID).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointDelete, endpointServiceID, err))
 		}
@@ -302,7 +299,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d
 		stateConf := &retry.StateChangeConf{
 			Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "INITIATING"},
 			Target:     []string{"REJECTED", "DELETED", "FAILED"},
-			Refresh:    resourceServiceEndpointRefreshFunc(ctx, conn, projectID, providerName, privateLinkID, endpointServiceID),
+			Refresh:    resourceRefreshFunc(ctx, connV2, projectID, providerName, privateLinkID, endpointServiceID),
 			Timeout:    d.Timeout(schema.TimeoutDelete),
 			MinTimeout: 5 * time.Second,
 			Delay:      3 * time.Second,
@@ -332,8 +329,8 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	parts := strings.SplitN(d.Id(), "--", 4)
 	if len(parts) != 4 {
@@ -345,7 +342,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(ctx context.Conte
 	endpointServiceID := parts[2]
 	providerName := parts[3]
 
-	_, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(ctx, projectID, providerName, privateLinkID, endpointServiceID)
+	_, _, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, privateLinkID, endpointServiceID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(ErrorServiceEndpointRead, endpointServiceID, err)
 	}
@@ -376,9 +373,9 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(ctx context.Conte
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceServiceEndpointRefreshFunc(ctx context.Context, client *matlas.Client, projectID, providerName, privateLinkID, endpointServiceID string) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, client *admin.APIClient, projectID, providerName, privateLinkID, endpointServiceID string) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		i, resp, err := client.PrivateEndpoints.GetOnePrivateEndpoint(ctx, projectID, providerName, privateLinkID, endpointServiceID)
+		i, resp, err := client.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, privateLinkID, endpointServiceID).Execute()
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
 				return "", "DELETED", nil
@@ -388,85 +385,73 @@ func resourceServiceEndpointRefreshFunc(ctx context.Context, client *matlas.Clie
 		}
 
 		if strings.EqualFold(providerName, "azure") || strings.EqualFold(providerName, "gcp") {
-			if i.Status != "AVAILABLE" {
-				return "", i.Status, nil
+			if i.GetStatus() != "AVAILABLE" {
+				return "", i.GetStatus(), nil
 			}
-			return i, i.Status, nil
+			return i, *i.Status, nil
 		}
-		if i.AWSConnectionStatus != "AVAILABLE" {
-			return "", i.AWSConnectionStatus, nil
+		if i.GetConnectionStatus() != "AVAILABLE" {
+			return "", i.GetConnectionStatus(), nil
 		}
 
-		return i, i.AWSConnectionStatus, nil
+		return i, *i.ConnectionStatus, nil
 	}
 }
 
-func expandGCPEndpoint(tfMap map[string]any) *matlas.GCPEndpoint {
-	if tfMap == nil {
-		return nil
-	}
-
-	apiObject := &matlas.GCPEndpoint{}
+func expandGCPEndpoint(tfMap map[string]any) admin.CreateGCPForwardingRuleRequest {
+	apiObject := admin.CreateGCPForwardingRuleRequest{}
 
 	if v, ok := tfMap["endpoint_name"]; ok {
-		apiObject.EndpointName = cast.ToString(v)
+		apiObject.EndpointName = conversion.Pointer(v.(string))
 	}
 	if v, ok := tfMap["ip_address"]; ok {
-		apiObject.IPAddress = cast.ToString(v)
+		apiObject.IpAddress = conversion.Pointer(v.(string))
 	}
 
 	return apiObject
 }
 
-func expandGCPEndpoints(tfList []any) []*matlas.GCPEndpoint {
+func expandGCPEndpoints(tfList []any) *[]admin.CreateGCPForwardingRuleRequest {
 	if len(tfList) == 0 {
 		return nil
 	}
 
-	var apiObjects []*matlas.GCPEndpoint
+	var apiObjects []admin.CreateGCPForwardingRuleRequest
 
 	for _, tfMapRaw := range tfList {
 		if tfMap, ok := tfMapRaw.(map[string]any); ok {
-			apiObject := expandGCPEndpoint(tfMap)
-			if apiObject == nil {
-				continue
+			if tfMap != nil {
+				apiObject := expandGCPEndpoint(tfMap)
+				apiObjects = append(apiObjects, apiObject)
 			}
-			apiObjects = append(apiObjects, apiObject)
 		}
 	}
 
-	return apiObjects
+	return &apiObjects
 }
 
-func flattenGCPEndpoint(apiObject *matlas.GCPEndpoint) map[string]any {
-	if apiObject == nil {
-		return nil
-	}
-
+func flattenGCPEndpoint(apiObject admin.GCPConsumerForwardingRule) map[string]any {
 	tfMap := map[string]any{}
 
 	log.Printf("[DEBIG] apiObject : %+v", apiObject)
 
-	tfMap["endpoint_name"] = apiObject.EndpointName
-	tfMap["ip_address"] = apiObject.IPAddress
-	tfMap["status"] = apiObject.Status
-	tfMap["service_attachment_name"] = apiObject.ServiceAttachmentName
+	tfMap["endpoint_name"] = apiObject.GetEndpointName()
+	tfMap["ip_address"] = apiObject.GetIpAddress()
+	tfMap["status"] = apiObject.GetStatus()
+	//TODO: this is not in the entity of the new SDK, should be? this exists in privatelink_endpoint resource
+	// tfMap["service_attachment_name"] = apiObject.ServiceAttachmentName
 
 	return tfMap
 }
 
-func flattenGCPEndpoints(apiObjects []*matlas.GCPEndpoint) []any {
-	if len(apiObjects) == 0 {
+func flattenGCPEndpoints(apiObjects *[]admin.GCPConsumerForwardingRule) []any {
+	if apiObjects != nil && len(*apiObjects) == 0 {
 		return nil
 	}
 
 	var tfList []any
 
-	for _, apiObject := range apiObjects {
-		if apiObject == nil {
-			continue
-		}
-
+	for _, apiObject := range *apiObjects {
 		tfList = append(tfList, flattenGCPEndpoint(apiObject))
 	}
 

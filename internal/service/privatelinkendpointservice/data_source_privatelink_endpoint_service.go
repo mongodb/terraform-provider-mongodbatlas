@@ -14,7 +14,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasPrivateEndpointServiceLinkRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -100,34 +100,34 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasPrivateEndpointServiceLinkRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	privateLinkID := conversion.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
 	endpointServiceID := conversion.GetEncodedID(d.Get("endpoint_service_id").(string), "endpoint_service_id")
 	providerName := d.Get("provider_name").(string)
 
-	serviceEndpoint, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(ctx, projectID, providerName, privateLinkID, endpointServiceID)
+	serviceEndpoint, _, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, privateLinkID, endpointServiceID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorServiceEndpointRead, endpointServiceID, err))
 	}
 
-	if err := d.Set("delete_requested", cast.ToBool(serviceEndpoint.DeleteRequested)); err != nil {
+	if err := d.Set("delete_requested", cast.ToBool(serviceEndpoint.GetDeleteRequested())); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "delete_requested", endpointServiceID, err))
 	}
 
-	if err := d.Set("error_message", serviceEndpoint.ErrorMessage); err != nil {
+	if err := d.Set("error_message", serviceEndpoint.GetErrorMessage()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "error_message", endpointServiceID, err))
 	}
 
-	if err := d.Set("aws_connection_status", serviceEndpoint.AWSConnectionStatus); err != nil {
+	if err := d.Set("aws_connection_status", serviceEndpoint.GetConnectionStatus()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "aws_connection_status", endpointServiceID, err))
 	}
 
 	if strings.EqualFold(providerName, "azure") {
-		if err := d.Set("azure_status", serviceEndpoint.Status); err != nil {
+		if err := d.Set("azure_status", serviceEndpoint.GetStatus()); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "azure_status", endpointServiceID, err))
 		}
 	}
@@ -137,7 +137,7 @@ func dataSourceMongoDBAtlasPrivateEndpointServiceLinkRead(ctx context.Context, d
 	}
 
 	if strings.EqualFold(providerName, "gcp") {
-		if err := d.Set("gcp_status", serviceEndpoint.Status); err != nil {
+		if err := d.Set("gcp_status", serviceEndpoint.GetStatus()); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "gcp_status", endpointServiceID, err))
 		}
 	}
