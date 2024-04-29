@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.16.0 (April 29, 2024)
+
 BREAKING CHANGES:
 
 * data-source/mongodbatlas_database_user: Removes `password` attribute ([#2190](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2190))
