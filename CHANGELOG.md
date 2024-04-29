@@ -37,6 +37,8 @@ ENHANCEMENTS:
 * data-source/mongodbatlas_stream_connections: Reaches GA (General Availability) ([#2209](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2209))
 * data-source/mongodbatlas_stream_instance: Reaches GA (General Availability) ([#2209](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2209))
 * data-source/mongodbatlas_stream_instances: Reaches GA (General Availability) ([#2209](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2209))
+* data-source/mongodbatlas_third_party_integration: New `id` value which can be used for referencing a third party integration ([#2217](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2217))
+* data-source/mongodbatlas_third_party_integrations: New `id` value which can be used for referencing a third party integration ([#2217](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2217))
 * resource/mongodbatlas_alert_configuration: Adds `integration_id` attribute ([#2212](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2212))
 * resource/mongodbatlas_backup_compliance_policy: Adds `policy_item_yearly` attribute ([#2109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2109))
 * resource/mongodbatlas_cloud_backup_schedule: Adds `policy_item_yearly` attribute ([#2109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2109))
@@ -45,6 +47,7 @@ ENHANCEMENTS:
 * resource/mongodbatlas_serverless_instance: Adds `auto_indexing` attribute ([#2100](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2100))
 * resource/mongodbatlas_stream_connection: Reaches GA (General Availability) ([#2209](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2209))
 * resource/mongodbatlas_stream_instance: Reaches GA (General Availability) ([#2209](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2209))
+* resource/mongodbatlas_third_party_integration: New `id` value which can be used for referencing a third party integration ([#2217](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2217))
 
 BUG FIXES:
 
