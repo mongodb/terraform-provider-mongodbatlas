@@ -270,6 +270,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 
 func configWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket string) string {
 	stepConfig := configFirstStepS3Bucket(name, testS3Bucket)
+	bucketResourceName := "arn:aws:s3:::" + testS3Bucket
 	return fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[1]q
@@ -282,7 +283,7 @@ resource "aws_iam_role_policy" "test_policy" {
       {
 		"Effect": "Allow",
 		"Action": "s3:*",
-		"Resource": "arn:aws:s3:::%[6]q"
+		"Resource": %[6]q
       }
     ]
   }
@@ -334,7 +335,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 }
 
 %[5]s
-	`, policyName, roleName, projectName, orgID, stepConfig, testS3Bucket)
+	`, policyName, roleName, projectName, orgID, stepConfig, bucketResourceName)
 }
 
 func configFirstStepS3Bucket(name, testS3Bucket string) string {
