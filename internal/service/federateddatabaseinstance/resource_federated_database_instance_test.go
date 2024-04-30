@@ -297,7 +297,10 @@ resource "aws_iam_role_policy" "test_policy" {
 				"s3:ListAllMyBuckets",
 				"s3:ListAccessGrantsInstances",
 				"s3:PutAccessPointPublicAccessBlock",
-				"s3:CreateJob"
+				"s3:CreateJob",
+				"s3:GetObject",
+				"s3:ListBucket",
+				"s3:GetObjectVersion"
 			],
 			"Resource": "*"
 		},
