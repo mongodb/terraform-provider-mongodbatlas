@@ -151,6 +151,7 @@ func configBasic(projectID, hostname, username, password string, authEnabled boo
 		
 		data "mongodbatlas_ldap_configuration" "test" {
 			project_id = mongodbatlas_ldap_configuration.test.id
+			depends_on = [mongodbatlas_ldap_configuration.test]
 		}
 	`, projectID, hostname, username, password, authEnabled, port)
 }
