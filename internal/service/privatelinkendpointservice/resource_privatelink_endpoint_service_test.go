@@ -31,7 +31,7 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnvPrivateLinkEndpointService(t) },
 		CheckDestroy:             checkDestroy,
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),

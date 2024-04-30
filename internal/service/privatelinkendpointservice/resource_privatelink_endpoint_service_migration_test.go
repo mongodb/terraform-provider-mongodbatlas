@@ -30,7 +30,7 @@ func TestMigNetworkRSPrivateLinkEndpointService_Complete(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
+		PreCheck:     func() { acc.PreCheck(t); acc.PreCheckAwsEnvPrivateLinkEndpointService(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{

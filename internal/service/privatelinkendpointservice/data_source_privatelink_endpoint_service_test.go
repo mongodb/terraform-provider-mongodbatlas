@@ -26,7 +26,7 @@ func TestAccNetworkDSPrivateLinkEndpointServiceAWS_basic(t *testing.T) {
 	securityGroupID := os.Getenv("AWS_SECURITY_GROUP_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnvPrivateLinkEndpointService(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
