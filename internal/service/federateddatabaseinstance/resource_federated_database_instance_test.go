@@ -280,11 +280,32 @@ resource "aws_iam_role_policy" "test_policy" {
   {
     "Version": "2012-10-17",
     "Statement": [
-      {
-		"Effect": "Allow",
-		"Action": "*",
-		"Resource": %[6]q
-      }
+		{
+			"Effect": "Allow",
+			"Action": [
+				"s3:ListAccessPointsForObjectLambda",
+				"s3:GetAccessPoint",
+				"s3:PutAccountPublicAccessBlock",
+				"s3:ListAccessPoints",
+				"s3:CreateStorageLensGroup",
+				"s3:ListJobs",
+				"s3:PutStorageLensConfiguration",
+				"s3:ListMultiRegionAccessPoints",
+				"s3:ListStorageLensGroups",
+				"s3:ListStorageLensConfigurations",
+				"s3:GetAccountPublicAccessBlock",
+				"s3:ListAllMyBuckets",
+				"s3:ListAccessGrantsInstances",
+				"s3:PutAccessPointPublicAccessBlock",
+				"s3:CreateJob"
+			],
+			"Resource": "*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": "s3:*",
+			"Resource": %[6]q
+		}
     ]
   }
   EOF
