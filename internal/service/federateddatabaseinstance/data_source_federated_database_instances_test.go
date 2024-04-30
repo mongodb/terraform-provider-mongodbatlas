@@ -19,7 +19,6 @@ func TestAccFederatedDatabaseInstanceDSPlural_basic(t *testing.T) {
 		policyName   = acc.RandomName()
 		roleName     = acc.RandomIAMRole()
 		testS3Bucket = os.Getenv("AWS_S3_BUCKET")
-		region       = "VIRGINIA_USA"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -29,7 +28,7 @@ func TestAccFederatedDatabaseInstanceDSPlural_basic(t *testing.T) {
 			{
 				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configDSPlural(policyName, roleName, projectName, orgID, firstName, secondName, testS3Bucket, region),
+				Config:                   configDSPlural(policyName, roleName, projectName, orgID, firstName, secondName, testS3Bucket),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
@@ -39,7 +38,7 @@ func TestAccFederatedDatabaseInstanceDSPlural_basic(t *testing.T) {
 	})
 }
 
-func configDSPlural(policyName, roleName, projectName, orgID, firstName, secondName, testS3Bucket, dataLakeRegion string) string {
+func configDSPlural(policyName, roleName, projectName, orgID, firstName, secondName, testS3Bucket string) string {
 	stepConfig := configDSPluralFirstStep(firstName, secondName, testS3Bucket)
 	return fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
@@ -49,12 +48,21 @@ resource "aws_iam_role_policy" "test_policy" {
   policy = <<-EOF
   {
     "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Effect": "Deny",
-		"Action": "*",
-		"Resource": "*"
-      }
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": [
+				"s3:GetObject",
+				"s3:ListBucket",
+				"s3:GetObjectVersion"
+			],
+			"Resource": "*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": "s3:*",
+			"Resource": %[6]q
+		}
     ]
   }
   EOF
@@ -104,8 +112,8 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
    }
 }
 
-%s
-	`, policyName, roleName, projectName, orgID, stepConfig)
+%[5]s
+	`, policyName, roleName, projectName, orgID, stepConfig, testS3Bucket)
 }
 func configDSPluralFirstStep(firstName, secondName, testS3Bucket string) string {
 	return fmt.Sprintf(`
