@@ -103,13 +103,6 @@ resource "mongodbatlas_federated_database_instance" "test" {
     cloud_provider = "AWS"
     region = "OREGON_USA"
   }
-
-  storage_stores {
-	  name = "NAME"
-	  cluster_name = "CLUSTER NAME"
-	  project_id = "PROJECT ID"
-	  provider = "atlas"
-  }
 }
 ```
 
@@ -124,15 +117,6 @@ resource "mongodbatlas_federated_database_instance" "test" {
 * `data_process_region` - (Optional) The cloud provider region to which the Federated Instance routes client connections for data processing.
   * `data_process_region.cloud_provider` - (Required) Name of the cloud service provider. Atlas Federated Database only supports AWS.
   * `data_process_region.region` - (Required) Name of the region to which the Federanted Instnace routes client connections for data processing. See the [documention](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createFederatedDatabase) for the available region.
-## Attributes Reference
-
-In addition to all arguments above, the following attributes are exported:
-
-* `id` - The Terraform's unique identifier used internally for state management.
-* `hostnames` - The list of hostnames assigned to the Federated Database Instance. Each string in the array is a hostname assigned to the Federated Database Instance.
-* `state` - Current state of the Federated Database Instance:
-  * `ACTIVE` - The Federated Database Instance is active and verified. You can query the data stores associated with the Federated Database Instance.
-  * `DELETED` - The Federated Database Instance was deleted.
 * `storage_databases` - Configuration details for mapping each data store to queryable databases and collections. For complete documentation on this object and its nested fields, see [databases](https://docs.mongodb.com/datalake/reference/format/data-lake-configuration#std-label-datalake-databases-reference). An empty object indicates that the Federated Database Instance has no mapping configuration for any data store.
   * `storage_databases.#.name` - Name of the database to which the Federated Database Instance maps the data contained in the data store.
   * `storage_databases.#.collections` -     Array of objects where each object represents a collection and data sources that map to a [stores](https://docs.mongodb.com/datalake/reference/format/data-lake-configuration#mongodb-datalakeconf-datalakeconf.stores) data store.
@@ -175,6 +159,16 @@ In addition to all arguments above, the following attributes are exported:
       * `storage_stores.#.read_preference.tags` - List of all tags within a tag set
         * `storage_stores.#.read_preference.tags.name` - Human-readable label of the tag.
         * `storage_stores.#.read_preference.tags.value` - Value of the tag.
+
+## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
+
+* `id` - The Terraform's unique identifier used internally for state management.
+* `hostnames` - The list of hostnames assigned to the Federated Database Instance. Each string in the array is a hostname assigned to the Federated Database Instance.
+* `state` - Current state of the Federated Database Instance:
+  * `ACTIVE` - The Federated Database Instance is active and verified. You can query the data stores associated with the Federated Database Instance.
+  * `DELETED` - The Federated Database Instance was deleted.
 * `cloud_provider_config.aws` - Name of the cloud service that hosts the data lake's data stores.
   * `iam_assumed_role_arn` - Amazon Resource Name (ARN) of the IAM Role that the Federated Database Instance assumes when accessing S3 Bucket data stores. The IAM Role must support the following actions against each S3 bucket:
       * `s3:GetObject`
@@ -184,7 +178,6 @@ In addition to all arguments above, the following attributes are exported:
   For more information on S3 actions, see [Actions, Resources, and Condition Keys for Amazon S3](https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazons3.html).
   * `iam_user_arn` - Amazon Resource Name (ARN) of the user that the Federated Database Instance assumes when accessing S3 Bucket data stores.
   * `external_id` - Unique identifier associated with the IAM Role that the Federated Database Instance assumes when accessing the data stores.
-  * `role_id` - Unique identifier of the role that the data lake can use to access the data stores.
 
 
 

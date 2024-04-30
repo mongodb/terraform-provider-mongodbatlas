@@ -409,80 +409,85 @@ resource "mongodbatlas_project" "test" {
 	}
 
 resource "mongodbatlas_federated_database_instance" "test" {
-   project_id         = mongodbatlas_project.test.id
-   name = %[1]q
+    project_id         = mongodbatlas_project.test.id
+    name = %[1]q
 
-   storage_databases {
-	name = "VirtualDatabase0"
-	collections {
+	data_process_region {
+		cloud_provider = "AWS"
+    	region         = "OREGON_USA"
+    }
+
+    storage_databases {
+		name = "VirtualDatabase0"
+		collections {
 			name = "VirtualCollection0"
 			data_sources {
-					collection = "listingsAndReviews"
-					database = "sample_airbnb"
-					store_name =  "ClusterTest"
+				collection = "listingsAndReviews"
+				database = "sample_airbnb"
+				store_name =  "ClusterTest"
 			}
-	}
-   }
+		}
+   	}
 
-   storage_stores {
-	name = "ClusterTest"
-	cluster_name = "ClusterTest"
-	project_id = mongodbatlas_project.test.id
-	provider = "atlas"
-	read_preference {
-		mode = "secondary"
-		tag_sets {
-			tags {
-				name = "environment"
-				value = "development"
+    storage_stores {
+		name = "ClusterTest"
+		cluster_name = "ClusterTest"
+		project_id = mongodbatlas_project.test.id
+		provider = "atlas"
+		read_preference {
+			mode = "secondary"
+			tag_sets {
+				tags {
+					name = "environment"
+					value = "development"
+				}
+				tags {
+					name = "application"
+					value = "app"
+				}
 			}
-			tags {
-				name = "application"
-				value = "app"
+			tag_sets {
+				tags {
+					name = "environment1"
+					value = "development1"
+				}
+				tags {
+					name = "application1"
+					value = "app-1"
+				}
 			}
 		}
-		tag_sets {
-			tags {
-				name = "environment1"
-				value = "development1"
-			}
-			tags {
-				name = "application1"
-				value = "app-1"
-			}
-		}
-	}
-   }
+    }
 
-   storage_stores {
-	name = "dataStore0"
-	cluster_name = "ClusterTest"
-	project_id = mongodbatlas_project.test.id
-	provider = "atlas"
-	read_preference {
-		mode = "secondary"
-		tag_sets {
-			tags {
-				name = "environment"
-				value = "development"
+    storage_stores {
+		name = "dataStore0"
+		cluster_name = "ClusterTest"
+		project_id = mongodbatlas_project.test.id
+		provider = "atlas"
+		read_preference {
+			mode = "secondary"
+			tag_sets {
+				tags {
+					name = "environment"
+					value = "development"
+				}
+				tags {
+					name = "application"
+					value = "app"
+				}
 			}
-			tags {
-				name = "application"
-				value = "app"
+			tag_sets {
+				tags {
+					name = "environment1"
+					value = "development1"
+				}
+				tags {
+					name = "application1"
+					value = "app-1"
+				}
 			}
 		}
-		tag_sets {
-			tags {
-				name = "environment1"
-				value = "development1"
-			}
-			tags {
-				name = "application1"
-				value = "app-1"
-			}
-		}
-	}
-   }
+    }
 }
 	`, federatedInstanceName, projectName, orgID)
 }
@@ -498,6 +503,11 @@ resource "mongodbatlas_project" "test" {
 resource "mongodbatlas_federated_database_instance" "test" {
    project_id         = mongodbatlas_project.test.id
    name = %[1]q
+
+   data_process_region {
+	   cloud_provider = "AWS"
+	   region         = "OREGON_USA"
+   }
 
    storage_databases {
 	name = "VirtualDatabase0"
