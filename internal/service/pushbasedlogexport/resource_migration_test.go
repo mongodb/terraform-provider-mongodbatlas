@@ -13,5 +13,5 @@ func TestMigPushBasedLogExport_basic(t *testing.T) {
 
 func TestMigPushBasedLogExport_noPrefixPath(t *testing.T) {
 	mig.SkipIfVersionBelow(t, "1.16.0") // this feature was introduced in provider version 1.16.0
-	mig.CreateTestAndRunUseExternalProviderNonParallel(t, basicTestCase(t), mig.ExternalProvidersWithAWS(), nil)
+	mig.CreateTestAndRunUseExternalProviderNonParallel(t, noPrefixPathTestCase(t), mig.ExternalProvidersWithAWS(), nil)
 }
