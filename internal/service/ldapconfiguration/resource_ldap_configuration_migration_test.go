@@ -7,5 +7,5 @@ import (
 )
 
 func TestMigLDAPConfiguration_basic(t *testing.T) {
-	mig.CreateAndRunTest(t, basicTestCase(t))
+	mig.CreateAndRunTestNonParallel(t, basicTestCase(t))
 }

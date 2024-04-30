@@ -242,7 +242,13 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	_, _, err := connV2.LDAPConfigurationApi.DeleteLDAPConfiguration(ctx, d.Id()).Execute()
+	params := &admin.UserSecurity{
+		Ldap: &admin.LDAPSecuritySettings{
+			AuthenticationEnabled: conversion.Pointer(false),
+			AuthorizationEnabled:  conversion.Pointer(false),
+		},
+	}
+	_, _, err := connV2.LDAPConfigurationApi.SaveLDAPConfiguration(ctx, d.Id(), params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorDelete, d.Id(), err))
 	}
