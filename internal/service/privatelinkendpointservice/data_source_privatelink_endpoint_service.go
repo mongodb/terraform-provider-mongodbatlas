@@ -109,7 +109,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	endpointServiceID := conversion.GetEncodedID(d.Get("endpoint_service_id").(string), "endpoint_service_id")
 	providerName := d.Get("provider_name").(string)
 
-	serviceEndpoint, _, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, privateLinkID, endpointServiceID).Execute()
+	serviceEndpoint, _, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorServiceEndpointRead, endpointServiceID, err))
 	}

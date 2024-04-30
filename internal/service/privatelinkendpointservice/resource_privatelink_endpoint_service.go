@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
@@ -120,8 +121,9 @@ func Resource() *schema.Resource {
 							Optional: true,
 						},
 						"service_attachment_name": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:       schema.TypeString,
+							Computed:   true,
+							Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0"),
 						},
 					},
 				},
@@ -220,7 +222,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	endpointServiceID := ids["endpoint_service_id"]
 	providerName := ids["provider_name"]
 
-	privateEndpoint, resp, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, endpointServiceID).Execute()
+	privateEndpoint, resp, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, privateLinkID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -249,19 +251,19 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 
 	if err := d.Set("interface_endpoint_id", privateEndpoint.GetInterfaceEndpointId()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "connection_status", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "interface_endpoint_id", endpointServiceID, err))
 	}
 
 	if err := d.Set("private_endpoint_connection_name", privateEndpoint.GetPrivateEndpointConnectionName()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "connection_status", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "private_endpoint_connection_name", endpointServiceID, err))
 	}
 
 	if err := d.Set("private_endpoint_ip_address", privateEndpoint.GetPrivateEndpointIPAddress()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "connection_status", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "private_endpoint_ip_address", endpointServiceID, err))
 	}
 
 	if err := d.Set("private_endpoint_resource_id", privateEndpoint.GetPrivateEndpointResourceId()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "connection_status", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "private_endpoint_resource_id", endpointServiceID, err))
 	}
 
 	if err := d.Set("endpoint_service_id", endpointServiceID); err != nil {
@@ -291,7 +293,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	providerName := ids["provider_name"]
 
 	if endpointServiceID != "" {
-		_, _, err := connV2.PrivateEndpointServicesApi.DeletePrivateEndpoint(ctx, projectID, providerName, privateLinkID, endpointServiceID).Execute()
+		_, _, err := connV2.PrivateEndpointServicesApi.DeletePrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointDelete, endpointServiceID, err))
 		}
@@ -342,7 +344,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	endpointServiceID := parts[2]
 	providerName := parts[3]
 
-	_, _, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, privateLinkID, endpointServiceID).Execute()
+	_, _, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(ErrorServiceEndpointRead, endpointServiceID, err)
 	}
@@ -375,7 +377,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 
 func resourceRefreshFunc(ctx context.Context, client *admin.APIClient, projectID, providerName, privateLinkID, endpointServiceID string) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		i, resp, err := client.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, privateLinkID, endpointServiceID).Execute()
+		i, resp, err := client.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
 				return "", "DELETED", nil
@@ -438,14 +440,15 @@ func flattenGCPEndpoint(apiObject admin.GCPConsumerForwardingRule) map[string]an
 	tfMap["endpoint_name"] = apiObject.GetEndpointName()
 	tfMap["ip_address"] = apiObject.GetIpAddress()
 	tfMap["status"] = apiObject.GetStatus()
-	//TODO: this is not in the entity of the new SDK, should be? this exists in privatelink_endpoint resource
-	// tfMap["service_attachment_name"] = apiObject.ServiceAttachmentName
 
 	return tfMap
 }
 
 func flattenGCPEndpoints(apiObjects *[]admin.GCPConsumerForwardingRule) []any {
-	if apiObjects != nil && len(*apiObjects) == 0 {
+	if apiObjects == nil {
+		return nil
+	}
+	if len(*apiObjects) == 0 {
 		return nil
 	}
 

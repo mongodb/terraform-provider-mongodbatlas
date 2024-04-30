@@ -31,15 +31,15 @@ func TestMigNetworkRSPrivateLinkEndpointService_Complete(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
+		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProvidersWithAWS(),
-				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(
+				Config: configCompleteAWS(
 					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, resourceSuffix,
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateLinkEndpointServiceExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "private_link_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "endpoint_service_id"),
@@ -48,7 +48,7 @@ func TestMigNetworkRSPrivateLinkEndpointService_Complete(t *testing.T) {
 			{
 				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(
+				Config: configCompleteAWS(
 					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, resourceSuffix,
 				),
 				ConfigPlanChecks: resource.ConfigPlanChecks{

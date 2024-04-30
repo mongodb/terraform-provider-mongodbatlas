@@ -34,7 +34,7 @@ func TestAccNetworkDSPrivateLinkEndpointServiceAWS_basic(t *testing.T) {
 					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID,
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateLinkEndpointServiceExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "private_link_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "endpoint_service_id"),

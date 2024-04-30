@@ -32,16 +32,16 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
-		CheckDestroy:             testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
+		CheckDestroy:             checkDestroy,
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(
+				Config: configCompleteAWS(
 					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, resourceSuffix,
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateLinkEndpointServiceExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "private_link_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "endpoint_service_id"),
@@ -49,7 +49,7 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasPrivateLinkEndpointServiceImportStateIDFunc(resourceName),
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"private_link_id"},
@@ -58,7 +58,7 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -71,7 +71,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceImportStateIDFunc(resourc
 	}
 }
 
-func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceExists(resourceName string) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -81,7 +81,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceExists(resourceName strin
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.Conn().PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), ids["project_id"], ids["provider_name"], ids["private_link_id"], ids["endpoint_service_id"])
+		_, _, err := acc.ConnV2().PrivateEndpointServicesApi.GetPrivateEndpoint(context.Background(), ids["project_id"], ids["provider_name"], ids["endpoint_service_id"], ids["private_link_id"]).Execute()
 		if err == nil {
 			return nil
 		}
@@ -90,13 +90,13 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceExists(resourceName strin
 	}
 }
 
-func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy(s *terraform.State) error {
+func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_privatelink_endpoint_service" {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.Conn().PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), ids["project_id"], ids["provider_name"], ids["private_link_id"], ids["endpoint_service_id"])
+		_, _, err := acc.ConnV2().PrivateEndpointServicesApi.GetPrivateEndpoint(context.Background(), ids["project_id"], ids["provider_name"], ids["endpoint_service_id"], ids["private_link_id"]).Execute()
 		if err == nil {
 			return fmt.Errorf("the MongoDB Private Endpoint(%s) still exists", ids["endpoint_service_id"])
 		}
@@ -104,7 +104,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy(s *terraform.Stat
 	return nil
 }
 
-func testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, serviceResourceName string) string {
+func configCompleteAWS(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, serviceResourceName string) string {
 	return fmt.Sprintf(`
 		provider "aws" {
 			region        = "%[5]s"
@@ -129,7 +129,7 @@ func testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(awsAccessKey
 
 		resource "mongodbatlas_privatelink_endpoint_service" %[9]q {
 			project_id            = mongodbatlas_privatelink_endpoint.test.project_id
-			endpoint_service_id   =  aws_vpc_endpoint.ptfe_service.id
+			endpoint_service_id   = aws_vpc_endpoint.ptfe_service.id
 			private_link_id       = mongodbatlas_privatelink_endpoint.test.id
 			provider_name         = "%[4]s"
 		}
