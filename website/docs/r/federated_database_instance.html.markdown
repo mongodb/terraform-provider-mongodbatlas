@@ -92,6 +92,27 @@ resource "mongodbatlas_federated_database_instance" "test" {
   }
 }
 ```
+
+## Example specifying data process region and provider
+```terraform
+resource "mongodbatlas_federated_database_instance" "test" {
+  project_id         = "PROJECT ID"
+  name = "NAME OF THE FEDERATED DATABASE INSTANCE"
+
+  data_process_region {
+    cloud_provider = "AWS"
+    region = "OREGON_USA"
+  }
+
+  storage_stores {
+	  name = "NAME"
+	  cluster_name = "CLUSTER NAME"
+	  project_id = "PROJECT ID"
+	  provider = "atlas"
+  }
+}
+```
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to create a Federated Database Instance.
