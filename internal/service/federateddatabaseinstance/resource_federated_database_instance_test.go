@@ -282,7 +282,7 @@ resource "aws_iam_role_policy" "test_policy" {
     "Statement": [
       {
 		"Effect": "Allow",
-		"Action": "s3:*",
+		"Action": "*",
 		"Resource": %[6]q
       }
     ]
