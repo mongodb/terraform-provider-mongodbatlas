@@ -95,6 +95,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "hostname", hostname),
 					resource.TestCheckResourceAttr(dataSourceName, "bind_username", username),
+					resource.TestCheckResourceAttr(dataSourceName, "authentication_enabled", strconv.FormatBool(authEnabled)),
 					resource.TestCheckResourceAttr(dataSourceName, "port", port),
 				),
 			},
