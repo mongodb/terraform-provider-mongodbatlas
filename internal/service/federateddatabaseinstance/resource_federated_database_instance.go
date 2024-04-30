@@ -780,7 +780,7 @@ func flattenCloudProviderConfig(d *schema.ResourceData, cloudProviderConfig *adm
 }
 
 func flattenDataProcessRegion(processRegion *admin.DataLakeDataProcessRegion) []map[string]any {
-	if processRegion == nil || (processRegion.Region != "" && processRegion.CloudProvider != "") {
+	if processRegion == nil {
 		return nil
 	}
 

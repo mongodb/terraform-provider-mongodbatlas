@@ -14,11 +14,26 @@ import (
 
 func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_federated_database_instance.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		name         = acc.RandomName()
+		resourceName   = "mongodbatlas_federated_database_instance.test"
+		dataSourceName = "data.mongodbatlas_federated_database_instance.test"
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acc.RandomProjectName()
+		name           = acc.RandomName()
 	)
+
+	valueChecks := map[string]string{
+		"name":                                                      name,
+		"data_process_region.0.cloud_provider":                      "AWS",
+		"data_process_region.0.region":                              "OREGON_USA",
+		"storage_stores.0.read_preference.0.tag_sets.#":             "2",
+		"storage_stores.0.read_preference.0.tag_sets.0.tags.#":      "2",
+		"storage_databases.0.collections.0.data_sources.0.database": "sample_airbnb",
+	}
+	setChecks := []string{"project_id", "storage_stores.0.read_preference.0.tag_sets.#"}
+	firstStepChecks := acc.AddAttrChecks(resourceName, nil, valueChecks)
+	firstStepChecks = acc.AddAttrSetChecks(resourceName, firstStepChecks, setChecks...)
+	firstStepChecks = acc.AddAttrChecks(dataSourceName, firstStepChecks, valueChecks)
+	firstStepChecks = acc.AddAttrSetChecks(dataSourceName, firstStepChecks, setChecks...)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -27,14 +42,7 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configFirstSteps(name, projectName, orgID),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
-					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.0.tags.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "storage_databases.0.collections.0.data_sources.0.database", "sample_airbnb"),
-				),
+				Check:  resource.ComposeTestCheckFunc(firstStepChecks...),
 			},
 			{
 				Config: configFirstStepsUpdate(name, projectName, orgID),
@@ -488,6 +496,11 @@ resource "mongodbatlas_federated_database_instance" "test" {
 			}
 		}
     }
+}
+
+data "mongodbatlas_federated_database_instance" "test" {
+	project_id           = mongodbatlas_federated_database_instance.test.project_id
+	name = mongodbatlas_federated_database_instance.test.name
 }
 	`, federatedInstanceName, projectName, orgID)
 }
