@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+BUG FIXES:
+
+* resource/mongodbatlas_ldap_configuration: Disables LDAP when the resource is destroyed, instead of deleting userToDNMapping document ([#2221](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2221))
+
 ## 1.16.0 (April 29, 2024)
 
 BREAKING CHANGES:
