@@ -27,6 +27,12 @@ func CreateTestAndRunUseExternalProvider(t *testing.T, test *resource.TestCase, 
 	resource.ParallelTest(t, CreateTestUseExternalProvider(t, test, externalProviders, additionalProviders))
 }
 
+func CreateTestAndRunUseExternalProviderNonParallel(t *testing.T, test *resource.TestCase, externalProviders, additionalProviders map[string]resource.ExternalProvider) {
+	t.Helper()
+	acc.SkipInUnitTest(t) // Migration tests create external resources and use MONGODB_ATLAS_LAST_VERSION env-var.
+	resource.Test(t, CreateTestUseExternalProvider(t, test, externalProviders, additionalProviders))
+}
+
 // CreateTest returns a new TestCase that reuses step 1 and adds a TestStepCheckEmptyPlan.
 // Requires: `MONGODB_ATLAS_LAST_VERSION` to be present.
 func CreateTest(t *testing.T, test *resource.TestCase) resource.TestCase {
