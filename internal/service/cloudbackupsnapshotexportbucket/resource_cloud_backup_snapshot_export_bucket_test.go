@@ -42,20 +42,20 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "bucket_name", "example-bucket"),
+					resource.TestCheckResourceAttr(resourceName, "bucket_name", bucketName),
 					resource.TestCheckResourceAttr(resourceName, "cloud_provider", "AWS"),
 					resource.TestCheckResourceAttrSet(resourceName, "iam_role_id"),
 
 					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(dataSourceName, "bucket_name", "example-bucket"),
+					resource.TestCheckResourceAttr(dataSourceName, "bucket_name", bucketName),
 					resource.TestCheckResourceAttr(dataSourceName, "cloud_provider", "AWS"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "iam_role_id"),
 
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "project_id"),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "bucket_name", "example-bucket"),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "cloud_provider", "AWS"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "iam_role_id"),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
 					resource.TestCheckResourceAttr(dataSourcePluralName, "results.#", "1"),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.bucket_name", bucketName),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.cloud_provider", "AWS"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.iam_role_id"),
 				),
 			},
 			{
@@ -121,12 +121,13 @@ func configBasic(projectID, bucketName, iamRoleID string) string {
     }
 
 		data "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
-			project_id   = mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
-			id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.id
+			project_id   =  mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
+			export_bucket_id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
+			id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
 		}		
 
 		data "mongodbatlas_cloud_backup_snapshot_export_buckets" "test" {
-			project_id   = mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
+			project_id   =  mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
 		}
 	`, projectID, bucketName, iamRoleID)
 }
