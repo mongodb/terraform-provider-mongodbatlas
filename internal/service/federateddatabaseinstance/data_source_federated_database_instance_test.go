@@ -54,7 +54,6 @@ func TestAccFederatedDatabaseInstanceDS_s3Bucket(t *testing.T) {
 		policyName        = acc.RandomName()
 		roleName          = acc.RandomIAMRole()
 		testS3Bucket      = os.Getenv("AWS_S3_BUCKET")
-		region            = "VIRGINIA_USA"
 		federatedInstance = admin.DataLakeTenant{}
 	)
 
@@ -65,7 +64,7 @@ func TestAccFederatedDatabaseInstanceDS_s3Bucket(t *testing.T) {
 			{
 				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configDSWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, region),
+				Config:                   configDSWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &federatedInstance),
 					checkAttributes(&federatedInstance, name),
@@ -105,8 +104,9 @@ func checkAttributes(dataFederatedInstance *admin.DataLakeTenant, name string) r
 	}
 }
 
-func configDSWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion string) string {
+func configDSWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket string) string {
 	stepConfig := configDSFirstStepS3Bucket(name, testS3Bucket)
+	bucketResourceName := "arn:aws:s3:::" + testS3Bucket
 	return fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[1]q
@@ -116,11 +116,20 @@ resource "aws_iam_role_policy" "test_policy" {
   {
     "Version": "2012-10-17",
     "Statement": [
-      {
-        "Effect": "Allow",
-		"Action": "*",
-		"Resource": "*"
-      }
+		{
+			"Effect": "Allow",
+			"Action": [
+				"s3:GetObject",
+				"s3:ListBucket",
+				"s3:GetObjectVersion"
+			],
+			"Resource": "*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": "s3:*",
+			"Resource": %[6]q
+		}
     ]
   }
   EOF
@@ -170,8 +179,8 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
    }
 }
 
-%s
-	`, policyName, roleName, projectName, orgID, stepConfig)
+%[5]s
+	`, policyName, roleName, projectName, orgID, stepConfig, bucketResourceName)
 }
 func configDSFirstStepS3Bucket(name, testS3Bucket string) string {
 	return fmt.Sprintf(`

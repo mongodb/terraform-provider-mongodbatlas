@@ -71,6 +71,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 
 func configBasic(policyName, roleName, projectName, orgID, name, testS3Bucket string) string {
 	stepConfig := configFirstStep(name, testS3Bucket)
+	bucketResourceName := "arn:aws:s3:::" + testS3Bucket
 	return fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[1]q
@@ -80,11 +81,20 @@ resource "aws_iam_role_policy" "test_policy" {
   {
     "Version": "2012-10-17",
     "Statement": [
-      {
-        "Effect": "Allow",
-		"Action": "*",
-		"Resource": "*"
-      }
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject",
+                "s3:ListBucket",
+                "s3:GetObjectVersion"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "s3:*",
+            "Resource": %[6]q
+        }
     ]
   }
   EOF
@@ -134,8 +144,8 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
    }
 }
 
-%s
-	`, policyName, roleName, projectName, orgID, stepConfig)
+%[5]s
+    `, policyName, roleName, projectName, orgID, stepConfig, bucketResourceName)
 }
 
 func configFirstStep(name, testS3Bucket string) string {
@@ -214,7 +224,7 @@ data "mongodbatlas_federated_query_limits" "test" {
 	project_id = mongodbatlas_project.test_project.id
 	tenant_name = mongodbatlas_federated_database_instance.db_instance.name
 }
-	`, name, testS3Bucket)
+    `, name, testS3Bucket)
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
