@@ -106,6 +106,7 @@ func checkAttributes(dataFederatedInstance *admin.DataLakeTenant, name string) r
 
 func configDSWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket string) string {
 	stepConfig := configDSFirstStepS3Bucket(name, testS3Bucket)
+	bucketResourceName := "arn:aws:s3:::" + testS3Bucket
 	return fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[1]q
@@ -179,7 +180,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 }
 
 %[5]s
-	`, policyName, roleName, projectName, orgID, stepConfig, testS3Bucket)
+	`, policyName, roleName, projectName, orgID, stepConfig, bucketResourceName)
 }
 func configDSFirstStepS3Bucket(name, testS3Bucket string) string {
 	return fmt.Sprintf(`
