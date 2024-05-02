@@ -12,7 +12,7 @@ import (
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasCloudBackupSnapshotsExportBucketsRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -58,7 +58,7 @@ func PluralDataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCloudBackupSnapshotsExportBucketsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 
@@ -74,7 +74,7 @@ func dataSourceMongoDBAtlasCloudBackupSnapshotsExportBucketsRead(ctx context.Con
 		return diag.Errorf("error getting CloudProviderSnapshotExportBuckets information: %s", err)
 	}
 
-	if err := d.Set("results", flattenCloudBackupSnapshotExportBuckets(buckets.Results)); err != nil {
+	if err := d.Set("results", flattenBuckets(buckets.Results)); err != nil {
 		return diag.Errorf("error setting `results`: %s", err)
 	}
 
@@ -87,7 +87,7 @@ func dataSourceMongoDBAtlasCloudBackupSnapshotsExportBucketsRead(ctx context.Con
 	return nil
 }
 
-func flattenCloudBackupSnapshotExportBuckets(buckets []*matlas.CloudProviderSnapshotExportBucket) []map[string]any {
+func flattenBuckets(buckets []*matlas.CloudProviderSnapshotExportBucket) []map[string]any {
 	var results []map[string]any
 
 	if len(buckets) == 0 {
