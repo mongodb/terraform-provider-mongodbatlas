@@ -122,7 +122,7 @@ func configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, aw
 
 			   %[8]s		
 	`, projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName,
-		awsIAMroleAuthAndS3Config(), pushBasedLogExportConfig(false, usePrefixPath, prefixPath))
+		awsIAMroleAuthAndS3Config(s3BucketName1, s3BucketName2), pushBasedLogExportConfig(false, usePrefixPath, prefixPath))
 	return test
 }
 
@@ -141,7 +141,7 @@ func configBasicUpdated(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyN
 
 			   %[8]s
 	`, projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName,
-		awsIAMroleAuthAndS3Config(), pushBasedLogExportConfig(true, usePrefixPath, prefixPath)) // updating the S3 bucket to use for push-based log config
+		awsIAMroleAuthAndS3Config(s3BucketName1, s3BucketName2), pushBasedLogExportConfig(true, usePrefixPath, prefixPath)) // updating the S3 bucket to use for push-based log config
 	return test
 }
 
@@ -184,8 +184,10 @@ func pushBasedLogExportDataSourceConfig() string {
 
 // awsIAMroleAuthAndS3Config returns config for required IAM roles and authorizes them (sets up cloud provider access) with a mongodbatlas_project
 // This method also creates two S3 buckets and sets up required access policy for them
-func awsIAMroleAuthAndS3Config() string {
-	return `
+func awsIAMroleAuthAndS3Config(firstBucketName, secondBucketName string) string {
+	firstBucketResourceName := "arn:aws:s3:::" + firstBucketName
+	secondBucketResourceName := "arn:aws:s3:::" + secondBucketName
+	return fmt.Sprintf(`
 		// Create IAM role & policy to authorize with Atlas
 resource "aws_iam_role_policy" "test_policy" {
   name = local.aws_iam_role_policy_name
@@ -196,9 +198,21 @@ resource "aws_iam_role_policy" "test_policy" {
     "Version": "2012-10-17",
     "Statement": [
       {
-        "Effect": "Deny",
-		"Action": "*",
-		"Resource": "*"
+        "Effect": "Allow",
+        "Action": [
+          "s3:GetObject",
+          "s3:ListBucket",
+          "s3:GetObjectVersion"
+        ],
+        "Resource": "*"
+      },
+      {
+       "Effect": "Allow",
+        "Action": "s3:*",
+        "Resource": [
+          %[1]q,
+          %[2]q
+        ]
       }
     ]
   }
@@ -291,7 +305,7 @@ resource "aws_iam_role_policy" "s3_bucket_policy" {
   }
   EOF
 }
-		`
+		`, firstBucketResourceName, secondBucketResourceName)
 }
 
 func checkDestroy(state *terraform.State) error {
