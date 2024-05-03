@@ -14,11 +14,15 @@ import (
 
 func TestAccDataLakePipeline_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_data_lake_pipeline.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		clusterName  = acc.RandomClusterName()
-		name         = acc.RandomName()
+		resourceName         = "mongodbatlas_data_lake_pipeline.test"
+		dataSourceName       = "data.mongodbatlas_data_lake_pipeline.testDataSource"
+		pluralDataSourceName = "data.mongodbatlas_data_lake_pipelines.testDataSource"
+		orgID                = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		firstClusterName     = acc.RandomClusterName()
+		secondClusterName    = acc.RandomClusterName()
+		firstPipelineName    = acc.RandomName()
+		secondPipelineName   = acc.RandomName()
+		projectName          = acc.RandomProjectName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -26,12 +30,17 @@ func TestAccDataLakePipeline_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectName, clusterName, name),
+				Config: configBasicWithPluralDS(orgID, projectName, firstClusterName, secondClusterName, firstPipelineName, secondPipelineName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "name", firstPipelineName),
 					resource.TestCheckResourceAttr(resourceName, "state", "ACTIVE"),
+
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "name", firstPipelineName),
+					resource.TestCheckResourceAttr(dataSourceName, "state", "ACTIVE"),
+					resource.TestCheckResourceAttrSet(pluralDataSourceName, "results.#"),
 				),
 			},
 			{
@@ -141,4 +150,63 @@ func configBasic(orgID, projectName, clusterName, pipelineName string) string {
 			}
 		}
 	`, orgID, projectName, clusterName, pipelineName)
+}
+
+func configBasicWithPluralDS(orgID, projectName, firstClusterName, secondClusterName, firstPipelineName, secondPipelineName string) string {
+	config := configBasic(orgID, projectName, firstClusterName, firstPipelineName)
+	return fmt.Sprintf(`
+		%[1]s
+
+		resource "mongodbatlas_advanced_cluster" "azure_conf2" {
+			project_id   = mongodbatlas_project.project.id
+			name         = %[2]q
+			cluster_type = "REPLICASET"
+		
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					provider_name = "AZURE"
+					priority      = 7
+					region_name   = "US_EAST_2"
+				}
+			}
+			backup_enabled               = true
+		}
+
+		resource "mongodbatlas_data_lake_pipeline" "test2" {
+			project_id       =  mongodbatlas_project.project.id
+			name			 = 	%[3]q
+			sink {
+				type = "DLS"
+				partition_fields {
+						field_name = "access"
+						order = 0
+				}
+			}	
+	
+			source {
+				type = "ON_DEMAND_CPS"
+				cluster_name = mongodbatlas_advanced_cluster.azure_conf2.name
+				database_name = "sample_airbnb"
+				collection_name = "listingsAndReviews"
+			}
+
+			transformations {
+				field = "test"
+				type =  "EXCLUDE"
+			}
+		}
+
+		data "mongodbatlas_data_lake_pipeline" "testDataSource" {
+			project_id       = mongodbatlas_data_lake_pipeline.test.project_id
+			name			 = mongodbatlas_data_lake_pipeline.test.name
+		}
+
+		data "mongodbatlas_data_lake_pipelines" "testDataSource" {
+			project_id       = mongodbatlas_data_lake_pipeline.test.project_id
+		}
+	`, config, secondClusterName, secondPipelineName)
 }

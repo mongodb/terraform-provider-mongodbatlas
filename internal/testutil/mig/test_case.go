@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 func CreateAndRunTest(t *testing.T, test *resource.TestCase) {
@@ -25,6 +26,12 @@ func CreateTestAndRunUseExternalProvider(t *testing.T, test *resource.TestCase, 
 	t.Helper()
 	acc.SkipInUnitTest(t) // Migration tests create external resources and use MONGODB_ATLAS_LAST_VERSION env-var.
 	resource.ParallelTest(t, CreateTestUseExternalProvider(t, test, externalProviders, additionalProviders))
+}
+
+func CreateTestAndRunUseExternalProviderNonParallel(t *testing.T, test *resource.TestCase, externalProviders, additionalProviders map[string]resource.ExternalProvider) {
+	t.Helper()
+	acc.SkipInUnitTest(t) // Migration tests create external resources and use MONGODB_ATLAS_LAST_VERSION env-var.
+	resource.Test(t, CreateTestUseExternalProvider(t, test, externalProviders, additionalProviders))
 }
 
 // CreateTest returns a new TestCase that reuses step 1 and adds a TestStepCheckEmptyPlan.
