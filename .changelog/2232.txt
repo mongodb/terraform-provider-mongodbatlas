@@ -1,3 +1,3 @@
 ```release-note:bug
-resource/mongodbatlas_cloud_backup_snapshot_export_bucket missing project_id during read
+resource/mongodbatlas_cloud_backup_snapshot_export_bucket Adds missing `project_id` during Read
 ```
