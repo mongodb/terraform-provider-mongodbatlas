@@ -445,10 +445,7 @@ func flattenGCPEndpoint(apiObject admin.GCPConsumerForwardingRule) map[string]an
 }
 
 func flattenGCPEndpoints(apiObjects *[]admin.GCPConsumerForwardingRule) []any {
-	if apiObjects == nil {
-		return nil
-	}
-	if len(*apiObjects) == 0 {
+	if apiObjects == nil || len(*apiObjects) == 0 {
 		return nil
 	}
 
