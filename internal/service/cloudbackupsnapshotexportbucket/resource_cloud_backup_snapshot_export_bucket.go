@@ -128,6 +128,10 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportBucketRead(ctx context.Context
 		return diag.Errorf("error setting `iam_role_id` for snapshot export bucket (%s): %s", d.Id(), err)
 	}
 
+	if err := d.Set("project_id", projectID); err != nil {
+		return diag.Errorf("error setting `project_id` for snapshot export bucket (%s): %s", d.Id(), err)
+	}
+
 	return nil
 }
 
