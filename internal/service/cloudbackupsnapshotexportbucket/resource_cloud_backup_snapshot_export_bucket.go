@@ -92,7 +92,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -100,8 +99,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	exportBackup, _, err := conn.CloudBackupsApi.GetExportBucket(ctx, projectID, bucketID).Execute()
 	if err != nil {
-		// case 404
-		// deleted in the backend case
 		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
 
 		if reset {
