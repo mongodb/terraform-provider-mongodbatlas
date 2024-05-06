@@ -226,7 +226,7 @@ func roleToSchemaSetup(role *admin.CloudProviderAccessRole) map[string]any {
 		"aws_config":        []any{map[string]any{}},
 		"created_date":      conversion.TimeToString(role.GetCreatedDate()),
 		"last_updated_date": conversion.TimeToString(role.GetLastUpdatedDate()),
-		"role_id":           role.GetRoleId(),
+		"role_id":           role.GetId(),
 	}
 
 	return out
