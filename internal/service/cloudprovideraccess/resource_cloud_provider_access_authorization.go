@@ -184,7 +184,7 @@ func roleToSchemaAuthorization(role *admin.CloudProviderAccessRole) map[string]a
 		"aws": []any{map[string]any{
 			"iam_assumed_role_arn": role.GetIamAssumedRoleArn(),
 		}},
-		"authorized_date": role.GetAuthorizedDate(),
+		"authorized_date": conversion.TimeToString(role.GetAuthorizedDate()),
 	}
 
 	if role.ProviderName == "AZURE" {
@@ -195,7 +195,7 @@ func roleToSchemaAuthorization(role *admin.CloudProviderAccessRole) map[string]a
 				"service_principal_id": role.GetServicePrincipalId(),
 				"tenant_id":            role.GetTenantId(),
 			}},
-			"authorized_date": role.AuthorizedDate,
+			"authorized_date": conversion.TimeToString(role.GetAuthorizedDate()),
 		}
 	}
 
@@ -278,7 +278,7 @@ func authorizeRole(ctx context.Context, client *admin.APIClient, d *schema.Resou
 		req.SetAtlasAzureAppId(targetRole.GetAtlasAzureAppId())
 		req.SetTenantId(targetRole.GetTenantId())
 		req.SetServicePrincipalId(targetRole.GetServicePrincipalId())
-		roleID = targetRole.GetRoleId()
+		roleID = targetRole.GetId()
 	}
 
 	var role *admin.CloudProviderAccessRole
@@ -293,7 +293,7 @@ func authorizeRole(ctx context.Context, client *admin.APIClient, d *schema.Resou
 			continue
 		}
 		if err != nil {
-			log.Printf("MISSED ERRROR %s", err.Error())
+			log.Printf("MISSED ERROR %s", err.Error())
 		}
 		break
 	}
