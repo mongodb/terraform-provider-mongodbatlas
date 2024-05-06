@@ -305,6 +305,9 @@ func authorizeRole(ctx context.Context, client *admin.APIClient, d *schema.Resou
 	authSchema := roleToSchemaAuthorization(role)
 
 	resourceID := role.GetRoleId()
+	if role.ProviderName == constant.AZURE {
+		resourceID = role.GetId()
+	}
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"id":         resourceID,
 		"project_id": projectID,

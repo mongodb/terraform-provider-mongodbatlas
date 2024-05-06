@@ -139,7 +139,7 @@ func configAuthorizationAzure(projectID, atlasAzureAppID, servicePrincipalID, te
 
    resource "mongodbatlas_cloud_provider_access_authorization" "test" {
 		project_id = %[1]q
-    role_id = mongodbatlas_cloud_provider_access_setup.test.role_id
+        role_id = mongodbatlas_cloud_provider_access_setup.test.role_id
 		azure {
 			atlas_azure_app_id = %[2]q
 			service_principal_id = %[3]q
