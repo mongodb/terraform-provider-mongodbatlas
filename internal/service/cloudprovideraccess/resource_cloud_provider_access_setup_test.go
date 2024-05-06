@@ -134,18 +134,14 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		providerName := ids["provider_name"]
 		id := ids["id"]
-		roles, _, err := acc.ConnV2().CloudProviderAccessApi.ListCloudProviderAccessRoles(context.Background(), ids["project_id"]).Execute()
+
+		role, _, err := acc.ConnV2().CloudProviderAccessApi.GetCloudProviderAccessRole(context.Background(), ids["project_id"], id).Execute()
 		if err != nil {
 			return fmt.Errorf(cloudprovideraccess.ErrorCloudProviderGetRead, err)
 		}
-		if providerName == "AWS" {
-			for i := range roles.GetAwsIamRoles() {
-				if roles.GetAwsIamRoles()[i].GetRoleId() == id && roles.GetAwsIamRoles()[i].GetProviderName() == providerName {
-					return nil
-				}
-			}
+		if role.GetId() == id {
+			return nil
 		}
 		return fmt.Errorf("error cloud Provider Access (%s) does not exist", ids["project_id"])
 	}

@@ -189,7 +189,7 @@ func roleToSchemaAuthorization(role *admin.CloudProviderAccessRole) map[string]a
 
 	if role.ProviderName == "AZURE" {
 		out = map[string]any{
-			"role_id": role.GetRoleId(),
+			"role_id": role.GetId(),
 			"azure": []any{map[string]any{
 				"atlas_azure_app_id":   role.GetAtlasAzureAppId(),
 				"service_principal_id": role.GetServicePrincipalId(),
