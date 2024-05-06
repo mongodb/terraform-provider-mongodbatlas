@@ -140,7 +140,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if err != nil {
 			return fmt.Errorf(cloudprovideraccess.ErrorCloudProviderGetRead, err)
 		}
-		if role.GetId() == id {
+		if role.GetId() == id || role.GetRoleId() == id {
 			return nil
 		}
 		return fmt.Errorf("error cloud Provider Access (%s) does not exist", ids["project_id"])
