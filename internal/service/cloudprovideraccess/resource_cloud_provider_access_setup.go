@@ -210,7 +210,7 @@ func roleToSchemaSetup(role *admin.CloudProviderAccessRole) map[string]any {
 				"atlas_aws_account_arn":          role.GetAtlasAWSAccountArn(),
 				"atlas_assumed_role_external_id": role.GetAtlasAssumedRoleExternalId(),
 			}},
-			"created_date": role.GetCreatedDate(),
+			"created_date": conversion.TimeToString(role.GetCreatedDate()),
 			"role_id":      role.GetRoleId(),
 		}
 		return out
@@ -224,8 +224,8 @@ func roleToSchemaSetup(role *admin.CloudProviderAccessRole) map[string]any {
 			"tenant_id":            role.GetTenantId(),
 		}},
 		"aws_config":        []any{map[string]any{}},
-		"created_date":      role.GetCreatedDate(),
-		"last_updated_date": role.GetLastUpdatedDate(),
+		"created_date":      conversion.TimeToString(role.GetCreatedDate()),
+		"last_updated_date": conversion.TimeToString(role.GetLastUpdatedDate()),
 		"role_id":           role.GetRoleId(),
 	}
 
