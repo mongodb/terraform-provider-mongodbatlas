@@ -14,11 +14,26 @@ import (
 
 func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_federated_database_instance.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		name         = acc.RandomName()
+		resourceName   = "mongodbatlas_federated_database_instance.test"
+		dataSourceName = "data.mongodbatlas_federated_database_instance.test"
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acc.RandomProjectName()
+		name           = acc.RandomName()
 	)
+
+	valueChecks := map[string]string{
+		"name":                                                      name,
+		"data_process_region.0.cloud_provider":                      "AWS",
+		"data_process_region.0.region":                              "OREGON_USA",
+		"storage_stores.0.read_preference.0.tag_sets.#":             "2",
+		"storage_stores.0.read_preference.0.tag_sets.0.tags.#":      "2",
+		"storage_databases.0.collections.0.data_sources.0.database": "sample_airbnb",
+	}
+	setChecks := []string{"project_id", "storage_stores.0.read_preference.0.tag_sets.#"}
+	firstStepChecks := acc.AddAttrChecks(resourceName, nil, valueChecks)
+	firstStepChecks = acc.AddAttrSetChecks(resourceName, firstStepChecks, setChecks...)
+	firstStepChecks = acc.AddAttrChecks(dataSourceName, firstStepChecks, valueChecks)
+	firstStepChecks = acc.AddAttrSetChecks(dataSourceName, firstStepChecks, setChecks...)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -27,14 +42,7 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configFirstSteps(name, projectName, orgID),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
-					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.0.tags.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "storage_databases.0.collections.0.data_sources.0.database", "sample_airbnb"),
-				),
+				Check:  resource.ComposeTestCheckFunc(firstStepChecks...),
 			},
 			{
 				Config: configFirstStepsUpdate(name, projectName, orgID),
@@ -77,7 +85,6 @@ func TestAccFederatedDatabaseInstance_s3bucket(t *testing.T) {
 		policyName   = acc.RandomName()
 		roleName     = acc.RandomIAMRole()
 		testS3Bucket = os.Getenv("AWS_S3_BUCKET")
-		region       = "VIRGINIA_USA"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -87,7 +94,7 @@ func TestAccFederatedDatabaseInstance_s3bucket(t *testing.T) {
 			{
 				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, region),
+				Config:                   configWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
@@ -269,8 +276,9 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func configWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion string) string {
+func configWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket string) string {
 	stepConfig := configFirstStepS3Bucket(name, testS3Bucket)
+	bucketResourceName := "arn:aws:s3:::" + testS3Bucket
 	return fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[1]q
@@ -280,11 +288,20 @@ resource "aws_iam_role_policy" "test_policy" {
   {
     "Version": "2012-10-17",
     "Statement": [
-      {
-        "Effect": "Allow",
-		"Action": "*",
-		"Resource": "*"
-      }
+		{
+			"Effect": "Allow",
+			"Action": [
+				"s3:GetObject",
+				"s3:ListBucket",
+				"s3:GetObjectVersion"
+			],
+			"Resource": "*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": "s3:*",
+			"Resource": %[6]q
+		}
     ]
   }
   EOF
@@ -334,8 +351,8 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
    }
 }
 
-%s
-	`, policyName, roleName, projectName, orgID, stepConfig)
+%[5]s
+	`, policyName, roleName, projectName, orgID, stepConfig, bucketResourceName)
 }
 
 func configFirstStepS3Bucket(name, testS3Bucket string) string {
@@ -409,80 +426,90 @@ resource "mongodbatlas_project" "test" {
 	}
 
 resource "mongodbatlas_federated_database_instance" "test" {
-   project_id         = mongodbatlas_project.test.id
-   name = %[1]q
+    project_id         = mongodbatlas_project.test.id
+    name = %[1]q
 
-   storage_databases {
-	name = "VirtualDatabase0"
-	collections {
+	data_process_region {
+		cloud_provider = "AWS"
+    	region         = "OREGON_USA"
+    }
+
+    storage_databases {
+		name = "VirtualDatabase0"
+		collections {
 			name = "VirtualCollection0"
 			data_sources {
-					collection = "listingsAndReviews"
-					database = "sample_airbnb"
-					store_name =  "ClusterTest"
+				collection = "listingsAndReviews"
+				database = "sample_airbnb"
+				store_name =  "ClusterTest"
 			}
-	}
-   }
+		}
+   	}
 
-   storage_stores {
-	name = "ClusterTest"
-	cluster_name = "ClusterTest"
-	project_id = mongodbatlas_project.test.id
-	provider = "atlas"
-	read_preference {
-		mode = "secondary"
-		tag_sets {
-			tags {
-				name = "environment"
-				value = "development"
+    storage_stores {
+		name = "ClusterTest"
+		cluster_name = "ClusterTest"
+		project_id = mongodbatlas_project.test.id
+		provider = "atlas"
+		read_preference {
+			mode = "secondary"
+			tag_sets {
+				tags {
+					name = "environment"
+					value = "development"
+				}
+				tags {
+					name = "application"
+					value = "app"
+				}
 			}
-			tags {
-				name = "application"
-				value = "app"
+			tag_sets {
+				tags {
+					name = "environment1"
+					value = "development1"
+				}
+				tags {
+					name = "application1"
+					value = "app-1"
+				}
 			}
 		}
-		tag_sets {
-			tags {
-				name = "environment1"
-				value = "development1"
-			}
-			tags {
-				name = "application1"
-				value = "app-1"
-			}
-		}
-	}
-   }
+    }
 
-   storage_stores {
-	name = "dataStore0"
-	cluster_name = "ClusterTest"
-	project_id = mongodbatlas_project.test.id
-	provider = "atlas"
-	read_preference {
-		mode = "secondary"
-		tag_sets {
-			tags {
-				name = "environment"
-				value = "development"
+    storage_stores {
+		name = "dataStore0"
+		cluster_name = "ClusterTest"
+		project_id = mongodbatlas_project.test.id
+		provider = "atlas"
+		read_preference {
+			mode = "secondary"
+			tag_sets {
+				tags {
+					name = "environment"
+					value = "development"
+				}
+				tags {
+					name = "application"
+					value = "app"
+				}
 			}
-			tags {
-				name = "application"
-				value = "app"
+			tag_sets {
+				tags {
+					name = "environment1"
+					value = "development1"
+				}
+				tags {
+					name = "application1"
+					value = "app-1"
+				}
 			}
 		}
-		tag_sets {
-			tags {
-				name = "environment1"
-				value = "development1"
-			}
-			tags {
-				name = "application1"
-				value = "app-1"
-			}
-		}
-	}
-   }
+    }
+}
+
+data "mongodbatlas_federated_database_instance" "test" {
+	project_id           = mongodbatlas_federated_database_instance.test.project_id
+	name = mongodbatlas_federated_database_instance.test.name
 }
 	`, federatedInstanceName, projectName, orgID)
 }
@@ -498,6 +525,11 @@ resource "mongodbatlas_project" "test" {
 resource "mongodbatlas_federated_database_instance" "test" {
    project_id         = mongodbatlas_project.test.id
    name = %[1]q
+
+   data_process_region {
+	   cloud_provider = "AWS"
+	   region         = "OREGON_USA"
+   }
 
    storage_databases {
 	name = "VirtualDatabase0"

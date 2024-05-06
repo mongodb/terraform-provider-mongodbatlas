@@ -187,6 +187,15 @@ func PreCheckAwsEnv(tb testing.TB) {
 	}
 }
 
+func PreCheckAwsEnvPrivateLinkEndpointService(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("AWS_ACCESS_KEY_ID") == "" ||
+		os.Getenv("AWS_SECRET_ACCESS_KEY") == "" ||
+		os.Getenv("AWS_VPC_ID") == "" {
+		tb.Fatal("`AWS_ACCESS_KEY_ID`, `AWS_VPC_ID` and `AWS_SECRET_ACCESS_KEY` must be set for acceptance testing")
+	}
+}
+
 func PreCheckRegularCredsAreEmpty(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") != "" || os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") != "" {

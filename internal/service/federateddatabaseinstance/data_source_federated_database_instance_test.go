@@ -14,37 +14,6 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115012/admin"
 )
 
-func TestAccFederatedDatabaseInstanceDS_basic(t *testing.T) {
-	var (
-		resourceName      = "data.mongodbatlas_federated_database_instance.test"
-		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName       = acc.RandomProjectName()
-		name              = acc.RandomName()
-		federatedInstance = admin.DataLakeTenant{}
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasic(t) },
-		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
-		Steps: []resource.TestStep{
-			{
-				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configFirstStepsDS(name, projectName, orgID),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &federatedInstance),
-					checkAttributes(&federatedInstance, name),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
-					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.0.tags.#", "2"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccFederatedDatabaseInstanceDS_s3Bucket(t *testing.T) {
 	var (
 		resourceName      = "data.mongodbatlas_federated_database_instance.test"
@@ -54,7 +23,6 @@ func TestAccFederatedDatabaseInstanceDS_s3Bucket(t *testing.T) {
 		policyName        = acc.RandomName()
 		roleName          = acc.RandomIAMRole()
 		testS3Bucket      = os.Getenv("AWS_S3_BUCKET")
-		region            = "VIRGINIA_USA"
 		federatedInstance = admin.DataLakeTenant{}
 	)
 
@@ -65,7 +33,7 @@ func TestAccFederatedDatabaseInstanceDS_s3Bucket(t *testing.T) {
 			{
 				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configDSWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, region),
+				Config:                   configDSWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, &federatedInstance),
 					checkAttributes(&federatedInstance, name),
@@ -105,8 +73,9 @@ func checkAttributes(dataFederatedInstance *admin.DataLakeTenant, name string) r
 	}
 }
 
-func configDSWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion string) string {
+func configDSWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket string) string {
 	stepConfig := configDSFirstStepS3Bucket(name, testS3Bucket)
+	bucketResourceName := "arn:aws:s3:::" + testS3Bucket
 	return fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[1]q
@@ -116,11 +85,20 @@ resource "aws_iam_role_policy" "test_policy" {
   {
     "Version": "2012-10-17",
     "Statement": [
-      {
-        "Effect": "Allow",
-		"Action": "*",
-		"Resource": "*"
-      }
+		{
+			"Effect": "Allow",
+			"Action": [
+				"s3:GetObject",
+				"s3:ListBucket",
+				"s3:GetObjectVersion"
+			],
+			"Resource": "*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": "s3:*",
+			"Resource": %[6]q
+		}
     ]
   }
   EOF
@@ -170,8 +148,8 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
    }
 }
 
-%s
-	`, policyName, roleName, projectName, orgID, stepConfig)
+%[5]s
+	`, policyName, roleName, projectName, orgID, stepConfig, bucketResourceName)
 }
 func configDSFirstStepS3Bucket(name, testS3Bucket string) string {
 	return fmt.Sprintf(`
@@ -263,106 +241,4 @@ data "mongodbatlas_federated_database_instance" "test" {
 	}
 }
 	`, name, testS3Bucket)
-}
-
-func configFirstStepsDS(federatedInstanceName, projectName, orgID string) string {
-	return fmt.Sprintf(`
-
-resource "mongodbatlas_project" "test" {
-	name   = %[2]q
-	org_id = %[3]q
-	}
-
-resource "mongodbatlas_federated_database_instance" "test" {
-   project_id         = mongodbatlas_project.test.id
-   name = %[1]q
-
-   storage_databases {
-	name = "VirtualDatabase0"
-	collections {
-			name = "VirtualCollection0"
-			data_sources {
-					collection = "listingsAndReviews"
-					database = "sample_airbnb"
-					store_name =  "ClusterTest"
-			}
-	}
-   }
-
-   storage_stores {
-	name = "ClusterTest"
-	cluster_name = "ClusterTest"
-	project_id = mongodbatlas_project.test.id
-	provider = "atlas"
-	read_preference {
-		mode = "secondary"
-		tag_sets {
-			tags {
-				name = "environment0"
-				value = "development0"
-			}
-			tags {
-				name = "application0"
-				value = "app0"
-			}
-		}
-		tag_sets {
-			tags {
-				name = "environment1"
-				value = "development1"
-			}
-			tags {
-				name = "application1"
-				value = "app1"
-			}
-		}
-	}
-   }
-
-   storage_stores {
-	name = "dataStore0"
-	cluster_name = "ClusterTest"
-	project_id = mongodbatlas_project.test.id
-	provider = "atlas"
-	read_preference {
-		mode = "secondary"
-		tag_sets {
-			tags {
-				name = "environment0"
-				value = "development0"
-			}
-			tags {
-				name = "application0"
-				value = "app0"
-			}
-		}
-		tag_sets {
-			tags {
-				name = "environment1"
-				value = "development1"
-			}
-			tags {
-				name = "application1"
-				value = "app1"
-			}
-		}
-		tag_sets {
-			tags {
-				name = "environment0"
-				value = "development0"
-			}
-			tags {
-				name = "application0"
-				value = "app0"
-			}
-		}
-	}
-   }
-}
-
-data "mongodbatlas_federated_database_instance" "test" {
-	project_id           = mongodbatlas_federated_database_instance.test.project_id
-	name = mongodbatlas_federated_database_instance.test.name
-}
-	`, federatedInstanceName, projectName, orgID)
 }
