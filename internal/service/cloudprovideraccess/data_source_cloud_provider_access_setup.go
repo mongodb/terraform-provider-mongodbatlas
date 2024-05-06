@@ -84,11 +84,11 @@ func DataSourceSetup() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	roleID := d.Get("role_id").(string)
 
-	role, _, err := conn.CloudProviderAccess.GetRole(ctx, projectID, roleID)
+	role, _, err := conn.CloudProviderAccessApi.GetCloudProviderAccessRole(ctx, projectID, roleID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
 	}
