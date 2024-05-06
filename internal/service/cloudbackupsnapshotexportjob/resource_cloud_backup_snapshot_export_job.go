@@ -137,7 +137,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportJobRead(ctx context.Context, d
 
 func readExportJob(ctx context.Context, meta any, d *schema.ResourceData) (*matlas.CloudProviderSnapshotExportJob, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
-	projectID, clusterName, exportID := getRequired(d)
+	projectID, clusterName, exportID := getRequiredFields(d)
 	if d.Id() != "" && (projectID == "" || clusterName == "" || exportID == "") {
 		ids := conversion.DecodeStateID(d.Id())
 		projectID = ids["project_id"]
@@ -145,7 +145,7 @@ func readExportJob(ctx context.Context, meta any, d *schema.ResourceData) (*matl
 		exportID = ids["export_job_id"]
 	}
 	exportJob, _, err := conn.CloudProviderSnapshotExportJobs.Get(ctx, projectID, clusterName, exportID)
-	if err != nil {
+	if err == nil {
 		d.SetId(conversion.EncodeStateID(map[string]string{
 			"project_id":    projectID,
 			"cluster_name":  clusterName,
@@ -155,7 +155,7 @@ func readExportJob(ctx context.Context, meta any, d *schema.ResourceData) (*matl
 	return exportJob, err
 }
 
-func getRequired(d *schema.ResourceData) (projectID, clusterName, exportID string) {
+func getRequiredFields(d *schema.ResourceData) (projectID, clusterName, exportID string) {
 	projectID = d.Get("project_id").(string)
 	clusterName = d.Get("cluster_name").(string)
 	exportID = d.Get("export_job_id").(string)
