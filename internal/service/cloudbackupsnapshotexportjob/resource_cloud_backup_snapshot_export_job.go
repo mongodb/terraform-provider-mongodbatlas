@@ -267,7 +267,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportJobCreate(ctx context.Context,
 	}
 
 	if err := d.Set("export_job_id", jobResponse.ID); err != nil {
-		return diag.Errorf("error setting `export_job_id` for snapshot export job (%s): %s", d.Id(), err)
+		return diag.Errorf("error setting `export_job_id` for snapshot export job (%s): %s", jobResponse.ID, err)
 	}
 	return resourceMongoDBAtlasCloudBackupSnapshotExportJobRead(ctx, d, meta)
 }
