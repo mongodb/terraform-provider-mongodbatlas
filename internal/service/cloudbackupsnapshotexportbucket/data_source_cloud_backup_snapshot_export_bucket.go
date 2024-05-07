@@ -11,7 +11,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: datasourceMongoDBAtlasCloudBackupSnapshotExportBucketRead,
+		ReadContext: datasourceRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:     schema.TypeString,
@@ -41,34 +41,34 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func datasourceMongoDBAtlasCloudBackupSnapshotExportBucketRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func datasourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	bucketID := d.Get("id").(string)
 
-	bucket, _, err := conn.CloudProviderSnapshotExportBuckets.Get(ctx, projectID, bucketID)
+	bucket, _, err := conn.CloudBackupsApi.GetExportBucket(ctx, projectID, bucketID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting CloudProviderSnapshotExportBuckets Information: %s", err))
 	}
 
-	if err = d.Set("export_bucket_id", bucket.ID); err != nil {
+	if err = d.Set("export_bucket_id", bucket.GetId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `export_bucket_id` for CloudProviderSnapshotExportBuckets (%s): %s", d.Id(), err))
 	}
 
-	if err = d.Set("bucket_name", bucket.BucketName); err != nil {
+	if err = d.Set("bucket_name", bucket.GetBucketName()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `bucket_name` for CloudProviderSnapshotExportBuckets (%s): %s", d.Id(), err))
 	}
 
-	if err = d.Set("cloud_provider", bucket.CloudProvider); err != nil {
+	if err = d.Set("cloud_provider", bucket.GetCloudProvider()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `cloud_provider` for CloudProviderSnapshotExportBuckets (%s): %s", d.Id(), err))
 	}
 
-	if err = d.Set("iam_role_id", bucket.IAMRoleID); err != nil {
+	if err = d.Set("iam_role_id", bucket.GetIamRoleId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `iam_role_id` for CloudProviderSnapshotExportBuckets (%s): %s", d.Id(), err))
 	}
 
-	d.SetId(bucket.ID)
+	d.SetId(bucket.GetId())
 
 	return nil
 }
