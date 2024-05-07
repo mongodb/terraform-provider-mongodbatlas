@@ -7,12 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115012/admin"
 )
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasCloudBackupSnapshotsExportBucketsRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -58,27 +58,23 @@ func PluralDataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCloudBackupSnapshotsExportBucketsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
+	itemsPerPage := d.Get("items_per_page").(int)
+	pageNum := d.Get("page_num").(int)
 
-	options := &matlas.ListOptions{
-		PageNum:      d.Get("page_num").(int),
-		ItemsPerPage: d.Get("items_per_page").(int),
-	}
-
-	buckets, _, err := conn.CloudProviderSnapshotExportBuckets.List(ctx, projectID, options)
+	buckets, _, err := conn.CloudBackupsApi.ListExportBuckets(ctx, projectID).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
 	if err != nil {
 		return diag.Errorf("error getting CloudProviderSnapshotExportBuckets information: %s", err)
 	}
 
-	if err := d.Set("results", flattenCloudBackupSnapshotExportBuckets(buckets.Results)); err != nil {
+	if err := d.Set("results", flattenBuckets(buckets.GetResults())); err != nil {
 		return diag.Errorf("error setting `results`: %s", err)
 	}
 
-	if err := d.Set("total_count", buckets.TotalCount); err != nil {
+	if err := d.Set("total_count", buckets.GetTotalCount()); err != nil {
 		return diag.Errorf("error setting `total_count`: %s", err)
 	}
 
@@ -87,7 +83,7 @@ func dataSourceMongoDBAtlasCloudBackupSnapshotsExportBucketsRead(ctx context.Con
 	return nil
 }
 
-func flattenCloudBackupSnapshotExportBuckets(buckets []*matlas.CloudProviderSnapshotExportBucket) []map[string]any {
+func flattenBuckets(buckets []admin.DiskBackupSnapshotAWSExportBucket) []map[string]any {
 	var results []map[string]any
 
 	if len(buckets) == 0 {
@@ -98,10 +94,10 @@ func flattenCloudBackupSnapshotExportBuckets(buckets []*matlas.CloudProviderSnap
 
 	for k, bucket := range buckets {
 		results[k] = map[string]any{
-			"export_bucket_id": bucket.ID,
-			"bucket_name":      bucket.BucketName,
-			"cloud_provider":   bucket.CloudProvider,
-			"iam_role_id":      bucket.IAMRoleID,
+			"export_bucket_id": bucket.GetId(),
+			"bucket_name":      bucket.GetBucketName(),
+			"cloud_provider":   bucket.GetCloudProvider(),
+			"iam_role_id":      bucket.GetIamRoleId(),
 		}
 	}
 
