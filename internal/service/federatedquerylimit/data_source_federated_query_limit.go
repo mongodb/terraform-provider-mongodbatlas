@@ -12,12 +12,12 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasFederatedDatabaseQueryLimitRead,
-		Schema:      schemaMongoDBAtlasFederatedDatabaseQueryLimitDataSource(),
+		ReadContext: dataSourceRead,
+		Schema:      schemaDataSource(),
 	}
 }
 
-func schemaMongoDBAtlasFederatedDatabaseQueryLimitDataSource() map[string]*schema.Schema {
+func schemaDataSource() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"project_id": {
 			Type:     schema.TypeString,
@@ -58,14 +58,14 @@ func schemaMongoDBAtlasFederatedDatabaseQueryLimitDataSource() map[string]*schem
 	}
 }
 
-func dataSourceMongoDBAtlasFederatedDatabaseQueryLimitRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	tenantName := d.Get("tenant_name").(string)
 	limitName := d.Get("limit_name").(string)
 
-	queryLimit, _, err := conn.DataFederation.GetQueryLimit(ctx, projectID, tenantName, limitName)
+	queryLimit, _, err := conn.DataFederationApi.ReturnFederatedDatabaseQueryLimit(ctx, projectID, tenantName, limitName).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("couldn't import federated database query limit(%s) for project (%s), tenant (%s), error: %s", limitName, projectID, tenantName, err))
@@ -77,7 +77,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseQueryLimitRead(ctx context.Context, 
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":  projectID,
-		"tenant_name": queryLimit.TenantName,
+		"tenant_name": queryLimit.GetTenantName(),
 		"limit_name":  queryLimit.Name,
 	}))
 
