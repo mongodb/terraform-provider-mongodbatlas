@@ -113,7 +113,7 @@ func DataSource() *schema.Resource {
 }
 func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	federationSettingsID, federationSettingsIDOk := d.GetOk("federation_settings_id")
 
@@ -127,45 +127,45 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.C
 		return diag.FromErr(errors.New("org_id must be configured"))
 	}
 
-	federatedSettingsConnectedOrganization, _, err := conn.FederatedSettings.GetConnectedOrg(ctx, federationSettingsID.(string), orgID.(string))
+	federatedSettingsConnectedOrganization, _, err := conn.FederatedAuthenticationApi.GetConnectedOrgConfig(ctx, federationSettingsID.(string), orgID.(string)).Execute()
 	if err != nil {
 		return diag.Errorf("error getting federatedSettings connected organizations assigned (%s): %s", federationSettingsID, err)
 	}
 
-	if err := d.Set("domain_allow_list", federatedSettingsConnectedOrganization.DomainAllowList); err != nil {
+	if err := d.Set("domain_allow_list", federatedSettingsConnectedOrganization.GetDomainAllowList()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `domain_allow_list` for federatedSettings IdentityProviders: %s", err))
 	}
 
-	if err := d.Set("domain_restriction_enabled", federatedSettingsConnectedOrganization.DomainRestrictionEnabled); err != nil {
+	if err := d.Set("domain_restriction_enabled", federatedSettingsConnectedOrganization.GetDomainRestrictionEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `domain_restriction_enabled` for federatedSettings IdentityProviders: %s", err))
 	}
 
-	if err := d.Set("identity_provider_id", federatedSettingsConnectedOrganization.IdentityProviderID); err != nil {
+	if err := d.Set("identity_provider_id", federatedSettingsConnectedOrganization.GetIdentityProviderId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `identity_provider_id` for federatedSettings IdentityProviders: %s", err))
 	}
 
-	if err := d.Set("org_id", federatedSettingsConnectedOrganization.OrgID); err != nil {
+	if err := d.Set("org_id", federatedSettingsConnectedOrganization.GetOrgId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `org_id` for federatedSettings IdentityProviders: %s", err))
 	}
 
-	if err := d.Set("post_auth_role_grants", federatedSettingsConnectedOrganization.PostAuthRoleGrants); err != nil {
+	if err := d.Set("post_auth_role_grants", federatedSettingsConnectedOrganization.GetPostAuthRoleGrants()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `post_auth_role_grants` for federatedSettings IdentityProviders: %s", err))
 	}
 
-	if err := d.Set("role_mappings", FlattenRoleMappings(federatedSettingsConnectedOrganization.RoleMappings)); err != nil {
+	if err := d.Set("role_mappings", FlattenRoleMappings(federatedSettingsConnectedOrganization.GetRoleMappings())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `role_mappings` for federatedSettings IdentityProviders: %s", err))
 	}
 	if federatedSettingsConnectedOrganization.UserConflicts == nil {
-		if err := d.Set("user_conflicts", federatedSettingsConnectedOrganization.UserConflicts); err != nil {
+		if err := d.Set("user_conflicts", federatedSettingsConnectedOrganization.GetUserConflicts()); err != nil {
 			return diag.FromErr(fmt.Errorf("error setting `user_conflicts` for federatedSettings IdentityProviders: %s", err))
 		}
 	} else {
-		if err := d.Set("user_conflicts", FlattenUserConflicts(*federatedSettingsConnectedOrganization.UserConflicts)); err != nil {
+		if err := d.Set("user_conflicts", FlattenUserConflicts(federatedSettingsConnectedOrganization.GetUserConflicts())); err != nil {
 			return diag.FromErr(fmt.Errorf("error setting `user_conflicts` for federatedSettings IdentityProviders: %s", err))
 		}
 	}
 
-	d.SetId(federatedSettingsConnectedOrganization.OrgID)
+	d.SetId(federatedSettingsConnectedOrganization.GetOrgId())
 
 	return nil
 }

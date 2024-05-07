@@ -9,16 +9,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccFederatedSettingsDS_basic(t *testing.T) {
 	acc.SkipTestForCI(t) // affects the org
 
 	var (
-		federatedSettings matlas.FederatedSettings
-		resourceName      = "data.mongodbatlas_federated_settings.test"
-		orgID             = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
+		resourceName = "data.mongodbatlas_federated_settings.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -28,7 +26,7 @@ func TestAccFederatedSettingsDS_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasDataSourceFederatedSettingsConfig(orgID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasFederatedSettingsExists(resourceName, &federatedSettings),
+					testAccCheckMongoDBAtlasFederatedSettingsExists(resourceName),
 
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "identity_provider_id"),
@@ -48,7 +46,7 @@ func testAccMongoDBAtlasDataSourceFederatedSettingsConfig(orgID string) string {
 `, orgID)
 }
 
-func testAccCheckMongoDBAtlasFederatedSettingsExists(resourceName string, federatedSettings *matlas.FederatedSettings) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasFederatedSettingsExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -57,11 +55,10 @@ func testAccCheckMongoDBAtlasFederatedSettingsExists(resourceName string, federa
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		federatedSettingsRes, _, err := acc.Conn().FederatedSettings.Get(context.Background(), rs.Primary.Attributes["org_id"])
+		_, _, err := acc.ConnV2().FederatedAuthenticationApi.GetFederationSettings(context.Background(), rs.Primary.Attributes["org_id"]).Execute()
 		if err != nil {
 			return fmt.Errorf("FederatedSettings (%s) does not exist", rs.Primary.ID)
 		}
-		federatedSettings = federatedSettingsRes
 		return nil
 	}
 }

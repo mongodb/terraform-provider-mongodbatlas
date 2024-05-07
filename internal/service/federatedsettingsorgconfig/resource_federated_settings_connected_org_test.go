@@ -34,26 +34,28 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			{
 				Config:            configBasic(federationSettingsID, orgID, idpID),
 				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName, federationSettingsID, orgID),
+				ImportStateIdFunc: importStateIDFunc(federationSettingsID, orgID),
 				ImportState:       true,
 				ImportStateVerify: false,
 			},
 			{
 				Config:            configBasic(federationSettingsID, orgID, idpID),
 				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName, federationSettingsID, orgID),
-
-				ImportState: true,
+				ImportStateIdFunc: importStateIDFunc(federationSettingsID, orgID),
+				ImportState:       true,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "name", "mongodb_federation_test"),
+					resource.TestCheckResourceAttr(resourceName, "domain_restriction_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "domain_allow_list.0", "reorganizeyourworld.com"),
 				),
 			},
 			{
 				Config:            configBasic(federationSettingsID, orgID, idpID),
 				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName, federationSettingsID, orgID),
+				ImportStateIdFunc: importStateIDFunc(federationSettingsID, orgID),
 				ImportState:       true,
 				ImportStateVerify: false,
 			},
@@ -70,9 +72,9 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		_, _, err := acc.Conn().FederatedSettings.GetConnectedOrg(context.Background(),
+		_, _, err := acc.ConnV2().FederatedAuthenticationApi.GetConnectedOrgConfig(context.Background(),
 			rs.Primary.Attributes["federation_settings_id"],
-			rs.Primary.Attributes["org_id"])
+			rs.Primary.Attributes["org_id"]).Execute()
 		if err == nil {
 			return nil
 		}
@@ -80,7 +82,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func importStateIDFunc(resourceName, federationSettingsID, orgID string) resource.ImportStateIdFunc {
+func importStateIDFunc(federationSettingsID, orgID string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		ID := conversion.EncodeStateID(map[string]string{
 			"federation_settings_id": federationSettingsID,
@@ -95,10 +97,10 @@ func importStateIDFunc(resourceName, federationSettingsID, orgID string) resourc
 func configBasic(federationSettingsID, orgID, identityProviderID string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_federated_settings_org_config" "test" {
-		federation_settings_id = "%[1]s"
-		org_id                 = "%[2]s"
+		federation_settings_id     = "%[1]s"
+		org_id                     = "%[2]s"
 		domain_restriction_enabled = false
 		domain_allow_list          = ["reorganizeyourworld.com"]
-		identity_provider_id = "%[3]s"
+		identity_provider_id       = "%[3]s"
 	  }`, federationSettingsID, orgID, identityProviderID)
 }

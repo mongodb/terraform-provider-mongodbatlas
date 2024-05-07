@@ -7,8 +7,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115013/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -130,20 +131,21 @@ func PluralDataSource() *schema.Resource {
 }
 func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	federationSettingsID, federationSettingsIDOk := d.GetOk("federation_settings_id")
-
-	options := &matlas.ListOptions{
-		PageNum:      d.Get("page_num").(int),
-		ItemsPerPage: d.Get("items_per_page").(int),
-	}
 
 	if !federationSettingsIDOk {
 		return diag.FromErr(errors.New("either federation_settings_id must be configured"))
 	}
 
-	federatedSettingsConnectedOrganizations, _, err := conn.FederatedSettings.ListConnectedOrgs(ctx, federationSettingsID.(string), options)
+	params := &admin.ListConnectedOrgConfigsApiParams{
+		FederationSettingsId: federationSettingsID.(string),
+		PageNum:              conversion.Pointer(d.Get("page_num").(int)),
+		ItemsPerPage:         conversion.Pointer(d.Get("items_per_page").(int)),
+	}
+
+	federatedSettingsConnectedOrganizations, _, err := conn.FederatedAuthenticationApi.ListConnectedOrgConfigsWithParams(ctx, params).Execute()
 	if err != nil {
 		return diag.Errorf("error getting federatedSettings connected organizations assigned (%s): %s", federationSettingsID, err)
 	}
@@ -157,32 +159,32 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigsRead(ctx context.
 	return nil
 }
 
-func flattenFederatedSettingsOrganizationConfigs(federatedSettingsConnectedOrganizations matlas.FederatedSettingsConnectedOrganizations) []map[string]any {
+func flattenFederatedSettingsOrganizationConfigs(federatedSettingsConnectedOrganizations admin.PaginatedConnectedOrgConfigs) []map[string]any {
 	var federatedSettingsConnectedOrganizationsMap []map[string]any
 
-	if (federatedSettingsConnectedOrganizations.TotalCount) > 0 {
-		federatedSettingsConnectedOrganizationsMap = make([]map[string]any, federatedSettingsConnectedOrganizations.TotalCount)
+	if (federatedSettingsConnectedOrganizations.GetTotalCount()) > 0 {
+		federatedSettingsConnectedOrganizationsMap = make([]map[string]any, federatedSettingsConnectedOrganizations.GetTotalCount())
 
-		for i := range federatedSettingsConnectedOrganizations.Results {
-			if federatedSettingsConnectedOrganizations.Results[i].UserConflicts == nil {
+		for i := range federatedSettingsConnectedOrganizations.GetResults() {
+			if federatedSettingsConnectedOrganizations.GetResults()[i].UserConflicts == nil {
 				federatedSettingsConnectedOrganizationsMap[i] = map[string]any{
-					"domain_allow_list":          federatedSettingsConnectedOrganizations.Results[i].DomainAllowList,
-					"domain_restriction_enabled": federatedSettingsConnectedOrganizations.Results[i].DomainRestrictionEnabled,
-					"identity_provider_id":       federatedSettingsConnectedOrganizations.Results[i].IdentityProviderID,
-					"org_id":                     federatedSettingsConnectedOrganizations.Results[i].OrgID,
-					"post_auth_role_grants":      federatedSettingsConnectedOrganizations.Results[i].PostAuthRoleGrants,
-					"role_mappings":              FlattenRoleMappings(federatedSettingsConnectedOrganizations.Results[i].RoleMappings),
+					"domain_allow_list":          federatedSettingsConnectedOrganizations.GetResults()[i].GetDomainAllowList(),
+					"domain_restriction_enabled": federatedSettingsConnectedOrganizations.GetResults()[i].GetDomainRestrictionEnabled(),
+					"identity_provider_id":       federatedSettingsConnectedOrganizations.GetResults()[i].GetIdentityProviderId(),
+					"org_id":                     federatedSettingsConnectedOrganizations.GetResults()[i].GetOrgId(),
+					"post_auth_role_grants":      federatedSettingsConnectedOrganizations.GetResults()[i].GetPostAuthRoleGrants(),
+					"role_mappings":              FlattenRoleMappings(federatedSettingsConnectedOrganizations.GetResults()[i].GetRoleMappings()),
 					"user_conflicts":             nil,
 				}
 			} else {
 				federatedSettingsConnectedOrganizationsMap[i] = map[string]any{
-					"domain_allow_list":          federatedSettingsConnectedOrganizations.Results[i].DomainAllowList,
-					"domain_restriction_enabled": federatedSettingsConnectedOrganizations.Results[i].DomainRestrictionEnabled,
-					"identity_provider_id":       federatedSettingsConnectedOrganizations.Results[i].IdentityProviderID,
-					"org_id":                     federatedSettingsConnectedOrganizations.Results[i].OrgID,
-					"post_auth_role_grants":      federatedSettingsConnectedOrganizations.Results[i].PostAuthRoleGrants,
-					"role_mappings":              FlattenRoleMappings(federatedSettingsConnectedOrganizations.Results[i].RoleMappings),
-					"user_conflicts":             FlattenUserConflicts(*federatedSettingsConnectedOrganizations.Results[i].UserConflicts),
+					"domain_allow_list":          federatedSettingsConnectedOrganizations.GetResults()[i].GetDomainAllowList(),
+					"domain_restriction_enabled": federatedSettingsConnectedOrganizations.GetResults()[i].GetDomainRestrictionEnabled(),
+					"identity_provider_id":       federatedSettingsConnectedOrganizations.GetResults()[i].GetIdentityProviderId(),
+					"org_id":                     federatedSettingsConnectedOrganizations.GetResults()[i].GetOrgId(),
+					"post_auth_role_grants":      federatedSettingsConnectedOrganizations.GetResults()[i].GetPostAuthRoleGrants(),
+					"role_mappings":              FlattenRoleMappings(federatedSettingsConnectedOrganizations.GetResults()[i].GetRoleMappings()),
+					"user_conflicts":             FlattenUserConflicts(federatedSettingsConnectedOrganizations.GetResults()[i].GetUserConflicts()),
 				}
 			}
 		}
