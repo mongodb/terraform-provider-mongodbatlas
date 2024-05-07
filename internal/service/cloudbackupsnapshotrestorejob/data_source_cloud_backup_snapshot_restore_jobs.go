@@ -7,8 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115012/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -111,27 +112,23 @@ func PluralDataSource() *schema.Resource {
 }
 
 func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
-	requestParameters := &matlas.SnapshotReqPathParameters{
-		GroupID:     d.Get("project_id").(string),
-		ClusterName: d.Get("cluster_name").(string),
-	}
-	options := &matlas.ListOptions{
-		PageNum:      d.Get("page_num").(int),
-		ItemsPerPage: d.Get("items_per_page").(int),
-	}
+	projectID := d.Get("project_id").(string)
+	clusterName := d.Get("cluster_name").(string)
+	pageNum := d.Get("page_num").(int)
+	itermsPerPage := d.Get("items_per_page").(int)
 
-	cloudProviderSnapshotRestoreJobs, _, err := conn.CloudProviderSnapshotRestoreJobs.List(ctx, requestParameters, options)
+	cloudProviderSnapshotRestoreJobs, _, err := conn.CloudBackupsApi.ListBackupRestoreJobs(ctx, projectID, clusterName).PageNum(pageNum).ItemsPerPage(itermsPerPage).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting cloudProviderSnapshotRestoreJobs information: %s", err))
 	}
 
-	if err := d.Set("results", flattenCloudProviderSnapshotRestoreJobs(cloudProviderSnapshotRestoreJobs.Results)); err != nil {
+	if err := d.Set("results", flattenCloudProviderSnapshotRestoreJobs(cloudProviderSnapshotRestoreJobs.GetResults())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
 
-	if err := d.Set("total_count", cloudProviderSnapshotRestoreJobs.TotalCount); err != nil {
+	if err := d.Set("total_count", cloudProviderSnapshotRestoreJobs.GetTotalCount()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `total_count`: %s", err))
 	}
 
@@ -140,29 +137,30 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	return nil
 }
 
-func flattenCloudProviderSnapshotRestoreJobs(cloudProviderSnapshotRestoreJobs []*matlas.CloudProviderSnapshotRestoreJob) []map[string]any {
+func flattenCloudProviderSnapshotRestoreJobs(cloudProviderSnapshotRestoreJobs []admin.DiskBackupSnapshotRestoreJob) []map[string]any {
 	var results []map[string]any
 
 	if len(cloudProviderSnapshotRestoreJobs) > 0 {
 		results = make([]map[string]any, len(cloudProviderSnapshotRestoreJobs))
 
-		for k, cloudProviderSnapshotRestoreJob := range cloudProviderSnapshotRestoreJobs {
+		for k := range cloudProviderSnapshotRestoreJobs {
+			cloudProviderSnapshotRestoreJob := cloudProviderSnapshotRestoreJobs[k]
 			results[k] = map[string]any{
-				"id":                        cloudProviderSnapshotRestoreJob.ID,
-				"cancelled":                 cloudProviderSnapshotRestoreJob.Cancelled,
-				"created_at":                cloudProviderSnapshotRestoreJob.CreatedAt,
-				"delivery_type":             cloudProviderSnapshotRestoreJob.DeliveryType,
-				"delivery_url":              cloudProviderSnapshotRestoreJob.DeliveryURL,
-				"expired":                   cloudProviderSnapshotRestoreJob.Expired,
-				"expires_at":                cloudProviderSnapshotRestoreJob.ExpiresAt,
-				"finished_at":               cloudProviderSnapshotRestoreJob.FinishedAt,
-				"snapshot_id":               cloudProviderSnapshotRestoreJob.SnapshotID,
-				"target_project_id":         cloudProviderSnapshotRestoreJob.TargetGroupID,
-				"target_cluster_name":       cloudProviderSnapshotRestoreJob.TargetClusterName,
-				"timestamp":                 cloudProviderSnapshotRestoreJob.Timestamp,
-				"oplog_ts":                  cloudProviderSnapshotRestoreJob.OplogTs,
-				"point_in_time_utc_seconds": cloudProviderSnapshotRestoreJob.PointInTimeUTCSeconds,
-				"oplog_inc":                 cloudProviderSnapshotRestoreJob.OplogInc,
+				"id":        cloudProviderSnapshotRestoreJob.GetId(),
+				"cancelled": cloudProviderSnapshotRestoreJob.GetCancelled(),
+				// "created_at":                cloudProviderSnapshotRestoreJob.CreatedAt NOT FOUND anymore,
+				"delivery_type":             cloudProviderSnapshotRestoreJob.GetDeliveryType(),
+				"delivery_url":              cloudProviderSnapshotRestoreJob.GetDeliveryUrl(),
+				"expired":                   cloudProviderSnapshotRestoreJob.GetExpired(),
+				"expires_at":                conversion.TimePtrToStringPtr(cloudProviderSnapshotRestoreJob.ExpiresAt),
+				"finished_at":               conversion.TimePtrToStringPtr(cloudProviderSnapshotRestoreJob.FinishedAt),
+				"snapshot_id":               cloudProviderSnapshotRestoreJob.GetSnapshotId(),
+				"target_project_id":         cloudProviderSnapshotRestoreJob.GetTargetGroupId(),
+				"target_cluster_name":       cloudProviderSnapshotRestoreJob.GetTargetClusterName(),
+				"timestamp":                 conversion.TimePtrToStringPtr(cloudProviderSnapshotRestoreJob.Timestamp),
+				"oplog_ts":                  cloudProviderSnapshotRestoreJob.GetOplogTs(),
+				"point_in_time_utc_seconds": cloudProviderSnapshotRestoreJob.GetPointInTimeUTCSeconds(),
+				"oplog_inc":                 cloudProviderSnapshotRestoreJob.GetOplogInc(),
 			}
 		}
 	}
