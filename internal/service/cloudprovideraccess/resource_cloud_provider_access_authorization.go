@@ -21,10 +21,10 @@ import (
 
 func ResourceAuthorization() *schema.Resource {
 	return &schema.Resource{
-		ReadContext:   resourceMongoDBAtlasCloudProviderAccessAuthorizationRead,
-		CreateContext: resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate,
-		UpdateContext: resourceMongoDBAtlasCloudProviderAccessAuthorizationUpdate,
-		DeleteContext: resourceMongoDBAtlasCloudProviderAccessAuthorizationPlaceHolder,
+		ReadContext:   resourceCloudProviderAccessAuthorizationRead,
+		CreateContext: resourceCloudProviderAccessAuthorizationCreate,
+		UpdateContext: resourceCloudProviderAccessAuthorizationUpdate,
+		DeleteContext: resourceCloudProviderAccessAuthorizationPlaceHolder,
 
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -82,15 +82,15 @@ func ResourceAuthorization() *schema.Resource {
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
 			{
-				Type:    resourceMongoDBAtlasCloudProviderAccessAuthorizationResourceV0().CoreConfigSchema().ImpliedType(),
-				Upgrade: resourceMongoDBAtlasCloudProviderAccessAuthorizationStateUpgradeV0,
+				Type:    resourceCloudProviderAccessAuthorizationResourceV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: resourceCloudProviderAccessAuthorizationStateUpgradeV0,
 				Version: 0,
 			},
 		},
 	}
 }
 
-func resourceMongoDBAtlasCloudProviderAccessAuthorizationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCloudProviderAccessAuthorizationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// sadly there is no just get API
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
@@ -129,7 +129,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationRead(ctx context.Contex
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCloudProviderAccessAuthorizationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
@@ -149,7 +149,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate(ctx context.Cont
 	return authorizeRole(ctx, conn, d, projectID, targetRole)
 }
 
-func resourceMongoDBAtlasCloudProviderAccessAuthorizationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCloudProviderAccessAuthorizationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 
@@ -173,7 +173,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationUpdate(ctx context.Cont
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderAccessAuthorizationPlaceHolder(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCloudProviderAccessAuthorizationPlaceHolder(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	d.SetId("")
 	return nil
 }
@@ -217,7 +217,7 @@ func FindRole(ctx context.Context, conn *admin.APIClient, projectID, roleID stri
 	return role, nil
 }
 
-func resourceMongoDBAtlasCloudProviderAccessAuthorizationResourceV0() *schema.Resource {
+func resourceCloudProviderAccessAuthorizationResourceV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -253,7 +253,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationResourceV0() *schema.Re
 	}
 }
 
-func resourceMongoDBAtlasCloudProviderAccessAuthorizationStateUpgradeV0(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
+func resourceCloudProviderAccessAuthorizationStateUpgradeV0(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 	rawState["aws"] = []any{}
 
 	return rawState, nil

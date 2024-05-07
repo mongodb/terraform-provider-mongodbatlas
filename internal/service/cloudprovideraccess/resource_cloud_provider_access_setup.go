@@ -32,12 +32,12 @@ const (
 
 func ResourceSetup() *schema.Resource {
 	return &schema.Resource{
-		ReadContext:   resourceMongoDBAtlasCloudProviderAccessSetupRead,
-		CreateContext: resourceMongoDBAtlasCloudProviderAccessSetupCreate,
-		UpdateContext: resourceMongoDBAtlasCloudProviderAccessAuthorizationPlaceHolder,
-		DeleteContext: resourceMongoDBAtlasCloudProviderAccessSetupDelete,
+		ReadContext:   resourceCloudProviderAccessSetupRead,
+		CreateContext: resourceCloudProviderAccessSetupCreate,
+		UpdateContext: resourceCloudProviderAccessAuthorizationPlaceHolder,
+		DeleteContext: resourceCloudProviderAccessSetupDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasCloudProviderAccessSetupImportState,
+			StateContext: resourceCloudProviderAccessSetupImportState,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -103,7 +103,7 @@ func ResourceSetup() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCloudProviderAccessSetupRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -129,7 +129,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *sc
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	projectID := d.Get("project_id").(string)
 
 	conn := meta.(*config.MongoDBClient).AtlasV2
@@ -178,7 +178,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderAccessSetupDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCloudProviderAccessSetupDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 
@@ -232,7 +232,7 @@ func roleToSchemaSetup(role *admin.CloudProviderAccessRole) map[string]any {
 	return out
 }
 
-func resourceMongoDBAtlasCloudProviderAccessSetupImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceCloudProviderAccessSetupImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	projectID, providerName, roleID, err := splitCloudProviderAccessID(d.Id())
 
 	if err != nil {
@@ -246,7 +246,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupImportState(ctx context.Context
 		"provider_name": providerName,
 	}))
 
-	err2 := resourceMongoDBAtlasCloudProviderAccessSetupRead(ctx, d, meta)
+	err2 := resourceCloudProviderAccessSetupRead(ctx, d, meta)
 
 	if err2 != nil {
 		return nil, fmt.Errorf(errorCloudProviderAccessImporter, err)

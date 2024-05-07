@@ -155,17 +155,14 @@ func checkDestroy(s *terraform.State) error {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		roles, _, err := acc.ConnV2().CloudProviderAccessApi.ListCloudProviderAccessRoles(context.Background(), ids["project_id"]).Execute()
+
+		id := ids["id"]
+		role, _, err := acc.ConnV2().CloudProviderAccessApi.GetCloudProviderAccessRole(context.Background(), ids["project_id"], id).Execute()
 		if err != nil {
 			return fmt.Errorf(cloudprovideraccess.ErrorCloudProviderGetRead, err)
 		}
-
-		// searching in roles
-		for i := range roles.GetAwsIamRoles() {
-			role := &(roles.GetAwsIamRoles()[i])
-			if role.GetRoleId() == ids["id"] && role.ProviderName == ids["provider_name"] {
-				return fmt.Errorf("error cloud Provider Access Role (%s) still exists", ids["id"])
-			}
+		if role.GetId() == id || role.GetRoleId() == id {
+			return nil
 		}
 	}
 	return nil
