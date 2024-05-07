@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"reflect"
 	"strings"
 	"time"
 
@@ -18,7 +17,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkcontainer"
 	"go.mongodb.org/atlas-sdk/v20231115012/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -158,15 +156,13 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	providerName := d.Get("provider_name").(string)
 
-	// Get the required ones
-	peerRequest := &matlas.Peer{
-		ContainerID:  conversion.GetEncodedID(d.Get("container_id").(string), "container_id"),
-		ProviderName: providerName,
+	peerRequest := &admin.BaseNetworkPeeringConnectionSettings{
+		ContainerId:  conversion.GetEncodedID(d.Get("container_id").(string), "container_id"),
+		ProviderName: conversion.StringPtr(providerName),
 	}
 
 	if providerName == "AWS" {
@@ -190,10 +186,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(errors.New("`vpc_id` must be set when `provider_name` is `AWS`"))
 		}
 
-		peerRequest.AccepterRegionName = region
-		peerRequest.AWSAccountID = awsAccountID.(string)
-		peerRequest.RouteTableCIDRBlock = rtCIDR.(string)
-		peerRequest.VpcID = vpcID.(string)
+		peerRequest.SetAccepterRegionName(region)
+		peerRequest.SetAwsAccountId(awsAccountID.(string))
+		peerRequest.SetRouteTableCidrBlock(rtCIDR.(string))
+		peerRequest.SetVpcId(vpcID.(string))
 	}
 
 	if providerName == "GCP" {
@@ -207,8 +203,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(errors.New("`network_name` must be set when `provider_name` is `GCP`"))
 		}
 
-		peerRequest.GCPProjectID = gcpProjectID.(string)
-		peerRequest.NetworkName = networkName.(string)
+		peerRequest.SetGcpProjectId(gcpProjectID.(string))
+		peerRequest.SetNetworkName(networkName.(string))
 	}
 
 	if providerName == "AZURE" {
@@ -232,13 +228,13 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(errors.New("`vnet_name` must be set when `provider_name` is `AZURE`"))
 		}
 
-		peerRequest.AzureDirectoryID = azureDirectoryID.(string)
-		peerRequest.AzureSubscriptionID = azureSubscriptionID.(string)
-		peerRequest.ResourceGroupName = resourceGroupName.(string)
-		peerRequest.VNetName = vnetName.(string)
+		peerRequest.SetAzureDirectoryId(azureDirectoryID.(string))
+		peerRequest.SetAzureSubscriptionId(azureSubscriptionID.(string))
+		peerRequest.SetResourceGroupName(resourceGroupName.(string))
+		peerRequest.SetVnetName(vnetName.(string))
 	}
 
-	peer, _, err := conn.Peers.Create(ctx, projectID, peerRequest)
+	peer, _, err := conn.NetworkPeeringApi.CreatePeeringConnection(ctx, projectID, peerRequest).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPeersCreate, err))
 	}
@@ -246,13 +242,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
 		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE"},
-		Refresh:    resourceRefreshFunc(ctx, peer.ID, projectID, peerRequest.ContainerID, conn),
+		Refresh:    resourceRefreshFunc(ctx, peer.GetId(), projectID, peerRequest.GetContainerId(), conn.NetworkPeeringApi),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 10 * time.Second,
 		Delay:      30 * time.Second,
 	}
 
-	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPeersCreate, err))
@@ -260,7 +255,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":    projectID,
-		"peer_id":       peer.ID,
+		"peer_id":       peer.GetId(),
 		"provider_name": providerName,
 	}))
 
@@ -282,20 +277,19 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 		return diag.FromErr(fmt.Errorf(errorPeersRead, peerID, err))
 	}
-	container, _, err := conn.NetworkPeeringApi.GetPeeringContainer(ctx, projectID, peer.GetContainerId()).Execute()
+	atlasCidrBlock, err := readAtlasCidrBlock(ctx, conn.NetworkPeeringApi, projectID, peer.GetContainerId())
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
-	if err := d.Set("atlas_cidr_block", container.GetAtlasCidrBlock()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `atlas_cidr_block` for Network Peering Connection (%s): %s", peerID, err))
+	if err := d.Set("atlas_cidr_block", atlasCidrBlock); err != nil {
+		return diag.Errorf("error setting `atlas_cidr_block` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
-	if err := d.Set("atlas_gcp_project_id", container.GetGcpProjectId()); err != nil {
+	if err := d.Set("atlas_gcp_project_id", peer.GetGcpProjectId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `atlas_gcp_project_id` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
-	if err := d.Set("atlas_vpc_name", container.GetNetworkName()); err != nil {
+	if err := d.Set("atlas_vpc_name", peer.GetNetworkName()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `atlas_vpc_name` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
@@ -402,66 +396,59 @@ func ensureAccepterRegionName(ctx context.Context, peer *admin.BaseNetworkPeerin
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	peerID := ids["peer_id"]
 
-	// All the request to update the peer require the ProviderName and ContainerID attribute.
-	peer := &matlas.Peer{
-		ProviderName: ids["provider_name"],
-		ContainerID:  conversion.GetEncodedID(d.Get("container_id").(string), "container_id"),
+	peer := &admin.BaseNetworkPeeringConnectionSettings{
+		ProviderName: conversion.StringPtr(ids["provider_name"]),
+		ContainerId:  conversion.GetEncodedID(d.Get("container_id").(string), "container_id"),
 	}
 
-	// Depending of the Provider name the request will be set
-	switch peer.ProviderName {
+	switch peer.GetProviderName() {
 	case "GCP":
-		peer.GCPProjectID = d.Get("gcp_project_id").(string)
-		peer.NetworkName = d.Get("network_name").(string)
+		peer.SetGcpProjectId(d.Get("gcp_project_id").(string))
+		peer.SetNetworkName(d.Get("network_name").(string))
 	case "AZURE":
 		if d.HasChange("azure_directory_id") {
-			peer.AzureDirectoryID = d.Get("azure_directory_id").(string)
+			peer.SetAzureDirectoryId(d.Get("azure_directory_id").(string))
 		}
 
 		if d.HasChange("azure_subscription_id") {
-			peer.AzureSubscriptionID = d.Get("azure_subscription_id").(string)
+			peer.SetAzureSubscriptionId(d.Get("azure_subscription_id").(string))
 		}
 
 		if d.HasChange("resource_group_name") {
-			peer.ResourceGroupName = d.Get("resource_group_name").(string)
+			peer.SetResourceGroupName(d.Get("resource_group_name").(string))
 		}
 
 		if d.HasChange("vnet_name") {
-			peer.VNetName = d.Get("vnet_name").(string)
+			peer.SetVnetName(d.Get("vnet_name").(string))
 		}
 	default: // AWS by default
 		region, _ := conversion.ValRegion(d.Get("accepter_region_name"), "network_peering")
-		peer.AccepterRegionName = region
-		peer.AWSAccountID = d.Get("aws_account_id").(string)
-		peer.RouteTableCIDRBlock = d.Get("route_table_cidr_block").(string)
-		peer.VpcID = d.Get("vpc_id").(string)
+		peer.SetAccepterRegionName(region)
+		peer.SetAwsAccountId(d.Get("aws_account_id").(string))
+		peer.SetRouteTableCidrBlock(d.Get("route_table_cidr_block").(string))
+		peer.SetVpcId(d.Get("vpc_id").(string))
 	}
 
-	// Has changes
-	if !reflect.DeepEqual(peer, matlas.Peer{}) {
-		_, _, err := conn.Peers.Update(ctx, projectID, peerID, peer)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorPeersUpdate, peerID, err))
-		}
+	_, _, err := conn.NetworkPeeringApi.UpdatePeeringConnection(ctx, projectID, peerID, peer).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorPeersUpdate, peerID, err))
 	}
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
 		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE"},
-		Refresh:    resourceRefreshFunc(ctx, peerID, projectID, "", conn),
+		Refresh:    resourceRefreshFunc(ctx, peerID, projectID, "", conn.NetworkPeeringApi),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
 	}
 
-	// Wait, catching any errors
-	_, err := stateConf.WaitForStateContext(ctx)
+	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPeersCreate, err))
 	}
@@ -470,13 +457,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	peerID := ids["peer_id"]
 
-	_, err := conn.Peers.Delete(ctx, projectID, peerID)
+	_, _, err := conn.NetworkPeeringApi.DeletePeeringConnection(ctx, projectID, peerID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPeersDelete, peerID, err))
 	}
@@ -486,13 +472,12 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"AVAILABLE", "INITIATING", "PENDING_ACCEPTANCE", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER", "TERMINATING", "DELETING"},
 		Target:     []string{"DELETED"},
-		Refresh:    resourceRefreshFunc(ctx, peerID, projectID, "", conn),
+		Refresh:    resourceRefreshFunc(ctx, peerID, projectID, "", conn.NetworkPeeringApi),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second, // Wait 10 secs before starting
 	}
 
-	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPeersDelete, peerID, err))
@@ -502,7 +487,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	parts := strings.SplitN(d.Id(), "-", 3)
 	if len(parts) != 3 {
@@ -513,7 +498,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	peerID := parts[1]
 	providerName := parts[2]
 
-	peer, _, err := conn.Peers.Get(ctx, projectID, peerID)
+	peer, _, err := conn.NetworkPeeringApi.GetPeeringConnection(ctx, projectID, peerID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import peer %s in project %s, error: %s", peerID, projectID, err)
 	}
@@ -522,7 +507,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 		log.Printf("[WARN] Error setting project_id for (%s): %s", peerID, err)
 	}
 
-	if err := d.Set("container_id", peer.ContainerID); err != nil {
+	if err := d.Set("container_id", peer.GetContainerId()); err != nil {
 		log.Printf("[WARN] Error setting container_id for (%s): %s", peerID, err)
 	}
 
@@ -532,16 +517,16 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":    projectID,
-		"peer_id":       peer.ID,
+		"peer_id":       peer.GetId(),
 		"provider_name": providerName,
 	}))
 
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceRefreshFunc(ctx context.Context, peerID, projectID, containerID string, client *matlas.Client) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, peerID, projectID, containerID string, api admin.NetworkPeeringApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		c, resp, err := client.Peers.Get(ctx, projectID, peerID)
+		c, resp, err := api.GetPeeringConnection(ctx, projectID, peerID).Execute()
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
 				return "", "DELETED", nil
@@ -552,10 +537,10 @@ func resourceRefreshFunc(ctx context.Context, peerID, projectID, containerID str
 			return nil, "", err
 		}
 
-		status := c.Status
+		status := c.GetStatus()
 
-		if c.StatusName != "" {
-			status = c.StatusName
+		if c.GetStatusName() != "" {
+			status = c.GetStatusName()
 		}
 
 		log.Printf("[DEBUG] status for MongoDB Network Peering Connection: %s: %s", peerID, status)
@@ -565,13 +550,13 @@ func resourceRefreshFunc(ctx context.Context, peerID, projectID, containerID str
 		 * is right, and the Mongo parameters used on the Google side to configure the reciprocal connection
 		 * are now available. */
 		if status == "WAITING_FOR_USER" {
-			container, _, err := client.Containers.Get(ctx, projectID, containerID)
+			container, _, err := api.GetPeeringContainer(ctx, projectID, containerID).Execute()
 
 			if err != nil {
 				return nil, "", fmt.Errorf(networkcontainer.ErrorContainerRead, containerID, err)
 			}
 
-			if *container.Provisioned {
+			if container.GetProvisioned() {
 				return container, "PENDING_ACCEPTANCE", nil
 			}
 		}
