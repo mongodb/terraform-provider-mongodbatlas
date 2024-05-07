@@ -109,7 +109,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigUpdate(ctx context.C
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 
-	federatedSettingsConnectedOrganizationUpdate, _, err := conn.FederatedAuthenticationApi.GetConnectedOrgConfig(context.Background(), federationSettingsID, orgID).Execute()
+	federatedSettingsConnectedOrganizationUpdate, _, err := conn.FederatedAuthenticationApi.GetConnectedOrgConfig(ctx, federationSettingsID, orgID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error retreiving federation settings connected organization (%s): %s", federationSettingsID, err))
 	}
