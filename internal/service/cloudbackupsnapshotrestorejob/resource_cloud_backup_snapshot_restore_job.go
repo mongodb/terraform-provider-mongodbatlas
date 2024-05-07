@@ -171,36 +171,40 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf("error getting cloudProviderSnapshotRestoreJob Information: %s", err))
 	}
 
-	if err = d.Set("delivery_url", snapshotReq.GetDeliveryUrl()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `delivery_url` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
+	if err = d.Set("snapshot_restore_job_id", snapshotReq.GetId()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `snapshot_restore_job_id` for cloudProviderSnapshotRestoreJob (%s): %s", restoreID, err))
 	}
 
-	if err = d.Set("cancelled", snapshotReq.GetCancelled()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `cancelled` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
-	}
+	return setCommonFields(d, snapshotReq, restoreID)
+}
+
+func setCommonFields(d *schema.ResourceData, snapshotReq *admin.DiskBackupSnapshotRestoreJob, restoreID string) diag.Diagnostics {
+	var err error
+
 	// not found any more
 	// if err = d.Set("created_at", conversion.TimeToString(snapshotReq.CreatedAt); err != nil {
 	// 	return diag.FromErr(fmt.Errorf("error setting `created_at` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
 	// }
-
+	if err = d.Set("delivery_url", snapshotReq.GetDeliveryUrl()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `delivery_url` for cloudProviderSnapshotRestoreJob (%s): %s", restoreID, err))
+	}
+	if err = d.Set("cancelled", snapshotReq.GetCancelled()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `cancelled` for cloudProviderSnapshotRestoreJob (%s): %s", restoreID, err))
+	}
 	if err = d.Set("expired", snapshotReq.GetExpired()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `expired` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
+		return diag.FromErr(fmt.Errorf("error setting `expired` for cloudProviderSnapshotRestoreJob (%s): %s", restoreID, err))
 	}
 
 	if err = d.Set("expires_at", conversion.TimePtrToStringPtr(snapshotReq.ExpiresAt)); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `expires_at` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
+		return diag.FromErr(fmt.Errorf("error setting `expires_at` for cloudProviderSnapshotRestoreJob (%s): %s", restoreID, err))
 	}
 
 	if err = d.Set("finished_at", conversion.TimePtrToStringPtr(snapshotReq.FinishedAt)); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `Finished_at` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
+		return diag.FromErr(fmt.Errorf("error setting `Finished_at` for cloudProviderSnapshotRestoreJob (%s): %s", restoreID, err))
 	}
 
 	if err = d.Set("timestamp", conversion.TimePtrToStringPtr(snapshotReq.Timestamp)); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `timestamp` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
-	}
-
-	if err = d.Set("snapshot_restore_job_id", snapshotReq.GetId()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `snapshot_restore_job_id` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
+		return diag.FromErr(fmt.Errorf("error setting `timestamp` for cloudProviderSnapshotRestoreJob (%s): %s", restoreID, err))
 	}
 
 	return nil
