@@ -283,10 +283,37 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 		return diag.FromErr(fmt.Errorf(errorPeersRead, peerID, err))
 	}
+	// If provider name is GCP we need to get the parameters to configure the the reciprocal connection
+	//  between Mongo and Google
+	container := &matlas.Container{}
+
+	if strings.EqualFold(providerName, "GCP") {
+		container, _, err = conn.Containers.Get(ctx, projectID, peer.ContainerID)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	if err := d.Set("peer_id", peerID); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `peer_id` for Network Peering Connection (%s): %s", peerID, err))
+	}
+
+	if err := d.Set("atlas_gcp_project_id", container.GCPProjectID); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `atlas_gcp_project_id` for Network Peering Connection (%s): %s", peerID, err))
+	}
+
+	if err := d.Set("atlas_vpc_name", container.NetworkName); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `atlas_vpc_name` for Network Peering Connection (%s): %s", peerID, err))
+	}
+
 	accepterRegionName, err := ensureAccepterRegionName(ctx, peer, conn, projectID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	return setCommonFields(d, peer, peerID, accepterRegionName)
+}
+
+func setCommonFields(d *schema.ResourceData, peer *matlas.Peer, peerID, accepterRegionName string) diag.Diagnostics {
 	if err := d.Set("accepter_region_name", accepterRegionName); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `accepter_region_name` for Network Peering Connection (%s): %s", peerID, err))
 	}
@@ -355,29 +382,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf("error setting `error_message` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
-	if err := d.Set("peer_id", peer.ID); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `peer_id` for Network Peering Connection (%s): %s", peerID, err))
+	if err := d.Set("atlas_cidr_block", peer.AtlasCIDRBlock); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `atlas_cidr_block` for Network Peering Connection (%s): %s", peerID, err))
 	}
-
-	// If provider name is GCP we need to get the parameters to configure the the reciprocal connection
-	//  between Mongo and Google
-	container := &matlas.Container{}
-
-	if strings.EqualFold(providerName, "GCP") {
-		container, _, err = conn.Containers.Get(ctx, projectID, peer.ContainerID)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-	}
-
-	if err := d.Set("atlas_gcp_project_id", container.GCPProjectID); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `atlas_gcp_project_id` for Network Peering Connection (%s): %s", peerID, err))
-	}
-
-	if err := d.Set("atlas_vpc_name", container.NetworkName); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `atlas_vpc_name` for Network Peering Connection (%s): %s", peerID, err))
-	}
-
 	return nil
 }
 
