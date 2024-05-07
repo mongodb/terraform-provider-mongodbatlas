@@ -43,11 +43,10 @@ jobs:
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v6
         with:
+          gpg_private_key: ${{ secrets.gpg_private_key }}
+          passphrase: ${{ secrets.passphrase }}
           git_user_signingkey: true
           git_commit_gpgsign: true
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.gpg_private_key }}
-          PASSPHRASE: ${{ secrets.passphrase }}
 
       - name: Commit changes
         run: |
