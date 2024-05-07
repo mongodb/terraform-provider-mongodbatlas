@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115012/admin"
@@ -101,8 +102,9 @@ func Resource() *schema.Resource {
 				Computed: true,
 			},
 			"created_at": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0"),
 			},
 			"expired": {
 				Type:     schema.TypeBool,
@@ -181,10 +183,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 func setCommonFields(d *schema.ResourceData, snapshotReq *admin.DiskBackupSnapshotRestoreJob, restoreID string) diag.Diagnostics {
 	var err error
 
-	// not found any more
-	// if err = d.Set("created_at", conversion.TimeToString(snapshotReq.CreatedAt); err != nil {
-	// 	return diag.FromErr(fmt.Errorf("error setting `created_at` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
-	// }
 	if err = d.Set("delivery_url", snapshotReq.GetDeliveryUrl()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `delivery_url` for cloudProviderSnapshotRestoreJob (%s): %s", restoreID, err))
 	}

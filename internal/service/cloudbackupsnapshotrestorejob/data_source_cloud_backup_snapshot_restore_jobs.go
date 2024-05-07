@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115012/admin"
@@ -46,8 +47,9 @@ func PluralDataSource() *schema.Resource {
 							Computed: true,
 						},
 						"created_at": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:       schema.TypeString,
+							Computed:   true,
+							Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0"),
 						},
 						"delivery_type": {
 							Type:     schema.TypeString,
@@ -146,9 +148,8 @@ func flattenCloudProviderSnapshotRestoreJobs(cloudProviderSnapshotRestoreJobs []
 		for k := range cloudProviderSnapshotRestoreJobs {
 			cloudProviderSnapshotRestoreJob := cloudProviderSnapshotRestoreJobs[k]
 			results[k] = map[string]any{
-				"id":        cloudProviderSnapshotRestoreJob.GetId(),
-				"cancelled": cloudProviderSnapshotRestoreJob.GetCancelled(),
-				// "created_at":                cloudProviderSnapshotRestoreJob.CreatedAt NOT FOUND anymore,
+				"id":                        cloudProviderSnapshotRestoreJob.GetId(),
+				"cancelled":                 cloudProviderSnapshotRestoreJob.GetCancelled(),
 				"delivery_type":             cloudProviderSnapshotRestoreJob.GetDeliveryType(),
 				"delivery_url":              cloudProviderSnapshotRestoreJob.GetDeliveryUrl(),
 				"expired":                   cloudProviderSnapshotRestoreJob.GetExpired(),
