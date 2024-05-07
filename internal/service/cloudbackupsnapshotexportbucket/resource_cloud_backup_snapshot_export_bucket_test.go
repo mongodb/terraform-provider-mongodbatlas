@@ -113,18 +113,17 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 
 func configBasic(projectID, bucketName, iamRoleID string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
+		resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
 			project_id     = "%[1]s"
     	  	iam_role_id    = "%[3]s"
        		bucket_name    = "%[2]s"
        		cloud_provider = "AWS"
-    }
+    	}
 
 		data "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
 			project_id   =  mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
 			export_bucket_id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
-			id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
-		}		
+		}
 
 		data "mongodbatlas_cloud_backup_snapshot_export_buckets" "test" {
 			project_id   =  mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
