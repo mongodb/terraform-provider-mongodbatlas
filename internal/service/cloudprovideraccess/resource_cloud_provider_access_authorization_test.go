@@ -139,7 +139,7 @@ func configAuthorizationAzure(projectID, atlasAzureAppID, servicePrincipalID, te
 
    resource "mongodbatlas_cloud_provider_access_authorization" "test" {
 		project_id = %[1]q
-    role_id = mongodbatlas_cloud_provider_access_setup.test.role_id
+        role_id = mongodbatlas_cloud_provider_access_setup.test.role_id
 		azure {
 			atlas_azure_app_id = %[2]q
 			service_principal_id = %[3]q
@@ -155,17 +155,14 @@ func checkDestroy(s *terraform.State) error {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		roles, _, err := acc.Conn().CloudProviderAccess.ListRoles(context.Background(), ids["project_id"])
+
+		id := ids["id"]
+		role, _, err := acc.ConnV2().CloudProviderAccessApi.GetCloudProviderAccessRole(context.Background(), ids["project_id"], id).Execute()
 		if err != nil {
 			return fmt.Errorf(cloudprovideraccess.ErrorCloudProviderGetRead, err)
 		}
-
-		// searching in roles
-		for i := range roles.AWSIAMRoles {
-			role := &(roles.AWSIAMRoles[i])
-			if role.RoleID == ids["id"] && role.ProviderName == ids["provider_name"] {
-				return fmt.Errorf("error cloud Provider Access Role (%s) still exists", ids["id"])
-			}
+		if role.GetId() == id || role.GetRoleId() == id {
+			return nil
 		}
 	}
 	return nil
