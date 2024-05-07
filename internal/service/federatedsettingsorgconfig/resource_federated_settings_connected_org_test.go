@@ -46,7 +46,10 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "name", "mongodb_federation_test"),
+					resource.TestCheckResourceAttr(resourceName, "domain_restriction_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "domain_allow_list.0", "reorganizeyourworld.com"),
 				),
 			},
 			{
@@ -94,11 +97,10 @@ func importStateIDFunc(federationSettingsID, orgID string) resource.ImportStateI
 func configBasic(federationSettingsID, orgID, identityProviderID string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_federated_settings_org_config" "test" {
-		federation_settings_id 		= %[1]q
-		org_id                 		= %[2]q
-		domain_restriction_enabled 	= false
-		domain_allow_list          	= ["mydomain.com"]
-		post_auth_role_grants      	= ["ORG_MEMBER"]
-		identity_provider_id 		= %[3]q
+		federation_settings_id     = "%[1]s"
+		org_id                     = "%[2]s"
+		domain_restriction_enabled = false
+		domain_allow_list          = ["reorganizeyourworld.com"]
+		identity_provider_id       = "%[3]s"
 	  }`, federationSettingsID, orgID, identityProviderID)
 }
