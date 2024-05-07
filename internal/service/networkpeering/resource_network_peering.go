@@ -17,6 +17,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkcontainer"
+	"go.mongodb.org/atlas-sdk/v20231115012/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -267,14 +268,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	peerID := ids["peer_id"]
-	providerName := ids["provider_name"]
 
-	peer, resp, err := conn.Peers.Get(ctx, projectID, peerID)
+	peer, resp, err := conn.NetworkPeeringApi.GetPeeringConnection(ctx, projectID, peerID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -283,126 +282,121 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 		return diag.FromErr(fmt.Errorf(errorPeersRead, peerID, err))
 	}
-	// If provider name is GCP we need to get the parameters to configure the the reciprocal connection
-	//  between Mongo and Google
-	container := &matlas.Container{}
+	container, _, err := conn.NetworkPeeringApi.GetPeeringContainer(ctx, projectID, peer.GetContainerId()).Execute()
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	if strings.EqualFold(providerName, "GCP") {
-		container, _, err = conn.Containers.Get(ctx, projectID, peer.ContainerID)
-		if err != nil {
-			return diag.FromErr(err)
-		}
+	if err := d.Set("atlas_cidr_block", container.GetAtlasCidrBlock()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `atlas_cidr_block` for Network Peering Connection (%s): %s", peerID, err))
+	}
+
+	if err := d.Set("atlas_gcp_project_id", container.GetGcpProjectId()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `atlas_gcp_project_id` for Network Peering Connection (%s): %s", peerID, err))
+	}
+
+	if err := d.Set("atlas_vpc_name", container.GetNetworkName()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `atlas_vpc_name` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	if err := d.Set("peer_id", peerID); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `peer_id` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
-	if err := d.Set("atlas_gcp_project_id", container.GCPProjectID); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `atlas_gcp_project_id` for Network Peering Connection (%s): %s", peerID, err))
-	}
-
-	if err := d.Set("atlas_vpc_name", container.NetworkName); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `atlas_vpc_name` for Network Peering Connection (%s): %s", peerID, err))
-	}
-
-	accepterRegionName, err := ensureAccepterRegionName(ctx, peer, conn, projectID)
+	accepterRegionName, err := ensureAccepterRegionName(ctx, peer, conn.NetworkPeeringApi, projectID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	return setCommonFields(d, peer, peerID, accepterRegionName)
 }
 
-func setCommonFields(d *schema.ResourceData, peer *matlas.Peer, peerID, accepterRegionName string) diag.Diagnostics {
+func setCommonFields(d *schema.ResourceData, peer *admin.BaseNetworkPeeringConnectionSettings, peerID, accepterRegionName string) diag.Diagnostics {
 	if err := d.Set("accepter_region_name", accepterRegionName); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `accepter_region_name` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
-	if err := d.Set("aws_account_id", peer.AWSAccountID); err != nil {
+	if err := d.Set("aws_account_id", peer.GetAwsAccountId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `aws_account_id` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
-	if err := d.Set("route_table_cidr_block", peer.RouteTableCIDRBlock); err != nil {
+	if err := d.Set("route_table_cidr_block", peer.GetRouteTableCidrBlock()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `route_table_cidr_block` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
-	if err := d.Set("vpc_id", peer.VpcID); err != nil {
+	if err := d.Set("vpc_id", peer.GetVpcId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `vpc_id` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
-	if err := d.Set("connection_id", peer.ConnectionID); err != nil {
+	if err := d.Set("connection_id", peer.GetConnectionId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `connection_id` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
-	if err := d.Set("error_state_name", peer.ErrorStateName); err != nil {
+	if err := d.Set("error_state_name", peer.GetErrorStateName()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `error_state_name` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
-	if err := d.Set("atlas_id", peer.ID); err != nil {
+	if err := d.Set("atlas_id", peer.GetId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `atlas_id` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
-	if err := d.Set("status_name", peer.StatusName); err != nil {
+	if err := d.Set("status_name", peer.GetStatusName()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `status_name` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
-	if err := d.Set("azure_directory_id", peer.AzureDirectoryID); err != nil {
+	if err := d.Set("azure_directory_id", peer.GetAzureDirectoryId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `azure_directory_id` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
-	if err := d.Set("azure_subscription_id", peer.AzureSubscriptionID); err != nil {
+	if err := d.Set("azure_subscription_id", peer.GetAzureSubscriptionId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `azure_subscription_id` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
-	if err := d.Set("resource_group_name", peer.ResourceGroupName); err != nil {
+	if err := d.Set("resource_group_name", peer.GetResourceGroupName()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `resource_group_name` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
-	if err := d.Set("vnet_name", peer.VNetName); err != nil {
+	if err := d.Set("vnet_name", peer.GetVnetName()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `vnet_name` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
-	if err := d.Set("error_state", peer.ErrorState); err != nil {
+	if err := d.Set("error_state", peer.GetErrorState()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `error_state` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
-	if err := d.Set("status", peer.Status); err != nil {
+	if err := d.Set("status", peer.GetStatus()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `status` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
-	if err := d.Set("gcp_project_id", peer.GCPProjectID); err != nil {
+	if err := d.Set("gcp_project_id", peer.GetGcpProjectId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `gcp_project_id` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
-	if err := d.Set("network_name", peer.NetworkName); err != nil {
+	if err := d.Set("network_name", peer.GetNetworkName()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `network_name` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
-	if err := d.Set("error_message", peer.ErrorMessage); err != nil {
+	if err := d.Set("error_message", peer.GetErrorMessage()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `error_message` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
-	if err := d.Set("atlas_cidr_block", peer.AtlasCIDRBlock); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `atlas_cidr_block` for Network Peering Connection (%s): %s", peerID, err))
-	}
 	return nil
 }
 
-func ensureAccepterRegionName(ctx context.Context, peer *matlas.Peer, conn *matlas.Client, projectID string) (string, error) {
+func ensureAccepterRegionName(ctx context.Context, peer *admin.BaseNetworkPeeringConnectionSettings, conn admin.NetworkPeeringApi, projectID string) (string, error) {
 	/* This fix the bug https://github.com/mongodb/terraform-provider-mongodbatlas/issues/53
 	 * If the region name of the peering connection resource is the same as the container resource,
 	 * the API returns it as a null value, so this causes the issue mentioned.
 	 */
 	var acepterRegionName string
-	if peer.AccepterRegionName != "" {
-		acepterRegionName = peer.AccepterRegionName
+	if peer.GetAccepterRegionName() != "" {
+		acepterRegionName = peer.GetAccepterRegionName()
 	} else {
-		container, _, err := conn.Containers.Get(ctx, projectID, peer.ContainerID)
+		container, _, err := conn.GetPeeringContainer(ctx, projectID, peer.GetContainerId()).Execute()
 		if err != nil {
 			return "", err
 		}
 		// network_peering resource must use region of format eu-west-2 while network_container uses EU_WEST_2.
-		acepterRegionName = conversion.MongoDBRegionToAWSRegion(container.RegionName)
+		acepterRegionName = conversion.MongoDBRegionToAWSRegion(container.GetRegionName())
 	}
 	return acepterRegionName, nil
 }
