@@ -43,7 +43,7 @@ jobs:
         run: grep --include=\*versions.tf -rnl './examples' -e 'version =' | xargs sed -i '/^\s*version =/d'
       - name: Fix format after substitutions
         run: grep --include=\*versions.tf -rnl './examples' -e 'source[[:space:]]\+=' | xargs sed -i 's@\(\([[:space:]]*\)source\)[[:space:]]\+=[[:space:]]*@\2source = @g'
-      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800
+      - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
         with:
           terraform_version: ${{ matrix.terraform_version }}
           # Needed to use the output of `terraform validate -json`
