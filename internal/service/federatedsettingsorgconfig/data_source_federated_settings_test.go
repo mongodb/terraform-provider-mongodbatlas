@@ -9,14 +9,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115013/admin"
 )
 
 func TestAccFederatedSettingsDS_basic(t *testing.T) {
 	acc.SkipTestForCI(t) // affects the org
 
 	var (
-		federatedSettings matlas.FederatedSettings
+		federatedSettings admin.OrgFederationSettings
 		resourceName      = "data.mongodbatlas_federated_settings.test"
 		orgID             = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
 	)
@@ -48,7 +48,7 @@ func testAccMongoDBAtlasDataSourceFederatedSettingsConfig(orgID string) string {
 `, orgID)
 }
 
-func testAccCheckMongoDBAtlasFederatedSettingsExists(resourceName string, federatedSettings *matlas.FederatedSettings) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasFederatedSettingsExists(resourceName string, federatedSettings *admin.OrgFederationSettings) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -57,7 +57,7 @@ func testAccCheckMongoDBAtlasFederatedSettingsExists(resourceName string, federa
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		federatedSettingsRes, _, err := acc.Conn().FederatedSettings.Get(context.Background(), rs.Primary.Attributes["org_id"])
+		federatedSettingsRes, _, err := acc.ConnV2().FederatedAuthenticationApi.GetFederationSettings(context.Background(), rs.Primary.Attributes["org_id"]).Execute()
 		if err != nil {
 			return fmt.Errorf("FederatedSettings (%s) does not exist", rs.Primary.ID)
 		}

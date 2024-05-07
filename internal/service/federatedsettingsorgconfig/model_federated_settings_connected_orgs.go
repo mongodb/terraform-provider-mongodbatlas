@@ -4,10 +4,10 @@ import (
 	"sort"
 	"strings"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115013/admin"
 )
 
-type roleMappingsByGroupName []*matlas.RoleMappings
+type roleMappingsByGroupName []admin.AuthFederationRoleMapping
 
 func (ra roleMappingsByGroupName) Len() int      { return len(ra) }
 func (ra roleMappingsByGroupName) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
@@ -16,7 +16,7 @@ func (ra roleMappingsByGroupName) Less(i, j int) bool {
 	return ra[i].ExternalGroupName < ra[j].ExternalGroupName
 }
 
-func FlattenRoleMappings(roleMappings []*matlas.RoleMappings) []map[string]any {
+func FlattenRoleMappings(roleMappings []admin.AuthFederationRoleMapping) []map[string]any {
 	sort.Sort(roleMappingsByGroupName(roleMappings))
 
 	var roleMappingsMap []map[string]any
@@ -26,9 +26,9 @@ func FlattenRoleMappings(roleMappings []*matlas.RoleMappings) []map[string]any {
 
 		for i := range roleMappings {
 			roleMappingsMap[i] = map[string]any{
-				"external_group_name": roleMappings[i].ExternalGroupName,
-				"id":                  roleMappings[i].ID,
-				"role_assignments":    FlattenRoleAssignments(roleMappings[i].RoleAssignments),
+				"external_group_name": roleMappings[i].GetExternalGroupName(),
+				"id":                  roleMappings[i].GetId(),
+				"role_assignments":    FlattenRoleAssignments(roleMappings[i].GetRoleAssignments()),
 			}
 		}
 	}
@@ -36,27 +36,27 @@ func FlattenRoleMappings(roleMappings []*matlas.RoleMappings) []map[string]any {
 	return roleMappingsMap
 }
 
-type mRoleAssignment []*matlas.RoleAssignments
+type mRoleAssignment []admin.RoleAssignment
 
 func (ra mRoleAssignment) Len() int      { return len(ra) }
 func (ra mRoleAssignment) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
 func (ra mRoleAssignment) Less(i, j int) bool {
-	compareVal := strings.Compare(ra[i].OrgID, ra[j].OrgID)
+	compareVal := strings.Compare(ra[i].GetOrgId(), ra[j].GetOrgId())
 
 	if compareVal != 0 {
 		return compareVal < 0
 	}
 
-	compareVal = strings.Compare(ra[i].GroupID, ra[j].GroupID)
+	compareVal = strings.Compare(ra[i].GetGroupId(), ra[j].GetGroupId())
 
 	if compareVal != 0 {
 		return compareVal < 0
 	}
 
-	return ra[i].Role < ra[j].Role
+	return ra[i].GetRole() < ra[j].GetRole()
 }
 
-func FlattenRoleAssignments(roleAssignments []*matlas.RoleAssignments) []map[string]any {
+func FlattenRoleAssignments(roleAssignments []admin.RoleAssignment) []map[string]any {
 	sort.Sort(mRoleAssignment(roleAssignments))
 
 	var roleAssignmentsMap []map[string]any
@@ -66,9 +66,9 @@ func FlattenRoleAssignments(roleAssignments []*matlas.RoleAssignments) []map[str
 
 		for i := range roleAssignments {
 			roleAssignmentsMap[i] = map[string]any{
-				"group_id": roleAssignments[i].GroupID,
-				"org_id":   roleAssignments[i].OrgID,
-				"role":     roleAssignments[i].Role,
+				"group_id": roleAssignments[i].GetGroupId(),
+				"org_id":   roleAssignments[i].GetOrgId(),
+				"role":     roleAssignments[i].GetRole(),
 			}
 		}
 	}
@@ -76,7 +76,7 @@ func FlattenRoleAssignments(roleAssignments []*matlas.RoleAssignments) []map[str
 	return roleAssignmentsMap
 }
 
-func FlattenUserConflicts(userConflicts matlas.UserConflicts) []map[string]any {
+func FlattenUserConflicts(userConflicts []admin.FederatedUser) []map[string]any {
 	var userConflictsMap []map[string]any
 
 	if len(userConflicts) == 0 {
@@ -86,11 +86,11 @@ func FlattenUserConflicts(userConflicts matlas.UserConflicts) []map[string]any {
 
 	for i := range userConflicts {
 		userConflictsMap[i] = map[string]any{
-			"email_address":          userConflicts[i].EmailAddress,
-			"federation_settings_id": userConflicts[i].FederationSettingsID,
-			"first_name":             userConflicts[i].FirstName,
-			"last_name":              userConflicts[i].LastName,
-			"user_id":                userConflicts[i].UserID,
+			"email_address":          userConflicts[i].GetEmailAddress(),
+			"federation_settings_id": userConflicts[i].GetFederationSettingsId(),
+			"first_name":             userConflicts[i].GetFirstName(),
+			"last_name":              userConflicts[i].GetLastName(),
+			"user_id":                userConflicts[i].GetUserId(),
 		}
 	}
 

@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115013/admin"
 )
 
 func DataSourceSettings() *schema.Resource {
@@ -48,7 +48,7 @@ func DataSourceSettings() *schema.Resource {
 
 func dataSourceMongoDBAtlasFederatedSettingsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	orgID, orgIDOk := d.GetOk("org_id")
 
@@ -58,43 +58,43 @@ func dataSourceMongoDBAtlasFederatedSettingsRead(ctx context.Context, d *schema.
 
 	var (
 		err error
-		org *matlas.Organization
+		org *admin.AtlasOrganization
 	)
 
 	if orgIDOk {
-		org, _, err = conn.Organizations.Get(ctx, orgID.(string))
+		org, _, err = conn.OrganizationsApi.GetOrganization(ctx, orgID.(string)).Execute()
 	}
 
 	if err != nil {
 		return diag.Errorf("Error reading Organization %s %s", orgID, err)
 	}
 
-	federationSettings, _, err := conn.FederatedSettings.Get(ctx, org.ID)
+	federationSettings, _, err := conn.FederatedAuthenticationApi.GetFederationSettings(ctx, org.GetId()).Execute()
 	if err != nil {
 		return diag.Errorf("error getting Federated settings (%s): %s", orgID, err)
 	}
 
-	if err := d.Set("org_id", org.ID); err != nil {
-		return diag.Errorf("error getting Federated settings (%s): %s %s", `org_id`, org.ID, err)
+	if err := d.Set("org_id", org.GetId()); err != nil {
+		return diag.Errorf("error getting Federated settings (%s): %s %s", `org_id`, org.GetId(), err)
 	}
 
-	if err := d.Set("federated_domains", federationSettings.FederatedDomains); err != nil {
-		return diag.Errorf("error getting Federated settings (%s): %s %s", `federated_domains`, federationSettings.FederatedDomains, err)
+	if err := d.Set("federated_domains", federationSettings.GetFederatedDomains()); err != nil {
+		return diag.Errorf("error getting Federated settings (%s): %s %s", `federated_domains`, federationSettings.GetFederatedDomains(), err)
 	}
 
-	if err := d.Set("identity_provider_status", federationSettings.IdentityProviderStatus); err != nil {
-		return diag.Errorf("error getting Federated settings (%s): %s %s", `identityProviderStatus`, federationSettings.IdentityProviderStatus, err)
+	if err := d.Set("identity_provider_status", federationSettings.GetIdentityProviderStatus()); err != nil {
+		return diag.Errorf("error getting Federated settings (%s): %s %s", `identityProviderStatus`, federationSettings.GetIdentityProviderStatus(), err)
 	}
 
-	if err := d.Set("identity_provider_id", federationSettings.IdentityProviderID); err != nil {
-		return diag.Errorf("error getting Federated settings (%s): %s %s", `IdentityProviderID`, federationSettings.IdentityProviderID, err)
+	if err := d.Set("identity_provider_id", federationSettings.GetIdentityProviderId()); err != nil {
+		return diag.Errorf("error getting Federated settings (%s): %s %s", `IdentityProviderID`, federationSettings.GetIdentityProviderId(), err)
 	}
 
-	if err := d.Set("has_role_mappings", federationSettings.HasRoleMappings); err != nil {
+	if err := d.Set("has_role_mappings", federationSettings.GetHasRoleMappings()); err != nil {
 		return diag.Errorf("error getting Federated settings (%s): flag  %s ", `HasRoleMappings`, err)
 	}
 
-	d.SetId(federationSettings.ID)
+	d.SetId(federationSettings.GetId())
 
 	return nil
 }
