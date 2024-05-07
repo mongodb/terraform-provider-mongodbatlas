@@ -14,22 +14,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115013/admin"
 )
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasCloudBackupSnapshotExportBucketCreate,
-		ReadContext:   resourceMongoDBAtlasCloudBackupSnapshotExportBucketRead,
-		DeleteContext: resourceMongoDBAtlasCloudBackupSnapshotExportBucketDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasCloudBackupSnapshotExportBucketImportState,
+			StateContext: resourceImportState,
 		},
-		Schema: returnCloudBackupSnapshotExportBucketSchema(),
+		Schema: Schema(),
 	}
 }
 
-func returnCloudBackupSnapshotExportBucketSchema() map[string]*schema.Schema {
+func Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -62,9 +62,9 @@ func returnCloudBackupSnapshotExportBucketSchema() map[string]*schema.Schema {
 	}
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotExportBucketCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
 	cloudProvider := d.Get("cloud_provider").(string)
@@ -72,36 +72,33 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportBucketCreate(ctx context.Conte
 		return diag.Errorf("atlas only supports AWS")
 	}
 
-	request := &matlas.CloudProviderSnapshotExportBucket{
-		IAMRoleID:     d.Get("iam_role_id").(string),
-		BucketName:    d.Get("bucket_name").(string),
-		CloudProvider: cloudProvider,
+	request := &admin.DiskBackupSnapshotAWSExportBucket{
+		IamRoleId:     conversion.StringPtr(d.Get("iam_role_id").(string)),
+		BucketName:    conversion.StringPtr(d.Get("bucket_name").(string)),
+		CloudProvider: &cloudProvider,
 	}
 
-	bucketResponse, _, err := conn.CloudProviderSnapshotExportBuckets.Create(ctx, projectID, request)
+	bucketResponse, _, err := conn.CloudBackupsApi.CreateExportBucket(ctx, projectID, request).Execute()
 	if err != nil {
 		return diag.Errorf("error creating snapshot export bucket: %s", err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id": projectID,
-		"id":         bucketResponse.ID,
+		"id":         bucketResponse.GetId(),
 	}))
 
-	return resourceMongoDBAtlasCloudBackupSnapshotExportBucketRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotExportBucketRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	bucketID := ids["id"]
 
-	exportBackup, _, err := conn.CloudProviderSnapshotExportBuckets.Get(ctx, projectID, bucketID)
+	exportBackup, _, err := conn.CloudBackupsApi.GetExportBucket(ctx, projectID, bucketID).Execute()
 	if err != nil {
-		// case 404
-		// deleted in the backend case
 		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
 
 		if reset {
@@ -112,19 +109,19 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportBucketRead(ctx context.Context
 		return diag.Errorf("error getting snapshot export backup information: %s", err)
 	}
 
-	if err := d.Set("export_bucket_id", exportBackup.ID); err != nil {
+	if err := d.Set("export_bucket_id", exportBackup.GetId()); err != nil {
 		return diag.Errorf("error setting `export_bucket_id` for snapshot export bucket (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("bucket_name", exportBackup.BucketName); err != nil {
+	if err := d.Set("bucket_name", exportBackup.GetBucketName()); err != nil {
 		return diag.Errorf("error setting `bucket_name` for snapshot export bucket (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("cloud_provider", exportBackup.CloudProvider); err != nil {
+	if err := d.Set("cloud_provider", exportBackup.GetCloudProvider()); err != nil {
 		return diag.Errorf("error setting `bucket_name` for snapshot export bucket (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("iam_role_id", exportBackup.IAMRoleID); err != nil {
+	if err := d.Set("iam_role_id", exportBackup.IamRoleId); err != nil {
 		return diag.Errorf("error setting `iam_role_id` for snapshot export bucket (%s): %s", d.Id(), err)
 	}
 
@@ -135,9 +132,9 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportBucketRead(ctx context.Context
 	return nil
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotExportBucketDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	bucketID := ids["id"]
@@ -145,7 +142,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportBucketDelete(ctx context.Conte
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"PENDING", "REPEATING"},
 		Target:     []string{"DELETED"},
-		Refresh:    resourceCloudBackupSnapshotExportBucketRefreshFunc(ctx, conn, projectID, bucketID),
+		Refresh:    resourceRefresh(ctx, conn, projectID, bucketID),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
@@ -156,7 +153,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportBucketDelete(ctx context.Conte
 		return diag.Errorf("error deleting snapshot export bucket %s %s", projectID, err)
 	}
 
-	_, err = conn.CloudProviderSnapshotExportBuckets.Delete(ctx, projectID, bucketID)
+	_, _, err = conn.CloudBackupsApi.DeleteExportBucket(ctx, projectID, bucketID).Execute()
 
 	if err != nil {
 		return diag.Errorf("error deleting snapshot export bucket (%s): %s", bucketID, err)
@@ -165,10 +162,10 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportBucketDelete(ctx context.Conte
 	return nil
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotExportBucketImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 
-	projectID, id, err := splitCloudBackupSnapshotExportBucketImportID(d.Id())
+	projectID, id, err := splitImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +183,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportBucketImportState(ctx context.
 	return []*schema.ResourceData{d}, nil
 }
 
-func splitCloudBackupSnapshotExportBucketImportID(id string) (projectID, bucketID *string, err error) {
+func splitImportID(id string) (projectID, bucketID *string, err error) {
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
@@ -201,9 +198,9 @@ func splitCloudBackupSnapshotExportBucketImportID(id string) (projectID, bucketI
 	return
 }
 
-func resourceCloudBackupSnapshotExportBucketRefreshFunc(ctx context.Context, client *matlas.Client, projectID, exportBucketID string) retry.StateRefreshFunc {
+func resourceRefresh(ctx context.Context, client *admin.APIClient, projectID, exportBucketID string) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		clusters, resp, err := client.Clusters.List(ctx, projectID, nil)
+		clustersPaginated, resp, err := client.ClustersApi.ListClusters(ctx, projectID).Execute()
 		if err != nil {
 			// For our purposes, no clusters is equivalent to all changes having been APPLIED
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
@@ -211,23 +208,24 @@ func resourceCloudBackupSnapshotExportBucketRefreshFunc(ctx context.Context, cli
 			}
 			return nil, "REPEATING", err
 		}
+		clusters := clustersPaginated.GetResults()
 
 		for i := range clusters {
-			backupPolicy, _, err := client.CloudProviderSnapshotBackupPolicies.Get(context.Background(), projectID, clusters[i].Name)
+			backupPolicy, _, err := client.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusters[i].GetName()).Execute()
 			if err != nil {
 				continue
 			}
 			// find cluster that has export id attached to its config
 			if backupPolicy.Export != nil {
-				if backupPolicy.Export.ExportBucketID == exportBucketID {
-					if clusters[i].StateName == "IDLE" {
+				if backupPolicy.Export.GetExportBucketId() == exportBucketID {
+					if clusters[i].GetStateName() == "IDLE" {
 						return clusters, "PENDING", nil
 					}
-					if clusters[i].StateName == "UPDATING" {
+					if clusters[i].GetStateName() == "UPDATING" {
 						return clusters, "PENDING", nil
 					}
 
-					s, resp, err := client.Clusters.Status(ctx, projectID, clusters[i].Name)
+					s, resp, err := client.ClustersApi.GetClusterStatus(ctx, projectID, clusters[i].GetName()).Execute()
 
 					if err != nil && strings.Contains(err.Error(), "reset by peer") {
 						return nil, "REPEATING", nil
@@ -248,7 +246,7 @@ func resourceCloudBackupSnapshotExportBucketRefreshFunc(ctx context.Context, cli
 						return nil, "REPEATING", err
 					}
 
-					if s.ChangeStatus == matlas.ChangeStatusPending {
+					if s.GetChangeStatus() == "PENDING" {
 						return clusters, "PENDING", nil
 					}
 				}

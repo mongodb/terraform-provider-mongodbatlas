@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115013/admin"
 )
 
 const (
@@ -24,12 +24,12 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBFederatedDatabaseQueryLimitCreate,
-		ReadContext:   resourceMongoDBFederatedDatabaseQueryLimitRead,
-		UpdateContext: resourceMongoDBFederatedDatabaseQueryLimitUpdate,
-		DeleteContext: resourceMongoDBFederatedDatabaseQueryLimitDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasFederatedDatabaseQueryLimitImportState,
+			StateContext: resourceImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -72,39 +72,42 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBFederatedDatabaseQueryLimitCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	return createOrUpdate(ctx, meta, d, errorFederatedDatabaseQueryLimitCreate)
+}
 
+func createOrUpdate(ctx context.Context, meta any, d *schema.ResourceData, errorTemplate string) diag.Diagnostics {
+	conn := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get(string("project_id")).(string)
 	tenantName := d.Get("tenant_name").(string)
 	limitName := d.Get("limit_name").(string)
 
-	requestBody := &matlas.DataFederationQueryLimit{
-		OverrunPolicy: d.Get("overrun_policy").(string),
+	requestBody := &admin.DataFederationTenantQueryLimit{
+		OverrunPolicy: conversion.StringPtr(d.Get("overrun_policy").(string)),
 		Value:         int64(d.Get("value").(int)),
 	}
 
-	federatedDatabaseQueryLimit, _, err := conn.DataFederation.ConfigureQueryLimit(ctx, projectID, tenantName, limitName, requestBody)
+	federatedDatabaseQueryLimit, _, err := conn.DataFederationApi.CreateOneDataFederationQueryLimit(ctx, projectID, tenantName, limitName, requestBody).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseQueryLimitCreate, limitName, err))
+		return diag.FromErr(fmt.Errorf(errorTemplate, limitName, err))
 	}
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":  projectID,
-		"tenant_name": federatedDatabaseQueryLimit.TenantName,
+		"tenant_name": federatedDatabaseQueryLimit.GetTenantName(),
 		"limit_name":  federatedDatabaseQueryLimit.Name,
 	}))
 
-	return resourceMongoDBFederatedDatabaseQueryLimitRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBFederatedDatabaseQueryLimitRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	tenantName := ids["tenant_name"]
 	limitName := ids["limit_name"]
 
-	queryLimit, resp, err := conn.DataFederation.GetQueryLimit(ctx, projectID, tenantName, limitName)
+	queryLimit, resp, err := conn.DataFederationApi.ReturnFederatedDatabaseQueryLimit(ctx, projectID, tenantName, limitName).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -119,50 +122,34 @@ func resourceMongoDBFederatedDatabaseQueryLimitRead(ctx context.Context, d *sche
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":  projectID,
-		"tenant_name": queryLimit.TenantName,
+		"tenant_name": queryLimit.GetTenantName(),
 		"limit_name":  queryLimit.Name,
 	}))
 
 	return nil
 }
 
-func resourceMongoDBFederatedDatabaseQueryLimitUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	ids := conversion.DecodeStateID(d.Id())
-	projectID := ids["project_id"]
-	tenantName := ids["tenant_name"]
-	limitName := ids["limit_name"]
-
-	requestBody := &matlas.DataFederationQueryLimit{
-		OverrunPolicy: d.Get("overrun_policy").(string),
-		Value:         int64(d.Get("value").(int)),
-	}
-
-	if _, _, err := conn.DataFederation.ConfigureQueryLimit(ctx, projectID, tenantName, limitName, requestBody); err != nil {
-		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseQueryLimitUpdate, limitName, err))
-	}
-
-	return resourceMongoDBFederatedDatabaseQueryLimitRead(ctx, d, meta)
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	return createOrUpdate(ctx, meta, d, errorFederatedDatabaseQueryLimitUpdate)
 }
 
-func resourceMongoDBFederatedDatabaseQueryLimitDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	tenantName := ids["tenant_name"]
 	limitName := ids["limit_name"]
 
-	if _, err := conn.DataFederation.DeleteQueryLimit(ctx, projectID, tenantName, limitName); err != nil {
+	if _, _, err := conn.DataFederationApi.DeleteOneDataFederationInstanceQueryLimit(ctx, projectID, tenantName, limitName).Execute(); err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseQueryLimitDelete, limitName, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasFederatedDatabaseQueryLimitImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+	conn := meta.(*config.MongoDBClient).AtlasV2
 	parts := strings.Split(d.Id(), "--")
 
 	var projectID, tenantName, limitName string
@@ -172,7 +159,7 @@ func resourceMongoDBAtlasFederatedDatabaseQueryLimitImportState(ctx context.Cont
 	}
 	projectID, tenantName, limitName = parts[0], parts[1], parts[2]
 
-	queryLimit, _, err := conn.DataFederation.GetQueryLimit(ctx, projectID, tenantName, limitName)
+	queryLimit, _, err := conn.DataFederationApi.ReturnFederatedDatabaseQueryLimit(ctx, projectID, tenantName, limitName).Execute()
 
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import federated database query limit(%s) for project (%s), tenant (%s), error: %s", limitName, projectID, tenantName, err)
@@ -184,14 +171,14 @@ func resourceMongoDBAtlasFederatedDatabaseQueryLimitImportState(ctx context.Cont
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":  projectID,
-		"tenant_name": queryLimit.TenantName,
+		"tenant_name": queryLimit.GetTenantName(),
 		"limit_name":  queryLimit.Name,
 	}))
 
 	return []*schema.ResourceData{d}, nil
 }
 
-func setResourceFieldsFromFederatedDatabaseQueryLimit(d *schema.ResourceData, projectID string, queryLimit *matlas.DataFederationQueryLimit) error {
+func setResourceFieldsFromFederatedDatabaseQueryLimit(d *schema.ResourceData, projectID string, queryLimit *admin.DataFederationTenantQueryLimit) error {
 	if err := d.Set("project_id", projectID); err != nil {
 		return fmt.Errorf(errorFederatedDatabaseQueryLimit, "project_id", d.Id(), err)
 	}
@@ -200,11 +187,11 @@ func setResourceFieldsFromFederatedDatabaseQueryLimit(d *schema.ResourceData, pr
 		return fmt.Errorf(errorFederatedDatabaseQueryLimit, "limit_name", d.Id(), err)
 	}
 
-	if err := d.Set("tenant_name", queryLimit.TenantName); err != nil {
+	if err := d.Set("tenant_name", queryLimit.GetTenantName()); err != nil {
 		return fmt.Errorf(errorFederatedDatabaseQueryLimit, "tenant_name", d.Id(), err)
 	}
 
-	if err := d.Set("overrun_policy", queryLimit.OverrunPolicy); err != nil {
+	if err := d.Set("overrun_policy", queryLimit.GetOverrunPolicy()); err != nil {
 		return fmt.Errorf(errorFederatedDatabaseQueryLimit, "overrun_policy", d.Id(), err)
 	}
 
@@ -212,19 +199,19 @@ func setResourceFieldsFromFederatedDatabaseQueryLimit(d *schema.ResourceData, pr
 		return fmt.Errorf(errorFederatedDatabaseQueryLimit, "value", d.Id(), err)
 	}
 
-	if err := d.Set("current_usage", queryLimit.CurrentUsage); err != nil {
+	if err := d.Set("current_usage", queryLimit.GetCurrentUsage()); err != nil {
 		return fmt.Errorf(errorFederatedDatabaseQueryLimit, "current_usage", d.Id(), err)
 	}
 
-	if err := d.Set("default_limit", queryLimit.DefaultLimit); err != nil {
+	if err := d.Set("default_limit", queryLimit.GetDefaultLimit()); err != nil {
 		return fmt.Errorf(errorFederatedDatabaseQueryLimit, "default_limit", d.Id(), err)
 	}
 
-	if err := d.Set("last_modified_date", queryLimit.LastModifiedDate); err != nil {
+	if err := d.Set("last_modified_date", conversion.TimeToString(queryLimit.GetLastModifiedDate())); err != nil {
 		return fmt.Errorf(errorFederatedDatabaseQueryLimit, "last_modified_date", d.Id(), err)
 	}
 
-	if err := d.Set("maximum_limit", queryLimit.MaximumLimit); err != nil {
+	if err := d.Set("maximum_limit", queryLimit.GetMaximumLimit()); err != nil {
 		return fmt.Errorf(errorFederatedDatabaseQueryLimit, "maximum_limit", d.Id(), err)
 	}
 
