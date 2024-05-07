@@ -380,10 +380,9 @@ func buildRequestSnapshotReq(d *schema.ResourceData) *admin.DiskBackupSnapshotRe
 		if aut, _ := delivery["point_in_time"].(bool); aut {
 			deliveryType = "pointInTime"
 		}
-
 		snapshotID := conversion.GetEncodedID(d.Get("snapshot_id").(string), "snapshot_id")
 		return &admin.DiskBackupSnapshotRestoreJob{
-			SnapshotId:            &snapshotID,
+			SnapshotId:            conversion.StringPtr(snapshotID),
 			DeliveryType:          deliveryType,
 			TargetClusterName:     conversion.StringPtr(delivery["target_cluster_name"].(string)),
 			TargetGroupId:         conversion.StringPtr(delivery["target_project_id"].(string)),
