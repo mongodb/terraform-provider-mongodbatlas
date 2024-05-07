@@ -29,12 +29,12 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasNetworkPeeringCreate,
-		ReadContext:   resourceMongoDBAtlasNetworkPeeringRead,
-		UpdateContext: resourceMongoDBAtlasNetworkPeeringUpdate,
-		DeleteContext: resourceMongoDBAtlasNetworkPeeringDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasNetworkPeeringImportState,
+			StateContext: resourceImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -156,7 +156,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasNetworkPeeringCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -245,7 +245,7 @@ func resourceMongoDBAtlasNetworkPeeringCreate(ctx context.Context, d *schema.Res
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
 		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE"},
-		Refresh:    resourceNetworkPeeringRefreshFunc(ctx, peer.ID, projectID, peerRequest.ContainerID, conn),
+		Refresh:    resourceRefreshFunc(ctx, peer.ID, projectID, peerRequest.ContainerID, conn),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 10 * time.Second,
 		Delay:      30 * time.Second,
@@ -263,10 +263,10 @@ func resourceMongoDBAtlasNetworkPeeringCreate(ctx context.Context, d *schema.Res
 		"provider_name": providerName,
 	}))
 
-	return resourceMongoDBAtlasNetworkPeeringRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasNetworkPeeringRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
@@ -400,7 +400,7 @@ func ensureAccepterRegionName(ctx context.Context, peer *matlas.Peer, conn *matl
 	return acepterRegionName, nil
 }
 
-func resourceMongoDBAtlasNetworkPeeringUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
@@ -453,7 +453,7 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(ctx context.Context, d *schema.Res
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
 		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE"},
-		Refresh:    resourceNetworkPeeringRefreshFunc(ctx, peerID, projectID, "", conn),
+		Refresh:    resourceRefreshFunc(ctx, peerID, projectID, "", conn),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
@@ -465,10 +465,10 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf(errorPeersCreate, err))
 	}
 
-	return resourceMongoDBAtlasNetworkPeeringRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasNetworkPeeringDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
@@ -485,7 +485,7 @@ func resourceMongoDBAtlasNetworkPeeringDelete(ctx context.Context, d *schema.Res
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"AVAILABLE", "INITIATING", "PENDING_ACCEPTANCE", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER", "TERMINATING", "DELETING"},
 		Target:     []string{"DELETED"},
-		Refresh:    resourceNetworkPeeringRefreshFunc(ctx, peerID, projectID, "", conn),
+		Refresh:    resourceRefreshFunc(ctx, peerID, projectID, "", conn),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second, // Wait 10 secs before starting
@@ -500,7 +500,7 @@ func resourceMongoDBAtlasNetworkPeeringDelete(ctx context.Context, d *schema.Res
 	return nil
 }
 
-func resourceMongoDBAtlasNetworkPeeringImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 3)
@@ -538,7 +538,7 @@ func resourceMongoDBAtlasNetworkPeeringImportState(ctx context.Context, d *schem
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceNetworkPeeringRefreshFunc(ctx context.Context, peerID, projectID, containerID string, client *matlas.Client) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, peerID, projectID, containerID string, client *matlas.Client) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		c, resp, err := client.Peers.Get(ctx, projectID, peerID)
 		if err != nil {
