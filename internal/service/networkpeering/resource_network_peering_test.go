@@ -218,8 +218,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		log.Printf("[DEBUG] projectID: %s", ids["project_id"])
-		if peerResp, _, err := acc.ConnV2().NetworkPeeringApi.GetPeeringConnection(context.Background(), ids["project_id"], ids["peer_id"]).Execute(); err == nil {
-			peerResp.SetProviderName(ids["provider_name"])
+		if _, _, err := acc.ConnV2().NetworkPeeringApi.GetPeeringConnection(context.Background(), ids["project_id"], ids["peer_id"]).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("peer(%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["peer_id"])

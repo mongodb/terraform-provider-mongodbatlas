@@ -111,7 +111,6 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	peerID := conversion.GetEncodedID(d.Get("peering_id").(string), "peer_id")
