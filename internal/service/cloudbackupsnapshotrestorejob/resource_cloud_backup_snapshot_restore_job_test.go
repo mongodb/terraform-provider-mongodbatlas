@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -103,12 +102,10 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		log.Printf("[DEBUG] cloudBackupSnapshotRestoreJob ID: %s", rs.Primary.Attributes["snapshot_restore_job_id"])
-		requestParameters := &matlas.SnapshotReqPathParameters{
-			GroupID:     ids["project_id"],
-			ClusterName: ids["cluster_name"],
-			JobID:       ids["snapshot_restore_job_id"],
-		}
-		if _, _, err := acc.Conn().CloudProviderSnapshotRestoreJobs.Get(context.Background(), requestParameters); err == nil {
+		projectID := ids["project_id"]
+		clusterName := ids["cluster_name"]
+		restoreJobID := ids["snapshot_restore_job_id"]
+		if _, _, err := acc.ConnV2().CloudBackupsApi.GetBackupRestoreJob(context.Background(), projectID, clusterName, restoreJobID).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("cloudBackupSnapshotRestoreJob (%s) does not exist", rs.Primary.Attributes["snapshot_restore_job_id"])
@@ -121,12 +118,10 @@ func checkDestroy(s *terraform.State) error {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		requestParameters := &matlas.SnapshotReqPathParameters{
-			GroupID:     ids["project_id"],
-			ClusterName: ids["cluster_name"],
-			JobID:       ids["snapshot_restore_job_id"],
-		}
-		res, _, _ := acc.Conn().CloudProviderSnapshotRestoreJobs.Get(context.Background(), requestParameters)
+		projectID := ids["project_id"]
+		clusterName := ids["cluster_name"]
+		restoreJobID := ids["snapshot_restore_job_id"]
+		res, _, _ := acc.ConnV2().CloudBackupsApi.GetBackupRestoreJob(context.Background(), projectID, clusterName, restoreJobID).Execute()
 		if res != nil {
 			return fmt.Errorf("cloudBackupSnapshotRestoreJob (%s) still exists", rs.Primary.Attributes["snapshot_restore_job_id"])
 		}

@@ -10,10 +10,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115013/admin"
 )
 
 func Resource() *schema.Resource {
@@ -102,8 +102,9 @@ func Resource() *schema.Resource {
 				Computed: true,
 			},
 			"created_at": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0"),
 			},
 			"expired": {
 				Type:     schema.TypeBool,
@@ -130,14 +131,10 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
-	requestParameters := &matlas.SnapshotReqPathParameters{
-		GroupID:     d.Get("project_id").(string),
-		ClusterName: d.Get("cluster_name").(string),
-	}
-
+	projectID := d.Get("project_id").(string)
+	clusterName := d.Get("cluster_name").(string)
 	err := validateDeliveryType(d.Get("delivery_type_config").([]any))
 	if err != nil {
 		return diag.FromErr(err)
@@ -145,7 +142,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	snapshotReq := buildRequestSnapshotReq(d)
 
-	cloudProviderSnapshotRestoreJob, _, err := conn.CloudProviderSnapshotRestoreJobs.Create(ctx, requestParameters, snapshotReq)
+	cloudProviderSnapshotRestoreJob, _, err := conn.CloudBackupsApi.CreateBackupRestoreJob(ctx, projectID, clusterName, snapshotReq).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error restore a snapshot: %s", err))
 	}
@@ -153,24 +150,20 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":              d.Get("project_id").(string),
 		"cluster_name":            d.Get("cluster_name").(string),
-		"snapshot_restore_job_id": cloudProviderSnapshotRestoreJob.ID,
+		"snapshot_restore_job_id": cloudProviderSnapshotRestoreJob.GetId(),
 	}))
 
 	return resourceRead(ctx, d, meta)
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 
-	requestParameters := &matlas.SnapshotReqPathParameters{
-		JobID:       ids["snapshot_restore_job_id"],
-		GroupID:     ids["project_id"],
-		ClusterName: ids["cluster_name"],
-	}
-
-	snapshotReq, resp, err := conn.CloudProviderSnapshotRestoreJobs.Get(context.Background(), requestParameters)
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+	restoreID := ids["snapshot_restore_job_id"]
+	snapshotReq, resp, err := conn.CloudBackupsApi.GetBackupRestoreJob(ctx, projectID, clusterName, restoreID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -180,50 +173,48 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf("error getting cloudProviderSnapshotRestoreJob Information: %s", err))
 	}
 
-	if err = d.Set("delivery_url", snapshotReq.DeliveryURL); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `delivery_url` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
+	if err = d.Set("snapshot_restore_job_id", snapshotReq.GetId()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `snapshot_restore_job_id` for cloudProviderSnapshotRestoreJob (%s): %s", restoreID, err))
 	}
 
-	if err = d.Set("cancelled", snapshotReq.Cancelled); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `cancelled` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
+	return setCommonFields(d, snapshotReq, restoreID)
+}
+
+func setCommonFields(d *schema.ResourceData, snapshotReq *admin.DiskBackupSnapshotRestoreJob, restoreID string) diag.Diagnostics {
+	var err error
+
+	if err = d.Set("delivery_url", snapshotReq.GetDeliveryUrl()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `delivery_url` for cloudProviderSnapshotRestoreJob (%s): %s", restoreID, err))
+	}
+	if err = d.Set("cancelled", snapshotReq.GetCancelled()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `cancelled` for cloudProviderSnapshotRestoreJob (%s): %s", restoreID, err))
+	}
+	if err = d.Set("expired", snapshotReq.GetExpired()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `expired` for cloudProviderSnapshotRestoreJob (%s): %s", restoreID, err))
 	}
 
-	if err = d.Set("created_at", snapshotReq.CreatedAt); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `created_at` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
+	if err = d.Set("expires_at", conversion.TimePtrToStringPtr(snapshotReq.ExpiresAt)); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `expires_at` for cloudProviderSnapshotRestoreJob (%s): %s", restoreID, err))
 	}
 
-	if err = d.Set("expired", snapshotReq.Expired); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `expired` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
+	if err = d.Set("finished_at", conversion.TimePtrToStringPtr(snapshotReq.FinishedAt)); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `Finished_at` for cloudProviderSnapshotRestoreJob (%s): %s", restoreID, err))
 	}
 
-	if err = d.Set("expires_at", snapshotReq.ExpiresAt); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `expires_at` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
-	}
-
-	if err = d.Set("finished_at", snapshotReq.FinishedAt); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `Finished_at` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
-	}
-
-	if err = d.Set("timestamp", snapshotReq.Timestamp); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `timestamp` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
-	}
-
-	if err = d.Set("snapshot_restore_job_id", snapshotReq.ID); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `snapshot_restore_job_id` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
+	if err = d.Set("timestamp", conversion.TimePtrToStringPtr(snapshotReq.Timestamp)); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `timestamp` for cloudProviderSnapshotRestoreJob (%s): %s", restoreID, err))
 	}
 
 	return nil
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 
-	requestParameters := &matlas.SnapshotReqPathParameters{
-		JobID:       ids["snapshot_restore_job_id"],
-		GroupID:     ids["project_id"],
-		ClusterName: ids["cluster_name"],
-	}
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+	restoreID := ids["snapshot_restore_job_id"]
 
 	shouldDelete := true
 
@@ -239,7 +230,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if shouldDelete {
-		_, err := conn.CloudProviderSnapshotRestoreJobs.Delete(context.Background(), requestParameters)
+		_, _, err := conn.CloudBackupsApi.CancelBackupRestoreJob(ctx, projectID, clusterName, restoreID).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error deleting a cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
 		}
@@ -249,33 +240,26 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
-	projectID, clusterName, snapshotJobID, err := splitSnapshotRestoreJobImportID(d.Id())
+	projectID, clusterName, restoreID, err := splitSnapshotRestoreJobImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
-
-	requestParameters := &matlas.SnapshotReqPathParameters{
-		GroupID:     *projectID,
-		ClusterName: *clusterName,
-		JobID:       *snapshotJobID,
-	}
-
-	u, _, err := conn.CloudProviderSnapshotRestoreJobs.Get(ctx, requestParameters)
+	u, _, err := conn.CloudBackupsApi.GetBackupRestoreJob(ctx, projectID, clusterName, restoreID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import cloudProviderSnapshotRestoreJob %s in project %s, error: %s", requestParameters.ClusterName, requestParameters.GroupID, err)
+		return nil, fmt.Errorf("couldn't import cloudProviderSnapshotRestoreJob %s in project %s, error: %s", clusterName, projectID, err)
 	}
 
-	if err := d.Set("project_id", requestParameters.GroupID); err != nil {
+	if err := d.Set("project_id", projectID); err != nil {
 		log.Printf("[WARN] Error setting project_id for (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("cluster_name", requestParameters.ClusterName); err != nil {
+	if err := d.Set("cluster_name", clusterName); err != nil {
 		log.Printf("[WARN] Error setting cluster_name for (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("snapshot_id", u.SnapshotID); err != nil {
+	if err := d.Set("snapshot_id", u.GetSnapshotId()); err != nil {
 		log.Printf("[WARN] Error setting snapshot_id for (%s): %s", d.Id(), err)
 	}
 
@@ -284,12 +268,11 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 
 	if u.DeliveryType == "automated" {
 		deliveryType["automated"] = "true"
-		deliveryType["target_cluster_name"] = u.TargetClusterName
-		deliveryType["target_project_id"] = u.TargetGroupID
-		// For delivery_type_config
+		deliveryType["target_cluster_name"] = u.GetTargetClusterName()
+		deliveryType["target_project_id"] = u.GetTargetGroupId()
 		deliveryTypeConfig["automated"] = true
-		deliveryTypeConfig["target_cluster_name"] = u.TargetClusterName
-		deliveryTypeConfig["target_project_id"] = u.TargetGroupID
+		deliveryTypeConfig["target_cluster_name"] = u.GetTargetClusterName()
+		deliveryTypeConfig["target_project_id"] = u.GetTargetGroupId()
 	}
 
 	if err := d.Set("delivery_type_config", []any{deliveryTypeConfig}); err != nil {
@@ -297,15 +280,14 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"project_id":              *projectID,
-		"cluster_name":            *clusterName,
-		"snapshot_restore_job_id": *snapshotJobID,
-	}))
+		"project_id":              projectID,
+		"cluster_name":            clusterName,
+		"snapshot_restore_job_id": restoreID}))
 
 	return []*schema.ResourceData{d}, nil
 }
 
-func splitSnapshotRestoreJobImportID(id string) (projectID, clusterName, snapshotJobID *string, err error) {
+func splitSnapshotRestoreJobImportID(id string) (projectID, clusterName, snapshotJobID string, err error) {
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([0-9a-fA-F]{24})$`)
 	parts := re.FindStringSubmatch(id)
 
@@ -314,9 +296,9 @@ func splitSnapshotRestoreJobImportID(id string) (projectID, clusterName, snapsho
 		return
 	}
 
-	projectID = &parts[1]
-	clusterName = &parts[2]
-	snapshotJobID = &parts[3]
+	projectID = parts[1]
+	clusterName = parts[2]
+	snapshotJobID = parts[3]
 
 	return
 }
@@ -384,7 +366,7 @@ func validateDeliveryType(dt []any) error {
 	return nil
 }
 
-func buildRequestSnapshotReq(d *schema.ResourceData) *matlas.CloudProviderSnapshotRestoreJob {
+func buildRequestSnapshotReq(d *schema.ResourceData) *admin.DiskBackupSnapshotRestoreJob {
 	if _, ok := d.GetOk("delivery_type_config"); ok {
 		deliveryList := d.Get("delivery_type_config").([]any)
 
@@ -398,17 +380,17 @@ func buildRequestSnapshotReq(d *schema.ResourceData) *matlas.CloudProviderSnapsh
 		if aut, _ := delivery["point_in_time"].(bool); aut {
 			deliveryType = "pointInTime"
 		}
-
-		return &matlas.CloudProviderSnapshotRestoreJob{
-			SnapshotID:            conversion.GetEncodedID(d.Get("snapshot_id").(string), "snapshot_id"),
+		snapshotID := conversion.GetEncodedID(d.Get("snapshot_id").(string), "snapshot_id")
+		return &admin.DiskBackupSnapshotRestoreJob{
+			SnapshotId:            conversion.StringPtr(snapshotID),
 			DeliveryType:          deliveryType,
-			TargetClusterName:     delivery["target_cluster_name"].(string),
-			TargetGroupID:         delivery["target_project_id"].(string),
-			OplogTs:               cast.ToInt64(delivery["oplog_ts"]),
-			OplogInc:              cast.ToInt64(delivery["oplog_inc"]),
-			PointInTimeUTCSeconds: cast.ToInt64(delivery["point_in_time_utc_seconds"]),
+			TargetClusterName:     conversion.StringPtr(delivery["target_cluster_name"].(string)),
+			TargetGroupId:         conversion.StringPtr(delivery["target_project_id"].(string)),
+			OplogTs:               conversion.IntPtr(delivery["oplog_ts"].(int)),
+			OplogInc:              conversion.IntPtr(delivery["oplog_inc"].(int)),
+			PointInTimeUTCSeconds: conversion.IntPtr(delivery["point_in_time_utc_seconds"].(int)),
 		}
 	}
 
-	return &matlas.CloudProviderSnapshotRestoreJob{}
+	return &admin.DiskBackupSnapshotRestoreJob{}
 }
