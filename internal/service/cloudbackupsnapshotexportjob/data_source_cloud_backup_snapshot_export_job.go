@@ -56,8 +56,9 @@ func DataSource() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"export_id": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:       schema.TypeString,
+							Computed:   true,
+							Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0"),
 						},
 						"replica_set_name": {
 							Type:     schema.TypeString,

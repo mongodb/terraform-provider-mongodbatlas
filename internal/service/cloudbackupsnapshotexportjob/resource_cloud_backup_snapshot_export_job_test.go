@@ -43,8 +43,9 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			"project_id": projectID,
 		}
 		attrsPluralDS = map[string]string{
-			"project_id":                  projectID,
-			"results.0.custom_data.0.key": "exported by",
+			"project_id":                    projectID,
+			"results.0.custom_data.0.key":   "exported by",
+			"results.0.custom_data.0.value": "tf-acc-test",
 		}
 	)
 	checks := []resource.TestCheckFunc{checkExists(resourceName)}
