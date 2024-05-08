@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_cloud_backup_snapshot_export_bucket: Marks `id` as computed not required ([#2241](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2241))
+
 BUG FIXES:
 
 * data-source/mongodbatlas_federated_database_instance: Populates value of `data_process_region` when returned by the API ([#2223](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2223))
