@@ -34,7 +34,10 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-
+			"role_mapping_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"external_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -90,6 +93,10 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx contex
 		}
 
 		return diag.FromErr(fmt.Errorf("error getting federated settings organization config: %s", err))
+	}
+
+	if err := d.Set("role_mapping_id", federatedSettingsOrganizationRoleMapping.ID); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting role_mapping_id (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("external_group_name", federatedSettingsOrganizationRoleMapping.ExternalGroupName); err != nil {
