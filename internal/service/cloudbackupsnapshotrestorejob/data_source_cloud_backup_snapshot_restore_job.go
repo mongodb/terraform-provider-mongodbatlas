@@ -104,15 +104,11 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	var restoreID string
-	var err error
 	restoreIDRaw, restoreIDInField := d.GetOk("snapshot_restore_job_id")
 	if restoreIDInField {
 		restoreID = restoreIDRaw.(string)
 	} else {
 		restoreID = conversion.GetEncodedID(d.Get("job_id").(string), "snapshot_restore_job_id")
-		if err = d.Set("snapshot_restore_job_id", restoreID); err != nil {
-			return diag.FromErr(fmt.Errorf("error setting `snapshot_restore_job_id` for cloudProviderSnapshotRestoreJob (%s): %s", d.Id(), err))
-		}
 	}
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
