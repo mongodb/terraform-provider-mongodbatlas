@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* data-source/cloud_backup_snapshot_export_job: Marks `id` as computed not required ([#2234](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2234))
 * data-source/mongodbatlas_cloud_backup_snapshot_export_bucket: Marks `id` as computed not required ([#2241](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2241))
 
 BUG FIXES:
