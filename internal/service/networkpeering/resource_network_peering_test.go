@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 var (
@@ -30,7 +29,6 @@ func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
 	acc.SkipTestForCI(t) // needs Azure configuration
 
 	var (
-		peer              matlas.Peer
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		directoryID       = os.Getenv("AZURE_DIRECTORY_ID")
 		subscriptionID    = os.Getenv("AZURE_SUBSCRIPTION_ID")
@@ -47,7 +45,7 @@ func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
 			{
 				Config: configAzure(projectID, providerName, directoryID, subscriptionID, resourceGroupName, vNetName),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &peer),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
@@ -70,7 +68,6 @@ func TestAccNetworkRSNetworkPeering_basicGCP(t *testing.T) {
 	acc.SkipTestForCI(t) // needs GCP configuration
 
 	var (
-		peer         matlas.Peer
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		providerName = "GCP"
 		gcpProjectID = os.Getenv("GCP_PROJECT_ID")
@@ -85,7 +82,7 @@ func TestAccNetworkRSNetworkPeering_basicGCP(t *testing.T) {
 			{
 				Config: configGCP(projectID, providerName, gcpProjectID, networkName),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, &peer),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "network_name"),
@@ -188,7 +185,7 @@ func commonChecksAWS(vpcID, providerName, awsAccountID, vpcCIDRBlock, regionPeer
 		"route_table_cidr_block": vpcCIDRBlock,
 		"accepter_region_name":   regionPeer,
 	}
-	checks := []resource.TestCheckFunc{checkExists(resourceName, &matlas.Peer{})}
+	checks := []resource.TestCheckFunc{checkExists(resourceName)}
 	checks = acc.AddAttrChecks(resourceName, checks, attributes)
 	checks = acc.AddAttrChecks(dataSourceName, checks, attributes)
 	checks = acc.AddAttrSetChecks(resourceName, checks, "project_id", "container_id", "accepter_region_name")
@@ -210,7 +207,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func checkExists(resourceName string, peer *matlas.Peer) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -221,9 +218,7 @@ func checkExists(resourceName string, peer *matlas.Peer) resource.TestCheckFunc 
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		log.Printf("[DEBUG] projectID: %s", ids["project_id"])
-		if peerResp, _, err := acc.Conn().Peers.Get(context.Background(), ids["project_id"], ids["peer_id"]); err == nil {
-			*peer = *peerResp
-			peer.ProviderName = ids["provider_name"]
+		if _, _, err := acc.ConnV2().NetworkPeeringApi.GetPeeringConnection(context.Background(), ids["project_id"], ids["peer_id"]).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("peer(%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["peer_id"])
