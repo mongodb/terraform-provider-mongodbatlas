@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -19,7 +18,7 @@ var (
 )
 
 func TestAccBackupSnapshotExportJob_basic(t *testing.T) {
-	resource.ParallelTest(t, *basicTestCase(t))
+	resource.Test(t, *basicTestCase(t))
 }
 
 func basicTestCase(tb testing.TB) *resource.TestCase {
@@ -27,36 +26,41 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	acc.SkipTestForCI(tb) // needs AWS IAM role and S3 bucket
 
 	var (
-		projectID  = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		bucketName = os.Getenv("AWS_S3_BUCKET")
-		iamRoleID  = os.Getenv("IAM_ROLE_ID")
+		clusterInfo = acc.GetClusterInfo(tb, &acc.ClusterRequest{CloudBackup: true})
+		bucketName  = os.Getenv("AWS_S3_BUCKET")
+		iamRoleID   = os.Getenv("IAM_ROLE_ID")
+		projectID   = acc.ProjectIDExecution(tb)
+		clusterName = clusterInfo.ClusterName
+		attrsSet    = []string{
+			"id",
+			"export_job_id",
+			"project_id",
+			"cluster_name",
+			"snapshot_id",
+			"export_bucket_id",
+		}
+		attrsMapWithProject = map[string]string{
+			"project_id": projectID,
+		}
+		attrsPluralDS = map[string]string{
+			"project_id":                  projectID,
+			"results.0.custom_data.0.key": "exported by",
+		}
 	)
+	checks := []resource.TestCheckFunc{checkExists(resourceName)}
+	checks = acc.AddAttrChecks(resourceName, checks, attrsMapWithProject)
+	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
+	checks = acc.AddAttrChecks(dataSourceName, checks, attrsMapWithProject)
+	checks = acc.AddAttrSetChecks(dataSourceName, checks, attrsSet...)
+	checks = acc.AddAttrChecks(dataSourcePluralName, checks, attrsPluralDS)
 
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(tb); acc.PreCheckS3Bucket(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, bucketName, iamRoleID),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "bucket_name", "example-bucket"),
-					resource.TestCheckResourceAttr(resourceName, "cloud_provider", "AWS"),
-					resource.TestCheckResourceAttrSet(resourceName, "iam_role_id"),
-
-					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(dataSourceName, "bucket_name", "example-bucket"),
-					resource.TestCheckResourceAttr(dataSourceName, "cloud_provider", "AWS"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "iam_role_id"),
-
-					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "bucket_name", "example-bucket"),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "cloud_provider", "AWS"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "iam_role_id"),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.#", "1"),
-				),
+				Config: configBasic(projectID, bucketName, iamRoleID, clusterName),
+				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 			{
 				ResourceName:      resourceName,
@@ -74,30 +78,16 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("no ID is set")
+		projectID, clusterName, exportJobID, err := readRequired(rs, resourceName)
+		if err != nil {
+			return err
 		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.Conn().CloudProviderSnapshotExportJobs.Get(context.Background(), ids["project_id"], ids["cluster_name"], ids["export_job_id"])
+		_, _, err = acc.Conn().CloudProviderSnapshotExportJobs.Get(context.Background(), projectID, clusterName, exportJobID)
 		if err == nil {
 			return nil
 		}
-		return fmt.Errorf("snapshot export job (%s) does not exist", ids["export_job_id"])
+		return fmt.Errorf("snapshot export job (%s) does not exist", exportJobID)
 	}
-}
-
-func checkDestroy(state *terraform.State) error {
-	for _, rs := range state.RootModule().Resources {
-		if rs.Type != "mongodbatlas_cloud_backup_snapshot_export_job" {
-			continue
-		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		snapshotExportBucket, _, err := acc.Conn().CloudProviderSnapshotExportJobs.Get(context.Background(), ids["project_id"], ids["cluster_name"], ids["export_job_id"])
-		if err == nil && snapshotExportBucket != nil {
-			return fmt.Errorf("snapshot export job (%s) still exists", ids["export_job_id"])
-		}
-	}
-	return nil
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
@@ -106,58 +96,69 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		return fmt.Sprintf("%s-%s-%s", ids["project_id"], ids["cluster_name"], ids["export_job_id"]), nil
+		projectID, clusterName, exportJobID, err := readRequired(rs, resourceName)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("%s--%s--%s", projectID, clusterName, exportJobID), err
 	}
 }
 
-func configBasic(projectID, bucketName, iamRoleID string) string {
-	return fmt.Sprintf(`
-resource "mongodbatlas_cluster" "my_cluster" {
-  project_id   = var.project_id
-  name         = "MyCluster"
-  disk_size_gb = 1
-  provider_name               = "AWS"
-  provider_region_name        = "US_EAST_1"
-  provider_instance_size_name = "M10"
-  cloud_backup                = true // enable cloud backup snapshots
+func readRequired(rs *terraform.ResourceState, resourceName string) (projectID, clusterName, exportJobID string, err error) {
+	projectID, ok := rs.Primary.Attributes["project_id"]
+	if !ok {
+		err = fmt.Errorf("project_id not defined in resource: %s", resourceName)
+	}
+	clusterName, ok = rs.Primary.Attributes["cluster_name"]
+	if !ok {
+		err = fmt.Errorf("cluster_name not defined in resource: %s", resourceName)
+	}
+	exportJobID, ok = rs.Primary.Attributes["export_job_id"]
+	if !ok {
+		err = fmt.Errorf("export_job_id not defined in resource: %s", resourceName)
+	}
+	return projectID, clusterName, exportJobID, err
 }
 
+func configBasic(projectID, bucketName, iamRoleID, clusterName string) string {
+	return fmt.Sprintf(`
 resource "mongodbatlas_cloud_backup_snapshot" "test" {
-  project_id        = var.project_id
-  cluster_name      = mongodbatlas_cluster.my_cluster.name
-  description       = "myDescription"
+  project_id        = %[1]q
+  cluster_name      = %[4]q
+  description       = "tf-acc-test"
   retention_in_days = 1
 }
 
 resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
-  project_id     = "%[1]s"
+  project_id     = %[1]q
   iam_role_id    = "%[3]s"
   bucket_name    = "%[2]s"
   cloud_provider = "AWS"
 }
 
 resource "mongodbatlas_cloud_backup_snapshot_export_job" "test" {
-  project_id   = var.project_id
-  cluster_name = mongodbatlas_cluster.my_cluster.name
-  snapshot_id = mongodbatlas_cloud_backup_snapshot.test.snapshot_id
-  export_bucket_id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
+  project_id   		= %[1]q
+  cluster_name 		= %[4]q
+  snapshot_id		= mongodbatlas_cloud_backup_snapshot.test.snapshot_id
+  export_bucket_id 	= mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
 
   custom_data {
     key   = "exported by"
-    value = "myName"
+    value = "tf-acc-test"
   }
 }
 
 data "mongodbatlas_cloud_backup_snapshot_export_job" "test" {
-  project_id = "%[1]s"
-  cluster_name = mongodbatlas_cluster.my_cluster.name
-  export_job_id = mongodbatlas_cloud_backup_snapshot_export_job.myjob.export_job_id
+    project_id 		= %[1]q
+    cluster_name 	= %[4]q
+    export_job_id 	= mongodbatlas_cloud_backup_snapshot_export_job.test.export_job_id
+}
+  
+data "mongodbatlas_cloud_backup_snapshot_export_jobs" "test" {
+    depends_on 	= [mongodbatlas_cloud_backup_snapshot_export_job.test] 
+    project_id   	= %[1]q
+    cluster_name 	= %[4]q
 }
 
-data "mongodbatlas_cloud_backup_snapshot_export_jobs" "test" {
-  project_id   = mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
-  cluster_name = mongodbatlas_cluster.my_cluster.name
-}
-`, projectID, bucketName, iamRoleID)
+`, projectID, bucketName, iamRoleID, clusterName)
 }

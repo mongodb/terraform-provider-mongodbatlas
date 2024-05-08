@@ -2,11 +2,11 @@ package cloudbackupsnapshotexportjob
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 )
 
 func DataSource() *schema.Resource {
@@ -14,8 +14,10 @@ func DataSource() *schema.Resource {
 		ReadContext: dataSourceMongoDBAtlasCloudBackupSnapshotsExportJobRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:       schema.TypeString,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0") + " Will not be an input parameter, only computed.",
 			},
 			"export_job_id": {
 				Type:     schema.TypeString,
@@ -101,69 +103,9 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasCloudBackupSnapshotsExportJobRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-	ids := conversion.DecodeStateID(d.Id())
-	projectID := ids["project_id"]
-	clusterName := ids["cluster_name"]
-	exportID := ids["export_job_id"]
-
-	exportJob, _, err := conn.CloudProviderSnapshotExportJobs.Get(ctx, projectID, clusterName, exportID)
+	exportJob, err := readExportJob(ctx, meta, d)
 	if err != nil {
-		return diag.Errorf("error getting snapshot export job information: %s", err)
+		return diag.Errorf("error reading snapshot export job information: %s", err)
 	}
-
-	if err := d.Set("export_job_id", exportJob.ID); err != nil {
-		return diag.Errorf("error setting `export_job_id` for snapshot export job (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("snapshot_id", exportJob.SnapshotID); err != nil {
-		return diag.Errorf("error setting `snapshot_id` for snapshot export job (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("custom_data", flattenExportJobsCustomData(exportJob.CustomData)); err != nil {
-		return diag.Errorf("error setting `custom_data` for snapshot export job (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("components", flattenExportJobsComponents(exportJob.Components)); err != nil {
-		return diag.Errorf("error setting `components` for snapshot export job (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("created_at", exportJob.CreatedAt); err != nil {
-		return diag.Errorf("error setting `created_at` for snapshot export job (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("err_msg", exportJob.ErrMsg); err != nil {
-		return diag.Errorf("error setting `created_at` for snapshot export job (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("export_bucket_id", exportJob.ExportBucketID); err != nil {
-		return diag.Errorf("error setting `created_at` for snapshot export job (%s): %s", d.Id(), err)
-	}
-
-	if exportJob.ExportStatus != nil {
-		if err := d.Set("export_status_exported_collections", exportJob.ExportStatus.ExportedCollections); err != nil {
-			return diag.Errorf("error setting `export_status_exported_collections` for snapshot export job (%s): %s", d.Id(), err)
-		}
-
-		if err := d.Set("export_status_total_collections", exportJob.ExportStatus.TotalCollections); err != nil {
-			return diag.Errorf("error setting `export_status_total_collections` for snapshot export job (%s): %s", d.Id(), err)
-		}
-	}
-
-	if err := d.Set("finished_at", exportJob.FinishedAt); err != nil {
-		return diag.Errorf("error setting `finished_at` for snapshot export job (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("prefix", exportJob.Prefix); err != nil {
-		return diag.Errorf("error setting `prefix` for snapshot export job (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("state", exportJob.State); err != nil {
-		return diag.Errorf("error setting `prefix` for snapshot export job (%s): %s", d.Id(), err)
-	}
-
-	d.SetId(exportJob.ID)
-
-	return nil
+	return setExportJobFields(d, exportJob)
 }

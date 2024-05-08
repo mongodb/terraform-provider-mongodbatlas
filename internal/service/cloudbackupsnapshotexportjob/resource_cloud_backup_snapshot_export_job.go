@@ -17,7 +17,7 @@ func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasCloudBackupSnapshotExportJobCreate,
 		ReadContext:   resourceMongoDBAtlasCloudBackupSnapshotExportJobRead,
-		DeleteContext: schema.NoopContext,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasCloudBackupSnapshotExportJobImportState,
 		},
@@ -121,17 +121,8 @@ func returnCloudBackupSnapshotExportJobSchema() map[string]*schema.Schema {
 }
 
 func resourceMongoDBAtlasCloudBackupSnapshotExportJobRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-	ids := conversion.DecodeStateID(d.Id())
-	projectID := ids["project_id"]
-	clusterName := ids["cluster_name"]
-	exportID := ids["export_job_id"]
-
-	exportJob, _, err := conn.CloudProviderSnapshotExportJobs.Get(ctx, projectID, clusterName, exportID)
+	exportJob, err := readExportJob(ctx, meta, d)
 	if err != nil {
-		// case 404
-		// deleted in the backend case
 		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
 
 		if reset {
@@ -141,7 +132,37 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportJobRead(ctx context.Context, d
 
 		return diag.Errorf("error getting snapshot export job information: %s", err)
 	}
+	return setExportJobFields(d, exportJob)
+}
 
+func readExportJob(ctx context.Context, meta any, d *schema.ResourceData) (*matlas.CloudProviderSnapshotExportJob, error) {
+	conn := meta.(*config.MongoDBClient).Atlas
+	projectID, clusterName, exportID := getRequiredFields(d)
+	if d.Id() != "" && (projectID == "" || clusterName == "" || exportID == "") {
+		ids := conversion.DecodeStateID(d.Id())
+		projectID = ids["project_id"]
+		clusterName = ids["cluster_name"]
+		exportID = ids["export_job_id"]
+	}
+	exportJob, _, err := conn.CloudProviderSnapshotExportJobs.Get(ctx, projectID, clusterName, exportID)
+	if err == nil {
+		d.SetId(conversion.EncodeStateID(map[string]string{
+			"project_id":    projectID,
+			"cluster_name":  clusterName,
+			"export_job_id": exportJob.ID,
+		}))
+	}
+	return exportJob, err
+}
+
+func getRequiredFields(d *schema.ResourceData) (projectID, clusterName, exportID string) {
+	projectID = d.Get("project_id").(string)
+	clusterName = d.Get("cluster_name").(string)
+	exportID = d.Get("export_job_id").(string)
+	return projectID, clusterName, exportID
+}
+
+func setExportJobFields(d *schema.ResourceData, exportJob *matlas.CloudProviderSnapshotExportJob) diag.Diagnostics {
 	if err := d.Set("export_job_id", exportJob.ID); err != nil {
 		return diag.Errorf("error setting `export_job_id` for snapshot export job (%s): %s", d.Id(), err)
 	}
@@ -230,7 +251,6 @@ func flattenExportJobsCustomData(data []*matlas.CloudProviderSnapshotExportJobCu
 }
 
 func resourceMongoDBAtlasCloudBackupSnapshotExportJobCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
@@ -246,12 +266,9 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportJobCreate(ctx context.Context,
 		return diag.Errorf("error creating snapshot export job: %s", err)
 	}
 
-	d.SetId(conversion.EncodeStateID(map[string]string{
-		"project_id":    projectID,
-		"cluster_name":  clusterName,
-		"export_job_id": jobResponse.ID,
-	}))
-
+	if err := d.Set("export_job_id", jobResponse.ID); err != nil {
+		return diag.Errorf("error setting `export_job_id` for snapshot export job (%s): %s", jobResponse.ID, err)
+	}
 	return resourceMongoDBAtlasCloudBackupSnapshotExportJobRead(ctx, d, meta)
 }
 
@@ -287,11 +304,19 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportJobImportState(ctx context.Con
 		return nil, fmt.Errorf("couldn't import snapshot export job %s in project %s and cluster %s, error: %s", exportID, projectID, clusterName, err)
 	}
 
-	d.SetId(conversion.EncodeStateID(map[string]string{
-		"project_id":    projectID,
-		"cluster_name":  clusterName,
-		"export_job_id": exportID,
-	}))
-
+	if err := d.Set("project_id", projectID); err != nil {
+		return nil, fmt.Errorf("error setting `project_id` for snapshot export job (%s): %s", d.Id(), err)
+	}
+	if err := d.Set("cluster_name", clusterName); err != nil {
+		return nil, fmt.Errorf("error setting `cluster_name` for snapshot export job (%s): %s", d.Id(), err)
+	}
+	if err := d.Set("export_job_id", exportID); err != nil {
+		return nil, fmt.Errorf("error setting `export_job_id` for snapshot export job (%s): %s", d.Id(), err)
+	}
 	return []*schema.ResourceData{d}, nil
+}
+
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	d.SetId("")
+	return nil
 }
