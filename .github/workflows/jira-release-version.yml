@@ -23,7 +23,7 @@ jobs:
       - name: Validation of version format, no pre-releases
         run: |
           echo "${{ inputs.version_number }}" | grep -P '^v\d+\.\d+\.\d+$'
-      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
+      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
         with:
           go-version-file: 'go.mod'
       - run: make jira-release-version
