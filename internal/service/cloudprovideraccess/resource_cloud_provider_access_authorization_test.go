@@ -67,10 +67,11 @@ func basicAuthorizationTestCase(tb testing.TB) *resource.TestCase {
 }
 
 func configAuthorizationAWS(projectID, policyName, roleName, federatedDatabaseInstanceName, testS3Bucket string) string {
+	bucketResourceName := "arn:aws:s3:::" + testS3Bucket
 	return fmt.Sprintf(`
 
 resource "mongodbatlas_federated_database_instance" "test" {
-	project_id         = mongodbatlas_project.test.id
+	project_id         = %[1]q
 	name = %[4]q
 
 	cloud_provider_config {
@@ -99,7 +100,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
 	storage_stores {
 	    name = "ClusterTest"
 	    cluster_name = "ClusterTest"
-	    project_id = mongodbatlas_project.test.id
+	    project_id = %[1]q
 	    provider = "atlas"
 	    read_preference {
 			mode = "secondary"
@@ -118,7 +119,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
 	storage_stores {
 	 name = "dataStore0"
 	 cluster_name = "ClusterTest"
-	 project_id = mongodbatlas_project.test.id
+	 project_id = %[1]q
 	 provider = "atlas"
 	 read_preference {
 		 mode = "secondary"
@@ -134,11 +135,20 @@ resource "aws_iam_role_policy" "test_policy" {
   {
     "Version": "2012-10-17",
     "Statement": [
-      {
-        "Effect": "Deny",
-		"Action": "*",
-		"Resource": "*"
-      }
+		{
+			"Effect": "Allow",
+			"Action": [
+				"s3:GetObject",
+				"s3:ListBucket",
+				"s3:GetObjectVersion"
+			],
+			"Resource": "*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": "s3:*",
+			"Resource": %[6]q
+		}
     ]
   }
   EOF
@@ -182,7 +192,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
     iam_assumed_role_arn = aws_iam_role.test_role.arn
   }
 }
-	`, projectID, policyName, roleName, federatedDatabaseInstanceName, testS3Bucket)
+	`, projectID, policyName, roleName, federatedDatabaseInstanceName, testS3Bucket, bucketResourceName)
 }
 
 func configAuthorizationAzure(projectID, atlasAzureAppID, servicePrincipalID, tenantID string) string {
