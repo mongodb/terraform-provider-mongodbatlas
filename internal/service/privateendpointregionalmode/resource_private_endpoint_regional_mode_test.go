@@ -35,7 +35,7 @@ func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
 		clusterResourceName    = "test"
 		clusterResource        = acc.ConfigClusterGlobal(orgID, projectName, clusterName)
 		clusterDataSource      = modeClusterData(clusterResourceName, resourceSuffix, endpointResourceSuffix)
-		endpointResources      = testAccMongoDBAtlasPrivateLinkEndpointServiceConfigUnmanagedAWS(
+		endpointResources      = testConfigUnmanagedAWS(
 			awsAccessKey, awsSecretKey, projectID, providerName, region, endpointResourceSuffix,
 		)
 		dependencies = []string{clusterResource, clusterDataSource, endpointResources}
@@ -218,7 +218,7 @@ func checkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccMongoDBAtlasPrivateLinkEndpointServiceConfigUnmanagedAWS(awsAccessKey, awsSecretKey, projectID, providerName, region, serviceResourceName string) string {
+func testConfigUnmanagedAWS(awsAccessKey, awsSecretKey, projectID, providerName, region, serviceResourceName string) string {
 	return fmt.Sprintf(`
 		provider "aws" {
 			region     = "%[5]s"
