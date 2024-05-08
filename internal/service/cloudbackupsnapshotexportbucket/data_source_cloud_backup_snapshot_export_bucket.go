@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -14,8 +15,10 @@ func DataSource() *schema.Resource {
 		ReadContext: datasourceRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:       schema.TypeString,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0") + " Will not be an input parameter, only computed.",
 			},
 			"export_bucket_id": {
 				Type:     schema.TypeString,
@@ -45,7 +48,7 @@ func datasourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
-	bucketID := d.Get("id").(string)
+	bucketID := d.Get("export_bucket_id").(string)
 
 	bucket, _, err := conn.CloudBackupsApi.GetExportBucket(ctx, projectID, bucketID).Execute()
 	if err != nil {
