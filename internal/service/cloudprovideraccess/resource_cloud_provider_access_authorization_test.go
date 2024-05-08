@@ -42,10 +42,12 @@ func basicAuthorizationTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 
 	var (
-		projectID       = acc.ProjectIDExecution(tb)
-		policyName      = acc.RandomName()
-		roleName        = acc.RandomIAMRole()
-		roleNameUpdated = acc.RandomIAMRole()
+		projectID                     = acc.ProjectIDExecution(tb)
+		policyName                    = acc.RandomName()
+		roleName                      = acc.RandomIAMRole()
+		roleNameUpdated               = acc.RandomIAMRole()
+		federatedDatabaseInstanceName = acc.RandomName()
+		testS3Bucket                  = os.Getenv("AWS_S3_BUCKET")
 	)
 
 	return &resource.TestCase{
@@ -55,17 +57,75 @@ func basicAuthorizationTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configAuthorizationAWS(projectID, policyName, roleName),
+				Config: configAuthorizationAWS(projectID, policyName, roleName, federatedDatabaseInstanceName, testS3Bucket),
 			},
 			{
-				Config: configAuthorizationAWS(projectID, policyName, roleNameUpdated),
+				Config: configAuthorizationAWS(projectID, policyName, roleNameUpdated, federatedDatabaseInstanceName, testS3Bucket),
 			},
 		},
 	}
 }
 
-func configAuthorizationAWS(projectID, policyName, roleName string) string {
+func configAuthorizationAWS(projectID, policyName, roleName, federatedDatabaseInstanceName, testS3Bucket string) string {
 	return fmt.Sprintf(`
+
+resource "mongodbatlas_federated_database_instance" "test" {
+	project_id         = mongodbatlas_project.test.id
+	name = %[4]q
+
+	cloud_provider_config {
+	    aws {
+			role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+			test_s3_bucket = %[5]q
+		}
+	}
+
+	storage_databases {
+	    name = "VirtualDatabase0"
+	    collections {
+			name = "VirtualCollection0"
+			data_sources {
+				collection = "listingsAndReviews"
+				database = "sample_airbnb"
+				store_name =  "ClusterTest"
+			}
+			data_sources {
+				store_name = %[5]q
+				path = "/{fileName string}.yaml"
+			}
+	    }
+	}
+
+	storage_stores {
+	    name = "ClusterTest"
+	    cluster_name = "ClusterTest"
+	    project_id = mongodbatlas_project.test.id
+	    provider = "atlas"
+	    read_preference {
+			mode = "secondary"
+	    }
+	}
+
+	storage_stores {
+	 bucket = %[5]q
+	 delimiter = "/"
+	 name = %[5]q
+	 prefix = "templates/"
+	 provider = "s3"
+	 region = "EU_WEST_1"
+	}
+
+	storage_stores {
+	 name = "dataStore0"
+	 cluster_name = "ClusterTest"
+	 project_id = mongodbatlas_project.test.id
+	 provider = "atlas"
+	 read_preference {
+		 mode = "secondary"
+	 }
+	}
+}
+
 resource "aws_iam_role_policy" "test_policy" {
   name = %[2]q
   role = aws_iam_role.test_role.id
@@ -122,7 +182,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
     iam_assumed_role_arn = aws_iam_role.test_role.arn
   }
 }
-	`, projectID, policyName, roleName)
+	`, projectID, policyName, roleName, federatedDatabaseInstanceName, testS3Bucket)
 }
 
 func configAuthorizationAzure(projectID, atlasAzureAppID, servicePrincipalID, tenantID string) string {
