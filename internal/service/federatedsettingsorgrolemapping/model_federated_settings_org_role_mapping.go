@@ -4,6 +4,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"go.mongodb.org/atlas-sdk/v20231115013/admin"
 )
 
@@ -45,4 +47,63 @@ func FlattenRoleAssignments(roleAssignments []admin.RoleAssignment) []map[string
 	}
 
 	return roleAssignmentsMap
+}
+
+func expandRoleAssignments(d *schema.ResourceData) *[]admin.RoleAssignment {
+	var roleAssignments []admin.RoleAssignment
+
+	if v, ok := d.GetOk("role_assignments"); ok {
+		if rs := v.(*schema.Set); rs.Len() > 0 {
+			for _, r := range rs.List() {
+				roleMap := r.(map[string]any)
+
+				for _, role := range roleMap["roles"].(*schema.Set).List() {
+					roleAssignment := admin.RoleAssignment{
+						OrgId:   conversion.StringPtr(roleMap["org_id"].(string)),
+						GroupId: conversion.StringPtr(roleMap["group_id"].(string)),
+						Role:    conversion.StringPtr(role.(string)),
+					}
+					roleAssignments = append(roleAssignments, roleAssignment)
+				}
+			}
+		}
+	}
+
+	sort.Sort(mRoleAssignment(roleAssignments))
+
+	return &roleAssignments
+}
+
+func flattenRoleAssignmentsResource(roleAssignments []admin.RoleAssignment) []map[string]any {
+	if len(roleAssignments) == 0 {
+		return nil
+	}
+
+	sort.Sort(mRoleAssignment(roleAssignments))
+
+	var flattenedRoleAssignments []map[string]any
+	var roleAssignment = map[string]any{
+		"group_id": roleAssignments[0].GetGroupId(),
+		"org_id":   roleAssignments[0].GetOrgId(),
+		"roles":    []string{},
+	}
+
+	for _, row := range roleAssignments {
+		if (roleAssignment["org_id"] != "" && roleAssignment["org_id"] != row.GetOrgId()) ||
+			(roleAssignment["group_id"] != "" && roleAssignment["group_id"] != row.GetGroupId()) {
+			flattenedRoleAssignments = append(flattenedRoleAssignments, roleAssignment)
+
+			roleAssignment = map[string]any{
+				"group_id": row.GetGroupId(),
+				"org_id":   row.GetOrgId(),
+				"roles":    []string{},
+			}
+		}
+
+		roleAssignment["roles"] = append(roleAssignment["roles"].([]string), row.GetRole())
+	}
+
+	flattenedRoleAssignments = append(flattenedRoleAssignments, roleAssignment)
+
+	return flattenedRoleAssignments
 }

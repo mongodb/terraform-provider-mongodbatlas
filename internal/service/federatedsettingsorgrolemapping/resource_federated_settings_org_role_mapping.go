@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
-	"sort"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -238,84 +236,4 @@ func splitFederatedSettingsOrganizationRoleMappingImportID(id string) (federatio
 	roleMappingID = &parts[3]
 
 	return
-}
-
-type roleAssignmentsByFields []admin.RoleAssignment
-
-func (ra roleAssignmentsByFields) Len() int      { return len(ra) }
-func (ra roleAssignmentsByFields) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
-
-func (ra roleAssignmentsByFields) Less(i, j int) bool {
-	compareVal := strings.Compare(ra[i].GetOrgId(), ra[j].GetOrgId())
-
-	if compareVal != 0 {
-		return compareVal < 0
-	}
-
-	compareVal = strings.Compare(ra[i].GetGroupId(), ra[j].GetGroupId())
-
-	if compareVal != 0 {
-		return compareVal < 0
-	}
-
-	return ra[i].GetRole() < ra[j].GetRole()
-}
-
-func expandRoleAssignments(d *schema.ResourceData) *[]admin.RoleAssignment {
-	var roleAssignments []admin.RoleAssignment
-
-	if v, ok := d.GetOk("role_assignments"); ok {
-		if rs := v.(*schema.Set); rs.Len() > 0 {
-			for _, r := range rs.List() {
-				roleMap := r.(map[string]any)
-
-				for _, role := range roleMap["roles"].(*schema.Set).List() {
-					roleAssignment := admin.RoleAssignment{
-						OrgId:   conversion.StringPtr(roleMap["org_id"].(string)),
-						GroupId: conversion.StringPtr(roleMap["group_id"].(string)),
-						Role:    conversion.StringPtr(role.(string)),
-					}
-					roleAssignments = append(roleAssignments, roleAssignment)
-				}
-			}
-		}
-	}
-
-	sort.Sort(roleAssignmentsByFields(roleAssignments))
-
-	return &roleAssignments
-}
-
-func flattenRoleAssignmentsResource(roleAssignments []admin.RoleAssignment) []map[string]any {
-	if len(roleAssignments) == 0 {
-		return nil
-	}
-
-	sort.Sort(roleAssignmentsByFields(roleAssignments))
-
-	var flattenedRoleAssignments []map[string]any
-	var roleAssignment = map[string]any{
-		"group_id": roleAssignments[0].GetGroupId(),
-		"org_id":   roleAssignments[0].GetOrgId(),
-		"roles":    []string{},
-	}
-
-	for _, row := range roleAssignments {
-		if (roleAssignment["org_id"] != "" && roleAssignment["org_id"] != row.GetOrgId()) ||
-			(roleAssignment["group_id"] != "" && roleAssignment["group_id"] != row.GetGroupId()) {
-			flattenedRoleAssignments = append(flattenedRoleAssignments, roleAssignment)
-
-			roleAssignment = map[string]any{
-				"group_id": row.GetGroupId(),
-				"org_id":   row.GetOrgId(),
-				"roles":    []string{},
-			}
-		}
-
-		roleAssignment["roles"] = append(roleAssignment["roles"].([]string), row.GetRole())
-	}
-
-	flattenedRoleAssignments = append(flattenedRoleAssignments, roleAssignment)
-
-	return flattenedRoleAssignments
 }
