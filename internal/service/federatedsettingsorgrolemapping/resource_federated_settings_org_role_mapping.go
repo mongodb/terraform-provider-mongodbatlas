@@ -230,23 +230,18 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingImportState(ctx
 		return nil, err
 	}
 
-	federatedSettingsOrganizationRoleMapping, _, err := conn.FederatedSettings.GetRoleMapping(context.Background(), *federationSettingsID, *orgID, *roleMappingID)
+	_, _, err = conn.FederatedSettings.GetRoleMapping(context.Background(), *federationSettingsID, *orgID, *roleMappingID)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import Role Mappings (%s) in Federation settings (%s), error: %s", *roleMappingID, *federationSettingsID, err)
 	}
 
 	if err := d.Set("federation_settings_id", *federationSettingsID); err != nil {
-		return nil, fmt.Errorf("error setting role mapping in Federation settings (%s): %s", d.Id(), err)
+		return nil, fmt.Errorf("error setting federation_settings_id for ole mapping in Federation settings (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("org_id", *orgID); err != nil {
-		return nil, fmt.Errorf("error setting role mapping in Federation settings (%s): %s", d.Id(), err)
+		return nil, fmt.Errorf("error setting org_id for role mapping in Federation settings (%s): %s", d.Id(), err)
 	}
-
-	if err := d.Set("role_assignments", flattenRoleAssignmentsSpecial(federatedSettingsOrganizationRoleMapping.RoleAssignments)); err != nil {
-		return nil, fmt.Errorf("error setting role_assignments (%s): %s", d.Id(), err)
-	}
-
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"federation_settings_id": *federationSettingsID,
 		"org_id":                 *orgID,
