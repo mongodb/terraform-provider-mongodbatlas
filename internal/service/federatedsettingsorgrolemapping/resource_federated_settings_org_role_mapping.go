@@ -100,7 +100,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf("error setting external group name (%s): %s", d.Id(), err))
 	}
 
-	if err := d.Set("role_assignments", flattenRoleAssignmentsSpecial(federatedSettingsOrganizationRoleMapping.GetRoleAssignments())); err != nil {
+	if err := d.Set("role_assignments", flattenRoleAssignmentsResource(federatedSettingsOrganizationRoleMapping.GetRoleAssignments())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting role_assignments (%s): %s", d.Id(), err))
 	}
 
@@ -261,27 +261,6 @@ func (ra roleAssignmentsByFields) Less(i, j int) bool {
 	return ra[i].GetRole() < ra[j].GetRole()
 }
 
-type roleAssignmentRefsByFields []admin.RoleAssignment
-
-func (ra roleAssignmentRefsByFields) Len() int      { return len(ra) }
-func (ra roleAssignmentRefsByFields) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
-
-func (ra roleAssignmentRefsByFields) Less(i, j int) bool {
-	compareVal := strings.Compare(ra[i].GetOrgId(), ra[j].GetOrgId())
-
-	if compareVal != 0 {
-		return compareVal < 0
-	}
-
-	compareVal = strings.Compare(ra[i].GetGroupId(), ra[j].GetGroupId())
-
-	if compareVal != 0 {
-		return compareVal < 0
-	}
-
-	return ra[i].GetRole() < ra[j].GetRole()
-}
-
 func expandRoleAssignments(d *schema.ResourceData) *[]admin.RoleAssignment {
 	var roleAssignments []admin.RoleAssignment
 
@@ -307,12 +286,12 @@ func expandRoleAssignments(d *schema.ResourceData) *[]admin.RoleAssignment {
 	return &roleAssignments
 }
 
-func flattenRoleAssignmentsSpecial(roleAssignments []admin.RoleAssignment) []map[string]any {
+func flattenRoleAssignmentsResource(roleAssignments []admin.RoleAssignment) []map[string]any {
 	if len(roleAssignments) == 0 {
 		return nil
 	}
 
-	sort.Sort(roleAssignmentRefsByFields(roleAssignments))
+	sort.Sort(roleAssignmentsByFields(roleAssignments))
 
 	var flattenedRoleAssignments []map[string]any
 	var roleAssignment = map[string]any{
