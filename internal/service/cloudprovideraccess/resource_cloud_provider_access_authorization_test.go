@@ -42,6 +42,7 @@ func basicAuthorizationTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 
 	var (
+		resourceName                  = "mongodbatlas_cloud_provider_access_authorization.auth_role"
 		projectID                     = acc.ProjectIDExecution(tb)
 		policyName                    = acc.RandomName()
 		roleName                      = acc.RandomIAMRole()
@@ -58,9 +59,23 @@ func basicAuthorizationTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configAuthorizationAWS(projectID, policyName, roleName, federatedDatabaseInstanceName, testS3Bucket),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(resourceName, "role_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "aws.0.iam_assumed_role_arn"),
+					resource.TestCheckResourceAttrSet(resourceName, "feature_usages.#"),
+				),
 			},
 			{
 				Config: configAuthorizationAWS(projectID, policyName, roleNameUpdated, federatedDatabaseInstanceName, testS3Bucket),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(resourceName, "role_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "aws.0.iam_assumed_role_arn"),
+					resource.TestCheckResourceAttrSet(resourceName, "feature_usages.#"),
+				),
 			},
 		},
 	}
