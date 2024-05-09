@@ -11,6 +11,7 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/stale@28ca1036281a5e5922ead5184a1bbf96e5fc984e
         id: stale
         with:

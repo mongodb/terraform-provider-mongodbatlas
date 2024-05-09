@@ -23,6 +23,7 @@ jobs:
       matrix:
         terraform_version: ["${{vars.TF_VERSION_LATEST}}"]
     steps:
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
         with:
           fetch-depth: 0
@@ -57,6 +58,7 @@ jobs:
       matrix:
         terraform_version: ["${{vars.TF_VERSION_LATEST}}"]
     steps:
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
         with:
           fetch-depth: 0

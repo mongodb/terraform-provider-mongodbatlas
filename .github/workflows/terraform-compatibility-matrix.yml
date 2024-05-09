@@ -19,6 +19,7 @@ jobs:
   get-supported-versions:
     runs-on: ubuntu-latest
     steps:
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
       - name: Get HashiCorp Terraform supported versions
         shell: bash
@@ -53,6 +54,7 @@ jobs:
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
       - name: Get content of slack message
         id: slack-payload

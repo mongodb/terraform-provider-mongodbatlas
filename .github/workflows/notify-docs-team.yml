@@ -11,6 +11,7 @@ jobs:
     outputs:
       files: ${{ steps.changes.outputs.files }}
     steps:
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
       - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
         id: changes
@@ -27,6 +28,7 @@ jobs:
     permissions:
       pull-requests: write # Needed by sticky-pull-request-comment
     steps:
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_DOCS }}
