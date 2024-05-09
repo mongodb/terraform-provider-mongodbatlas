@@ -14,6 +14,7 @@
       if: github.event.action == 'opened'
       runs-on: ubuntu-latest
       steps:
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - name: Create JIRA ticket
         id: create
         shell: bash
@@ -73,6 +74,7 @@
       if: github.event.action == 'reopened'
       runs-on: ubuntu-latest
       steps:
+        - uses: GitHubSecurityLab/actions-permissions/monitor@v1
         - name: Reopened JIRA ticket if exists
           run: |
             ISSUE_NUMBER=${{ github.event.issue.number }}
@@ -121,6 +123,7 @@
       if: github.event.action == 'closed'
       runs-on: ubuntu-latest
       steps:
+        - uses: GitHubSecurityLab/actions-permissions/monitor@v1
         - name: Close JIRA ticket if exists
           run: |
             ISSUE_NUMBER=${{ github.event.issue.number }}
