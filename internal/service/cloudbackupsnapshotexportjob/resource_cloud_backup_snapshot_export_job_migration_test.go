@@ -7,5 +7,6 @@ import (
 )
 
 func TestMigBackupSnapshotExportJob_basic(t *testing.T) {
+	mig.SkipIfVersionBelow(t, "1.16.1")
 	mig.CreateAndRunTestNonParallel(t, basicTestCase(t))
 }
