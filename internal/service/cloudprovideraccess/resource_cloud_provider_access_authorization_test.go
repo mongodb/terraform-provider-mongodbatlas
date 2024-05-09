@@ -80,51 +80,6 @@ resource "mongodbatlas_federated_database_instance" "test" {
 			test_s3_bucket = %[5]q
 		}
 	}
-
-	storage_databases {
-	    name = "VirtualDatabase0"
-	    collections {
-			name = "VirtualCollection0"
-			data_sources {
-				collection = "listingsAndReviews"
-				database = "sample_airbnb"
-				store_name =  "ClusterTest"
-			}
-			data_sources {
-				store_name = %[5]q
-				path = "/{fileName string}.yaml"
-			}
-	    }
-	}
-
-	storage_stores {
-	    name = "ClusterTest"
-	    cluster_name = "ClusterTest"
-	    project_id = %[1]q
-	    provider = "atlas"
-	    read_preference {
-			mode = "secondary"
-	    }
-	}
-
-	storage_stores {
-	 bucket = %[5]q
-	 delimiter = "/"
-	 name = %[5]q
-	 prefix = "templates/"
-	 provider = "s3"
-	 region = "EU_WEST_1"
-	}
-
-	storage_stores {
-	 name = "dataStore0"
-	 cluster_name = "ClusterTest"
-	 project_id = %[1]q
-	 provider = "atlas"
-	 read_preference {
-		 mode = "secondary"
-	 }
-	}
 }
 
 resource "aws_iam_role_policy" "test_policy" {
