@@ -25,13 +25,15 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		dataSourceName   = "data.mongodbatlas_federated_settings_org_role_mapping.test"
 		dataSourcePlural = "data.mongodbatlas_federated_settings_org_role_mappings.test"
 
+		extGroupName1        = "newtestgroup"
+		extGroupName2        = "newupdatedgroup"
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 		orgID                = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
 		groupID              = os.Getenv("MONGODB_ATLAS_FEDERATED_GROUP_ID")
 		mapAttrs             = map[string]string{
 			"federation_settings_id": federationSettingsID,
 			"org_id":                 orgID,
-			"external_group_name":    "newtestgroup",
+			"external_group_name":    extGroupName1,
 		}
 		sliceAttrs       = []string{"role_assignments.#"}
 		sliceAttrsPlural = []string{"results.#", "federation_settings_id"}
@@ -49,12 +51,17 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(federationSettingsID, orgID, groupID),
+				Config: configBasic(federationSettingsID, orgID, groupID, extGroupName1),
 
 				Check: resource.ComposeTestCheckFunc(checks...),
 			},
 			{
-				Config:            configBasic(federationSettingsID, orgID, groupID),
+				Config: configBasic(federationSettingsID, orgID, groupID, extGroupName2),
+
+				Check: resource.ComposeTestCheckFunc(resource.TestCheckResourceAttr(resourceName, "external_group_name", extGroupName2)),
+			},
+			{
+				Config:            configBasic(federationSettingsID, orgID, groupID, extGroupName2),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       false,
@@ -99,7 +106,6 @@ func checkDestroy(state *terraform.State) error {
 	return nil
 }
 
-
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -113,12 +119,12 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func configBasic(federationSettingsID, orgID, groupID string) string {
+func configBasic(federationSettingsID, orgID, groupID, externalGroupName string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_federated_settings_org_role_mapping" "test" {
 		federation_settings_id = "%[1]s"
 		org_id                 = "%[2]s"
-		external_group_name    = "newtestgroup"
+		external_group_name    = %[4]q
 		role_assignments {
 			org_id = "%[2]s"
 			roles  = ["ORG_MEMBER","ORG_GROUP_CREATOR"]
@@ -143,5 +149,5 @@ func configBasic(federationSettingsID, orgID, groupID string) string {
 		page_num = 1
 		items_per_page = 100
 	}
-	  `, federationSettingsID, orgID, groupID)
+	  `, federationSettingsID, orgID, groupID, externalGroupName)
 }
