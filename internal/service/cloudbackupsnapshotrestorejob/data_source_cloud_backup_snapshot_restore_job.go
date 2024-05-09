@@ -108,7 +108,11 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if restoreIDInField {
 		restoreID = restoreIDRaw.(string)
 	} else {
-		restoreID = conversion.GetEncodedID(d.Get("job_id").(string), "snapshot_restore_job_id")
+		idEncoded, restoreIDInField := d.GetOk("job_id")
+		if !restoreIDInField {
+			return diag.Errorf("either snapshot_restore_job_id or job_id must be set")
+		}
+		restoreID = conversion.GetEncodedID(idEncoded.(string), "snapshot_restore_job_id")
 	}
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
