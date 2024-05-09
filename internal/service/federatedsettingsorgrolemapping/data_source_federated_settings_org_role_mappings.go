@@ -8,12 +8,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115013/admin"
 )
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingsRead,
+		ReadContext: dataSourcePluralRead,
 		Schema: map[string]*schema.Schema{
 			"federation_settings_id": {
 				Type:     schema.TypeString,
@@ -70,9 +70,8 @@ func PluralDataSource() *schema.Resource {
 		},
 	}
 }
-func dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	federationSettingsID, federationSettingsIDOk := d.GetOk("federation_settings_id")
 
@@ -85,13 +84,7 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingsRead(ctx con
 	if !orgIDOk {
 		return diag.FromErr(errors.New("org_id must be configured"))
 	}
-
-	options := &matlas.ListOptions{
-		PageNum:      d.Get("page_num").(int),
-		ItemsPerPage: d.Get("items_per_page").(int),
-	}
-
-	federatedSettingsOrganizationRoleMappings, _, err := conn.FederatedSettings.ListRoleMappings(ctx, federationSettingsID.(string), orgID.(string), options)
+	federatedSettingsOrganizationRoleMappings, _, err := conn.FederatedAuthenticationApi.ListRoleMappings(ctx, federationSettingsID.(string), orgID.(string)).Execute()
 	if err != nil {
 		return diag.Errorf("error getting federatedSettings Role Mapping: assigned (%s): %s", federationSettingsID, err)
 	}
@@ -105,17 +98,18 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingsRead(ctx con
 	return nil
 }
 
-func flattenFederatedSettingsOrganizationRoleMappings(federatedSettingsOrganizationRoleMapping *matlas.FederatedSettingsOrganizationRoleMappings) []map[string]any {
+func flattenFederatedSettingsOrganizationRoleMappings(federatedSettingsOrganizationRoleMapping *admin.PaginatedRoleMapping) []map[string]any {
 	var federatedSettingsOrganizationRoleMappingMap []map[string]any
 
-	if federatedSettingsOrganizationRoleMapping.TotalCount > 0 {
-		federatedSettingsOrganizationRoleMappingMap = make([]map[string]any, federatedSettingsOrganizationRoleMapping.TotalCount)
+	if federatedSettingsOrganizationRoleMapping.GetTotalCount() > 0 {
+		federatedSettingsOrganizationRoleMappingMap = make([]map[string]any, len(federatedSettingsOrganizationRoleMapping.GetResults()))
 
-		for i := range federatedSettingsOrganizationRoleMapping.Results {
+		roleMappings := federatedSettingsOrganizationRoleMapping.GetResults()
+		for i := range roleMappings {
 			federatedSettingsOrganizationRoleMappingMap[i] = map[string]any{
-				"external_group_name": federatedSettingsOrganizationRoleMapping.Results[i].ExternalGroupName,
-				"id":                  federatedSettingsOrganizationRoleMapping.Results[i].ID,
-				"role_assignments":    FlattenRoleAssignments(federatedSettingsOrganizationRoleMapping.Results[i].RoleAssignments),
+				"external_group_name": roleMappings[i].GetExternalGroupName(),
+				"id":                  roleMappings[i].GetId(),
+				"role_assignments":    FlattenRoleAssignments(roleMappings[i].GetRoleAssignments()),
 			}
 		}
 	}
