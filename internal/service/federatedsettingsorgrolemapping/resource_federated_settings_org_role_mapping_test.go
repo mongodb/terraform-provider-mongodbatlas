@@ -73,10 +73,11 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		_, _, err := acc.Conn().FederatedSettings.GetRoleMapping(context.Background(),
+		_, _, err := acc.ConnV2().FederatedAuthenticationApi.GetRoleMapping(context.Background(),
 			rs.Primary.Attributes["federation_settings_id"],
+			rs.Primary.Attributes["role_mapping_id"],
 			rs.Primary.Attributes["org_id"],
-			rs.Primary.Attributes["role_mapping_id"])
+		).Execute()
 		if err == nil {
 			return nil
 		}
@@ -90,13 +91,14 @@ func checkDestroy(state *terraform.State) error {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		roleMapping, _, err := acc.Conn().FederatedSettings.GetRoleMapping(context.Background(), ids["federation_settings_id"], ids["org_id"], ids["role_mapping_id"])
+		roleMapping, _, err := acc.ConnV2().FederatedAuthenticationApi.GetRoleMapping(context.Background(), ids["federation_settings_id"], ids["role_mapping_id"], ids["org_id"]).Execute()
 		if err == nil && roleMapping != nil {
 			return fmt.Errorf("role mapping (%s) still exists", ids["okta_idp_id"])
 		}
 	}
 	return nil
 }
+
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
