@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231115013/admin"
 )
 
 func Resource() *schema.Resource {
@@ -74,19 +74,16 @@ func Resource() *schema.Resource {
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 	roleMappingID := ids["role_mapping_id"]
 
-	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedSettings.GetRoleMapping(context.Background(), federationSettingsID, orgID, roleMappingID)
+	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedAuthenticationApi.GetRoleMapping(context.Background(), federationSettingsID, roleMappingID, orgID).Execute()
 
 	if err != nil {
-		// case 404
-		// deleted in the backend case
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
@@ -95,15 +92,15 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf("error getting federated settings organization config: %s", err))
 	}
 
-	if err := d.Set("role_mapping_id", federatedSettingsOrganizationRoleMapping.ID); err != nil {
+	if err := d.Set("role_mapping_id", federatedSettingsOrganizationRoleMapping.GetId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting role_mapping_id (%s): %s", d.Id(), err))
 	}
 
-	if err := d.Set("external_group_name", federatedSettingsOrganizationRoleMapping.ExternalGroupName); err != nil {
+	if err := d.Set("external_group_name", federatedSettingsOrganizationRoleMapping.GetExternalGroupName()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting external group name (%s): %s", d.Id(), err))
 	}
 
-	if err := d.Set("role_assignments", flattenRoleAssignmentsSpecial(federatedSettingsOrganizationRoleMapping.RoleAssignments)); err != nil {
+	if err := d.Set("role_assignments", flattenRoleAssignmentsSpecial(federatedSettingsOrganizationRoleMapping.GetRoleAssignments())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting role_assignments (%s): %s", d.Id(), err))
 	}
 
@@ -117,8 +114,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 	federationSettingsID, federationSettingsIDOk := d.GetOk("federation_settings_id")
 
 	if !federationSettingsIDOk {
@@ -133,23 +129,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	externalGroupName := d.Get("external_group_name").(string)
 
-	body := &matlas.FederatedSettingsOrganizationRoleMapping{}
-
-	ra := []*matlas.RoleAssignments{}
-
-	body.ExternalGroupName = externalGroupName
-	roleAssignments := expandRoleAssignments(d)
-
-	for i := range roleAssignments {
-		ra = append(ra, &roleAssignments[i])
+	roleMapping := admin.AuthFederationRoleMapping{
+		ExternalGroupName: externalGroupName,
+		RoleAssignments:   expandRoleAssignments(d),
 	}
-
-	body.RoleAssignments = ra
-
-	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedSettings.CreateRoleMapping(context.Background(), federationSettingsID.(string), orgID.(string), body)
+	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedAuthenticationApi.CreateRoleMapping(ctx, federationSettingsID.(string), orgID.(string), &roleMapping).Execute()
 	if err != nil {
-		// case 404
-		// deleted in the backend case
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
@@ -161,21 +146,20 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"federation_settings_id": federationSettingsID.(string),
 		"org_id":                 orgID.(string),
-		"role_mapping_id":        federatedSettingsOrganizationRoleMapping.ID,
+		"role_mapping_id":        federatedSettingsOrganizationRoleMapping.GetId(),
 	}))
 
 	return resourceRead(ctx, d, meta)
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 	roleMappingID := ids["role_mapping_id"]
 
-	federatedSettingsOrganizationRoleMappingUpdate, _, err := conn.FederatedSettings.GetRoleMapping(context.Background(), federationSettingsID, orgID, roleMappingID)
+	federatedSettingsOrganizationRoleMappingUpdate, _, err := conn.FederatedAuthenticationApi.GetRoleMapping(context.Background(), federationSettingsID, roleMappingID, orgID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error retreiving federation settings connected organization (%s): %s", federationSettingsID, err))
 	}
@@ -186,19 +170,9 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("role_assignments") {
-		federatedSettingsOrganizationRoleMappingUpdate.RoleAssignments = nil
-
-		ra := []*matlas.RoleAssignments{}
-
-		roleAssignments := expandRoleAssignments(d)
-
-		for i := range roleAssignments {
-			ra = append(ra, &roleAssignments[i])
-		}
-
-		federatedSettingsOrganizationRoleMappingUpdate.RoleAssignments = ra
+		federatedSettingsOrganizationRoleMappingUpdate.RoleAssignments = expandRoleAssignments(d)
 	}
-	_, _, err = conn.FederatedSettings.UpdateRoleMapping(ctx, federationSettingsID, orgID, roleMappingID, federatedSettingsOrganizationRoleMappingUpdate)
+	_, _, err = conn.FederatedAuthenticationApi.UpdateRoleMapping(ctx, federationSettingsID, roleMappingID, orgID, federatedSettingsOrganizationRoleMappingUpdate).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating federation settings connected organization (%s): %s", federationSettingsID, err))
 	}
@@ -207,14 +181,13 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 	roleMappingID := ids["role_mapping_id"]
 
-	_, err := conn.FederatedSettings.DeleteRoleMapping(ctx, federationSettingsID, orgID, roleMappingID)
+	_, err := conn.FederatedAuthenticationApi.DeleteRoleMapping(ctx, federationSettingsID, roleMappingID, orgID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting federation settings connected organization (%s): %s", federationSettingsID, err))
 	}
@@ -223,14 +196,14 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	federationSettingsID, orgID, roleMappingID, err := splitFederatedSettingsOrganizationRoleMappingImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
-	_, _, err = conn.FederatedSettings.GetRoleMapping(context.Background(), *federationSettingsID, *orgID, *roleMappingID)
+	_, _, err = conn.FederatedAuthenticationApi.GetRoleMapping(context.Background(), *federationSettingsID, *roleMappingID, *orgID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import Role Mappings (%s) in Federation settings (%s), error: %s", *roleMappingID, *federationSettingsID, err)
 	}
@@ -267,76 +240,74 @@ func splitFederatedSettingsOrganizationRoleMappingImportID(id string) (federatio
 	return
 }
 
-type roleAssignmentsByFields []matlas.RoleAssignments
+type roleAssignmentsByFields []admin.RoleAssignment
 
 func (ra roleAssignmentsByFields) Len() int      { return len(ra) }
 func (ra roleAssignmentsByFields) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
 
 func (ra roleAssignmentsByFields) Less(i, j int) bool {
-	compareVal := strings.Compare(ra[i].OrgID, ra[j].OrgID)
+	compareVal := strings.Compare(ra[i].GetOrgId(), ra[j].GetOrgId())
 
 	if compareVal != 0 {
 		return compareVal < 0
 	}
 
-	compareVal = strings.Compare(ra[i].GroupID, ra[j].GroupID)
+	compareVal = strings.Compare(ra[i].GetGroupId(), ra[j].GetGroupId())
 
 	if compareVal != 0 {
 		return compareVal < 0
 	}
 
-	return ra[i].Role < ra[j].Role
+	return ra[i].GetRole() < ra[j].GetRole()
 }
 
-type roleAssignmentRefsByFields []*matlas.RoleAssignments
+type roleAssignmentRefsByFields []admin.RoleAssignment
 
 func (ra roleAssignmentRefsByFields) Len() int      { return len(ra) }
 func (ra roleAssignmentRefsByFields) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
 
 func (ra roleAssignmentRefsByFields) Less(i, j int) bool {
-	compareVal := strings.Compare(ra[i].OrgID, ra[j].OrgID)
+	compareVal := strings.Compare(ra[i].GetOrgId(), ra[j].GetOrgId())
 
 	if compareVal != 0 {
 		return compareVal < 0
 	}
 
-	compareVal = strings.Compare(ra[i].GroupID, ra[j].GroupID)
+	compareVal = strings.Compare(ra[i].GetGroupId(), ra[j].GetGroupId())
 
 	if compareVal != 0 {
 		return compareVal < 0
 	}
 
-	return ra[i].Role < ra[j].Role
+	return ra[i].GetRole() < ra[j].GetRole()
 }
 
-func expandRoleAssignments(d *schema.ResourceData) []matlas.RoleAssignments {
-	var roleAssignmentsReturn []matlas.RoleAssignments
+func expandRoleAssignments(d *schema.ResourceData) *[]admin.RoleAssignment {
+	var roleAssignments []admin.RoleAssignment
 
 	if v, ok := d.GetOk("role_assignments"); ok {
 		if rs := v.(*schema.Set); rs.Len() > 0 {
-			roleAssignments := []matlas.RoleAssignments{}
-			roleAssignment := matlas.RoleAssignments{}
-
 			for _, r := range rs.List() {
 				roleMap := r.(map[string]any)
 
 				for _, role := range roleMap["roles"].(*schema.Set).List() {
-					roleAssignment.OrgID = roleMap["org_id"].(string)
-					roleAssignment.GroupID = roleMap["group_id"].(string)
-					roleAssignment.Role = role.(string)
+					roleAssignment := admin.RoleAssignment{
+						OrgId:   conversion.StringPtr(roleMap["org_id"].(string)),
+						GroupId: conversion.StringPtr(roleMap["group_id"].(string)),
+						Role:    conversion.StringPtr(role.(string)),
+					}
 					roleAssignments = append(roleAssignments, roleAssignment)
 				}
-				roleAssignmentsReturn = roleAssignments
 			}
 		}
 	}
 
-	sort.Sort(roleAssignmentsByFields(roleAssignmentsReturn))
+	sort.Sort(roleAssignmentsByFields(roleAssignments))
 
-	return roleAssignmentsReturn
+	return &roleAssignments
 }
 
-func flattenRoleAssignmentsSpecial(roleAssignments []*matlas.RoleAssignments) []map[string]any {
+func flattenRoleAssignmentsSpecial(roleAssignments []admin.RoleAssignment) []map[string]any {
 	if len(roleAssignments) == 0 {
 		return nil
 	}
@@ -345,24 +316,24 @@ func flattenRoleAssignmentsSpecial(roleAssignments []*matlas.RoleAssignments) []
 
 	var flattenedRoleAssignments []map[string]any
 	var roleAssignment = map[string]any{
-		"group_id": roleAssignments[0].GroupID,
-		"org_id":   roleAssignments[0].OrgID,
+		"group_id": roleAssignments[0].GetGroupId(),
+		"org_id":   roleAssignments[0].GetOrgId(),
 		"roles":    []string{},
 	}
 
 	for _, row := range roleAssignments {
-		if (roleAssignment["org_id"] != "" && roleAssignment["org_id"] != row.OrgID) ||
-			(roleAssignment["group_id"] != "" && roleAssignment["group_id"] != row.GroupID) {
+		if (roleAssignment["org_id"] != "" && roleAssignment["org_id"] != row.GetOrgId()) ||
+			(roleAssignment["group_id"] != "" && roleAssignment["group_id"] != row.GetGroupId()) {
 			flattenedRoleAssignments = append(flattenedRoleAssignments, roleAssignment)
 
 			roleAssignment = map[string]any{
-				"group_id": row.GroupID,
-				"org_id":   row.OrgID,
+				"group_id": row.GetGroupId(),
+				"org_id":   row.GetOrgId(),
 				"roles":    []string{},
 			}
 		}
 
-		roleAssignment["roles"] = append(roleAssignment["roles"].([]string), row.Role)
+		roleAssignment["roles"] = append(roleAssignment["roles"].([]string), row.GetRole())
 	}
 
 	flattenedRoleAssignments = append(flattenedRoleAssignments, roleAssignment)

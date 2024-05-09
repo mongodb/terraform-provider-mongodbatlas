@@ -46,22 +46,3 @@ func FlattenRoleAssignments(roleAssignments []admin.RoleAssignment) []map[string
 
 	return roleAssignmentsMap
 }
-// func FlattenRoleAssignmentsLegacy(roleAssignments []*matlas.RoleAssignments) []map[string]any {
-// 	sort.Sort(mRoleAssignment(roleAssignments))
-
-// 	var roleAssignmentsMap []map[string]any
-
-// 	if len(roleAssignments) > 0 {
-// 		roleAssignmentsMap = make([]map[string]any, len(roleAssignments))
-
-// 		for i := range roleAssignments {
-// 			roleAssignmentsMap[i] = map[string]any{
-// 				"group_id": roleAssignments[i].GroupID,
-// 				"org_id":   roleAssignments[i].OrgID,
-// 				"role":     roleAssignments[i].Role,
-// 			}
-// 		}
-// 	}
-
-// 	return roleAssignmentsMap
-// }
