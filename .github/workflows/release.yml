@@ -24,6 +24,7 @@ jobs:
       is_official_release: ${{ steps.evaluate_inputs.outputs.is_official_release }}
       runs_tests: ${{ steps.evaluate_inputs.outputs.runs_tests }}
     steps:
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - id: evaluate_inputs
         run: |
           {
@@ -35,6 +36,7 @@ jobs:
   validate-inputs:
     runs-on: ubuntu-latest
     steps:
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - name: Validation of version format
         run: |
           echo "${{ inputs.version_number }}" | grep -P '^v\d+\.\d+\.\d+(-pre[A-Za-z0-9-]*)?$'
@@ -89,6 +91,7 @@ jobs:
       && !contains(needs.*.result, 'failure') 
       && needs.release-config.outputs.creates_new_tag == 'true'
     steps: 
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - name: Checkout
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
         with:
@@ -124,6 +127,7 @@ jobs:
       !cancelled()
       && !contains(needs.*.result, 'failure')
     steps:
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - name: Checkout
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
         with:

@@ -176,7 +176,8 @@ func configBasic(projectID, clusterName, description, retentionInDays string) st
 		data "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 			project_id      = mongodbatlas_cloud_backup_snapshot.test.project_id
 			cluster_name    = mongodbatlas_cloud_backup_snapshot.test.cluster_name
-			job_id       = mongodbatlas_cloud_backup_snapshot_restore_job.test.id  
+			job_id       = mongodbatlas_cloud_backup_snapshot_restore_job.test.id # remove after 1.18.0
+			snapshot_restore_job_id       = mongodbatlas_cloud_backup_snapshot_restore_job.test.snapshot_restore_job_id
 		}
 
 		data "mongodbatlas_cloud_backup_snapshot_restore_jobs" "test" {

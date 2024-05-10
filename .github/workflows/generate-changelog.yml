@@ -25,6 +25,7 @@ jobs:
     if: ${{ !cancelled() && needs.generate-and-update-changelog.result == 'failure' }}
     runs-on: ubuntu-latest
     steps:
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - name: Send Slack message
         id: slack
         uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e

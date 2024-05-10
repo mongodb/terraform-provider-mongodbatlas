@@ -52,7 +52,6 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(federationSettingsID, orgID, groupID, extGroupName1),
-
 				Check: resource.ComposeTestCheckFunc(checks...),
 			},
 			{
