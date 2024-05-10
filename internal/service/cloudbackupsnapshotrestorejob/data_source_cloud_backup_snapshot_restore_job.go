@@ -15,6 +15,10 @@ func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
+			"snapshot_restore_job_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -27,8 +31,10 @@ func DataSource() *schema.Resource {
 			},
 			"job_id": {
 				Type:     schema.TypeString,
-				Required: true,
 				ForceNew: true,
+				Optional: true,
+				// When deprecating, change snapshot_restore_job_id to Required: true and implementation below
+				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0") + " Use snapshot_restore_job_id instead.",
 			},
 			"cancelled": {
 				Type:     schema.TypeBool,
@@ -97,7 +103,17 @@ func DataSource() *schema.Resource {
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
-	restoreID := conversion.GetEncodedID(d.Get("job_id").(string), "snapshot_restore_job_id")
+	var restoreID string
+	restoreIDRaw, restoreIDInField := d.GetOk("snapshot_restore_job_id")
+	if restoreIDInField {
+		restoreID = restoreIDRaw.(string)
+	} else {
+		idEncoded, restoreIDInField := d.GetOk("job_id")
+		if !restoreIDInField {
+			return diag.Errorf("either snapshot_restore_job_id or job_id must be set")
+		}
+		restoreID = conversion.GetEncodedID(idEncoded.(string), "snapshot_restore_job_id")
+	}
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
