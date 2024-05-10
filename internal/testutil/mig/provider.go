@@ -1,6 +1,7 @@
 package mig
 
 import (
+	"log"
 	"os"
 	"testing"
 
@@ -32,11 +33,19 @@ func ExternalProvidersWithAWS() map[string]resource.ExternalProvider {
 
 func checkLastVersion(tb testing.TB) {
 	tb.Helper()
+	validateConflictingEnvVars()
 	if os.Getenv("MONGODB_ATLAS_LAST_VERSION") == "" {
 		tb.Fatal("`MONGODB_ATLAS_LAST_VERSION` must be set for migration acceptance testing")
 	}
 }
 
 func versionConstraint() string {
+	validateConflictingEnvVars()
 	return os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+}
+
+func validateConflictingEnvVars() {
+	if os.Getenv("TF_CLI_CONFIG_FILE") != "" {
+		log.Fatal("found `TF_CLI_CONFIG_FILE` in env-var when running migration tests, this might override the terraform provider for MONGODB_ATLAS_LAST_VERSION and instead use local latest build!")
+	}
 }
