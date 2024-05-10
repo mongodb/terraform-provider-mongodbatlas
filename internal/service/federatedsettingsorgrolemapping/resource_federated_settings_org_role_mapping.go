@@ -207,7 +207,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	}
 
 	if err := d.Set("federation_settings_id", *federationSettingsID); err != nil {
-		return nil, fmt.Errorf("error setting federation_settings_id for ole mapping in Federation settings (%s): %s", d.Id(), err)
+		return nil, fmt.Errorf("error setting federation_settings_id for role mapping in Federation settings (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("org_id", *orgID); err != nil {
