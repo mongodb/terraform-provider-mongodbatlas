@@ -46,7 +46,7 @@ data "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 * `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
 * `cluster_name` - (Required) The name of the Atlas cluster for which you want to retrieve the restore job.
 * `job_id` - (Optional) A base64-encoded ID  of `project_id`, `cluster_name`, and `job_id` of this resource. **Note**: This attribute is deprecated, use `snapshot_restore_job_id` instead.
-* `snapshot_restore_job_id` - (Optional) The unique identifier of the restore job to retrieve. Will be required from 1.18.0
+* `snapshot_restore_job_id` - (Optional) The unique identifier of the restore job to retrieve. Required for versions 1.18.0 and later.
 
 ## Attributes Reference
 
