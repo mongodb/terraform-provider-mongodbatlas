@@ -72,6 +72,10 @@ func (r *{{.NameCamelCase}}RS) Read(ctx context.Context, req resource.ReadReques
 
 	// connV2 := r.Client.AtlasV2
 	//if err != nil {
+	//	if apiResp != nil && apiResp.StatusCode == http.StatusNotFound {
+	//		resp.State.RemoveResource(ctx)
+	//		return
+	//	}
 	//	resp.Diagnostics.AddError("error fetching resource", err.Error())
 	//	return
 	//}
