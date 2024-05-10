@@ -449,7 +449,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	// get project
 	projectRes, atlasResp, err := connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
 	if err != nil {
-		if resp != nil && atlasResp.StatusCode == http.StatusNotFound {
+		if atlasResp != nil && atlasResp.StatusCode == http.StatusNotFound {
 			resp.State.RemoveResource(ctx)
 			return
 		}
