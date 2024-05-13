@@ -112,7 +112,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 func configBasic(projectID, bucketName string) string {
 	return fmt.Sprintf(`
     resource "aws_iam_role_policy" "test_policy" {
-        name = "mongo_setup_policy_export_bucket"
+        name = "mongodb-atlas-policy-export-bucket"
         role = aws_iam_role.test_role.id
 
         policy = <<-EOF
@@ -130,7 +130,7 @@ func configBasic(projectID, bucketName string) string {
       }
 
       resource "aws_iam_role" "test_role" {
-        name = "mongo_setup_role_export_bucket"
+        name = "mongodb-atlas-role-export-bucket"
 
         assume_role_policy = <<EOF
       {
