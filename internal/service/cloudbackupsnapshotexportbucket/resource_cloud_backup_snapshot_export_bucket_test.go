@@ -3,7 +3,6 @@ package cloudbackupsnapshotexportbucket_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -24,21 +23,20 @@ func TestAccBackupSnapshotExportBucket_basic(t *testing.T) {
 
 func basicTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
-	acc.SkipTestForCI(tb) // needs AWS IAM role and S3 bucket
 
 	var (
-		projectID  = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		bucketName = os.Getenv("AWS_S3_BUCKET")
-		iamRoleID  = os.Getenv("IAM_ROLE_ID")
+		projectID  = acc.ProjectIDExecution(tb)
+		bucketName = "terraform-backup-snapshot-export-bucket-donotdelete"
 	)
 
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(tb); acc.PreCheckS3Bucket(tb) },
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, bucketName, iamRoleID),
+				Config: configBasic(projectID, bucketName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -111,22 +109,79 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func configBasic(projectID, bucketName, iamRoleID string) string {
+func configBasic(projectID, bucketName string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
-			project_id     = "%[1]s"
-    	  	iam_role_id    = "%[3]s"
-       		bucket_name    = "%[2]s"
-       		cloud_provider = "AWS"
-    	}
+    resource "aws_iam_role_policy" "test_policy" {
+        name = "mongo_setup_policy_export_bucket"
+        role = aws_iam_role.test_role.id
 
-		data "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
-			project_id   =  mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
-			export_bucket_id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
-		}
+        policy = <<-EOF
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "*",
+              "Resource": "*"
+            }
+          ]
+        }
+        EOF
+      }
 
-		data "mongodbatlas_cloud_backup_snapshot_export_buckets" "test" {
-			project_id   =  mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
-		}
-	`, projectID, bucketName, iamRoleID)
+      resource "aws_iam_role" "test_role" {
+        name = "mongo_setup_role_export_bucket"
+
+        assume_role_policy = <<EOF
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": {
+              "AWS": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_aws_account_arn}"
+            },
+            "Action": "sts:AssumeRole",
+            "Condition": {
+              "StringEquals": {
+                "sts:ExternalId": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_assumed_role_external_id}"
+              }
+            }
+          }
+        ]
+      }
+      EOF
+      }
+
+      resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
+        project_id    = "%[1]s"
+        provider_name = "AWS"
+      }
+
+      resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+       project_id = "%[1]s"
+       role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
+
+       aws {
+         iam_assumed_role_arn = aws_iam_role.test_role.arn
+       }
+      }
+
+
+        resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
+            project_id     = "%[1]s"
+            iam_role_id    = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+            bucket_name    = "%[2]s"
+            cloud_provider = "AWS"
+        }
+
+        data "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
+            project_id   =  mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
+            export_bucket_id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
+        }
+
+        data "mongodbatlas_cloud_backup_snapshot_export_buckets" "test" {
+            project_id   =  mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
+        }
+    `, projectID, bucketName)
 }
