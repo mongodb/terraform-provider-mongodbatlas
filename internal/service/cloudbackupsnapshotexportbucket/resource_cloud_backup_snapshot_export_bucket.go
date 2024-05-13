@@ -147,16 +147,16 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
 	}
-	// Wait, catching any errors
-	_, err := stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		return diag.Errorf("error deleting snapshot export bucket %s %s", projectID, err)
-	}
-
-	_, _, err = conn.CloudBackupsApi.DeleteExportBucket(ctx, projectID, bucketID).Execute()
+	_, _, err := conn.CloudBackupsApi.DeleteExportBucket(ctx, projectID, bucketID).Execute()
 
 	if err != nil {
 		return diag.Errorf("error deleting snapshot export bucket (%s): %s", bucketID, err)
+	}
+
+	// Wait, catching any errors
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return diag.Errorf("error deleting snapshot export bucket %s %s", projectID, err)
 	}
 
 	return nil
