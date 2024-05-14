@@ -3,6 +3,7 @@ package cloudbackupschedule_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -153,6 +154,7 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
 		policyName  = acc.RandomName()
 		roleName    = acc.RandomIAMRole()
+		bucketName  = os.Getenv("AWS_S3_BUCKET")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -162,7 +164,7 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 
 		Steps: []resource.TestStep{
 			{
-				Config: configExportPolicies(&clusterInfo, policyName, roleName),
+				Config: configExportPolicies(&clusterInfo, policyName, roleName, bucketName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
@@ -718,7 +720,7 @@ func configAdvancedPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSc
 	`, info.ClusterNameStr, info.ProjectIDStr, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
-func configExportPolicies(info *acc.ClusterInfo, policyName, roleName string) string {
+func configExportPolicies(info *acc.ClusterInfo, policyName, roleName, bucketName string) string {
 	return info.ClusterTerraformStr + fmt.Sprintf(`
     resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
         cluster_name     = %[1]s
@@ -739,7 +741,7 @@ func configExportPolicies(info *acc.ClusterInfo, policyName, roleName string) st
     }
 
     resource "aws_s3_bucket" "backup" {
-        bucket          = "cloud-backup-schedule-test"
+        bucket          = %[5]q
         force_destroy   = true
     }
 
@@ -801,7 +803,7 @@ func configExportPolicies(info *acc.ClusterInfo, policyName, roleName string) st
         }
     EOF
     }
-    `, info.ClusterNameStr, info.ProjectIDStr, policyName, roleName)
+    `, info.ClusterNameStr, info.ProjectIDStr, policyName, roleName, bucketName)
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
