@@ -28,6 +28,8 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	var (
 		projectID  = acc.ProjectIDExecution(tb)
 		bucketName = os.Getenv("AWS_S3_BUCKET")
+		policyName = acc.RandomName()
+		roleName   = acc.RandomIAMRole()
 	)
 
 	return &resource.TestCase{
@@ -37,7 +39,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, bucketName),
+				Config: configBasic(projectID, bucketName, policyName, roleName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -110,11 +112,10 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func configBasic(projectID, bucketName string) string {
-	bucketResourceName := "arn:aws:s3:::" + bucketName
+func configBasic(projectID, bucketName, policyName, roleName string) string {
 	return fmt.Sprintf(`
     resource "aws_iam_role_policy" "test_policy" {
-        name = "mongodb-atlas-policy-export-bucket"
+        name = %[3]q
         role = aws_iam_role.test_role.id
 
         policy = <<-EOF
@@ -136,7 +137,7 @@ func configBasic(projectID, bucketName string) string {
       }
 
       resource "aws_iam_role" "test_role" {
-        name = "mongodb-atlas-role-export-bucket"
+        name = %[4]q
 
         assume_role_policy = <<EOF
       {
@@ -160,12 +161,12 @@ func configBasic(projectID, bucketName string) string {
       }
 
       resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
-        project_id    = "%[1]s"
+        project_id    = %[1]q
         provider_name = "AWS"
       }
 
       resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
-       project_id = "%[1]s"
+       project_id = %[1]q
        role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
 
        aws {
@@ -175,9 +176,9 @@ func configBasic(projectID, bucketName string) string {
 
 
         resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
-            project_id     = "%[1]s"
+            project_id     = %[1]q
             iam_role_id    = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-            bucket_name    = "%[2]s"
+            bucket_name    = %[2]q
             cloud_provider = "AWS"
         }
 
@@ -189,5 +190,5 @@ func configBasic(projectID, bucketName string) string {
         data "mongodbatlas_cloud_backup_snapshot_export_buckets" "test" {
             project_id   =  mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
         }
-    `, projectID, bucketName, bucketResourceName)
+    `, projectID, bucketName, policyName, roleName)
 }

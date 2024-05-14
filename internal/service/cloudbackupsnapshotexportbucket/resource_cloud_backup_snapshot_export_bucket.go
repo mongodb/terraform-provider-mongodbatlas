@@ -153,7 +153,6 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.Errorf("error deleting snapshot export bucket (%s): %s", bucketID, err)
 	}
 
-	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.Errorf("error deleting snapshot export bucket %s %s", projectID, err)
