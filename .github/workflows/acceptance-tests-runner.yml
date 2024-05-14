@@ -88,6 +88,8 @@ on:
         required: true
       aws_s3_bucket_federation:
         required: true
+      aws_s3_bucket_backup:
+        required: true
       mongodb_atlas_ldap_hostname:
         required: true
       mongodb_atlas_ldap_username:
