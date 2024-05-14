@@ -152,7 +152,7 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
 		policyName  = acc.RandomName()
-		roleName    = acc.RandomName()
+		roleName    = acc.RandomIAMRole()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
