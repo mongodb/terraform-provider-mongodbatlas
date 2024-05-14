@@ -3,6 +3,7 @@ package cloudbackupsnapshotexportbucket_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -26,7 +27,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 
 	var (
 		projectID  = acc.ProjectIDExecution(tb)
-		bucketName = "terraform-backup-snapshot-export-bucket-donotdelete"
+		bucketName = os.Getenv("AWS_S3_BUCKET")
 	)
 
 	return &resource.TestCase{
@@ -110,6 +111,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 }
 
 func configBasic(projectID, bucketName string) string {
+	bucketResourceName := "arn:aws:s3:::" + bucketName
 	return fmt.Sprintf(`
     resource "aws_iam_role_policy" "test_policy" {
         name = "mongodb-atlas-policy-export-bucket"
@@ -117,14 +119,18 @@ func configBasic(projectID, bucketName string) string {
 
         policy = <<-EOF
         {
-          "Version": "2012-10-17",
-          "Statement": [
+            "Version": "2012-10-17",
+            "Statement": [
             {
-              "Effect": "Allow",
-              "Action": "*",
-              "Resource": "*"
-            }
-          ]
+                "Effect": "Allow",
+                "Action": "s3:GetBucketLocation",
+                "Resource": "arn:aws:s3:::%[2]s"
+            },
+            {
+                "Effect": "Allow",
+                "Action": "s3:PutObject",
+                "Resource": "arn:aws:s3:::%[2]s/*"
+            }]
         }
         EOF
       }
@@ -183,5 +189,5 @@ func configBasic(projectID, bucketName string) string {
         data "mongodbatlas_cloud_backup_snapshot_export_buckets" "test" {
             project_id   =  mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
         }
-    `, projectID, bucketName)
+    `, projectID, bucketName, bucketResourceName)
 }
