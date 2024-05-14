@@ -773,9 +773,14 @@ func configExportPolicies(info *acc.ClusterInfo, policyName, roleName, bucketNam
             "Version": "2012-10-17",
             "Statement": [
             {
-                "Effect": "Deny",
-                "Action": "*",
-                "Resource": "*"
+                "Effect": "Allow",
+                "Action": "s3:GetBucketLocation",
+                "Resource": "arn:aws:s3:::%[5]s"
+            },
+            {
+                "Effect": "Allow",
+                "Action": "s3:PutObject",
+                "Resource": "arn:aws:s3:::%[5]s/*"
             }]
         }
         EOF
