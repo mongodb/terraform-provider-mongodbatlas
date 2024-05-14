@@ -3,7 +3,6 @@ package cloudbackupschedule_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -151,10 +150,11 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 
 func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
-		policyName  = acc.RandomName()
-		roleName    = acc.RandomIAMRole()
-		bucketName  = os.Getenv("AWS_S3_BUCKET")
+		clusterInfo        = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
+		policyName         = acc.RandomName()
+		roleName           = acc.RandomIAMRole()
+		s3BucketNamePrefix = acc.RandomS3BucketName()
+		bucketName         = fmt.Sprintf("%s-1", s3BucketNamePrefix)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

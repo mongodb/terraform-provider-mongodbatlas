@@ -88,8 +88,6 @@ on:
         required: true
       aws_s3_bucket_federation:
         required: true
-      aws_s3_bucket_backup:
-        required: true
       mongodb_atlas_ldap_hostname:
         required: true
       mongodb_atlas_ldap_username:
@@ -327,7 +325,6 @@ jobs:
           AWS_REGION: ${{ vars.AWS_REGION_LOWERCASE }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
-          AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_backup }}
           ACCTEST_PACKAGES: |
             ./internal/service/cloudbackupschedule
             ./internal/service/cloudbackupsnapshot
