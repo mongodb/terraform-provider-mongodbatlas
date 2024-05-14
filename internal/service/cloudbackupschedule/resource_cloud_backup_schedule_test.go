@@ -3,7 +3,6 @@ package cloudbackupschedule_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -150,24 +149,20 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 }
 
 func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
-	acc.SkipTestForCI(t) // needs AWS configuration
-
 	var (
-		clusterInfo  = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
-		policyName   = acc.RandomName()
-		roleName     = acc.RandomName()
-		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
-		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
-		region       = os.Getenv("AWS_REGION")
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
+		policyName  = acc.RandomName()
+		roleName    = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 
 		Steps: []resource.TestStep{
 			{
-				Config: configExportPolicies(&clusterInfo, policyName, roleName, awsAccessKey, awsSecretKey, region),
+				Config: configExportPolicies(&clusterInfo, policyName, roleName),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
@@ -723,106 +718,90 @@ func configAdvancedPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSc
 	`, info.ClusterNameStr, info.ProjectIDStr, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
-func configExportPolicies(info *acc.ClusterInfo, policyName, roleName, awsAccessKey, awsSecretKey, region string) string {
+func configExportPolicies(info *acc.ClusterInfo, policyName, roleName string) string {
 	return info.ClusterTerraformStr + fmt.Sprintf(`
-			provider "aws" {
-				access_key = %[5]q
-				secret_key = %[6]q
-				region     = %[7]q
-			}
+    resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
+        cluster_name     = %[1]s
+        project_id       = %[2]s
+        auto_export_enabled      = true
+        reference_hour_of_day    = 20
+        reference_minute_of_hour = "05"
+        restore_window_days      = 4
+        policy_item_daily {
+            frequency_interval = 1
+            retention_unit     = "days"
+            retention_value    = 4
+        }
+        export {
+            export_bucket_id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
+            frequency_type   = "daily"
+        }
+    }
 
-			resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
-				cluster_name     = %[1]s
-				project_id       = %[2]s
+    resource "aws_s3_bucket" "backup" {
+        bucket          = "cloud-backup-schedule-test"
+        force_destroy   = true
+    }
 
-				auto_export_enabled      = true
-				reference_hour_of_day    = 20
-				reference_minute_of_hour = "05"
-				restore_window_days      = 4
+    resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
+        project_id      = %[2]s
+        provider_name   = "AWS"
+    }
 
-				policy_item_daily {
-				frequency_interval = 1
-				retention_unit     = "days"
-				retention_value    = 4
-				}
-				export {
-					export_bucket_id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
-					frequency_type   = "daily"
-				}
-			}
+    resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+        project_id  = %[2]s
+        role_id     = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
+        aws {
+            iam_assumed_role_arn = aws_iam_role.test_role.arn
+        }
+    }
 
-			resource "aws_s3_bucket" "backup" {
-				bucket = "${local.mongodbatlas_project_id}-s3-mongodb-backups"
-				force_destroy = true
-					object_lock_configuration {
-						object_lock_enabled = "Enabled"
-					}
-			}
+    resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
+        project_id     = %[2]s
+        iam_role_id    = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+        bucket_name    = aws_s3_bucket.backup.bucket
+        cloud_provider = "AWS"
+    }
 
-			resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
-				project_id       = %[2]s
-				provider_name = "AWS"
-			}
+    resource "aws_iam_role_policy" "test_policy" {
+        name = %[3]q
+        role = aws_iam_role.test_role.id
+        policy = <<-EOF
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+            {
+                "Effect": "Deny",
+                "Action": "*",
+                "Resource": "*"
+            }]
+        }
+        EOF
+    }
 
-			resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
-				project_id       = %[2]s
-				role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
-
-				aws {
-					iam_assumed_role_arn = aws_iam_role.test_role.arn
-				}
-			}
-
-			resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
-				project_id       = %[2]s
-
-				iam_role_id    = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-				bucket_name    = aws_s3_bucket.backup.bucket
-				cloud_provider = "AWS"
-			}
-
-			resource "aws_iam_role_policy" "test_policy" {
-				name = %[3]q
-				role = aws_iam_role.test_role.id
-
-				policy = <<-EOF
-				{
-					"Version": "2012-10-17",
-					"Statement": [
-					{
-						"Effect": "Deny",
-						"Action": "*",
-						"Resource": "*"
-					}
-					]
-				}
-				EOF
-			}
-
-			resource "aws_iam_role" "test_role" {
-				name = %[4]q
-
-				assume_role_policy = <<EOF
-			{
-				"Version": "2012-10-17",
-				"Statement": [
-					{
-						"Effect": "Allow",
-						"Principal": {
-							"AWS": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config.0.atlas_aws_account_arn}"
-						},
-						"Action": "sts:AssumeRole",
-						"Condition": {
-							"StringEquals": {
-								"sts:ExternalId": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config.0.atlas_assumed_role_external_id}"
-							}
-						}
-					}
-				]
-			}
-			EOF
-		}
-	`, info.ClusterNameStr, info.ProjectIDStr, policyName, roleName, awsAccessKey, awsSecretKey, region)
+    resource "aws_iam_role" "test_role" {
+        name = %[4]q
+        assume_role_policy = <<EOF
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "AWS": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config.0.atlas_aws_account_arn}"
+                    },
+                    "Action": "sts:AssumeRole",
+                    "Condition": {
+                        "StringEquals": {
+                            "sts:ExternalId": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config.0.atlas_assumed_role_external_id}"
+                        }
+                    }
+                }
+            ]
+        }
+    EOF
+    }
+    `, info.ClusterNameStr, info.ProjectIDStr, policyName, roleName)
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
