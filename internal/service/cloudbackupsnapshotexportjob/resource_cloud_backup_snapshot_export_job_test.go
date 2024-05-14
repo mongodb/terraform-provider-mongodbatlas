@@ -23,13 +23,13 @@ func TestAccBackupSnapshotExportJob_basic(t *testing.T) {
 
 func basicTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
-	acc.SkipTestForCI(tb) // needs AWS IAM role and S3 bucket
 
 	var (
 		clusterInfo = acc.GetClusterInfo(tb, &acc.ClusterRequest{CloudBackup: true})
 		bucketName  = os.Getenv("AWS_S3_BUCKET")
-		iamRoleID   = os.Getenv("IAM_ROLE_ID")
-		projectID   = acc.ProjectIDExecution(tb)
+		roleName    = acc.RandomIAMRole()
+		policyName  = acc.RandomName()
+		projectID   = clusterInfo.ProjectID
 		clusterName = clusterInfo.ClusterName
 		attrsSet    = []string{
 			"id",
@@ -55,11 +55,12 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	checks = acc.AddAttrChecks(dataSourcePluralName, checks, attrsPluralDS)
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(tb); acc.PreCheckS3Bucket(tb) },
+		PreCheck:                 func() { acc.PreCheckBasic(tb); acc.PreCheckS3Bucket(tb) },
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, bucketName, iamRoleID, clusterName),
+				Config: configBasic(projectID, bucketName, roleName, policyName, clusterName),
 				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 			{
@@ -120,45 +121,101 @@ func readRequired(rs *terraform.ResourceState, resourceName string) (projectID, 
 	return projectID, clusterName, exportJobID, err
 }
 
-func configBasic(projectID, bucketName, iamRoleID, clusterName string) string {
+func configBasic(projectID, bucketName, roleName, policyName, clusterName string) string {
 	return fmt.Sprintf(`
+resource "aws_iam_role_policy" "test_policy" {
+    name = %[4]q
+    role = aws_iam_role.test_role.id
+    policy = <<-EOF
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "s3:GetBucketLocation",
+            "Resource": "arn:aws:s3:::%[2]s"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "s3:PutObject",
+            "Resource": "arn:aws:s3:::%[2]s/*"
+        }]
+    }
+    EOF
+}
+
+resource "aws_iam_role" "test_role" {
+    name = %[3]q
+    assume_role_policy = <<EOF
+	{
+	  "Version": "2012-10-17",
+	  "Statement": [
+	    {
+	      "Effect": "Allow",
+	      "Principal": {
+	        "AWS": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_aws_account_arn}"
+	      },
+	      "Action": "sts:AssumeRole",
+	      "Condition": {
+	        "StringEquals": {
+	          "sts:ExternalId": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_assumed_role_external_id}"
+	        }
+	      }
+	    }
+	  ]
+	}
+	EOF
+}
+
+resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
+	project_id    = %[1]q
+	provider_name = "AWS"
+}
+
+resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+	project_id = %[1]q
+	role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
+	aws {
+	  iam_assumed_role_arn = aws_iam_role.test_role.arn
+	}
+}
+
 resource "mongodbatlas_cloud_backup_snapshot" "test" {
-  project_id        = %[1]q
-  cluster_name      = %[4]q
-  description       = "tf-acc-test"
-  retention_in_days = 1
+	project_id        = %[1]q
+	cluster_name      = %[5]q
+	description       = "tf-acc-test"
+	retention_in_days = 1
 }
 
 resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
-  project_id     = %[1]q
-  iam_role_id    = "%[3]s"
-  bucket_name    = "%[2]s"
-  cloud_provider = "AWS"
+	project_id     = %[1]q
+	iam_role_id    = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+	bucket_name    = "%[2]s"
+	cloud_provider = "AWS"
 }
 
 resource "mongodbatlas_cloud_backup_snapshot_export_job" "test" {
-  project_id   		= %[1]q
-  cluster_name 		= %[4]q
-  snapshot_id		= mongodbatlas_cloud_backup_snapshot.test.snapshot_id
-  export_bucket_id 	= mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
-
-  custom_data {
-    key   = "exported by"
-    value = "tf-acc-test"
-  }
+	project_id   		= %[1]q
+	cluster_name 		= %[5]q
+	snapshot_id		= mongodbatlas_cloud_backup_snapshot.test.snapshot_id
+	export_bucket_id 	= mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
+	custom_data {
+		key   = "exported by"
+		value = "tf-acc-test"
+	}
 }
 
 data "mongodbatlas_cloud_backup_snapshot_export_job" "test" {
     project_id 		= %[1]q
-    cluster_name 	= %[4]q
+    cluster_name 	= %[5]q
     export_job_id 	= mongodbatlas_cloud_backup_snapshot_export_job.test.export_job_id
 }
   
 data "mongodbatlas_cloud_backup_snapshot_export_jobs" "test" {
     depends_on 	= [mongodbatlas_cloud_backup_snapshot_export_job.test] 
     project_id   	= %[1]q
-    cluster_name 	= %[4]q
+    cluster_name 	= %[5]q
 }
 
-`, projectID, bucketName, iamRoleID, clusterName)
+`, projectID, bucketName, roleName, policyName, clusterName)
 }
