@@ -39,6 +39,7 @@ func GetClusterInfo(tb testing.TB, req *ClusterRequest) ClusterInfo {
 	if clusterName != "" && projectID != "" {
 		return ClusterInfo{
 			ProjectIDStr:        fmt.Sprintf("%q", projectID),
+			ProjectID:           projectID,
 			ClusterName:         clusterName,
 			ClusterNameStr:      fmt.Sprintf("%q", clusterName),
 			ClusterTerraformStr: "",

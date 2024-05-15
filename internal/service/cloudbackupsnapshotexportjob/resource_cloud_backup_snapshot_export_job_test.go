@@ -209,6 +209,7 @@ data "mongodbatlas_cloud_backup_snapshot_export_job" "test" {
     project_id 		= %[1]q
     cluster_name 	= %[5]q
     export_job_id 	= mongodbatlas_cloud_backup_snapshot_export_job.test.export_job_id
+    id              = "any_value"
 }
   
 data "mongodbatlas_cloud_backup_snapshot_export_jobs" "test" {
