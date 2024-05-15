@@ -736,7 +736,7 @@ func configExportPolicies(info *acc.ClusterInfo, policyName, roleName, bucketNam
         }
         export {
             export_bucket_id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
-            frequency_type   = "daily"
+            frequency_type   = "monthly"
         }
     }
 
