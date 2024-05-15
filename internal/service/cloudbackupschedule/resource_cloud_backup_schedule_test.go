@@ -150,7 +150,8 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 
 func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
+		// A snapshot export bucket can't be deleted it there exist a cluster that is still using it. So the cluster resource needs to depend on it
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, ResourceDependencyName: "mongodbatlas_cloud_backup_snapshot_export_bucket.test"})
 		policyName  = acc.RandomName()
 		roleName    = acc.RandomIAMRole()
 		bucketName  = acc.RandomS3BucketName()
@@ -722,17 +723,35 @@ func configAdvancedPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSc
 func configExportPolicies(info *acc.ClusterInfo, policyName, roleName, bucketName string) string {
 	return info.ClusterTerraformStr + fmt.Sprintf(`
     resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
-        cluster_name     = %[1]s
-        project_id       = %[2]s
+        cluster_name             = %[1]s
+        project_id               = %[2]s
         auto_export_enabled      = true
         reference_hour_of_day    = 20
         reference_minute_of_hour = "05"
         restore_window_days      = 4
+
+        policy_item_hourly {
+            frequency_interval = 1 #accepted values = 1, 2, 4, 6, 8, 12 -> every n hours
+            retention_unit     = "days"
+            retention_value    = 4
+        }		
         policy_item_daily {
             frequency_interval = 1
             retention_unit     = "days"
             retention_value    = 4
         }
+        policy_item_weekly {
+            frequency_interval = 4        # accepted values = 1 to 7 -> every 1=Monday,2=Tuesday,3=Wednesday,4=Thursday,5=Friday,6=Saturday,7=Sunday day of the week
+            retention_unit     = "weeks"
+            retention_value    = 4
+        }
+        policy_item_monthly {
+            frequency_interval = 5        # accepted values = 1 to 28 -> 1 to 28 every nth day of the month  
+        	                              # accepted values = 40 -> every last day of the month
+            retention_unit     = "months"
+            retention_value    = 4
+        }  		
+
         export {
             export_bucket_id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
             frequency_type   = "monthly"
