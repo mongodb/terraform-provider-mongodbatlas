@@ -103,7 +103,7 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 				),
 			},
 			{
-				Config:      configBasic(&clusterInfo, true, false),
+				Config:      configWithDBConfig(&clusterInfo, customZoneUpdated),
 				ExpectError: regexp.MustCompile("Updating a global cluster configuration resource is not allowed."),
 			},
 			{
