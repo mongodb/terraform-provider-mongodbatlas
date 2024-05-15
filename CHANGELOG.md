@@ -12,6 +12,7 @@ BUG FIXES:
 * data-source/mongodbatlas_federated_database_instance: Populates value of `data_process_region` when returned by the API ([#2223](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2223))
 * data-source/mongodbatlas_federated_database_instances: Populates value of `data_process_region` when returned by the API ([#2223](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2223))
 * resource/mongodbatlas_cloud_backup_snapshot_export_bucket Adds missing `project_id` during Read ([#2232](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2232))
+* resource/mongodbatlas_cloud_backup_snapshot_export_bucket: Calls DeleteExportBucket before checking for a status update so that the delete operation doesn't hang. ([#2269](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2269))
 * resource/mongodbatlas_ldap_configuration: Disables LDAP when the resource is destroyed, instead of deleting userToDNMapping document ([#2221](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2221))
 
 ## 1.16.0 (April 29, 2024)

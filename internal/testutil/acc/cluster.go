@@ -9,10 +9,11 @@ import (
 )
 
 type ClusterRequest struct {
-	ProviderName string
-	ExtraConfig  string
-	CloudBackup  bool
-	Geosharded   bool
+	ProviderName           string
+	ExtraConfig            string
+	ResourceDependencyName string
+	CloudBackup            bool
+	Geosharded             bool
 }
 
 type ClusterInfo struct {
@@ -51,14 +52,22 @@ func GetClusterInfo(tb testing.TB, req *ClusterRequest) ClusterInfo {
 	if req.Geosharded {
 		clusterTypeStr = "GEOSHARDED"
 	}
+	dependsOnClause := ""
+	if req.ResourceDependencyName != "" {
+		dependsOnClause = fmt.Sprintf(`
+           depends_on = [
+              %[1]s	
+           ]
+		`, req.ResourceDependencyName)
+	}
 	clusterTerraformStr := fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test_cluster" {
-			project_id   									= %[1]q
-			name         									= %[2]q
-			cloud_backup         					= %[3]t
-			auto_scaling_disk_gb_enabled	= false
-			provider_name               	= %[4]q
-			provider_instance_size_name 	= "M10"
+			project_id                   = %[1]q
+			name                         = %[2]q
+			cloud_backup                 = %[3]t
+			auto_scaling_disk_gb_enabled = false
+			provider_name                = %[4]q
+			provider_instance_size_name  = "M10"
 		
 			cluster_type = %[5]q
 			replication_specs {
@@ -72,8 +81,9 @@ func GetClusterInfo(tb testing.TB, req *ClusterRequest) ClusterInfo {
 				}
 			}
 			%[6]s
+			%[7]s
 		}
-	`, projectID, clusterName, req.CloudBackup, req.ProviderName, clusterTypeStr, req.ExtraConfig)
+	`, projectID, clusterName, req.CloudBackup, req.ProviderName, clusterTypeStr, req.ExtraConfig, dependsOnClause)
 	return ClusterInfo{
 		ProjectIDStr:        fmt.Sprintf("%q", projectID),
 		ProjectID:           projectID,
