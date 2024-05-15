@@ -150,11 +150,10 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 
 func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 	var (
-		clusterInfo        = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
-		policyName         = acc.RandomName()
-		roleName           = acc.RandomIAMRole()
-		s3BucketNamePrefix = acc.RandomS3BucketName()
-		bucketName         = fmt.Sprintf("%s-1", s3BucketNamePrefix)
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
+		policyName  = acc.RandomName()
+		roleName    = acc.RandomIAMRole()
+		bucketName  = acc.RandomS3BucketName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
