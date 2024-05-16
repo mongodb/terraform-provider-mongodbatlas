@@ -120,10 +120,10 @@ jobs:
 
   get-provider-version:
     runs-on: ubuntu-latest
+    permissions: {}
     outputs:
       provider_version: ${{ inputs.provider_version || steps.get_last_release.outputs.last_provider_version }}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - name: Checkout
         uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
       - name: Get Last Release
@@ -136,6 +136,7 @@ jobs:
 
   change-detection:
     runs-on: ubuntu-latest
+    permissions: {}
     env:
       mustTrigger: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_group == '')  }}
     outputs:
@@ -159,7 +160,6 @@ jobs:
       serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
     steps:
-    - uses: GitHubSecurityLab/actions-permissions/monitor@v1
     - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
     - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
       id: filter
@@ -246,8 +246,8 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
         with:
           ref: ${{ inputs.ref || github.ref }}
@@ -268,8 +268,8 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.assume_role == 'true' || inputs.test_group == 'assume_role' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
         with:
           ref: ${{ inputs.ref || github.ref }}
@@ -308,8 +308,8 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.backup == 'true' || inputs.test_group == 'backup' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
         with:
           ref: ${{ inputs.ref || github.ref }}
@@ -341,8 +341,8 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.cluster == 'true' || inputs.test_group == 'cluster' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
         with:
           ref: ${{ inputs.ref || github.ref }}
@@ -365,8 +365,8 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || inputs.test_group == 'cluster_outage_simulation' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
         with:
           ref: ${{ inputs.ref || github.ref }}
@@ -387,8 +387,8 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.config == 'true' || inputs.test_group == 'config' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
         with:
           ref: ${{ inputs.ref || github.ref }}
@@ -432,8 +432,8 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.data_lake == 'true' || inputs.test_group == 'data_lake' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
         with:
           ref: ${{ inputs.ref || github.ref }}
@@ -454,8 +454,8 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.encryption == 'true' || inputs.test_group == 'encryption' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
         with:
           ref: ${{ inputs.ref || github.ref }}
@@ -476,8 +476,8 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.event_trigger == 'true' || inputs.test_group == 'event_trigger' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
         with:
           ref: ${{ inputs.ref || github.ref }}
@@ -498,8 +498,8 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.federated == 'true' || inputs.test_group == 'federated' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
         with:
           ref: ${{ inputs.ref || github.ref }}
@@ -536,8 +536,8 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.generic == 'true' || inputs.test_group == 'generic' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
         with:
           ref: ${{ inputs.ref || github.ref }}
@@ -563,8 +563,8 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.ldap == 'true' || inputs.test_group == 'ldap' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
         with:
           ref: ${{ inputs.ref || github.ref }}
@@ -592,8 +592,8 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.network == 'true' || inputs.test_group == 'network' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
         with:
           ref: ${{ inputs.ref || github.ref }}
@@ -630,8 +630,8 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.project == 'true' || inputs.test_group == 'project' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
         with:
           ref: ${{ inputs.ref || github.ref }}
@@ -666,8 +666,8 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.push_based_log_export == 'true' || inputs.test_group == 'push_based_log_export' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
         with:
           ref: ${{ inputs.ref || github.ref }}
@@ -691,8 +691,8 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.search_deployment == 'true' || inputs.test_group == 'search_deployment' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
         with:
           ref: ${{ inputs.ref || github.ref }}
@@ -713,8 +713,8 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.search_index == 'true' || inputs.test_group == 'search_index' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
         with:
           ref: ${{ inputs.ref || github.ref }}
@@ -735,8 +735,8 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.serverless == 'true' || inputs.test_group == 'serverless' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
         with:
           ref: ${{ inputs.ref || github.ref }}
@@ -762,8 +762,8 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.stream == 'true' || inputs.test_group == 'stream' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
         with:
           ref: ${{ inputs.ref || github.ref }}
