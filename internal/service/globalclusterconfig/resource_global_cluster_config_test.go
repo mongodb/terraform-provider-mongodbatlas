@@ -39,7 +39,7 @@ func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 			},
 			{
 				Config:      configBasic(&clusterInfo, true, false),
-				ExpectError: regexp.MustCompile("Updating a global cluster configuration resource is not allowed."),
+				ExpectError: regexp.MustCompile("Updating a global cluster configuration resource is not allowed"),
 			},
 		},
 	})
@@ -104,7 +104,7 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 			},
 			{
 				Config:      configWithDBConfig(&clusterInfo, customZoneUpdated),
-				ExpectError: regexp.MustCompile("Updating a global cluster configuration resource is not allowed."),
+				ExpectError: regexp.MustCompile("Updating a global cluster configuration resource is not allowed"),
 			},
 			{
 				ResourceName:            resourceName,
