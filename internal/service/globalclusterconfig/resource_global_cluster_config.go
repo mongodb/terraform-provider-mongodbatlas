@@ -193,7 +193,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	return diag.Errorf("Updating a global cluster configuration resource is not allowed.")
+	return diag.Errorf("Updating a global cluster configuration resource is not allowed as it would " +
+		"leave the index and shard key on the related collection in an inconsistent state.\n" +
+		"Please read our official documentation for more information.")
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {

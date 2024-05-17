@@ -13,6 +13,7 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
+~> **IMPORTANT:** A Global Cluster Configuration, once created, can only be deleted and never re-created again with the same data if not without the help of the Atlas UI. This is because the configuration and its related collection with shard key and indexes are managed separately and they would end up in an inconsistent state. [Read more about Global Cluster Configuration](https://www.mongodb.com/docs/atlas/global-clusters/)
 
 ## Examples Usage
 
@@ -151,4 +152,4 @@ Global Clusters can be imported using project ID and cluster name, in the format
 $ terraform import mongodbatlas_global_cluster_config.config 1112222b3bf99403840e8934-Cluster0
 ```
 
-See detailed information for arguments and attributes: [MongoDB API Global Clusters](https://docs.atlas.mongodb.com/reference/api/global-clusters/)
+See detailed information for arguments and attributes: [MongoDB API Global Clusters](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Global-Clusters)
