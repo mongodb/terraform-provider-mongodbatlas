@@ -120,30 +120,30 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 func configBasic(federationSettingsID, orgID, groupID, externalGroupName string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_federated_settings_org_role_mapping" "test" {
-		federation_settings_id = "%[1]s"
-		org_id                 = "%[2]s"
+		federation_settings_id = %[1]q
+		org_id                 = %[2]q
 		external_group_name    = %[4]q
 		role_assignments {
-			org_id = "%[2]s"
+			org_id = %[2]q
 			roles  = ["ORG_MEMBER","ORG_GROUP_CREATOR"]
 		}
 		
 		  role_assignments {
-			group_id = "%[3]s"
+			group_id = %[3]q
 			roles    = ["GROUP_OWNER","GROUP_DATA_ACCESS_ADMIN","GROUP_SEARCH_INDEX_EDITOR","GROUP_DATA_ACCESS_READ_ONLY"]
 		}
 
 	}
 	data "mongodbatlas_federated_settings_org_role_mapping" "test" {
-		federation_settings_id = "%[1]s"
-		org_id                 = "%[2]s"
+		federation_settings_id = %[1]q
+		org_id                 = %[2]q
 		role_mapping_id        = mongodbatlas_federated_settings_org_role_mapping.test.role_mapping_id
 	}
 	data "mongodbatlas_federated_settings_org_role_mappings" "test" {
 		depends_on 			   = [mongodbatlas_federated_settings_org_role_mapping.test]
 
-		federation_settings_id = "%[1]s"
-		org_id                 = "%[2]s"
+		federation_settings_id = %[1]q
+		org_id                 = %[2]q
 		page_num = 1
 		items_per_page = 100
 	}

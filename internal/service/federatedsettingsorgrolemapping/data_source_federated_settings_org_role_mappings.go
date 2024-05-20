@@ -99,20 +99,15 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 }
 
 func flattenFederatedSettingsOrganizationRoleMappings(federatedSettingsOrganizationRoleMapping *admin.PaginatedRoleMapping) []map[string]any {
-	var federatedSettingsOrganizationRoleMappingMap []map[string]any
-
-	if federatedSettingsOrganizationRoleMapping.GetTotalCount() > 0 {
-		federatedSettingsOrganizationRoleMappingMap = make([]map[string]any, len(federatedSettingsOrganizationRoleMapping.GetResults()))
-
-		roleMappings := federatedSettingsOrganizationRoleMapping.GetResults()
-		for i := range roleMappings {
-			federatedSettingsOrganizationRoleMappingMap[i] = map[string]any{
-				"external_group_name": roleMappings[i].GetExternalGroupName(),
-				"id":                  roleMappings[i].GetId(),
-				"role_assignments":    FlattenRoleAssignments(roleMappings[i].GetRoleAssignments()),
-			}
-		}
+	var results []map[string]any
+	mappings := federatedSettingsOrganizationRoleMapping.GetResults()
+	for i := range mappings {
+		mapping := &mappings[i]
+		results = append(results, map[string]any{
+			"external_group_name": mapping.GetExternalGroupName(),
+			"id":                  mapping.GetId(),
+			"role_assignments":    FlattenRoleAssignments(mapping.GetRoleAssignments()),
+		})
 	}
-
-	return federatedSettingsOrganizationRoleMappingMap
+	return results
 }
