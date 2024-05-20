@@ -1,9 +1,3 @@
 ```release-note:bug
-Deletes resource outside of Terraform for the following: 
-- resource/cloud_backup_schedule
-- resource/encryption_at_rest
-- resource/push_based_log_export
-- resource/search_deployment
-- resource/stream_connection
-- resource/stream_instance
+Fixes logic when resource is deleted outside of Terraform
 ```
