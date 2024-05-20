@@ -1,8 +1,3 @@
 ```release-note:bug
-resource/cloud_backup_schedule: Handles resource deletion outside of Terraform
-resource/encryption_at_rest: Handles resource deletion outside of Terraform
-resource/push_based_log_export: Handles resource deletion outside of Terraform
-resource/search_deployment: Handles resource deletion outside of Terraform
-resource/stream_connection: Handles resource deletion outside of Terraform
-resource/stream_instance: Handles resource deletion outside of Terraform
+Deletes resource outside of Terraform
 ```
