@@ -20,7 +20,7 @@ func StreamInstanceConfig(projectID, instanceName, region, cloudProvider string)
 	`, projectID, instanceName, region, cloudProvider)
 }
 
-func StreamInstanceWithStreamConfigConfig(projectID, instanceName, region, cloudProvider string) string {
+func StreamInstanceWithStreamConfigConfig(projectID, instanceName, region, cloudProvider, configTier string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_instance" "test" {
 			project_id = %[1]q
@@ -30,10 +30,10 @@ func StreamInstanceWithStreamConfigConfig(projectID, instanceName, region, cloud
 				cloud_provider = %[4]q
 			}
 			stream_config = {
-				tier = "SP30"
+				tier = %[5]q
 			}
 		}
-	`, projectID, instanceName, region, cloudProvider)
+	`, projectID, instanceName, region, cloudProvider, configTier)
 }
 
 func CheckDestroyStreamInstance(state *terraform.State) error {
