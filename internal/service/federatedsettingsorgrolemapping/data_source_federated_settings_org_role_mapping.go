@@ -12,7 +12,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"federation_settings_id": {
 				Type:     schema.TypeString,
@@ -58,9 +58,8 @@ func DataSource() *schema.Resource {
 		},
 	}
 }
-func dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	federationSettingsID, federationSettingsIDOk := d.GetOk("federation_settings_id")
 
@@ -80,20 +79,20 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx cont
 		return diag.FromErr(errors.New("role_mapping_id must be configured"))
 	}
 
-	federatedSettingsOrganizationRoleMapping, _, err := conn.FederatedSettings.GetRoleMapping(ctx, federationSettingsID.(string), orgID.(string), roleMappingID.(string))
+	federatedSettingsOrganizationRoleMapping, _, err := conn.FederatedAuthenticationApi.GetRoleMapping(ctx, federationSettingsID.(string), roleMappingID.(string), orgID.(string)).Execute()
 	if err != nil {
 		return diag.Errorf("error getting federatedSettings Role Mapping assigned (%s): %s", federationSettingsID, err)
 	}
 
-	if err := d.Set("external_group_name", federatedSettingsOrganizationRoleMapping.ExternalGroupName); err != nil {
+	if err := d.Set("external_group_name", federatedSettingsOrganizationRoleMapping.GetExternalGroupName()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `result` for federatedSettings Role Mapping: %s", err))
 	}
 
-	if err := d.Set("role_assignments", FlattenRoleAssignments(federatedSettingsOrganizationRoleMapping.RoleAssignments)); err != nil {
+	if err := d.Set("role_assignments", FlattenRoleAssignments(federatedSettingsOrganizationRoleMapping.GetRoleAssignments())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `result` for federatedSettings Role Mapping: %s", err))
 	}
 
-	d.SetId(federatedSettingsOrganizationRoleMapping.ID)
+	d.SetId(federatedSettingsOrganizationRoleMapping.GetId())
 
 	return nil
 }
