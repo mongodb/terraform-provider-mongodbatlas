@@ -70,7 +70,6 @@ func expandRoleAssignments(d *schema.ResourceData) *[]admin.RoleAssignment {
 	}
 
 	sort.Sort(mRoleAssignment(roleAssignments))
-
 	return &roleAssignments
 }
 
@@ -78,9 +77,7 @@ func flattenRoleAssignmentsResource(roleAssignments []admin.RoleAssignment) []ma
 	if len(roleAssignments) == 0 {
 		return nil
 	}
-
 	sort.Sort(mRoleAssignment(roleAssignments))
-
 	var flattenedRoleAssignments []map[string]any
 	var roleAssignment = map[string]any{
 		"group_id": roleAssignments[0].GetGroupId(),
@@ -104,6 +101,5 @@ func flattenRoleAssignmentsResource(roleAssignments []admin.RoleAssignment) []ma
 	}
 
 	flattenedRoleAssignments = append(flattenedRoleAssignments, roleAssignment)
-
 	return flattenedRoleAssignments
 }
