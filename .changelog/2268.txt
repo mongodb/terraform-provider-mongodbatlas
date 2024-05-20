@@ -1,3 +1,23 @@
 ```release-note:bug
-Fixes logic when resource is deleted outside of Terraform
+resource/cloud_backup_schedule: Fixes logic when resource is deleted outside of Terraform
+```
+
+```release-note:bug
+resource/encryption_at_rest: Fixes logic when resource is deleted outside of Terraform
+```
+
+```release-note:bug
+resource/push_based_log_export: Fixes logic when resource is deleted outside of Terraform
+```
+
+```release-note:bug
+resource/search_deployment: Fixes logic when resource is deleted outside of Terraform
+```
+
+```release-note:bug
+resource/stream_connection: Fixes logic when resource is deleted outside of Terraform
+```
+
+```release-note:bug
+resource/stream_instance: Fixes logic when resource is deleted outside of Terraform
 ```
