@@ -2,10 +2,10 @@
 
 ENHANCEMENTS:
 
-* data-source/cloud_backup_snapshot_export_job: Marks `id` as computed not required ([#2234](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2234))
 * data-source/mongodbatlas_cloud_backup_snapshot_export_bucket: Marks `id` as computed not required ([#2241](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2241))
+* data-source/mongodbatlas_cloud_backup_snapshot_export_job: Marks `id` as computed and therefore, not required ([#2234](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2234))
 * data-source/mongodbatlas_cloud_backup_snapshot_restore_job: Uses `snapshot_restore_job_id` instead of encodedID in `job_id` ([#2257](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2257))
-* resource/federated_settings_org_rolemapping: Exposes role_mapping_id ([#2258](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2258))
+* resource/mongodbatlas_federated_settings_org_rolemapping: Adds `role_mapping_id` computed attribute ([#2258](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2258))
 
 BUG FIXES:
 
