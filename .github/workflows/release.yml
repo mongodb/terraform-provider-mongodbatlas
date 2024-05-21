@@ -41,7 +41,7 @@ jobs:
         run: |
           echo "${{ inputs.version_number }}" | grep -P '^v\d+\.\d+\.\d+(-pre[A-Za-z0-9-]*)?$'
       - name: Checkout
-        uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
         with:
           ref: ${{ inputs.use_existing_tag == 'true' && inputs.version_number || 'master' }}
       - name: Check for Upgrade Guide
@@ -93,7 +93,7 @@ jobs:
     steps: 
       - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - name: Checkout
-        uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
         with:
           ref: 'master'
       - name: Get the latest commit SHA
@@ -129,7 +129,7 @@ jobs:
     steps:
       - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - name: Checkout
-        uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
         with:
           ref: ${{ inputs.version_number }}
       - name: Set up Go
