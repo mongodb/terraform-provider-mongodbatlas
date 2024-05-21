@@ -18,7 +18,6 @@ func TestAccFederatedSettingsOrg_basic(t *testing.T) {
 
 func basicTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
-	acc.SkipTestForCI(tb) // affects the org
 
 	var (
 		resourceName         = "mongodbatlas_federated_settings_org_config.test"
@@ -38,16 +37,37 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				ImportState:       true,
 				ImportStateVerify: false,
 			},
+		},
+	}
+}
+
+func TestAccFederatedSettingsOrg_update(t *testing.T) {
+	acc.SkipTestForCI(t) // will delete the MONGODB_ATLAS_FEDERATED_ORG_ID on finish, no workaround: https://github.com/hashicorp/terraform-plugin-testing/issues/85
+	var (
+		resourceName         = "mongodbatlas_federated_settings_org_config.test"
+		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
+		orgID                = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
+		idpID                = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckFederatedSettings(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
 			{
-				Config:            configBasic(federationSettingsID, orgID, idpID),
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(federationSettingsID, orgID),
-				ImportState:       true,
+				Config:             configBasic(federationSettingsID, orgID, idpID),
+				ResourceName:       resourceName,
+				ImportStateIdFunc:  importStateIDFunc(federationSettingsID, orgID),
+				ImportState:        true,
+				ImportStateVerify:  false,
+				ImportStatePersist: true, // ensure update will be tested in the next step
+			},
+			{
+				Config: configBasic(federationSettingsID, orgID, idpID),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "name", "mongodb_federation_test"),
 					resource.TestCheckResourceAttr(resourceName, "domain_restriction_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "domain_allow_list.0", "reorganizeyourworld.com"),
 				),
@@ -57,10 +77,11 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(federationSettingsID, orgID),
 				ImportState:       true,
-				ImportStateVerify: false,
+				ImportStateVerify: true,
 			},
 		},
-	}
+	},
+	)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
@@ -100,7 +121,7 @@ func configBasic(federationSettingsID, orgID, identityProviderID string) string 
 		federation_settings_id     = "%[1]s"
 		org_id                     = "%[2]s"
 		domain_restriction_enabled = false
-		domain_allow_list          = ["reorganizeyourworld.com"]
+		domain_allow_list          = ["reorganizeyourworld.com", "cfn-test-domain.com"]
 		identity_provider_id       = "%[3]s"
 	  }`, federationSettingsID, orgID, identityProviderID)
 }
