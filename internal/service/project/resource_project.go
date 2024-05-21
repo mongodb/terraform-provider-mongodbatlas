@@ -216,6 +216,7 @@ func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 				},
 			},
 			"region_usage_restrictions": schema.StringAttribute{
+				Computed: true,
 				Optional: true,
 			},
 			"ip_addresses": schema.SingleNestedAttribute{
