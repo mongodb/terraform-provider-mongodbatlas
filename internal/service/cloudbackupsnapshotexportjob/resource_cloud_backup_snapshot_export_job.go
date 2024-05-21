@@ -96,8 +96,9 @@ func resourceSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"err_msg": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:       schema.TypeString,
+			Computed:   true,
+			Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0"),
 		},
 		"export_status_exported_collections": {
 			Type:     schema.TypeInt,
@@ -185,9 +186,9 @@ func setExportJobFields(d *schema.ResourceData, exportJob *admin.DiskBackupExpor
 		return diag.Errorf("error setting `created_at` for snapshot export job (%s): %s", d.Id(), err)
 	}
 
-	// if err := d.Set("err_msg", exportJob.Err); err != nil {
-	// 	return diag.Errorf("error setting `created_at` for snapshot export job (%s): %s", d.Id(), err)
-	// }
+	if err := d.Set("err_msg", ""); err != nil {
+		return diag.Errorf("error setting `err_msg` for snapshot export job (%s): %s", d.Id(), err)
+	}
 
 	if err := d.Set("export_bucket_id", exportJob.GetExportBucketId()); err != nil {
 		return diag.Errorf("error setting `created_at` for snapshot export job (%s): %s", d.Id(), err)
