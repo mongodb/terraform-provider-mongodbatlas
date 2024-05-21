@@ -11,9 +11,10 @@ import (
 )
 
 var (
-	skipLabelName     = "skip-changelog-check"
-	skipTitles        = []string{"chore", "test", "doc", "ci"} // Dependabot uses chore.
-	allowedTypeValues = getValidTypes("scripts/changelog/allowed-types.txt")
+	skipLabelName              = "skip-changelog-check"
+	skipTitles                 = []string{"chore", "test", "doc", "ci"} // Dependabot uses chore.
+	allowedTypeValues          = getValidTypes("scripts/changelog/allowed-types.txt")
+	typesRequireResourcePrefix = []string{"breaking-change", "enhancement", "bug"}
 )
 
 func main() {
@@ -63,7 +64,7 @@ func validateChangelog(filePath, body string) {
 
 	var unknownTypes []string
 	for _, note := range notes {
-		if !isValidType(note.Type) {
+		if !containsType(note.Type, allowedTypeValues) {
 			unknownTypes = append(unknownTypes, note.Type)
 		}
 	}
@@ -71,11 +72,22 @@ func validateChangelog(filePath, body string) {
 		log.Fatalf("Error validating changelog file: %s. Unknown changelog types %v, please use only the configured changelog entry types %v", filePath, unknownTypes, allowedTypeValues)
 	}
 
+	validateEntryPrefix(notes, filePath)
 	fmt.Printf("Changelog entry file is valid: %s\n", filePath)
 }
 
-func isValidType(entryType string) bool {
-	for _, a := range allowedTypeValues {
+func validateEntryPrefix(entries []changelog.Note, filePath string) {
+	for _, entry := range entries {
+		entryContent := entry.Body
+		if containsType(entry.Type, typesRequireResourcePrefix) &&
+			!strings.HasPrefix(entryContent, "resource/mongodbatlas_") && !strings.HasPrefix(entryContent, "data-source/mongodbatlas_") && !strings.HasPrefix(entryContent, "provider") {
+			log.Fatalf("Error validating changelog file: %s. An incorrect prefix was found in the definition of the changelog entry. Please use the prefix `resource/mongodbatlas_`, `data-source/mongodbatlas_`, or `provider` accordingly.", filePath)
+		}
+	}
+}
+
+func containsType(entryType string, allowed []string) bool {
+	for _, a := range allowed {
 		if a == entryType {
 			return true
 		}
