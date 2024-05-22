@@ -61,6 +61,13 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "name", "mongodb_federation_test"),
 				),
 			},
+			{
+				Config:            configBasic(federationSettingsID, ssoURL, issuerURI),
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(federationSettingsID, idpID),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	}
 }
@@ -101,7 +108,7 @@ func configBasic(federationSettingsID, ssoURL, issuerURI string) string {
 	resource "mongodbatlas_federated_settings_identity_provider" "test" {
 		federation_settings_id = "%[1]s"
 		name = "mongodb_federation_test"
-        associated_domains           = ["reorganizeyourworld.com"]
+        associated_domains           = ["cfn-test-domain.com"]
         sso_debug_enabled = true
         status = "ACTIVE"
         sso_url = "%[2]s"
