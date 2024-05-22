@@ -31,7 +31,6 @@ func TestAccFederatedSettingsIdentityProviderRS_basic(t *testing.T) {
 
 func basicTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
-	acc.SkipTestForCI(tb) // affects the identity provider (resource managed outside of ci)
 
 	var (
 		resourceName         = "mongodbatlas_federated_settings_identity_provider.test"
@@ -58,7 +57,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, idpID),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
-					resource.TestCheckResourceAttr(resourceName, "name", "mongodb_federation_test"),
+					resource.TestCheckResourceAttr(resourceName, "name", "SAML-test"),
 				),
 			},
 			{
@@ -107,8 +106,8 @@ func configBasic(federationSettingsID, ssoURL, issuerURI string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_federated_settings_identity_provider" "test" {
 		federation_settings_id = "%[1]s"
-		name = "mongodb_federation_test"
-        associated_domains           = ["cfn-test-domain.com"]
+		name = "SAML-test"
+        associated_domains           = ["reorganizeyourworld.com"]
         sso_debug_enabled = true
         status = "ACTIVE"
         sso_url = "%[2]s"
