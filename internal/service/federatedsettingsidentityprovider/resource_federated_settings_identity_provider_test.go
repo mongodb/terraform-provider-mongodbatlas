@@ -51,22 +51,15 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				ImportStateIdFunc:  importStateIDFunc(federationSettingsID, idpID),
 				ImportState:        true,
 				ImportStateVerify:  false,
+				ImportStatePersist: true,
 			},
-		},
-	}
-}
+			{
+				Config: configBasic(federationSettingsID, ssoURL, issuerURI),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, idpID),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
 					resource.TestCheckResourceAttr(resourceName, "name", "mongodb_federation_test"),
 				),
-			},
-			{
-				Config:            configBasic(federationSettingsID, ssoURL, issuerURI),
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(federationSettingsID, idpID),
-				ImportState:       true,
-				ImportStateVerify: false,
 			},
 		},
 	}
