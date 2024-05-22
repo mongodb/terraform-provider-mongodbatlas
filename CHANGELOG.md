@@ -11,10 +11,16 @@ BUG FIXES:
 
 * data-source/mongodbatlas_federated_database_instance: Populates value of `data_process_region` when returned by the API ([#2223](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2223))
 * data-source/mongodbatlas_federated_database_instances: Populates value of `data_process_region` when returned by the API ([#2223](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2223))
+* resource/cloud_backup_schedule: Fixes behavior when resource is deleted outside of Terraform. ([#2268](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2268))
+* resource/encryption_at_rest: Fixes behavior when resource is deleted outside of Terraform. ([#2268](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2268))
 * resource/mongodbatlas_cloud_backup_snapshot_export_bucket Adds missing `project_id` during Read ([#2232](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2232))
 * resource/mongodbatlas_cloud_backup_snapshot_export_bucket: Calls DeleteExportBucket before checking for a status update so that the delete operation doesn't hang. ([#2269](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2269))
 * resource/mongodbatlas_global_cluster_config: Blocks updates on global_cluster_config resource to avoid leaving the cluster in an inconsistent state. ([#2282](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2282))
 * resource/mongodbatlas_ldap_configuration: Disables LDAP when the resource is destroyed, instead of deleting userToDNMapping document ([#2221](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2221))
+* resource/push_based_log_export: Fixes behavior when resource is deleted outside of Terraform. ([#2268](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2268))
+* resource/search_deployment: Fixes behavior when resource is deleted outside of Terraform. ([#2268](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2268))
+* resource/stream_connection: Fixes behavior when resource is deleted outside of Terraform. ([#2268](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2268))
+* resource/stream_instance: Fixes behavior when resource is deleted outside of Terraform. ([#2268](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2268))
 
 ## 1.16.0 (April 29, 2024)
 
