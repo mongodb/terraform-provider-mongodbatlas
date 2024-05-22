@@ -3,6 +3,7 @@ package streaminstance
 import (
 	"context"
 	"errors"
+	"net/http"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -144,8 +145,12 @@ func (r *streamInstanceRS) Read(ctx context.Context, req resource.ReadRequest, r
 	connV2 := r.Client.AtlasV2
 	projectID := streamInstanceState.ProjectID.ValueString()
 	instanceName := streamInstanceState.InstanceName.ValueString()
-	apiResp, _, err := connV2.StreamsApi.GetStreamInstance(ctx, projectID, instanceName).Execute()
+	apiResp, getResp, err := connV2.StreamsApi.GetStreamInstance(ctx, projectID, instanceName).Execute()
 	if err != nil {
+		if getResp != nil && getResp.StatusCode == http.StatusNotFound {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
 		return
 	}

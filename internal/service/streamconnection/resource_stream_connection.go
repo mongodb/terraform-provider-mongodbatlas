@@ -3,6 +3,7 @@ package streamconnection
 import (
 	"context"
 	"errors"
+	"net/http"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -208,8 +209,12 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 	projectID := streamConnectionState.ProjectID.ValueString()
 	instanceName := streamConnectionState.InstanceName.ValueString()
 	connectionName := streamConnectionState.ConnectionName.ValueString()
-	apiResp, _, err := connV2.StreamsApi.GetStreamConnection(ctx, projectID, instanceName, connectionName).Execute()
+	apiResp, getResp, err := connV2.StreamsApi.GetStreamConnection(ctx, projectID, instanceName, connectionName).Execute()
 	if err != nil {
+		if getResp != nil && getResp.StatusCode == http.StatusNotFound {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
 		return
 	}
