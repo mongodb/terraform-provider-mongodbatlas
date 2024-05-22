@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -12,12 +13,25 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+func TestAccFederatedSettingsOrgCreate_mustImport(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configBasic("not-used", "not-used", "not-used"),
+				ExpectError: regexp.MustCompile("this resource must be imported"),
+			},
+		},
+	})
+}
+
 func TestAccFederatedSettingsOrg_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t))
 }
 
 func basicTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
+	acc.SkipTestForCI(tb) // will delete the MONGODB_ATLAS_FEDERATED_ORG_ID on finish, no workaround: https://github.com/hashicorp/terraform-plugin-testing/issues/85
 
 	var (
 		resourceName         = "mongodbatlas_federated_settings_org_config.test"
@@ -28,30 +42,6 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckFederatedSettings(tb) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config:            configBasic(federationSettingsID, orgID, idpID),
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(federationSettingsID, orgID),
-				ImportState:       true,
-				ImportStateVerify: false,
-			},
-		},
-	}
-}
-
-func TestAccFederatedSettingsOrg_update(t *testing.T) {
-	acc.SkipTestForCI(t) // will delete the MONGODB_ATLAS_FEDERATED_ORG_ID on finish, no workaround: https://github.com/hashicorp/terraform-plugin-testing/issues/85
-	var (
-		resourceName         = "mongodbatlas_federated_settings_org_config.test"
-		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
-		orgID                = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
-		idpID                = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckFederatedSettings(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
@@ -80,8 +70,7 @@ func TestAccFederatedSettingsOrg_update(t *testing.T) {
 				ImportStateVerify: true,
 			},
 		},
-	},
-	)
+	}
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
