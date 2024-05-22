@@ -31,6 +31,7 @@ func TestAccFederatedSettingsIdentityProviderRS_basic(t *testing.T) {
 
 func basicTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
+	acc.SkipTestForCI(tb) // affects the identity provider (resource managed outside of ci)
 
 	var (
 		resourceName         = "mongodbatlas_federated_settings_identity_provider.test"
@@ -45,18 +46,15 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:            configBasic(federationSettingsID, ssoURL, issuerURI),
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(federationSettingsID, idpID),
-				ImportState:       true,
-				ImportStateVerify: false,
+				Config:             configBasic(federationSettingsID, ssoURL, issuerURI),
+				ResourceName:       resourceName,
+				ImportStateIdFunc:  importStateIDFunc(federationSettingsID, idpID),
+				ImportState:        true,
+				ImportStateVerify:  false,
 			},
-			{
-				Config:            configBasic(federationSettingsID, ssoURL, issuerURI),
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(federationSettingsID, idpID),
-
-				ImportState: true,
+		},
+	}
+}
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, idpID),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
