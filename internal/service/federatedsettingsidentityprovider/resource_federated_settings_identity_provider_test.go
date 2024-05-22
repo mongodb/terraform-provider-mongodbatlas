@@ -105,14 +105,14 @@ func importStateIDFunc(federationSettingsID, idpID string) resource.ImportStateI
 func configBasic(federationSettingsID, ssoURL, issuerURI string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_federated_settings_identity_provider" "test" {
-		federation_settings_id = "%[1]s"
-		name = "SAML-test"
-        associated_domains           = ["reorganizeyourworld.com"]
-        sso_debug_enabled = true
-        status = "ACTIVE"
-        sso_url = "%[2]s"
-        issuer_uri = "%[3]s"
-        request_binding = "HTTP-POST"
+		federation_settings_id 		= %[1]q
+		name 						= "SAML-test"
+        associated_domains     		= []
+        sso_debug_enabled 			= true
+        status 						= "ACTIVE"
+        sso_url 					= %[2]q
+        issuer_uri 					= %[3]q
+        request_binding 			= "HTTP-POST"
         response_signature_algorithm = "SHA-256"
 	  }`, federationSettingsID, ssoURL, issuerURI)
 }
