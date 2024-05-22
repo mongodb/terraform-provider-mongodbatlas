@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -11,6 +12,18 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
+
+func TestAccFederatedSettingsIdentityProvider_createError(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configBasic("not-used", "not-used", "not-used"),
+				ExpectError: regexp.MustCompile("this resource must be imported"),
+			},
+		},
+	})
+}
 
 func TestAccFederatedSettingsIdentityProviderRS_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t))
