@@ -13,7 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccFederatedSettingsOrgCreate_mustImport(t *testing.T) {
+func TestAccFederatedSettingsOrgCreate_createError(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
