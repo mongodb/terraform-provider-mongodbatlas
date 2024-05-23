@@ -18,7 +18,7 @@ func TestAccFederatedSettingsIdentityProvider_createError(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configBasic("not-used", "not-used", "not-used"),
+				Config:      configBasic("not-used", "not-used", "not-used", "not-used"),
 				ExpectError: regexp.MustCompile("this resource must be imported"),
 			},
 		},
@@ -38,14 +38,16 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		idpID                = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
 		ssoURL               = os.Getenv("MONGODB_ATLAS_FEDERATED_SSO_URL")
 		issuerURI            = os.Getenv("MONGODB_ATLAS_FEDERATED_ISSUER_URI")
+		associatedDomain     = os.Getenv("MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN")
+		config               = configBasic(federationSettingsID, ssoURL, issuerURI, associatedDomain)
 	)
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckFederatedSettings(tb) },
+		PreCheck:                 func() { acc.PreCheckFederatedSettingsIdentityProvider(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:             configBasic(federationSettingsID, ssoURL, issuerURI),
+				Config:             config,
 				ResourceName:       resourceName,
 				ImportStateIdFunc:  importStateIDFunc(federationSettingsID, idpID),
 				ImportState:        true,
@@ -53,7 +55,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				ImportStatePersist: true,
 			},
 			{
-				Config: configBasic(federationSettingsID, ssoURL, issuerURI),
+				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, idpID),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
@@ -61,7 +63,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				),
 			},
 			{
-				Config:            configBasic(federationSettingsID, ssoURL, issuerURI),
+				Config:            config,
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(federationSettingsID, idpID),
 				ImportState:       true,
@@ -102,17 +104,17 @@ func importStateIDFunc(federationSettingsID, idpID string) resource.ImportStateI
 	}
 }
 
-func configBasic(federationSettingsID, ssoURL, issuerURI string) string {
+func configBasic(federationSettingsID, ssoURL, issuerURI, associatedDomain string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_federated_settings_identity_provider" "test" {
 		federation_settings_id 		= %[1]q
 		name 						= "SAML-test"
-        associated_domains     		= ["mdb-aws-cfn-publishing.com"]
+        associated_domains     		= [%[4]q]
         sso_debug_enabled 			= true
         status 						= "ACTIVE"
         sso_url 					= %[2]q
         issuer_uri 					= %[3]q
         request_binding 			= "HTTP-POST"
         response_signature_algorithm = "SHA-256"
-	  }`, federationSettingsID, ssoURL, issuerURI)
+	  }`, federationSettingsID, ssoURL, issuerURI, associatedDomain)
 }

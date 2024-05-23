@@ -271,6 +271,15 @@ func PreCheckFederatedSettings(tb testing.TB) {
 	}
 }
 
+func PreCheckFederatedSettingsIdentityProvider(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID") == "" ||
+		os.Getenv("MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN") == "" ||
+		os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID") == "" {
+		tb.Fatal("`MONGODB_ATLAS_FEDERATED_ORG_ID` and `MONGODB_ATLAS_FEDERATION_SETTINGS_ID` must be set for federated settings/verify acceptance testing")
+	}
+}
+
 func PreCheckPrivateEndpoint(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID") == "" ||
