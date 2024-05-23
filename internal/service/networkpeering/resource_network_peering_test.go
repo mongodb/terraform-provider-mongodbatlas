@@ -64,6 +64,50 @@ func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
 	})
 }
 
+func TestAccNetworkRSNetworkPeering_updateBasicAzure(t *testing.T) {
+	acc.SkipTestForCI(t) // needs Azure configuration
+
+	var (
+		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		directoryID       = os.Getenv("AZURE_DIRECTORY_ID")
+		subscriptionID    = os.Getenv("AZURE_SUBSCRIPTION_ID")
+		resourceGroupName = os.Getenv("AZURE_RESOURCE_GROUP_NAME")
+		vNetName          = os.Getenv("AZURE_VNET_NAME")
+		updatedvNetName   = os.Getenv("AZURE_VNET_NAME_UPDATED")
+		providerName      = "AZURE"
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPeeringEnvAzure(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyNetworkPeering,
+		Steps: []resource.TestStep{
+			{
+				Config: configAzure(projectID, providerName, directoryID, subscriptionID, resourceGroupName, vNetName),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttr(resourceName, "vnet_name", vNetName),
+					resource.TestCheckResourceAttr(resourceName, "azure_directory_id", directoryID),
+				),
+			},
+			{
+				Config: configAzure(projectID, providerName, directoryID, subscriptionID, resourceGroupName, updatedvNetName),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttr(resourceName, "vnet_name", updatedvNetName),
+					resource.TestCheckResourceAttr(resourceName, "azure_directory_id", directoryID),
+				),
+			},
+		},
+	})
+}
+
 func TestAccNetworkRSNetworkPeering_basicGCP(t *testing.T) {
 	acc.SkipTestForCI(t) // needs GCP configuration
 

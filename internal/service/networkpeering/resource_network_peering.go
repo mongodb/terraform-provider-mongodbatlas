@@ -103,21 +103,25 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"azure_subscription_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"resource_group_name": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"vnet_name": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"error_state": {
 				Type:     schema.TypeString,
@@ -422,6 +426,13 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		peer.SetRouteTableCidrBlock(d.Get("route_table_cidr_block").(string))
 		peer.SetVpcId(d.Get("vpc_id").(string))
 	}
+	peerConn, resp, getErr := conn.NetworkPeeringApi.GetPeeringConnection(ctx, projectID, peerID).Execute()
+	if getErr != nil {
+		if resp != nil && resp.StatusCode == 404 {
+			return nil
+		}
+	}
+	fmt.Print(peerConn.GetStatus())
 
 	_, _, err := conn.NetworkPeeringApi.UpdatePeeringConnection(ctx, projectID, peerID, peer).Execute()
 	if err != nil {
