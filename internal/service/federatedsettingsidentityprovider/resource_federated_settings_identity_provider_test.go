@@ -107,7 +107,7 @@ func configBasic(federationSettingsID, ssoURL, issuerURI string) string {
 	resource "mongodbatlas_federated_settings_identity_provider" "test" {
 		federation_settings_id 		= %[1]q
 		name 						= "SAML-test"
-        associated_domains     		= []
+        associated_domains     		= ["cfn-test-domain.com"]
         sso_debug_enabled 			= true
         status 						= "ACTIVE"
         sso_url 					= %[2]q
