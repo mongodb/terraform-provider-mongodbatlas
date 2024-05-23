@@ -275,7 +275,7 @@ func configAzure(projectID, providerName, directoryID, subscriptionID, resourceG
 			azure_directory_id    = "%[3]s"
 			azure_subscription_id = "%[4]s"
 			resource_group_name   = "%[5]s"
-			vnet_name	            = "%[6]s"
+			vnet_name	          = "%[6]s"
 		}
 	`, projectID, providerName, directoryID, subscriptionID, resourceGroupName, vNetName)
 }

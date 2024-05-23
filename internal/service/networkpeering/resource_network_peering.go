@@ -411,21 +411,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		peer.SetGcpProjectId(d.Get("gcp_project_id").(string))
 		peer.SetNetworkName(d.Get("network_name").(string))
 	case "AZURE":
-		if d.HasChange("azure_directory_id") {
-			peer.SetAzureDirectoryId(d.Get("azure_directory_id").(string))
-		}
-
-		if d.HasChange("azure_subscription_id") {
-			peer.SetAzureSubscriptionId(d.Get("azure_subscription_id").(string))
-		}
-
-		if d.HasChange("resource_group_name") {
-			peer.SetResourceGroupName(d.Get("resource_group_name").(string))
-		}
-
-		if d.HasChange("vnet_name") {
-			peer.SetVnetName(d.Get("vnet_name").(string))
-		}
+		peer.SetAzureDirectoryId(d.Get("azure_directory_id").(string))
+		peer.SetAzureSubscriptionId(d.Get("azure_subscription_id").(string))
+		peer.SetResourceGroupName(d.Get("resource_group_name").(string))
+		peer.SetVnetName(d.Get("vnet_name").(string))
 	default: // AWS by default
 		region, _ := conversion.ValRegion(d.Get("accepter_region_name"), "network_peering")
 		peer.SetAccepterRegionName(region)
