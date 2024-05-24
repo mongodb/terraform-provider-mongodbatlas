@@ -26,10 +26,8 @@ func TestAccNetworkNetworkPeering_basicAWS(t *testing.T) {
 }
 
 func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
-	acc.SkipTestForCI(t) // needs Azure configuration
-
 	var (
-		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID         = acc.ProjectIDExecution(t)
 		directoryID       = os.Getenv("AZURE_DIRECTORY_ID")
 		subscriptionID    = os.Getenv("AZURE_SUBSCRIPTION_ID")
 		resourceGroupName = os.Getenv("AZURE_RESOURCE_GROUP_NAME")
@@ -65,10 +63,8 @@ func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
 }
 
 func TestAccNetworkRSNetworkPeering_updateBasicAzure(t *testing.T) {
-	acc.SkipTestForCI(t) // needs Azure configuration
-
 	var (
-		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID         = acc.ProjectIDExecution(t)
 		directoryID       = os.Getenv("AZURE_DIRECTORY_ID")
 		subscriptionID    = os.Getenv("AZURE_SUBSCRIPTION_ID")
 		resourceGroupName = os.Getenv("AZURE_RESOURCE_GROUP_NAME")

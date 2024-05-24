@@ -104,6 +104,16 @@ on:
         required: true
       mongodb_atlas_private_endpoint_dns_name:
         required: true
+      azure_directory_id:
+        required: true
+      azure_resource_group_name:
+        required: true
+      azure_subscription_id:
+        required: true
+      azure_vnet_name:
+        required: true
+      azure_vnet_name_updated:
+        required: true
           
 env:
   TF_ACC: 1
@@ -616,6 +626,11 @@ jobs:
           AWS_SECURITY_GROUP_2: ${{ vars.AWS_SECURITY_GROUP_2 }}
           AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
           AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
+          AZURE_DIRECTORY_ID: ${{ secrets.azure_directory_id }}
+          AZURE_RESOURCE_GROUP_NAME: ${{ secrets.azure_resource_group_name }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.azure_subscription_id }}
+          AZURE_VNET_NAME: ${{ secrets.azure_vnet_name }}
+          AZURE_VNET_NAME_UPDATED: ${{ secrets.azure_vnet_name_updated }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
             ./internal/service/networkcontainer
