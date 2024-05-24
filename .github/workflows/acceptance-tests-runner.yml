@@ -125,8 +125,8 @@ env:
   MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
   MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
   MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
-  MONGODB_ATLAS_GOV_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-  MONGODB_ATLAS_GOV_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
+  MONGODB_ATLAS_GOV_PUBLIC_KEY: ${{ secrets.mongodb_atlas_gov_public_key }}
+  MONGODB_ATLAS_GOV_PRIVATE_KEY: ${{ secrets.mongodb_atlas_gov_private_key }}
   MONGODB_ATLAS_GOV_BASE_URL:  ${{ inputs.mongodb_atlas_gov_base_url }}
   MONGODB_ATLAS_GOV_ORG_ID:  ${{ inputs.mongodb_atlas_gov_org_id }}
 
