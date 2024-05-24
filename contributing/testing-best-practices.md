@@ -37,6 +37,9 @@
 1. Use [`PreCheck: PreCheckGovBasic`](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/CLOUDP-250271_cloud_gov/internal/testutil/acc/pre_check.go#L98)
 2. Use the [`acc.ConfigGovProvider`](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/CLOUDP-250271_cloud_gov/internal/testutil/acc/provider.go#L61) together with your normal terraform config
 3. Modify the `checkExist` and `CheckDestroy` to use `acc.ConnV2UsingGov`
+4. Follow naming convention:
+   1. `TestAccGovProject_withProjectOwner`, note prefix: `TestAccGov`
+   2. `TestMigGovProject_regionUsageRestrictionsDefault`, note prefix: `TestMigGov`
 
 ## Migration tests
 
