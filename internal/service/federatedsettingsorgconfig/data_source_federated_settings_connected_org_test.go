@@ -10,8 +10,6 @@ import (
 )
 
 func TestAccFederatedSettingsOrgDS_basic(t *testing.T) {
-	acc.SkipTestForCI(t) // affects the org
-
 	var (
 		resourceName        = "data.mongodbatlas_federated_settings_org_config.test"
 		federatedSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
@@ -28,8 +26,7 @@ func TestAccFederatedSettingsOrgDS_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "role_mappings.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "identity_provider_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttr(resourceName, "identity_provider_id", "0oad4fas87jL5Xnk1297"),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
 			},
 		},

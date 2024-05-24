@@ -92,3 +92,4 @@ jobs:
       mongodb_atlas_federated_sso_url: ${{  vars.MONGODB_ATLAS_FEDERATED_SSO_URL }}
       mongodb_atlas_federated_issuer_uri: ${{ vars.MONGODB_ATLAS_FEDERATED_ISSUER_URI }}
       mongodb_atlas_federated_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATED_ORG_ID_QA || vars.MONGODB_ATLAS_FEDERATED_ORG_ID }}
+      mongodb_atlas_federated_settings_associated_domain: ${{ vars.MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN }}
