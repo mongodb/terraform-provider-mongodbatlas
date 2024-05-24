@@ -36,7 +36,7 @@ func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPeeringEnvAzure(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPeeringEnvAzure(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyNetworkPeering,
 		Steps: []resource.TestStep{
@@ -74,7 +74,7 @@ func TestAccNetworkRSNetworkPeering_updateBasicAzure(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPeeringEnvAzure(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPeeringEnvAzure(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyNetworkPeering,
 		Steps: []resource.TestStep{
