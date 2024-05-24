@@ -66,6 +66,11 @@ jobs:
       mongodb_atlas_ldap_ca_certificate: ${{ secrets.MONGODB_ATLAS_LDAP_CA_CERTIFICATE }}
       mongodb_atlas_private_endpoint_id: ${{ secrets.MONGODB_ATLAS_PRIVATE_ENDPOINT_ID }}
       mongodb_atlas_private_endpoint_dns_name: ${{ secrets.MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME }}
+      azure_directory_id: ${{ secrets.AZURE_DIRECTORY_ID }}
+      azure_resource_group_name: ${{ secrets.AZURE_RESOURCE_GROUP_NAME }}
+      azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      azure_vnet_name: ${{ secrets.AZURE_VNET_NAME }}
+      azure_vnet_name_updated: ${{ secrets.AZURE_VNET_NAME_UPDATED }}
 
     with:
       terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
@@ -91,3 +96,4 @@ jobs:
       mongodb_atlas_federated_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATED_ORG_ID_QA || vars.MONGODB_ATLAS_FEDERATED_ORG_ID }}
       mongodb_atlas_gov_base_url: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_GOV_BASE_URL_QA || vars.MONGODB_ATLAS_GOV_BASE_URL_DEV }}
       mongodb_atlas_gov_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_GOV_ORG_ID_QA || vars.MONGODB_ATLAS_GOV_ORG_ID_DEV }}
+      mongodb_atlas_federated_settings_associated_domain: ${{ vars.MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN }}

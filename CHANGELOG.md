@@ -17,6 +17,7 @@ BUG FIXES:
 * resource/mongodbatlas_encryption_at_rest: Fixes behavior when resource is deleted outside of Terraform ([#2268](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2268))
 * resource/mongodbatlas_global_cluster_config: Blocks updates on global_cluster_config resource to avoid leaving the cluster in an inconsistent state ([#2282](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2282))
 * resource/mongodbatlas_ldap_configuration: Disables LDAP when the resource is destroyed, instead of deleting userToDNMapping document ([#2221](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2221))
+* resource/mongodbatlas_network_peering: Sets all attributes of Azure network peering as ForceNew, forcing recreation of the resource when updating ([#2299](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2299))
 * resource/mongodbatlas_push_based_log_export: Fixes behavior when resource is deleted outside of Terraform ([#2268](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2268))
 * resource/mongodbatlas_search_deployment: Fixes behavior when resource is deleted outside of Terraform ([#2268](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2268))
 * resource/mongodbatlas_stream_connection: Fixes behavior when resource is deleted outside of Terraform ([#2268](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2268))

@@ -16,7 +16,7 @@ import (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead,
+		CreateContext: resourceCreateNotAllowed,
 		ReadContext:   resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead,
 		UpdateContext: resourceMongoDBAtlasFederatedSettingsOrganizationConfigUpdate,
 		DeleteContext: resourceMongoDBAtlasFederatedSettingsOrganizationConfigDelete,
@@ -58,22 +58,18 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).AtlasV2
+func resourceCreateNotAllowed(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
+	return diag.FromErr(errors.New("this resource must be imported"))
+}
 
-	if d.Id() == "" {
-		d.SetId("")
-		return nil
-	}
+func resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 
 	federatedSettingsConnectedOrganization, resp, err := conn.FederatedAuthenticationApi.GetConnectedOrgConfig(context.Background(), federationSettingsID, orgID).Execute()
 	if err != nil {
-		// case 404
-		// deleted in the backend case
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
