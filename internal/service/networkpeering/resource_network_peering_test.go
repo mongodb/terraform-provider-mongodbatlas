@@ -142,6 +142,52 @@ func TestAccNetworkRSNetworkPeering_basicGCP(t *testing.T) {
 	})
 }
 
+func TestAccNetworkRSNetworkPeering_updateBasicGCP(t *testing.T) {
+	acc.SkipTestForCI(t) // needs GCP configuration
+
+	var (
+		projectID          = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		providerName       = "GCP"
+		gcpProjectID       = os.Getenv("GCP_PROJECT_ID")
+		networkName        = acc.RandomName()
+		updatedNetworkName = acc.RandomName()
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPeeringEnvGCP(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyNetworkPeering,
+		Steps: []resource.TestStep{
+			{
+				Config: configGCP(projectID, providerName, gcpProjectID, networkName),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_name"),
+
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttr(resourceName, "gcp_project_id", gcpProjectID),
+					resource.TestCheckResourceAttr(resourceName, "network_name", networkName),
+				),
+			},
+			{
+				Config: configGCP(projectID, providerName, gcpProjectID, updatedNetworkName),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_name"),
+
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttr(resourceName, "gcp_project_id", gcpProjectID),
+					resource.TestCheckResourceAttr(resourceName, "network_name", updatedNetworkName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccNetworkRSNetworkPeering_AWSDifferentRegionName(t *testing.T) {
 	var (
 		vpcID           = os.Getenv("AWS_VPC_ID")
