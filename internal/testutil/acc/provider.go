@@ -1,6 +1,9 @@
 package acc
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -37,4 +40,24 @@ func providerAWS() *resource.ExternalProvider {
 		VersionConstraint: AwsProviderVersion,
 		Source:            "hashicorp/aws",
 	}
+}
+
+// ConfigProvider creates a new provider with credentials explicit in config.
+//
+// This can be used when you want credentials different from the default env-vars.
+func ConfigProvider(publicKey, privateKey, baseURL string) string {
+	return fmt.Sprintf(`
+provider %[1]q {
+	public_key = %[2]q
+	private_key = %[3]q
+	base_url = %[4]q
+}
+`, ProviderNameMongoDBAtlas, publicKey, privateKey, baseURL)
+}
+
+// ConfigGovProvider creates provider using MONGODB_ATLAS_GOV_* env vars.
+//
+// Remember to use PreCheckGovBasic when using this.
+func ConfigGovProvider() string {
+	return ConfigProvider(os.Getenv("MONGODB_ATLAS_GOV_PUBLIC_KEY"), os.Getenv("MONGODB_ATLAS_GOV_PRIVATE_KEY"), os.Getenv("MONGODB_ATLAS_GOV_BASE_URL"))
 }
