@@ -87,7 +87,7 @@ In addition to all arguments above, the following attributes are exported:
 * `region_name` - Atlas name for AWS region where the Atlas container resides.
 * `vpc_id` - Unique identifier of Atlas' AWS VPC.
 
-**CGP ONLY:**
+**GCP ONLY:**
 
 * `gcp_project_id` - Unique identifier of the GCP project in which the network peer resides. Returns null. This value is populated once you create a new network peering connection with the network peering resource.
 * `network_name` - Unique identifier of the Network Peering connection in the Atlas project. Returns null. This value is populated once you create a new network peering connection with the network peering resource.
