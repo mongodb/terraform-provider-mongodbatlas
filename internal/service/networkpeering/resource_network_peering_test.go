@@ -302,20 +302,20 @@ func configAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlo
 func configAzure(projectID, providerName, directoryID, subscriptionID, resourceGroupName, vNetName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_network_container" "test" {
-			project_id   		  = "%[1]s"
+			project_id   		  = %[1]q
 			atlas_cidr_block  = "192.168.208.0/21"
-			provider_name		  = "%[2]s"
+			provider_name		  = %[2]q
 			region    			  = "US_EAST_2"
 		}
 
 		resource "mongodbatlas_network_peering" "test" {
-			project_id   		      = "%[1]s"
+			project_id   		  = %[1]q
 			container_id          = mongodbatlas_network_container.test.container_id
-			provider_name         = "%[2]s"
-			azure_directory_id    = "%[3]s"
-			azure_subscription_id = "%[4]s"
-			resource_group_name   = "%[5]s"
-			vnet_name	          = "%[6]s"
+			provider_name         = %[2]q
+			azure_directory_id    = %[3]q
+			azure_subscription_id = %[4]q
+			resource_group_name   = %[5]q
+			vnet_name	          = %[6]q
 		}
 	`, projectID, providerName, directoryID, subscriptionID, resourceGroupName, vNetName)
 }
@@ -323,17 +323,17 @@ func configAzure(projectID, providerName, directoryID, subscriptionID, resourceG
 func configGCP(projectID, providerName, gcpProjectID, networkName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_network_container" "test" {
-			project_id       = "%[1]s"
+			project_id       = %[1]q
 			atlas_cidr_block = "192.168.192.0/18"
-			provider_name    = "%[2]s"
+			provider_name    = %[2]q
 		}
 
 		resource "mongodbatlas_network_peering" "test" {
-			project_id     = "%[1]s"
+			project_id     = %[1]q
 			container_id   = mongodbatlas_network_container.test.container_id
-			provider_name  = "%[2]s"
-			gcp_project_id = "%[3]s"
-			network_name   = "%[4]s"
+			provider_name  = %[2]q
+			gcp_project_id = %[3]q
+			network_name   = %[4]q
 		}
 	`, projectID, providerName, gcpProjectID, networkName)
 }
