@@ -32,6 +32,12 @@
 - Data sources are tested in the same tests as the resources, e.g. [commonChecks](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/66c44e62c9afe04ffe8be0dbccaec682bab830e6/internal/service/searchindex/resource_search_index_test.go#L262-L263).
 - Helper functions such as `resource.TestCheckTypeSetElemNestedAttrs` or `resource.TestCheckTypeSetElemAttr` can be used to check resource and data source attributes more easily, e.g. [resource_serverless_instance_test.go](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/66c44e62c9afe04ffe8be0dbccaec682bab830e6/internal/service/serverlessinstance/resource_serverless_instance_test.go#L61).
 
+### Cloud Gov tests
+
+1. Use [`PreCheck: PreCheckGovBasic`](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/CLOUDP-250271_cloud_gov/internal/testutil/acc/pre_check.go#L98)
+2. Use the [`acc.ConfigGovProvider`](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/CLOUDP-250271_cloud_gov/internal/testutil/acc/provider.go#L61) together with your normal terraform config
+3. Modify the `checkExist` and `CheckDestroy` to use `acc.ConnV2UsingGov`
+
 ## Migration tests
 
 - There must be at least one `basic migration test` for each resource that leverages on the `basic acceptance tests` using helper test functions such as `CreateAndRunTest`, e.g. [TestMigServerlessInstance_basic](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/66c44e62c9afe04ffe8be0dbccaec682bab830e6/internal/service/serverlessinstance/resource_serverless_instance_migration_test.go#L10).
