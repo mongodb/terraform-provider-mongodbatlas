@@ -143,7 +143,7 @@ func TestMigProject_withLimits(t *testing.T) {
 }
 
 // based on bug report: https://github.com/mongodb/terraform-provider-mongodbatlas/issues/2263
-func TestMigGovProject_region_usage_restrictions(t *testing.T) {
+func TestMigGovProject_regionUsageRestrictionsDefault(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_GOV_ORG_ID")
 		projectName = acc.RandomProjectName()
