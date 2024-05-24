@@ -107,8 +107,8 @@ func importStateIDFunc(federationSettingsID, idpID string) resource.ImportStateI
 func configBasic(federationSettingsID, ssoURL, issuerURI, associatedDomain string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_federated_settings_identity_provider" "test" {
-		federation_settings_id 		= %[1]q
-		name 						= "SAML-test"
+        federation_settings_id 		= %[1]q
+        name 						= "SAML-test"
         associated_domains     		= [%[4]q]
         sso_debug_enabled 			= true
         status 						= "ACTIVE"
