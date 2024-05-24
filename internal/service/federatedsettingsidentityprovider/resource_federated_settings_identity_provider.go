@@ -22,7 +22,7 @@ const OIDC = "OIDC"
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasFederatedSettingsIdentityProviderRead,
+		CreateContext: resourceCreateNotAllowed,
 		ReadContext:   resourceMongoDBAtlasFederatedSettingsIdentityProviderRead,
 		UpdateContext: resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate,
 		DeleteContext: resourceMongoDBAtlasFederatedSettingsIdentityProviderDelete,
@@ -112,14 +112,13 @@ func Resource() *schema.Resource {
 	}
 }
 
+func resourceCreateNotAllowed(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
+	return diag.FromErr(errors.New("this resource must be imported"))
+}
+
 func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	connV2 := meta.(*config.MongoDBClient).Atlas20231115008
-
-	if d.Id() == "" {
-		d.SetId("")
-		return nil
-	}
 
 	ids := conversion.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]

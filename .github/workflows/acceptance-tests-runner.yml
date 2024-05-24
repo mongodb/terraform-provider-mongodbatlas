@@ -82,6 +82,9 @@ on:
       mongodb_atlas_gov_project_owner_id:
         type: string
         required: true
+      mongodb_atlas_federated_settings_associated_domain:
+        type: string
+        required: true
     secrets: # all secrets are passed explicitly in this workflow
       mongodb_atlas_public_key:
         required: true
@@ -116,6 +119,16 @@ on:
       mongodb_atlas_gov_private_key:
         required: true
       mongodb_atlas_gov_public_key:
+        required: true
+      azure_directory_id:
+        required: true
+      azure_resource_group_name:
+        required: true
+      azure_subscription_id:
+        required: true
+      azure_vnet_name:
+        required: true
+      azure_vnet_name_updated:
         required: true
           
 env:
@@ -537,6 +550,7 @@ jobs:
           MONGODB_ATLAS_FEDERATED_SSO_URL: ${{ inputs.mongodb_atlas_federated_sso_url }}
           MONGODB_ATLAS_FEDERATED_ISSUER_URI: ${{ inputs.mongodb_atlas_federated_issuer_uri }}
           MONGODB_ATLAS_FEDERATED_ORG_ID: ${{ inputs.mongodb_atlas_federated_org_id }}
+          MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN: ${{ inputs.mongodb_atlas_federated_settings_associated_domain }}
           AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federation }}
           AWS_REGION: ${{ vars.aws_region_federation }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
@@ -634,6 +648,11 @@ jobs:
           AWS_SECURITY_GROUP_2: ${{ vars.AWS_SECURITY_GROUP_2 }}
           AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
           AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
+          AZURE_DIRECTORY_ID: ${{ secrets.azure_directory_id }}
+          AZURE_RESOURCE_GROUP_NAME: ${{ secrets.azure_resource_group_name }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.azure_subscription_id }}
+          AZURE_VNET_NAME: ${{ secrets.azure_vnet_name }}
+          AZURE_VNET_NAME_UPDATED: ${{ secrets.azure_vnet_name_updated }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
             ./internal/service/networkcontainer
