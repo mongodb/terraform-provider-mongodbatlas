@@ -22,7 +22,7 @@ const OIDC = "OIDC"
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: noOpCreate,
+		CreateContext: resourceCreateNotAllowed,
 		ReadContext:   resourceMongoDBAtlasFederatedSettingsIdentityProviderRead,
 		UpdateContext: resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate,
 		DeleteContext: resourceMongoDBAtlasFederatedSettingsIdentityProviderDelete,
@@ -112,7 +112,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-func noOpCreate(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
+func resourceCreateNotAllowed(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
 	return diag.FromErr(errors.New("this resource must be imported"))
 }
 

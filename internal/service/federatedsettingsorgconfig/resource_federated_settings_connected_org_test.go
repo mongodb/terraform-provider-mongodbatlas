@@ -13,12 +13,12 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccFederatedSettingsOrgCreate_createError(t *testing.T) {
+func TestAccFederatedSettingsOrg_createError(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configBasic("not-used", "not-used", "not-used"),
+				Config:      configBasic("not-used", "not-used", "not-used", "not-used"),
 				ExpectError: regexp.MustCompile("this resource must be imported"),
 			},
 		},
@@ -38,14 +38,15 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 		orgID                = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
 		idpID                = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
+		associatedDomain     = os.Getenv("MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN")
 	)
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckFederatedSettings(tb) },
+		PreCheck:                 func() { acc.PreCheckFederatedSettingsIdentityProvider(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:             configBasic(federationSettingsID, orgID, idpID),
+				Config:             configBasic(federationSettingsID, orgID, idpID, associatedDomain),
 				ResourceName:       resourceName,
 				ImportStateIdFunc:  importStateIDFunc(federationSettingsID, orgID),
 				ImportState:        true,
@@ -53,7 +54,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				ImportStatePersist: true, // ensure update will be tested in the next step
 			},
 			{
-				Config: configBasic(federationSettingsID, orgID, idpID),
+				Config: configBasic(federationSettingsID, orgID, idpID, associatedDomain),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
@@ -63,7 +64,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				),
 			},
 			{
-				Config:            configBasic(federationSettingsID, orgID, idpID),
+				Config:            configBasic(federationSettingsID, orgID, idpID, associatedDomain),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(federationSettingsID, orgID),
 				ImportState:       true,
@@ -104,13 +105,13 @@ func importStateIDFunc(federationSettingsID, orgID string) resource.ImportStateI
 	}
 }
 
-func configBasic(federationSettingsID, orgID, identityProviderID string) string {
+func configBasic(federationSettingsID, orgID, identityProviderID, associatedDomain string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_federated_settings_org_config" "test" {
 		federation_settings_id     = "%[1]s"
 		org_id                     = "%[2]s"
 		domain_restriction_enabled = false
-		domain_allow_list          = ["reorganizeyourworld.com", "cfn-test-domain.com"]
+		domain_allow_list          = [%[4]q]
 		identity_provider_id       = "%[3]s"
-	  }`, federationSettingsID, orgID, identityProviderID)
+	  }`, federationSettingsID, orgID, identityProviderID, associatedDomain)
 }
