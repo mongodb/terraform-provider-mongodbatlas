@@ -412,8 +412,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		ContainerId:  conversion.GetEncodedID(d.Get("container_id").(string), "container_id"),
 	}
 
-	// Updating any of the attributes for Azure Network Peering forces a recreation of the network peering.
-	// Need to check if GCP and AWS have the same behavior
 	if peer.GetProviderName() == "AWS" {
 		region, _ := conversion.ValRegion(d.Get("accepter_region_name"), "network_peering")
 		peer.SetAccepterRegionName(region)
