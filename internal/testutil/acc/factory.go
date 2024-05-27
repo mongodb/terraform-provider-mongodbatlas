@@ -53,10 +53,9 @@ func ConnV2UsingProxy(proxyPort *int) *admin.APIClient {
 
 func ConnV2UsingGov() *admin.APIClient {
 	cfg := config.Config{
-		PublicKey:    os.Getenv("MONGODB_ATLAS_GOV_PUBLIC_KEY"),
-		PrivateKey:   os.Getenv("MONGODB_ATLAS_GOV_PRIVATE_KEY"),
-		BaseURL:      os.Getenv("MONGODB_ATLAS_GOV_BASE_URL"),
-		RealmBaseURL: os.Getenv("MONGODB_ATLAS_GOV_BASE_URL"),
+		PublicKey:  os.Getenv("MONGODB_ATLAS_GOV_PUBLIC_KEY"),
+		PrivateKey: os.Getenv("MONGODB_ATLAS_GOV_PRIVATE_KEY"),
+		BaseURL:    os.Getenv("MONGODB_ATLAS_GOV_BASE_URL"),
 	}
 	client, _ := cfg.NewClient(context.Background())
 	return client.(*config.MongoDBClient).AtlasV2

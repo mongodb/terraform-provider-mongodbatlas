@@ -40,6 +40,7 @@
 4. Follow naming convention:
    1. `TestAccGovProject_withProjectOwner`, note prefix: `TestAccGov`
    2. `TestMigGovProject_regionUsageRestrictionsDefault`, note prefix: `TestMigGov`
+   3. Although `Gov` tests can be run together with other acceptance tests, using the `Test(Acc|Mig)Gov` makes it easier to run *only* gov tests or find similar gov tests
 
 ## Migration tests
 

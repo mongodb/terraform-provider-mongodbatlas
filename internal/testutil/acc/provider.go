@@ -42,10 +42,10 @@ func providerAWS() *resource.ExternalProvider {
 	}
 }
 
-// ConfigProvider creates a new provider with credentials explicit in config.
+// configProvider creates a new provider with credentials explicit in config.
 //
 // This can be used when you want credentials different from the default env-vars.
-func ConfigProvider(publicKey, privateKey, baseURL string) string {
+func configProvider(publicKey, privateKey, baseURL string) string {
 	return fmt.Sprintf(`
 provider %[1]q {
 	public_key = %[2]q
@@ -59,5 +59,5 @@ provider %[1]q {
 //
 // Remember to use PreCheckGovBasic when using this.
 func ConfigGovProvider() string {
-	return ConfigProvider(os.Getenv("MONGODB_ATLAS_GOV_PUBLIC_KEY"), os.Getenv("MONGODB_ATLAS_GOV_PRIVATE_KEY"), os.Getenv("MONGODB_ATLAS_GOV_BASE_URL"))
+	return configProvider(os.Getenv("MONGODB_ATLAS_GOV_PUBLIC_KEY"), os.Getenv("MONGODB_ATLAS_GOV_PRIVATE_KEY"), os.Getenv("MONGODB_ATLAS_GOV_BASE_URL"))
 }
