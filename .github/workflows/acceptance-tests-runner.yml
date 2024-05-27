@@ -79,6 +79,9 @@ on:
       mongodb_atlas_gov_base_url:
         type: string
         required: true
+      mongodb_atlas_gov_project_owner_id:
+        type: string
+        required: true
       mongodb_atlas_federated_settings_associated_domain:
         type: string
         required: true
@@ -679,6 +682,7 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
+          MONGODB_ATLAS_GOV_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_gov_project_owner_id }}
           MONGODB_ATLAS_TEAMS_IDS: ${{ inputs.mongodb_atlas_teams_ids }}
           AWS_ACCOUNT_ID: ${{ secrets.aws_account_id }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}

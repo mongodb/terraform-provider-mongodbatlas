@@ -216,6 +216,7 @@ func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 				},
 			},
 			"region_usage_restrictions": schema.StringAttribute{
+				Computed: true,
 				Optional: true,
 			},
 			"ip_addresses": schema.SingleNestedAttribute{
@@ -311,7 +312,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		OrgId:                     projectPlan.OrgID.ValueString(),
 		Name:                      projectPlan.Name.ValueString(),
 		WithDefaultAlertsSettings: projectPlan.WithDefaultAlertsSettings.ValueBoolPointer(),
-		RegionUsageRestrictions:   projectPlan.RegionUsageRestrictions.ValueStringPointer(),
+		RegionUsageRestrictions:   conversion.StringNullIfEmpty(projectPlan.RegionUsageRestrictions.ValueString()).ValueStringPointer(),
 		Tags:                      &tags,
 	}
 

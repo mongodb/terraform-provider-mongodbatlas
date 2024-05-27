@@ -96,4 +96,5 @@ jobs:
       mongodb_atlas_federated_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATED_ORG_ID_QA || vars.MONGODB_ATLAS_FEDERATED_ORG_ID }}
       mongodb_atlas_gov_base_url: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_GOV_BASE_URL_QA || vars.MONGODB_ATLAS_GOV_BASE_URL_DEV }}
       mongodb_atlas_gov_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_GOV_ORG_ID_QA || vars.MONGODB_ATLAS_GOV_ORG_ID_DEV }}
+      mongodb_atlas_gov_project_owner_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_GOV_PROJECT_OWNER_ID_QA || vars.MONGODB_ATLAS_GOV_PROJECT_OWNER_ID_DEV }}
       mongodb_atlas_federated_settings_associated_domain: ${{ vars.MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN }}
