@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	admin20231115008 "go.mongodb.org/atlas-sdk/v20231115008/admin"
+	admin20231115008 "go.mongodb.org/atlas-sdk/v20231115014/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )

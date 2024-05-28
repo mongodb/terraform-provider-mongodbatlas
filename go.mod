@@ -24,9 +24,10 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/zclconf/go-cty v1.14.4
 	go.mongodb.org/atlas v0.36.0
-	go.mongodb.org/atlas-sdk/v20231115013 v20231115013.1.0
 	go.mongodb.org/realm v0.1.0
 )
+
+require go.mongodb.org/atlas-sdk/v20231115014 v20231115014.0.0
 
 require (
 	cloud.google.com/go v0.112.0 // indirect
@@ -115,7 +116,6 @@ require (
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/zclconf/go-cty-yaml v1.0.2 // indirect
-	go.mongodb.org/atlas-sdk/v20231115008 v20231115008.5.0
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.47.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.47.0 // indirect
