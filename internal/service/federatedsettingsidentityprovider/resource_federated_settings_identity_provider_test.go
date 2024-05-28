@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsidentityprovider"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -93,19 +93,11 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:             configOIDCWorkforceBasic(federationSettingsID, associatedDomain, &audience),
-				ResourceName:       resourceName,
-				ImportStateIdFunc:  importStateIDFunc(federationSettingsID, idpID),
-				ImportState:        true,
-				ImportStateVerify:  false,
-				ImportStatePersist: true,
-			},
-			{
 				Config: configOIDCWorkforceBasic(federationSettingsID, associatedDomain, &audience),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName, idpID),
+					checkExistsManaged(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
-					resource.TestCheckResourceAttr(resourceName, "name", "OIDC-test"),
+					resource.TestCheckResourceAttr(resourceName, "name", "OIDC-CRUD-test"),
 				),
 			},
 			{
@@ -138,15 +130,30 @@ func checkExists(resourceName, idpID string) resource.TestCheckFunc {
 	}
 }
 
+func checkExistsManaged(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		id := rs.Primary.ID
+		if id == "" {
+			return fmt.Errorf("no ID is set")
+		}
+		federationSettingsID, idpID := federatedsettingsidentityprovider.DecodeIDs(id)
+		_, _, err := acc.ConnV2().FederatedAuthenticationApi.GetIdentityProvider(context.Background(),
+			federationSettingsID,
+			idpID).Execute()
+		if err == nil {
+			return nil
+		}
+		return fmt.Errorf("identity provider (%s) does not exist", idpID)
+	}
+}
+
 func importStateIDFunc(federationSettingsID, idpID string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
-		ID := conversion.EncodeStateID(map[string]string{
-			"federation_settings_id": federationSettingsID,
-			"okta_idp_id":            idpID,
-		})
-
-		ids := conversion.DecodeStateID(ID)
-		return fmt.Sprintf("%s-%s", ids["federation_settings_id"], ids["okta_idp_id"]), nil
+		return fmt.Sprintf("%s-%s", federationSettingsID, idpID), nil
 	}
 }
 
@@ -174,14 +181,16 @@ func configOIDCWorkforceBasic(federationSettingsID, associatedDomain string, aud
 	return fmt.Sprintf(`
 	resource "mongodbatlas_federated_settings_identity_provider" "test" {
         federation_settings_id 		= %[1]q
-        name 						= "OIDC-test"
+		associated_domains 			= [%[3]q]
+		authorization_type			= "GROUP"
 		client_id 					= "clientId"
+		description 				= "tf-acc-test"
 		groups_claim				= "groups"
-		requested_scopes 			= ["profiles"]
-		user_claim 					= "sub"
 		issuer_uri 					= "https://accounts.google.com"
 		protocol 					= "OIDC"
-		associated_domains 			= [%[3]q]
+		requested_scopes 			= ["profiles"]
+		user_claim 					= "sub"
+        name 						= "OIDC-CRUD-test"
 		
 
 		%[2]s

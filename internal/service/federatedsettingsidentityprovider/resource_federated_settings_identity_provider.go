@@ -102,22 +102,34 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"authorization_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
+func isSAML(d *schema.ResourceData) bool {
+	return d.Get("protocol").(string) == SAML
+}
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	if d.Get("protocol").(string) != OIDC {
+	if isSAML(d) {
 		return diag.FromErr(errors.New("this resource must be imported"))
 	}
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	createRequest := ExpandIdentityProviderOIDCCreate(d)
 	federatedSettingsID := d.Get("federation_settings_id").(string)
 
-	_, _, err := connV2.FederatedAuthenticationApi.CreateIdentityProvider(ctx, federatedSettingsID, createRequest).Execute()
+	resp, _, err := connV2.FederatedAuthenticationApi.CreateIdentityProvider(ctx, federatedSettingsID, createRequest).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error creating federation settings identity provider (%s): %s", federatedSettingsID, err))
 	}
+	d.SetId(encodeStateID(federatedSettingsID, resp.Id))
 	return resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx, d, meta)
 }
 
@@ -222,19 +234,16 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 }
 
 func resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	ids := conversion.DecodeStateID(d.Id())
-	federationSettingsID := ids["federation_settings_id"]
-	oktaIdpID := ids["okta_idp_id"]
+	federationSettingsID, idpID := DecodeIDs(d.Id())
 
-	existingIdentityProvider, _, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID).Execute()
+	existingIdentityProvider, _, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), federationSettingsID, idpID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error retreiving federation settings identity provider (%s): %s", federationSettingsID, err))
 	}
 
 	updateRequest := ExpandIdentityProviderUpdate(d, existingIdentityProvider)
-	_, _, err = connV2.FederatedAuthenticationApi.UpdateIdentityProvider(ctx, federationSettingsID, oktaIdpID, updateRequest).Execute()
+	_, _, err = connV2.FederatedAuthenticationApi.UpdateIdentityProvider(ctx, federationSettingsID, idpID, updateRequest).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating federation settings identity provider (%s): %s", federationSettingsID, err))
 	}
@@ -243,7 +252,20 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate(ctx context.Con
 }
 
 func resourceMongoDBAtlasFederatedSettingsIdentityProviderDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	d.SetId("")
+	if isSAML(d) {
+		d.SetId("")
+		return nil
+	}
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	federationSettingsID, idpID := DecodeIDs(d.Id())
+	resp, err := connV2.FederatedAuthenticationApi.DeleteIdentityProvider(ctx, federationSettingsID, idpID).Execute()
+	if err != nil {
+		if resp.StatusCode == 404 {
+			d.SetId("")
+			return nil
+		}
+		return diag.FromErr(fmt.Errorf("error deleting federation settings identity provider (%s): %s, error: %s", federationSettingsID, idpID, err))
+	}
 	return nil
 }
 
@@ -282,4 +304,10 @@ func encodeStateID(federationSettingsID, idpID string) string {
 		"federation_settings_id": federationSettingsID,
 		"okta_idp_id":            idpID,
 	})
+}
+func DecodeIDs(rawID string) (federationSettingsID, idpID string) {
+	ids := conversion.DecodeStateID(rawID)
+	federationSettingsID = ids["federation_settings_id"]
+	idpID = ids["okta_idp_id"]
+	return federationSettingsID, idpID
 }
