@@ -83,7 +83,6 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 	var (
 		resourceName         = "mongodbatlas_federated_settings_identity_provider.test"
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
-		idpID                = os.Getenv("MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID")
 		associatedDomain     = os.Getenv("MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN")
 		audience             = "audience"
 	)
@@ -103,7 +102,7 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 			{
 				Config:            configOIDCWorkforceBasic(federationSettingsID, associatedDomain, &audience),
 				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(federationSettingsID, idpID),
+				ImportStateIdFunc: importStateIDFuncManaged(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -132,16 +131,11 @@ func checkExists(resourceName, idpID string) resource.TestCheckFunc {
 
 func checkExistsManaged(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
+		federationSettingsID, idpID, err := readIDsFromState(s, resourceName)
+		if err != nil {
+			return err
 		}
-		id := rs.Primary.ID
-		if id == "" {
-			return fmt.Errorf("no ID is set")
-		}
-		federationSettingsID, idpID := federatedsettingsidentityprovider.DecodeIDs(id)
-		_, _, err := acc.ConnV2().FederatedAuthenticationApi.GetIdentityProvider(context.Background(),
+		_, _, err = acc.ConnV2().FederatedAuthenticationApi.GetIdentityProvider(context.Background(),
 			federationSettingsID,
 			idpID).Execute()
 		if err == nil {
@@ -151,8 +145,31 @@ func checkExistsManaged(resourceName string) resource.TestCheckFunc {
 	}
 }
 
+func readIDsFromState(s *terraform.State, resourceName string) (federationSettingsID, idpID string, err error) {
+	rs, ok := s.RootModule().Resources[resourceName]
+	if !ok {
+		return "", "", fmt.Errorf("no ID is set")
+	}
+	id := rs.Primary.ID
+	if id == "" {
+		return "", "", fmt.Errorf("ID is empty")
+	}
+	federationSettingsID, idpID = federatedsettingsidentityprovider.DecodeIDs(id)
+	return federationSettingsID, idpID, nil
+}
+
 func importStateIDFunc(federationSettingsID, idpID string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
+		return fmt.Sprintf("%s-%s", federationSettingsID, idpID), nil
+	}
+}
+
+func importStateIDFuncManaged(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		federationSettingsID, idpID, err := readIDsFromState(s, resourceName)
+		if err != nil {
+			return "", err
+		}
 		return fmt.Sprintf("%s-%s", federationSettingsID, idpID), nil
 	}
 }
@@ -186,12 +203,11 @@ func configOIDCWorkforceBasic(federationSettingsID, associatedDomain string, aud
 		client_id 					= "clientId"
 		description 				= "tf-acc-test"
 		groups_claim				= "groups"
-		issuer_uri 					= "https://accounts.google.com"
+		issuer_uri 					= "https://token.actions.githubusercontent.com"
 		protocol 					= "OIDC"
 		requested_scopes 			= ["profiles"]
 		user_claim 					= "sub"
         name 						= "OIDC-CRUD-test"
-		
 
 		%[2]s
 

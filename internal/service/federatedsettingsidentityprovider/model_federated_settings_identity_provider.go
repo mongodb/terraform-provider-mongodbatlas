@@ -27,32 +27,6 @@ func ExpandIdentityProviderOIDCCreate(d *schema.ResourceData) *admin.FederationO
 		UserClaim:         conversion.StringPtr(d.Get("user_claim").(string)),
 	}
 }
-func ExpandIdentityProviderUpdate(d *schema.ResourceData, existingIdentityProvider *admin.FederationIdentityProvider) *admin.FederationIdentityProviderUpdate {
-	updateRequest := admin.FederationIdentityProviderUpdate{
-		AssociatedDomains:          expandAssociatedDomains(d),
-		Audience:                   conversion.StringPtr(d.Get("audience").(string)),
-		ClientId:                   conversion.StringPtr(d.Get("client_id").(string)),
-		DisplayName:                conversion.StringPtr(d.Get("name").(string)),
-		GroupsClaim:                conversion.StringPtr(d.Get("groups_claim").(string)),
-		IssuerUri:                  conversion.StringPtr(d.Get("issuer_uri").(string)),
-		Protocol:                   conversion.StringPtr(d.Get("protocol").(string)),
-		RequestBinding:             conversion.StringPtr(d.Get("request_binding").(string)),
-		RequestedScopes:            expandRequestedScopes(d),
-		ResponseSignatureAlgorithm: conversion.StringPtr(d.Get("response_signature_algorithm").(string)),
-		SsoDebugEnabled:            conversion.Pointer(d.Get("sso_debug_enabled").(bool)),
-		SsoUrl:                     conversion.StringPtr(d.Get("sso_url").(string)),
-		Status:                     conversion.StringPtr(d.Get("status").(string)),
-		UserClaim:                  conversion.StringPtr(d.Get("user_claim").(string)),
-	}
-
-	// not supported yet
-	updateRequest.PemFileInfo = nil
-	updateRequest.IdpType = conversion.StringPtr("WORKFORCE")
-	updateRequest.Description = existingIdentityProvider.Description
-	updateRequest.AuthorizationType = existingIdentityProvider.AuthorizationType
-	return &updateRequest
-}
-
 func expandRequestedScopes(d *schema.ResourceData) *[]string {
 	requestedScopes := d.Get("requested_scopes")
 	requestedScopesSlice := cast.ToStringSlice(requestedScopes)
@@ -69,6 +43,29 @@ func expandAssociatedDomains(d *schema.ResourceData) *[]string {
 		associatedDomainsSlice = []string{}
 	}
 	return &associatedDomainsSlice
+}
+
+func ExpandIdentityProviderUpdate(d *schema.ResourceData, existingIdentityProvider *admin.FederationIdentityProvider) *admin.FederationIdentityProviderUpdate {
+	return &admin.FederationIdentityProviderUpdate{
+		AssociatedDomains:          existingIdentityProvider.AssociatedDomains,
+		Audience:                   existingIdentityProvider.Audience,
+		AuthorizationType:          existingIdentityProvider.AuthorizationType,
+		ClientId:                   existingIdentityProvider.ClientId,
+		Description:                existingIdentityProvider.Description,
+		DisplayName:                existingIdentityProvider.DisplayName,
+		GroupsClaim:                existingIdentityProvider.GroupsClaim,
+		IdpType:                    existingIdentityProvider.IdpType,
+		IssuerUri:                  existingIdentityProvider.IssuerUri,
+		Protocol:                   existingIdentityProvider.Protocol,
+		PemFileInfo:                nil,
+		RequestBinding:             existingIdentityProvider.RequestBinding,
+		RequestedScopes:            existingIdentityProvider.RequestedScopes,
+		ResponseSignatureAlgorithm: existingIdentityProvider.ResponseSignatureAlgorithm,
+		SsoDebugEnabled:            existingIdentityProvider.SsoDebugEnabled,
+		SsoUrl:                     existingIdentityProvider.SsoUrl,
+		Status:                     existingIdentityProvider.Status,
+		UserClaim:                  existingIdentityProvider.UserClaim,
+	}
 }
 
 func FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider []admin.FederationIdentityProvider) []map[string]any {
