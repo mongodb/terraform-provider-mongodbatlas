@@ -84,6 +84,7 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 		resourceName         = "mongodbatlas_federated_settings_identity_provider.test"
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 		idpID                = os.Getenv("MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID")
+		associatedDomain     = os.Getenv("MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN")
 		audience             = "audience"
 	)
 
@@ -92,7 +93,7 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:             configOIDCWorkforceBasic(federationSettingsID, &audience),
+				Config:             configOIDCWorkforceBasic(federationSettingsID, associatedDomain, &audience),
 				ResourceName:       resourceName,
 				ImportStateIdFunc:  importStateIDFunc(federationSettingsID, idpID),
 				ImportState:        true,
@@ -100,7 +101,7 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 				ImportStatePersist: true,
 			},
 			{
-				Config: configOIDCWorkforceBasic(federationSettingsID, &audience),
+				Config: configOIDCWorkforceBasic(federationSettingsID, associatedDomain, &audience),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName, idpID),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
@@ -108,7 +109,7 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 				),
 			},
 			{
-				Config:            configOIDCWorkforceBasic(federationSettingsID, &audience),
+				Config:            configOIDCWorkforceBasic(federationSettingsID, associatedDomain, &audience),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(federationSettingsID, idpID),
 				ImportState:       true,
@@ -164,7 +165,7 @@ func configSAMLBasic(federationSettingsID, ssoURL, issuerURI, associatedDomain s
 	  }`, federationSettingsID, ssoURL, issuerURI, associatedDomain)
 }
 
-func configOIDCWorkforceBasic(federationSettingsID string, audience *string) string {
+func configOIDCWorkforceBasic(federationSettingsID, associatedDomain string, audience *string) string {
 	var audienceString string
 	if audience != nil {
 		audienceString = fmt.Sprintf(`audience = %[1]q`, *audience)
@@ -180,9 +181,10 @@ func configOIDCWorkforceBasic(federationSettingsID string, audience *string) str
 		user_claim 					= "sub"
 		issuer_uri 					= "https://accounts.google.com"
 		protocol 					= "OIDC"
+		associated_domains 			= [%[3]q]
 		
 
 		%[2]s
 
-	  }`, federationSettingsID, audienceString)
+	  }`, federationSettingsID, audienceString, associatedDomain)
 }

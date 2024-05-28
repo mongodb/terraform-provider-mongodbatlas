@@ -7,11 +7,8 @@ import (
 	"net/http"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20231115013/admin"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -221,106 +218,13 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate(ctx context.Con
 	federationSettingsID := ids["federation_settings_id"]
 	oktaIdpID := ids["okta_idp_id"]
 
-	updateRequest := new(admin.FederationIdentityProviderUpdate)
 	existingIdentityProvider, _, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error retreiving federation settings identity provider (%s): %s", federationSettingsID, err))
 	}
 
-	if d.HasChange("protocol") {
-		protocol := d.Get("protocol").(string)
-		updateRequest.Protocol = &protocol
-	}
-
-	if d.HasChange("sso_debug_enabled") {
-		ssoDebugEnabled := d.Get("sso_debug_enabled").(bool)
-		updateRequest.SsoDebugEnabled = &ssoDebugEnabled
-	}
-
-	if d.HasChange("associated_domains") {
-		associatedDomains := d.Get("associated_domains")
-		associatedDomainsSlice := cast.ToStringSlice(associatedDomains)
-		if associatedDomainsSlice == nil {
-			associatedDomainsSlice = []string{}
-		}
-		updateRequest.AssociatedDomains = &associatedDomainsSlice
-	}
-
-	if d.HasChange("name") {
-		identityName := d.Get("name").(string)
-		updateRequest.DisplayName = &identityName
-	}
-
-	if d.HasChange("status") {
-		status := d.Get("status").(string)
-		updateRequest.Status = &status
-	}
-
-	if d.HasChange("issuer_uri") {
-		status := d.Get("issuer_uri").(string)
-		updateRequest.IssuerUri = &status
-	}
-
-	if d.HasChange("request_binding") {
-		status := d.Get("request_binding").(string)
-		updateRequest.RequestBinding = &status
-	}
-
-	if d.HasChange("response_signature_algorithm") {
-		status := d.Get("response_signature_algorithm").(string)
-		updateRequest.ResponseSignatureAlgorithm = &status
-	}
-
-	if d.HasChange("sso_url") {
-		status := d.Get("sso_url").(string)
-		updateRequest.SsoUrl = &status
-	}
-
-	if d.HasChange("audience") {
-		audience := d.Get("audience").(string)
-		updateRequest.Audience = &audience
-	}
-
-	if d.HasChange("client_id") {
-		clientID := d.Get("client_id").(string)
-		updateRequest.ClientId = &clientID
-	}
-
-	if d.HasChange("groups_claim") {
-		groupsClaim := d.Get("groups_claim").(string)
-		updateRequest.GroupsClaim = &groupsClaim
-	}
-
-	if d.HasChange("requested_scopes") {
-		requestedScopes := d.Get("requested_scopes")
-		requestedScopesSlice := cast.ToStringSlice(requestedScopes)
-		if requestedScopesSlice == nil {
-			requestedScopesSlice = []string{}
-		}
-		updateRequest.RequestedScopes = &requestedScopesSlice
-	}
-
-	if d.HasChange("user_claim") {
-		userClaim := d.Get("user_claim").(string)
-		updateRequest.UserClaim = &userClaim
-	}
-
-	updateRequest.PemFileInfo = nil
-
-	updateRequest.IdpType = conversion.StringPtr("WORKFORCE")
-	updateRequest.ClientId = existingIdentityProvider.ClientId
-	updateRequest.Description = existingIdentityProvider.Description
-	updateRequest.DisplayName = existingIdentityProvider.DisplayName
-	updateRequest.UserClaim = existingIdentityProvider.UserClaim
-	updateRequest.GroupsClaim = existingIdentityProvider.GroupsClaim
-	updateRequest.IssuerUri = existingIdentityProvider.IssuerUri
-	updateRequest.Audience = existingIdentityProvider.Audience
-	updateRequest.AuthorizationType = existingIdentityProvider.AuthorizationType
-	updateRequest.Protocol = existingIdentityProvider.Protocol
-	updateRequest.AssociatedDomains = existingIdentityProvider.AssociatedDomains
-	updateRequest.RequestedScopes = existingIdentityProvider.RequestedScopes
-
-	_, _, err = connV2.FederatedAuthenticationApi.UpdateIdentityProvider(ctx, federationSettingsID, oktaIdpID, updateRequest).Execute()
+	updateRequest := ExpandIdentityProviderUpdate(d, existingIdentityProvider)
+	_, _, err = connV2.FederatedAuthenticationApi.UpdateIdentityProvider(ctx, federationSettingsID, oktaIdpID, &updateRequest).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating federation settings identity provider (%s): %s", federationSettingsID, err))
 	}

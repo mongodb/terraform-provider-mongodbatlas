@@ -6,8 +6,52 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20231115013/admin"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/spf13/cast"
 )
+
+func ExpandIdentityProviderUpdate(d *schema.ResourceData, existingIdentityProvider *admin.FederationIdentityProvider) admin.FederationIdentityProviderUpdate {
+	updateRequest := admin.FederationIdentityProviderUpdate{
+		Protocol:                   conversion.StringPtr(d.Get("protocol").(string)),
+		SsoDebugEnabled:            conversion.Pointer(d.Get("sso_debug_enabled").(bool)),
+		DisplayName:                conversion.StringPtr(d.Get("name").(string)),
+		Status:                     conversion.StringPtr(d.Get("status").(string)),
+		IssuerUri:                  conversion.StringPtr(d.Get("issuer_uri").(string)),
+		RequestBinding:             conversion.StringPtr(d.Get("request_binding").(string)),
+		ResponseSignatureAlgorithm: conversion.StringPtr(d.Get("response_signature_algorithm").(string)),
+		SsoUrl:                     conversion.StringPtr(d.Get("sso_url").(string)),
+		Audience:                   conversion.StringPtr(d.Get("audience").(string)),
+		ClientId:                   conversion.StringPtr(d.Get("client_id").(string)),
+		GroupsClaim:                conversion.StringPtr(d.Get("groups_claim").(string)),
+		UserClaim:                  conversion.StringPtr(d.Get("user_claim").(string)),
+	}
+
+	if d.HasChange("associated_domains") {
+		associatedDomains := d.Get("associated_domains")
+		associatedDomainsSlice := cast.ToStringSlice(associatedDomains)
+		if associatedDomainsSlice == nil {
+			associatedDomainsSlice = []string{}
+		}
+		updateRequest.AssociatedDomains = &associatedDomainsSlice
+	}
+
+	if d.HasChange("requested_scopes") {
+		requestedScopes := d.Get("requested_scopes")
+		requestedScopesSlice := cast.ToStringSlice(requestedScopes)
+		if requestedScopesSlice == nil {
+			requestedScopesSlice = []string{}
+		}
+		updateRequest.RequestedScopes = &requestedScopesSlice
+	}
+
+	// not supported yet
+	updateRequest.PemFileInfo = nil
+	updateRequest.IdpType = conversion.StringPtr("WORKFORCE")
+	updateRequest.Description = existingIdentityProvider.Description
+	updateRequest.AuthorizationType = existingIdentityProvider.AuthorizationType
+	return updateRequest
+}
 
 func FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider []admin.FederationIdentityProvider) []map[string]any {
 	var federatedSettingsIdentityProviderMap []map[string]any

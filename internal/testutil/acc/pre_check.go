@@ -269,7 +269,7 @@ func PreCheckFederatedSettingsIdentityProvider(tb testing.TB) {
 	if os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID") == "" ||
 		os.Getenv("MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN") == "" ||
 		os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID") == "" {
-		tb.Fatal("`MONGODB_ATLAS_FEDERATED_ORG_ID` and `MONGODB_ATLAS_FEDERATION_SETTINGS_ID` must be set for federated settings/verify acceptance testing")
+		tb.Fatal("`MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN`, MONGODB_ATLAS_FEDERATED_ORG_ID`, and `MONGODB_ATLAS_FEDERATION_SETTINGS_ID` must be set for federated settings acceptance testing")
 	}
 }
 
