@@ -18,8 +18,8 @@ on:
 jobs:
   release-version:
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - name: Validation of version format, no pre-releases
         run: |

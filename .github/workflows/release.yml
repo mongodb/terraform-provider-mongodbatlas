@@ -19,12 +19,12 @@ jobs:
 
   release-config:
     runs-on: ubuntu-latest
+    permissions: {}
     outputs:
       creates_new_tag: ${{ steps.evaluate_inputs.outputs.creates_new_tag }}
       is_official_release: ${{ steps.evaluate_inputs.outputs.is_official_release }}
       runs_tests: ${{ steps.evaluate_inputs.outputs.runs_tests }}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - id: evaluate_inputs
         run: |
           {
@@ -35,8 +35,8 @@ jobs:
 
   validate-inputs:
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - name: Validation of version format
         run: |
           echo "${{ inputs.version_number }}" | grep -P '^v\d+\.\d+\.\d+(-pre[A-Za-z0-9-]*)?$'
@@ -85,13 +85,14 @@ jobs:
 
   create-tag:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     needs: [ release-config, validate-inputs, update-examples-reference-in-docs, update-changelog-header ]
     if: >-
       !cancelled()
       && !contains(needs.*.result, 'failure') 
       && needs.release-config.outputs.creates_new_tag == 'true'
     steps: 
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - name: Checkout
         uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
         with:
@@ -121,13 +122,14 @@ jobs:
   
   release:
     runs-on: ubuntu-latest
+    permissions: 
+      contents: write
     needs: [ validate-inputs, update-examples-reference-in-docs, update-changelog-header, create-tag, run-qa-acceptance-tests ]
     # Release is skipped if there are failures in previous steps
     if: >-
       !cancelled()
       && !contains(needs.*.result, 'failure')
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - name: Checkout
         uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
         with:
