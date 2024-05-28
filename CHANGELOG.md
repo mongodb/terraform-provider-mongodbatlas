@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.16.1 (May 28, 2024)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_cloud_backup_snapshot_export_bucket: Marks `id` as computed not required ([#2241](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2241))
