@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/mongodbatlas_federated_settings_identity_provider: Adds create and delete operations for Workforce OIDC IdP
+```
