@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	admin20231115008 "go.mongodb.org/atlas-sdk/v20231115008/admin"
+	"go.mongodb.org/atlas-sdk/v20231115013/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -218,12 +218,9 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"audience_claim": {
-							Type:     schema.TypeList,
+						"audience": {
+							Type:     schema.TypeString,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
 						},
 						"client_id": {
 							Type:     schema.TypeString,
@@ -252,7 +249,7 @@ func PluralDataSource() *schema.Resource {
 }
 func dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	connV2 := meta.(*config.MongoDBClient).Atlas20231115008
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	federationSettingsID, federationSettingsIDOk := d.GetOk("federation_settings_id")
 
@@ -262,7 +259,7 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead(ctx context.Co
 
 	// once the SDK is upgraded above version "go.mongodb.org/atlas-sdk/v20231115012/mockadmin" we can use pagination parameters to iterate over all results (and adjust documentation)
 	// pagination attributes are deprecated and can be removed as we move towards not exposing these pagination options to the user
-	params := &admin20231115008.ListIdentityProvidersApiParams{
+	params := &admin.ListIdentityProvidersApiParams{
 		FederationSettingsId: federationSettingsID.(string),
 		Protocol:             &[]string{OIDC, SAML},
 	}

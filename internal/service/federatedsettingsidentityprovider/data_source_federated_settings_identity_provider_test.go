@@ -50,7 +50,7 @@ func TestAccFederatedSettingsIdentityProviderDS_oidcBasic(t *testing.T) {
 				Config: configBasicDS(federatedSettingsID, idpID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "associated_orgs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "audience_claim.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "audience"),
 					resource.TestCheckResourceAttrSet(resourceName, "client_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "groups_claim"),
 					resource.TestCheckResourceAttrSet(resourceName, "requested_scopes.#"),

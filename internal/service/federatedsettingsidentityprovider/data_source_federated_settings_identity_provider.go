@@ -205,12 +205,9 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"audience_claim": {
-				Type:     schema.TypeList,
+			"audience": {
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
 			},
 			"client_id": {
 				Type:     schema.TypeString,
@@ -236,7 +233,7 @@ func DataSource() *schema.Resource {
 }
 func dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	connV2 := meta.(*config.MongoDBClient).Atlas20231115008
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	federationSettingsID, federationSettingsIDOk := d.GetOk("federation_settings_id")
 
@@ -286,7 +283,7 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Con
 	}
 
 	if federatedSettingsIdentityProvider.GetProtocol() == OIDC {
-		if err := d.Set("audience_claim", federatedSettingsIdentityProvider.AudienceClaim); err != nil {
+		if err := d.Set("audience", federatedSettingsIdentityProvider.Audience); err != nil {
 			return diag.FromErr(fmt.Errorf("error setting `audience_claim` for federatedSettings IdentityProviders: %s", err))
 		}
 
