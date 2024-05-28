@@ -77,14 +77,14 @@ func cleanupCaptureMode(t *testing.T, port int) {
 }
 
 func randomPortNumber() int {
-	var min int64 = 1024
-	var max int64 = 65536
-	diff := max - min
+	var minPort int64 = 1024
+	var maxPort int64 = 65536
+	diff := maxPort - minPort
 	nBig, err := rand.Int(rand.Reader, big.NewInt(diff+1))
 	if err != nil {
 		log.Fatalf("Failed to generate random number: %v", err)
 	}
-	proxyPort := int(nBig.Int64() + min)
+	proxyPort := int(nBig.Int64() + minPort)
 	return proxyPort
 }
 
