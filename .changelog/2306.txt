@@ -1,3 +1,3 @@
 ```release-note:bug
-resource/mongodbatlas_network_peering: Correctly handle GCP updates of mongodbatlas_network_peering
+resource/mongodbatlas_network_peering: Correctly handles GCP updates of mongodbatlas_network_peering
 ```
