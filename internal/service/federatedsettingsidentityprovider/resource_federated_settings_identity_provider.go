@@ -222,8 +222,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate(ctx context.Con
 	oktaIdpID := ids["okta_idp_id"]
 
 	updateRequest := new(admin.FederationIdentityProviderUpdate)
-	_, _, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID).Execute()
-
+	existingIdentityProvider, _, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error retreiving federation settings identity provider (%s): %s", federationSettingsID, err))
 	}
@@ -307,6 +306,19 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate(ctx context.Con
 	}
 
 	updateRequest.PemFileInfo = nil
+
+	updateRequest.IdpType = conversion.StringPtr("WORKFORCE")
+	updateRequest.ClientId = existingIdentityProvider.ClientId
+	updateRequest.Description = existingIdentityProvider.Description
+	updateRequest.DisplayName = existingIdentityProvider.DisplayName
+	updateRequest.UserClaim = existingIdentityProvider.UserClaim
+	updateRequest.GroupsClaim = existingIdentityProvider.GroupsClaim
+	updateRequest.IssuerUri = existingIdentityProvider.IssuerUri
+	updateRequest.Audience = existingIdentityProvider.Audience
+	updateRequest.AuthorizationType = existingIdentityProvider.AuthorizationType
+	updateRequest.Protocol = existingIdentityProvider.Protocol
+	updateRequest.AssociatedDomains = existingIdentityProvider.AssociatedDomains
+	updateRequest.RequestedScopes = existingIdentityProvider.RequestedScopes
 
 	_, _, err = connV2.FederatedAuthenticationApi.UpdateIdentityProvider(ctx, federationSettingsID, oktaIdpID, updateRequest).Execute()
 	if err != nil {

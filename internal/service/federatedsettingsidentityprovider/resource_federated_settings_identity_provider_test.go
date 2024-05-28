@@ -18,7 +18,7 @@ func TestAccFederatedSettingsIdentityProvider_createError(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configBasic("not-used", "not-used", "not-used", "not-used"),
+				Config:      configSAMLBasic("not-used", "not-used", "not-used", "not-used"),
 				ExpectError: regexp.MustCompile("this resource must be imported"),
 			},
 		},
@@ -26,10 +26,14 @@ func TestAccFederatedSettingsIdentityProvider_createError(t *testing.T) {
 }
 
 func TestAccFederatedSettingsIdentityProviderRS_basic(t *testing.T) {
-	resource.ParallelTest(t, *basicTestCase(t))
+	resource.ParallelTest(t, *basicSAMLTestCase(t))
 }
 
-func basicTestCase(tb testing.TB) *resource.TestCase {
+func TestAccFederatedSettingsIdentityProviderRS_OIDCWorkforce(t *testing.T) {
+	resource.ParallelTest(t, *basicOIDCWorkforceTestCase(t))
+}
+
+func basicSAMLTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 
 	var (
@@ -39,7 +43,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		ssoURL               = os.Getenv("MONGODB_ATLAS_FEDERATED_SSO_URL")
 		issuerURI            = os.Getenv("MONGODB_ATLAS_FEDERATED_ISSUER_URI")
 		associatedDomain     = os.Getenv("MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN")
-		config               = configBasic(federationSettingsID, ssoURL, issuerURI, associatedDomain)
+		config               = configSAMLBasic(federationSettingsID, ssoURL, issuerURI, associatedDomain)
 	)
 
 	return &resource.TestCase{
@@ -64,6 +68,47 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			},
 			{
 				Config:            config,
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(federationSettingsID, idpID),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	}
+}
+
+func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+
+	var (
+		resourceName         = "mongodbatlas_federated_settings_identity_provider.test"
+		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
+		idpID                = os.Getenv("MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID")
+		audience             = "audience"
+	)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckFederatedSettingsIdentityProvider(tb) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:             configOIDCWorkforceBasic(federationSettingsID, &audience),
+				ResourceName:       resourceName,
+				ImportStateIdFunc:  importStateIDFunc(federationSettingsID, idpID),
+				ImportState:        true,
+				ImportStateVerify:  false,
+				ImportStatePersist: true,
+			},
+			{
+				Config: configOIDCWorkforceBasic(federationSettingsID, &audience),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName, idpID),
+					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
+					resource.TestCheckResourceAttr(resourceName, "name", "OIDC-test"),
+				),
+			},
+			{
+				Config:            configOIDCWorkforceBasic(federationSettingsID, &audience),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(federationSettingsID, idpID),
 				ImportState:       true,
@@ -104,7 +149,7 @@ func importStateIDFunc(federationSettingsID, idpID string) resource.ImportStateI
 	}
 }
 
-func configBasic(federationSettingsID, ssoURL, issuerURI, associatedDomain string) string {
+func configSAMLBasic(federationSettingsID, ssoURL, issuerURI, associatedDomain string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_federated_settings_identity_provider" "test" {
         federation_settings_id 		= %[1]q
@@ -117,4 +162,27 @@ func configBasic(federationSettingsID, ssoURL, issuerURI, associatedDomain strin
         request_binding 			= "HTTP-POST"
         response_signature_algorithm = "SHA-256"
 	  }`, federationSettingsID, ssoURL, issuerURI, associatedDomain)
+}
+
+func configOIDCWorkforceBasic(federationSettingsID string, audience *string) string {
+	var audienceString string
+	if audience != nil {
+		audienceString = fmt.Sprintf(`audience = %[1]q`, *audience)
+	}
+
+	return fmt.Sprintf(`
+	resource "mongodbatlas_federated_settings_identity_provider" "test" {
+        federation_settings_id 		= %[1]q
+        name 						= "OIDC-test"
+		client_id 					= "clientId"
+		groups_claim				= "groups"
+		requested_scopes 			= ["profiles"]
+		user_claim 					= "sub"
+		issuer_uri 					= "https://accounts.google.com"
+		protocol 					= "OIDC"
+		
+
+		%[2]s
+
+	  }`, federationSettingsID, audienceString)
 }
