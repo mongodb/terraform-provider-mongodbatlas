@@ -84,7 +84,10 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 		resourceName         = "mongodbatlas_federated_settings_identity_provider.test"
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 		associatedDomain     = os.Getenv("MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN")
-		audience             = "audience"
+		audience1            = "audience"
+		audience2            = "audience-updated"
+		description1         = "tf-acc-test"
+		description2         = "tf-acc-test-updated"
 	)
 
 	return &resource.TestCase{
@@ -92,15 +95,27 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configOIDCWorkforceBasic(federationSettingsID, associatedDomain, &audience),
+				Config: configOIDCWorkforceBasic(federationSettingsID, associatedDomain, description1, audience1),
 				Check: resource.ComposeTestCheckFunc(
 					checkExistsManaged(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
 					resource.TestCheckResourceAttr(resourceName, "name", "OIDC-CRUD-test"),
+					resource.TestCheckResourceAttr(resourceName, "description", description1),
+					resource.TestCheckResourceAttr(resourceName, "audience", audience1),
 				),
 			},
 			{
-				Config:            configOIDCWorkforceBasic(federationSettingsID, associatedDomain, &audience),
+				Config: configOIDCWorkforceBasic(federationSettingsID, associatedDomain, description2, audience2),
+				Check: resource.ComposeTestCheckFunc(
+					checkExistsManaged(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
+					resource.TestCheckResourceAttr(resourceName, "name", "OIDC-CRUD-test"),
+					resource.TestCheckResourceAttr(resourceName, "description", description2),
+					resource.TestCheckResourceAttr(resourceName, "audience", audience2),
+				),
+			},
+			{
+				Config:            configOIDCWorkforceBasic(federationSettingsID, associatedDomain, description2, audience2),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFuncManaged(resourceName),
 				ImportState:       true,
@@ -189,27 +204,20 @@ func configSAMLBasic(federationSettingsID, ssoURL, issuerURI, associatedDomain s
 	  }`, federationSettingsID, ssoURL, issuerURI, associatedDomain)
 }
 
-func configOIDCWorkforceBasic(federationSettingsID, associatedDomain string, audience *string) string {
-	var audienceString string
-	if audience != nil {
-		audienceString = fmt.Sprintf(`audience = %[1]q`, *audience)
-	}
-
+func configOIDCWorkforceBasic(federationSettingsID, associatedDomain, description, audience string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_federated_settings_identity_provider" "test" {
         federation_settings_id 		= %[1]q
+        description 				= %[4]q
+        audience 					= %[2]q
 		associated_domains 			= [%[3]q]
 		authorization_type			= "GROUP"
 		client_id 					= "clientId"
-		description 				= "tf-acc-test"
 		groups_claim				= "groups"
 		issuer_uri 					= "https://token.actions.githubusercontent.com"
 		protocol 					= "OIDC"
 		requested_scopes 			= ["profiles"]
 		user_claim 					= "sub"
         name 						= "OIDC-CRUD-test"
-
-		%[2]s
-
-	  }`, federationSettingsID, audienceString, associatedDomain)
+	  }`, federationSettingsID, audience, associatedDomain, description)
 }
