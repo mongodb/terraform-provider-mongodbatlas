@@ -56,7 +56,7 @@ linters-settings:
   nestif:
     # minimal complexity of if statements to report, 5 by default
     min-complexity: 7
-  gomnd:
+  mnd:
     checks:
       - case
       - operation
@@ -74,7 +74,7 @@ linters:
     - gofmt
     - goimports
     - revive
-    - gomnd
+    - mnd
     - goprintffuncname
     - gosec
     - gosimple
