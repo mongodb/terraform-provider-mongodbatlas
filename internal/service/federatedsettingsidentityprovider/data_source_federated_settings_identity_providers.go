@@ -14,6 +14,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
+const WORKFORCE = "WORKFORCE"
+
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead,
@@ -241,6 +243,14 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"description": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"authorization_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -262,6 +272,7 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead(ctx context.Co
 	params := &admin.ListIdentityProvidersApiParams{
 		FederationSettingsId: federationSettingsID.(string),
 		Protocol:             &[]string{OIDC, SAML},
+		IdpType:              &[]string{WORKFORCE},
 	}
 
 	providers, _, err := connV2.FederatedAuthenticationApi.ListIdentityProvidersWithParams(ctx, params).Execute()

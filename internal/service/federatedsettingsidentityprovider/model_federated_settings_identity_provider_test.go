@@ -48,6 +48,8 @@ var (
 	groupsClaim                = "groupsClaim"
 	requestedScopes            = []string{"requestedScopes"}
 	userClaim                  = "userClaim"
+	description                = "description"
+	authorizationType          = "GROUP"
 
 	roleAssignments = []admin.RoleAssignment{
 		{
@@ -346,6 +348,7 @@ func TestFlattenFederatedSettingsIdentityProvider(t *testing.T) {
 					Status:                     &status,
 					Id:                         identityProviderID,
 					Protocol:                   &samlProtocol,
+					Description:                &description,
 				},
 			},
 			output: []map[string]any{
@@ -370,6 +373,8 @@ func TestFlattenFederatedSettingsIdentityProvider(t *testing.T) {
 					"groups_claim":                 nilStringPtr,
 					"requested_scopes":             nilStringSlicePtr,
 					"user_claim":                   nilStringPtr,
+					"description":                  &description,
+					"authorization_type":           nilStringPtr,
 				},
 			},
 		},
@@ -388,6 +393,8 @@ func TestFlattenFederatedSettingsIdentityProvider(t *testing.T) {
 					GroupsClaim:       &groupsClaim,
 					RequestedScopes:   &requestedScopes,
 					UserClaim:         &userClaim,
+					Description:       &description,
+					AuthorizationType: &authorizationType,
 				},
 			},
 			output: []map[string]any{
@@ -412,6 +419,8 @@ func TestFlattenFederatedSettingsIdentityProvider(t *testing.T) {
 					"groups_claim":                 &groupsClaim,
 					"requested_scopes":             &requestedScopes,
 					"user_claim":                   &userClaim,
+					"description":                  &description,
+					"authorization_type":           &authorizationType,
 				},
 			},
 		},

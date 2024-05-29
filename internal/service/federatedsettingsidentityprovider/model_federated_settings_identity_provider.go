@@ -95,6 +95,8 @@ func FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider 
 				"groups_claim":                 federatedSettingsIdentityProvider[i].GroupsClaim,
 				"requested_scopes":             federatedSettingsIdentityProvider[i].RequestedScopes,
 				"user_claim":                   federatedSettingsIdentityProvider[i].UserClaim,
+				"authorization_type":           federatedSettingsIdentityProvider[i].AuthorizationType,
+				"description":                  federatedSettingsIdentityProvider[i].Description,
 			}
 		}
 	}
