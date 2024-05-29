@@ -8,7 +8,6 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115014/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
@@ -300,6 +299,6 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.FromErr(fmt.Errorf("error setting `result` for federatedSettings IdentityProviders: %s", err))
 	}
 
-	d.SetId(id.UniqueId())
+	d.SetId(federationSettingsID.(string))
 	return nil
 }
