@@ -236,6 +236,10 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"idp_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -345,6 +349,10 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if err := d.Set("idp_id", federatedSettingsIdentityProvider.Id); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `idp_id` for federatedSettings IdentityProviders: %s", err))
+	}
+
+	if err := d.Set("idp_type", federatedSettingsIdentityProvider.IdpType); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `idp_type` for federatedSettings IdentityProviders: %s", err))
 	}
 
 	d.SetId(federatedSettingsIdentityProvider.Id)
