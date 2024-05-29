@@ -26,6 +26,8 @@ func TestAccFederatedSettingsIdentityProvider_createError(t *testing.T) {
 }
 
 func TestAccFederatedSettingsIdentityProviderRS_basic(t *testing.T) {
+	// SAML IdP can be deleted but not created through the API. If this test is run the resource will be deleted and will have to be created through the UI
+	acc.SkipTestForCI(t)
 	resource.ParallelTest(t, *basicSAMLTestCase(t))
 }
 
