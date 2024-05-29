@@ -2,12 +2,10 @@ package cloudbackupsnapshotexportjob
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115014/admin"
@@ -67,9 +65,8 @@ func PluralDataSource() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"export_id": {
-										Type:       schema.TypeString,
-										Computed:   true,
-										Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0"),
+										Type:     schema.TypeString,
+										Computed: true,
 									},
 									"replica_set_name": {
 										Type:     schema.TypeString,

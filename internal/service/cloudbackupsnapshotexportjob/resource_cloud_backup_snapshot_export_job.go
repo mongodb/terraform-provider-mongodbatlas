@@ -80,9 +80,8 @@ func resourceSchema() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"export_id": {
-						Type:       schema.TypeString,
-						Computed:   true,
-						Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0"),
+						Type:     schema.TypeString,
+						Computed: true,
 					},
 					"replica_set_name": {
 						Type:     schema.TypeString,
@@ -228,7 +227,7 @@ func flattenExportJobsComponents(components []admin.DiskBackupExportMember) []ma
 
 	for i := range components {
 		customData = append(customData, map[string]any{
-			// "export_id":        components[i].ExportID,
+			"export_id":        components[i].GetExportId(),
 			"replica_set_name": components[i].GetReplicaSetName(),
 		})
 	}
