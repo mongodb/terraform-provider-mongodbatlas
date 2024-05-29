@@ -19,7 +19,7 @@ resource/mongodbatlas_federated_settings_identity_provider: Replaces `audience_c
 ```
 
 ```release-note:breaking-change
-data-source/mongodbatlas_federated_settings_identity_provider: Replace `audience_claim` field with `audience` field instead
+data-source/mongodbatlas_federated_settings_identity_provider: Replaces `audience_claim` field with `audience`
 ```
 
 ```release-note:breaking-change
