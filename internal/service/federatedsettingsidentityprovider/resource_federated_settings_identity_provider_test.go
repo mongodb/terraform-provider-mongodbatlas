@@ -19,7 +19,7 @@ func TestAccFederatedSettingsIdentityProvider_createError(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      configSAMLBasic("not-used", "not-used", "not-used", "not-used"),
-				ExpectError: regexp.MustCompile("this resource must be imported"),
+				ExpectError: regexp.MustCompile("create is only supported by OIDC, SAML must be imported"),
 			},
 		},
 	})

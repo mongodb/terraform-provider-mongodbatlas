@@ -114,14 +114,10 @@ func Resource() *schema.Resource {
 		},
 	}
 }
-func isSAML(d *schema.ResourceData) bool {
-	protocol := d.Get("protocol").(string)
-	return protocol == SAML || protocol == "" // default is SAML
-}
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	if isSAML(d) {
-		return diag.FromErr(errors.New("this resource must be imported"))
+	if d.Get("protocol").(string) != OIDC {
+		return diag.FromErr(fmt.Errorf("create is only supported by %s, %s must be imported", OIDC, SAML))
 	}
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	createRequest := ExpandIdentityProviderOIDCCreate(d)
@@ -345,10 +341,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	if isSAML(d) {
-		d.SetId("")
-		return nil
-	}
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	federationSettingsID, idpID := DecodeIDs(d.Id())
 	resp, err := connV2.FederatedAuthenticationApi.DeleteIdentityProvider(ctx, federationSettingsID, idpID).Execute()
