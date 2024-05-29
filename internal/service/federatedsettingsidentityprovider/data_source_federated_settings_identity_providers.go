@@ -14,8 +14,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-const WORKFORCE = "WORKFORCE"
-
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourcePluralRead,

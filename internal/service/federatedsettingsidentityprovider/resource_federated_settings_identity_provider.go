@@ -143,7 +143,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	// as few changes as possible, this name will remain.
 	idpID := ids["okta_idp_id"]
 
-	// latest version of v2 SDK
 	federatedSettingsIdentityProvider, resp, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(ctx, federationSettingsID, idpID).Execute()
 	if err != nil {
 		// case 404

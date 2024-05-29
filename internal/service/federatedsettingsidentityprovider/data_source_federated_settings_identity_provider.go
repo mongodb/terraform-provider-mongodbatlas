@@ -240,7 +240,6 @@ func DataSource() *schema.Resource {
 	}
 }
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	federationSettingsID, federationSettingsIDOk := d.GetOk("federation_settings_id")

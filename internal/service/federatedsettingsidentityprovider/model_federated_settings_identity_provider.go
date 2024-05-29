@@ -11,6 +11,8 @@ import (
 	"github.com/spf13/cast"
 )
 
+const WORKFORCE = "WORKFORCE"
+
 func ExpandIdentityProviderOIDCCreate(d *schema.ResourceData) *admin.FederationOidcIdentityProviderUpdate {
 	return &admin.FederationOidcIdentityProviderUpdate{
 		Audience:          conversion.StringPtr(d.Get("audience").(string)),
