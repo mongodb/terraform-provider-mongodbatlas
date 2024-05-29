@@ -11,6 +11,7 @@ import (
 
 func SkipIfVersionBelow(tb testing.TB, minVersion string) {
 	tb.Helper()
+	validateConflictingEnvVars(tb)
 	if !IsProviderVersionAtLeast(minVersion) {
 		tb.Skipf("Skipping because version %s below %s", versionConstraint(), minVersion)
 	}
@@ -32,6 +33,7 @@ func ExternalProvidersWithAWS() map[string]resource.ExternalProvider {
 
 func checkLastVersion(tb testing.TB) {
 	tb.Helper()
+	validateConflictingEnvVars(tb)
 	if os.Getenv("MONGODB_ATLAS_LAST_VERSION") == "" {
 		tb.Fatal("`MONGODB_ATLAS_LAST_VERSION` must be set for migration acceptance testing")
 	}
@@ -39,4 +41,11 @@ func checkLastVersion(tb testing.TB) {
 
 func versionConstraint() string {
 	return os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+}
+
+func validateConflictingEnvVars(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("TF_CLI_CONFIG_FILE") != "" {
+		tb.Fatal("found `TF_CLI_CONFIG_FILE` in env-var when running migration tests, this might override the terraform provider for MONGODB_ATLAS_LAST_VERSION and instead use local latest build!")
+	}
 }

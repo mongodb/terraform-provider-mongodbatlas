@@ -51,11 +51,14 @@ jobs:
     secrets:
       mongodb_atlas_public_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_QA || secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
       mongodb_atlas_private_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_QA || secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
+      mongodb_atlas_gov_public_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_GOV_PUBLIC_KEY_QA || secrets.MONGODB_ATLAS_GOV_PUBLIC_KEY_DEV }}
+      mongodb_atlas_gov_private_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_GOV_PRIVATE_KEY_QA || secrets.MONGODB_ATLAS_GOV_PRIVATE_KEY_DEV }}
       ca_cert: ${{ secrets.CA_CERT }}
       aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
       aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       aws_s3_bucket_federation: ${{ secrets.AWS_S3_BUCKET_FEDERATION }}
+      aws_s3_bucket_backup: ${{ secrets.AWS_S3_BUCKET_BACKUP }}
       mongodb_atlas_ldap_hostname: ${{ secrets.MONGODB_ATLAS_LDAP_HOSTNAME }}
       mongodb_atlas_ldap_username: ${{ secrets.MONGODB_ATLAS_LDAP_USERNAME }}
       mongodb_atlas_ldap_password: ${{ secrets.MONGODB_ATLAS_LDAP_PASSWORD }}
@@ -63,6 +66,11 @@ jobs:
       mongodb_atlas_ldap_ca_certificate: ${{ secrets.MONGODB_ATLAS_LDAP_CA_CERTIFICATE }}
       mongodb_atlas_private_endpoint_id: ${{ secrets.MONGODB_ATLAS_PRIVATE_ENDPOINT_ID }}
       mongodb_atlas_private_endpoint_dns_name: ${{ secrets.MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME }}
+      azure_directory_id: ${{ secrets.AZURE_DIRECTORY_ID }}
+      azure_resource_group_name: ${{ secrets.AZURE_RESOURCE_GROUP_NAME }}
+      azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      azure_vnet_name: ${{ secrets.AZURE_VNET_NAME }}
+      azure_vnet_name_updated: ${{ secrets.AZURE_VNET_NAME_UPDATED }}
 
     with:
       terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
@@ -86,3 +94,7 @@ jobs:
       mongodb_atlas_federated_sso_url: ${{  vars.MONGODB_ATLAS_FEDERATED_SSO_URL }}
       mongodb_atlas_federated_issuer_uri: ${{ vars.MONGODB_ATLAS_FEDERATED_ISSUER_URI }}
       mongodb_atlas_federated_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATED_ORG_ID_QA || vars.MONGODB_ATLAS_FEDERATED_ORG_ID }}
+      mongodb_atlas_gov_base_url: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_GOV_BASE_URL_QA || vars.MONGODB_ATLAS_GOV_BASE_URL_DEV }}
+      mongodb_atlas_gov_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_GOV_ORG_ID_QA || vars.MONGODB_ATLAS_GOV_ORG_ID_DEV }}
+      mongodb_atlas_gov_project_owner_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_GOV_PROJECT_OWNER_ID_QA || vars.MONGODB_ATLAS_GOV_PROJECT_OWNER_ID_DEV }}
+      mongodb_atlas_federated_settings_associated_domain: ${{ vars.MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN }}

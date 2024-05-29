@@ -42,10 +42,13 @@ func basicAuthorizationTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 
 	var (
-		projectID       = acc.ProjectIDExecution(tb)
-		policyName      = acc.RandomName()
-		roleName        = acc.RandomIAMRole()
-		roleNameUpdated = acc.RandomIAMRole()
+		resourceName                  = "mongodbatlas_cloud_provider_access_authorization.auth_role"
+		projectID                     = acc.ProjectIDExecution(tb)
+		policyName                    = acc.RandomName()
+		roleName                      = acc.RandomIAMRole()
+		roleNameUpdated               = acc.RandomIAMRole()
+		federatedDatabaseInstanceName = acc.RandomName()
+		testS3Bucket                  = os.Getenv("AWS_S3_BUCKET")
 	)
 
 	return &resource.TestCase{
@@ -55,17 +58,45 @@ func basicAuthorizationTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configAuthorizationAWS(projectID, policyName, roleName),
+				Config: configAuthorizationAWS(projectID, policyName, roleName, federatedDatabaseInstanceName, testS3Bucket),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(resourceName, "role_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "aws.0.iam_assumed_role_arn"),
+					resource.TestCheckResourceAttrSet(resourceName, "feature_usages.#"),
+				),
 			},
 			{
-				Config: configAuthorizationAWS(projectID, policyName, roleNameUpdated),
+				Config: configAuthorizationAWS(projectID, policyName, roleNameUpdated, federatedDatabaseInstanceName, testS3Bucket),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(resourceName, "role_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "aws.0.iam_assumed_role_arn"),
+					resource.TestCheckResourceAttrSet(resourceName, "feature_usages.#"),
+				),
 			},
 		},
 	}
 }
 
-func configAuthorizationAWS(projectID, policyName, roleName string) string {
+func configAuthorizationAWS(projectID, policyName, roleName, federatedDatabaseInstanceName, testS3Bucket string) string {
+	bucketResourceName := "arn:aws:s3:::" + testS3Bucket
 	return fmt.Sprintf(`
+
+resource "mongodbatlas_federated_database_instance" "test" {
+	project_id         = %[1]q
+	name = %[4]q
+
+	cloud_provider_config {
+	    aws {
+			role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+			test_s3_bucket = %[5]q
+		}
+	}
+}
+
 resource "aws_iam_role_policy" "test_policy" {
   name = %[2]q
   role = aws_iam_role.test_role.id
@@ -74,11 +105,20 @@ resource "aws_iam_role_policy" "test_policy" {
   {
     "Version": "2012-10-17",
     "Statement": [
-      {
-        "Effect": "Deny",
-		"Action": "*",
-		"Resource": "*"
-      }
+		{
+			"Effect": "Allow",
+			"Action": [
+				"s3:GetObject",
+				"s3:ListBucket",
+				"s3:GetObjectVersion"
+			],
+			"Resource": "*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": "s3:*",
+			"Resource": %[6]q
+		}
     ]
   }
   EOF
@@ -122,7 +162,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
     iam_assumed_role_arn = aws_iam_role.test_role.arn
   }
 }
-	`, projectID, policyName, roleName)
+	`, projectID, policyName, roleName, federatedDatabaseInstanceName, testS3Bucket, bucketResourceName)
 }
 
 func configAuthorizationAzure(projectID, atlasAzureAppID, servicePrincipalID, tenantID string) string {

@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115013/admin"
+	"go.mongodb.org/atlas-sdk/v20231115014/admin"
 )
 
 /*
@@ -338,8 +338,9 @@ func featureUsagesSchema() *schema.Resource {
 }
 
 func featureToSchema(feature admin.CloudProviderAccessFeatureUsage) map[string]any {
+	featureID, _ := feature.GetFeatureId().ToMap()
 	return map[string]any{
 		"feature_type": feature.GetFeatureType(),
-		"feature_id":   feature.GetFeatureId(),
+		"feature_id":   featureID,
 	}
 }

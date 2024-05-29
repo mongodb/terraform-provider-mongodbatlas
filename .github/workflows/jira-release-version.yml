@@ -18,8 +18,9 @@ on:
 jobs:
   release-version:
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - name: Validation of version format, no pre-releases
         run: |
           echo "${{ inputs.version_number }}" | grep -P '^v\d+\.\d+\.\d+$'

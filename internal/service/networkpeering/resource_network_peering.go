@@ -16,7 +16,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkcontainer"
-	"go.mongodb.org/atlas-sdk/v20231115013/admin"
+	"go.mongodb.org/atlas-sdk/v20231115014/admin"
 )
 
 const (
@@ -103,21 +103,25 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"azure_subscription_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"resource_group_name": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"vnet_name": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"error_state": {
 				Type:     schema.TypeString,
@@ -131,11 +135,13 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"network_name": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"atlas_gcp_project_id": {
 				Type:     schema.TypeString,
@@ -406,33 +412,20 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		ContainerId:  conversion.GetEncodedID(d.Get("container_id").(string), "container_id"),
 	}
 
-	switch peer.GetProviderName() {
-	case "GCP":
-		peer.SetGcpProjectId(d.Get("gcp_project_id").(string))
-		peer.SetNetworkName(d.Get("network_name").(string))
-	case "AZURE":
-		if d.HasChange("azure_directory_id") {
-			peer.SetAzureDirectoryId(d.Get("azure_directory_id").(string))
-		}
-
-		if d.HasChange("azure_subscription_id") {
-			peer.SetAzureSubscriptionId(d.Get("azure_subscription_id").(string))
-		}
-
-		if d.HasChange("resource_group_name") {
-			peer.SetResourceGroupName(d.Get("resource_group_name").(string))
-		}
-
-		if d.HasChange("vnet_name") {
-			peer.SetVnetName(d.Get("vnet_name").(string))
-		}
-	default: // AWS by default
+	if peer.GetProviderName() == "AWS" {
 		region, _ := conversion.ValRegion(d.Get("accepter_region_name"), "network_peering")
 		peer.SetAccepterRegionName(region)
 		peer.SetAwsAccountId(d.Get("aws_account_id").(string))
 		peer.SetRouteTableCidrBlock(d.Get("route_table_cidr_block").(string))
 		peer.SetVpcId(d.Get("vpc_id").(string))
 	}
+	peerConn, resp, getErr := conn.NetworkPeeringApi.GetPeeringConnection(ctx, projectID, peerID).Execute()
+	if getErr != nil {
+		if resp != nil && resp.StatusCode == 404 {
+			return nil
+		}
+	}
+	fmt.Print(peerConn.GetStatus())
 
 	_, _, err := conn.NetworkPeeringApi.UpdatePeeringConnection(ctx, projectID, peerID, peer).Execute()
 	if err != nil {

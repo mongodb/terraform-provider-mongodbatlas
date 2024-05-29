@@ -6,15 +6,19 @@ To run any example, clone the repository, edit any required variables and run te
 
 For example:
 
+```bash
 $ git clone https://github.com/mongodb/terraform-provider-mongodbatlas
 
 $ cd terraform-provider-mongodbatlas/examples/example1
+```
 
 Edit variables as needed
 
+```bash
 $ terraform plan
 
 $ terraform apply
+```
 
 ...
 

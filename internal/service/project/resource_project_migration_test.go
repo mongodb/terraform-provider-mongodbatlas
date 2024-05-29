@@ -1,11 +1,13 @@
 package project_test
 
 import (
+	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20231115013/admin"
+	"go.mongodb.org/atlas-sdk/v20231115014/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -138,4 +140,44 @@ func TestMigProject_withLimits(t *testing.T) {
 			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
+}
+
+// based on bug report: https://github.com/mongodb/terraform-provider-mongodbatlas/issues/2263
+func TestMigGovProject_regionUsageRestrictionsDefault(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_GOV_ORG_ID")
+		projectName = acc.RandomProjectName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acc.PreCheckGovBasic(t) },
+		CheckDestroy: acc.CheckDestroyProjectGov,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: acc.ExternalProviders("1.15.3"),
+				Config:            configGovSimple(orgID, projectName),
+				Check: resource.ComposeTestCheckFunc(
+					checkExistsGov(resourceName),
+				),
+			},
+			{
+				ExternalProviders: acc.ExternalProviders("1.16.0"),
+				Config:            configGovSimple(orgID, projectName),
+				Check: resource.ComposeTestCheckFunc(
+					checkExistsGov(resourceName),
+				),
+				ExpectError: regexp.MustCompile("Provider produced inconsistent result after apply"),
+			},
+			mig.TestStepCheckEmptyPlan(configGovSimple(orgID, projectName)),
+		},
+	})
+}
+
+func configGovSimple(orgID, projectName string) string {
+	return acc.ConfigGovProvider() + fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id 			 = %[1]q
+			name   			 = %[2]q
+		}
+	`, orgID, projectName)
 }

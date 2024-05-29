@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"go.mongodb.org/atlas-sdk/v20231115014/admin"
 )
 
 type permCtxKey string
@@ -26,12 +27,12 @@ var regionalModeTimeoutCtxKey permCtxKey = "regionalModeTimeout"
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasPrivateEndpointRegionalModeCreate,
-		ReadContext:   resourceMongoDBAtlasPrivateEndpointRegionalModeRead,
-		UpdateContext: resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate,
-		DeleteContext: resourceMongoDBAtlasPrivateEndpointRegionalModeDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasPrivateEndpointRegionalModeImportState,
+			StateContext: resourceImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -53,23 +54,23 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasPrivateEndpointRegionalModeCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	d.SetId(d.Get("project_id").(string))
-	err := resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(context.WithValue(ctx, regionalModeTimeoutCtxKey, schema.TimeoutCreate), d, meta)
+	err := resourceUpdate(context.WithValue(ctx, regionalModeTimeoutCtxKey, schema.TimeoutCreate), d, meta)
 
 	if err != nil {
 		return err
 	}
 
-	return resourceMongoDBAtlasPrivateEndpointRegionalModeRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasPrivateEndpointRegionalModeRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Id()
 
-	setting, resp, err := conn.PrivateEndpoints.GetRegionalizedPrivateEndpointSetting(context.Background(), projectID)
+	setting, resp, err := conn.PrivateEndpointServicesApi.GetRegionalizedPrivateEndpointSetting(ctx, projectID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -86,9 +87,8 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeRead(ctx context.Context, d 
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Id()
 	enabled := d.Get("enabled").(bool)
@@ -97,10 +97,12 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx context.Context, 
 	if timeoutKey == nil {
 		timeoutKey = schema.TimeoutUpdate
 	}
-
-	_, resp, err := conn.PrivateEndpoints.UpdateRegionalizedPrivateEndpointSetting(ctx, projectID, enabled)
+	settingParam := admin.ProjectSettingItem{
+		Enabled: enabled,
+	}
+	_, resp, err := conn.PrivateEndpointServicesApi.ToggleRegionalizedPrivateEndpointSetting(ctx, projectID, &settingParam).Execute()
 	if err != nil {
-		if resp != nil && resp.Response.StatusCode == 404 {
+		if resp != nil && resp.StatusCode == 404 {
 			return nil
 		}
 
@@ -112,12 +114,11 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx context.Context, 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"REPEATING", "PENDING"},
 		Target:     []string{"IDLE", "DELETED"},
-		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
+		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, conn.ClustersApi),
 		Timeout:    d.Timeout(timeoutKey.(string)),
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
 	}
-	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.Errorf(errorPrivateEndpointRegionalModeUpdate, projectID, err)
@@ -126,9 +127,9 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx context.Context, 
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateEndpointRegionalModeDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	if err := d.Set("enabled", false); err == nil {
-		resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(context.WithValue(ctx, regionalModeTimeoutCtxKey, schema.TimeoutDelete), d, meta)
+		resourceUpdate(context.WithValue(ctx, regionalModeTimeoutCtxKey, schema.TimeoutDelete), d, meta)
 	} else {
 		log.Printf(errorPrivateEndpointRegionalModeSetting, "enabled", d.Id(), err)
 	}
@@ -138,11 +139,11 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeDelete(ctx context.Context, 
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateEndpointRegionalModeImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+	conn := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Id()
 
-	setting, _, err := conn.PrivateEndpoints.GetRegionalizedPrivateEndpointSetting(ctx, projectID)
+	setting, _, err := conn.PrivateEndpointServicesApi.GetRegionalizedPrivateEndpointSetting(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import Private Endpoint Regional Mode for project %s error: %s", projectID, err)
 	}

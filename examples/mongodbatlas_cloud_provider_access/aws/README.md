@@ -58,6 +58,8 @@ This project currently supports the below deployments:
 - An AWS Role
 - Confiture Atlas to use your AWS Role
 
+Please note: the policy is intentionally restricted to a _Deny All_. You need to update it accordingly based on the permissions you will need for this role.
+
 **3\. Execute the Terraform apply.**
 
 Now execute the plan to provision the resources.

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -11,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20231115013/admin"
+	"go.mongodb.org/atlas-sdk/v20231115014/admin"
 )
 
 const (
@@ -343,8 +344,12 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	backupPolicy, _, err := connV2.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
+	backupPolicy, resp, err := connV2.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
 		return diag.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
 	}
 

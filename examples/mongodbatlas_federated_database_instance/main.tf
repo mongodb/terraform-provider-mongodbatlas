@@ -5,12 +5,20 @@ resource "aws_iam_role_policy" "test_policy" {
   {
     "Version": "2012-10-17",
     "Statement": [
-      {
-        "Effect": "Allow",
-		"Action": "*",
-		"Resource": "*"
-      }
-    ]
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:ListBucket",
+        "s3:GetObjectVersion"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "s3:*",
+      "Resource": "arn:aws:s3:::${var.test_s3_bucket}"
+    }]
   }
   EOF
 }
@@ -110,7 +118,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
     name      = var.test_s3_bucket
     prefix    = var.prefix
     provider  = "s3"
-    region    = var.aws_region
+    region    = var.mongodb_aws_region
   }
 
   storage_stores {

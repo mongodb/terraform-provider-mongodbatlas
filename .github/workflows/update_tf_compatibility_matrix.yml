@@ -9,15 +9,17 @@ on:
 jobs:
   update-tf-compatibility-matrix:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - name: Update files
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run:  make update-tf-compatibility-matrix
       - name: Verify Changed files
-        uses: tj-actions/verify-changed-files@1be855c092cb21dcd52b7f3763be67eaeb850c51
+        uses: tj-actions/verify-changed-files@4e3fbc4714b4709261bf264cc419a4a75011399b
         id: verify-changed-files
       - name: Create PR
         uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e

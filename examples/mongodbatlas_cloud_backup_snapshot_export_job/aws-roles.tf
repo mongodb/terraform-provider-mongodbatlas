@@ -4,14 +4,18 @@ resource "aws_iam_role_policy" "test_policy" {
 
   policy = <<-EOF
   {
-    "Version": "2012-10-17",
-    "Statement": [
+      "Version": "2012-10-17",
+      "Statement": [
       {
-        "Effect": "Allow",
-		"Action": "*",
-		"Resource": "*"
-      }
-    ]
+          "Effect": "Allow",
+          "Action": "s3:GetBucketLocation",
+          "Resource": "arn:aws:s3:::${aws_s3_bucket.test_bucket.bucket}"
+      },
+      {
+          "Effect": "Allow",
+          "Action": "s3:PutObject",
+          "Resource": "arn:aws:s3:::${aws_s3_bucket.test_bucket.bucket}/*"
+      }]
   }
   EOF
 }

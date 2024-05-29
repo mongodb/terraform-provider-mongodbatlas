@@ -3,6 +3,7 @@ package globalclusterconfig_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -37,22 +38,8 @@ func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic(&clusterInfo, true, false),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_custom_shard_key_hashed", "true"),
-					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_shard_key_unique", "false"),
-				),
-			},
-			{
-				Config: configBasic(&clusterInfo, false, true),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_custom_shard_key_hashed", "false"),
-					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_shard_key_unique", "true"),
-				),
+				Config:      configBasic(&clusterInfo, true, false),
+				ExpectError: regexp.MustCompile("Updating a global cluster configuration resource is not allowed"),
 			},
 		},
 	})
@@ -116,19 +103,8 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithDBConfig(&clusterInfo, customZoneUpdated),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "5"),
-					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
-					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.US"),
-					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.IE"),
-					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.DE"),
-					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.JP"),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
-				),
+				Config:      configWithDBConfig(&clusterInfo, customZoneUpdated),
+				ExpectError: regexp.MustCompile("Updating a global cluster configuration resource is not allowed"),
 			},
 			{
 				ResourceName:            resourceName,

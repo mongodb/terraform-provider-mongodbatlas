@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
-	"go.mongodb.org/atlas-sdk/v20231115013/admin"
+	"go.mongodb.org/atlas-sdk/v20231115014/admin"
 )
 
 const (
@@ -46,6 +46,16 @@ func ConnV2UsingProxy(proxyPort *int) *admin.APIClient {
 		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
 		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
 		ProxyPort:    proxyPort,
+	}
+	client, _ := cfg.NewClient(context.Background())
+	return client.(*config.MongoDBClient).AtlasV2
+}
+
+func ConnV2UsingGov() *admin.APIClient {
+	cfg := config.Config{
+		PublicKey:  os.Getenv("MONGODB_ATLAS_GOV_PUBLIC_KEY"),
+		PrivateKey: os.Getenv("MONGODB_ATLAS_GOV_PRIVATE_KEY"),
+		BaseURL:    os.Getenv("MONGODB_ATLAS_GOV_BASE_URL"),
 	}
 	client, _ := cfg.NewClient(context.Background())
 	return client.(*config.MongoDBClient).AtlasV2

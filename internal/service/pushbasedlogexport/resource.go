@@ -2,6 +2,7 @@ package pushbasedlogexport
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -84,8 +85,12 @@ func (r *pushBasedLogExportRS) Read(ctx context.Context, req resource.ReadReques
 
 	connV2 := r.Client.AtlasV2
 	projectID := tfState.ProjectID.ValueString()
-	logConfig, _, err := connV2.PushBasedLogExportApi.GetPushBasedLogConfiguration(ctx, projectID).Execute()
+	logConfig, getResp, err := connV2.PushBasedLogExportApi.GetPushBasedLogConfiguration(ctx, projectID).Execute()
 	if err != nil {
+		if getResp != nil && getResp.StatusCode == http.StatusNotFound {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error when getting push-based log export configuration", err.Error())
 		return
 	}

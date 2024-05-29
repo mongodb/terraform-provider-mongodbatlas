@@ -3,6 +3,7 @@ package searchdeployment
 import (
 	"context"
 	"errors"
+	"net/http"
 	"regexp"
 	"time"
 
@@ -90,8 +91,12 @@ func (r *searchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest,
 	connV2 := r.Client.AtlasV2
 	projectID := searchDeploymentPlan.ProjectID.ValueString()
 	clusterName := searchDeploymentPlan.ClusterName.ValueString()
-	deploymentResp, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
+	deploymentResp, getResp, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
 	if err != nil {
+		if getResp != nil && getResp.StatusCode == http.StatusNotFound {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("error getting search deployment information", err.Error())
 		return
 	}

@@ -21,11 +21,29 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	acc.SkipTestForCI(tb) // affects the org
 
 	var (
-		resourceName         = "mongodbatlas_federated_settings_org_role_mapping.test"
+		resourceName     = "mongodbatlas_federated_settings_org_role_mapping.test"
+		dataSourceName   = "data.mongodbatlas_federated_settings_org_role_mapping.test"
+		dataSourcePlural = "data.mongodbatlas_federated_settings_org_role_mappings.test"
+
+		extGroupName1        = "newtestgroup"
+		extGroupName2        = "newupdatedgroup"
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 		orgID                = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
 		groupID              = os.Getenv("MONGODB_ATLAS_FEDERATED_GROUP_ID")
+		mapAttrs             = map[string]string{
+			"federation_settings_id": federationSettingsID,
+			"org_id":                 orgID,
+			"external_group_name":    extGroupName1,
+		}
+		sliceAttrs       = []string{"role_assignments.#"}
+		sliceAttrsPlural = []string{"results.#", "federation_settings_id"}
 	)
+	checks := []resource.TestCheckFunc{checkExists(resourceName)}
+	checks = acc.AddAttrChecks(resourceName, checks, mapAttrs)
+	checks = acc.AddAttrChecks(dataSourceName, checks, mapAttrs)
+	checks = acc.AddAttrSetChecks(resourceName, checks, sliceAttrs...)
+	checks = acc.AddAttrSetChecks(dataSourceName, checks, sliceAttrs...)
+	checks = acc.AddAttrSetChecks(dataSourcePlural, checks, sliceAttrsPlural...)
 
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckFederatedSettings(tb) },
@@ -33,17 +51,15 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(federationSettingsID, orgID, groupID),
-
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
-					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "external_group_name", "newtestgroup"),
-				),
+				Config: configBasic(federationSettingsID, orgID, groupID, extGroupName1),
+				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 			{
-				Config:            configBasic(federationSettingsID, orgID, groupID),
+				Config: configBasic(federationSettingsID, orgID, groupID, extGroupName2),
+				Check:  resource.ComposeTestCheckFunc(resource.TestCheckResourceAttr(resourceName, "external_group_name", extGroupName2)),
+			},
+			{
+				Config:            configBasic(federationSettingsID, orgID, groupID, extGroupName2),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       false,
@@ -62,10 +78,11 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		_, _, err := acc.Conn().FederatedSettings.GetRoleMapping(context.Background(),
+		_, _, err := acc.ConnV2().FederatedAuthenticationApi.GetRoleMapping(context.Background(),
 			rs.Primary.Attributes["federation_settings_id"],
+			rs.Primary.Attributes["role_mapping_id"],
 			rs.Primary.Attributes["org_id"],
-			rs.Primary.Attributes["role_mapping_id"])
+		).Execute()
 		if err == nil {
 			return nil
 		}
@@ -79,7 +96,7 @@ func checkDestroy(state *terraform.State) error {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		roleMapping, _, err := acc.Conn().FederatedSettings.GetRoleMapping(context.Background(), ids["federation_settings_id"], ids["org_id"], ids["role_mapping_id"])
+		roleMapping, _, err := acc.ConnV2().FederatedAuthenticationApi.GetRoleMapping(context.Background(), ids["federation_settings_id"], ids["role_mapping_id"], ids["org_id"]).Execute()
 		if err == nil && roleMapping != nil {
 			return fmt.Errorf("role mapping (%s) still exists", ids["okta_idp_id"])
 		}
@@ -100,21 +117,35 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func configBasic(federationSettingsID, orgID, groupID string) string {
+func configBasic(federationSettingsID, orgID, groupID, externalGroupName string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_federated_settings_org_role_mapping" "test" {
-		federation_settings_id = "%[1]s"
-		org_id                 = "%[2]s"
-		external_group_name    = "newtestgroup"
+		federation_settings_id = %[1]q
+		org_id                 = %[2]q
+		external_group_name    = %[4]q
 		role_assignments {
-			org_id = "%[2]s"
+			org_id = %[2]q
 			roles  = ["ORG_MEMBER","ORG_GROUP_CREATOR"]
 		}
 		
 		  role_assignments {
-			group_id = "%[3]s"
+			group_id = %[3]q
 			roles    = ["GROUP_OWNER","GROUP_DATA_ACCESS_ADMIN","GROUP_SEARCH_INDEX_EDITOR","GROUP_DATA_ACCESS_READ_ONLY"]
 		}
 
-	  }`, federationSettingsID, orgID, groupID)
+	}
+	data "mongodbatlas_federated_settings_org_role_mapping" "test" {
+		federation_settings_id = %[1]q
+		org_id                 = %[2]q
+		role_mapping_id        = mongodbatlas_federated_settings_org_role_mapping.test.role_mapping_id
+	}
+	data "mongodbatlas_federated_settings_org_role_mappings" "test" {
+		depends_on 			   = [mongodbatlas_federated_settings_org_role_mapping.test]
+
+		federation_settings_id = %[1]q
+		org_id                 = %[2]q
+		page_num = 1
+		items_per_page = 100
+	}
+	  `, federationSettingsID, orgID, groupID, externalGroupName)
 }

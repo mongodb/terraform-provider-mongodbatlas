@@ -6,20 +6,27 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"go.mongodb.org/atlas-sdk/v20231115014/admin"
 )
 
 func CheckDestroyProject(s *terraform.State) error {
+	return checkDestroyProject(ConnV2(), s)
+}
+
+func CheckDestroyProjectGov(s *terraform.State) error {
+	return checkDestroyProject(ConnV2UsingGov(), s)
+}
+
+func checkDestroyProject(conn *admin.APIClient, s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_project" {
 			continue
 		}
-
-		projectRes, _, _ := Conn().Projects.GetOneProjectByName(context.Background(), rs.Primary.ID)
+		projectRes, _, _ := conn.ProjectsApi.GetProjectByName(context.Background(), rs.Primary.ID).Execute()
 		if projectRes != nil {
 			return fmt.Errorf("project (%s) still exists", rs.Primary.ID)
 		}
 	}
-
 	return nil
 }
 

@@ -19,6 +19,7 @@ jobs:
 
   release-config:
     runs-on: ubuntu-latest
+    permissions: {}
     outputs:
       creates_new_tag: ${{ steps.evaluate_inputs.outputs.creates_new_tag }}
       is_official_release: ${{ steps.evaluate_inputs.outputs.is_official_release }}
@@ -34,12 +35,13 @@ jobs:
 
   validate-inputs:
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: Validation of version format
         run: |
           echo "${{ inputs.version_number }}" | grep -P '^v\d+\.\d+\.\d+(-pre[A-Za-z0-9-]*)?$'
       - name: Checkout
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
         with:
           ref: ${{ inputs.use_existing_tag == 'true' && inputs.version_number || 'master' }}
       - name: Check for Upgrade Guide
@@ -83,6 +85,8 @@ jobs:
 
   create-tag:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     needs: [ release-config, validate-inputs, update-examples-reference-in-docs, update-changelog-header ]
     if: >-
       !cancelled()
@@ -90,7 +94,7 @@ jobs:
       && needs.release-config.outputs.creates_new_tag == 'true'
     steps: 
       - name: Checkout
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
         with:
           ref: 'master'
       - name: Get the latest commit SHA
@@ -118,6 +122,8 @@ jobs:
   
   release:
     runs-on: ubuntu-latest
+    permissions: 
+      contents: write
     needs: [ validate-inputs, update-examples-reference-in-docs, update-changelog-header, create-tag, run-qa-acceptance-tests ]
     # Release is skipped if there are failures in previous steps
     if: >-
@@ -125,7 +131,7 @@ jobs:
       && !contains(needs.*.result, 'failure')
     steps:
       - name: Checkout
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
         with:
           ref: ${{ inputs.version_number }}
       - name: Set up Go
@@ -139,7 +145,7 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@7ec5c2b0c6cdda6e8bbb49444bc797dd33d74dd8
+        uses: goreleaser/goreleaser-action@5742e2a039330cbb23ebf35f046f814d4c6ff811
         with:
           version: latest
           args: release --rm-dist

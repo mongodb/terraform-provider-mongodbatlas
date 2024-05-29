@@ -24,7 +24,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
-	"go.mongodb.org/atlas-sdk/v20231115013/admin"
+	"go.mongodb.org/atlas-sdk/v20231115014/admin"
 )
 
 const (
@@ -289,8 +289,12 @@ func (r *encryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest,
 
 	connV2 := r.Client.AtlasV2
 
-	encryptionResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), projectID).Execute()
+	encryptionResp, getResp, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), projectID).Execute()
 	if err != nil {
+		if getResp != nil && getResp.StatusCode == http.StatusNotFound {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("error when getting encryption at rest resource during read", fmt.Sprintf(errorReadEncryptionAtRest, err.Error()))
 		return
 	}

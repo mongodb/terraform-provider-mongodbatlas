@@ -15,8 +15,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-    - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+    - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
     - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
       with:
         go-version-file: 'go.mod'
@@ -28,7 +29,7 @@ jobs:
     permissions:
       pull-requests: write # Needed by sticky-pull-request-comment
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
         with:
           go-version-file: 'go.mod'
@@ -36,9 +37,10 @@ jobs:
         run: make test
   lint:
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: Checkout
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - name: Install Go
         uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
         with:
@@ -47,14 +49,15 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@a4f60bb28d35aeee14e6880718e0c85ff1882e64
         with:
-          version: v1.57.2
+          version: v1.59.0 # Also update GOLANGCI_VERSION variable in GNUmakefile when updating this version
       - name: actionlint
         run: make tools && actionlint -verbose -color
         shell: bash  
   website-lint:
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
         with:
           go-version-file: 'go.mod'
@@ -62,8 +65,9 @@ jobs:
         run: make tools && make website-lint
   shellcheck:
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - name: Run ShellCheck
         uses: bewuethr/shellcheck-action@d01912909579c4b1a335828b8fca197fbb8e0aa4
   call-acceptance-tests-workflow:

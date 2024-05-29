@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115013/admin"
+	"go.mongodb.org/atlas-sdk/v20231115014/admin"
 )
 
 const (
@@ -193,63 +193,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	ids := conversion.DecodeStateID(d.Id())
-	projectID := ids["project_id"]
-	clusterName := ids["cluster_name"]
-
-	if d.HasChange("managed_namespaces") {
-		old, newMN := d.GetChange("managed_namespaces")
-		oldSet := old.(*schema.Set)
-		newSet := newMN.(*schema.Set)
-
-		remove := oldSet.Difference(newSet).List()
-		add := newSet.Difference(oldSet).List()
-
-		if len(remove) > 0 {
-			if err := removeManagedNamespaces(ctx, connV2, remove, projectID, clusterName); err != nil {
-				return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
-			}
-		}
-
-		if len(add) > 0 {
-			if err := addManagedNamespaces(ctx, connV2, add, projectID, clusterName); err != nil {
-				return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
-			}
-		}
-	}
-
-	if d.HasChange("custom_zone_mappings") {
-		old, newMN := d.GetChange("custom_zone_mappings")
-		oldSet := old.(*schema.Set)
-		newSet := newMN.(*schema.Set)
-
-		remove := oldSet.Difference(newSet).List()
-		add := newSet.Difference(oldSet).List()
-
-		if len(remove) > 0 {
-			if _, _, err := connV2.GlobalClustersApi.DeleteAllCustomZoneMappings(ctx, projectID, clusterName).Execute(); err != nil {
-				return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
-			}
-			if v, ok := d.GetOk("custom_zone_mappings"); ok {
-				if _, _, err := connV2.GlobalClustersApi.CreateCustomZoneMapping(ctx, projectID, clusterName, &admin.CustomZoneMappings{
-					CustomZoneMappings: newCustomZoneMappings(v.(*schema.Set).List()),
-				}).Execute(); err != nil {
-					return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
-				}
-			}
-		}
-
-		if len(add) > 0 {
-			if _, _, err := connV2.GlobalClustersApi.CreateCustomZoneMapping(ctx, projectID, clusterName, &admin.CustomZoneMappings{
-				CustomZoneMappings: newCustomZoneMappings(add),
-			}).Execute(); err != nil {
-				return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
-			}
-		}
-	}
-
-	return resourceRead(ctx, d, meta)
+	return diag.Errorf("Updating a global cluster configuration resource is not allowed as it would " +
+		"leave the index and shard key on the related collection in an inconsistent state.\n" +
+		"Please read our official documentation for more information.")
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -330,32 +276,6 @@ func removeManagedNamespaces(ctx context.Context, connV2 *admin.APIClient, remov
 		}
 
 		_, _, err := connV2.GlobalClustersApi.DeleteManagedNamespaceWithParams(ctx, managedNamespace).Execute()
-
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func addManagedNamespaces(ctx context.Context, connV2 *admin.APIClient, add []any, projectID, clusterName string) error {
-	for _, m := range add {
-		mn := m.(map[string]any)
-
-		addManagedNamespace := &admin.ManagedNamespace{
-			Collection:     conversion.StringPtr(mn["collection"].(string)),
-			Db:             conversion.StringPtr(mn["db"].(string)),
-			CustomShardKey: conversion.StringPtr(mn["custom_shard_key"].(string)),
-		}
-
-		if isCustomShardKeyHashed, okCustomShard := mn["is_custom_shard_key_hashed"]; okCustomShard {
-			addManagedNamespace.IsCustomShardKeyHashed = conversion.Pointer[bool](isCustomShardKeyHashed.(bool))
-		}
-
-		if isShardKeyUnique, okShard := mn["is_shard_key_unique"]; okShard {
-			addManagedNamespace.IsShardKeyUnique = conversion.Pointer[bool](isShardKeyUnique.(bool))
-		}
-		_, _, err := connV2.GlobalClustersApi.CreateManagedNamespace(ctx, projectID, clusterName, addManagedNamespace).Execute()
 
 		if err != nil {
 			return err

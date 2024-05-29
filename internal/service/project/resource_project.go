@@ -9,7 +9,7 @@ import (
 	"sort"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20231115013/admin"
+	"go.mongodb.org/atlas-sdk/v20231115014/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -216,6 +216,7 @@ func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 				},
 			},
 			"region_usage_restrictions": schema.StringAttribute{
+				Computed: true,
 				Optional: true,
 			},
 			"ip_addresses": schema.SingleNestedAttribute{
@@ -311,7 +312,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		OrgId:                     projectPlan.OrgID.ValueString(),
 		Name:                      projectPlan.Name.ValueString(),
 		WithDefaultAlertsSettings: projectPlan.WithDefaultAlertsSettings.ValueBoolPointer(),
-		RegionUsageRestrictions:   projectPlan.RegionUsageRestrictions.ValueStringPointer(),
+		RegionUsageRestrictions:   conversion.StringNullIfEmpty(projectPlan.RegionUsageRestrictions.ValueString()).ValueStringPointer(),
 		Tags:                      &tags,
 	}
 
@@ -449,7 +450,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	// get project
 	projectRes, atlasResp, err := connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
 	if err != nil {
-		if resp != nil && atlasResp.StatusCode == http.StatusNotFound {
+		if atlasResp != nil && atlasResp.StatusCode == http.StatusNotFound {
 			resp.State.RemoveResource(ctx)
 			return
 		}

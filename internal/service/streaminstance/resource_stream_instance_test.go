@@ -50,10 +50,10 @@ func TestAccStreamRSStreamInstance_withStreamConfig(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.StreamInstanceWithStreamConfigConfig(projectID, instanceName, region, cloudProvider), // as of now there are no values that can be updated because only one region is supported
+				Config: acc.StreamInstanceWithStreamConfigConfig(projectID, instanceName, region, cloudProvider, "SP10"), // as of now there are no values that can be updated because only one region is supported
 				Check: resource.ComposeTestCheckFunc(
 					streamInstanceAttributeChecks(resourceName, instanceName, region, cloudProvider),
-					resource.TestCheckResourceAttr(resourceName, "stream_config.tier", "SP30"),
+					resource.TestCheckResourceAttr(resourceName, "stream_config.tier", "SP10"),
 				),
 			},
 			{

@@ -26,10 +26,8 @@ func TestAccNetworkNetworkPeering_basicAWS(t *testing.T) {
 }
 
 func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
-	acc.SkipTestForCI(t) // needs Azure configuration
-
 	var (
-		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID         = acc.ProjectIDExecution(t)
 		directoryID       = os.Getenv("AZURE_DIRECTORY_ID")
 		subscriptionID    = os.Getenv("AZURE_SUBSCRIPTION_ID")
 		resourceGroupName = os.Getenv("AZURE_RESOURCE_GROUP_NAME")
@@ -38,7 +36,7 @@ func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPeeringEnvAzure(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPeeringEnvAzure(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyNetworkPeering,
 		Steps: []resource.TestStep{
@@ -59,6 +57,48 @@ func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"container_id"},
+			},
+		},
+	})
+}
+
+func TestAccNetworkRSNetworkPeering_updateBasicAzure(t *testing.T) {
+	var (
+		projectID         = acc.ProjectIDExecution(t)
+		directoryID       = os.Getenv("AZURE_DIRECTORY_ID")
+		subscriptionID    = os.Getenv("AZURE_SUBSCRIPTION_ID")
+		resourceGroupName = os.Getenv("AZURE_RESOURCE_GROUP_NAME")
+		vNetName          = os.Getenv("AZURE_VNET_NAME")
+		updatedvNetName   = os.Getenv("AZURE_VNET_NAME_UPDATED")
+		providerName      = "AZURE"
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPeeringEnvAzure(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyNetworkPeering,
+		Steps: []resource.TestStep{
+			{
+				Config: configAzure(projectID, providerName, directoryID, subscriptionID, resourceGroupName, vNetName),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttr(resourceName, "vnet_name", vNetName),
+					resource.TestCheckResourceAttr(resourceName, "azure_directory_id", directoryID),
+				),
+			},
+			{
+				Config: configAzure(projectID, providerName, directoryID, subscriptionID, resourceGroupName, updatedvNetName),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttr(resourceName, "vnet_name", updatedvNetName),
+					resource.TestCheckResourceAttr(resourceName, "azure_directory_id", directoryID),
+				),
 			},
 		},
 	})
@@ -97,6 +137,52 @@ func TestAccNetworkRSNetworkPeering_basicGCP(t *testing.T) {
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccNetworkRSNetworkPeering_updateBasicGCP(t *testing.T) {
+	acc.SkipTestForCI(t) // needs GCP configuration
+
+	var (
+		projectID          = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		providerName       = "GCP"
+		gcpProjectID       = os.Getenv("GCP_PROJECT_ID")
+		networkName        = acc.RandomName()
+		updatedNetworkName = acc.RandomName()
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPeeringEnvGCP(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyNetworkPeering,
+		Steps: []resource.TestStep{
+			{
+				Config: configGCP(projectID, providerName, gcpProjectID, networkName),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_name"),
+
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttr(resourceName, "gcp_project_id", gcpProjectID),
+					resource.TestCheckResourceAttr(resourceName, "network_name", networkName),
+				),
+			},
+			{
+				Config: configGCP(projectID, providerName, gcpProjectID, updatedNetworkName),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_name"),
+
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttr(resourceName, "gcp_project_id", gcpProjectID),
+					resource.TestCheckResourceAttr(resourceName, "network_name", updatedNetworkName),
+				),
 			},
 		},
 	})
@@ -262,20 +348,20 @@ func configAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlo
 func configAzure(projectID, providerName, directoryID, subscriptionID, resourceGroupName, vNetName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_network_container" "test" {
-			project_id   		  = "%[1]s"
+			project_id   		  = %[1]q
 			atlas_cidr_block  = "192.168.208.0/21"
-			provider_name		  = "%[2]s"
+			provider_name		  = %[2]q
 			region    			  = "US_EAST_2"
 		}
 
 		resource "mongodbatlas_network_peering" "test" {
-			project_id   		      = "%[1]s"
+			project_id   		  = %[1]q
 			container_id          = mongodbatlas_network_container.test.container_id
-			provider_name         = "%[2]s"
-			azure_directory_id    = "%[3]s"
-			azure_subscription_id = "%[4]s"
-			resource_group_name   = "%[5]s"
-			vnet_name	            = "%[6]s"
+			provider_name         = %[2]q
+			azure_directory_id    = %[3]q
+			azure_subscription_id = %[4]q
+			resource_group_name   = %[5]q
+			vnet_name	          = %[6]q
 		}
 	`, projectID, providerName, directoryID, subscriptionID, resourceGroupName, vNetName)
 }
@@ -283,17 +369,17 @@ func configAzure(projectID, providerName, directoryID, subscriptionID, resourceG
 func configGCP(projectID, providerName, gcpProjectID, networkName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_network_container" "test" {
-			project_id       = "%[1]s"
+			project_id       = %[1]q
 			atlas_cidr_block = "192.168.192.0/18"
-			provider_name    = "%[2]s"
+			provider_name    = %[2]q
 		}
 
 		resource "mongodbatlas_network_peering" "test" {
-			project_id     = "%[1]s"
+			project_id     = %[1]q
 			container_id   = mongodbatlas_network_container.test.container_id
-			provider_name  = "%[2]s"
-			gcp_project_id = "%[3]s"
-			network_name   = "%[4]s"
+			provider_name  = %[2]q
+			gcp_project_id = %[3]q
+			network_name   = %[4]q
 		}
 	`, projectID, providerName, gcpProjectID, networkName)
 }

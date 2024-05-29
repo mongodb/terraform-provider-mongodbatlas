@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/mongodbatlas_federated_settings_org_rolemapping: Adds `role_mapping_id` computed attribute
+```

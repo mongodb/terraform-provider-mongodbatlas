@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20231115013/admin"
-	"go.mongodb.org/atlas-sdk/v20231115013/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20231115014/admin"
+	"go.mongodb.org/atlas-sdk/v20231115014/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -611,32 +611,32 @@ func TestAccProject_basic(t *testing.T) {
 	})
 }
 
-func TestAccProjectGov_withProjectOwner(t *testing.T) {
-	acc.SkipTestForCI(t) // Gov test config not set
-
+func TestAccGovProject_withProjectOwner(t *testing.T) {
 	var (
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID_GOV")
-		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID_GOV")
+		orgID          = os.Getenv("MONGODB_ATLAS_GOV_ORG_ID")
+		projectOwnerID = os.Getenv("MONGODB_ATLAS_GOV_PROJECT_OWNER_ID")
 		projectName    = acc.RandomProjectName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckGovBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyProject,
+		CheckDestroy:             acc.CheckDestroyProjectGov,
 		Steps: []resource.TestStep{
 			{
 				Config: configGovWithOwner(orgID, projectName, projectOwnerID),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkExistsGov(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+					resource.TestCheckResourceAttr(resourceName, "project_owner_id", projectOwnerID),
 					resource.TestCheckResourceAttr(resourceName, "region_usage_restrictions", "GOV_REGIONS_ONLY"),
 				),
 			},
 		},
 	})
 }
+
 func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -1076,6 +1076,14 @@ func tagChecks(tags map[string]string, notFoundKeys ...string) resource.TestChec
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
+	return checkExistsWithConn(resourceName, acc.ConnV2())
+}
+
+func checkExistsGov(resourceName string) resource.TestCheckFunc {
+	return checkExistsWithConn(resourceName, acc.ConnV2UsingGov())
+}
+
+func checkExistsWithConn(resourceName string, conn *admin.APIClient) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -1084,7 +1092,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		if _, _, err := acc.ConnV2().ProjectsApi.GetProjectByName(context.Background(), rs.Primary.Attributes["name"]).Execute(); err == nil {
+		if _, _, err := conn.ProjectsApi.GetProjectByName(context.Background(), rs.Primary.Attributes["name"]).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("project (%s) does not exist", rs.Primary.ID)
@@ -1135,7 +1143,7 @@ func configBasic(orgID, projectName, projectOwnerID string, includeDataSource bo
 }
 
 func configGovWithOwner(orgID, projectName, projectOwnerID string) string {
-	return fmt.Sprintf(`
+	return acc.ConfigGovProvider() + fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			org_id 			 = %[1]q
 			name   			 = %[2]q

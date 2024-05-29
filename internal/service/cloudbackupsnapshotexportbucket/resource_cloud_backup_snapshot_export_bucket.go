@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115013/admin"
+	"go.mongodb.org/atlas-sdk/v20231115014/admin"
 )
 
 func Resource() *schema.Resource {
@@ -147,16 +147,15 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
 	}
-	// Wait, catching any errors
-	_, err := stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		return diag.Errorf("error deleting snapshot export bucket %s %s", projectID, err)
-	}
-
-	_, _, err = conn.CloudBackupsApi.DeleteExportBucket(ctx, projectID, bucketID).Execute()
+	_, _, err := conn.CloudBackupsApi.DeleteExportBucket(ctx, projectID, bucketID).Execute()
 
 	if err != nil {
 		return diag.Errorf("error deleting snapshot export bucket (%s): %s", bucketID, err)
+	}
+
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return diag.Errorf("error deleting snapshot export bucket %s %s", projectID, err)
 	}
 
 	return nil

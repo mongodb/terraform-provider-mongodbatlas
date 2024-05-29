@@ -49,7 +49,7 @@ resource "mongodbatlas_federated_settings_org_role_mapping" "org_group_role_mapp
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
-* `id` - Unique 24-hexadecimal digit string that identifies this role mapping.
+* `role_mapping_id` - Unique 24-hexadecimal digit string that identifies this role mapping.
 
 ## Import
 

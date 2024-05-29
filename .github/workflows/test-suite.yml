@@ -75,6 +75,7 @@ jobs:
     needs: [tests, clean-after]
     if: ${{ !cancelled() && github.event_name == 'schedule' && needs.tests.result == 'failure'}}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: Send Slack message
         id: slack

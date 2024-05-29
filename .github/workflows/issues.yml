@@ -13,6 +13,8 @@
       name: Create Jira issue
       if: github.event.action == 'opened'
       runs-on: ubuntu-latest
+      permissions:
+        issues: write
       steps:
       - name: Create JIRA ticket
         id: create
@@ -72,6 +74,7 @@
       name: Reopen JIRA ticket
       if: github.event.action == 'reopened'
       runs-on: ubuntu-latest
+      permissions: {}
       steps:
         - name: Reopened JIRA ticket if exists
           run: |

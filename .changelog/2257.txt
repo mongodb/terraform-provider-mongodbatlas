@@ -1,0 +1,3 @@
+```release-note:enhancement
+data-source/mongodbatlas_cloud_backup_snapshot_restore_job: Uses `snapshot_restore_job_id` instead of encodedID in `job_id`
+```

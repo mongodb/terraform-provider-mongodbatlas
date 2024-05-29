@@ -39,7 +39,7 @@ variable "prefix" {
 variable "name" {
   type        = string
   description = "MongoDB Federated Database Instance Name"
-  default     = "mongodb_federation_database_instance_test"
+  default     = "mongodb-federation-database-instance-test"
 }
 
 variable "policy_name" {
@@ -72,5 +72,10 @@ variable "secret_key" {
 variable "aws_region" {
   default     = "ap-southeast-1"
   description = "AWS Region"
+  type        = string
+}
+
+variable "mongodb_aws_region" {
+  description = "AWS Region used for the stores in mongodbatlas_federated_database_instance (e.g. EU_WEST_1)"
   type        = string
 }
