@@ -185,10 +185,6 @@ func setExportJobFields(d *schema.ResourceData, exportJob *admin.DiskBackupExpor
 		return diag.Errorf("error setting `created_at` for snapshot export job (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("err_msg", ""); err != nil {
-		return diag.Errorf("error setting `err_msg` for snapshot export job (%s): %s", d.Id(), err)
-	}
-
 	if err := d.Set("export_bucket_id", exportJob.GetExportBucketId()); err != nil {
 		return diag.Errorf("error setting `created_at` for snapshot export job (%s): %s", d.Id(), err)
 	}
