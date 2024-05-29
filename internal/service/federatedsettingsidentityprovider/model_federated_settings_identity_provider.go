@@ -20,7 +20,7 @@ func ExpandIdentityProviderOIDCCreate(d *schema.ResourceData) *admin.FederationO
 		Description:       conversion.StringPtr(d.Get("description").(string)),
 		DisplayName:       conversion.StringPtr(d.Get("name").(string)),
 		GroupsClaim:       conversion.StringPtr(d.Get("groups_claim").(string)),
-		IdpType:           conversion.StringPtr("WORKFORCE"),
+		IdpType:           conversion.StringPtr(WORKFORCE),
 		IssuerUri:         conversion.StringPtr(d.Get("issuer_uri").(string)),
 		Protocol:          conversion.StringPtr(d.Get("protocol").(string)),
 		RequestedScopes:   expandRequestedScopes(d),

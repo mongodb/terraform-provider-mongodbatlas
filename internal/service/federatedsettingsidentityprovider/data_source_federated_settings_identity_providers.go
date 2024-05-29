@@ -18,7 +18,7 @@ const WORKFORCE = "WORKFORCE"
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead,
+		ReadContext: dataSourcePluralRead,
 		Schema: map[string]*schema.Schema{
 			"federation_settings_id": {
 				Type:     schema.TypeString,
@@ -257,18 +257,14 @@ func PluralDataSource() *schema.Resource {
 		},
 	}
 }
-func dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
+func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-
 	federationSettingsID, federationSettingsIDOk := d.GetOk("federation_settings_id")
 
 	if !federationSettingsIDOk {
 		return diag.FromErr(errors.New("federation_settings_id must be configured"))
 	}
 
-	// once the SDK is upgraded above version "go.mongodb.org/atlas-sdk/v20231115012/mockadmin" we can use pagination parameters to iterate over all results (and adjust documentation)
-	// pagination attributes are deprecated and can be removed as we move towards not exposing these pagination options to the user
 	params := &admin.ListIdentityProvidersApiParams{
 		FederationSettingsId: federationSettingsID.(string),
 		Protocol:             &[]string{OIDC, SAML},
