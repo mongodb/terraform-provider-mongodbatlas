@@ -84,6 +84,7 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 
 	var (
 		resourceName         = "mongodbatlas_federated_settings_identity_provider.test"
+		dataSourceName       = "data.mongodbatlas_federated_settings_identity_provider.test"
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 		associatedDomain     = os.Getenv("MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN")
 		audience1            = "audience"
@@ -99,7 +100,6 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 			"federation_settings_id": federationSettingsID,
 			"groups_claim":           "groups",
 			"issuer_uri":             "https://token.actions.githubusercontent.com",
-			"name":                   "OIDC-CRUD-test",
 			"protocol":               "OIDC",
 			"requested_scopes.0":     "profiles",
 			"user_claim":             "sub",
@@ -107,6 +107,7 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 	)
 	checks := []resource.TestCheckFunc{checkExistsManaged(resourceName)}
 	checks = acc.AddAttrChecks(resourceName, checks, attrMapCheck)
+	checks = acc.AddAttrChecks(dataSourceName, checks, attrMapCheck)
 
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckFederatedSettingsIdentityProvider(tb) },
@@ -122,6 +123,8 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 					checkExistsManaged(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "description", description2),
 					resource.TestCheckResourceAttr(resourceName, "audience", audience2),
+					resource.TestCheckResourceAttr(resourceName, "name", "OIDC-CRUD-test"),
+					resource.TestCheckResourceAttr(dataSourceName, "display_name", "OIDC-CRUD-test"),
 				),
 			},
 			{
@@ -229,5 +232,10 @@ func configOIDCWorkforceBasic(federationSettingsID, associatedDomain, descriptio
 		protocol 					= "OIDC"
 		requested_scopes 			= ["profiles"]
 		user_claim 					= "sub"
+	  }
+	  
+	  data "mongodbatlas_federated_settings_identity_provider" "test" {
+		federation_settings_id = mongodbatlas_federated_settings_identity_provider.test.federation_settings_id
+		identity_provider_id   = mongodbatlas_federated_settings_identity_provider.test.idp_id
 	  }`, federationSettingsID, audience, associatedDomain, description)
 }
