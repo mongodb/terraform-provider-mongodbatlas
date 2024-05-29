@@ -123,20 +123,20 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		return diag.Errorf("error setting `index_id` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("analyzer", searchIndex.Analyzer); err != nil {
-		return diag.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
-	}
+	// if err := d.Set("analyzer", searchIndex.Analyzer); err != nil {
+	// 	return diag.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
+	// }
 
-	if analyzers := searchIndex.GetAnalyzers(); len(analyzers) > 0 {
-		searchIndexMappingFields, err := marshalSearchIndex(analyzers)
-		if err != nil {
-			return diag.FromErr(err)
-		}
+	// if analyzers := searchIndex.GetAnalyzers(); len(analyzers) > 0 {
+	// 	searchIndexMappingFields, err := marshalSearchIndex(analyzers)
+	// 	if err != nil {
+	// 		return diag.FromErr(err)
+	// 	}
 
-		if err := d.Set("analyzers", searchIndexMappingFields); err != nil {
-			return diag.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
-		}
-	}
+	// 	if err := d.Set("analyzers", searchIndexMappingFields); err != nil {
+	// 		return diag.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
+	// 	}
+	// }
 
 	if err := d.Set("collection_name", searchIndex.CollectionName); err != nil {
 		return diag.Errorf("error setting `collectionName` for search index (%s): %s", d.Id(), err)
@@ -150,40 +150,40 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		return diag.Errorf("error setting `name` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("search_analyzer", searchIndex.SearchAnalyzer); err != nil {
-		return diag.Errorf("error setting `searchAnalyzer` for search index (%s): %s", d.Id(), err)
-	}
+	// if err := d.Set("search_analyzer", searchIndex.SearchAnalyzer); err != nil {
+	// 	return diag.Errorf("error setting `searchAnalyzer` for search index (%s): %s", d.Id(), err)
+	// }
 
-	if err := d.Set("synonyms", flattenSearchIndexSynonyms(searchIndex.GetSynonyms())); err != nil {
-		return diag.Errorf("error setting `synonyms` for search index (%s): %s", d.Id(), err)
-	}
+	// if err := d.Set("synonyms", flattenSearchIndexSynonyms(searchIndex.GetSynonyms())); err != nil {
+	// 	return diag.Errorf("error setting `synonyms` for search index (%s): %s", d.Id(), err)
+	// }
 
-	if searchIndex.Mappings != nil {
-		if err := d.Set("mappings_dynamic", searchIndex.Mappings.Dynamic); err != nil {
-			return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
-		}
+	// if searchIndex.Mappings != nil {
+	// 	if err := d.Set("mappings_dynamic", searchIndex.Mappings.Dynamic); err != nil {
+	// 		return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
+	// 	}
 
-		if len(searchIndex.Mappings.Fields) > 0 {
-			searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Mappings.Fields)
-			if err != nil {
-				return diag.FromErr(err)
-			}
-			if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
-				return diag.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
-			}
-		}
-	}
+	// 	if len(searchIndex.Mappings.Fields) > 0 {
+	// 		searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Mappings.Fields)
+	// 		if err != nil {
+	// 			return diag.FromErr(err)
+	// 		}
+	// 		if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
+	// 			return diag.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
+	// 		}
+	// 	}
+	// }
 
-	if fields := searchIndex.GetFields(); len(fields) > 0 {
-		fieldsMarshaled, err := marshalSearchIndex(fields)
-		if err != nil {
-			return diag.FromErr(err)
-		}
+	// if fields := searchIndex.GetFields(); len(fields) > 0 {
+	// 	fieldsMarshaled, err := marshalSearchIndex(fields)
+	// 	if err != nil {
+	// 		return diag.FromErr(err)
+	// 	}
 
-		if err := d.Set("fields", fieldsMarshaled); err != nil {
-			return diag.Errorf("error setting `fields` for for search index (%s): %s", d.Id(), err)
-		}
-	}
+	// 	if err := d.Set("fields", fieldsMarshaled); err != nil {
+	// 		return diag.Errorf("error setting `fields` for for search index (%s): %s", d.Id(), err)
+	// 	}
+	// }
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":   projectID.(string),

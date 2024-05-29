@@ -260,7 +260,7 @@ func resourceCloudProviderAccessAuthorizationStateUpgradeV0(ctx context.Context,
 }
 
 func authorizeRole(ctx context.Context, client *admin.APIClient, d *schema.ResourceData, projectID string, targetRole *admin.CloudProviderAccessRole) diag.Diagnostics {
-	req := &admin.CloudProviderAccessRole{
+	req := &admin.CloudProviderAccessAWSIAMRoleUpdateRequest{ // TODO this appears strange
 		ProviderName: targetRole.ProviderName,
 	}
 
@@ -275,9 +275,9 @@ func authorizeRole(ctx context.Context, client *admin.APIClient, d *schema.Resou
 	}
 
 	if targetRole.ProviderName == constant.AZURE {
-		req.SetAtlasAzureAppId(targetRole.GetAtlasAzureAppId())
-		req.SetTenantId(targetRole.GetTenantId())
-		req.SetServicePrincipalId(targetRole.GetServicePrincipalId())
+		// req.SetAtlasAzureAppId(targetRole.GetAtlasAzureAppId()) // TODO this appears strange
+		// req.SetTenantId(targetRole.GetTenantId())
+		// req.SetServicePrincipalId(targetRole.GetServicePrincipalId())
 		roleID = targetRole.GetId()
 	}
 

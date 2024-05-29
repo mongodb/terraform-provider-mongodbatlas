@@ -80,7 +80,7 @@ func dataSourceMongoDBAtlasSearchIndexesRead(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func flattenSearchIndexes(searchIndexes []admin.ClusterSearchIndex, projectID, clusterName string) ([]map[string]any, error) {
+func flattenSearchIndexes(searchIndexes []admin.SearchIndexResponse, projectID, clusterName string) ([]map[string]any, error) {
 	var searchIndexesMap []map[string]any
 
 	if len(searchIndexes) == 0 {
@@ -90,46 +90,46 @@ func flattenSearchIndexes(searchIndexes []admin.ClusterSearchIndex, projectID, c
 
 	for i := range searchIndexes {
 		searchIndexesMap[i] = map[string]any{
-			"project_id":      projectID,
-			"cluster_name":    clusterName,
-			"analyzer":        searchIndexes[i].Analyzer,
+			"project_id":   projectID,
+			"cluster_name": clusterName,
+			// "analyzer":        searchIndexes[i].Analyzer,
 			"collection_name": searchIndexes[i].CollectionName,
 			"database":        searchIndexes[i].Database,
 			"index_id":        searchIndexes[i].IndexID,
 			"name":            searchIndexes[i].Name,
-			"search_analyzer": searchIndexes[i].SearchAnalyzer,
-			"status":          searchIndexes[i].Status,
-			"synonyms":        flattenSearchIndexSynonyms(searchIndexes[i].GetSynonyms()),
-			"type":            searchIndexes[i].Type,
+			// "search_analyzer": searchIndexes[i].SearchAnalyzer,
+			"status": searchIndexes[i].Status,
+			// "synonyms":        flattenSearchIndexSynonyms(searchIndexes[i].GetSynonyms()),
+			"type": searchIndexes[i].Type,
 		}
 
-		if searchIndexes[i].Mappings != nil {
-			searchIndexesMap[i]["mappings_dynamic"] = searchIndexes[i].Mappings.Dynamic
+		// if searchIndexes[i].Mappings != nil {
+		// 	searchIndexesMap[i]["mappings_dynamic"] = searchIndexes[i].Mappings.Dynamic
 
-			if len(searchIndexes[i].Mappings.Fields) > 0 {
-				searchIndexMappingFields, err := marshalSearchIndex(searchIndexes[i].Mappings.Fields)
-				if err != nil {
-					return nil, err
-				}
-				searchIndexesMap[i]["mappings_fields"] = searchIndexMappingFields
-			}
-		}
+		// 	if len(searchIndexes[i].Mappings.Fields) > 0 {
+		// 		searchIndexMappingFields, err := marshalSearchIndex(searchIndexes[i].Mappings.Fields)
+		// 		if err != nil {
+		// 			return nil, err
+		// 		}
+		// 		searchIndexesMap[i]["mappings_fields"] = searchIndexMappingFields
+		// 	}
+		// }
 
-		if analyzers := searchIndexes[i].GetAnalyzers(); len(analyzers) > 0 {
-			searchIndexAnalyzers, err := marshalSearchIndex(analyzers)
-			if err != nil {
-				return nil, err
-			}
-			searchIndexesMap[i]["analyzers"] = searchIndexAnalyzers
-		}
+		// if analyzers := searchIndexes[i].GetAnalyzers(); len(analyzers) > 0 {
+		// 	searchIndexAnalyzers, err := marshalSearchIndex(analyzers)
+		// 	if err != nil {
+		// 		return nil, err
+		// 	}
+		// 	searchIndexesMap[i]["analyzers"] = searchIndexAnalyzers
+		// }
 
-		if fields := searchIndexes[i].GetFields(); len(fields) > 0 {
-			fieldsMarshaled, err := marshalSearchIndex(fields)
-			if err != nil {
-				return nil, err
-			}
-			searchIndexesMap[i]["fields"] = fieldsMarshaled
-		}
+		// if fields := searchIndexes[i].GetFields(); len(fields) > 0 {
+		// 	fieldsMarshaled, err := marshalSearchIndex(fields)
+		// 	if err != nil {
+		// 		return nil, err
+		// 	}
+		// 	searchIndexesMap[i]["fields"] = fieldsMarshaled
+		// }
 	}
 
 	return searchIndexesMap, nil

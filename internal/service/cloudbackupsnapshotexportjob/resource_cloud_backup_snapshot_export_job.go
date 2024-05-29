@@ -219,7 +219,7 @@ func setExportJobFields(d *schema.ResourceData, exportJob *admin.DiskBackupExpor
 	return nil
 }
 
-func flattenExportJobsComponents(components []admin.DiskBackupBaseRestoreMember) []map[string]any {
+func flattenExportJobsComponents(components []admin.DiskBackupExportMember) []map[string]any {
 	if len(components) == 0 {
 		return nil
 	}

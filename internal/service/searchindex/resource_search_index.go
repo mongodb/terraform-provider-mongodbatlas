@@ -197,70 +197,70 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		searchIndex.Type = conversion.StringPtr(d.Get("type").(string))
 	}
 
-	if d.HasChange("analyzer") {
-		searchIndex.Analyzer = conversion.StringPtr(d.Get("analyzer").(string))
-	}
+	// if d.HasChange("analyzer") {
+	// 	searchIndex.Analyzer = conversion.StringPtr(d.Get("analyzer").(string))
+	// }
 
-	if d.HasChange("collection_name") {
-		searchIndex.CollectionName = d.Get("collection_name").(string)
-	}
+	// if d.HasChange("collection_name") {
+	// 	searchIndex.CollectionName = d.Get("collection_name").(string)
+	// }
 
-	if d.HasChange("database") {
-		searchIndex.Database = d.Get("database").(string)
-	}
+	// if d.HasChange("database") {
+	// 	searchIndex.Database = d.Get("database").(string)
+	// }
 
-	if d.HasChange("name") {
-		searchIndex.Name = d.Get("name").(string)
-	}
+	// if d.HasChange("name") {
+	// 	searchIndex.Name = d.Get("name").(string)
+	// }
 
-	if d.HasChange("search_analyzer") {
-		searchIndex.SearchAnalyzer = conversion.StringPtr(d.Get("search_analyzer").(string))
-	}
+	// if d.HasChange("search_analyzer") {
+	// 	searchIndex.SearchAnalyzer = conversion.StringPtr(d.Get("search_analyzer").(string))
+	// }
 
 	if d.HasChange("analyzers") {
-		analyzers, err := unmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string))
-		if err != nil {
-			return err
-		}
-		searchIndex.Analyzers = &analyzers
+		// analyzers, err := unmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string))
+		// if err != nil {
+		// 	return err
+		// }
+		// searchIndex.Analyzers = &analyzers
 	}
 
 	if d.HasChange("mappings_dynamic") {
-		dynamic := d.Get("mappings_dynamic").(bool)
-		if searchIndex.Mappings == nil {
-			searchIndex.Mappings = &admin.ApiAtlasFTSMappings{}
-		}
-		searchIndex.Mappings.Dynamic = &dynamic
+		// dynamic := d.Get("mappings_dynamic").(bool)
+		// if searchIndex.Mappings == nil {
+		// 	searchIndex.Mappings = &admin.ApiAtlasFTSMappings{}
+		// }
+		// searchIndex.Mappings.Dynamic = &dynamic
 	}
 
 	if d.HasChange("mappings_fields") {
-		mappingsFields, err := unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
-		if err != nil {
-			return err
-		}
-		if searchIndex.Mappings == nil {
-			searchIndex.Mappings = &admin.ApiAtlasFTSMappings{}
-		}
-		searchIndex.Mappings.Fields = mappingsFields
+		// mappingsFields, err := unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
+		// if err != nil {
+		// 	return err
+		// }
+		// if searchIndex.Mappings == nil {
+		// 	searchIndex.Mappings = &admin.ApiAtlasFTSMappings{}
+		// }
+		// searchIndex.Mappings.Fields = mappingsFields
 	}
 
 	if d.HasChange("fields") {
-		fields, err := unmarshalSearchIndexFields(d.Get("fields").(string))
-		if err != nil {
-			return err
-		}
-		searchIndex.Fields = &fields
+		// fields, err := unmarshalSearchIndexFields(d.Get("fields").(string))
+		// if err != nil {
+		// 	return err
+		// }
+		// searchIndex.Fields = &fields
 	}
 
 	if d.HasChange("synonyms") {
-		synonyms := expandSearchIndexSynonyms(d)
-		searchIndex.Synonyms = &synonyms
+		// synonyms := expandSearchIndexSynonyms(d)
+		// searchIndex.Synonyms = &synonyms
 	}
 
 	searchIndex.IndexID = conversion.StringPtr("")
-	if _, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchIndex(ctx, projectID, clusterName, indexID, searchIndex).Execute(); err != nil {
-		return diag.Errorf("error updating search index (%s): %s", searchIndex.Name, err)
-	}
+	// if _, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchIndex(ctx, projectID, clusterName, indexID, searchIndex).Execute(); err != nil {
+	// 	return diag.Errorf("error updating search index (%s): %s", searchIndex.Name, err)
+	// }
 
 	if d.Get("wait_for_index_build_completion").(bool) {
 		timeout := d.Timeout(schema.TimeoutUpdate)
@@ -313,19 +313,19 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf("error setting `type` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("analyzer", searchIndex.Analyzer); err != nil {
-		return diag.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
-	}
+	// if err := d.Set("analyzer", searchIndex.Analyzer); err != nil {
+	// 	return diag.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
+	// }
 
-	if analyzers := searchIndex.GetAnalyzers(); len(analyzers) > 0 {
-		searchIndexMappingFields, err := marshalSearchIndex(analyzers)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		if err := d.Set("analyzers", searchIndexMappingFields); err != nil {
-			return diag.Errorf("error setting `analyzers` for search index (%s): %s", d.Id(), err)
-		}
-	}
+	// if analyzers := searchIndex.GetAnalyzers(); len(analyzers) > 0 {
+	// 	searchIndexMappingFields, err := marshalSearchIndex(analyzers)
+	// 	if err != nil {
+	// 		return diag.FromErr(err)
+	// 	}
+	// 	if err := d.Set("analyzers", searchIndexMappingFields); err != nil {
+	// 		return diag.Errorf("error setting `analyzers` for search index (%s): %s", d.Id(), err)
+	// 	}
+	// }
 
 	if err := d.Set("collection_name", searchIndex.CollectionName); err != nil {
 		return diag.Errorf("error setting `collectionName` for search index (%s): %s", d.Id(), err)
@@ -339,39 +339,39 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf("error setting `name` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("search_analyzer", searchIndex.SearchAnalyzer); err != nil {
-		return diag.Errorf("error setting `searchAnalyzer` for search index (%s): %s", d.Id(), err)
-	}
+	// if err := d.Set("search_analyzer", searchIndex.SearchAnalyzer); err != nil {
+	// 	return diag.Errorf("error setting `searchAnalyzer` for search index (%s): %s", d.Id(), err)
+	// }
 
-	if err := d.Set("synonyms", flattenSearchIndexSynonyms(searchIndex.GetSynonyms())); err != nil {
-		return diag.Errorf("error setting `synonyms` for search index (%s): %s", d.Id(), err)
-	}
+	// if err := d.Set("synonyms", flattenSearchIndexSynonyms(searchIndex.GetSynonyms())); err != nil {
+	// 	return diag.Errorf("error setting `synonyms` for search index (%s): %s", d.Id(), err)
+	// }
 
-	if searchIndex.Mappings != nil {
-		if err := d.Set("mappings_dynamic", searchIndex.Mappings.Dynamic); err != nil {
-			return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
-		}
+	// if searchIndex.Mappings != nil {
+	// 	if err := d.Set("mappings_dynamic", searchIndex.Mappings.Dynamic); err != nil {
+	// 		return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
+	// 	}
 
-		if len(searchIndex.Mappings.Fields) > 0 {
-			searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Mappings.Fields)
-			if err != nil {
-				return diag.FromErr(err)
-			}
-			if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
-				return diag.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
-			}
-		}
-	}
+	// 	if len(searchIndex.Mappings.Fields) > 0 {
+	// 		searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Mappings.Fields)
+	// 		if err != nil {
+	// 			return diag.FromErr(err)
+	// 		}
+	// 		if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
+	// 			return diag.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
+	// 		}
+	// 	}
+	// }
 
-	if fields := searchIndex.GetFields(); len(fields) > 0 {
-		fieldsMarshaled, err := marshalSearchIndex(fields)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		if err := d.Set("fields", fieldsMarshaled); err != nil {
-			return diag.Errorf("error setting `fields` for for search index (%s): %s", d.Id(), err)
-		}
-	}
+	// if fields := searchIndex.GetFields(); len(fields) > 0 {
+	// 	fieldsMarshaled, err := marshalSearchIndex(fields)
+	// 	if err != nil {
+	// 		return diag.FromErr(err)
+	// 	}
+	// 	if err := d.Set("fields", fieldsMarshaled); err != nil {
+	// 		return diag.Errorf("error setting `fields` for for search index (%s): %s", d.Id(), err)
+	// 	}
+	// }
 
 	return nil
 }
@@ -394,7 +394,7 @@ func marshalSearchIndex(fields any) (string, error) {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	// connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 	indexType := d.Get("type").(string)
@@ -432,39 +432,39 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		searchIndexRequest.Synonyms = &synonyms
 	}
 
-	dbSearchIndexRes, _, err := connV2.AtlasSearchApi.CreateAtlasSearchIndex(ctx, projectID, clusterName, searchIndexRequest).Execute()
-	if err != nil {
-		return diag.Errorf("error creating index: %s", err)
-	}
-	indexID := conversion.SafeString(dbSearchIndexRes.IndexID)
-	if d.Get("wait_for_index_build_completion").(bool) {
-		timeout := d.Timeout(schema.TimeoutCreate)
-		stateConf := &retry.StateChangeConf{
-			Pending:    []string{"IN_PROGRESS", "MIGRATING"},
-			Target:     []string{"STEADY"},
-			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, indexID, connV2),
-			Timeout:    timeout,
-			MinTimeout: 1 * time.Minute,
-			Delay:      1 * time.Minute,
-		}
+	// dbSearchIndexRes, _, err := connV2.AtlasSearchApi.CreateAtlasSearchIndex(ctx, projectID, clusterName, searchIndexRequest).Execute()
+	// if err != nil {
+	// 	return diag.Errorf("error creating index: %s", err)
+	// }
+	// indexID := conversion.SafeString(dbSearchIndexRes.IndexID)
+	// if d.Get("wait_for_index_build_completion").(bool) {
+	// 	timeout := d.Timeout(schema.TimeoutCreate)
+	// 	stateConf := &retry.StateChangeConf{
+	// 		Pending:    []string{"IN_PROGRESS", "MIGRATING"},
+	// 		Target:     []string{"STEADY"},
+	// 		Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, indexID, connV2),
+	// 		Timeout:    timeout,
+	// 		MinTimeout: 1 * time.Minute,
+	// 		Delay:      1 * time.Minute,
+	// 	}
 
-		// Wait, catching any errors
-		_, err = stateConf.WaitForStateContext(ctx)
-		if err != nil {
-			d.SetId(conversion.EncodeStateID(map[string]string{
-				"project_id":   projectID,
-				"cluster_name": clusterName,
-				"index_id":     indexID,
-			}))
-			resourceDelete(ctx, d, meta)
-			d.SetId("")
-			return diag.FromErr(fmt.Errorf("error creating index in cluster (%s): %s", clusterName, err))
-		}
-	}
+	// 	// Wait, catching any errors
+	// 	_, err = stateConf.WaitForStateContext(ctx)
+	// 	if err != nil {
+	// 		d.SetId(conversion.EncodeStateID(map[string]string{
+	// 			"project_id":   projectID,
+	// 			"cluster_name": clusterName,
+	// 			"index_id":     indexID,
+	// 		}))
+	// 		resourceDelete(ctx, d, meta)
+	// 		d.SetId("")
+	// 		return diag.FromErr(fmt.Errorf("error creating index in cluster (%s): %s", clusterName, err))
+	// 	}
+	// }
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": clusterName,
-		"index_id":     indexID,
+		// "index_id":     indexID,
 	}))
 
 	return resourceRead(ctx, d, meta)
