@@ -13,7 +13,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"federation_settings_id": {
 				Type:     schema.TypeString,
@@ -228,10 +228,18 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"description": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"authorization_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
-func dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
@@ -302,6 +310,14 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Con
 		if err := d.Set("user_claim", federatedSettingsIdentityProvider.UserClaim); err != nil {
 			return diag.FromErr(fmt.Errorf("error setting `user_claim` for federatedSettings IdentityProviders: %s", err))
 		}
+
+		if err := d.Set("authorization_type", federatedSettingsIdentityProvider.AuthorizationType); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting `authorization_type` for federatedSettings IdentityProviders: %s", err))
+		}
+	}
+
+	if err := d.Set("description", federatedSettingsIdentityProvider.Description); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `description` for federatedSettings IdentityProviders: %s", err))
 	}
 
 	if err := d.Set("associated_domains", federatedSettingsIdentityProvider.AssociatedDomains); err != nil {

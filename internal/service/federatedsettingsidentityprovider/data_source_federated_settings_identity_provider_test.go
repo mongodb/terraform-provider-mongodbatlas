@@ -36,7 +36,7 @@ func TestAccFederatedSettingsIdentityProviderDS_samlBasic(t *testing.T) {
 	})
 }
 
-func TestAccFederatedSettingsIdentityProviderDS_oidcBasic(t *testing.T) {
+func TestAccFederatedSettingsIdentityProviderDS_oidcWorkforceBasic(t *testing.T) {
 	var (
 		resourceName        = "data.mongodbatlas_federated_settings_identity_provider.test"
 		federatedSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
@@ -48,7 +48,7 @@ func TestAccFederatedSettingsIdentityProviderDS_oidcBasic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasicDS(federatedSettingsID, idpID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "associated_orgs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "audience"),
 					resource.TestCheckResourceAttrSet(resourceName, "client_id"),
@@ -59,6 +59,8 @@ func TestAccFederatedSettingsIdentityProviderDS_oidcBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "okta_idp_id", ""),
 					resource.TestCheckResourceAttr(resourceName, "idp_id", idpID),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federatedSettingsID),
+					resource.TestCheckResourceAttr(resourceName, "description", "test"),
+					resource.TestCheckResourceAttr(resourceName, "authorization_type", "GROUP"),
 				),
 			},
 		},
