@@ -115,7 +115,8 @@ func Resource() *schema.Resource {
 	}
 }
 func isSAML(d *schema.ResourceData) bool {
-	return d.Get("protocol").(string) == SAML
+	protocol := d.Get("protocol").(string)
+	return protocol == SAML || protocol == "" // default is SAML
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
