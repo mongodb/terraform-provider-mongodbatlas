@@ -65,7 +65,7 @@ body:
     attributes:
       label: Terraform configuration to reproduce the issue
       description: Please copy and paste your Terraform configuration. This will be automatically formatted into code, so no need for backticks.
-      render: shell
+      render: hcl
     validations:
       required: true
 
@@ -85,8 +85,8 @@ body:
     id: logs
     attributes:
       label: Logs
-      description: Additional logs that can help us investigate the issue
-      render: hcl
+      description: Additional logs that can help us investigate the issue. This will be automatically formatted into code, so no need for backticks.
+      render: txt
     validations:
       required: false
 
