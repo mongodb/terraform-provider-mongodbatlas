@@ -88,7 +88,23 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 		audience2            = "audience-updated"
 		description1         = "tf-acc-test"
 		description2         = "tf-acc-test-updated"
+		attrMapCheck         = map[string]string{
+			"associated_domains.0":   associatedDomain,
+			"audience":               audience1,
+			"authorization_type":     "GROUP",
+			"client_id":              "clientId",
+			"description":            description1,
+			"federation_settings_id": federationSettingsID,
+			"groups_claim":           "groups",
+			"issuer_uri":             "https://token.actions.githubusercontent.com",
+			"name":                   "OIDC-CRUD-test",
+			"protocol":               "OIDC",
+			"requested_scopes.0":     "profiles",
+			"user_claim":             "sub",
+		}
 	)
+	checks := []resource.TestCheckFunc{checkExistsManaged(resourceName)}
+	checks = acc.AddAttrChecks(resourceName, checks, attrMapCheck)
 
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckFederatedSettingsIdentityProvider(tb) },
@@ -96,20 +112,12 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configOIDCWorkforceBasic(federationSettingsID, associatedDomain, description1, audience1),
-				Check: resource.ComposeTestCheckFunc(
-					checkExistsManaged(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
-					resource.TestCheckResourceAttr(resourceName, "name", "OIDC-CRUD-test"),
-					resource.TestCheckResourceAttr(resourceName, "description", description1),
-					resource.TestCheckResourceAttr(resourceName, "audience", audience1),
-				),
+				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 			{
 				Config: configOIDCWorkforceBasic(federationSettingsID, associatedDomain, description2, audience2),
 				Check: resource.ComposeTestCheckFunc(
 					checkExistsManaged(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
-					resource.TestCheckResourceAttr(resourceName, "name", "OIDC-CRUD-test"),
 					resource.TestCheckResourceAttr(resourceName, "description", description2),
 					resource.TestCheckResourceAttr(resourceName, "audience", audience2),
 				),
@@ -208,16 +216,16 @@ func configOIDCWorkforceBasic(federationSettingsID, associatedDomain, descriptio
 	return fmt.Sprintf(`
 	resource "mongodbatlas_federated_settings_identity_provider" "test" {
         federation_settings_id 		= %[1]q
-        description 				= %[4]q
-        audience 					= %[2]q
 		associated_domains 			= [%[3]q]
+		audience 					= %[2]q
 		authorization_type			= "GROUP"
 		client_id 					= "clientId"
+		description 				= %[4]q
 		groups_claim				= "groups"
 		issuer_uri 					= "https://token.actions.githubusercontent.com"
+		name 						= "OIDC-CRUD-test"
 		protocol 					= "OIDC"
 		requested_scopes 			= ["profiles"]
 		user_claim 					= "sub"
-        name 						= "OIDC-CRUD-test"
 	  }`, federationSettingsID, audience, associatedDomain, description)
 }
