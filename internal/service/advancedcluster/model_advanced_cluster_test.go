@@ -10,8 +10,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20231115013/admin"
-	"go.mongodb.org/atlas-sdk/v20231115013/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20231115014/admin"
+	"go.mongodb.org/atlas-sdk/v20231115014/mockadmin"
 )
 
 var (

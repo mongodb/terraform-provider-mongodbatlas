@@ -16,7 +16,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkcontainer"
-	"go.mongodb.org/atlas-sdk/v20231115013/admin"
+	"go.mongodb.org/atlas-sdk/v20231115014/admin"
 )
 
 const (
@@ -135,11 +135,13 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"network_name": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"atlas_gcp_project_id": {
 				Type:     schema.TypeString,
@@ -410,13 +412,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		ContainerId:  conversion.GetEncodedID(d.Get("container_id").(string), "container_id"),
 	}
 
-	// Updating any of the attributes for Azure Network Peering forces a recreation of the network peering.
-	// Need to check if GCP and AWS have the same behavior
-	switch peer.GetProviderName() {
-	case "GCP":
-		peer.SetGcpProjectId(d.Get("gcp_project_id").(string))
-		peer.SetNetworkName(d.Get("network_name").(string))
-	default: // AWS by default
+	if peer.GetProviderName() == "AWS" {
 		region, _ := conversion.ValRegion(d.Get("accepter_region_name"), "network_peering")
 		peer.SetAccepterRegionName(region)
 		peer.SetAwsAccountId(d.Get("aws_account_id").(string))
