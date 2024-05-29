@@ -1001,6 +1001,7 @@ func TestAccProject_withTags(t *testing.T) {
 		tagsOnlyIgnored = map[string]string{
 			"Name": nameUpdated,
 		}
+		longTagValue = strings.Repeat("a", 257)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1016,6 +1017,14 @@ func TestAccProject_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceNameByID, "tags.#", "0"),
 				),
+			},
+			{
+				Config:      configWithTags(orgID, projectName, map[string]string{"invalid-tag-value": "test/test"}),
+				ExpectError: regexp.MustCompile(`contains invalid characters\W+Allowable characters include`),
+			},
+			{
+				Config:      configWithTags(orgID, projectName, map[string]string{"long-tag": longTagValue}),
+				ExpectError: regexp.MustCompile(`exceeded the maximum allowed length of \d+ characters`),
 			},
 			{
 				Config: configWithTags(orgID, projectName, tagsEmpty),
