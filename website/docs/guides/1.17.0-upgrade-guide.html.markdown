@@ -16,7 +16,12 @@ The Terraform MongoDB Atlas Provider version 1.17.0 has a number of new and exci
 
 **Breaking Changes:**
 
-- Attribute `audienceClaim` used in OIDC IdPs has been replaced with `audience` attribute in `mongodbatlas_federated_settings_identity_provider` [resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/federated_settings_identity_provider) and [`mongodbatlas_federated_settings_identity_provider`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/federated_settings_identity_provider) and [`mongodbatlas_federated_settings_identity_providers`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/federated_settings_identity_providers) data sources. This change reflects the most recent changes in the Atlas API [Federated Authentication](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Federated-Authentication/operation/updateIdentityProvider)
+- Attribute `audienceClaim` used in OIDC IdPs has been replaced with `audience` attribute in `mongodbatlas_federated_settings_identity_provider` [resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/federated_settings_identity_provider) and [`mongodbatlas_federated_settings_identity_provider`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/federated_settings_identity_provider) and [`mongodbatlas_federated_settings_identity_providers`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/federated_settings_identity_providers) data sources. This change reflects the most recent changes in the Atlas API [Federated Authentication](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Federated-Authentication/operation/updateIdentityProvider).
+    - If you have imported a OIDC Workforce IdP in previous versions of this provider, you should:
+        1. Re-import all [`mongodbatlas_federated_settings_identity_provider`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/federated_settings_identity_provider) resources: 
+			`terraform import mongodbatlas_federated_settings_identity_provider.identity_provider  <federation_settings_id>-<idp_id>`
+        2. Run `terraform plan`
+        3. Run `terraform apply`
 
 ### Helpful Links
 
