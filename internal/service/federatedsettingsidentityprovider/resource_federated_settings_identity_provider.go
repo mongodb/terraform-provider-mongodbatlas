@@ -110,6 +110,12 @@ func Resource() *schema.Resource {
 			"authorization_type": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true, // unable to update from USER->GROUPS
+			},
+			"idp_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true, // if unset, server will return WORKFORCE
 			},
 		},
 	}
@@ -230,6 +236,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	if err := d.Set("authorization_type", federatedSettingsIdentityProvider.AuthorizationType); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting authorization_type (%s): %s", d.Id(), err))
 	}
+	if err := d.Set("idp_type", federatedSettingsIdentityProvider.IdpType); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting idp_type (%s): %s", d.Id(), err))
+	}
 
 	d.SetId(encodeStateID(federationSettingsID, federatedSettingsIdentityProvider.Id))
 
@@ -311,6 +320,9 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if d.HasChange("authorization_type") {
 		updateRequest.AuthorizationType = conversion.StringPtr(d.Get("authorization_type").(string))
+	}
+	if d.HasChange("idp_type") {
+		updateRequest.IdpType = conversion.StringPtr(d.Get("idp_type").(string))
 	}
 
 	if d.HasChange("groups_claim") {

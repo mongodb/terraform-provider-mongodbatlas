@@ -12,6 +12,7 @@ import (
 )
 
 const WORKFORCE = "WORKFORCE"
+const WORKLOAD = "WORKLOAD"
 
 func ExpandIdentityProviderOIDCCreate(d *schema.ResourceData) *admin.FederationOidcIdentityProviderUpdate {
 	return &admin.FederationOidcIdentityProviderUpdate{
@@ -22,7 +23,7 @@ func ExpandIdentityProviderOIDCCreate(d *schema.ResourceData) *admin.FederationO
 		Description:       conversion.StringPtr(d.Get("description").(string)),
 		DisplayName:       conversion.StringPtr(d.Get("name").(string)),
 		GroupsClaim:       conversion.StringPtr(d.Get("groups_claim").(string)),
-		IdpType:           conversion.StringPtr(WORKFORCE),
+		IdpType:           conversion.StringPtr(d.Get("idp_type").(string)),
 		IssuerUri:         conversion.StringPtr(d.Get("issuer_uri").(string)),
 		Protocol:          conversion.StringPtr(d.Get("protocol").(string)),
 		RequestedScopes:   expandRequestedScopes(d),

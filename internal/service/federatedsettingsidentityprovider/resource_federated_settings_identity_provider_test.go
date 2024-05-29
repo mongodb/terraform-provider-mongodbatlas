@@ -13,6 +13,13 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+var (
+	authTypeGroup  = "GROUP"
+	authTypeUser   = "USER"
+	resourceName   = "mongodbatlas_federated_settings_identity_provider.test"
+	dataSourceName = "data.mongodbatlas_federated_settings_identity_provider.test"
+)
+
 func TestAccFederatedSettingsIdentityProvider_createError(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -31,15 +38,18 @@ func TestAccFederatedSettingsIdentityProviderRS_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicSAMLTestCase(t))
 }
 
-func TestAccFederatedSettingsIdentityProviderRS_OIDCWorkforce(t *testing.T) {
+func TestAccFederatedSettingsIdentityProvider_OIDCWorkforce(t *testing.T) {
 	resource.ParallelTest(t, *basicOIDCWorkforceTestCase(t))
+}
+
+func TestAccFederatedSettingsIdentityProvider_OIDCWorkload(t *testing.T) {
+	resource.ParallelTest(t, *basicOIDCWorkloadTestCase(t))
 }
 
 func basicSAMLTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 
 	var (
-		resourceName         = "mongodbatlas_federated_settings_identity_provider.test"
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 		idpID                = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
 		ssoURL               = os.Getenv("MONGODB_ATLAS_FEDERATED_SSO_URL")
@@ -83,8 +93,6 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 
 	var (
-		resourceName         = "mongodbatlas_federated_settings_identity_provider.test"
-		dataSourceName       = "data.mongodbatlas_federated_settings_identity_provider.test"
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 		associatedDomain     = os.Getenv("MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN")
 		audience1            = "audience"
@@ -129,6 +137,66 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 			},
 			{
 				Config:            configOIDCWorkforceBasic(federationSettingsID, associatedDomain, description2, audience2),
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFuncManaged(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	}
+}
+
+func basicOIDCWorkloadTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+
+	var (
+		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
+		audience1            = "audience"
+		audience2            = "audience-updated"
+		description1         = "tf-acc-test"
+		description2         = "tf-acc-test-updated"
+		attrMapCheckGroup    = map[string]string{
+			"audience":               audience1,
+			"authorization_type":     authTypeGroup,
+			"description":            description1,
+			"federation_settings_id": federationSettingsID,
+			"groups_claim":           "groups",
+			"issuer_uri":             "https://token.actions.githubusercontent.com",
+			"idp_type":               federatedsettingsidentityprovider.WORKLOAD,
+			"protocol":               "OIDC",
+		}
+		attrMapCheckUser = map[string]string{
+			"audience":               audience2,
+			"authorization_type":     authTypeUser,
+			"description":            description2,
+			"federation_settings_id": federationSettingsID,
+			"issuer_uri":             "https://token.actions.githubusercontent.com",
+			"idp_type":               federatedsettingsidentityprovider.WORKLOAD,
+			"protocol":               "OIDC",
+			"user_claim":             "sub",
+		}
+	)
+	checks := []resource.TestCheckFunc{checkExistsManaged(resourceName)}
+	checks = acc.AddAttrChecks(resourceName, checks, attrMapCheckGroup)
+	checks = acc.AddAttrChecks(dataSourceName, checks, attrMapCheckGroup)
+	checks2 := []resource.TestCheckFunc{checkExistsManaged(resourceName)}
+	checks2 = acc.AddAttrChecks(resourceName, checks2, attrMapCheckUser)
+	checks2 = acc.AddAttrChecks(dataSourceName, checks2, attrMapCheckUser)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckFederatedSettingsIdentityProvider(tb) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configOIDCWorkloadBasic(federationSettingsID, description1, audience1, authTypeGroup),
+				Check:  resource.ComposeTestCheckFunc(checks...),
+			},
+			{
+				Config: configOIDCWorkloadBasic(federationSettingsID, description2, audience2, authTypeUser),
+				Check:  resource.ComposeTestCheckFunc(checks2...),
+			},
+			{
+				Config:            configOIDCWorkloadBasic(federationSettingsID, description2, audience2, authTypeUser),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFuncManaged(resourceName),
 				ImportState:       true,
@@ -238,4 +306,30 @@ func configOIDCWorkforceBasic(federationSettingsID, associatedDomain, descriptio
 		federation_settings_id = mongodbatlas_federated_settings_identity_provider.test.federation_settings_id
 		identity_provider_id   = mongodbatlas_federated_settings_identity_provider.test.idp_id
 	  }`, federationSettingsID, audience, associatedDomain, description)
+}
+
+func configOIDCWorkloadBasic(federationSettingsID, description, audience, authorizationType string) string {
+	groupsClaimRaw := `"groups"`
+	if authorizationType == authTypeUser {
+		groupsClaimRaw = "null"
+	}
+	return fmt.Sprintf(`
+	resource "mongodbatlas_federated_settings_identity_provider" "test" {
+        federation_settings_id 		= %[1]q
+		audience 					= %[2]q
+		authorization_type			= %[5]q
+		description 				= %[3]q
+		issuer_uri 					= "https://token.actions.githubusercontent.com"
+		idp_type 					= %[4]q
+		name 						= "OIDC-workload-CRUD"
+		protocol 					= "OIDC"
+		groups_claim				= %[6]s
+		user_claim 					= "sub"
+	  }
+	  
+	  data "mongodbatlas_federated_settings_identity_provider" "test" {
+		federation_settings_id = mongodbatlas_federated_settings_identity_provider.test.federation_settings_id
+		identity_provider_id   = mongodbatlas_federated_settings_identity_provider.test.idp_id
+	  }
+	  `, federationSettingsID, audience, description, federatedsettingsidentityprovider.WORKLOAD, authorizationType, groupsClaimRaw)
 }

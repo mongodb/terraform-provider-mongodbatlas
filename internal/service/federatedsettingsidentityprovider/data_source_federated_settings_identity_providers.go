@@ -266,7 +266,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	params := &admin.ListIdentityProvidersApiParams{
 		FederationSettingsId: federationSettingsID.(string),
 		Protocol:             &[]string{OIDC, SAML},
-		IdpType:              &[]string{WORKFORCE},
+		IdpType:              &[]string{WORKFORCE, WORKLOAD},
 	}
 
 	providers, _, err := connV2.FederatedAuthenticationApi.ListIdentityProvidersWithParams(ctx, params).Execute()
