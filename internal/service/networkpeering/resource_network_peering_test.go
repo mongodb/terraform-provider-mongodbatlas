@@ -125,11 +125,14 @@ func TestAccNetworkRSNetworkPeering_basicGCP(t *testing.T) {
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "network_name"),
 
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "gcp_project_id", gcpProjectID),
 					resource.TestCheckResourceAttr(resourceName, "network_name", networkName),
+
+					// computed values that are obtain from associated container, checks for existing prefix convention to ensure they are gcp related values
+					resource.TestCheckResourceAttrWith(resourceName, "atlas_gcp_project_id", acc.MatchesExpression("p-.*")),
+					resource.TestCheckResourceAttrWith(resourceName, "atlas_vpc_name", acc.MatchesExpression("nt-.*")),
 				),
 			},
 			{
