@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -81,6 +83,21 @@ func AddAttrChecks(targetName string, checks []resource.TestCheckFunc, mapChecks
 	copy(newChecks, checks)
 	for key, value := range mapChecks {
 		newChecks = append(newChecks, resource.TestCheckResourceAttr(targetName, key, value))
+	}
+	return newChecks
+}
+
+func AddAttrChecksPrefix(targetName string, checks []resource.TestCheckFunc, mapChecks map[string]string, prefix string, skipNames ...string) []resource.TestCheckFunc {
+	// avoids accidentally modifying existing slice
+	newChecks := make([]resource.TestCheckFunc, len(checks), len(checks)+len(mapChecks))
+	copy(newChecks, checks)
+	prefix, _ = strings.CutSuffix(prefix, ".")
+	for key, value := range mapChecks {
+		if slices.Contains(skipNames, key) {
+			continue
+		}
+		keyWithPrefix := fmt.Sprintf("%s.%s", prefix, key)
+		newChecks = append(newChecks, resource.TestCheckResourceAttr(targetName, keyWithPrefix, value))
 	}
 	return newChecks
 }

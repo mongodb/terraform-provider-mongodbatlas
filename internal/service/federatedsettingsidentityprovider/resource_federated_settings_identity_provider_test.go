@@ -14,10 +14,11 @@ import (
 )
 
 var (
-	authTypeGroup  = "GROUP"
-	authTypeUser   = "USER"
-	resourceName   = "mongodbatlas_federated_settings_identity_provider.test"
-	dataSourceName = "data.mongodbatlas_federated_settings_identity_provider.test"
+	authTypeGroup        = "GROUP"
+	authTypeUser         = "USER"
+	resourceName         = "mongodbatlas_federated_settings_identity_provider.test"
+	dataSourceName       = "data.mongodbatlas_federated_settings_identity_provider.test"
+	dataSourcePluralName = "data.mongodbatlas_federated_settings_identity_providers.test"
 )
 
 func TestAccFederatedSettingsIdentityProvider_createError(t *testing.T) {
@@ -176,12 +177,22 @@ func basicOIDCWorkloadTestCase(tb testing.TB) *resource.TestCase {
 			"user_claim":             "sub",
 		}
 	)
-	checks := []resource.TestCheckFunc{checkExistsManaged(resourceName)}
-	checks = acc.AddAttrChecks(resourceName, checks, attrMapCheckGroup)
+	nameChecks := []resource.TestCheckFunc{
+		checkExistsManaged(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "name", "OIDC-workload-CRUD"),
+		resource.TestCheckResourceAttr(dataSourceName, "display_name", "OIDC-workload-CRUD"),
+		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.display_name", "OIDC-workload-CRUD"),
+		resource.TestCheckResourceAttr(dataSourcePluralName, "results.#", "1"),
+	}
+	checks := acc.AddAttrChecks(resourceName, nameChecks, attrMapCheckGroup)
 	checks = acc.AddAttrChecks(dataSourceName, checks, attrMapCheckGroup)
-	checks2 := []resource.TestCheckFunc{checkExistsManaged(resourceName)}
-	checks2 = acc.AddAttrChecks(resourceName, checks2, attrMapCheckUser)
+	checks = acc.AddAttrChecksPrefix(dataSourcePluralName, checks, attrMapCheckGroup, "results.0", "federation_settings_id")
+
+	checks2 := acc.AddAttrChecks(resourceName, nameChecks, attrMapCheckUser)
 	checks2 = acc.AddAttrChecks(dataSourceName, checks2, attrMapCheckUser)
+
+	// don't know how to wait for after the update to read the plural data source again
+	// checks2 = acc.AddAttrChecksPrefix(dataSourcePluralName, checks, attrMapCheckUser, "results.0", "federation_settings_id")
 
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckFederatedSettingsIdentityProvider(tb) },
@@ -189,11 +200,11 @@ func basicOIDCWorkloadTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configOIDCWorkloadBasic(federationSettingsID, description1, audience1, authTypeGroup),
-				Check:  resource.ComposeTestCheckFunc(checks...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 			{
 				Config: configOIDCWorkloadBasic(federationSettingsID, description2, audience2, authTypeUser),
-				Check:  resource.ComposeTestCheckFunc(checks2...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks2...),
 			},
 			{
 				Config:            configOIDCWorkloadBasic(federationSettingsID, description2, audience2, authTypeUser),
@@ -311,7 +322,7 @@ func configOIDCWorkforceBasic(federationSettingsID, associatedDomain, descriptio
 func configOIDCWorkloadBasic(federationSettingsID, description, audience, authorizationType string) string {
 	groupsClaimRaw := `"groups"`
 	if authorizationType == authTypeUser {
-		groupsClaimRaw = "null"
+		groupsClaimRaw = `null`
 	}
 	return fmt.Sprintf(`
 	resource "mongodbatlas_federated_settings_identity_provider" "test" {
@@ -331,5 +342,11 @@ func configOIDCWorkloadBasic(federationSettingsID, description, audience, author
 		federation_settings_id = mongodbatlas_federated_settings_identity_provider.test.federation_settings_id
 		identity_provider_id   = mongodbatlas_federated_settings_identity_provider.test.idp_id
 	  }
-	  `, federationSettingsID, audience, description, federatedsettingsidentityprovider.WORKLOAD, authorizationType, groupsClaimRaw)
+	  data "mongodbatlas_federated_settings_identity_providers" "test" {
+		federation_settings_id 	= mongodbatlas_federated_settings_identity_provider.test.federation_settings_id
+		idp_types 				= [%[4]q]
+		protocols 				= [%[7]q]
+		depends_on 				= [mongodbatlas_federated_settings_identity_provider.test]
+	  }
+	  `, federationSettingsID, audience, description, federatedsettingsidentityprovider.WORKLOAD, authorizationType, groupsClaimRaw, federatedsettingsidentityprovider.OIDC)
 }

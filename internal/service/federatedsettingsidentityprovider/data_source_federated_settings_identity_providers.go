@@ -8,9 +8,11 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115014/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -21,6 +23,20 @@ func PluralDataSource() *schema.Resource {
 			"federation_settings_id": {
 				Type:     schema.TypeString,
 				Required: true,
+			},
+			"idp_types": {
+				Type: schema.TypeList,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Optional: true,
+			},
+			"protocols": {
+				Type: schema.TypeList,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Optional: true,
 			},
 			"page_num": {
 				Type:       schema.TypeInt,
@@ -266,11 +282,13 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	if !federationSettingsIDOk {
 		return diag.FromErr(errors.New("federation_settings_id must be configured"))
 	}
+	idpTypes := conversion.ExpandStringList(d.Get("idp_types").([]any))
+	protocols := conversion.ExpandStringList(d.Get("protocols").([]any))
 
 	params := &admin.ListIdentityProvidersApiParams{
 		FederationSettingsId: federationSettingsID.(string),
-		Protocol:             &[]string{OIDC, SAML},
-		IdpType:              &[]string{WORKFORCE, WORKLOAD},
+		Protocol:             &protocols,
+		IdpType:              &idpTypes,
 	}
 
 	providers, _, err := connV2.FederatedAuthenticationApi.ListIdentityProvidersWithParams(ctx, params).Execute()
@@ -282,6 +300,6 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.FromErr(fmt.Errorf("error setting `result` for federatedSettings IdentityProviders: %s", err))
 	}
 
-	d.SetId(federationSettingsID.(string))
+	d.SetId(id.UniqueId())
 	return nil
 }
