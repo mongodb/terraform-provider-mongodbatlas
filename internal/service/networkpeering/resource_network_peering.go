@@ -273,6 +273,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	peerID := ids["peer_id"]
+	providerName := d.Get("provider_name").(string)
 
 	peer, resp, err := conn.NetworkPeeringApi.GetPeeringConnection(ctx, projectID, peerID).Execute()
 	if err != nil {
@@ -283,20 +284,25 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 		return diag.FromErr(fmt.Errorf(errorPeersRead, peerID, err))
 	}
-	atlasCidrBlock, err := readAtlasCidrBlock(ctx, conn.NetworkPeeringApi, projectID, peer.GetContainerId())
+
+	container, err := getContainer(ctx, conn.NetworkPeeringApi, projectID, peer.GetContainerId())
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("atlas_cidr_block", atlasCidrBlock); err != nil {
+
+	if err := d.Set("atlas_cidr_block", container.GetAtlasCidrBlock()); err != nil {
 		return diag.Errorf("error setting `atlas_cidr_block` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
-	if err := d.Set("atlas_gcp_project_id", peer.GetGcpProjectId()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `atlas_gcp_project_id` for Network Peering Connection (%s): %s", peerID, err))
-	}
+	// If provider name is GCP we need to get the parameters to configure the the reciprocal connection between Mongo and Google
+	if providerName == "GCP" {
+		if err := d.Set("atlas_gcp_project_id", container.GetGcpProjectId()); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting `atlas_gcp_project_id` for Network Peering Connection (%s): %s", peerID, err))
+		}
 
-	if err := d.Set("atlas_vpc_name", peer.GetNetworkName()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `atlas_vpc_name` for Network Peering Connection (%s): %s", peerID, err))
+		if err := d.Set("atlas_vpc_name", container.GetNetworkName()); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting `atlas_vpc_name` for Network Peering Connection (%s): %s", peerID, err))
+		}
 	}
 
 	if err := d.Set("peer_id", peerID); err != nil {
