@@ -408,7 +408,7 @@ In addition to all arguments above, the following attributes are exported:
 * `gcp_project_id` - GCP project ID of the owner of the network peer.
 * `error_message` - When `"status" : "FAILED"`, Atlas provides a description of the error.
 * `network_name` - Name of the network peer to which Atlas connects.
-* `atlas_gcp_project_id` - The Atlas GCP Project ID for the GCP VPC used by your atlas cluster that it is needed to set up the reciprocal connection.
+* `atlas_gcp_project_id` - The Atlas GCP Project ID for the GCP VPC used by your atlas cluster that is needed to set up the reciprocal connection.
 * `atlas_vpc_name` - Name of the GCP VPC used by your atlas cluster that is needed to set up the reciprocal connection.
   
 **AZURE ONLY:**
