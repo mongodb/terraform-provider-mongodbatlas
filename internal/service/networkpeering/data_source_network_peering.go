@@ -164,9 +164,14 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func readAtlasCidrBlock(ctx context.Context, conn admin.NetworkPeeringApi, projectID, containerID string) (string, error) {
-	container, _, err := conn.GetPeeringContainer(ctx, projectID, containerID).Execute()
+	container, err := getContainer(ctx, conn, projectID, containerID)
 	if err != nil {
 		return "", err
 	}
 	return container.GetAtlasCidrBlock(), nil
+}
+
+func getContainer(ctx context.Context, conn admin.NetworkPeeringApi, projectID, containerID string) (*admin.CloudProviderContainer, error) {
+	container, _, err := conn.GetPeeringContainer(ctx, projectID, containerID).Execute()
+	return container, err
 }
