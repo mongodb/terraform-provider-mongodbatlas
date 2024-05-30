@@ -29,6 +29,7 @@ func ExpandIdentityProviderOIDCCreate(d *schema.ResourceData) *admin.FederationO
 		UserClaim:         conversion.StringPtr(d.Get("user_claim").(string)),
 	}
 }
+
 func expandRequestedScopes(d *schema.ResourceData) *[]string {
 	requestedScopes := d.Get("requested_scopes")
 	requestedScopesSlice := cast.ToStringSlice(requestedScopes)
