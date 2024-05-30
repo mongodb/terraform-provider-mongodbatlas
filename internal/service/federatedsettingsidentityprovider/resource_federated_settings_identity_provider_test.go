@@ -190,9 +190,7 @@ func basicOIDCWorkloadTestCase(tb testing.TB) *resource.TestCase {
 
 	checks2 := acc.AddAttrChecks(resourceName, nameChecks, attrMapCheckUser)
 	checks2 = acc.AddAttrChecks(dataSourceName, checks2, attrMapCheckUser)
-
-	// don't know how to wait for after the update to read the plural data source again
-	// checks2 = acc.AddAttrChecksPrefix(dataSourcePluralName, checks, attrMapCheckUser, "results.0", "federation_settings_id")
+	checks2 = acc.AddAttrChecksPrefix(dataSourcePluralName, checks2, attrMapCheckUser, "results.0", "federation_settings_id")
 
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckFederatedSettingsIdentityProvider(tb) },

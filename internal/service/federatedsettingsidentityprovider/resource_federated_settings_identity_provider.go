@@ -110,12 +110,11 @@ func Resource() *schema.Resource {
 			"authorization_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true, // unable to update from USER->GROUPS
 			},
 			"idp_type": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true, // if unset, server will return WORKFORCE
+				Optional: true, // optional only for SAML IdPs
+				Computed: true, // if not set, will return WORKFORCE
 			},
 		},
 	}
@@ -327,7 +326,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if d.HasChange("groups_claim") {
 		groupsClaim := d.Get("groups_claim").(string)
-		updateRequest.GroupsClaim = &groupsClaim
+		if groupsClaim == "" {
+			updateRequest.GroupsClaim = nil
+		} else {
+			updateRequest.GroupsClaim = &groupsClaim
+		}
 	}
 
 	if d.HasChange("requested_scopes") {
