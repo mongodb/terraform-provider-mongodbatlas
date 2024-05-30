@@ -96,8 +96,8 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 	var (
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 		associatedDomain     = os.Getenv("MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN")
-		audience1            = "audience"
-		audience2            = "audience-updated"
+		audience1            = "audience-workforce"
+		audience2            = "audience-workforce-updated"
 		description1         = "tf-acc-test"
 		description2         = "tf-acc-test-updated"
 		attrMapCheck         = map[string]string{
