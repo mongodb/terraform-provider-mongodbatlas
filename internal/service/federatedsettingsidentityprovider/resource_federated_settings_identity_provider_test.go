@@ -112,6 +112,7 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 			"protocol":               "OIDC",
 			"requested_scopes.0":     "profiles",
 			"user_claim":             "sub",
+			"idp_type":               federatedsettingsidentityprovider.WORKFORCE,
 		}
 	)
 	checks := []resource.TestCheckFunc{checkExistsManaged(resourceName)}
@@ -309,6 +310,7 @@ func configOIDCWorkforceBasic(federationSettingsID, associatedDomain, descriptio
 		protocol 					= "OIDC"
 		requested_scopes 			= ["profiles"]
 		user_claim 					= "sub"
+		idp_type 					= "WORKFORCE"
 	  }
 	  
 	  data "mongodbatlas_federated_settings_identity_provider" "test" {
