@@ -3,6 +3,7 @@
 BUG FIXES:
 
 * resource/mongodbatlas_network_peering: Correctly handles GCP updates of mongodbatlas_network_peering ([#2306](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2306))
+* resource/mongodbatlas_network_peering: Fixes computed values of `altas_gcp_project_id` and `atlas_vpc_name` to provide GCP related values ([#2315](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2315))
 
 ## 1.16.1 (May 28, 2024)
 
