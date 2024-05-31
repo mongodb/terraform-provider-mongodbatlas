@@ -86,7 +86,7 @@ jobs:
   create-tag:
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: write
+      contents: write
     needs: [ release-config, validate-inputs, update-examples-reference-in-docs, update-changelog-header ]
     if: >-
       !cancelled()
