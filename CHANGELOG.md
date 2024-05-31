@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.16.2 (May 31, 2024)
+
 BUG FIXES:
 
 * resource/mongodbatlas_network_peering: Correctly handles GCP updates of mongodbatlas_network_peering ([#2306](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2306))
