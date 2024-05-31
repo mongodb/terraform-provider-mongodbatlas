@@ -113,8 +113,8 @@ func Resource() *schema.Resource {
 			},
 			"idp_type": {
 				Type:     schema.TypeString,
-				Optional: true, // optional only for SAML IdPs
-				Computed: true, // if not set, will return WORKFORCE
+				Optional: true, // Required for OIDC IdPs
+				Computed: true, // If not set for SAML IdPs, it will return WORKFORCE
 			},
 		},
 	}

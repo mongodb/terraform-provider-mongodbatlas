@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsidentityprovider"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -52,7 +53,7 @@ func TestAccFederatedSettingsIdentityProvidersDS_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configPluralDS(federatedSettingsID, conversion.StringPtr("WORKLOAD"), []string{}),
+				Config: configPluralDS(federatedSettingsID, conversion.StringPtr(federatedsettingsidentityprovider.WORKLOAD), []string{}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "results.#", "0"),
