@@ -36,35 +36,6 @@ func TestAccFederatedSettingsIdentityProviderDS_samlBasic(t *testing.T) {
 	})
 }
 
-func TestAccFederatedSettingsIdentityProviderDS_oidcBasic(t *testing.T) {
-	var (
-		resourceName        = "data.mongodbatlas_federated_settings_identity_provider.test"
-		federatedSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
-		idpID               = os.Getenv("MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID")
-	)
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckFederatedSettings(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasicDS(federatedSettingsID, idpID),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "associated_orgs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "audience_claim.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "client_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "groups_claim"),
-					resource.TestCheckResourceAttrSet(resourceName, "requested_scopes.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "user_claim"),
-					resource.TestCheckResourceAttr(resourceName, "protocol", "OIDC"),
-					resource.TestCheckResourceAttr(resourceName, "okta_idp_id", ""),
-					resource.TestCheckResourceAttr(resourceName, "idp_id", idpID),
-					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federatedSettingsID),
-				),
-			},
-		},
-	})
-}
-
 func configBasicDS(federatedSettingsID, idpID string) string {
 	return fmt.Sprintf(`
 		data "mongodbatlas_federated_settings_identity_provider" "test" {

@@ -61,9 +61,6 @@ on:
       mongodb_atlas_federated_idp_id:
         type: string
         required: true
-      mongodb_atlas_federated_oidc_idp_id:
-        type: string
-        required: true
       mongodb_atlas_federated_sso_url:
         type: string
         required: true
@@ -546,7 +543,6 @@ jobs:
           MONGODB_ATLAS_FEDERATION_SETTINGS_ID: ${{ inputs.mongodb_atlas_federation_settings_id }}
           MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID: ${{ inputs.mongodb_atlas_federated_okta_idp_id }}
           MONGODB_ATLAS_FEDERATED_IDP_ID: ${{ inputs.mongodb_atlas_federated_idp_id }}
-          MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID: ${{ inputs.mongodb_atlas_federated_oidc_idp_id }}
           MONGODB_ATLAS_FEDERATED_SSO_URL: ${{ inputs.mongodb_atlas_federated_sso_url }}
           MONGODB_ATLAS_FEDERATED_ISSUER_URI: ${{ inputs.mongodb_atlas_federated_issuer_uri }}
           MONGODB_ATLAS_FEDERATED_ORG_ID: ${{ inputs.mongodb_atlas_federated_org_id }}

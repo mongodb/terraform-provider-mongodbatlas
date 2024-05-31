@@ -4,12 +4,74 @@ import (
 	"sort"
 	"strings"
 
-	admin20231115008 "go.mongodb.org/atlas-sdk/v20231115008/admin"
+	"go.mongodb.org/atlas-sdk/v20231115014/admin"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/spf13/cast"
 )
 
-func FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider []admin20231115008.FederationIdentityProvider) []map[string]any {
+const WORKFORCE = "WORKFORCE"
+
+func ExpandIdentityProviderOIDCCreate(d *schema.ResourceData) *admin.FederationOidcIdentityProviderUpdate {
+	return &admin.FederationOidcIdentityProviderUpdate{
+		Audience:          conversion.StringPtr(d.Get("audience").(string)),
+		AssociatedDomains: expandAssociatedDomains(d),
+		AuthorizationType: conversion.StringPtr(d.Get("authorization_type").(string)),
+		ClientId:          conversion.StringPtr(d.Get("client_id").(string)),
+		Description:       conversion.StringPtr(d.Get("description").(string)),
+		DisplayName:       conversion.StringPtr(d.Get("name").(string)),
+		GroupsClaim:       conversion.StringPtr(d.Get("groups_claim").(string)),
+		IdpType:           conversion.StringPtr(WORKFORCE),
+		IssuerUri:         conversion.StringPtr(d.Get("issuer_uri").(string)),
+		Protocol:          conversion.StringPtr(d.Get("protocol").(string)),
+		RequestedScopes:   expandRequestedScopes(d),
+		UserClaim:         conversion.StringPtr(d.Get("user_claim").(string)),
+	}
+}
+
+func expandRequestedScopes(d *schema.ResourceData) *[]string {
+	requestedScopes := d.Get("requested_scopes")
+	requestedScopesSlice := cast.ToStringSlice(requestedScopes)
+	if requestedScopesSlice == nil {
+		requestedScopesSlice = []string{}
+	}
+	return &requestedScopesSlice
+}
+
+func expandAssociatedDomains(d *schema.ResourceData) *[]string {
+	associatedDomains := d.Get("associated_domains")
+	associatedDomainsSlice := cast.ToStringSlice(associatedDomains)
+	if associatedDomainsSlice == nil {
+		associatedDomainsSlice = []string{}
+	}
+	return &associatedDomainsSlice
+}
+
+func ExpandIdentityProviderUpdate(d *schema.ResourceData, existingIdentityProvider *admin.FederationIdentityProvider) *admin.FederationIdentityProviderUpdate {
+	return &admin.FederationIdentityProviderUpdate{
+		AssociatedDomains:          existingIdentityProvider.AssociatedDomains,
+		Audience:                   existingIdentityProvider.Audience,
+		AuthorizationType:          existingIdentityProvider.AuthorizationType,
+		ClientId:                   existingIdentityProvider.ClientId,
+		Description:                existingIdentityProvider.Description,
+		DisplayName:                existingIdentityProvider.DisplayName,
+		GroupsClaim:                existingIdentityProvider.GroupsClaim,
+		IdpType:                    existingIdentityProvider.IdpType,
+		IssuerUri:                  existingIdentityProvider.IssuerUri,
+		Protocol:                   existingIdentityProvider.Protocol,
+		PemFileInfo:                nil,
+		RequestBinding:             existingIdentityProvider.RequestBinding,
+		RequestedScopes:            existingIdentityProvider.RequestedScopes,
+		ResponseSignatureAlgorithm: existingIdentityProvider.ResponseSignatureAlgorithm,
+		SsoDebugEnabled:            existingIdentityProvider.SsoDebugEnabled,
+		SsoUrl:                     existingIdentityProvider.SsoUrl,
+		Status:                     existingIdentityProvider.Status,
+		UserClaim:                  existingIdentityProvider.UserClaim,
+	}
+}
+
+func FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider []admin.FederationIdentityProvider) []map[string]any {
 	var federatedSettingsIdentityProviderMap []map[string]any
 	if len(federatedSettingsIdentityProvider) > 0 {
 		federatedSettingsIdentityProviderMap = make([]map[string]any, len(federatedSettingsIdentityProvider))
@@ -31,11 +93,13 @@ func FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider 
 				"status":                       federatedSettingsIdentityProvider[i].Status,
 				"idp_id":                       federatedSettingsIdentityProvider[i].Id,
 				"protocol":                     federatedSettingsIdentityProvider[i].Protocol,
-				"audience_claim":               federatedSettingsIdentityProvider[i].AudienceClaim,
+				"audience":                     federatedSettingsIdentityProvider[i].Audience,
 				"client_id":                    federatedSettingsIdentityProvider[i].ClientId,
 				"groups_claim":                 federatedSettingsIdentityProvider[i].GroupsClaim,
 				"requested_scopes":             federatedSettingsIdentityProvider[i].RequestedScopes,
 				"user_claim":                   federatedSettingsIdentityProvider[i].UserClaim,
+				"authorization_type":           federatedSettingsIdentityProvider[i].AuthorizationType,
+				"description":                  federatedSettingsIdentityProvider[i].Description,
 			}
 		}
 	}
@@ -43,7 +107,7 @@ func FlattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider 
 	return federatedSettingsIdentityProviderMap
 }
 
-func FlattenAssociatedOrgs(associatedOrgs []admin20231115008.ConnectedOrgConfig) []map[string]any {
+func FlattenAssociatedOrgs(associatedOrgs []admin.ConnectedOrgConfig) []map[string]any {
 	var associatedOrgsMap []map[string]any
 
 	if len(associatedOrgs) == 0 {
@@ -78,7 +142,7 @@ func FlattenAssociatedOrgs(associatedOrgs []admin20231115008.ConnectedOrgConfig)
 	return associatedOrgsMap
 }
 
-type mRoleAssignmentV2 []admin20231115008.RoleAssignment
+type mRoleAssignmentV2 []admin.RoleAssignment
 
 func (ra mRoleAssignmentV2) Len() int      { return len(ra) }
 func (ra mRoleAssignmentV2) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
@@ -98,7 +162,7 @@ func (ra mRoleAssignmentV2) Less(i, j int) bool {
 	return *ra[i].Role < *ra[j].Role
 }
 
-func FlattenRoleAssignments(roleAssignments []admin20231115008.RoleAssignment) []map[string]any {
+func FlattenRoleAssignments(roleAssignments []admin.RoleAssignment) []map[string]any {
 	sort.Sort(mRoleAssignmentV2(roleAssignments))
 
 	var roleAssignmentsMap []map[string]any
@@ -118,7 +182,7 @@ func FlattenRoleAssignments(roleAssignments []admin20231115008.RoleAssignment) [
 	return roleAssignmentsMap
 }
 
-func FlattenFederatedUser(federatedUsers []admin20231115008.FederatedUser) []map[string]any {
+func FlattenFederatedUser(federatedUsers []admin.FederatedUser) []map[string]any {
 	var userConflictsMap []map[string]any
 
 	if len(federatedUsers) == 0 {
@@ -139,7 +203,7 @@ func FlattenFederatedUser(federatedUsers []admin20231115008.FederatedUser) []map
 	return userConflictsMap
 }
 
-type authFederationoleMappingsByGroupName []admin20231115008.AuthFederationRoleMapping
+type authFederationoleMappingsByGroupName []admin.AuthFederationRoleMapping
 
 func (ra authFederationoleMappingsByGroupName) Len() int      { return len(ra) }
 func (ra authFederationoleMappingsByGroupName) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
@@ -148,7 +212,7 @@ func (ra authFederationoleMappingsByGroupName) Less(i, j int) bool {
 	return ra[i].ExternalGroupName < ra[j].ExternalGroupName
 }
 
-func FlattenAuthFederationRoleMapping(roleMappings []admin20231115008.AuthFederationRoleMapping) []map[string]any {
+func FlattenAuthFederationRoleMapping(roleMappings []admin.AuthFederationRoleMapping) []map[string]any {
 	sort.Sort(authFederationoleMappingsByGroupName(roleMappings))
 
 	var roleMappingsMap []map[string]any
@@ -168,7 +232,7 @@ func FlattenAuthFederationRoleMapping(roleMappings []admin20231115008.AuthFedera
 	return roleMappingsMap
 }
 
-func FlattenPemFileInfo(pemFileInfo admin20231115008.PemFileInfo) []map[string]any {
+func FlattenPemFileInfo(pemFileInfo admin.PemFileInfo) []map[string]any {
 	var pemFileInfoMap []map[string]any
 
 	if certificates := pemFileInfo.GetCertificates(); len(certificates) > 0 {
@@ -183,7 +247,7 @@ func FlattenPemFileInfo(pemFileInfo admin20231115008.PemFileInfo) []map[string]a
 	return pemFileInfoMap
 }
 
-func FlattenFederatedSettingsCertificates(certificates []admin20231115008.X509Certificate) []map[string]any {
+func FlattenFederatedSettingsCertificates(certificates []admin.X509Certificate) []map[string]any {
 	var certificatesMap []map[string]any
 
 	if len(certificates) > 0 {
