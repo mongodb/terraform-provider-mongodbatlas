@@ -1,5 +1,18 @@
 ## (Unreleased)
 
+BREAKING CHANGES:
+
+* data-source/mongodbatlas_federated_settings_identity_provider: Replaces `audience_claim` field with `audience` ([#2310](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2310))
+* data-source/mongodbatlas_federated_settings_identity_providers: Replaces `audience_claim` field with `audience` ([#2310](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2310))
+* resource/mongodbatlas_federated_settings_identity_provider: Replaces `audience_claim` field with `audience` ([#2310](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2310))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_federated_settings_identity_provider: Adds `description` and `authorization_type` fields ([#2310](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2310))
+* data-source/mongodbatlas_federated_settings_identity_providers: Adds `description` and `authorization_type` fields ([#2310](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2310))
+* resource/mongodbatlas_federated_settings_identity_provider: Adds `description` and `authorization_type` fields ([#2310](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2310))
+* resource/mongodbatlas_federated_settings_identity_provider: Adds create and delete operations for Workforce OIDC IdP ([#2310](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2310))
+
 ## 1.16.2 (May 31, 2024)
 
 BUG FIXES:
