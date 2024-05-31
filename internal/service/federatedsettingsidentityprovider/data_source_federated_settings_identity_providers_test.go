@@ -22,14 +22,14 @@ func TestAccFederatedSettingsIdentityProvidersDS_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configPluralDS(federatedSettingsID, nil, []string{oidcProtocol, samlProtocol}),
+				Config: configPluralDS(federatedSettingsID, conversion.StringPtr(federatedsettingsidentityprovider.WORKFORCE), []string{oidcProtocol, samlProtocol}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "results.#", "2"),
 				),
 			},
 			{
-				Config: configPluralDS(federatedSettingsID, nil, []string{samlProtocol}),
+				Config: configPluralDS(federatedSettingsID, conversion.StringPtr(federatedsettingsidentityprovider.WORKFORCE), []string{samlProtocol}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "results.#", "1"),
@@ -37,7 +37,7 @@ func TestAccFederatedSettingsIdentityProvidersDS_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configPluralDS(federatedSettingsID, nil, []string{oidcProtocol}),
+				Config: configPluralDS(federatedSettingsID, conversion.StringPtr(federatedsettingsidentityprovider.WORKFORCE), []string{oidcProtocol}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "results.#", "1"),
@@ -45,7 +45,7 @@ func TestAccFederatedSettingsIdentityProvidersDS_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configPluralDS(federatedSettingsID, nil, []string{}),
+				Config: configPluralDS(federatedSettingsID, conversion.StringPtr(federatedsettingsidentityprovider.WORKFORCE), []string{}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "results.#", "1"),
