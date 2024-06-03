@@ -43,6 +43,13 @@ func Resource() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"data_access_identity_provider_ids": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"post_auth_role_grants": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -53,6 +60,11 @@ func Resource() *schema.Resource {
 			"domain_restriction_enabled": {
 				Type:     schema.TypeBool,
 				Required: true,
+			},
+			"user_conflicts": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     userConflictsElemSchema(),
 			},
 		},
 	}
@@ -85,9 +97,18 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.Con
 	if err := d.Set("domain_allow_list", federatedSettingsConnectedOrganization.DomainAllowList); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting domain allow list (%s): %s", d.Id(), err))
 	}
+	if err := d.Set("data_access_identity_provider_ids", federatedSettingsConnectedOrganization.GetDataAccessIdentityProviderIds()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting data_access_identity_provider_ids (%s): %s", d.Id(), err))
+	}
 
 	if err := d.Set("post_auth_role_grants", federatedSettingsConnectedOrganization.PostAuthRoleGrants); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting post_auth_role_grants (%s): %s", d.Id(), err))
+	}
+	if err := d.Set("user_conflicts", FlattenUserConflicts(federatedSettingsConnectedOrganization.GetUserConflicts())); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `user_conflicts` for federatedSettings IdentityProviders: %s", err))
+	}
+	if err := d.Set("identity_provider_id", federatedSettingsConnectedOrganization.GetIdentityProviderId()); err != nil {
+		return diag.Errorf("error setting identity provider id (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -99,7 +120,6 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.Con
 }
 
 func resourceMongoDBAtlasFederatedSettingsOrganizationConfigUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
@@ -118,6 +138,10 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigUpdate(ctx context.C
 	if d.HasChange("domain_allow_list") {
 		domainAllowList := d.Get("domain_allow_list")
 		federatedSettingsConnectedOrganizationUpdate.SetDomainAllowList(cast.ToStringSlice(domainAllowList))
+	}
+	if d.HasChange("data_access_identity_provider_ids") {
+		dataAccessIdentityProviderIDs := d.Get("data_access_identity_provider_ids")
+		federatedSettingsConnectedOrganizationUpdate.SetDataAccessIdentityProviderIds(cast.ToStringSlice(dataAccessIdentityProviderIDs))
 	}
 
 	if d.HasChange("identity_provider_id") {
@@ -139,7 +163,6 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigUpdate(ctx context.C
 }
 
 func resourceMongoDBAtlasFederatedSettingsOrganizationConfigDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
@@ -149,7 +172,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigDelete(ctx context.C
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting federation settings connected organization (%s): %s", federationSettingsID, err))
 	}
-
+	d.SetId("")
 	return nil
 }
 
@@ -160,7 +183,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigImportState(ctx cont
 		return nil, err
 	}
 
-	federatedSettingsConnectedOrganization, _, err := conn.FederatedAuthenticationApi.GetConnectedOrgConfig(context.Background(), *federationSettingsID, *orgID).Execute()
+	_, _, err = conn.FederatedAuthenticationApi.GetConnectedOrgConfig(context.Background(), *federationSettingsID, *orgID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import Organization config (%s) in Federation settings (%s), error: %s", *orgID, *federationSettingsID, err)
 	}
@@ -168,21 +191,8 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigImportState(ctx cont
 	if err := d.Set("federation_settings_id", *federationSettingsID); err != nil {
 		return nil, fmt.Errorf("error setting Organization config in Federation settings (%s): %s", d.Id(), err)
 	}
-
-	if err := d.Set("domain_restriction_enabled", federatedSettingsConnectedOrganization.GetDomainRestrictionEnabled()); err != nil {
-		return nil, fmt.Errorf("error setting domain restriction enabled (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("domain_allow_list", federatedSettingsConnectedOrganization.GetDomainAllowList()); err != nil {
-		return nil, fmt.Errorf("error setting domain allow list (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("org_id", federatedSettingsConnectedOrganization.GetOrgId()); err != nil {
+	if err := d.Set("org_id", *orgID); err != nil {
 		return nil, fmt.Errorf("error setting org id (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("identity_provider_id", federatedSettingsConnectedOrganization.GetIdentityProviderId()); err != nil {
-		return nil, fmt.Errorf("error setting identity provider id (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
