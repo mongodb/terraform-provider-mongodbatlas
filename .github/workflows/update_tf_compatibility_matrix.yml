@@ -25,6 +25,7 @@ jobs:
         uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e
         if: steps.verify-changed-files.outputs.files_changed == 'true'
         with:
+          token: ${{ secrets.APIX_BOT_PAT }}
           title: "doc: Updates Terraform Compatibility Matrix documentation"
           commit-message: "doc: Updates Terraform Compatibility Matrix documentation"
           delete-branch: true
