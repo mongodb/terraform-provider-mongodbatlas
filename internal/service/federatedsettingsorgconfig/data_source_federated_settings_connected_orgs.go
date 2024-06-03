@@ -3,7 +3,6 @@ package federatedsettingsorgconfig
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -134,7 +133,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	}
 
 	if err := d.Set("results", flattenOrganizationConfigs(*federatedSettingsConnectedOrganizations)); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `result` for federatedSettings IdentityProviders: %s", err))
+		return diag.Errorf("error setting `result` for federatedSettings connected orgs: %s", err)
 	}
 
 	d.SetId(federationSettingsID.(string))

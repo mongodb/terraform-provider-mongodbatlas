@@ -3,7 +3,6 @@ package federatedsettingsorgconfig
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -145,39 +144,39 @@ func dataSourceOrgRead(ctx context.Context, d *schema.ResourceData, meta any) di
 	}
 
 	if err := d.Set("domain_allow_list", federatedSettingsConnectedOrganization.GetDomainAllowList()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `domain_allow_list` for federatedSettings IdentityProviders: %s", err))
+		return diag.Errorf("error setting `domain_allow_list` for federatedSettings Org(%s): %s", orgID, err)
 	}
 
 	if err := d.Set("domain_restriction_enabled", federatedSettingsConnectedOrganization.GetDomainRestrictionEnabled()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `domain_restriction_enabled` for federatedSettings IdentityProviders: %s", err))
+		return diag.Errorf("error setting `domain_restriction_enabled` for federatedSettings Org(%s): %s", orgID, err)
 	}
 
 	if err := d.Set("identity_provider_id", federatedSettingsConnectedOrganization.GetIdentityProviderId()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `identity_provider_id` for federatedSettings IdentityProviders: %s", err))
+		return diag.Errorf("error setting `identity_provider_id` for federatedSettings Org(%s): %s", orgID, err)
 	}
 
 	if err := d.Set("org_id", federatedSettingsConnectedOrganization.GetOrgId()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `org_id` for federatedSettings IdentityProviders: %s", err))
+		return diag.Errorf("error setting `org_id` for federatedSettings Org(%s): %s", orgID, err)
 	}
 
 	if err := d.Set("post_auth_role_grants", federatedSettingsConnectedOrganization.GetPostAuthRoleGrants()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `post_auth_role_grants` for federatedSettings IdentityProviders: %s", err))
+		return diag.Errorf("error setting `post_auth_role_grants` for federatedSettings Org(%s): %s", orgID, err)
 	}
 
 	if err := d.Set("role_mappings", FlattenRoleMappings(federatedSettingsConnectedOrganization.GetRoleMappings())); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `role_mappings` for federatedSettings IdentityProviders: %s", err))
+		return diag.Errorf("error setting `role_mappings` for federatedSettings Org(%s): %s", orgID, err)
 	}
 	if federatedSettingsConnectedOrganization.UserConflicts == nil {
 		if err := d.Set("user_conflicts", federatedSettingsConnectedOrganization.GetUserConflicts()); err != nil {
-			return diag.FromErr(fmt.Errorf("error setting `user_conflicts` for federatedSettings IdentityProviders: %s", err))
+			return diag.Errorf("error setting `user_conflicts` for federatedSettings Org(%s): %s", orgID, err)
 		}
 	} else {
 		if err := d.Set("user_conflicts", FlattenUserConflicts(federatedSettingsConnectedOrganization.GetUserConflicts())); err != nil {
-			return diag.FromErr(fmt.Errorf("error setting `user_conflicts` for federatedSettings IdentityProviders: %s", err))
+			return diag.Errorf("error setting `user_conflicts` for federatedSettings Org(%s): %s", orgID, err)
 		}
 	}
 	if err := d.Set("data_access_identity_provider_ids", federatedSettingsConnectedOrganization.GetDataAccessIdentityProviderIds()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting data_access_identity_provider_ids (%s): %s", orgID, err))
+		return diag.Errorf("error setting `data_access_identity_provider_ids` for federatedSettings Org(%s): %s", orgID, err)
 	}
 
 	d.SetId(federatedSettingsConnectedOrganization.GetOrgId())
