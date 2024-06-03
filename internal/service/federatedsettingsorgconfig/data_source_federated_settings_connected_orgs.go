@@ -59,6 +59,13 @@ func PluralDataSource() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
+						"data_access_identity_provider_ids": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 						"role_mappings": {
 							Type:     schema.TypeList,
 							Computed: true,
@@ -165,27 +172,20 @@ func flattenOrganizationConfigs(federatedSettingsConnectedOrganizations admin.Pa
 		federatedSettingsConnectedOrganizationsMap = make([]map[string]any, federatedSettingsConnectedOrganizations.GetTotalCount())
 
 		for i := range federatedSettingsConnectedOrganizations.GetResults() {
-			if federatedSettingsConnectedOrganizations.GetResults()[i].UserConflicts == nil {
-				federatedSettingsConnectedOrganizationsMap[i] = map[string]any{
-					"domain_allow_list":          federatedSettingsConnectedOrganizations.GetResults()[i].GetDomainAllowList(),
-					"domain_restriction_enabled": federatedSettingsConnectedOrganizations.GetResults()[i].GetDomainRestrictionEnabled(),
-					"identity_provider_id":       federatedSettingsConnectedOrganizations.GetResults()[i].GetIdentityProviderId(),
-					"org_id":                     federatedSettingsConnectedOrganizations.GetResults()[i].GetOrgId(),
-					"post_auth_role_grants":      federatedSettingsConnectedOrganizations.GetResults()[i].GetPostAuthRoleGrants(),
-					"role_mappings":              FlattenRoleMappings(federatedSettingsConnectedOrganizations.GetResults()[i].GetRoleMappings()),
-					"user_conflicts":             nil,
-				}
-			} else {
-				federatedSettingsConnectedOrganizationsMap[i] = map[string]any{
-					"domain_allow_list":          federatedSettingsConnectedOrganizations.GetResults()[i].GetDomainAllowList(),
-					"domain_restriction_enabled": federatedSettingsConnectedOrganizations.GetResults()[i].GetDomainRestrictionEnabled(),
-					"identity_provider_id":       federatedSettingsConnectedOrganizations.GetResults()[i].GetIdentityProviderId(),
-					"org_id":                     federatedSettingsConnectedOrganizations.GetResults()[i].GetOrgId(),
-					"post_auth_role_grants":      federatedSettingsConnectedOrganizations.GetResults()[i].GetPostAuthRoleGrants(),
-					"role_mappings":              FlattenRoleMappings(federatedSettingsConnectedOrganizations.GetResults()[i].GetRoleMappings()),
-					"user_conflicts":             FlattenUserConflicts(federatedSettingsConnectedOrganizations.GetResults()[i].GetUserConflicts()),
-				}
+			orgConfig := map[string]any{
+				"domain_allow_list":                 federatedSettingsConnectedOrganizations.GetResults()[i].GetDomainAllowList(),
+				"domain_restriction_enabled":        federatedSettingsConnectedOrganizations.GetResults()[i].GetDomainRestrictionEnabled(),
+				"identity_provider_id":              federatedSettingsConnectedOrganizations.GetResults()[i].GetIdentityProviderId(),
+				"org_id":                            federatedSettingsConnectedOrganizations.GetResults()[i].GetOrgId(),
+				"post_auth_role_grants":             federatedSettingsConnectedOrganizations.GetResults()[i].GetPostAuthRoleGrants(),
+				"role_mappings":                     FlattenRoleMappings(federatedSettingsConnectedOrganizations.GetResults()[i].GetRoleMappings()),
+				"data_access_identity_provider_ids": federatedSettingsConnectedOrganizations.GetResults()[i].GetDataAccessIdentityProviderIds(),
+				"user_conflicts":                    nil,
 			}
+			if federatedSettingsConnectedOrganizations.GetResults()[i].UserConflicts != nil {
+				orgConfig["user_conflicts"] = FlattenUserConflicts(federatedSettingsConnectedOrganizations.GetResults()[i].GetUserConflicts())
+			}
+			federatedSettingsConnectedOrganizationsMap[i] = orgConfig
 		}
 	}
 

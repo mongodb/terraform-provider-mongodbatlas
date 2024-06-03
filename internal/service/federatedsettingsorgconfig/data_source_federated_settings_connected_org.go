@@ -12,7 +12,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigRead,
+		ReadContext: dataSourceOrgRead,
 		Schema: map[string]*schema.Schema{
 			"federation_settings_id": {
 				Type:     schema.TypeString,
@@ -85,6 +85,13 @@ func DataSource() *schema.Resource {
 				Computed: true,
 				Elem:     userConflictsElemSchema(),
 			},
+			"data_access_identity_provider_ids": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -116,7 +123,7 @@ func userConflictsElemSchema() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceOrgRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	federationSettingsID, federationSettingsIDOk := d.GetOk("federation_settings_id")
@@ -132,6 +139,7 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.C
 	}
 
 	federatedSettingsConnectedOrganization, _, err := conn.FederatedAuthenticationApi.GetConnectedOrgConfig(ctx, federationSettingsID.(string), orgID.(string)).Execute()
+
 	if err != nil {
 		return diag.Errorf("error getting federatedSettings connected organizations assigned (%s): %s", federationSettingsID, err)
 	}
@@ -167,6 +175,9 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.C
 		if err := d.Set("user_conflicts", FlattenUserConflicts(federatedSettingsConnectedOrganization.GetUserConflicts())); err != nil {
 			return diag.FromErr(fmt.Errorf("error setting `user_conflicts` for federatedSettings IdentityProviders: %s", err))
 		}
+	}
+	if err := d.Set("data_access_identity_provider_ids", federatedSettingsConnectedOrganization.GetDataAccessIdentityProviderIds()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting data_access_identity_provider_ids (%s): %s", orgID, err))
 	}
 
 	d.SetId(federatedSettingsConnectedOrganization.GetOrgId())

@@ -25,6 +25,7 @@ func TestAccFederatedSettingsOrgDS_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "role_mappings.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "data_access_identity_provider_ids.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "identity_provider_id"),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),

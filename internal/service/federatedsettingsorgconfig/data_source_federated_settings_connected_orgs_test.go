@@ -25,6 +25,7 @@ func TestAccFederatedSettingsOrgDSPlural_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.0.identity_provider_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "results.0.data_access_identity_provider_ids.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.0.org_id"),
 				),
 			},
