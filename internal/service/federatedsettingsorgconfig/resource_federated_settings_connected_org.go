@@ -17,11 +17,11 @@ import (
 func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceCreateNotAllowed,
-		ReadContext:   resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead,
-		UpdateContext: resourceMongoDBAtlasFederatedSettingsOrganizationConfigUpdate,
-		DeleteContext: resourceMongoDBAtlasFederatedSettingsOrganizationConfigDelete,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourcDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasFederatedSettingsOrganizationConfigImportState,
+			StateContext: resourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"federation_settings_id": {
@@ -74,7 +74,7 @@ func resourceCreateNotAllowed(_ context.Context, _ *schema.ResourceData, _ any) 
 	return diag.FromErr(errors.New("this resource must be imported"))
 }
 
-func resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
@@ -119,7 +119,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.Con
 	return nil
 }
 
-func resourceMongoDBAtlasFederatedSettingsOrganizationConfigUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
@@ -159,10 +159,10 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigUpdate(ctx context.C
 		return diag.FromErr(fmt.Errorf("error updating federation settings connected organization (%s): %s", federationSettingsID, err))
 	}
 
-	return resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasFederatedSettingsOrganizationConfigDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourcDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
@@ -176,9 +176,9 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigDelete(ctx context.C
 	return nil
 }
 
-func resourceMongoDBAtlasFederatedSettingsOrganizationConfigImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).AtlasV2
-	federationSettingsID, orgID, err := splitFederatedSettingsOrganizationConfigImportID(d.Id())
+	federationSettingsID, orgID, err := splitImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +203,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigImportState(ctx cont
 	return []*schema.ResourceData{d}, nil
 }
 
-func splitFederatedSettingsOrganizationConfigImportID(id string) (federationSettingsID, orgID *string, err error) {
+func splitImportID(id string) (federationSettingsID, orgID *string, err error) {
 	var re = regexp.MustCompile(`(?s)^(.*)-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 

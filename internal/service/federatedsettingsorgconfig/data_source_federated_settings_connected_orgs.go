@@ -14,7 +14,7 @@ import (
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigsRead,
+		ReadContext: dataSourcePluralRead,
 		Schema: map[string]*schema.Schema{
 			"federation_settings_id": {
 				Type:     schema.TypeString,
@@ -129,8 +129,7 @@ func PluralDataSource() *schema.Resource {
 		},
 	}
 }
-func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
+func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	federationSettingsID, federationSettingsIDOk := d.GetOk("federation_settings_id")
@@ -150,7 +149,7 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigsRead(ctx context.
 		return diag.Errorf("error getting federatedSettings connected organizations assigned (%s): %s", federationSettingsID, err)
 	}
 
-	if err := d.Set("results", flattenFederatedSettingsOrganizationConfigs(*federatedSettingsConnectedOrganizations)); err != nil {
+	if err := d.Set("results", flattenOrganizationConfigs(*federatedSettingsConnectedOrganizations)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `result` for federatedSettings IdentityProviders: %s", err))
 	}
 
@@ -159,7 +158,7 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigsRead(ctx context.
 	return nil
 }
 
-func flattenFederatedSettingsOrganizationConfigs(federatedSettingsConnectedOrganizations admin.PaginatedConnectedOrgConfigs) []map[string]any {
+func flattenOrganizationConfigs(federatedSettingsConnectedOrganizations admin.PaginatedConnectedOrgConfigs) []map[string]any {
 	var federatedSettingsConnectedOrganizationsMap []map[string]any
 
 	if (federatedSettingsConnectedOrganizations.GetTotalCount()) > 0 {
