@@ -105,30 +105,7 @@ func PluralDataSource() *schema.Resource {
 						"user_conflicts": {
 							Type:     schema.TypeList,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"email_address": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"federation_settings_id": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"first_name": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"last_name": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"user_id": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
+							Elem:     userConflictsElemSchema(),
 						},
 					},
 				},
