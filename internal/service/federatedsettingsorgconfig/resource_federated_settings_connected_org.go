@@ -87,28 +87,28 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return nil
 		}
 
-		return diag.FromErr(fmt.Errorf("error getting federated settings organization config: %s", err))
+		return diag.Errorf("error getting federated settings organization config: %s", err)
 	}
 
 	if err := d.Set("domain_restriction_enabled", federatedSettingsConnectedOrganization.DomainRestrictionEnabled); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting domain restriction enabled (%s): %s", d.Id(), err))
+		return diag.Errorf("error setting domain restriction enabled (%s): %s", orgID, err)
 	}
 
 	if err := d.Set("domain_allow_list", federatedSettingsConnectedOrganization.DomainAllowList); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting domain allow list (%s): %s", d.Id(), err))
+		return diag.Errorf("error setting domain allow list (%s): %s", orgID, err)
 	}
 	if err := d.Set("data_access_identity_provider_ids", federatedSettingsConnectedOrganization.GetDataAccessIdentityProviderIds()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting data_access_identity_provider_ids (%s): %s", d.Id(), err))
+		return diag.Errorf("error setting data_access_identity_provider_ids (%s): %s", orgID, err)
 	}
 
 	if err := d.Set("post_auth_role_grants", federatedSettingsConnectedOrganization.PostAuthRoleGrants); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting post_auth_role_grants (%s): %s", d.Id(), err))
+		return diag.Errorf("error setting post_auth_role_grants (%s): %s", orgID, err)
 	}
 	if err := d.Set("user_conflicts", FlattenUserConflicts(federatedSettingsConnectedOrganization.GetUserConflicts())); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `user_conflicts` for federatedSettings IdentityProviders: %s", err))
+		return diag.Errorf("error setting `user_conflicts` (%s): %s", orgID, err)
 	}
 	if err := d.Set("identity_provider_id", federatedSettingsConnectedOrganization.GetIdentityProviderId()); err != nil {
-		return diag.Errorf("error setting identity provider id (%s): %s", d.Id(), err)
+		return diag.Errorf("error setting identity provider id (%s): %s", orgID, err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{

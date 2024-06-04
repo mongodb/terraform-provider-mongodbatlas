@@ -21,7 +21,7 @@ resource "mongodbatlas_federated_settings_org_config" "org_connection" {
   domain_restriction_enabled        = false
   domain_allow_list                 = ["mydomain.com"]
   post_auth_role_grants             = ["ORG_MEMBER"]
-  identity_provider_id              = "0oad4fas87jL7f75Xnk1297"
+  identity_provider_id              = "0oaqyt9fc2ySTWnA0357"
 }
 
 data "mongodbatlas_federated_settings_org_config" "org_configs_ds" {
@@ -43,7 +43,7 @@ In addition to all arguments above, the following attributes are exported:
           
 * `domain_allow_list` - List that contains the approved domains from which organization users can log in.  Note: If the organization uses an identity provider,  `domain_allow_list` includes: any SSO domains associated with organization's identity provider and any custom domains associated with the specific organization.
 * `domain_restriction_enabled` - Flag that indicates whether domain restriction is enabled for the connected organization.  User Conflicts returns null when `domain_restriction_enabled` is false.
-* `identity_provider_id` - Legacy 20-hexadecimal digit string that identifies the UI access identity provider that this connected org config is associated with. This id can be found within the Federation Management Console > Identity Providers tab by clicking the info icon in the IdP ID row of a configured identity provider.
+* `identity_provider_id` - (Required) Legacy 20-hexadecimal digit string that identifies the SAML access identity provider that this connected org config is associated with. This id can be found within the Federation Management UI in Atlas in the Identity Providers tab by clicking the info icon in the IdP ID row of a configured SAML identity provider. Leave as `""` to detach/remove the SAML identity provider.
 * `post_auth_role_grants` - List that contains the default [roles](https://www.mongodb.com/docs/atlas/reference/user-roles/#std-label-organization-roles) granted to users who authenticate through the IdP in a connected organization.
 * `data_access_identity_provider_ids` - The collection of unique ids representing the identity providers that can be used for data access in this organization.
 * `role_mappings` - Role mappings that are configured in this organization. See [below](#role_mappings)
