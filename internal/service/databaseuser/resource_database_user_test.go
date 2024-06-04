@@ -497,9 +497,12 @@ func TestAccConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
 
 func TestAccCOnfigRSDatabaseUser_withOIDCAuthType(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
-		idpID     = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
-		username  = fmt.Sprintf("%s/%s", idpID, "IDP_GROUP")
+		projectID         = acc.ProjectIDExecution(t)
+		idpID             = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
+		workforceAuthType = "IDP_GROUP"
+		workloadAuthType  = "USER"
+		usernameWorkforce = fmt.Sprintf("%s/%s", idpID, workforceAuthType)
+		usernameWorkload  = fmt.Sprintf("%s/%s", idpID, workloadAuthType)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -508,12 +511,23 @@ func TestAccCOnfigRSDatabaseUser_withOIDCAuthType(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDataBaseUserWithOIDCWorkforceAuthType(projectID, username, "atlasAdmin"),
+				Config: acc.ConfigDataBaseUserWithOIDCAuthType(projectID, usernameWorkforce, workforceAuthType, "admin", "atlasAdmin"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "username", usernameWorkforce),
+					resource.TestCheckResourceAttr(resourceName, "oidc_auth_type", workforceAuthType),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
+				),
+			},
+			{
+				Config: acc.ConfigDataBaseUserWithOIDCAuthType(projectID, usernameWorkload, workloadAuthType, "$external", "atlasAdmin"),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "username", usernameWorkload),
+					resource.TestCheckResourceAttr(resourceName, "username", usernameWorkload),
+					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
 				),
 			},
 			{
