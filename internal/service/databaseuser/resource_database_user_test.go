@@ -3,6 +3,7 @@ package databaseuser_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -481,6 +482,38 @@ func TestAccConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "ldap_auth_type", "USER"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"password"},
+			},
+		},
+	})
+}
+
+func TestAccCOnfigRSDatabaseUser_withOIDCAuthType(t *testing.T) {
+	var (
+		projectID = acc.ProjectIDExecution(t)
+		idpID     = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
+		username  = fmt.Sprintf("%s/%s", idpID, "IDP_GROUP")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.ConfigDataBaseUserWithOIDCWorkforceAuthType(projectID, username, "atlasAdmin"),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
 				),
 			},
 			{
