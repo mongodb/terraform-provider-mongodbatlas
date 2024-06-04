@@ -51,7 +51,15 @@ func (r *pushBasedLogExportRS) Create(ctx context.Context, req resource.CreateRe
 	connV2 := r.Client.AtlasV2
 	projectID := tfPlan.ProjectID.ValueString()
 	if _, err := connV2.PushBasedLogExportApi.CreatePushBasedLogConfiguration(ctx, projectID, logExportConfigReq).Execute(); err != nil {
-		resp.Diagnostics.AddError("eError when creating push-based log export configuration", err.Error())
+		resp.Diagnostics.AddError("Error when creating push-based log export configuration", err.Error())
+
+		// log.Printf("[INFO] Unconfiguring push-based log export for project due to create failure: %s", projectID)
+		// if _, err := connV2.PushBasedLogExportApi.DeletePushBasedLogConfiguration(ctx, projectID).Execute(); err != nil {
+		// 	resp.Diagnostics.AddError("Error when unconfiguring push-based log export configuration", err.Error())
+		// 	return
+		// }
+
+		// resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -65,6 +73,7 @@ func (r *pushBasedLogExportRS) Create(ctx context.Context, req resource.CreateRe
 		retryTimeConfig(timeout, minTimeoutCreateUpdate))
 	if err != nil {
 		resp.Diagnostics.AddError("Error when creating push-based log export configuration", err.Error())
+
 		return
 	}
 

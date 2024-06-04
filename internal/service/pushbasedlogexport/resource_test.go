@@ -155,7 +155,8 @@ func pushBasedLogExportConfig(useBucket2, usePrefixPath bool, prefixPath string)
 	if usePrefixPath {
 		return fmt.Sprintf(`resource "mongodbatlas_push_based_log_export" "test" {
 			project_id  = local.project_id
-			%[1]s
+		
+			bucket_name = "tmp"
 			iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
 			prefix_path = %[2]q
 		}
@@ -166,7 +167,8 @@ func pushBasedLogExportConfig(useBucket2, usePrefixPath bool, prefixPath string)
 
 	return fmt.Sprintf(`resource "mongodbatlas_push_based_log_export" "test" {
 		project_id  = local.project_id
-		%[1]s
+	
+		bucket_name = "tmp"
 		iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
 	}
 	
