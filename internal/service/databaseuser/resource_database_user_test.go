@@ -96,11 +96,10 @@ func TestAccConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password"},
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -156,11 +155,10 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password"},
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -485,11 +483,10 @@ func TestAccConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password"},
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -531,11 +528,10 @@ func TestAccCOnfigRSDatabaseUser_withOIDCAuthType(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password"},
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
