@@ -526,7 +526,7 @@ func TestAccCOnfigRSDatabaseUser_withOIDCAuthType(t *testing.T) {
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", usernameWorkload),
-					resource.TestCheckResourceAttr(resourceName, "username", usernameWorkload),
+					resource.TestCheckResourceAttr(resourceName, "oidc_auth_type", workloadAuthType),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
 				),
 			},
