@@ -128,9 +128,9 @@ func importStateIDFunc(federationSettingsID, orgID string) resource.ImportStateI
 	}
 }
 
-func configBasic(federationSettingsID, orgID, identityProviderID, associatedDomain string, withWorkload, useWorkload, domainRestrictionEnabled bool) string {
+func configBasic(federationSettingsID, orgID, identityProviderID, associatedDomain string, createIdpWorkload, attachIdpWorkload, domainRestrictionEnabled bool) string {
 	var workload string
-	if withWorkload {
+	if createIdpWorkload {
 		workload = fmt.Sprintf(`
 		resource "mongodbatlas_federated_settings_identity_provider" "oidc_workload" {
 			federation_settings_id 		= %[1]q
@@ -147,9 +147,9 @@ func configBasic(federationSettingsID, orgID, identityProviderID, associatedDoma
 		`, federationSettingsID, federatedsettingsidentityprovider.WORKLOAD, federatedsettingsidentityprovider.OIDC)
 	}
 	// The oidc_workload resource cannot be deleted while being "attached" to the organization; therefore, we must support keeping it in config but not using it
-	var workloadValue = "[]"
-	if useWorkload {
-		workloadValue = fmt.Sprintf("[%1s]", "mongodbatlas_federated_settings_identity_provider.oidc_workload.idp_id")
+	var attachedIdp = "[]"
+	if attachIdpWorkload {
+		attachedIdp = fmt.Sprintf("[%1s]", "mongodbatlas_federated_settings_identity_provider.oidc_workload.idp_id")
 	}
 	return fmt.Sprintf(`
 	%[5]s
@@ -160,5 +160,5 @@ func configBasic(federationSettingsID, orgID, identityProviderID, associatedDoma
 		domain_allow_list          			= [%[4]q]
 		identity_provider_id       			= %[3]q
 		data_access_identity_provider_ids 	= %[6]s
-	  }`, federationSettingsID, orgID, identityProviderID, associatedDomain, workload, workloadValue, domainRestrictionEnabled)
+	  }`, federationSettingsID, orgID, identityProviderID, associatedDomain, workload, attachedIdp, domainRestrictionEnabled)
 }
