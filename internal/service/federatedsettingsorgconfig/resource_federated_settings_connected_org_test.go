@@ -19,7 +19,7 @@ func TestAccFederatedSettingsOrg_createError(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configBasic("not-used", "not-used", "not-used", "not-used", false, false),
+				Config:      configBasic("not-used", "not-used", "not-used", "not-used", false, false, false),
 				ExpectError: regexp.MustCompile("this resource must be imported"),
 			},
 		},
@@ -35,11 +35,15 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	acc.SkipTestForCI(tb) // will delete the MONGODB_ATLAS_FEDERATED_ORG_ID on finish, no workaround: https://github.com/hashicorp/terraform-plugin-testing/issues/85
 
 	var (
-		resourceName         = "mongodbatlas_federated_settings_org_config.test"
-		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
-		orgID                = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
-		idpID                = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
-		associatedDomain     = os.Getenv("MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN")
+		resourceName                = "mongodbatlas_federated_settings_org_config.test"
+		federationSettingsID        = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
+		orgID                       = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
+		idpID                       = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
+		associatedDomain            = os.Getenv("MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN")
+		configNoIdps                = configBasic(federationSettingsID, orgID, "", associatedDomain, false, false, false)
+		configWithIdps              = configBasic(federationSettingsID, orgID, idpID, associatedDomain, true, true, false)
+		configDetachedIdps          = configBasic(federationSettingsID, orgID, "", associatedDomain, true, false, false)
+		configWithDomainRestriction = configBasic(federationSettingsID, orgID, "", associatedDomain, false, false, true)
 	)
 
 	return &resource.TestCase{
@@ -47,7 +51,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:             configBasic(federationSettingsID, orgID, idpID, associatedDomain, false, false),
+				Config:             configNoIdps,
 				ResourceName:       resourceName,
 				ImportStateIdFunc:  importStateIDFunc(federationSettingsID, orgID),
 				ImportState:        true,
@@ -55,7 +59,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				ImportStatePersist: true, // ensure update will be tested in the next step
 			},
 			{
-				Config: configBasic(federationSettingsID, orgID, idpID, associatedDomain, true, true),
+				Config: configWithIdps,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
@@ -63,17 +67,27 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "domain_restriction_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "domain_allow_list.0", associatedDomain),
 					resource.TestCheckResourceAttr(resourceName, "data_access_identity_provider_ids.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "identity_provider_id", idpID),
 				),
 			},
 			{
-				Config: configBasic(federationSettingsID, orgID, idpID, associatedDomain, true, false),
+				Config: configDetachedIdps,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "data_access_identity_provider_ids.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "identity_provider_id", ""),
 				),
 			},
 			{
-				Config:            configBasic(federationSettingsID, orgID, idpID, associatedDomain, false, false),
+				Config: configWithDomainRestriction,
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "domain_restriction_enabled", "true"),
+					resource.TestCheckResourceAttrSet(resourceName, "user_conflicts.#"),
+				),
+			},
+			{
+				Config:            configNoIdps,
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(federationSettingsID, orgID),
 				ImportState:       true,
@@ -114,9 +128,8 @@ func importStateIDFunc(federationSettingsID, orgID string) resource.ImportStateI
 	}
 }
 
-func configBasic(federationSettingsID, orgID, identityProviderID, associatedDomain string, withWorkload, useWorkload bool) string {
+func configBasic(federationSettingsID, orgID, identityProviderID, associatedDomain string, withWorkload, useWorkload, domainRestrictionEnabled bool) string {
 	var workload string
-	var workloadValue = "[]"
 	if withWorkload {
 		workload = fmt.Sprintf(`
 		resource "mongodbatlas_federated_settings_identity_provider" "oidc_workload" {
@@ -130,9 +143,11 @@ func configBasic(federationSettingsID, orgID, identityProviderID, associatedDoma
 			protocol 					= %[3]q
 			groups_claim				= "groups"
 			user_claim 					= "sub"
-		  }
+		}
 		`, federationSettingsID, federatedsettingsidentityprovider.WORKLOAD, federatedsettingsidentityprovider.OIDC)
 	}
+	// The oidc_workload resource cannot be deleted while being "attached" to the organization; therefore, we must support keeping it in config but not using it
+	var workloadValue = "[]"
 	if useWorkload {
 		workloadValue = fmt.Sprintf("[%1s]", "mongodbatlas_federated_settings_identity_provider.oidc_workload.idp_id")
 	}
@@ -141,9 +156,9 @@ func configBasic(federationSettingsID, orgID, identityProviderID, associatedDoma
 	resource "mongodbatlas_federated_settings_org_config" "test" {
 		federation_settings_id     			= %[1]q
 		org_id                     			= %[2]q
-		domain_restriction_enabled 			= false
+		domain_restriction_enabled 			= %[7]t
 		domain_allow_list          			= [%[4]q]
 		identity_provider_id       			= %[3]q
 		data_access_identity_provider_ids 	= %[6]s
-	  }`, federationSettingsID, orgID, identityProviderID, associatedDomain, workload, workloadValue)
+	  }`, federationSettingsID, orgID, identityProviderID, associatedDomain, workload, workloadValue, domainRestrictionEnabled)
 }

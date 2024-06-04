@@ -146,13 +146,21 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if d.HasChange("identity_provider_id") {
 		identityProviderID := d.Get("identity_provider_id").(string)
-		federatedSettingsConnectedOrganizationUpdate.SetIdentityProviderId(identityProviderID)
+		// if identityProviderId is not part of the PATCH payload, it will be detached, "" will raise VALIDATION_ERROR
+		if identityProviderID == "" {
+			federatedSettingsConnectedOrganizationUpdate.IdentityProviderId = nil
+		} else {
+			federatedSettingsConnectedOrganizationUpdate.SetIdentityProviderId(identityProviderID)
+		}
 	}
 
 	if d.HasChange("post_auth_role_grants") {
 		postAuthRoleGrants := d.Get("post_auth_role_grants")
 		federatedSettingsConnectedOrganizationUpdate.SetPostAuthRoleGrants(cast.ToStringSlice(postAuthRoleGrants))
 	}
+	// role mappings are managed by the `mongodbatlas_federated_settings_org_role_mapping` resource, no updates when it is excluded in the payload
+	// keeping existing value [] will raise VALIDATION_ERROR if identity_provider_id is not set
+	federatedSettingsConnectedOrganizationUpdate.RoleMappings = nil
 
 	_, _, err = conn.FederatedAuthenticationApi.UpdateConnectedOrgConfig(ctx, federationSettingsID, orgID, federatedSettingsConnectedOrganizationUpdate).Execute()
 	if err != nil {
