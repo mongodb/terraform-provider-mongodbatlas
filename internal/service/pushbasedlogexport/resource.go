@@ -60,6 +60,9 @@ func (r *pushBasedLogExportRS) Create(ctx context.Context, req resource.CreateRe
 			return
 		}
 
+		logConfig, _, _ := connV2.PushBasedLogExportApi.GetPushBasedLogConfiguration(ctx, projectID).Execute()
+		log.Printf("new state.. %s", *logConfig.State)
+
 		resp.State.RemoveResource(ctx)
 		return
 	}
