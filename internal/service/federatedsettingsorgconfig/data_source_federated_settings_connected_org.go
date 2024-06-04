@@ -86,7 +86,7 @@ func DataSource() *schema.Resource {
 			},
 			"data_access_identity_provider_ids": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Computed: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
