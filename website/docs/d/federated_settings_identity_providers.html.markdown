@@ -36,6 +36,8 @@ data "mongodbatlas_federated_settings_identity_providers" "identitty_provider" {
 * `federation_settings_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
 * `page_num` - (Optional) The page to return. Defaults to `1`. **Note**: This attribute is deprecated and not being used.
 * `items_per_page` - (Optional) Number of items to return per page, up to a maximum of 500. Defaults to `100`. **Note**: This attribute is deprecated and not being used. The implementation is currently limited to returning a maximum of 100 results.
+* `protocols` - (Optional) The protocols of the target identity providers. Valid values are `SAML` and `OIDC`
+* `idp_types` - (Optional) The types of the target identity providers. Valid values are `WORKFORCE` and `WORKLOAD`
 
 ## Attributes Reference
 
@@ -63,6 +65,7 @@ In addition to all arguments above, the following attributes are exported:
 * `groups_claim` - Identifier of the claim which contains IdP Group IDs in the token.
 * `requested_scopes` - Scopes that MongoDB applications will request from the authorization endpoint.
 * `user_claim` - Identifier of the claim which contains the user ID in the token.
+* `idp_type` - Type of the identity provider. Either `WORKFORCE` or `WORKLOAD`
 
   ### Role_mappings
 * `external_group_name` - Unique human-readable label that identifies the identity provider group to which this role mapping applies.
