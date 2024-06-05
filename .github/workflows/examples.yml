@@ -6,10 +6,7 @@ on:
     branches:
       - master
   pull_request:
-    paths:
-      - .github/workflows/examples.yml
-      - examples/**
-  workflow_dispatch: {}
+  workflow_dispatch:
 
 env:
   AWS_DEFAULT_REGION: us-west-2
