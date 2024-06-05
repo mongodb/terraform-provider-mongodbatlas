@@ -22,8 +22,8 @@ The Terraform MongoDB Atlas Provider version 1.17.0 has a number of new and exci
         1. Change `audienceClaim` to `audience` and the value from an array of strings (`["audience"]`) to a single string (`"audience"`) in your terraform configuration files.
         2. Re-import all [`mongodbatlas_federated_settings_identity_provider`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/federated_settings_identity_provider) resources: 
 			`terraform import mongodbatlas_federated_settings_identity_provider.identity_provider  <federation_settings_id>-<idp_id>`
-        3. Run `terraform plan`
-        4. Run `terraform apply`
+        3. Run `terraform plan`.
+        4. Run `terraform apply`.
 
 ### Helpful Links
 
