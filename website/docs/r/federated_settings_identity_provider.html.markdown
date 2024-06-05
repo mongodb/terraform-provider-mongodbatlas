@@ -34,7 +34,7 @@ resource "mongodbatlas_federated_settings_identity_provider" "identity_provider"
 * `federation_settings_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
 * `name` - (Required) Human-readable label that identifies the identity provider.
 * `description` - (Required for OIDC IdPs) The description of the identity provider.
-* `authorization_type` - (Required for OIDC IdPs) Indicates whether authorization is granted based on group membership or user ID. Either `GROUP` or `USER`.
+* `authorization_type` - (Required for OIDC IdPs) Indicates whether authorization is granted based on group membership or user ID. Valid values are `GROUP` or `USER`.
 * `associated_domains` - List that contains the domains associated with the identity provider.
 * `sso_debug_enabled` - Flag that indicates whether the identity provider has SSO debug enabled.
 * `status`- String enum that indicates whether the identity provider is active or not. Accepted values are ACTIVE or INACTIVE.
