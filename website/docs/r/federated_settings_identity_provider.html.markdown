@@ -50,7 +50,7 @@ resource "mongodbatlas_federated_settings_identity_provider" "identity_provider"
 * `groups_claim` - (Required for OIDC IdP with `authorization_type = GROUP`) Identifier of the claim which contains OIDC IdP Group IDs in the token.
 * `requested_scopes` - Scopes that MongoDB applications will request from the authorization endpoint used for OIDC IdPs.
 * `user_claim` - (Required for OIDC IdP) Identifier of the claim which contains the user ID in the token used for OIDC IdPs.
-userClaim is required for OIDC IdP with authorizationType GROUP and USER
+userClaim is required for OIDC IdP with authorizationType GROUP and USER.
 
 
 ## Attributes Reference
