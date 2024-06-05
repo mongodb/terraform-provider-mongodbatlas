@@ -36,6 +36,8 @@ data "mongodbatlas_federated_settings_identity_providers" "identitty_provider" {
 * `federation_settings_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
 * `page_num` - (Optional) The page to return. Defaults to `1`. **Note**: This attribute is deprecated and not being used.
 * `items_per_page` - (Optional) Number of items to return per page, up to a maximum of 500. Defaults to `100`. **Note**: This attribute is deprecated and not being used. The implementation is currently limited to returning a maximum of 100 results.
+* `protocols` - (Optional) The protocols of the target identity providers. Valid values are `SAML` and `OIDC`.
+* `idp_types` - (Optional) The types of the target identity providers. Valid values are `WORKFORCE` and `WORKLOAD`.
 
 ## Attributes Reference
 
@@ -47,6 +49,8 @@ In addition to all arguments above, the following attributes are exported:
 ### FederatedSettingsIdentityProvider
 
 * `identity_provider_id` - Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
+* `description` - The description of the identity provider.
+* `authorization_type` - Indicates whether authorization is granted based on group membership or user ID. Valid values are `GROUP` or `USER`.
 * `acs_url` - Assertion consumer service URL to which the IdP sends the SAML response.
 * `associated_domains` - List that contains the configured domains from which users can log in for this IdP.
 * `associated_orgs` - List that contains the configured domains from which users can log in for this IdP.
@@ -56,11 +60,12 @@ In addition to all arguments above, the following attributes are exported:
 * `post_auth_role_grants` - List that contains the default roles granted to users who authenticate through the IdP in a connected organization. If you provide a postAuthRoleGrants field in the request, the array that you provide replaces the current postAuthRoleGrants.
 * `protocol` - The protocol of the identity provider
 * `idp_id` - Unique 24-hexadecimal digit string that identifies the IdP
-* `audience_claim` - Identifier of the intended recipient of the token.
+* `audience` - Identifier of the intended recipient of the token.
 * `client_id` - Client identifier that is assigned to an application by the Identity Provider.
 * `groups_claim` - Identifier of the claim which contains IdP Group IDs in the token.
 * `requested_scopes` - Scopes that MongoDB applications will request from the authorization endpoint.
 * `user_claim` - Identifier of the claim which contains the user ID in the token.
+* `idp_type` - Type of the identity provider. Valid values are `WORKFORCE` or `WORKLOAD`.
 
   ### Role_mappings
 * `external_group_name` - Unique human-readable label that identifies the identity provider group to which this role mapping applies.
