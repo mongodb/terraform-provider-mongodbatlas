@@ -50,7 +50,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `identity_provider_id` - Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
 * `description` - The description of the identity provider.
-* `authorization_type` - Indicates whether authorization is granted based on group membership or user ID. Either `GROUP` or `USER`.
+* `authorization_type` - Indicates whether authorization is granted based on group membership or user ID. Valid values are `GROUP` or `USER`.
 * `acs_url` - Assertion consumer service URL to which the IdP sends the SAML response.
 * `associated_domains` - List that contains the configured domains from which users can log in for this IdP.
 * `associated_orgs` - List that contains the configured domains from which users can log in for this IdP.
