@@ -47,7 +47,7 @@ resource "mongodbatlas_federated_settings_identity_provider" "identity_provider"
 * `protocol` - The protocol of the identity provider. Either `SAML` or `OIDC`.
 * `audience` - (Required for OIDC IdPs) Identifier of the intended recipient of the token used in OIDC IdP.
 * `client_id` - Client identifier that is assigned to an application by the OIDC Identity Provider.
-* `groups_claim` - Identifier of the claim which contains OIDC IdP Group IDs in the token. Required for OIDC IdP with `authorization_type = GROUP`.
+* `groups_claim` - (Required for OIDC IdP with `authorization_type = GROUP`) Identifier of the claim which contains OIDC IdP Group IDs in the token.
 * `requested_scopes` - Scopes that MongoDB applications will request from the authorization endpoint used for OIDC IdPs.
 * `user_claim` - (Required for OIDC IdP) Identifier of the claim which contains the user ID in the token used for OIDC IdPs.
 userClaim is required for OIDC IdP with authorizationType GROUP and USER
