@@ -39,7 +39,9 @@ data "mongodbatlas_federated_settings_org_configs" "org_configs_ds" {
 * `post_auth_role_grants` - (Optional) List that contains the default [roles](https://www.mongodb.com/docs/atlas/reference/user-roles/#std-label-organization-roles) granted to users who authenticate through the IdP in a connected organization.
 
 * `domain_restriction_enabled` - (Required) Flag that indicates whether domain restriction is enabled for the connected organization.
-* `identity_provider_id` - (Required) Legacy 20-hexadecimal digit string that identifies the SAML access identity provider that this connected org config is associated with. This id can be found within the Federation Management UI in Atlas in the Identity Providers tab by clicking the info icon in the IdP ID row of a configured SAML identity provider. Leave as `""` to detach/remove the SAML identity provider.
+* `identity_provider_id` - (Optional) Legacy 20-hexadecimal digit string that identifies the SAML access identity provider that this connected org config is associated with. `""` or null will detach/remove the SAML identity provider. This id can be found in two ways:
+  1. Within the Federation Management UI in Atlas in the Identity Providers tab by clicking the info icon in the IdP ID row of a configured SAML identity provider
+  2. `okta_idp_id` on the `mongodbatlas_federated_settings_identity_provider` resource
 * `data_access_identity_provider_ids` - (Optional) The collection of unique ids representing the identity providers that can be used for data access in this organization.
 
 ## Attributes Reference

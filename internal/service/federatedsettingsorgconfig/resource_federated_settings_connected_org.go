@@ -34,7 +34,7 @@ func Resource() *schema.Resource {
 			},
 			"identity_provider_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"domain_allow_list": {
 				Type:     schema.TypeList,

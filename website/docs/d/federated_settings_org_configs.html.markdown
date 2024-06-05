@@ -46,7 +46,9 @@ In addition to all arguments above, the following attributes are exported:
 
 * `domain_allow_list` - List that contains the approved domains from which organization users can log in.
 * `domain_restriction_enabled` - Flag that indicates whether domain restriction is enabled for the connected organization.
-* `identity_provider_id` - Legacy 20-hexadecimal digit string that identifies the SAML access identity provider that this connected org config is associated with. This id can be found within the Federation Management UI in Atlas in the Identity Providers tab by clicking the info icon in the IdP ID row of a configured SAML identity provider.
+* `identity_provider_id` - Legacy 20-hexadecimal digit string that identifies the SAML access identity provider that this connected org config is associated with. This id can be found in two ways:
+  1. Within the Federation Management UI in Atlas in the Identity Providers tab by clicking the info icon in the IdP ID row of a configured SAML identity provider
+  2. `okta_idp_id` on the `mongodbatlas_federated_settings_identity_provider` resource
 * `org_id` - Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
 * `post_auth_role_grants` - List that contains the default roles granted to users who authenticate through the IdP in a connected organization.
 * `data_access_identity_provider_ids` - The collection of unique ids representing the identity providers that can be used for data access in this organization.
