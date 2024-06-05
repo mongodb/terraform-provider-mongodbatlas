@@ -32,9 +32,7 @@ func Test{{.NamePascalCase}}SDKToTFModel(t *testing.T) {
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
-			if !assert.Equal(t, resultModel, tc.expectedTFModel) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
@@ -62,9 +60,7 @@ func Test{{.NamePascalCase}}TFModelToSDK(t *testing.T) {
 		if diags.HasError() {
 			t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 		}
-		if !assert.Equal(t, apiReqResult, tc.expectedSDKReq) {
-			t.Errorf("created sdk model did not match expected output")
-		}
+		assert.Equal(t, tc.expectedSDKReq, apiReqResult, "created sdk model did not match expected output")
 	}
 }
 {{end}}

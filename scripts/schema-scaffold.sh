@@ -49,6 +49,6 @@ rename_file() {
     fi
 }
 
-rename_file "${resource_name_snake_case}_data_source_gen.go" "data_source_${resource_name_snake_case}_schema.go"
-rename_file "${resource_name_snake_case}s_data_source_gen.go" "data_source_${resource_name_snake_case}s_schema.go"
-rename_file "${resource_name_snake_case}_resource_gen.go" "resource_${resource_name_snake_case}_schema.go"
+rename_file "${resource_name_snake_case}_data_source_gen.go" "data_source_schema.go"
+rename_file "${resource_name_snake_case}s_data_source_gen.go" "pural_data_source_schema.go"
+rename_file "${resource_name_snake_case}_resource_gen.go" "resource_schema.go"

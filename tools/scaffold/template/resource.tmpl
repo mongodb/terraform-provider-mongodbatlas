@@ -27,7 +27,7 @@ type {{.NameCamelCase}}RS struct {
 }
 
 func (r *{{.NameCamelCase}}RS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-    // TODO: Schema and model must be defined in resource_{{.NameSnakeCase}}_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
+    // TODO: Schema and model must be defined in resource_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
 	resp.Schema = ResourceSchema(ctx)
 }
 

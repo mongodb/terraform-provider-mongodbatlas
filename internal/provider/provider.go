@@ -28,6 +28,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/controlplaneipaddresses"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
@@ -431,6 +432,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		streaminstance.PluralDataSource,
 		streamconnection.DataSource,
 		streamconnection.PluralDataSource,
+		controlplaneipaddresses.DataSource,
 	}
 	previewDataSources := []func() datasource.DataSource{} // Data sources not yet in GA
 	if providerEnablePreview {
