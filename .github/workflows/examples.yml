@@ -6,10 +6,7 @@ on:
     branches:
       - master
   pull_request:
-    paths:
-      - .github/workflows/examples.yml
-      - examples/**
-  workflow_dispatch: {}
+  workflow_dispatch:
 
 env:
   AWS_DEFAULT_REGION: us-west-2
@@ -50,7 +47,7 @@ jobs:
           # Needed to use the output of `terraform validate -json`
           terraform_wrapper: false
       - name: tf-validate
-        run: make tools && make tf-validate
+        run: make tools tf-validate
   tflint:
     runs-on: ubuntu-latest
     strategy:
@@ -66,4 +63,4 @@ jobs:
         with:
           go-version-file: 'go.mod'
       - name: tflint
-        run: make tools && make tflint
+        run: make tools tflint

@@ -57,7 +57,7 @@ resource "mongodbatlas_federated_settings_identity_provider" "oidc_identity_prov
   associated_domains     = ["yourdomain.com"]
   issuer_uri             = "http://www.okta.com/exk1f716hf7f750h8"
   client_id              = "clientId"
-  audience_claim         = ["audience"]
+  audience               = "audience"
   requested_scopes       = ["profiles"]
   user_claim             = "sub"
   groups_claim           = "groups"
