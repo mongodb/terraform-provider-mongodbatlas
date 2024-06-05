@@ -133,9 +133,6 @@ func (r *databaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 				Optional: true,
 				Computed: true,
 				Default:  stringdefault.StaticString("NONE"),
-				Validators: []validator.String{
-					stringvalidator.OneOf("NONE", "IDP_GROUP"),
-				},
 			},
 			"ldap_auth_type": schema.StringAttribute{
 				Optional: true,

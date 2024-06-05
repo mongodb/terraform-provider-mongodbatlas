@@ -179,3 +179,19 @@ func ConfigDatabaseUserWithLDAPAuthType(projectID, username, roleName, keyLabel,
 		}
 	`, projectID, username, roleName, keyLabel, valueLabel)
 }
+
+func ConfigDataBaseUserWithOIDCAuthType(projectID, username, authType, databaseName, roleName string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_database_user" "test" {
+		project_id         = %[1]q
+		username           = %[2]q
+		oidc_auth_type     = %[3]q
+		auth_database_name = %[4]q
+
+		roles {
+			role_name     = %[5]q
+			database_name = "admin"
+		}
+	}
+`, projectID, username, authType, databaseName, roleName)
+}

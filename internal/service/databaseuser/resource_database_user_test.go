@@ -3,6 +3,7 @@ package databaseuser_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -95,11 +96,10 @@ func TestAccConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password"},
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -155,11 +155,10 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password"},
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -484,11 +483,55 @@ func TestAccConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password"},
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccCOnfigRSDatabaseUser_withOIDCAuthType(t *testing.T) {
+	var (
+		projectID         = acc.ProjectIDExecution(t)
+		idpID             = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
+		workforceAuthType = "IDP_GROUP"
+		workloadAuthType  = "USER"
+		usernameWorkforce = fmt.Sprintf("%s/%s", idpID, workforceAuthType)
+		usernameWorkload  = fmt.Sprintf("%s/%s", idpID, workloadAuthType)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.ConfigDataBaseUserWithOIDCAuthType(projectID, usernameWorkforce, workforceAuthType, "admin", "atlasAdmin"),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "username", usernameWorkforce),
+					resource.TestCheckResourceAttr(resourceName, "oidc_auth_type", workforceAuthType),
+					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
+				),
+			},
+			{
+				Config: acc.ConfigDataBaseUserWithOIDCAuthType(projectID, usernameWorkload, workloadAuthType, "$external", "atlasAdmin"),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "username", usernameWorkload),
+					resource.TestCheckResourceAttr(resourceName, "oidc_auth_type", workloadAuthType),
+					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
