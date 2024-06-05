@@ -62,7 +62,7 @@ In addition to all arguments above, the following attributes are exported:
 * `groups_claim` - Identifier of the claim which contains IdP Group IDs in the token.
 * `requested_scopes` - Scopes that MongoDB applications will request from the authorization endpoint.
 * `user_claim` - Identifier of the claim which contains the user ID in the token.
-* `idp_type` - Type of the identity provider. Either `WORKFORCE` or `WORKLOAD`
+* `idp_type` - Type of the identity provider. Valid values are `WORKFORCE` or `WORKLOAD`.
 
   ### Role_mappings
 * `external_group_name` - Unique human-readable label that identifies the identity provider group to which this role mapping applies.
