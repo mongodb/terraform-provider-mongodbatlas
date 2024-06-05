@@ -47,6 +47,8 @@ In addition to all arguments above, the following attributes are exported:
 ### FederatedSettingsIdentityProvider
 
 * `identity_provider_id` - Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
+* `description` - The description of the identity provider.
+* `authorization_type` - Indicates whether authorization is granted based on group membership or user ID. Either `GROUP` or `USER`.
 * `acs_url` - Assertion consumer service URL to which the IdP sends the SAML response.
 * `associated_domains` - List that contains the configured domains from which users can log in for this IdP.
 * `associated_orgs` - List that contains the configured domains from which users can log in for this IdP.
@@ -56,7 +58,7 @@ In addition to all arguments above, the following attributes are exported:
 * `post_auth_role_grants` - List that contains the default roles granted to users who authenticate through the IdP in a connected organization. If you provide a postAuthRoleGrants field in the request, the array that you provide replaces the current postAuthRoleGrants.
 * `protocol` - The protocol of the identity provider
 * `idp_id` - Unique 24-hexadecimal digit string that identifies the IdP
-* `audience_claim` - Identifier of the intended recipient of the token.
+* `audience` - Identifier of the intended recipient of the token.
 * `client_id` - Client identifier that is assigned to an application by the Identity Provider.
 * `groups_claim` - Identifier of the claim which contains IdP Group IDs in the token.
 * `requested_scopes` - Scopes that MongoDB applications will request from the authorization endpoint.
