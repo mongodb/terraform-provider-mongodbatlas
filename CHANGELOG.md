@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * data-source/mongodbatlas_federated_settings_identity_providers: Adds OIDC Workload support ([#2318](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2318))
 * data-source/mongodbatlas_federated_settings_identity_providers: Adds `description` and `authorization_type` fields ([#2310](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2310))
 * data-source/mongodbatlas_federated_settings_identity_providers: Adds filtering support for Protocol and IdP type ([#2318](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2318))
+* resource/mongodbatlas_database_user: Supports Workload OIDC `mongodbatlas_database_user` ([#2323](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2323))
 * resource/mongodbatlas_federated_settings_identity_provider: Adds OIDC Workload support ([#2318](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2318))
 * resource/mongodbatlas_federated_settings_identity_provider: Adds `description` and `authorization_type` fields ([#2310](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2310))
 * resource/mongodbatlas_federated_settings_identity_provider: Adds create and delete operations for Workforce OIDC IdP ([#2310](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2310))
