@@ -56,7 +56,7 @@ In addition to all arguments above, the following attributes are exported:
 * `org_id` - Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
 * `post_auth_role_grants` - List that contains the default roles granted to users who authenticate through the IdP in a connected organization. If you provide a postAuthRoleGrants field in the request, the array that you provide replaces the current postAuthRoleGrants.
 * `idp_id` - Unique 24-hexadecimal digit string that identifies the IdP
-* `protocol` - The protocol of the identity provider. Either `SAML` or `OIDC`.
+* `protocol` - The protocol of the identity provider. Valid values are `SAML` or `OIDC`.
 * `audience` - Identifier of the intended recipient of the token.
 * `client_id` - Client identifier that is assigned to an application by the Identity Provider.
 * `groups_claim` - Identifier of the claim which contains IdP Group IDs in the token.
