@@ -5,16 +5,13 @@
   on:
     issues:
       types: [opened, reopened, closed]
-  permissions: 
-    issues: write
-    contents: read
   jobs:
     jira_task:
       name: Create Jira issue
       if: github.event.action == 'opened'
       runs-on: ubuntu-latest
-      permissions:
-        issues: write
+      env:
+        GITHUB_TOKEN: ${{ secrets.APIX_BOT_PAT }}
       steps:
       - name: Create JIRA ticket
         id: create
@@ -74,7 +71,8 @@
       name: Reopen JIRA ticket
       if: github.event.action == 'reopened'
       runs-on: ubuntu-latest
-      permissions: {}
+      env:
+        GITHUB_TOKEN: ${{ secrets.APIX_BOT_PAT }}
       steps:
         - name: Reopened JIRA ticket if exists
           run: |
@@ -123,6 +121,8 @@
       name: Close JIRA ticket
       if: github.event.action == 'closed'
       runs-on: ubuntu-latest
+      env:
+        GITHUB_TOKEN: ${{ secrets.APIX_BOT_PAT }}
       steps:
         - name: Close JIRA ticket if exists
           run: |
