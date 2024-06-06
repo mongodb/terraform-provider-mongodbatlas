@@ -2,8 +2,12 @@ package pushbasedlogexport
 
 import (
 	"context"
+	"log"
 	"net/http"
+	"slices"
 	"time"
+
+	"go.mongodb.org/atlas-sdk/v20231115014/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -51,7 +55,14 @@ func (r *pushBasedLogExportRS) Create(ctx context.Context, req resource.CreateRe
 	connV2 := r.Client.AtlasV2
 	projectID := tfPlan.ProjectID.ValueString()
 	if _, err := connV2.PushBasedLogExportApi.CreatePushBasedLogConfiguration(ctx, projectID, logExportConfigReq).Execute(); err != nil {
-		resp.Diagnostics.AddError("eError when creating push-based log export configuration", err.Error())
+		resp.Diagnostics.AddError("Error when creating push-based log export configuration", err.Error())
+
+		if err := unconfigureFailedPushBasedLog(ctx, connV2, projectID); err != nil {
+			resp.Diagnostics.AddError("Error when unconfiguring push-based log export configuration", err.Error())
+			return
+		}
+
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -65,6 +76,13 @@ func (r *pushBasedLogExportRS) Create(ctx context.Context, req resource.CreateRe
 		retryTimeConfig(timeout, minTimeoutCreateUpdate))
 	if err != nil {
 		resp.Diagnostics.AddError("Error when creating push-based log export configuration", err.Error())
+
+		if err := unconfigureFailedPushBasedLog(ctx, connV2, projectID); err != nil {
+			resp.Diagnostics.AddError("Error when unconfiguring push-based log export configuration", err.Error())
+			return
+		}
+
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -178,4 +196,15 @@ func retryTimeConfig(configuredTimeout, minTimeout time.Duration) retrystrategy.
 		MinTimeout: minTimeout,
 		Delay:      retryTimeDelay,
 	}
+}
+
+func unconfigureFailedPushBasedLog(ctx context.Context, connV2 *admin.APIClient, projectID string) error {
+	logConfig, _, _ := connV2.PushBasedLogExportApi.GetPushBasedLogConfiguration(ctx, projectID).Execute()
+	if logConfig != nil && slices.Contains(failureStates, *logConfig.State) {
+		log.Printf("[INFO] Unconfiguring push-based log export for project due to create failure: %s", projectID)
+		if _, err := connV2.PushBasedLogExportApi.DeletePushBasedLogConfiguration(ctx, projectID).Execute(); err != nil {
+			return err
+		}
+	}
+	return nil
 }

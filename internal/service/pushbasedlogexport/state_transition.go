@@ -15,11 +15,15 @@ import (
 )
 
 const (
-	ActiveState         = "ACTIVE"
-	UnconfiguredState   = "UNCONFIGURED"
-	InitiatingState     = "INITIATING"
-	BucketVerifiedState = "BUCKET_VERIFIED"
+	ActiveState                   = "ACTIVE"
+	UnconfiguredState             = "UNCONFIGURED"
+	InitiatingState               = "INITIATING"
+	BucketVerifiedState           = "BUCKET_VERIFIED"
+	BucketVerificationFailedState = "BUCKET_VERIFICATION_FAILED"
+	AssumeRoleFailedState         = "ASSUME_ROLE_FAILED"
 )
+
+var failureStates = []string{BucketVerificationFailedState, AssumeRoleFailedState}
 
 func WaitStateTransition(ctx context.Context, projectID string, client admin.PushBasedLogExportApi,
 	timeConfig retrystrategy.TimeConfig) (*admin.PushBasedLogExportProject, error) {
