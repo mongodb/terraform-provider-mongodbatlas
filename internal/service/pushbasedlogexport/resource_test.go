@@ -3,6 +3,7 @@ package pushbasedlogexport_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -90,6 +91,39 @@ func noPrefixPathTestCase(tb testing.TB) *resource.TestCase {
 			},
 		},
 	}
+}
+
+func TestAccPushBasedLogExport_createFailure(t *testing.T) {
+	resource.Test(t, *createFailure(t))
+}
+
+func createFailure(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+	var (
+		projectID = acc.ProjectIDExecution(tb)
+	)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb); acc.PreCheckAwsEnvBasic(tb) },
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      pushBasedLogExportInvalidConfig(projectID),
+				ExpectError: regexp.MustCompile("CLOUD_PROVIDER_ACCESS_ROLE_NOT_FOUND"),
+			},
+		},
+	}
+}
+
+func pushBasedLogExportInvalidConfig(projectID string) string {
+	return fmt.Sprintf(`resource "mongodbatlas_push_based_log_export" "test" {
+		project_id  = %[1]q
+		bucket_name = "invalidBucket"
+		iam_role_id = "aaaaaaaaaa99999999999999"
+	}
+	`, projectID)
 }
 
 func commonChecks(s3BucketName, prefixPath string) []resource.TestCheckFunc {
