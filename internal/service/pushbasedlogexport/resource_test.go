@@ -104,8 +104,7 @@ func createFailure(tb testing.TB) *resource.TestCase {
 	)
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(tb); acc.PreCheckAwsEnvBasic(tb) },
-		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
