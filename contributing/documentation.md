@@ -9,7 +9,7 @@ We autogenerate the documentation of our provider resources and data sources via
 ### How to generate the documentation for a resource
 - Make sure that the resource and data source schemas have defined the fields `MarkdownDescription` and `Description`.
   - We recommend to use [Scaffolding Schema and Model Definitions](#scaffolding-schema-and-model-definitions) to autogenerate the schema via the Open API specification.
-- Add the resource/data source templates to the [templates](templates) folder. See [README.md](templates/README.md) for more info.
+- Add the resource/data source templates to the [templates](templates) folder. See [README.md](./../templates/README.md) for more info.
 - Run the Makefile command `generate-doc`
 ```bash
 export resource_name=search_deployment && make generate-doc
