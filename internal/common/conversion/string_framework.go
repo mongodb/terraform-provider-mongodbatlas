@@ -3,7 +3,9 @@ package conversion
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 func TypesSetToString(ctx context.Context, set types.Set) []string {
@@ -16,6 +18,10 @@ func TypesListToString(ctx context.Context, list types.List) []string {
 	results := []string{}
 	_ = list.ElementsAs(ctx, &results, false)
 	return results
+}
+
+func ToTFMapOfSlices(ctx context.Context, values map[string][]string) (basetypes.MapValue, diag.Diagnostics) {
+	return types.MapValueFrom(ctx, types.ListType{ElemType: types.StringType}, values)
 }
 
 // StringNullIfEmpty converts a string value to a Framework String value.

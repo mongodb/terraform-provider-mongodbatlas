@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/controlplaneipaddresses"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/atlas-sdk/v20231115014/admin"
@@ -103,7 +104,7 @@ func TestControlPlaneIpAddressesSDKToTFModel(t *testing.T) {
 
 func toTFMap(t *testing.T, values map[string][]string) basetypes.MapValue {
 	t.Helper()
-	result, diags := types.MapValueFrom(context.Background(), types.ListType{ElemType: types.StringType}, values)
+	result, diags := conversion.ToTFMapOfSlices(context.Background(), values)
 	if diags.HasError() {
 		t.Errorf("unexpected errors found when creating test cases: %s", diags.Errors()[0].Summary())
 	}

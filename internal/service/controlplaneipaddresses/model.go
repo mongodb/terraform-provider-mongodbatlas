@@ -5,21 +5,20 @@ import (
 	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"go.mongodb.org/atlas-sdk/v20231115014/admin"
 )
 
 func NewTFControlPlaneIPAddresses(ctx context.Context, apiResp *admin.ControlPlaneIPAddresses) (*TFControlPlaneIpAddressesModel, diag.Diagnostics) {
 	inbound := apiResp.GetInbound()
-	inboundAwsTfMap, inAwsDiags := toTFMap(ctx, inbound.GetAws())
-	inboundGcpTfMap, inGcpDiags := toTFMap(ctx, inbound.GetGcp())
-	inboundAzureTfMap, inAzureDiags := toTFMap(ctx, inbound.GetAzure())
+	inboundAwsTfMap, inAwsDiags := conversion.ToTFMapOfSlices(ctx, inbound.GetAws())
+	inboundGcpTfMap, inGcpDiags := conversion.ToTFMapOfSlices(ctx, inbound.GetGcp())
+	inboundAzureTfMap, inAzureDiags := conversion.ToTFMapOfSlices(ctx, inbound.GetAzure())
 
 	outbound := apiResp.GetOutbound()
-	outboundAwsTfMap, outAwsDiags := toTFMap(ctx, outbound.GetAws())
-	outboundGcpTfMap, outGcpDiags := toTFMap(ctx, outbound.GetGcp())
-	outboundAzureTfMap, outAzureDiags := toTFMap(ctx, outbound.GetAzure())
+	outboundAwsTfMap, outAwsDiags := conversion.ToTFMapOfSlices(ctx, outbound.GetAws())
+	outboundGcpTfMap, outGcpDiags := conversion.ToTFMapOfSlices(ctx, outbound.GetGcp())
+	outboundAzureTfMap, outAzureDiags := conversion.ToTFMapOfSlices(ctx, outbound.GetAzure())
 
 	allDiags := slices.Concat(inAwsDiags, inGcpDiags, inAzureDiags, outAwsDiags, outGcpDiags, outAzureDiags)
 	if allDiags.HasError() {
@@ -38,8 +37,4 @@ func NewTFControlPlaneIPAddresses(ctx context.Context, apiResp *admin.ControlPla
 			Azure: outboundAzureTfMap,
 		},
 	}, nil
-}
-
-func toTFMap(ctx context.Context, values map[string][]string) (basetypes.MapValue, diag.Diagnostics) {
-	return types.MapValueFrom(ctx, types.ListType{ElemType: types.StringType}, values)
 }
