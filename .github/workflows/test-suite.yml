@@ -81,7 +81,7 @@ jobs:
   
   slack-notification:
     needs: [tests, clean-after]
-    if: ${{ !cancelled() && github.event_name == 'schedule' && needs.tests.result == 'failure' && inputs.send_notification == true}}
+    if: ${{ !cancelled() && github.event_name == 'schedule' && needs.tests.result == 'failure' && inputs.send_notification == 'true' }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
