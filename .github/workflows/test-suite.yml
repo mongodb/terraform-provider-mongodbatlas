@@ -11,7 +11,7 @@ on:
         description: 'Previous MongoDB Atlas Provider version matrix for migration tests (JSON array)'
         default: '[""]' # "" for latest version
       send_notification:
-        description: 'Send the Slack notification if any of the tests fail. Can be either `true` or `false`.'
+        description: 'Send the Slack notification if any of the tests fail.'
         type: boolean
         default: true
   workflow_call:
@@ -28,7 +28,7 @@ on:
         type: string
         required: false
       send_notification:
-        description: 'Send the Slack notification if any of the tests fail. Can be either `true` or `false`.'
+        description: 'Send the Slack notification if any of the tests fail.'
         type: boolean
         default: true
 
@@ -81,7 +81,7 @@ jobs:
   
   slack-notification:
     needs: [tests, clean-after]
-    if: ${{ !cancelled() && github.event_name == 'schedule' && needs.tests.result == 'failure' && inputs.send_notification == 'true' }}
+    if: ${{ !cancelled() && needs.tests.result == 'failure' && inputs.send_notification == true }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
