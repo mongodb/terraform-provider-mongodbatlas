@@ -7,7 +7,7 @@ This project aims to provide an example of using Okta and MongoDB Atlas together
 
 * Terraform v0.13
 * Okta account 
-* A MongoDB Atlas account with an Organization configured with [Federation Authentication](https://www.mongodb.com/docs/atlas/security/federated-authentication/#federation-management-console)
+* A MongoDB Atlas account with an organization configured with [Federated Authentication](https://www.mongodb.com/docs/atlas/security/federated-authentication/#federation-management-console)
   * Get the `federated_settings_id` from the url, e.g., <https://cloud.mongodb.com/v2#/federation/{federated_settings_id}/overview>
 ```
 Terraform v0.13.0
