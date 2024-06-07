@@ -1,0 +1,3 @@
+```release-note:new-datasource
+mongodbatlas_control_plane_ip_addresses
+```

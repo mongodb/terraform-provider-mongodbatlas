@@ -27,7 +27,7 @@ type {{.NameCamelCase}}sDS struct {
 }
 
 func (d *{{.NameCamelCase}}sDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	// TODO: Schema and model must be defined in data_source_{{.NameSnakeCase}}s_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
+	// TODO: Schema and model must be defined in plural_data_source_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
 	resp.Schema = PluralDataSourceSchema(ctx)
 }
 

@@ -3,6 +3,7 @@ package acc
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"reflect"
 	"regexp"
 	"slices"
@@ -22,6 +23,13 @@ func MatchesExpression(expr string) resource.CheckResourceAttrWithFunc {
 			return fmt.Errorf("%s did not match expression %s", value, expr)
 		}
 		return nil
+	}
+}
+
+func CIDRBlockExpression() resource.CheckResourceAttrWithFunc {
+	return func(value string) error {
+		_, _, err := net.ParseCIDR(value)
+		return err
 	}
 }
 

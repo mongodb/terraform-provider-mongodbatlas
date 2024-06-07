@@ -75,7 +75,7 @@ tfplugindocs generate --tf-version "${TF_VERSION}" --website-source-dir "${TEMPL
 if [ ! -f "docs/resources/${resource_name}.md" ]; then
     echo "Error: We cannot find the documentation file for the resource ${resource_name}.md"
     echo "Please, make sure to include the resource template under templates/resources/${resource_name}.md.tmpl"
-    exit 1
+    printf "Skipping this step: We assume that only a data source is being generated.\n\n"
 else
     printf "\nMoving the generated file %s.md to the website folder" "${resource_name}"
     mv "docs/resources/${resource_name}.md" "website/docs/r/${resource_name}.html.markdown"

@@ -14,6 +14,7 @@ The Terraform MongoDB Atlas Provider version 1.17.0 has a number of new and exci
 
 - You can now Create and Delete [MongoDB Atlas OIDC Workforce identity providers](https://www.mongodb.com/docs/atlas/workforce-oidc/) with `mongodbatlas_federated_settings_identity_provider` [resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/federated_settings_identity_provider).
 - You can now use [MongoDB Atlas OIDC Workload identity providers](https://www.mongodb.com/docs/atlas/workload-oidc/) with `mongodbatlas_federated_settings_identity_provider` [resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/federated_settings_identity_provider), [`mongodbatlas_federated_settings_identity_provider`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/federated_settings_identity_provider) and [`mongodbatlas_federated_settings_identity_providers`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/federated_settings_identity_providers) data sources.
+- You can now obtain [MongoDB Atlas control plane IP addresses](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Root/operation/returnAllControlPlaneIPAddresses) with the new `mongodbatlas_control_plane_ip_addresses` [data source](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/control_plane_ip_addresses).
 
 **Breaking Changes:**
 

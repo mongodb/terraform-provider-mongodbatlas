@@ -1,0 +1,9 @@
+provider:
+  name: mongodbatlas
+
+data_sources:
+  control_plane_ip_addresses:
+    read:
+      path: /api/atlas/v2/unauth/controlPlaneIPAddresses
+      method: GET
+

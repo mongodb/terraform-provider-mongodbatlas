@@ -12,13 +12,11 @@ import (
 type sdkToTFModelTestCase struct {
 	SDKResp         *admin.{{.NamePascalCase}}
 	expectedTFModel *{{.NameLowerNoSpaces}}.TF{{.NamePascalCase}}Model
-	name            string
 }
 
 func Test{{.NamePascalCase}}SDKToTFModel(t *testing.T) {
-	testCases := []sdkToTFModelTestCase{ // TODO: consider adding test cases to contemplate all possible API responses
-		{
-			name: "Complete SDK response",
+	testCases := map[string]sdkToTFModelTestCase{ // TODO: consider adding test cases to contemplate all possible API responses
+		"Complete SDK response": {
 			SDKResp: &admin.{{.NamePascalCase}}{
 			},
 			expectedTFModel: &{{.NameLowerNoSpaces}}.TF{{.NamePascalCase}}Model{
@@ -26,30 +24,26 @@ func Test{{.NamePascalCase}}SDKToTFModel(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+	for testName, tc := range testCases {
+		t.Run(testName, func(t *testing.T) {
 			resultModel, diags := {{.NameLowerNoSpaces}}.NewTF{{.NamePascalCase}}(context.Background(), tc.SDKResp)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
-			if !assert.Equal(t, resultModel, tc.expectedTFModel) {
-				t.Errorf("created terraform model did not match expected output")
-			}
+			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
 
 {{if eq .GenerationType "resource"}}
 type tfToSDKModelTestCase struct {
-	name           string
 	tfModel        *{{.NameLowerNoSpaces}}.TF{{.NamePascalCase}}Model
 	expectedSDKReq *admin.{{.NamePascalCase}}
 }
 
 func Test{{.NamePascalCase}}TFModelToSDK(t *testing.T) {
-	testCases := []tfToSDKModelTestCase{
-		{
-			name: "Complete TF state",
+	testCases := map[string]tfToSDKModelTestCase{
+		"Complete TF state": {
 			tfModel: &{{.NameLowerNoSpaces}}.TF{{.NamePascalCase}}Model{
 			},
 			expectedSDKReq: &admin.{{.NamePascalCase}}{
@@ -57,14 +51,14 @@ func Test{{.NamePascalCase}}TFModelToSDK(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		apiReqResult, diags := {{.NameLowerNoSpaces}}.New{{.NamePascalCase}}Req(context.Background(), tc.tfModel)
-		if diags.HasError() {
-			t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
-		}
-		if !assert.Equal(t, apiReqResult, tc.expectedSDKReq) {
-			t.Errorf("created sdk model did not match expected output")
-		}
+	for testName, tc := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			apiReqResult, diags := {{.NameLowerNoSpaces}}.New{{.NamePascalCase}}Req(context.Background(), tc.tfModel)
+			if diags.HasError() {
+				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
+			}
+			assert.Equal(t, tc.expectedSDKReq, apiReqResult, "created sdk model did not match expected output")
+		})
 	}
 }
 {{end}}
