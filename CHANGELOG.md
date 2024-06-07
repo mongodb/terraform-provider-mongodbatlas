@@ -6,6 +6,10 @@ BREAKING CHANGES:
 * data-source/mongodbatlas_federated_settings_identity_providers: Replaces `audience_claim` field with `audience` ([#2310](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2310))
 * resource/mongodbatlas_federated_settings_identity_provider: Replaces `audience_claim` field with `audience` ([#2310](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2310))
 
+FEATURES:
+
+* **New Data Source:** `mongodbatlas_control_plane_ip_addresses` ([#2331](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2331))
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_federated_settings_identity_provider: Adds OIDC Workload support ([#2318](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2318))
