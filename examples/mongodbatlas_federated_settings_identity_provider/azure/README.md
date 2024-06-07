@@ -6,7 +6,7 @@
 - Terraform [Hashicorp Cloud Init Provider v2.3.4](https://registry.terraform.io/providers/hashicorp/cloudinit/latest/docs)
 - Terraform [Hashicorp Azurerm Provider v3.106.1](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
 - Terraform [Hashicorp Random Provider v3.6.2](https://registry.terraform.io/providers/hashicorp/random/latest/docs)
-- A MongoDB Atlas account with an Organization configured with [Federation Authentication](https://www.mongodb.com/docs/atlas/security/federated-authentication/#federation-management-console)
+- A MongoDB Atlas account with an organization configured with [Federated Authentication](https://www.mongodb.com/docs/atlas/security/federated-authentication/#federation-management-console)
   - Get the `federated_settings_id` from the url, e.g., <https://cloud.mongodb.com/v2#/federation/{federated_settings_id}/overview>
 
 ## Diagrams
