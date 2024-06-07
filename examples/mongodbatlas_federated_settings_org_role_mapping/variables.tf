@@ -23,6 +23,6 @@ variable "name" {
 
 variable "identity_provider_id" {
   type        = string
-  description = "MongoDB Identity Provider ID"
-  default     = "5754gdhgd758"
+  description = "MongoDB Identity Provider ID SAML legacy format"
+  default     = "0oaqyt9fc2ySTWnA0357"
 }

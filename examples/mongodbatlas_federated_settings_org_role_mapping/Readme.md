@@ -7,8 +7,8 @@ This project aims to provide an example of using Okta and MongoDB Atlas together
 
 * Terraform v0.13
 * Okta account 
-* A MongoDB Atlas account 
-
+* A MongoDB Atlas account with an Organization configured with [Federation Authentication](https://www.mongodb.com/docs/atlas/security/federated-authentication/#federation-management-console)
+  * Get the `federated_settings_id` from the url, e.g., <https://cloud.mongodb.com/v2#/federation/{federated_settings_id}/overview>
 ```
 Terraform v0.13.0
 + provider registry.terraform.io/terraform-providers/mongodbatlas v1.4.0
@@ -27,19 +27,20 @@ Now create **terraform.tfvars** file with all the variable values and make sure 
 Execute the below command and ensure you are happy with the plan.
 
 ``` bash
-$ terraform plan
+terraform plan
 ```
 This project currently does the below deployments:
 
 - MongoDB Atlas Federated Settings Organizational Role Mapping
-- MongoDB Atlas Federated Settings Organizational Identity Provider
+- MongoDB Atlas Federated Settings Organizational Identity Provider SAML
+- MongoDB Atlas Federated Settings Organizational Identity Provider OIDC
 - MongoDB Atlas Federated Settings Organizational configuration
 
-**4\. Execute the Terraform import for 2 resources that do not support create.**
-``` bash
-$ terraform import mongodbatlas_federated_settings_identity_provider.identity_provider  6287a67f7f7f7f7f441c6c-0oad7f7f7f7fk1297
-  terraform import mongodbatlas_federated_settings_org_config.org_connections_import  6287a67f7f7f7f7f441c6c-627a96837f7f7f7f7e306f14
+**4\. Execute the Terraform import for `mongodbatlas_federated_settings_org_config` that do not support create.**
+replace `{federated_settings_id}` and `{org_id}` and run:
 
+``` bash
+terraform import mongodbatlas_federated_settings_org_config.org_connections_import  {federated_settings_id}-{org_id}
 ```
 
 **5\. Execute the Terraform apply.**
@@ -47,7 +48,7 @@ $ terraform import mongodbatlas_federated_settings_identity_provider.identity_pr
 Now execute the plan to provision the Federated settings resources.
 
 ``` bash
-$ terraform apply
+terraform apply
 ```
 
 **6\. Destroy the resources.**
@@ -55,5 +56,5 @@ $ terraform apply
 Once you are finished your testing, ensure you destroy the resources to avoid unnecessary Atlas charges.
 
 ``` bash
-$ terraform destroy
+terraform destroy
 ```
