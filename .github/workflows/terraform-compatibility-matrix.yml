@@ -48,6 +48,7 @@ jobs:
     with:
       terraform_matrix: '["${{ matrix.terraform_version }}"]'
       atlas_cloud_env: ${{ inputs.atlas_cloud_env }}
+      send_notification: false
   
   slack-notification:
     needs: ["run-test-supported-versions"]

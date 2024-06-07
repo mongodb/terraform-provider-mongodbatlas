@@ -10,6 +10,10 @@ on:
       provider_matrix:
         description: 'Previous MongoDB Atlas Provider version matrix for migration tests (JSON array)'
         default: '[""]' # "" for latest version
+      send_notification:
+        description: 'Send the Slack notification if any of the tests fail.'
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       terraform_matrix:
@@ -23,6 +27,10 @@ on:
         description: 'Atlas cloud environment used, can be either `dev` or `qa`, empty for `dev`'     
         type: string
         required: false
+      send_notification:
+        description: 'Send the Slack notification if any of the tests fail.'
+        type: boolean
+        default: true
 
   schedule:
     - cron: "0 0 2-31 * *" # workflow runs every day at midnight UTC except on the first day of the month
@@ -73,7 +81,7 @@ jobs:
   
   slack-notification:
     needs: [tests, clean-after]
-    if: ${{ !cancelled() && github.event_name == 'schedule' && needs.tests.result == 'failure'}}
+    if: ${{ !cancelled() && needs.tests.result == 'failure' && inputs.send_notification == true }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
