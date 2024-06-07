@@ -1,4 +1,6 @@
 #!/bin/bash
+# shellcheck disable=SC2086,SC2016
+
 set -euo pipefail
 
 sudo apt-get install -y python3-pip
