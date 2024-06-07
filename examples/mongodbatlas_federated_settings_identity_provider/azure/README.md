@@ -97,7 +97,7 @@ sequenceDiagram
 **1\. Ensure your Azure credentials are set up.**
 
 1. Install the Azure CLI by following the steps from the [official Azure documentation](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli).
-2. Run the command `az login` and this will take you to the default browser and perform the authentication.
+2. Run the command `az login` and this will open your default browser and perform the authentication.
 3. Once authenticated, it will print the user details as below:
 
 ```shell
