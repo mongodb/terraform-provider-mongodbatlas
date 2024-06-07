@@ -201,7 +201,7 @@ terraform destroy
 
 ## Next Steps
 
-- Change the `pymongo_oidc.sh` to run your own app, start your `systemd` service, etc.
+- Change `pymongo_oidc.sh` to run your own app, start your `systemd` service, etc.
 - Integrate with your identity provider of choice, ideas:
   - Github for accessing your Atlas Cluster from a Github Action
   - Gitlab for accessing your Atlas Cluster from a Gitlab Job
