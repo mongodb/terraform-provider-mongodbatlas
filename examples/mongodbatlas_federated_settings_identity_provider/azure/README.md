@@ -211,7 +211,7 @@ terraform destroy
 
 ### Debugging the VM Instance
 
-1. Get the ssh command for connecting: `terraform output -json | jq -r '.ssh_connection_string.value'` and connect
+1. Get the ssh command for connecting: `terraform output -json | jq -r '.ssh_connection_string.value'` and connect.
 2. Verify the python script exist: `ls -la ~` should show `pymongo_oidc.py`.
 3. Check the output log from cloud-init:
    - `sudo cat /var/log/cloud-init.log`
