@@ -1,3 +1,15 @@
+# This file uses cloud-init: https://cloudinit.readthedocs.io/en/latest/index.html (Cloud-init is the industry standard multi-distribution method for cross-platform cloud instance initialisation)
+# Cloud-init is configured to:
+# 1. Copy the python script to the VM
+# 2. Populate a shell script with `MONGODB_URI` and other script specific variables based on the output of the atlas-cluster and terraform variables
+# 3. Ensure apt package repositories are updated
+# 
+# In a "real-world" use case you can change:
+# 1. Build your own VM image in Azure that includes your full software stack
+# 2. Store the `MONGODB_URI` (and other variables) in a key vault and give your VM access to it
+# 3. Fetch the variables when the VM boots either:
+# a) Use a script to fetch these variables and write them to a file that your application can read when it starts
+# b) Fetch the variables directly from your application code
 locals {
   file_stem        = "pymongo_oidc"
   mongodb_oidc_uri = "${local.mongodb_uri}&authMechanism=MONGODB-OIDC&authMechanismProperties=ENVIRONMENT:azure,TOKEN_RESOURCE:${urlencode(var.token_audience)}"

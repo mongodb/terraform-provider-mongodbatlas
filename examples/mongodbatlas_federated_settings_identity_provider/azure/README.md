@@ -186,7 +186,7 @@ terraform apply
 
 - Get the connection string by running `terraform output -json | jq -r '.user_test_conn_string.value'`
 - Open your preferred tool, e.g., [MongoDB Compass](https://www.mongodb.com/products/tools/compass)
-- You should see a new record inserted in `{database}`, `{collection}`, e.g.: `{"_id": "6661790007beeb09e3f1b914", "hello": "world", "ts": "2024-06-06T08:53:20.125919"}`
+- You should see a new record inserted in `{database}` (default name is `test`), `{collection}` (default name is `test`), e.g.: `{"_id": "6661790007beeb09e3f1b914", "hello": "world", "ts": "2024-06-06T08:53:20.125919"}`
   - `{database}` depends on `insert_record_database` Terraform variable
   - `{collection}` depends on `insert_record_collection` Terraform variable
   - It can be up to 2 minutes after `terraform apply` finishes for the record to be inserted

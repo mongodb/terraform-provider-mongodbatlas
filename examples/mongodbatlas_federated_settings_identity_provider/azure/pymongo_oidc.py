@@ -1,3 +1,8 @@
+"""This script is meant as a minimal example of how to connect to MongoDB using https://pymongo.readthedocs.io/en/stable/index.html.
+Note how there is nothing specific about using OIDC, it only requires a valid `MONGODB_URI`, `DATABASE`, and `COLLECTION`.
+See https://www.mongodb.com/docs/manual/reference/connection-string/#connection-string-formats for how to specify `MONGODB_URI`.
+
+Feel free to replace this with your awesome python script!"""
 from datetime import datetime
 from json import loads
 from os import getenv
