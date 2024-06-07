@@ -193,7 +193,7 @@ terraform apply
 
 **8\. Destroy the resources.**
 
-Once you are finished your testing, ensure you destroy the resources to avoid unnecessary Atlas and Azure chargescharges.
+Once you are finished your testing, ensure you destroy the resources to avoid unnecessary Atlas and Azure charges.
 
 ```shell
 terraform destroy
