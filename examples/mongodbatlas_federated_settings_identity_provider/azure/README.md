@@ -85,7 +85,7 @@ sequenceDiagram
 ```
 
 - (5) We use terraform to configure a [`user_assigned_identity`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/user_assigned_identity) for the VM and use the [metadata endpoint](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/how-to-use-vm-token#get-a-token-using-http) to obtain the token
-  - See also [pymongo docs](https://pymongo.readthedocs.io/en/stable/examples/authentication.html#mongodb-oidc)
+  - See also [MongoDB pymongo docs.](https://www.mongodb.com/docs/languages/python/pymongo-driver/current/security/enterprise-authentication/#mongodb-oidc)
   - The python script is configured by [cloud init](https://cloudinit.readthedocs.io/en/latest/reference/examples.html#writing-out-arbitrary-files) using `custom_data` on the [VM (`linux_virtual_machine`)](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine)
 - (10) Can be configured with terraform variables:
   - `insert_record_database`
