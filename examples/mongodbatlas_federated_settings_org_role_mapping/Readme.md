@@ -38,11 +38,11 @@ This project currently does the below deployments:
 
 **4\. Execute the Terraform import for 2 resources that do not support create.**
 
-- find `saml_idp_id` in <https://cloud.mongodb.com/v2#/federation/{federation_settings_id}/identityProviders>
-- replace `federation_settings_id`, `saml_idp_id`, and `org_id` and run:
+- find `idp_id` of your SAML identity provider in <https://cloud.mongodb.com/v2#/federation/{federation_settings_id}/identityProviders>
+- replace `federation_settings_id`, `idp_id`, and `org_id` and run:
 
 ``` bash
-terraform import mongodbatlas_federated_settings_identity_provider.saml_identity_provider {federated_settings_id}-{saml_idp_id}
+terraform import mongodbatlas_federated_settings_identity_provider.saml_identity_provider {federated_settings_id}-{idp_id}
 terraform import mongodbatlas_federated_settings_org_config.org_connections_import {federated_settings_id}-{org_id}
 ```
 
