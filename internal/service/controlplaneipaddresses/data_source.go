@@ -7,7 +7,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-const ControlPlaneIPAddressesName = "control_plane_ip_addresses"
+const controlPlaneIPAddressesName = "control_plane_ip_addresses"
 
 var _ datasource.DataSource = &controlPlaneIPAddressesDS{}
 var _ datasource.DataSourceWithConfigure = &controlPlaneIPAddressesDS{}
@@ -15,7 +15,7 @@ var _ datasource.DataSourceWithConfigure = &controlPlaneIPAddressesDS{}
 func DataSource() datasource.DataSource {
 	return &controlPlaneIPAddressesDS{
 		DSCommon: config.DSCommon{
-			DataSourceName: ControlPlaneIPAddressesName,
+			DataSourceName: controlPlaneIPAddressesName,
 		},
 	}
 }
