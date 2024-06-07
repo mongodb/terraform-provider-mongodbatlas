@@ -192,7 +192,7 @@ terraform apply
 **8\. Destroy the resources.**
 
 - Once you are finished your testing, ensure you destroy the resources to avoid unnecessary Atlas and Azure charges.
-- Note that the organization will be unlinked from the [Federation Authentication](https://www.mongodb.com/docs/atlas/security/federated-authentication/#federation-management-console)
+- Note that the organization will be unlinked from the [Federated Authentication](https://www.mongodb.com/docs/atlas/security/federated-authentication/#federation-management-console).
   - Use `terraform state rm  mongodbatlas_federated_settings_org_config.this` to avoid this
 
 ```shell
