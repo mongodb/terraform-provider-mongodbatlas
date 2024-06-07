@@ -15,13 +15,11 @@ import (
 type sdkToTFModelTestCase struct {
 	SDKResp         *admin.ControlPlaneIPAddresses
 	expectedTFModel *controlplaneipaddresses.TFControlPlaneIpAddressesModel
-	name            string
 }
 
 func TestControlPlaneIpAddressesSDKToTFModel(t *testing.T) {
-	testCases := []sdkToTFModelTestCase{
-		{
-			name: "Complete SDK response",
+	testCases := map[string]sdkToTFModelTestCase{
+		"Complete SDK response": {
 			SDKResp: &admin.ControlPlaneIPAddresses{
 				Inbound: &admin.InboundControlPlaneCloudProviderIPAddresses{
 					Aws: &map[string][]string{
@@ -71,8 +69,7 @@ func TestControlPlaneIpAddressesSDKToTFModel(t *testing.T) {
 				},
 			},
 		},
-		{
-			name: "Null response in a specifc providers and root outbound property",
+		"Null response in a specifc providers and root outbound property": {
 			SDKResp: &admin.ControlPlaneIPAddresses{
 				Inbound: &admin.InboundControlPlaneCloudProviderIPAddresses{},
 			},
@@ -91,8 +88,8 @@ func TestControlPlaneIpAddressesSDKToTFModel(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+	for testName, tc := range testCases {
+		t.Run(testName, func(t *testing.T) {
 			resultModel, diags := controlplaneipaddresses.NewTFControlPlaneIPAddresses(context.Background(), tc.SDKResp)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
