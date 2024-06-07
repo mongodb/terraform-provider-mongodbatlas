@@ -1,4 +1,4 @@
-// Global Vars
+# Global Vars
 variable "project_name" {
   type        = string
   default     = "tf-example-oidc-Azure"
