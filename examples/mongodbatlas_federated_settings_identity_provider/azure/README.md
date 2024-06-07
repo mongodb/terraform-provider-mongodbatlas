@@ -205,7 +205,7 @@ terraform destroy
 - Integrate with your identity provider of choice, ideas:
   - Github for accessing your Atlas Cluster from a Github Action
   - Gitlab for accessing your Atlas Cluster from a Gitlab Job
-- You can find more in [MongoDB Atlas Workload OIDC docs](https://www.mongodb.com/docs/atlas/workload-oidc/#prepare-your-external-identity-provider)
+- For more information, see [MongoDB Atlas Workload OIDC docs](https://www.mongodb.com/docs/atlas/workload-oidc/#prepare-your-external-identity-provider).
 
 ## Troubleshooting
 
