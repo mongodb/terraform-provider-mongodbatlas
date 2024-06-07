@@ -30,12 +30,13 @@ resource "mongodbatlas_federated_settings_org_role_mapping" "org_role_mapping" {
 
 }
 resource "mongodbatlas_federated_settings_org_config" "org_connections_import" {
-  federation_settings_id     = data.mongodbatlas_federated_settings.federated_settings.id
-  org_id                     = var.org_id
-  identity_provider_id       = var.identity_provider_id
-  domain_restriction_enabled = false
-  domain_allow_list          = ["yourdomain.com"]
-  post_auth_role_grants      = ["ORG_MEMBER"]
+  federation_settings_id            = data.mongodbatlas_federated_settings.federated_settings.id
+  org_id                            = var.org_id
+  identity_provider_id              = mongodbatlas_federated_settings_identity_provider.saml_identity_provider.okta_idp_id
+  domain_restriction_enabled        = false
+  domain_allow_list                 = ["yourdomain.com"]
+  post_auth_role_grants             = ["ORG_MEMBER"]
+  data_access_identity_provider_ids = [mongodbatlas_federated_settings_identity_provider.oidc_identity_provider.idp_id]
 }
 
 resource "mongodbatlas_federated_settings_identity_provider" "saml_identity_provider" {
