@@ -1,7 +1,7 @@
 locals {
   file_stem        = "pymongo_oidc"
   mongodb_oidc_uri = "${local.mongodb_uri}&authMechanism=MONGODB-OIDC&authMechanismProperties=ENVIRONMENT:azure,TOKEN_RESOURCE:${urlencode(var.token_audience)}"
-  py_oidc_connect = templatefile("${path.module}/${local.file_stem}.sh", {
+  py_oidc_connect = templatefile("${path.module}/${local.file_stem}.tmpl.sh", {
     DATABASE    = var.insert_record_database
     COLLECTION  = var.insert_record_collection
     RECORD      = jsonencode(var.insert_record_fields)
