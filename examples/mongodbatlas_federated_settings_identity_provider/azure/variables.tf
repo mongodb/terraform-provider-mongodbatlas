@@ -11,7 +11,7 @@ variable "owner" {
   description = "Used in tags.Owner for all resources supporting tags"
 }
 
-// Azure Vars
+# Azure Vars
 variable "ssh_public_key" {
   type        = string
   description = "Azure VM instance supports connection with ssh, see README.md for help. Tip: `TF_VAR_ssh_public_key=$(cat ~/.ssh/id_rsa.pub)`"
@@ -34,7 +34,7 @@ variable "token_audience" {
   description = "Used as `resource` when getting the access token. See more in the [Azure documentation](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/how-to-use-vm-token#get-a-token-using-http)"
 }
 
-// MongoDB Atlas vars
+# MongoDB Atlas vars
 
 variable "region" {
   type        = string
@@ -46,7 +46,7 @@ variable "org_id" {
   description = "MongoDB Organization ID"
 }
 
-// Insert record vars
+# Insert record vars
 
 variable "insert_record_fields" {
   type = map(string)
