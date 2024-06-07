@@ -12,17 +12,11 @@ variable "org_id" {
 }
 variable "group_id" {
   type        = string
-  description = "MongoDB Group ID"
+  description = "MongoDB Group/Project ID"
 }
 
 variable "name" {
   type        = string
   description = "MongoDB Identity Provider Name"
   default     = "mongodb_federation_test"
-}
-
-variable "identity_provider_id" {
-  type        = string
-  description = "MongoDB Identity Provider ID SAML legacy format"
-  default     = "0oaqyt9fc2ySTWnA0357"
 }

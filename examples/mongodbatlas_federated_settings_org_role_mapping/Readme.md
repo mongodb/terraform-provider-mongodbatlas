@@ -36,11 +36,14 @@ This project currently does the below deployments:
 - MongoDB Atlas Federated Settings Organizational Identity Provider OIDC
 - MongoDB Atlas Federated Settings Organizational configuration
 
-**4\. Execute the Terraform import for `mongodbatlas_federated_settings_org_config` that do not support create.**
-replace `{federated_settings_id}` and `{org_id}` and run:
+**4\. Execute the Terraform import for 2 resources that do not support create.**
+
+- find `saml_idp_id` in <https://cloud.mongodb.com/v2#/federation/{federation_settings_id}/identityProviders>
+- replace `federation_settings_id`, `saml_idp_id`, and `org_id` and run:
 
 ``` bash
-terraform import mongodbatlas_federated_settings_org_config.org_connections_import  {federated_settings_id}-{org_id}
+terraform import mongodbatlas_federated_settings_identity_provider.saml_identity_provider {federated_settings_id}-{saml_idp_id}
+terraform import mongodbatlas_federated_settings_org_config.org_connections_import {federated_settings_id}-{org_id}
 ```
 
 **5\. Execute the Terraform apply.**
