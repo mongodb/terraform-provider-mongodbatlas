@@ -92,8 +92,6 @@ sequenceDiagram
   - `insert_record_collection`
   - `insert_record_fields`
 
-## Resource Table
-
 ## Usage
 
 **1\. Ensure your Azure credentials are set up.**
