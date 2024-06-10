@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.17.0 (June 10, 2024)
+
 BREAKING CHANGES:
 
 * data-source/mongodbatlas_federated_settings_identity_provider: Replaces `audience_claim` field with `audience` ([#2310](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2310))
