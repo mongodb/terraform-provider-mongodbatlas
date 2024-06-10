@@ -4,6 +4,7 @@ BREAKING CHANGES:
 
 * data-source/mongodbatlas_federated_settings_identity_provider: Replaces `audience_claim` field with `audience` ([#2310](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2310))
 * data-source/mongodbatlas_federated_settings_identity_providers: Replaces `audience_claim` field with `audience` ([#2310](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2310))
+* data-source/mongodbatlas_privatelink_endpoints_service_serverless: Removes `page_num` and `items_per_page` arguments ([#2336](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2336))
 * resource/mongodbatlas_federated_settings_identity_provider: Replaces `audience_claim` field with `audience` ([#2310](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2310))
 
 FEATURES:
