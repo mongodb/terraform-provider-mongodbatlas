@@ -2,12 +2,10 @@ package privatelinkendpointserviceserverless
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20231115014/admin"
 )
@@ -24,16 +22,6 @@ func PluralDataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-			},
-			"page_num": {
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.17.0"),
-				Type:       schema.TypeInt,
-				Optional:   true,
-			},
-			"items_per_page": {
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.17.0"),
-				Type:       schema.TypeInt,
-				Optional:   true,
 			},
 			"results": {
 				Type:     schema.TypeList,
