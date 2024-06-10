@@ -25,7 +25,7 @@ The Terraform MongoDB Atlas Provider version 1.17.0 has a number of new and exci
 			`terraform import mongodbatlas_federated_settings_identity_provider.identity_provider  <federation_settings_id>-<idp_id>`
         3. Run `terraform plan`.
         4. Run `terraform apply`.
-- Attributes `page_num` and `items_per_page` removed from [`mongodbatlas_data_source_privatelink_endpoints_service_serverless`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/privatelink_endpoints_service_serverless)
+- Attributes `page_num` and `items_per_page` removed from [`mongodbatlas_privatelink_endpoints_service_serverless`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/privatelink_endpoints_service_serverless)
 
 ### Helpful Links
 
