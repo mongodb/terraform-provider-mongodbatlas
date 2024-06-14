@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+NOTES:
+
+* resource/mongodbatlas_federated_settings_identity_provider: OIDC Workforce and Workload are now in GA ([#2344](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2344))
+
 ## 1.17.0 (June 10, 2024)
 
 BREAKING CHANGES:
