@@ -10,10 +10,11 @@ description: |-
 
 `mongodbatlas_federated_settings_identity_provider` provides an Atlas federated settings identity provider resource provides a subset of settings to be maintained post import of the existing resource.
 
--> **NOTE:** OIDC Workforce IdP is currently in preview. To learn more about OIDC and existing limitations see the [OIDC Authentication Documentation](https://www.mongodb.com/docs/atlas/security-oidc/).
 ## Example Usage
 
-~> **IMPORTANT** You **MUST** import this resource before you can manage it with this provider. 
+~> **IMPORTANT** If you want to use a SAML Identity Provider, you **MUST** import this resource before you can manage it with this provider. 
+
+SAML IdP:
 
 ```terraform
 resource "mongodbatlas_federated_settings_identity_provider" "identity_provider" {
@@ -26,6 +27,22 @@ resource "mongodbatlas_federated_settings_identity_provider" "identity_provider"
   issuer_uri = "http://www.okta.com/exk17q7f7f7f7fp50h8"
   request_binding = "HTTP-POST"
   response_signature_algorithm = "SHA-256"
+}
+```
+
+OIDC IdP:
+
+```
+resource "mongodbatlas_federated_settings_identity_provider" "oidc" {
+  federation_settings_id = data.mongodbatlas_federated_settings.this.id
+  audience               = var.token_audience
+  authorization_type     = "USER"
+  description            = "oidc"
+  issuer_uri = "https://sts.windows.net/${azurerm_user_assigned_identity.this.tenant_id}/"
+  idp_type   = "WORKLOAD"
+  name       = "OIDC-for-azure"
+  protocol   = "OIDC"
+  user_claim = "sub"
 }
 ```
 

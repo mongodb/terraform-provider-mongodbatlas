@@ -1,0 +1,3 @@
+```release-note:note
+resource/mongodbatlas_federated_settings_identity_provider: OIDC Workforce and Workload are now in GA
+```
