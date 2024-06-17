@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+BUG FIXES:
+
+* resource/mongodbatlas_project_ip_access_list: Fixes resource removal in Read() if resource doesn't exist after creation ([#2349](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2349))
+
 ## 1.17.1 (June 14, 2024)
 
 NOTES:
