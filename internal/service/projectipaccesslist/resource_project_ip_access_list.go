@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"go.mongodb.org/atlas-sdk/v20231115014/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -17,10 +19,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115014/admin"
 )
 
 const (
@@ -234,7 +236,6 @@ func (r *projectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 			// deleted in the backend case
 			if httpResponse != nil && httpResponse.StatusCode == http.StatusNotFound {
 				resp.State.RemoveResource(ctx)
-				resp.Diagnostics.AddError("resource not found", err.Error())
 				return nil
 			}
 
