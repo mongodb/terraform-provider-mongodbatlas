@@ -49,7 +49,7 @@ release:
   name_template: "v{{.Version}}"
   prerelease: auto
 changelog:
-  skip: false
+  disable: false
   sort: asc
   filters:
     exclude:
