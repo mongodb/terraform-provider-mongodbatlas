@@ -1,0 +1,3 @@
+```release-note:bug
+Fixes resource removal in Read() if resource doesn't exist after creation
+```
