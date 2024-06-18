@@ -18,7 +18,7 @@ on:
         type: string
         required: false
       test_name:
-        description: 'Name of the test to run, e.g. TestAccNetworkRSNetworkPeering_basicAzure, empty for all (requires Test group to be specified as well)'
+        description: 'Name of the test to run, e.g. TestAccNetworkRSNetworkPeering_basicAzure, empty for all (this is regex & requires Test group to be specified as well)'
         type: string
         required: false
       ref:
@@ -136,8 +136,9 @@ env:
   TF_ACC: 1
   TF_LOG: ${{ vars.LOG_LEVEL }}
   ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
-  # Only Migration tests are run when testing a specific previous provider version instead of the latest one
-  ACCTEST_REGEX_RUN: ${{ inputs.provider_version == '' && '^Test(Acc|Mig)' || '^TestMig' }}
+  # Only Migration tests are run when a specific previous provider version is set
+  # If the name (regex) of the test is set, only that test is run
+  ACCTEST_REGEX_RUN: ${{ inputs.test_name || inputs.provider_version == '' && '^Test(Acc|Mig)' || '^TestMig' }}
   MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
   MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
   MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
@@ -297,7 +298,6 @@ jobs:
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: ./internal/service/advancedcluster
-          ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
         run: make testacc
 
   assume_role:
@@ -338,7 +338,6 @@ jobs:
           AWS_SESSION_TOKEN: ${{ steps.sts-assume-role.outputs.AWS_SESSION_TOKEN }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: ./internal/provider
-          ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
         run: make testacc
 
   backup:
@@ -365,7 +364,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_backup }}
-          ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
           ACCTEST_PACKAGES: |
             ./internal/service/cloudbackupschedule
             ./internal/service/cloudbackupsnapshot
@@ -394,7 +392,6 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
           ACCTEST_PACKAGES: |
             ./internal/service/cluster
             ./internal/service/globalclusterconfig
@@ -419,7 +416,6 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
           ACCTEST_PACKAGES: ./internal/service/clusteroutagesimulation
         run: make testacc
       
@@ -451,7 +447,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federation }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
           ACCTEST_PACKAGES: |
             ./internal/service/alertconfiguration
             ./internal/service/atlasuser
@@ -488,7 +483,6 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
           ACCTEST_PACKAGES: ./internal/service/datalakepipeline
         run: make testacc
 
@@ -511,7 +505,6 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
           ACCTEST_PACKAGES: ./internal/service/encryptionatrest
         run: make testacc
 
@@ -534,7 +527,6 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
           ACCTEST_PACKAGES: ./internal/service/eventtrigger
         run: make testacc
 
@@ -568,7 +560,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
           ACCTEST_PACKAGES: |
             ./internal/service/federateddatabaseinstance
             ./internal/service/federatedquerylimit
@@ -598,7 +589,6 @@ jobs:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
           CA_CERT: ${{ secrets.ca_cert }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
           ACCTEST_PACKAGES: |
             ./internal/service/auditing
             ./internal/service/backupcompliancepolicy
@@ -629,7 +619,6 @@ jobs:
           MONGODB_ATLAS_LDAP_PORT: ${{ secrets.mongodb_atlas_ldap_port }}
           MONGODB_ATLAS_LDAP_CA_CERTIFICATE: ${{ secrets.mongodb_atlas_ldap_ca_certificate }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
           ACCTEST_PACKAGES: |
             ./internal/service/ldapconfiguration
             ./internal/service/ldapverify
@@ -669,7 +658,6 @@ jobs:
           AZURE_VNET_NAME: ${{ secrets.azure_vnet_name }}
           AZURE_VNET_NAME_UPDATED: ${{ secrets.azure_vnet_name_updated }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
           ACCTEST_PACKAGES: |
             ./internal/service/networkcontainer
             ./internal/service/networkpeering
@@ -709,7 +697,6 @@ jobs:
           AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
           AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
           ACCTEST_PACKAGES: |
             ./internal/service/accesslistapikey
             ./internal/service/project
@@ -739,7 +726,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
           ACCTEST_PACKAGES: ./internal/service/pushbasedlogexport
         run: make testacc
 
@@ -762,7 +748,6 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
           ACCTEST_PACKAGES: ./internal/service/searchdeployment
         run: make testacc
 
@@ -785,7 +770,6 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
           ACCTEST_PACKAGES: ./internal/service/searchindex
         run: make testacc
   
@@ -810,7 +794,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
           ACCTEST_PACKAGES: |
             ./internal/service/privatelinkendpointserverless
             ./internal/service/privatelinkendpointserviceserverless
@@ -836,7 +819,6 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
           ACCTEST_PACKAGES: |
             ./internal/service/streamconnection
             ./internal/service/streaminstance
@@ -861,7 +843,6 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
           ACCTEST_PACKAGES: |
             ./internal/service/controlplaneipaddresses
         run: make testacc
