@@ -5,7 +5,13 @@ ifdef ACCTEST_PACKAGES
 else
     ACCTEST_PACKAGES := "./..."
 endif
-ACCTEST_REGEX_RUN?=^TestAcc
+
+ifdef ACCTEST_REGEX_RUN
+		# remove newlines and blanks coming from GH Actions
+    ACCTEST_REGEX_RUN := $(strip $(subst $(newline),, $(ACCTEST_REGEX_RUN)))
+else
+    ACCTEST_REGEX_RUN?=^TestAcc
+endif
 ACCTEST_TIMEOUT?=300m
 PARALLEL_GO_TEST?=20
 
