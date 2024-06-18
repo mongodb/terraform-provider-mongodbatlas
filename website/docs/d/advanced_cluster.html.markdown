@@ -66,7 +66,7 @@ In addition to all arguments above, the following attributes are exported:
 * `termination_protection_enabled` - Flag that indicates whether termination protection is enabled on the cluster. If set to true, MongoDB Cloud won't delete the cluster. If set to false, MongoDB Cloud will delete the cluster.
 * `version_release_system` - Release cadence that Atlas uses for this cluster.
 * `advanced_configuration` - Get the advanced configuration options. See [Advanced Configuration](#advanced-configuration) below for more details.
-* `global_cluster_self_managed_sharding` - Flag that indicates if cluster management is Atlas-Managed Sharding (false) or Self-Managed Sharding (true).
+* `global_cluster_self_managed_sharding` - Flag that indicates if cluster uses Atlas-Managed Sharding (false) or Self-Managed Sharding (true).
 
 ### bi_connector_config
 

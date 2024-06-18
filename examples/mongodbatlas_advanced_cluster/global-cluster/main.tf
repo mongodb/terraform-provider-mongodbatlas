@@ -8,7 +8,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   name         = var.cluster_name
   cluster_type = "GEOSHARDED"
 
-  # uncomment next line if want to use self-managed sharding, see doc for more info
+  # uncomment next line to use self-managed sharding, see doc for more info
   # global_cluster_self_managed_sharding = true
 
   backup_enabled = true
