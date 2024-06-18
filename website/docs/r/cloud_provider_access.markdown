@@ -11,7 +11,7 @@ description: |-
 The Terraform MongoDB Atlas Provider offers the following path to perform an authorization for a cloud provider role -
 
 * A Two Resource path: consisting of `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization`. The first resource, `mongodbatlas_cloud_provider_access_setup`, only generates
-the initial configuration (create, delete operations). The second resource, `mongodbatlas_cloud_provider_access_authorization`, helps to perform the authorization using the role_id of the first resource. This path is helpful in a multi-provider Terraform file, and allows for a single and decoupled apply. See example of this Two Resource path option with AWS Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-cloud-provider-access/aws) and AZURE Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-cloud-provider-access/azure). 
+the initial configuration (create, delete operations). The second resource, `mongodbatlas_cloud_provider_access_authorization`, helps to perform the authorization using the role_id of the first resource. This path is helpful in a multi-provider Terraform file, and allows for a single and decoupled apply. See example of this Two Resource path option with AWS Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_access/aws) and AZURE Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_access/azure). 
 
 
 -> **IMPORTANT** If you want to move from the single resource path to the two resources path see the [migration guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/0.9.1-upgrade-guide#migration-to-cloud-provider-access-setup)
@@ -71,7 +71,7 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
 * `last_updated_date`                - Date and time when this Azure Service Principal was last updated. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 * `role_id`                        - Unique ID of this role.
 
--> **NOTE:** For more details on how attributes are used to enable access to cloud provider accounts see [AWS example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-cloud-provider-access/aws) and [Azure example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-cloud-provider-access/azure). 
+-> **NOTE:** For more details on how attributes are used to enable access to cloud provider accounts see [AWS example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_access/aws) and [Azure example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_access/azure). 
 
 ## Import: mongodbatlas_cloud_provider_access_setup
 For consistency is has the same format as the regular mongodbatlas_cloud_provider_access resource 
