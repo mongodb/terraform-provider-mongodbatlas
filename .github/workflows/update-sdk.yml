@@ -23,7 +23,7 @@ jobs:
         uses: tj-actions/verify-changed-files@9241ea0b294e597ff49928779b5cfbc8a97f5e99
         id: verify-changed-files
       - name: Create PR
-        uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c
         if: steps.verify-changed-files.outputs.files_changed == 'true'
         with:
           token: ${{ secrets.APIX_BOT_PAT }}
