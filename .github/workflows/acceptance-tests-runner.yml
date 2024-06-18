@@ -137,7 +137,7 @@ env:
   TF_LOG: ${{ vars.LOG_LEVEL }}
   ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
   # Only Migration tests are run when testing a specific previous provider version instead of the latest one
-  ACCTEST_REGEX_RUN: ${{ inputs.provider_version == '' && '^TestAccNetworkRSNetworkPeering_basicAzure' || '^TestMig' }}  
+  ACCTEST_REGEX_RUN: ${{ inputs.provider_version == '' && '^Test(Acc|Mig)' || '^TestMig' }}
   MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
   MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
   MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
@@ -250,7 +250,12 @@ jobs:
             - 'internal/service/ldapconfiguration/*.go'
             - 'internal/service/ldapverify/*.go'  
           network:
+            - 'internal/service/networkcontainer/*.go'
             - 'internal/service/networkpeering/*.go'
+            - 'internal/service/privateendpointregionalmode/*.go'
+            - 'internal/service/privatelinkendpoint/*.go'
+            - 'internal/service/privatelinkendpointservice/*.go'
+            - 'internal/service/privatelinkendpointservicedatafederationonlinearchive/*.go' 
           project:
             - 'internal/service/accesslistapikey/*.go'
             - 'internal/service/project/*.go'
@@ -666,7 +671,12 @@ jobs:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_REGEX_RUN: ${{ inputs.test_name }}
           ACCTEST_PACKAGES: |
+            ./internal/service/networkcontainer
             ./internal/service/networkpeering
+            ./internal/service/privateendpointregionalmode
+            ./internal/service/privatelinkendpoint
+            ./internal/service/privatelinkendpointservice
+            ./internal/service/privatelinkendpointservicedatafederationonlinearchive
         run: make testacc
       
   project: 
