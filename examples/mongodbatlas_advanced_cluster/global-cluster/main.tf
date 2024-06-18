@@ -4,9 +4,13 @@ provider "mongodbatlas" {
 }
 
 resource "mongodbatlas_advanced_cluster" "cluster" {
-  project_id     = mongodbatlas_project.project.id
-  name           = var.cluster_name
-  cluster_type   = "GEOSHARDED"
+  project_id   = mongodbatlas_project.project.id
+  name         = var.cluster_name
+  cluster_type = "GEOSHARDED"
+
+  # uncomment next line if want to use self-managed sharding, see doc for more info
+  # global_cluster_self_managed_sharding = true
+
   backup_enabled = true
 
   replication_specs { # zone n1
