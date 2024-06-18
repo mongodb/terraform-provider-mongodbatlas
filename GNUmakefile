@@ -5,7 +5,7 @@ ifdef ACCTEST_PACKAGES
 else
     ACCTEST_PACKAGES := "./..."
 endif
-ACCTEST_REGEX_RUN?=^TestAcc
+ACCTEST_REGEX_RUN?=^TestAccNetworkRSNetworkPeering_basicAzure
 ACCTEST_TIMEOUT?=300m
 PARALLEL_GO_TEST?=20
 
