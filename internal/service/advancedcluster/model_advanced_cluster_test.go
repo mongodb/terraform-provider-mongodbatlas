@@ -29,113 +29,95 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 		providerName       = "AWS"
 		expectedID         = "id1"
 		unexpectedID       = "id2"
-		zoneName           = "z1"
+		expectedZoneName   = "z1"
 		unexpectedZoneName = "z2"
-		admin1             = admin.ReplicationSpec{Id: &expectedID, ZoneName: &zoneName, RegionConfigs: &[]admin.CloudRegionConfig{{
+		regionConfigAdmin  = []admin.CloudRegionConfig{{
 			ProviderName: &providerName,
-			RegionName:   conversion.StringPtr(regionName),
-		}}}
-		admin2 = admin.ReplicationSpec{Id: &unexpectedID, ZoneName: &unexpectedZoneName, RegionConfigs: &[]admin.CloudRegionConfig{{
-			ProviderName: &providerName,
-			RegionName:   conversion.StringPtr(regionName),
-		}}}
+			RegionName:   &regionName,
+		}}
+		regionConfigTf = map[string]any{
+			"provider_name": "AWS",
+			"region_name":   regionName,
+		}
+		regionConfigTfDiffZone = map[string]any{
+			"provider_name": "AWS",
+			"region_name":   regionName,
+			"zone_name":     unexpectedZoneName,
+		}
+		admin1     = admin.ReplicationSpec{Id: &expectedID, ZoneName: &expectedZoneName, RegionConfigs: &regionConfigAdmin}
+		admin2     = admin.ReplicationSpec{Id: &unexpectedID, ZoneName: &unexpectedZoneName, RegionConfigs: &regionConfigAdmin}
 		testSchema = map[string]*schema.Schema{
 			"project_id": {Type: schema.TypeString},
 		}
 		tf1SameIDSameZone = map[string]any{
-			"id":         expectedID,
-			"num_shards": 1,
-			"region_configs": []any{
-				map[string]any{
-					"provider_name": "AWS",
-					"region_name":   regionName,
-					"zone_name":     zoneName,
-				},
-			},
+			"id":             expectedID,
+			"num_shards":     1,
+			"region_configs": []any{regionConfigTf},
+			"zone_name":      expectedZoneName,
 		}
 		tf2NoIDSameZone = map[string]any{
-			"id":         nil,
-			"num_shards": 1,
-			"region_configs": []any{
-				map[string]any{
-					"provider_name": "AWS",
-					"region_name":   regionName,
-					"zone_name":     zoneName,
-				},
-			},
+			"id":             nil,
+			"num_shards":     1,
+			"region_configs": []any{regionConfigTf},
+			"zone_name":      expectedZoneName,
 		}
 		tf3NoIDDiffZone = map[string]any{
-			"id":         nil,
-			"num_shards": 1,
-			"region_configs": []any{
-				map[string]any{
-					"provider_name": "AWS",
-					"region_name":   regionName,
-					"zone_name":     "differentZone",
-				},
-			},
+			"id":             nil,
+			"num_shards":     1,
+			"region_configs": []any{regionConfigTfDiffZone},
+			"zone_name":      unexpectedZoneName,
 		}
 		tf4diffIDDiffZone = map[string]any{
-			"id":         "unique",
-			"num_shards": 1,
-			"region_configs": []any{
-				map[string]any{
-					"provider_name": "AWS",
-					"region_name":   regionName,
-					"zone_name":     "uniqueZone",
-				},
-			},
+			"id":             "unique",
+			"num_shards":     1,
+			"region_configs": []any{regionConfigTfDiffZone},
+			"zone_name":      unexpectedZoneName,
 		}
 	)
-	type expectFlags struct {
-		expectedLen int
-		differentID bool
-	}
 	testCases := map[string]struct {
 		adminSpecs   []admin.ReplicationSpec
 		tfInputSpecs []any
-		expectFlags  expectFlags
+		expectedLen  int
 	}{
+		"empty admin spec should return empty list": {
+			[]admin.ReplicationSpec{},
+			[]any{tf1SameIDSameZone},
+			0,
+		},
 		"existing id, should match admin": {
 			[]admin.ReplicationSpec{admin1},
 			[]any{tf1SameIDSameZone},
-			expectFlags{},
+			1,
+		},
+		"existing different id, should change to admin spec": {
+			[]admin.ReplicationSpec{admin1},
+			[]any{tf4diffIDDiffZone},
+			1,
 		},
 		"missing id, should be set when zone_name matches": {
 			[]admin.ReplicationSpec{admin1},
 			[]any{tf2NoIDSameZone},
-			expectFlags{},
+			1,
 		},
-		"missing id, should be set when there is one admin spec": {
+		"missing id and diff zone, should change to admin spec": {
 			[]admin.ReplicationSpec{admin1},
 			[]any{tf3NoIDDiffZone},
-			expectFlags{},
+			1,
 		},
-		"existing different id, should change to the admin spec 1": {
-			[]admin.ReplicationSpec{admin1},
-			[]any{tf4diffIDDiffZone},
-			expectFlags{},
-		},
-		"existing different id, should change to the admin spec 2": {
-			[]admin.ReplicationSpec{admin2},
-			[]any{tf1SameIDSameZone},
-			expectFlags{
-				differentID: true,
-			},
-		},
-		"existing id, should match correct api spec and extra api spec added": {
+		"existing id, should match correct api spec using `id` and extra api spec added": {
 			[]admin.ReplicationSpec{admin2, admin1},
 			[]any{tf1SameIDSameZone},
-			expectFlags{
-				expectedLen: 2,
-			},
+			2,
 		},
-		"existing different id and existing same id, only api spec kept": {
-			[]admin.ReplicationSpec{admin1},
-			[]any{tf4diffIDDiffZone, tf1SameIDSameZone},
-			expectFlags{
-				expectedLen: 1,
-			},
+		"missing id, should match correct api spec using `zone_name` and extra api spec added": {
+			[]admin.ReplicationSpec{admin2, admin1},
+			[]any{tf2NoIDSameZone},
+			2,
+		},
+		"two matching specs should be set to api specs": {
+			[]admin.ReplicationSpec{admin1, admin2},
+			[]any{tf1SameIDSameZone, tf4diffIDDiffZone},
+			2,
 		},
 	}
 	for name, tc := range testCases {
@@ -154,18 +136,10 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 
 			asserter := assert.New(t)
 			require.NoError(t, err)
-			flags := tc.expectFlags
-			var expectedLen int
-			if flags.expectedLen == 0 {
-				expectedLen = 1
-			} else {
-				expectedLen = flags.expectedLen
-			}
-			asserter.Len(tfOutputSpecs, expectedLen)
-			if flags.differentID {
-				asserter.NotEqual(expectedID, tfOutputSpecs[0]["id"])
-			} else {
+			asserter.Len(tfOutputSpecs, tc.expectedLen)
+			if tc.expectedLen != 0 {
 				asserter.Equal(expectedID, tfOutputSpecs[0]["id"])
+				asserter.Equal(expectedZoneName, tfOutputSpecs[0]["zone_name"])
 			}
 		})
 	}
