@@ -35,42 +35,42 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 			ProviderName: &providerName,
 			RegionName:   &regionName,
 		}}
-		regionConfigTf = map[string]any{
+		regionConfigsTfSameZone = []map[string]any{{
 			"provider_name": "AWS",
 			"region_name":   regionName,
-		}
-		regionConfigTfDiffZone = map[string]any{
+		}}
+		regionConfigsTfDiffZone = []map[string]any{{
 			"provider_name": "AWS",
 			"region_name":   regionName,
 			"zone_name":     unexpectedZoneName,
-		}
-		admin1     = admin.ReplicationSpec{Id: &expectedID, ZoneName: &expectedZoneName, RegionConfigs: &regionConfigAdmin}
-		admin2     = admin.ReplicationSpec{Id: &unexpectedID, ZoneName: &unexpectedZoneName, RegionConfigs: &regionConfigAdmin}
-		testSchema = map[string]*schema.Schema{
+		}}
+		apiSpecExpected  = admin.ReplicationSpec{Id: &expectedID, ZoneName: &expectedZoneName, RegionConfigs: &regionConfigAdmin}
+		apiSpecDifferent = admin.ReplicationSpec{Id: &unexpectedID, ZoneName: &unexpectedZoneName, RegionConfigs: &regionConfigAdmin}
+		testSchema       = map[string]*schema.Schema{
 			"project_id": {Type: schema.TypeString},
 		}
-		tf1SameIDSameZone = map[string]any{
+		tfSameIDSameZone = map[string]any{
 			"id":             expectedID,
 			"num_shards":     1,
-			"region_configs": []any{regionConfigTf},
+			"region_configs": regionConfigsTfSameZone,
 			"zone_name":      expectedZoneName,
 		}
-		tf2NoIDSameZone = map[string]any{
+		tfNoIDSameZone = map[string]any{
 			"id":             nil,
 			"num_shards":     1,
-			"region_configs": []any{regionConfigTf},
+			"region_configs": regionConfigsTfSameZone,
 			"zone_name":      expectedZoneName,
 		}
-		tf3NoIDDiffZone = map[string]any{
+		tfNoIDDiffZone = map[string]any{
 			"id":             nil,
 			"num_shards":     1,
-			"region_configs": []any{regionConfigTfDiffZone},
+			"region_configs": regionConfigsTfDiffZone,
 			"zone_name":      unexpectedZoneName,
 		}
-		tf4diffIDDiffZone = map[string]any{
+		tfdiffIDDiffZone = map[string]any{
 			"id":             "unique",
 			"num_shards":     1,
-			"region_configs": []any{regionConfigTfDiffZone},
+			"region_configs": regionConfigsTfDiffZone,
 			"zone_name":      unexpectedZoneName,
 		}
 	)
@@ -81,42 +81,42 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 	}{
 		"empty admin spec should return empty list": {
 			[]admin.ReplicationSpec{},
-			[]any{tf1SameIDSameZone},
+			[]any{tfSameIDSameZone},
 			0,
 		},
 		"existing id, should match admin": {
-			[]admin.ReplicationSpec{admin1},
-			[]any{tf1SameIDSameZone},
+			[]admin.ReplicationSpec{apiSpecExpected},
+			[]any{tfSameIDSameZone},
 			1,
 		},
 		"existing different id, should change to admin spec": {
-			[]admin.ReplicationSpec{admin1},
-			[]any{tf4diffIDDiffZone},
+			[]admin.ReplicationSpec{apiSpecExpected},
+			[]any{tfdiffIDDiffZone},
 			1,
 		},
 		"missing id, should be set when zone_name matches": {
-			[]admin.ReplicationSpec{admin1},
-			[]any{tf2NoIDSameZone},
+			[]admin.ReplicationSpec{apiSpecExpected},
+			[]any{tfNoIDSameZone},
 			1,
 		},
 		"missing id and diff zone, should change to admin spec": {
-			[]admin.ReplicationSpec{admin1},
-			[]any{tf3NoIDDiffZone},
+			[]admin.ReplicationSpec{apiSpecExpected},
+			[]any{tfNoIDDiffZone},
 			1,
 		},
 		"existing id, should match correct api spec using `id` and extra api spec added": {
-			[]admin.ReplicationSpec{admin2, admin1},
-			[]any{tf1SameIDSameZone},
+			[]admin.ReplicationSpec{apiSpecDifferent, apiSpecExpected},
+			[]any{tfSameIDSameZone},
 			2,
 		},
 		"missing id, should match correct api spec using `zone_name` and extra api spec added": {
-			[]admin.ReplicationSpec{admin2, admin1},
-			[]any{tf2NoIDSameZone},
+			[]admin.ReplicationSpec{apiSpecDifferent, apiSpecExpected},
+			[]any{tfNoIDSameZone},
 			2,
 		},
 		"two matching specs should be set to api specs": {
-			[]admin.ReplicationSpec{admin1, admin2},
-			[]any{tf1SameIDSameZone, tf4diffIDDiffZone},
+			[]admin.ReplicationSpec{apiSpecExpected, apiSpecDifferent},
+			[]any{tfSameIDSameZone, tfdiffIDDiffZone},
 			2,
 		},
 	}
@@ -125,7 +125,8 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 			peeringAPI := mockadmin.NetworkPeeringApi{}
 
 			peeringAPI.EXPECT().ListPeeringContainerByCloudProviderWithParams(mock.Anything, mock.Anything).Return(admin.ListPeeringContainerByCloudProviderApiRequest{ApiService: &peeringAPI})
-			peeringAPI.EXPECT().ListPeeringContainerByCloudProviderExecute(mock.Anything).Return(&admin.PaginatedCloudProviderContainer{Results: &[]admin.CloudProviderContainer{{Id: conversion.StringPtr("c1"), RegionName: &regionName, ProviderName: &providerName}}}, nil, nil)
+			containerResult := []admin.CloudProviderContainer{{Id: conversion.StringPtr("c1"), RegionName: &regionName, ProviderName: &providerName}}
+			peeringAPI.EXPECT().ListPeeringContainerByCloudProviderExecute(mock.Anything).Return(&admin.PaginatedCloudProviderContainer{Results: &containerResult}, nil, nil)
 
 			client := &admin.APIClient{
 				NetworkPeeringApi: &peeringAPI,
