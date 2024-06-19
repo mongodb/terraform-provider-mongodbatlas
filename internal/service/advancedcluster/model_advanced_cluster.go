@@ -434,7 +434,7 @@ func flattenProcessArgs(p *admin.ClusterDescriptionProcessArgs) []map[string]any
 	}
 }
 
-func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin.ReplicationSpec, tfMapObjects []any,
+func FlattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin.ReplicationSpec, tfMapObjects []any,
 	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
 	if len(apiObjects) == 0 {
 		return nil, nil
@@ -451,11 +451,7 @@ func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin.Rep
 		}
 
 		for j := 0; j < len(apiObjects); j++ {
-			if wasAPIObjectUsed[j] {
-				continue
-			}
-
-			if !doesAdvancedReplicationSpecMatchAPI(tfMapObject, &apiObjects[j]) {
+			if wasAPIObjectUsed[j] || !doesAdvancedReplicationSpecMatchAPI(tfMapObject, &apiObjects[j]) {
 				continue
 			}
 
