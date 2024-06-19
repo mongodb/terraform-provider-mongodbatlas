@@ -135,12 +135,11 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 
 			tfOutputSpecs, err := advancedcluster.FlattenAdvancedReplicationSpecs(context.Background(), tc.adminSpecs, tc.tfInputSpecs, resourceData, client)
 
-			asserter := assert.New(t)
 			require.NoError(t, err)
-			asserter.Len(tfOutputSpecs, tc.expectedLen)
+			assert.Len(t, tfOutputSpecs, tc.expectedLen)
 			if tc.expectedLen != 0 {
-				asserter.Equal(expectedID, tfOutputSpecs[0]["id"])
-				asserter.Equal(expectedZoneName, tfOutputSpecs[0]["zone_name"])
+				assert.Equal(t, expectedID, tfOutputSpecs[0]["id"])
+				assert.Equal(t, expectedZoneName, tfOutputSpecs[0]["zone_name"])
 			}
 		})
 	}
