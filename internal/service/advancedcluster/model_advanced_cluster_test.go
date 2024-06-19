@@ -35,15 +35,15 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 			ProviderName: &providerName,
 			RegionName:   &regionName,
 		}}
-		regionConfigsTfSameZone = []map[string]any{{
+		regionConfigTfSameZone = map[string]any{
 			"provider_name": "AWS",
 			"region_name":   regionName,
-		}}
-		regionConfigsTfDiffZone = []map[string]any{{
+		}
+		regionConfigTfDiffZone = map[string]any{
 			"provider_name": "AWS",
 			"region_name":   regionName,
 			"zone_name":     unexpectedZoneName,
-		}}
+		}
 		apiSpecExpected  = admin.ReplicationSpec{Id: &expectedID, ZoneName: &expectedZoneName, RegionConfigs: &regionConfigAdmin}
 		apiSpecDifferent = admin.ReplicationSpec{Id: &unexpectedID, ZoneName: &unexpectedZoneName, RegionConfigs: &regionConfigAdmin}
 		testSchema       = map[string]*schema.Schema{
@@ -52,25 +52,25 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 		tfSameIDSameZone = map[string]any{
 			"id":             expectedID,
 			"num_shards":     1,
-			"region_configs": regionConfigsTfSameZone,
+			"region_configs": []any{regionConfigTfSameZone},
 			"zone_name":      expectedZoneName,
 		}
 		tfNoIDSameZone = map[string]any{
 			"id":             nil,
 			"num_shards":     1,
-			"region_configs": regionConfigsTfSameZone,
+			"region_configs": []any{regionConfigTfSameZone},
 			"zone_name":      expectedZoneName,
 		}
 		tfNoIDDiffZone = map[string]any{
 			"id":             nil,
 			"num_shards":     1,
-			"region_configs": regionConfigsTfDiffZone,
+			"region_configs": []any{regionConfigTfDiffZone},
 			"zone_name":      unexpectedZoneName,
 		}
 		tfdiffIDDiffZone = map[string]any{
 			"id":             "unique",
 			"num_shards":     1,
-			"region_configs": regionConfigsTfDiffZone,
+			"region_configs": []any{regionConfigTfDiffZone},
 			"zone_name":      unexpectedZoneName,
 		}
 	)
