@@ -1,5 +1,11 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_advanced_cluster: Adds attribute `global_cluster_self_managed_sharding` ([#2348](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2348))
+* data-source/mongodbatlas_advanced_clusters: Adds attribute `global_cluster_self_managed_sharding` ([#2348](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2348))
+* resource/mongodbatlas_advanced_cluster: Adds attribute `global_cluster_self_managed_sharding` ([#2348](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2348))
+
 BUG FIXES:
 
 * resource/mongodbatlas_project_ip_access_list: Fixes resource removal in Read() if resource doesn't exist after creation ([#2349](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2349))
