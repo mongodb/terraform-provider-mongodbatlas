@@ -317,6 +317,11 @@ func Resource() *schema.Resource {
 				Optional:    true,
 				Description: "Submit this field alongside your topology reconfiguration to request a new regional outage resistant topology",
 			},
+			"global_cluster_self_managed_sharding": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(3 * time.Hour),
@@ -408,6 +413,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	if v, ok := d.GetOk("version_release_system"); ok {
 		params.VersionReleaseSystem = conversion.StringPtr(v.(string))
+	}
+	if v, ok := d.GetOk("global_cluster_self_managed_sharding"); ok {
+		params.GlobalClusterSelfManagedSharding = conversion.Pointer(v.(bool))
 	}
 
 	// Validate oplog_size_mb to show the error before the cluster is created.
@@ -573,6 +581,10 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "accept_data_risks_and_force_replica_set_reconfig", clusterName, err))
 	}
 
+	if err := d.Set("global_cluster_self_managed_sharding", cluster.GetGlobalClusterSelfManagedSharding()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "global_cluster_self_managed_sharding", clusterName, err))
+	}
+
 	processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorConfigRead, clusterName, err))
@@ -683,6 +695,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if d.HasChange("version_release_system") {
 		cluster.VersionReleaseSystem = conversion.StringPtr(d.Get("version_release_system").(string))
+	}
+
+	if d.HasChange("global_cluster_self_managed_sharding") {
+		cluster.GlobalClusterSelfManagedSharding = conversion.Pointer(d.Get("global_cluster_self_managed_sharding").(bool))
 	}
 
 	if d.HasChange("accept_data_risks_and_force_replica_set_reconfig") {

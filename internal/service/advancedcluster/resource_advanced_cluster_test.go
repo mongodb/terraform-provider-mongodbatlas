@@ -40,13 +40,16 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "termination_protection_enabled"),
+					resource.TestCheckResourceAttr(resourceName, "termination_protection_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "global_cluster_self_managed_sharding", "false"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(dataSourceName, "termination_protection_enabled", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "global_cluster_self_managed_sharding", "false"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.termination_protection_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.global_cluster_self_managed_sharding"),
 				),
 			},
 			{
@@ -58,12 +61,16 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "termination_protection_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "global_cluster_self_managed_sharding", "false"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", clusterNameUpdated),
 					resource.TestCheckResourceAttr(dataSourceName, "termination_protection_enabled", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "global_cluster_self_managed_sharding", "false"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.termination_protection_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.global_cluster_self_managed_sharding"),
 				),
 			},
 			{
@@ -547,11 +554,9 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *testing.T) {
 	var (
-		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName      = acc.RandomProjectName()
-		clusterName      = acc.RandomClusterName() // No ProjectIDExecution to avoid cross-region limits because multi-region
-		numShards        = "1"
-		numShardsUpdated = "2"
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		clusterName = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -560,21 +565,27 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configMultiZoneWithShards(orgID, projectName, clusterName, numShards, numShards),
+				Config: configMultiZoneWithShards(orgID, projectName, clusterName, 1, 1, false),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.num_shards", "1"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.1.num_shards", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "name", clusterName),
+					resource.TestCheckResourceAttr(dataSourceName, "replication_specs.0.num_shards", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "replication_specs.1.num_shards", "1"),
 				),
 			},
 			{
-				Config: configMultiZoneWithShards(orgID, projectName, clusterName, numShardsUpdated, numShards),
+				Config: configMultiZoneWithShards(orgID, projectName, clusterName, 2, 1, false),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.num_shards", "2"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.1.num_shards", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "name", clusterName),
+					resource.TestCheckResourceAttr(dataSourceName, "replication_specs.0.num_shards", "2"),
+					resource.TestCheckResourceAttr(dataSourceName, "replication_specs.1.num_shards", "1"),
 				),
 			},
 		},
@@ -651,6 +662,53 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.tags.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(dataSourcePluralName, "results.0.tags.*", acc.ClusterTagsMap3),
 				),
+			},
+		},
+	})
+}
+
+func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configMultiZoneWithShards(orgID, projectName, clusterName, 1, 1, true),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "global_cluster_self_managed_sharding", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "global_cluster_self_managed_sharding", "true"),
+				),
+			},
+			{
+				Config:      configMultiZoneWithShards(orgID, projectName, clusterName, 1, 1, false),
+				ExpectError: regexp.MustCompile("CANNOT_MODIFY_GLOBAL_CLUSTER_MANAGEMENT_SETTING"),
+			},
+		},
+	})
+}
+
+func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *testing.T) {
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config:      configIncorrectTypeGobalClusterSelfManagedSharding(projectID, clusterName),
+				ExpectError: regexp.MustCompile("CANNOT_SET_SELF_MANAGED_SHARDING_FOR_NON_GLOBAL_CLUSTER"),
 			},
 		},
 	})
@@ -784,6 +842,34 @@ func configSingleProvider(projectID, name string) string {
 		data "mongodbatlas_advanced_cluster" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			name 	     = mongodbatlas_advanced_cluster.test.name
+		}
+	`, projectID, name)
+}
+
+func configIncorrectTypeGobalClusterSelfManagedSharding(projectID, name string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[2]q
+
+			cluster_type = "REPLICASET"
+			global_cluster_self_managed_sharding = true # invalid, can only by used with GEOSHARDED clusters
+
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					analytics_specs {
+						instance_size = "M10"
+						node_count    = 1
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_WEST_2"
+				}
+			}
 		}
 	`, projectID, name)
 }
@@ -1063,7 +1149,7 @@ func configReplicationSpecsAnalyticsAutoScaling(projectID, clusterName string, p
 	`, projectID, clusterName, p.Compute.GetEnabled(), p.DiskGB.GetEnabled(), p.Compute.GetMaxInstanceSize())
 }
 
-func configMultiZoneWithShards(orgID, projectName, name, numShardsFirstZone, numShardsSecondZone string) string {
+func configMultiZoneWithShards(orgID, projectName, name string, numShardsFirstZone, numShardsSecondZone int, selfManagedSharding bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
@@ -1076,10 +1162,11 @@ func configMultiZoneWithShards(orgID, projectName, name, numShardsFirstZone, num
 			backup_enabled = false
 			mongo_db_major_version = "7.0"
 			cluster_type   = "GEOSHARDED"
+			global_cluster_self_managed_sharding = %[6]t
 
 			replication_specs {
 				zone_name  = "zone n1"
-				num_shards = %[4]q
+				num_shards = %[4]d
 
 				region_configs {
 				electable_specs {
@@ -1098,7 +1185,7 @@ func configMultiZoneWithShards(orgID, projectName, name, numShardsFirstZone, num
 
 			replication_specs {
 				zone_name  = "zone n2"
-				num_shards = %[5]q
+				num_shards = %[5]d
 
 				region_configs {
 				electable_specs {
@@ -1115,5 +1202,10 @@ func configMultiZoneWithShards(orgID, projectName, name, numShardsFirstZone, num
 				}
 			}
 		}
-	`, orgID, projectName, name, numShardsFirstZone, numShardsSecondZone)
+
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+		}
+	`, orgID, projectName, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding)
 }
