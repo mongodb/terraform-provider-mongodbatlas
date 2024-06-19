@@ -1127,8 +1127,8 @@ func TestAccCluster_basicGCPRegionNameWesternUS(t *testing.T) {
 func TestAccCluster_basicGCPRegionNameUSWest2(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		clusterName = acc.RandomClusterName() // No ProjectIDExecution to avoid cross-region limits because no AWS
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because no AWS
+		clusterName = acc.RandomClusterName()
 		regionName  = "US_WEST_2"
 	)
 

@@ -555,8 +555,8 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		clusterName = acc.RandomClusterName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		clusterName = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -670,8 +670,8 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		clusterName = acc.RandomClusterName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		clusterName = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -853,7 +853,7 @@ func configIncorrectTypeGobalClusterSelfManagedSharding(projectID, name string) 
 			name         = %[2]q
 
 			cluster_type = "REPLICASET"
-			global_cluster_self_managed_sharding = true
+			global_cluster_self_managed_sharding = true # invalid, can only by used with GEOSHARDED clusters
 
 			replication_specs {
 				region_configs {
