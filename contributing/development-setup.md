@@ -51,7 +51,20 @@ For more explained information about plugin override check [Development Override
 - Make sure that the PR title follows [*Conventional Commits*](https://www.conventionalcommits.org/).
 - Add comments around your new code that explain what's happening.
 - Commit and push your changes to your branch then submit a pull request against the `master` branch.
-- A repo maintainer will review the your pull request, and may either request additional changes or merge the pull request.
+- A repo maintainer will review the your pull request. 
+
+### Merging a Pull Request
+Due to security reasons, there are restrictions on how external contributions can be handled, especially concerning the use of repository secrets and running tests from forks.
+Our GitHub setup does not allow sharing of variables and secrets across forks made by external contributors. This is a necessary security measure to prevent unauthorized access and potential vulnerabilities
+
+As external contributors cannot merge changes from their forks directly nor create branches from the master, the contribution process involves co-authoring. Here's what will happen:
+
+- We will cherry-pick your commit into a new branch in our main repository.
+- We will then create a new pull request from this branch, adding you as a co-author to ensure your contribution is not lost.
+- Our team will carry out any necessary testing and review on the new pull request. You are welcome to participate in this phase by commenting and making further suggestions.
+- Once approved, the pull request will be merged into the main branch.
+- **Exception**: 
+For minor changes that do not affect the core functionality of the project and do not require running tests, exceptions to the above process may be made at the discretion of the project maintainers.
 
 #### PR Title Format
 
