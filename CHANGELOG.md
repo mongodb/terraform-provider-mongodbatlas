@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.17.2 (June 20, 2024)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_advanced_cluster: Adds attribute `global_cluster_self_managed_sharding` ([#2348](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2348))
