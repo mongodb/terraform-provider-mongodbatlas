@@ -33,11 +33,11 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configTenant(projectID, clusterName),
-				Check:  resource.ComposeTestCheckFunc(checkTenant(clusterName)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checkTenant(clusterName)...),
 			},
 			{
 				Config: configTenant(projectID, clusterNameUpdated),
-				Check:  resource.ComposeTestCheckFunc(checkTenant(clusterNameUpdated)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checkTenant(clusterNameUpdated)...),
 			},
 			{
 				ResourceName:      resourceName,
@@ -63,7 +63,7 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configSingleProvider(projectID, clusterName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
@@ -100,7 +100,7 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configMultiCloud(orgID, projectName, clusterName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
@@ -117,7 +117,7 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 			},
 			{
 				Config: configMultiCloud(orgID, projectName, clusterNameUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
@@ -156,7 +156,7 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configMultiCloudSharded(orgID, projectName, clusterName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
@@ -166,7 +166,7 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 			},
 			{
 				Config: configMultiCloudSharded(orgID, projectName, clusterNameUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
@@ -200,7 +200,7 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configSingleProviderPaused(projectID, clusterName, false, instanceSize),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
@@ -211,7 +211,7 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 			},
 			{
 				Config: configSingleProviderPaused(projectID, clusterName, true, instanceSize),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
@@ -249,7 +249,7 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configSingleProviderPaused(projectID, clusterName, true, instanceSize),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
@@ -260,7 +260,7 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 			},
 			{
 				Config: configSingleProviderPaused(projectID, clusterName, false, instanceSize),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
@@ -325,7 +325,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configAdvanced(projectID, clusterName, processArgs),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
@@ -344,7 +344,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			},
 			{
 				Config: configAdvanced(projectID, clusterNameUpdated, processArgsUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
@@ -400,7 +400,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configAdvancedDefaultWrite(projectID, clusterName, processArgs),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
@@ -416,7 +416,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 			},
 			{
 				Config: configAdvancedDefaultWrite(projectID, clusterNameUpdated, processArgsUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
@@ -456,7 +456,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 		Steps: []resource.TestStep{
 			{
 				Config: configReplicationSpecsAutoScaling(projectID, clusterName, autoScaling),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
@@ -465,7 +465,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 			},
 			{
 				Config: configReplicationSpecsAutoScaling(projectID, clusterNameUpdated, autoScalingUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
@@ -498,7 +498,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 		Steps: []resource.TestStep{
 			{
 				Config: configReplicationSpecsAnalyticsAutoScaling(projectID, clusterName, autoScaling),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
@@ -507,7 +507,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 			},
 			{
 				Config: configReplicationSpecsAnalyticsAutoScaling(projectID, clusterNameUpdated, autoScalingUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
@@ -532,7 +532,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 		Steps: []resource.TestStep{
 			{
 				Config: configMultiZoneWithShards(orgID, projectName, clusterName, 1, 1, false),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.num_shards", "1"),
@@ -544,7 +544,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 			},
 			{
 				Config: configMultiZoneWithShards(orgID, projectName, clusterName, 2, 1, false),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.num_shards", "2"),
@@ -572,7 +572,7 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithTags(orgID, projectName, clusterName, nil),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -593,7 +593,7 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 						Value: "value 2",
 					},
 				}),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -616,7 +616,7 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 						Value: "value 3",
 					},
 				}),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -647,7 +647,7 @@ func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configMultiZoneWithShards(orgID, projectName, clusterName, 1, 1, true),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "global_cluster_self_managed_sharding", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "global_cluster_self_managed_sharding", "true"),
