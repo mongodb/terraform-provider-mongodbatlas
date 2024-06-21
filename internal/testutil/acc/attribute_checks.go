@@ -66,9 +66,7 @@ func JSONEquals(expected string) resource.CheckResourceAttrWithFunc {
 }
 
 func AddAttrSetChecks(targetName string, checks []resource.TestCheckFunc, attrNames ...string) []resource.TestCheckFunc {
-	// avoids accidentally modifying existing slice
-	newChecks := make([]resource.TestCheckFunc, len(checks), len(checks)+len(attrNames))
-	copy(newChecks, checks)
+	newChecks := copyChecks(checks, attrNames)
 	for _, attrName := range attrNames {
 		newChecks = append(newChecks, resource.TestCheckResourceAttrSet(targetName, attrName))
 	}
@@ -76,9 +74,7 @@ func AddAttrSetChecks(targetName string, checks []resource.TestCheckFunc, attrNa
 }
 
 func AddNoAttrSetChecks(targetName string, checks []resource.TestCheckFunc, attrNames ...string) []resource.TestCheckFunc {
-	// avoids accidentally modifying existing slice
-	newChecks := make([]resource.TestCheckFunc, len(checks), len(checks)+len(attrNames))
-	copy(newChecks, checks)
+	newChecks := copyChecks(checks, attrNames)
 	for _, attrName := range attrNames {
 		newChecks = append(newChecks, resource.TestCheckNoResourceAttr(targetName, attrName))
 	}
@@ -86,9 +82,7 @@ func AddNoAttrSetChecks(targetName string, checks []resource.TestCheckFunc, attr
 }
 
 func AddAttrChecks(targetName string, checks []resource.TestCheckFunc, mapChecks map[string]string) []resource.TestCheckFunc {
-	// avoids accidentally modifying existing slice
-	newChecks := make([]resource.TestCheckFunc, len(checks), len(checks)+len(mapChecks))
-	copy(newChecks, checks)
+	newChecks := copyChecks(checks, mapChecks)
 	for key, value := range mapChecks {
 		newChecks = append(newChecks, resource.TestCheckResourceAttr(targetName, key, value))
 	}
@@ -96,9 +90,7 @@ func AddAttrChecks(targetName string, checks []resource.TestCheckFunc, mapChecks
 }
 
 func AddAttrChecksPrefix(targetName string, checks []resource.TestCheckFunc, mapChecks map[string]string, prefix string, skipNames ...string) []resource.TestCheckFunc {
-	// avoids accidentally modifying existing slice
-	newChecks := make([]resource.TestCheckFunc, len(checks), len(checks)+len(mapChecks))
-	copy(newChecks, checks)
+	newChecks := copyChecks(checks, mapChecks)
 	prefix, _ = strings.CutSuffix(prefix, ".")
 	for key, value := range mapChecks {
 		if slices.Contains(skipNames, key) {
@@ -107,5 +99,12 @@ func AddAttrChecksPrefix(targetName string, checks []resource.TestCheckFunc, map
 		keyWithPrefix := fmt.Sprintf("%s.%s", prefix, key)
 		newChecks = append(newChecks, resource.TestCheckResourceAttr(targetName, keyWithPrefix, value))
 	}
+	return newChecks
+}
+
+// copyChecks helps to prevent the accidental modification of the existing slice
+func copyChecks[T map[string]string | []string](checks []resource.TestCheckFunc, additionalChecks T) []resource.TestCheckFunc {
+	newChecks := make([]resource.TestCheckFunc, len(checks)+len(additionalChecks))
+	copy(newChecks, checks)
 	return newChecks
 }
