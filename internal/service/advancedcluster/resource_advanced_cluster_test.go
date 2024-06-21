@@ -51,9 +51,8 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 
 func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 	var (
-		dataSourceName = fmt.Sprintf("data.%s", resourceName)
-		projectID      = acc.ProjectIDExecution(t)
-		clusterName    = acc.RandomClusterName()
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -63,16 +62,7 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configSingleProvider(projectID, clusterName),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-					resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-				),
+				Check:  checkSingleProvider(projectID, clusterName),
 			},
 			{
 				ResourceName:            resourceName,
@@ -838,6 +828,28 @@ func configSingleProvider(projectID, name string) string {
 			name 	     = mongodbatlas_advanced_cluster.test.name
 		}
 	`, projectID, name)
+}
+
+func checkSingleProvider(projectID, name string) resource.TestCheckFunc {
+	attrsSet := []string{
+		"replication_specs.#",
+		"replication_specs.0.region_configs.#",
+	}
+	attrsMap := map[string]string{
+		"project_id":             projectID,
+		"name":                   name,
+		"retain_backups_enabled": "true",
+	}
+	checks := []resource.TestCheckFunc{
+		checkExists(resourceName),
+		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+	}
+	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
+	checks = acc.AddAttrChecks(dataSourceName, checks, attrsMap)
+	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
+	checks = acc.AddAttrSetChecks(dataSourceName, checks, attrsSet...)
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func configIncorrectTypeGobalClusterSelfManagedSharding(projectID, name string) string {
