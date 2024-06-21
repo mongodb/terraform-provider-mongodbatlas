@@ -26,7 +26,6 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
 	)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -34,44 +33,11 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configTenant(projectID, clusterName),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttr(resourceName, "termination_protection_enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "global_cluster_self_managed_sharding", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(dataSourceName, "termination_protection_enabled", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "global_cluster_self_managed_sharding", "false"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.termination_protection_enabled"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.global_cluster_self_managed_sharding"),
-				),
+				Check:  resource.ComposeTestCheckFunc(checkTenant(clusterName)...),
 			},
 			{
 				Config: configTenant(projectID, clusterNameUpdated),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "termination_protection_enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "global_cluster_self_managed_sharding", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", clusterNameUpdated),
-					resource.TestCheckResourceAttr(dataSourceName, "termination_protection_enabled", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "global_cluster_self_managed_sharding", "false"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.termination_protection_enabled"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.global_cluster_self_managed_sharding"),
-				),
+				Check:  resource.ComposeTestCheckFunc(checkTenant(clusterNameUpdated)...),
 			},
 			{
 				ResourceName:      resourceName,
@@ -760,6 +726,34 @@ func configTenant(projectID, name string) string {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 		}
 	`, projectID, name)
+}
+
+func checkTenant(name string) []resource.TestCheckFunc {
+	attrsSet := []string{
+		"project_id",
+		"replication_specs.#",
+		"replication_specs.0.region_configs.#",
+	}
+	attrsMap := map[string]string{
+		"termination_protection_enabled":       "false",
+		"global_cluster_self_managed_sharding": "false",
+		"labels.#":                             "0",
+		"name":                                 name,
+	}
+	attrsSetPlural := []string{
+		"results.#",
+		"results.0.replication_specs.#",
+		"results.0.name",
+		"results.0.termination_protection_enabled",
+		"results.0.global_cluster_self_managed_sharding",
+	}
+	checks := []resource.TestCheckFunc{checkExists(resourceName)}
+	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
+	checks = acc.AddAttrChecks(dataSourceName, checks, attrsMap)
+	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
+	checks = acc.AddAttrSetChecks(dataSourceName, checks, attrsSet...)
+	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, attrsSetPlural...)
+	return checks
 }
 
 func configWithTags(orgID, projectName, name string, tags []admin.ResourceTag) string {
