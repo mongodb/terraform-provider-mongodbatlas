@@ -55,7 +55,7 @@ For more explained information about plugin override check [Development Override
 
 ### Merging a Pull Request
 Due to security reasons, there are restrictions on how external contributions can be handled, especially concerning the use of repository secrets and running tests from forks.
-Our GitHub setup does not allow sharing of variables and secrets across forks made by external contributors. This is a necessary security measure to prevent unauthorized access and potential vulnerabilities
+Our GitHub setup does not allow sharing of variables and secrets across forks made by external contributors. This is a necessary security measure to prevent unauthorized access and potential vulnerabilities.
 
 As external contributors cannot merge changes from their forks directly nor create branches from the master, the contribution process involves co-authoring. Here's what will happen:
 
