@@ -830,9 +830,9 @@ func checkSingleProvider(projectID, name string) resource.TestCheckFunc {
 	return checkAggr(
 		[]string{"replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
-			"project_id":             projectID,
-			"name":                   name,
-			"retain_backups_enabled": "true"},
+			"project_id": projectID,
+			"name":       name},
+		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
 		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
 		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)))
 }
