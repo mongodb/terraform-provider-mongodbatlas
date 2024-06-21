@@ -33,11 +33,11 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configTenant(projectID, clusterName),
-				Check:  resource.ComposeAggregateTestCheckFunc(checkTenant(clusterName)...),
+				Check:  checkTenant(projectID, clusterName),
 			},
 			{
 				Config: configTenant(projectID, clusterNameUpdated),
-				Check:  resource.ComposeAggregateTestCheckFunc(checkTenant(clusterNameUpdated)...),
+				Check:  checkTenant(projectID, clusterNameUpdated),
 			},
 			{
 				ResourceName:      resourceName,
@@ -670,6 +670,16 @@ func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *tes
 	})
 }
 
+func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{checkExists(resourceName)}
+	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
+	checks = acc.AddAttrChecks(dataSourceName, checks, attrsMap)
+	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
+	checks = acc.AddAttrSetChecks(dataSourceName, checks, attrsSet...)
+	checks = append(checks, extra...)
+	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
 func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -718,32 +728,22 @@ func configTenant(projectID, name string) string {
 	`, projectID, name)
 }
 
-func checkTenant(name string) []resource.TestCheckFunc {
-	attrsSet := []string{
-		"project_id",
-		"replication_specs.#",
-		"replication_specs.0.region_configs.#",
-	}
-	attrsMap := map[string]string{
-		"termination_protection_enabled":       "false",
-		"global_cluster_self_managed_sharding": "false",
-		"labels.#":                             "0",
-		"name":                                 name,
-	}
-	attrsSetPlural := []string{
-		"results.#",
-		"results.0.replication_specs.#",
-		"results.0.name",
-		"results.0.termination_protection_enabled",
-		"results.0.global_cluster_self_managed_sharding",
-	}
-	checks := []resource.TestCheckFunc{checkExists(resourceName)}
-	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
-	checks = acc.AddAttrChecks(dataSourceName, checks, attrsMap)
-	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
-	checks = acc.AddAttrSetChecks(dataSourceName, checks, attrsSet...)
-	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, attrsSetPlural...)
-	return checks
+func checkTenant(projectID, name string) resource.TestCheckFunc {
+	pluralChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
+		[]string{"results.#",
+			"results.0.replication_specs.#",
+			"results.0.name",
+			"results.0.termination_protection_enabled",
+			"results.0.global_cluster_self_managed_sharding"}...)
+	return checkAggr(
+		[]string{"replication_specs.#", "replication_specs.0.region_configs.#"},
+		map[string]string{
+			"project_id":                           projectID,
+			"name":                                 name,
+			"termination_protection_enabled":       "false",
+			"global_cluster_self_managed_sharding": "false",
+			"labels.#":                             "0"},
+		pluralChecks...)
 }
 
 func configWithTags(orgID, projectName, name string, tags []admin.ResourceTag) string {
@@ -831,25 +831,14 @@ func configSingleProvider(projectID, name string) string {
 }
 
 func checkSingleProvider(projectID, name string) resource.TestCheckFunc {
-	attrsSet := []string{
-		"replication_specs.#",
-		"replication_specs.0.region_configs.#",
-	}
-	attrsMap := map[string]string{
-		"project_id":             projectID,
-		"name":                   name,
-		"retain_backups_enabled": "true",
-	}
-	checks := []resource.TestCheckFunc{
-		checkExists(resourceName),
+	return checkAggr(
+		[]string{"replication_specs.#", "replication_specs.0.region_configs.#"},
+		map[string]string{
+			"project_id":             projectID,
+			"name":                   name,
+			"retain_backups_enabled": "true"},
 		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-	}
-	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
-	checks = acc.AddAttrChecks(dataSourceName, checks, attrsMap)
-	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
-	checks = acc.AddAttrSetChecks(dataSourceName, checks, attrsSet...)
-	return resource.ComposeAggregateTestCheckFunc(checks...)
+		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)))
 }
 
 func configIncorrectTypeGobalClusterSelfManagedSharding(projectID, name string) string {
