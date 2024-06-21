@@ -104,7 +104,7 @@ func AddAttrChecksPrefix(targetName string, checks []resource.TestCheckFunc, map
 
 // copyChecks helps to prevent the accidental modification of the existing slice
 func copyChecks[T map[string]string | []string](checks []resource.TestCheckFunc, additionalChecks T) []resource.TestCheckFunc {
-	newChecks := make([]resource.TestCheckFunc, len(checks)+len(additionalChecks))
+	newChecks := make([]resource.TestCheckFunc, len(checks), len(checks)+len(additionalChecks))
 	copy(newChecks, checks)
 	return newChecks
 }
