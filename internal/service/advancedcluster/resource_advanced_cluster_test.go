@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -561,63 +562,16 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithTags(orgID, projectName, clusterName, nil),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "0"),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.tags.#", "0"),
-				),
+				Config: configWithTags(orgID, projectName, clusterName),
+				Check:  checkTags(clusterName),
 			},
 			{
-				Config: configWithTags(orgID, projectName, clusterName, []admin.ResourceTag{
-					{
-						Key:   "key 1",
-						Value: "value 1",
-					},
-					{
-						Key:   "key 2",
-						Value: "value 2",
-					},
-				}),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", acc.ClusterTagsMap1),
-					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", acc.ClusterTagsMap2),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", acc.ClusterTagsMap1),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", acc.ClusterTagsMap2),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourcePluralName, "results.0.tags.*", acc.ClusterTagsMap1),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourcePluralName, "results.0.tags.*", acc.ClusterTagsMap2),
-				),
+				Config: configWithTags(orgID, projectName, clusterName, acc.ClusterTagsMap1, acc.ClusterTagsMap2),
+				Check:  checkTags(clusterName, acc.ClusterTagsMap1, acc.ClusterTagsMap2),
 			},
 			{
-				Config: configWithTags(orgID, projectName, clusterName, []admin.ResourceTag{
-					{
-						Key:   "key 3",
-						Value: "value 3",
-					},
-				}),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "tags.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", acc.ClusterTagsMap3),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", acc.ClusterTagsMap3),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.tags.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourcePluralName, "results.0.tags.*", acc.ClusterTagsMap3),
-				),
+				Config: configWithTags(orgID, projectName, clusterName, acc.ClusterTagsMap3),
+				Check:  checkTags(clusterName, acc.ClusterTagsMap3),
 			},
 		},
 	})
@@ -742,7 +696,7 @@ func checkTenant(projectID, name string) resource.TestCheckFunc {
 		pluralChecks...)
 }
 
-func configWithTags(orgID, projectName, name string, tags []admin.ResourceTag) string {
+func configWithTags(orgID, projectName, name string, tags ...map[string]string) string {
 	var tagsConf string
 	for _, label := range tags {
 		tagsConf += fmt.Sprintf(`
@@ -750,7 +704,7 @@ func configWithTags(orgID, projectName, name string, tags []admin.ResourceTag) s
 				key   = "%s"
 				value = "%s"
 			}
-		`, label.GetKey(), label.GetValue())
+		`, label["key"], label["value"])
 	}
 
 	return fmt.Sprintf(`
@@ -792,6 +746,27 @@ func configWithTags(orgID, projectName, name string, tags []admin.ResourceTag) s
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 		}
 	`, orgID, projectName, name, tagsConf)
+}
+
+func checkTags(name string, tags ...map[string]string) resource.TestCheckFunc {
+	lenStr := strconv.Itoa(len(tags))
+	tagChecks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(resourceName, "tags.#", lenStr),
+		resource.TestCheckResourceAttr(dataSourceName, "tags.#", lenStr),
+		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.tags.#", lenStr),
+	}
+	for _, tag := range tags {
+		tagChecks = append(tagChecks,
+			resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", tag),
+			resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", tag),
+			resource.TestCheckTypeSetElemNestedAttrs(dataSourcePluralName, "results.0.tags.*", tag))
+	}
+	return checkAggr(
+		[]string{"project_id"},
+		map[string]string{
+			"name": name,
+		},
+		tagChecks...)
 }
 
 func configSingleProvider(projectID, name string) string {
