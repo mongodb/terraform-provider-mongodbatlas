@@ -787,6 +787,12 @@ func expandAdvancedReplicationSpecs(tfList []any, rootDiskSizeGB *float64) *[]ad
 		}
 		apiObject := expandAdvancedReplicationSpec(tfMap, rootDiskSizeGB)
 		apiObjects = append(apiObjects, *apiObject)
+
+		// handles adding additional replication spec objects if legacy num_shards attribute is being used and greater than 1
+		numShards := tfMap["num_shards"].(int)
+		for range numShards - 1 {
+			apiObjects = append(apiObjects, *apiObject)
+		}
 	}
 	return &apiObjects
 }
