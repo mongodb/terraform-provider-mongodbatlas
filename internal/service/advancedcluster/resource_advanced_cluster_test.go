@@ -405,27 +405,11 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 		Steps: []resource.TestStep{
 			{
 				Config: configMultiZoneWithShards(orgID, projectName, clusterName, 1, 1, false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.num_shards", "1"),
-					resource.TestCheckResourceAttr(resourceName, "replication_specs.1.num_shards", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(dataSourceName, "replication_specs.0.num_shards", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "replication_specs.1.num_shards", "1"),
-				),
+				Check:  checkMultiZoneWithShards(clusterName, 1, 1),
 			},
 			{
 				Config: configMultiZoneWithShards(orgID, projectName, clusterName, 2, 1, false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.num_shards", "2"),
-					resource.TestCheckResourceAttr(resourceName, "replication_specs.1.num_shards", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(dataSourceName, "replication_specs.0.num_shards", "2"),
-					resource.TestCheckResourceAttr(dataSourceName, "replication_specs.1.num_shards", "1"),
-				),
+				Check:  checkMultiZoneWithShards(clusterName, 2, 1),
 			},
 		},
 	})
@@ -1128,4 +1112,14 @@ func configMultiZoneWithShards(orgID, projectName, name string, numShardsFirstZo
 			name 	     = mongodbatlas_advanced_cluster.test.name
 		}
 	`, orgID, projectName, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding)
+}
+
+func checkMultiZoneWithShards(name string, numShardsFirstZone, numShardsSecondZone int) resource.TestCheckFunc {
+	return checkAggr(
+		[]string{"project_id"},
+		map[string]string{
+			"name":                           name,
+			"replication_specs.0.num_shards": strconv.Itoa(numShardsFirstZone),
+			"replication_specs.1.num_shards": strconv.Itoa(numShardsSecondZone),
+		})
 }
