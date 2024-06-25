@@ -123,23 +123,11 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configMultiCloudSharded(orgID, projectName, clusterName),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-				),
+				Check:  checkMultiCloudSharded(clusterName),
 			},
 			{
 				Config: configMultiCloudSharded(orgID, projectName, clusterNameUpdated),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-				),
+				Check:  checkMultiCloudSharded(clusterNameUpdated),
 			},
 			{
 				ResourceName:            resourceName,
@@ -167,25 +155,11 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configSingleProviderPaused(projectID, clusterName, false, instanceSize),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
-				),
+				Check:  checkSingleProviderPaused(clusterName, false),
 			},
 			{
 				Config: configSingleProviderPaused(projectID, clusterName, true, instanceSize),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
-				),
+				Check:  checkSingleProviderPaused(clusterName, true),
 			},
 			{
 				Config:      configSingleProviderPaused(projectID, clusterName, true, anotherInstanceSize),
@@ -216,25 +190,11 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configSingleProviderPaused(projectID, clusterName, true, instanceSize),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
-				),
+				Check:  checkSingleProviderPaused(clusterName, true),
 			},
 			{
 				Config: configSingleProviderPaused(projectID, clusterName, false, instanceSize),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
-				),
+				Check:  checkSingleProviderPaused(clusterName, false),
 			},
 			{
 				Config:      configSingleProviderPaused(projectID, clusterName, true, instanceSize),
@@ -926,7 +886,20 @@ func configMultiCloudSharded(orgID, projectName, name string) string {
 				}
 			}
 		}
+
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+		}
 	`, orgID, projectName, name)
+}
+
+func checkMultiCloudSharded(name string) resource.TestCheckFunc {
+	return checkAggr(
+		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
+		map[string]string{
+			"name":                   name,
+			"retain_backups_enabled": "false"})
 }
 
 func configSingleProviderPaused(projectID, clusterName string, paused bool, instanceSize string) string {
@@ -954,6 +927,14 @@ func configSingleProviderPaused(projectID, clusterName string, paused bool, inst
 			}
 		}
 	`, projectID, clusterName, paused, instanceSize)
+}
+
+func checkSingleProviderPaused(name string, paused bool) resource.TestCheckFunc {
+	return checkAggr(
+		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
+		map[string]string{
+			"name":   name,
+			"paused": strconv.FormatBool(paused)})
 }
 
 func configAdvanced(projectID, clusterName string, p *admin.ClusterDescriptionProcessArgs) string {
