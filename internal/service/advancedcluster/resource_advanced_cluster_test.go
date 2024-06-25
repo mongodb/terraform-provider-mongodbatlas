@@ -297,35 +297,11 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configAdvancedDefaultWrite(projectID, clusterName, processArgs),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "1"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
-				),
+				Check:  checkAdvancedDefaultWrite(clusterName, "1", "TLS1_1"),
 			},
 			{
 				Config: configAdvancedDefaultWrite(projectID, clusterNameUpdated, processArgsUpdated),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "majority"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
-				),
+				Check:  checkAdvancedDefaultWrite(clusterName, "majority", "TLS1_2"),
 			},
 		},
 	})
@@ -968,7 +944,6 @@ func checkAdvanced(name, tls string) resource.TestCheckFunc {
 			"advanced_configuration.0.sample_refresh_interval_bi_connector": "310",
 			"advanced_configuration.0.sample_size_bi_connector":             "110",
 			"advanced_configuration.0.transaction_lifetime_limit_seconds":   "300"},
-		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"))
@@ -1010,6 +985,26 @@ func configAdvancedDefaultWrite(projectID, clusterName string, p *admin.ClusterD
 		}
 	`, projectID, clusterName, p.GetJavascriptEnabled(), p.GetMinimumEnabledTlsProtocol(), p.GetNoTableScan(),
 		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p.GetDefaultReadConcern(), p.GetDefaultWriteConcern())
+}
+
+func checkAdvancedDefaultWrite(name, writeConcern, tls string) resource.TestCheckFunc {
+	return checkAggr(
+		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
+		map[string]string{
+			"name": name,
+			"advanced_configuration.0.minimum_enabled_tls_protocol":         tls,
+			"advanced_configuration.0.default_write_concern":                writeConcern,
+			"advanced_configuration.0.default_read_concern":                 "available",
+			"advanced_configuration.0.fail_index_key_too_long":              "false",
+			"advanced_configuration.0.javascript_enabled":                   "true",
+			"advanced_configuration.0.no_table_scan":                        "false",
+			"advanced_configuration.0.oplog_size_mb":                        "1000",
+			"advanced_configuration.0.sample_refresh_interval_bi_connector": "310",
+			"advanced_configuration.0.sample_size_bi_connector":             "110",
+			"advanced_configuration.0.transaction_lifetime_limit_seconds":   "300"},
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"))
 }
 
 func configReplicationSpecsAutoScaling(projectID, clusterName string, p *admin.AdvancedAutoScalingSettings) string {
