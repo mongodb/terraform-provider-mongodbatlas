@@ -47,14 +47,7 @@ func TestMigAdvancedCluster_multiCloud(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-				),
+				Check:             checkMultiCloud(clusterName),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},

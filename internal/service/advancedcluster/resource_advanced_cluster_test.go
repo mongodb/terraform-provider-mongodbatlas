@@ -91,35 +91,11 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configMultiCloud(orgID, projectName, clusterName),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
-					resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.0.replication_specs.0.region_configs.#", acc.JSONEquals("3")),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", clusterName),
-					resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.#", acc.JSONEquals("3")),
-				),
+				Check:  checkMultiCloud(clusterName),
 			},
 			{
 				Config: configMultiCloud(orgID, projectName, clusterNameUpdated),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
-					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", clusterNameUpdated),
-				),
+				Check:  checkMultiCloud(clusterNameUpdated),
 			},
 			{
 				ResourceName:            resourceName,
@@ -897,6 +873,19 @@ func configMultiCloud(orgID, projectName, name string) string {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 		}
 	`, orgID, projectName, name)
+}
+
+func checkMultiCloud(name string) resource.TestCheckFunc {
+	return checkAggr(
+		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
+		map[string]string{
+			"name":                   name,
+			"retain_backups_enabled": "false"},
+		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.0.region_configs.#"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"))
 }
 
 func configMultiCloudSharded(orgID, projectName, name string) string {
