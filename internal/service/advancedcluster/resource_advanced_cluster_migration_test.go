@@ -47,7 +47,7 @@ func TestMigAdvancedCluster_multiCloud(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check:             checkMultiCloud(clusterName),
+				Check:             checkMultiCloud(clusterName, 3),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},

@@ -91,11 +91,11 @@ func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configMultiCloud(orgID, projectName, clusterName),
-				Check:  checkMultiCloud(clusterName),
+				Check:  checkMultiCloud(clusterName, 3),
 			},
 			{
 				Config: configMultiCloud(orgID, projectName, clusterNameUpdated),
-				Check:  checkMultiCloud(clusterNameUpdated),
+				Check:  checkMultiCloud(clusterNameUpdated, 3),
 			},
 			{
 				ResourceName:            resourceName,
@@ -765,17 +765,20 @@ func configMultiCloud(orgID, projectName, name string) string {
 	`, orgID, projectName, name)
 }
 
-func checkMultiCloud(name string) resource.TestCheckFunc {
+func checkMultiCloud(name string, regionConfigs int) resource.TestCheckFunc {
 	return checkAggr(
-		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
+		[]string{"project_id", "replication_specs.#"},
 		map[string]string{
 			"name":                   name,
 			"retain_backups_enabled": "false"},
 		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
+		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
+		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
+		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.0.replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.0.region_configs.#"),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"))
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
+	)
 }
 
 func configMultiCloudSharded(orgID, projectName, name string) string {
