@@ -830,8 +830,7 @@ func checkMultiCloudSharded(name string) resource.TestCheckFunc {
 	return checkAggr(
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
-			"name":                   name,
-			"retain_backups_enabled": "false"})
+			"name": name})
 }
 
 func configSingleProviderPaused(projectID, clusterName string, paused bool, instanceSize string) string {
