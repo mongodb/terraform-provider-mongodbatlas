@@ -418,9 +418,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if v, ok := d.GetOk("version_release_system"); ok {
 		params.VersionReleaseSystem = conversion.StringPtr(v.(string))
 	}
-	// if v, ok := d.GetOk("global_cluster_self_managed_sharding"); ok {
-	// 	params.GlobalClusterSelfManagedSharding = conversion.Pointer(v.(bool)) // TODO: fix when property is exposed.
-	// }
+	if v, ok := d.GetOk("global_cluster_self_managed_sharding"); ok {
+		params.GlobalClusterSelfManagedSharding = conversion.Pointer(v.(bool))
+	}
 
 	// Validate oplog_size_mb to show the error before the cluster is created.
 	if oplogSizeMB, ok := d.GetOkExists("advanced_configuration.0.oplog_size_mb"); ok {
