@@ -256,7 +256,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			},
 			{
 				Config: configAdvanced(projectID, clusterNameUpdated, processArgsUpdated),
-				Check:  checkAdvanced(clusterName, "TLS1_2"),
+				Check:  checkAdvanced(clusterNameUpdated, "TLS1_2"),
 			},
 		},
 	})
@@ -301,7 +301,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 			},
 			{
 				Config: configAdvancedDefaultWrite(projectID, clusterNameUpdated, processArgsUpdated),
-				Check:  checkAdvancedDefaultWrite(clusterName, "majority", "TLS1_2"),
+				Check:  checkAdvancedDefaultWrite(clusterNameUpdated, "majority", "TLS1_2"),
 			},
 		},
 	})
@@ -769,8 +769,7 @@ func checkMultiCloud(name string, regionConfigs int) resource.TestCheckFunc {
 	return checkAggr(
 		[]string{"project_id", "replication_specs.#"},
 		map[string]string{
-			"name":                   name,
-			"retain_backups_enabled": "false"},
+			"name": name},
 		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
 		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
 		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
@@ -784,8 +783,8 @@ func checkMultiCloud(name string, regionConfigs int) resource.TestCheckFunc {
 func configMultiCloudSharded(orgID, projectName, name string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
-			name   = %[2]q
 			org_id = %[1]q
+			name   = %[2]q
 		}	
 
 		resource "mongodbatlas_advanced_cluster" "test" {
@@ -858,6 +857,11 @@ func configSingleProviderPaused(projectID, clusterName string, paused bool, inst
 					region_name   = "US_WEST_2"
 				}
 			}
+		}
+
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
 		}
 	`, projectID, clusterName, paused, instanceSize)
 }
@@ -970,6 +974,15 @@ func configAdvancedDefaultWrite(projectID, clusterName string, p *admin.ClusterD
 				default_write_concern                = %[10]q
 			}
 		}
+
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+		}
+
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+		}
 	`, projectID, clusterName, p.GetJavascriptEnabled(), p.GetMinimumEnabledTlsProtocol(), p.GetNoTableScan(),
 		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p.GetDefaultReadConcern(), p.GetDefaultWriteConcern())
 }
@@ -987,8 +1000,7 @@ func checkAdvancedDefaultWrite(name, writeConcern, tls string) resource.TestChec
 			"advanced_configuration.0.no_table_scan":                        "false",
 			"advanced_configuration.0.oplog_size_mb":                        "1000",
 			"advanced_configuration.0.sample_refresh_interval_bi_connector": "310",
-			"advanced_configuration.0.sample_size_bi_connector":             "110",
-			"advanced_configuration.0.transaction_lifetime_limit_seconds":   "300"},
+			"advanced_configuration.0.sample_size_bi_connector":             "110"},
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"))
