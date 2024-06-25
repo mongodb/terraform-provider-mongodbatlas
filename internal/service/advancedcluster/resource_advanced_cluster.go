@@ -371,10 +371,15 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	connV2Preview := meta.(*config.MongoDBClient).AtlasV2Preview
 	projectID := d.Get("project_id").(string)
 
+	var rootDiskSizeGB *float64
+	if v, ok := d.GetOk("disk_size_gb"); ok {
+		rootDiskSizeGB = conversion.Pointer(v.(float64))
+	}
+
 	params := &admin.ClusterDescription20240710{
 		Name:             conversion.StringPtr(cast.ToString(d.Get("name"))),
 		ClusterType:      conversion.StringPtr(cast.ToString(d.Get("cluster_type"))),
-		ReplicationSpecs: expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any)),
+		ReplicationSpecs: expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), rootDiskSizeGB),
 	}
 
 	if v, ok := d.GetOk("backup_enabled"); ok {
@@ -383,10 +388,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if _, ok := d.GetOk("bi_connector_config"); ok {
 		params.BiConnector = expandBiConnectorConfig(d)
 	}
-	// TODO pass to inner specs
-	// if v, ok := d.GetOk("disk_size_gb"); ok {
-	// params.DiskSizeGB = conversion.Pointer(v.(float64))
-	// }
 
 	if v, ok := d.GetOk("encryption_at_rest_provider"); ok {
 		params.EncryptionAtRestProvider = conversion.StringPtr(v.(string))
@@ -918,8 +919,8 @@ func getUpgradeRequest(d *schema.ResourceData) *admin20231115.LegacyAtlasTenantC
 	}
 
 	cs, us := d.GetChange("replication_specs")
-	currentSpecs := expandAdvancedReplicationSpecs(cs.([]any))
-	updatedSpecs := expandAdvancedReplicationSpecs(us.([]any))
+	currentSpecs := expandAdvancedReplicationSpecsOldSDK(cs.([]any))
+	updatedSpecs := expandAdvancedReplicationSpecsOldSDK(us.([]any))
 
 	if currentSpecs == nil || updatedSpecs == nil || len(*currentSpecs) != 1 || len(*updatedSpecs) != 1 || len((*currentSpecs)[0].GetRegionConfigs()) != 1 || len((*updatedSpecs)[0].GetRegionConfigs()) != 1 {
 		return nil

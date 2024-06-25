@@ -617,6 +617,7 @@ func dedicatedHwSpecToHwSpec(apiObject *admin.DedicatedHardwareSpec) *admin.Hard
 		return nil
 	}
 	return &admin.HardwareSpec{
+		DiskSizeGB:    apiObject.DiskSizeGB,
 		NodeCount:     apiObject.NodeCount,
 		DiskIOPS:      apiObject.DiskIOPS,
 		EbsVolumeType: apiObject.EbsVolumeType,
@@ -774,7 +775,7 @@ func expandLabelSliceFromSetSchema(d *schema.ResourceData) ([]admin.ComponentLab
 	return res, nil
 }
 
-func expandAdvancedReplicationSpecs(tfList []any) *[]admin.ReplicationSpec20240710 {
+func expandAdvancedReplicationSpecs(tfList []any, rootDiskSizeGB *float64) *[]admin.ReplicationSpec20240710 {
 	if len(tfList) == 0 {
 		return nil
 	}
@@ -784,7 +785,7 @@ func expandAdvancedReplicationSpecs(tfList []any) *[]admin.ReplicationSpec202407
 		if !ok || tfMap == nil {
 			continue
 		}
-		apiObject := expandAdvancedReplicationSpec(tfMap)
+		apiObject := expandAdvancedReplicationSpec(tfMap, rootDiskSizeGB)
 		apiObjects = append(apiObjects, *apiObject)
 	}
 	return &apiObjects
@@ -806,10 +807,10 @@ func expandAdvancedReplicationSpecsOldSDK(tfList []any) *[]admin20231115.Replica
 	return &apiObjects
 }
 
-func expandAdvancedReplicationSpec(tfMap map[string]any) *admin.ReplicationSpec20240710 {
+func expandAdvancedReplicationSpec(tfMap map[string]any, rootDiskSizeGB *float64) *admin.ReplicationSpec20240710 {
 	apiObject := &admin.ReplicationSpec20240710{
 		ZoneName:      conversion.StringPtr(tfMap["zone_name"].(string)),
-		RegionConfigs: expandRegionConfigs(tfMap["region_configs"].([]any)),
+		RegionConfigs: expandRegionConfigs(tfMap["region_configs"].([]any), rootDiskSizeGB),
 	}
 	// here we will populate id value using external_id value
 	return apiObject
@@ -819,7 +820,7 @@ func expandAdvancedReplicationSpecOldSDK(tfMap map[string]any) *admin20231115.Re
 	apiObject := &admin20231115.ReplicationSpec{
 		NumShards:     conversion.Pointer(tfMap["num_shards"].(int)),
 		ZoneName:      conversion.StringPtr(tfMap["zone_name"].(string)),
-		RegionConfigs: convertRegionConfigSliceToOldSDK(expandRegionConfigs(tfMap["region_configs"].([]any))),
+		RegionConfigs: convertRegionConfigSliceToOldSDK(expandRegionConfigs(tfMap["region_configs"].([]any), nil)),
 	}
 	if tfMap["id"].(string) != "" {
 		apiObject.Id = conversion.StringPtr(tfMap["id"].(string))
@@ -827,7 +828,7 @@ func expandAdvancedReplicationSpecOldSDK(tfMap map[string]any) *admin20231115.Re
 	return apiObject
 }
 
-func expandRegionConfigs(tfList []any) *[]admin.CloudRegionConfig {
+func expandRegionConfigs(tfList []any, rootDiskSizeGB *float64) *[]admin.CloudRegionConfig {
 	if len(tfList) == 0 {
 		return nil
 	}
@@ -837,14 +838,14 @@ func expandRegionConfigs(tfList []any) *[]admin.CloudRegionConfig {
 		if !ok || tfMap == nil {
 			continue
 		}
-		apiObject := expandRegionConfig(tfMap)
+		apiObject := expandRegionConfig(tfMap, rootDiskSizeGB)
 		apiObjects = append(apiObjects, *apiObject)
 	}
 
 	return &apiObjects
 }
 
-func expandRegionConfig(tfMap map[string]any) *admin.CloudRegionConfig {
+func expandRegionConfig(tfMap map[string]any, rootDiskSizeGB *float64) *admin.CloudRegionConfig {
 	providerName := tfMap["provider_name"].(string)
 	apiObject := &admin.CloudRegionConfig{
 		Priority:     conversion.Pointer(cast.ToInt(tfMap["priority"])),
@@ -853,13 +854,13 @@ func expandRegionConfig(tfMap map[string]any) *admin.CloudRegionConfig {
 	}
 
 	if v, ok := tfMap["analytics_specs"]; ok && len(v.([]any)) > 0 {
-		apiObject.AnalyticsSpecs = expandRegionConfigSpec(v.([]any), providerName)
+		apiObject.AnalyticsSpecs = expandRegionConfigSpec(v.([]any), providerName, rootDiskSizeGB)
 	}
 	if v, ok := tfMap["electable_specs"]; ok && len(v.([]any)) > 0 {
-		apiObject.ElectableSpecs = dedicatedHwSpecToHwSpec(expandRegionConfigSpec(v.([]any), providerName))
+		apiObject.ElectableSpecs = dedicatedHwSpecToHwSpec(expandRegionConfigSpec(v.([]any), providerName, rootDiskSizeGB))
 	}
 	if v, ok := tfMap["read_only_specs"]; ok && len(v.([]any)) > 0 {
-		apiObject.ReadOnlySpecs = expandRegionConfigSpec(v.([]any), providerName)
+		apiObject.ReadOnlySpecs = expandRegionConfigSpec(v.([]any), providerName, rootDiskSizeGB)
 	}
 	if v, ok := tfMap["auto_scaling"]; ok && len(v.([]any)) > 0 {
 		apiObject.AutoScaling = expandRegionConfigAutoScaling(v.([]any))
@@ -873,7 +874,7 @@ func expandRegionConfig(tfMap map[string]any) *admin.CloudRegionConfig {
 	return apiObject
 }
 
-func expandRegionConfigSpec(tfList []any, providerName string) *admin.DedicatedHardwareSpec {
+func expandRegionConfigSpec(tfList []any, providerName string, rootDiskSizeGB *float64) *admin.DedicatedHardwareSpec {
 	tfMap, _ := tfList[0].(map[string]any)
 	apiObject := new(admin.DedicatedHardwareSpec)
 	if providerName == "AWS" {
@@ -890,6 +891,10 @@ func expandRegionConfigSpec(tfList []any, providerName string) *admin.DedicatedH
 	if v, ok := tfMap["node_count"]; ok {
 		apiObject.NodeCount = conversion.Pointer(v.(int))
 	}
+
+	// Once disk_size_gb is added at this level, we will check if defined in config and prioritize over value defined at root level (deprecated and to be reomved)
+	apiObject.DiskSizeGB = rootDiskSizeGB
+
 	return apiObject
 }
 
