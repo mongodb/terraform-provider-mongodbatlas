@@ -818,7 +818,7 @@ func expandAdvancedReplicationSpec(tfMap map[string]any, rootDiskSizeGB *float64
 		ZoneName:      conversion.StringPtr(tfMap["zone_name"].(string)),
 		RegionConfigs: expandRegionConfigs(tfMap["region_configs"].([]any), rootDiskSizeGB),
 	}
-	// here we will populate id value using external_id value (relevant for update)
+	// TODO: here we will populate id value using external_id value from the state (relevant for update request)
 	return apiObject
 }
 
@@ -898,7 +898,7 @@ func expandRegionConfigSpec(tfList []any, providerName string, rootDiskSizeGB *f
 		apiObject.NodeCount = conversion.Pointer(v.(int))
 	}
 
-	// Once disk_size_gb schema attribute is added at this level, we will check if defined in config and prioritize over value defined at root level (deprecated and to be removed)
+	// TODO: once disk_size_gb schema attribute is added at this level, we will check if defined in config and prioritize over value defined at root level (deprecated and to be removed)
 	apiObject.DiskSizeGB = rootDiskSizeGB
 
 	return apiObject
