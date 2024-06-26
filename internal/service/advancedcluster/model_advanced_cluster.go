@@ -776,9 +776,6 @@ func expandLabelSliceFromSetSchema(d *schema.ResourceData) ([]admin.ComponentLab
 }
 
 func expandAdvancedReplicationSpecs(tfList []any, rootDiskSizeGB *float64) *[]admin.ReplicationSpec20240710 {
-	if len(tfList) == 0 {
-		return nil
-	}
 	var apiObjects []admin.ReplicationSpec20240710
 	for _, tfMapRaw := range tfList {
 		tfMap, ok := tfMapRaw.(map[string]any)
@@ -794,13 +791,13 @@ func expandAdvancedReplicationSpecs(tfList []any, rootDiskSizeGB *float64) *[]ad
 			apiObjects = append(apiObjects, *apiObject)
 		}
 	}
+	if apiObjects == nil {
+		return nil
+	}
 	return &apiObjects
 }
 
 func expandAdvancedReplicationSpecsOldSDK(tfList []any) *[]admin20231115.ReplicationSpec {
-	if len(tfList) == 0 {
-		return nil
-	}
 	var apiObjects []admin20231115.ReplicationSpec
 	for _, tfMapRaw := range tfList {
 		tfMap, ok := tfMapRaw.(map[string]any)
@@ -809,6 +806,9 @@ func expandAdvancedReplicationSpecsOldSDK(tfList []any) *[]admin20231115.Replica
 		}
 		apiObject := expandAdvancedReplicationSpecOldSDK(tfMap)
 		apiObjects = append(apiObjects, *apiObject)
+	}
+	if apiObjects == nil {
+		return nil
 	}
 	return &apiObjects
 }
@@ -835,9 +835,6 @@ func expandAdvancedReplicationSpecOldSDK(tfMap map[string]any) *admin20231115.Re
 }
 
 func expandRegionConfigs(tfList []any, rootDiskSizeGB *float64) *[]admin.CloudRegionConfig {
-	if len(tfList) == 0 {
-		return nil
-	}
 	var apiObjects []admin.CloudRegionConfig
 	for _, tfMapRaw := range tfList {
 		tfMap, ok := tfMapRaw.(map[string]any)
@@ -847,7 +844,9 @@ func expandRegionConfigs(tfList []any, rootDiskSizeGB *float64) *[]admin.CloudRe
 		apiObject := expandRegionConfig(tfMap, rootDiskSizeGB)
 		apiObjects = append(apiObjects, *apiObject)
 	}
-
+	if apiObjects == nil {
+		return nil
+	}
 	return &apiObjects
 }
 
