@@ -6,13 +6,16 @@ import (
 	"log"
 	"net/http"
 
+	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
+	"go.mongodb.org/atlas-sdk/v20240530001/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115014/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -246,6 +249,7 @@ func PluralDataSource() *schema.Resource {
 
 func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connLatest := meta.(*config.MongoDBClient).AtlasV2Preview
 	projectID := d.Get("project_id").(string)
 	d.SetId(id.UniqueId())
 
@@ -256,14 +260,14 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 		}
 		return diag.FromErr(fmt.Errorf("error reading advanced cluster list for project(%s): %s", projectID, err))
 	}
-	if err := d.Set("results", flattenAdvancedClusters(ctx, connV2, list.GetResults(), d)); err != nil {
+	if err := d.Set("results", flattenAdvancedClusters(ctx, connV2, connLatest, list.GetResults(), d)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "results", d.Id(), err))
 	}
 
 	return nil
 }
 
-func flattenAdvancedClusters(ctx context.Context, connV2 *admin.APIClient, clusters []admin.AdvancedClusterDescription, d *schema.ResourceData) []map[string]any {
+func flattenAdvancedClusters(ctx context.Context, connV2 *admin20231115.APIClient, connLatest *admin.APIClient, clusters []admin20231115.AdvancedClusterDescription, d *schema.ResourceData) []map[string]any {
 	results := make([]map[string]any, 0, len(clusters))
 	for i := range clusters {
 		cluster := &clusters[i]
@@ -271,7 +275,7 @@ func flattenAdvancedClusters(ctx context.Context, connV2 *admin.APIClient, clust
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
 		}
-		replicationSpecs, err := FlattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), nil, d, connV2)
+		replicationSpecs, err := FlattenAdvancedReplicationSpecsOldSDK(ctx, cluster.GetReplicationSpecs(), nil, d, connLatest)
 		if err != nil {
 			log.Printf("[WARN] Error setting `replication_specs` for the cluster(%s): %s", cluster.GetId(), err)
 		}
@@ -279,13 +283,13 @@ func flattenAdvancedClusters(ctx context.Context, connV2 *admin.APIClient, clust
 		result := map[string]any{
 			"advanced_configuration":               flattenProcessArgs(processArgs),
 			"backup_enabled":                       cluster.GetBackupEnabled(),
-			"bi_connector_config":                  flattenBiConnectorConfig(cluster.GetBiConnector()),
+			"bi_connector_config":                  flattenBiConnectorConfig(convertBiConnectToLatest(cluster.GetBiConnector())),
 			"cluster_type":                         cluster.GetClusterType(),
 			"create_date":                          conversion.TimePtrToStringPtr(cluster.CreateDate),
-			"connection_strings":                   flattenConnectionStrings(cluster.GetConnectionStrings()),
+			"connection_strings":                   flattenConnectionStrings(convertConnectionStringToLatest(cluster.GetConnectionStrings())),
 			"disk_size_gb":                         cluster.GetDiskSizeGB(),
 			"encryption_at_rest_provider":          cluster.GetEncryptionAtRestProvider(),
-			"labels":                               flattenLabels(cluster.GetLabels()),
+			"labels":                               flattenLabels(convertLabelsToLatest(cluster.GetLabels())),
 			"tags":                                 conversion.FlattenTags(cluster.GetTags()),
 			"mongo_db_major_version":               cluster.GetMongoDBMajorVersion(),
 			"mongo_db_version":                     cluster.GetMongoDBVersion(),

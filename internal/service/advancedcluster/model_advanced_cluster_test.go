@@ -6,14 +6,18 @@ import (
 	"net/http"
 	"testing"
 
+	"go.mongodb.org/atlas-sdk/v20231115014/admin"
+	"go.mongodb.org/atlas-sdk/v20231115014/mockadmin"
+	adminLatest "go.mongodb.org/atlas-sdk/v20240530001/admin"
+	mockAdminLatest "go.mongodb.org/atlas-sdk/v20240530001/mockadmin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20231115014/admin"
-	"go.mongodb.org/atlas-sdk/v20231115014/mockadmin"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
 var (
@@ -122,18 +126,18 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			peeringAPI := mockadmin.NetworkPeeringApi{}
+			peeringAPI := mockAdminLatest.NetworkPeeringApi{}
 
-			peeringAPI.EXPECT().ListPeeringContainerByCloudProviderWithParams(mock.Anything, mock.Anything).Return(admin.ListPeeringContainerByCloudProviderApiRequest{ApiService: &peeringAPI})
-			containerResult := []admin.CloudProviderContainer{{Id: conversion.StringPtr("c1"), RegionName: &regionName, ProviderName: &providerName}}
-			peeringAPI.EXPECT().ListPeeringContainerByCloudProviderExecute(mock.Anything).Return(&admin.PaginatedCloudProviderContainer{Results: &containerResult}, nil, nil)
+			peeringAPI.EXPECT().ListPeeringContainerByCloudProviderWithParams(mock.Anything, mock.Anything).Return(adminLatest.ListPeeringContainerByCloudProviderApiRequest{ApiService: &peeringAPI})
+			containerResult := []adminLatest.CloudProviderContainer{{Id: conversion.StringPtr("c1"), RegionName: &regionName, ProviderName: &providerName}}
+			peeringAPI.EXPECT().ListPeeringContainerByCloudProviderExecute(mock.Anything).Return(&adminLatest.PaginatedCloudProviderContainer{Results: &containerResult}, nil, nil)
 
-			client := &admin.APIClient{
+			client := &adminLatest.APIClient{
 				NetworkPeeringApi: &peeringAPI,
 			}
 			resourceData := schema.TestResourceDataRaw(t, testSchema, map[string]any{"project_id": "p1"})
 
-			tfOutputSpecs, err := advancedcluster.FlattenAdvancedReplicationSpecs(context.Background(), tc.adminSpecs, tc.tfInputSpecs, resourceData, client)
+			tfOutputSpecs, err := advancedcluster.FlattenAdvancedReplicationSpecsOldSDK(context.Background(), tc.adminSpecs, tc.tfInputSpecs, resourceData, client)
 
 			require.NoError(t, err)
 			assert.Len(t, tfOutputSpecs, tc.expectedLen)

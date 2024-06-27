@@ -9,14 +9,16 @@ import (
 	"slices"
 	"strings"
 
+	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
+	"go.mongodb.org/atlas-sdk/v20240530001/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/spf13/cast"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/spf13/cast"
-	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
-	"go.mongodb.org/atlas-sdk/v20240530001/admin"
 )
 
 var (
@@ -340,7 +342,7 @@ func FormatMongoDBMajorVersion(val any) string {
 	return fmt.Sprintf("%.1f", cast.ToFloat32(val))
 }
 
-func flattenLabels(l []admin20231115.ComponentLabel) []map[string]string {
+func flattenLabels(l []admin.ComponentLabel) []map[string]string {
 	labels := make([]map[string]string, 0, len(l))
 	for _, item := range l {
 		if item.GetKey() == ignoreLabel {
@@ -354,7 +356,18 @@ func flattenLabels(l []admin20231115.ComponentLabel) []map[string]string {
 	return labels
 }
 
-func flattenConnectionStrings(str admin20231115.ClusterConnectionStrings) []map[string]any {
+func flattenTags(tags []admin.ResourceTag) []map[string]string {
+	ret := make([]map[string]string, len(tags))
+	for i, tag := range tags {
+		ret[i] = map[string]string{
+			"key":   tag.GetKey(),
+			"value": tag.GetValue(),
+		}
+	}
+	return ret
+}
+
+func flattenConnectionStrings(str admin.ClusterConnectionStrings) []map[string]any {
 	return []map[string]any{
 		{
 			"standard":         str.GetStandard(),
@@ -366,7 +379,7 @@ func flattenConnectionStrings(str admin20231115.ClusterConnectionStrings) []map[
 	}
 }
 
-func flattenPrivateEndpoint(privateEndpoints []admin20231115.ClusterDescriptionConnectionStringsPrivateEndpoint) []map[string]any {
+func flattenPrivateEndpoint(privateEndpoints []admin.ClusterDescriptionConnectionStringsPrivateEndpoint) []map[string]any {
 	endpoints := make([]map[string]any, 0, len(privateEndpoints))
 	for _, endpoint := range privateEndpoints {
 		endpoints = append(endpoints, map[string]any{
@@ -380,7 +393,7 @@ func flattenPrivateEndpoint(privateEndpoints []admin20231115.ClusterDescriptionC
 	return endpoints
 }
 
-func flattenEndpoints(listEndpoints []admin20231115.ClusterDescriptionConnectionStringsPrivateEndpointEndpoint) []map[string]any {
+func flattenEndpoints(listEndpoints []admin.ClusterDescriptionConnectionStringsPrivateEndpointEndpoint) []map[string]any {
 	endpoints := make([]map[string]any, 0, len(listEndpoints))
 	for _, endpoint := range listEndpoints {
 		endpoints = append(endpoints, map[string]any{
@@ -392,7 +405,7 @@ func flattenEndpoints(listEndpoints []admin20231115.ClusterDescriptionConnection
 	return endpoints
 }
 
-func flattenBiConnectorConfig(biConnector admin20231115.BiConnector) []map[string]any {
+func flattenBiConnectorConfig(biConnector admin.BiConnector) []map[string]any {
 	return []map[string]any{
 		{
 			"enabled":         biConnector.GetEnabled(),
@@ -435,8 +448,8 @@ func flattenProcessArgs(p *admin20231115.ClusterDescriptionProcessArgs) []map[st
 	}
 }
 
-func FlattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin20231115.ReplicationSpec, tfMapObjects []any,
-	d *schema.ResourceData, connV2 *admin20231115.APIClient) ([]map[string]any, error) {
+func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []admin20231115.ReplicationSpec, tfMapObjects []any,
+	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
 	if len(apiObjects) == 0 {
 		return nil, nil
 	}
@@ -456,7 +469,7 @@ func FlattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin2023
 				continue
 			}
 
-			advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, &apiObjects[j], tfMapObject, d, connV2)
+			advancedReplicationSpec, err := flattenAdvancedReplicationSpecOldSDK(ctx, &apiObjects[j], tfMapObject, d, connV2)
 
 			if err != nil {
 				return nil, err
@@ -480,7 +493,7 @@ func FlattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin2023
 		}
 
 		j := slices.IndexFunc(wasAPIObjectUsed, func(isUsed bool) bool { return !isUsed })
-		advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, &apiObjects[j], tfMapObject, d, connV2)
+		advancedReplicationSpec, err := flattenAdvancedReplicationSpecOldSDK(ctx, &apiObjects[j], tfMapObject, d, connV2)
 
 		if err != nil {
 			return nil, err
@@ -497,8 +510,8 @@ func doesAdvancedReplicationSpecMatchAPI(tfObject map[string]any, apiObject *adm
 	return tfObject["id"] == apiObject.GetId() || (tfObject["id"] == nil && tfObject["zone_name"] == apiObject.GetZoneName())
 }
 
-func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin20231115.ReplicationSpec, tfMapObject map[string]any,
-	d *schema.ResourceData, connV2 *admin20231115.APIClient) (map[string]any, error) {
+func flattenAdvancedReplicationSpecOldSDK(ctx context.Context, apiObject *admin20231115.ReplicationSpec, tfMapObject map[string]any,
+	d *schema.ResourceData, connV2 *admin.APIClient) (map[string]any, error) {
 	if apiObject == nil {
 		return nil, nil
 	}
@@ -507,14 +520,14 @@ func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin2023111
 	tfMap["num_shards"] = apiObject.GetNumShards()
 	tfMap["id"] = apiObject.GetId()
 	if tfMapObject != nil {
-		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.GetRegionConfigs(), tfMapObject["region_configs"].([]any), d, connV2)
+		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, *convertRegionConfigSliceToLatest(apiObject.RegionConfigs), tfMapObject["region_configs"].([]any), d, connV2)
 		if err != nil {
 			return nil, err
 		}
 		tfMap["region_configs"] = object
 		tfMap["container_id"] = containerIDs
 	} else {
-		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.GetRegionConfigs(), nil, d, connV2)
+		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, *convertRegionConfigSliceToLatest(apiObject.RegionConfigs), nil, d, connV2)
 		if err != nil {
 			return nil, err
 		}
@@ -526,8 +539,8 @@ func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin2023111
 	return tfMap, nil
 }
 
-func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, apiObjects []admin20231115.CloudRegionConfig, tfMapObjects []any,
-	d *schema.ResourceData, connV2 *admin20231115.APIClient) (tfResult []map[string]any, containersIDs map[string]string, err error) {
+func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, apiObjects []admin.CloudRegionConfig, tfMapObjects []any,
+	d *schema.ResourceData, connV2 *admin.APIClient) (tfResult []map[string]any, containersIDs map[string]string, err error) {
 	if len(apiObjects) == 0 {
 		return nil, nil, nil
 	}
@@ -545,7 +558,7 @@ func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, apiObjects
 		}
 
 		if apiObject.GetProviderName() != "TENANT" {
-			params := &admin20231115.ListPeeringContainerByCloudProviderApiParams{
+			params := &admin.ListPeeringContainerByCloudProviderApiParams{
 				GroupId:      d.Get("project_id").(string),
 				ProviderName: apiObject.ProviderName,
 			}
@@ -562,7 +575,7 @@ func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, apiObjects
 	return tfList, containerIDs, nil
 }
 
-func flattenAdvancedReplicationSpecRegionConfig(apiObject *admin20231115.CloudRegionConfig, tfMapObject map[string]any) map[string]any {
+func flattenAdvancedReplicationSpecRegionConfig(apiObject *admin.CloudRegionConfig, tfMapObject map[string]any) map[string]any {
 	if apiObject == nil {
 		return nil
 	}
@@ -600,11 +613,11 @@ func flattenAdvancedReplicationSpecRegionConfig(apiObject *admin20231115.CloudRe
 	return tfMap
 }
 
-func hwSpecToDedicatedHwSpec(apiObject *admin20231115.HardwareSpec) *admin20231115.DedicatedHardwareSpec {
+func hwSpecToDedicatedHwSpec(apiObject *admin.HardwareSpec) *admin.DedicatedHardwareSpec {
 	if apiObject == nil {
 		return nil
 	}
-	return &admin20231115.DedicatedHardwareSpec{
+	return &admin.DedicatedHardwareSpec{
 		NodeCount:     apiObject.NodeCount,
 		DiskIOPS:      apiObject.DiskIOPS,
 		EbsVolumeType: apiObject.EbsVolumeType,
@@ -625,7 +638,7 @@ func dedicatedHwSpecToHwSpec(apiObject *admin.DedicatedHardwareSpec) *admin.Hard
 	}
 }
 
-func flattenAdvancedReplicationSpecRegionConfigSpec(apiObject *admin20231115.DedicatedHardwareSpec, providerName string, tfMapObjects []any) []map[string]any {
+func flattenAdvancedReplicationSpecRegionConfigSpec(apiObject *admin.DedicatedHardwareSpec, providerName string, tfMapObjects []any) []map[string]any {
 	if apiObject == nil {
 		return nil
 	}
@@ -644,6 +657,9 @@ func flattenAdvancedReplicationSpecRegionConfigSpec(apiObject *admin20231115.Ded
 				tfMap["ebs_volume_type"] = apiObject.GetEbsVolumeType()
 			}
 		}
+		if _, ok := tfMapObject["disk_size_gb"]; ok {
+			tfMap["disk_size_gb"] = apiObject.GetDiskSizeGB()
+		}
 		if _, ok := tfMapObject["node_count"]; ok {
 			tfMap["node_count"] = apiObject.GetNodeCount()
 		}
@@ -652,6 +668,7 @@ func flattenAdvancedReplicationSpecRegionConfigSpec(apiObject *admin20231115.Ded
 			tfList = append(tfList, tfMap)
 		}
 	} else {
+		tfMap["disk_size_gb"] = apiObject.GetDiskSizeGB()
 		tfMap["disk_iops"] = apiObject.GetDiskIOPS()
 		tfMap["ebs_volume_type"] = apiObject.GetEbsVolumeType()
 		tfMap["node_count"] = apiObject.GetNodeCount()
@@ -661,7 +678,7 @@ func flattenAdvancedReplicationSpecRegionConfigSpec(apiObject *admin20231115.Ded
 	return tfList
 }
 
-func flattenAdvancedReplicationSpecAutoScaling(apiObject *admin20231115.AdvancedAutoScalingSettings) []map[string]any {
+func flattenAdvancedReplicationSpecAutoScaling(apiObject *admin.AdvancedAutoScalingSettings) []map[string]any {
 	if apiObject == nil {
 		return nil
 	}
@@ -680,7 +697,7 @@ func flattenAdvancedReplicationSpecAutoScaling(apiObject *admin20231115.Advanced
 	return tfList
 }
 
-func getAdvancedClusterContainerID(containers []admin20231115.CloudProviderContainer, cluster *admin20231115.CloudRegionConfig) string {
+func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cluster *admin.CloudRegionConfig) string {
 	if len(containers) == 0 {
 		return ""
 	}

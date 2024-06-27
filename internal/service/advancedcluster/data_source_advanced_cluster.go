@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -19,6 +20,10 @@ func DataSource() *schema.Resource {
 			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
+			},
+			"use_independent_shards": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 			"advanced_configuration": SchemaAdvancedConfigDS(),
 			"backup_enabled": {
@@ -105,6 +110,14 @@ func DataSource() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"zone_id": { // new API only
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"external_id": { // new API only
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -235,10 +248,24 @@ func DataSource() *schema.Resource {
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connLatest := meta.(*config.MongoDBClient).AtlasV2Preview
+
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("name").(string)
+	// useIndependentShards := false
 
+	// if v, ok := d.GetOk("use_independent_shards"); ok {
+	// 	useIndependentShards = v.(bool)
+	// }
+
+	// if !useIndependentShards {
 	cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+
+	// } else {
+	//  cluster, resp, err := connPreview.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute() //var cluster *adminPreview.ClusterDescription20240710
+
+	// }
+
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			return nil
@@ -250,7 +277,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "backup_enabled", clusterName, err))
 	}
 
-	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(cluster.GetBiConnector())); err != nil {
+	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(convertBiConnectToLatest(cluster.GetBiConnector()))); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "bi_connector_config", clusterName, err))
 	}
 
@@ -258,7 +285,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "cluster_type", clusterName, err))
 	}
 
-	if err := d.Set("connection_strings", flattenConnectionStrings(cluster.GetConnectionStrings())); err != nil {
+	if err := d.Set("connection_strings", flattenConnectionStrings(convertConnectionStringToLatest(cluster.GetConnectionStrings()))); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "connection_strings", clusterName, err))
 	}
 
@@ -274,11 +301,11 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "encryption_at_rest_provider", clusterName, err))
 	}
 
-	if err := d.Set("labels", flattenLabels(cluster.GetLabels())); err != nil {
+	if err := d.Set("labels", flattenLabels(convertLabelsToLatest(cluster.GetLabels()))); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "labels", clusterName, err))
 	}
 
-	if err := d.Set("tags", conversion.FlattenTags(cluster.GetTags())); err != nil {
+	if err := d.Set("tags", flattenTags(*convertTagsToLatest(cluster.Tags))); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "tags", clusterName, err))
 	}
 
@@ -302,7 +329,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "pit_enabled", clusterName, err))
 	}
 
-	replicationSpecs, err := FlattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), d.Get("replication_specs").([]any), d, connV2)
+	replicationSpecs, err := FlattenAdvancedReplicationSpecsOldSDK(ctx, cluster.GetReplicationSpecs(), d.Get("replication_specs").([]any), d, connLatest)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 	}
@@ -328,6 +355,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "global_cluster_self_managed_sharding", clusterName, err))
 	}
 
+	// TODO: update to use connLatest to call below API
 	processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorAdvancedConfRead, clusterName, err))
