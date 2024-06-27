@@ -13,6 +13,8 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
+-> **NOTE:** This resource can only be used with Atlas-managed clusters. See doc for `global_cluster_self_managed_sharding` attribute in [`mongodbatlas_advanced_cluster` resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) for more info.
+
 ~> **IMPORTANT:** A Global Cluster Configuration, once created, can only be deleted. You can recreate the Global Cluster with the same data only in the Atlas UI. This is because the configuration and its related collection with shard key and indexes are managed separately and they would end up in an inconsistent state. [Read more about Global Cluster Configuration](https://www.mongodb.com/docs/atlas/global-clusters/)
 
 ## Examples Usage
@@ -71,51 +73,6 @@ description: |-
 		}
 	}
 ```
-
-### Example Global cluster config
-
-```terraform
-resource "mongodbatlas_cluster" "cluster-test" {
-  project_id   = "<YOUR-PROJECT-ID>"
-  name         = "cluster-test"
-
-  cluster_type = "REPLICASET"
-  replication_specs {
-    num_shards = 1
-    regions_config {
-      region_name     = "US_EAST_1"
-      electable_nodes = 3
-      priority        = 7
-      read_only_nodes = 0
-    }
-  }
-
-  backup_enabled               = true
-  auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "7.0"
-
-  //Provider Settings "block"
-  provider_name               = "AWS"
-  provider_instance_size_name = "M40"
-}
-
-resource "mongodbatlas_global_cluster_config" "config" {
-	project_id   = mongodbatlas_cluster.test.project_id
-	cluster_name = mongodbatlas_cluster.test.name
-
-	managed_namespaces {
-		db               = "mydata"
-		collection       = "publishers"
-		custom_shard_key = "city"
-	}
-
-	custom_zone_mappings {
-		location = "CA"
-		zone     = "Zone 1"
-	}
-}
-```
-
 
 ## Argument Reference
 
