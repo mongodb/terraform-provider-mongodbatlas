@@ -341,7 +341,7 @@ func schemaSpecs() *schema.Schema {
 		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"disk_size_gb": { // new API only
+				"disk_size_gb": {
 					Type:     schema.TypeFloat,
 					Optional: true,
 					Computed: true,
