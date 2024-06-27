@@ -32,6 +32,7 @@ func TestAccNetworkRSNetworkPeering_Azure(t *testing.T) {
 		subscriptionID    = os.Getenv("AZURE_SUBSCRIPTION_ID")
 		resourceGroupName = os.Getenv("AZURE_RESOURCE_GROUP_NAME")
 		vNetName          = os.Getenv("AZURE_VNET_NAME")
+		updatedvNetName   = os.Getenv("AZURE_VNET_NAME_UPDATED")
 		providerName      = "AZURE"
 	)
 
@@ -48,6 +49,17 @@ func TestAccNetworkRSNetworkPeering_Azure(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "vnet_name", vNetName),
+					resource.TestCheckResourceAttr(resourceName, "azure_directory_id", directoryID),
+				),
+			},
+			{
+				Config: configAzure(projectID, providerName, directoryID, subscriptionID, resourceGroupName, updatedvNetName),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttr(resourceName, "vnet_name", updatedvNetName),
 					resource.TestCheckResourceAttr(resourceName, "azure_directory_id", directoryID),
 				),
 			},
