@@ -256,7 +256,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	clusterName := d.Get("name").(string)
 	useReplicationSpecPerShard := false
 	var replicationSpecs []map[string]any
-	var clusterId string
+	var clusterID string
 
 	if v, ok := d.GetOk("use_replication_spec_per_shard"); ok {
 		useReplicationSpecPerShard = v.(bool)
@@ -271,7 +271,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 		}
 
-		clusterId = clusterDescOld.GetId()
+		clusterID = clusterDescOld.GetId()
 
 		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldSDK(ctx, clusterDescOld.GetReplicationSpecs(), d.Get("replication_specs").([]any), d, connLatest)
 		if err != nil {
@@ -286,7 +286,6 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err := d.Set("disk_size_gb", clusterDescOld.GetDiskSizeGB()); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
 		}
-
 	} else {
 		clusterDescLatest, resp, err := connLatest.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 		if err != nil {
@@ -296,7 +295,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 		}
 
-		clusterId = clusterDescLatest.GetId()
+		clusterID = clusterDescLatest.GetId()
 
 		replicationSpecs, err = flattenAdvancedReplicationSpecsDS(ctx, clusterDescLatest.GetReplicationSpecs(), d, connLatest)
 		if err != nil {
@@ -323,7 +322,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "advanced_configuration", clusterName, err))
 	}
 
-	d.SetId(clusterId)
+	d.SetId(clusterID)
 	return nil
 }
 
