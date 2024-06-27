@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.17.3 (June 27, 2024)
+
 ## 1.17.2 (June 20, 2024)
 
 ENHANCEMENTS:
