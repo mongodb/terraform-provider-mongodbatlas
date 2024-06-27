@@ -37,15 +37,15 @@ func convertBiConnectToOldSDK(biconnector *admin.BiConnector) *admin20231115.BiC
 	}
 }
 
-func convertBiConnectToLatest(biconnector admin20231115.BiConnector) admin.BiConnector {
-	return admin.BiConnector{
+func convertBiConnectToLatest(biconnector *admin20231115.BiConnector) *admin.BiConnector {
+	return &admin.BiConnector{
 		Enabled:        biconnector.Enabled,
 		ReadPreference: biconnector.ReadPreference,
 	}
 }
 
-func convertConnectionStringToLatest(connStrings admin20231115.ClusterConnectionStrings) admin.ClusterConnectionStrings {
-	return admin.ClusterConnectionStrings{
+func convertConnectionStringToLatest(connStrings *admin20231115.ClusterConnectionStrings) *admin.ClusterConnectionStrings {
+	return &admin.ClusterConnectionStrings{
 		AwsPrivateLink:    connStrings.AwsPrivateLink,
 		AwsPrivateLinkSrv: connStrings.AwsPrivateLinkSrv,
 		Private:           connStrings.Private,
@@ -92,16 +92,17 @@ func convertEndpointsToLatest(privateEndpoints *[]admin20231115.ClusterDescripti
 	return &results
 }
 
-func convertLabelsToLatest(labels []admin20231115.ComponentLabel) []admin.ComponentLabel {
-	results := make([]admin.ComponentLabel, len(labels))
-	for i := range len(labels) {
-		label := labels[i]
+func convertLabelsToLatest(labels *[]admin20231115.ComponentLabel) *[]admin.ComponentLabel {
+	labelSlice := *labels
+	results := make([]admin.ComponentLabel, len(labelSlice))
+	for i := range len(labelSlice) {
+		label := labelSlice[i]
 		results[i] = admin.ComponentLabel{
 			Key:   label.Key,
 			Value: label.Value,
 		}
 	}
-	return results
+	return &results
 }
 
 func convertLabelSliceToOldSDK(slice []admin.ComponentLabel, err diag.Diagnostics) ([]admin20231115.ComponentLabel, diag.Diagnostics) {
@@ -273,4 +274,31 @@ func convertRegionConfigSliceToLatest(slice *[]admin20231115.CloudRegionConfig) 
 		}
 	}
 	return &results
+}
+
+func convertClusterDescToLatestExcludeRepSpecs(oldClusterDesc *admin20231115.AdvancedClusterDescription) *admin.ClusterDescription20240710 {
+	return &admin.ClusterDescription20240710{
+		BackupEnabled: oldClusterDesc.BackupEnabled,
+		AcceptDataRisksAndForceReplicaSetReconfig: oldClusterDesc.AcceptDataRisksAndForceReplicaSetReconfig,
+		ClusterType:                      oldClusterDesc.ClusterType,
+		CreateDate:                       oldClusterDesc.CreateDate,
+		DiskWarmingMode:                  oldClusterDesc.DiskWarmingMode,
+		EncryptionAtRestProvider:         oldClusterDesc.EncryptionAtRestProvider,
+		GlobalClusterSelfManagedSharding: oldClusterDesc.GlobalClusterSelfManagedSharding,
+		GroupId:                          oldClusterDesc.GroupId,
+		Id:                               oldClusterDesc.Id,
+		MongoDBMajorVersion:              oldClusterDesc.MongoDBMajorVersion,
+		MongoDBVersion:                   oldClusterDesc.MongoDBVersion,
+		Name:                             oldClusterDesc.Name,
+		Paused:                           oldClusterDesc.Paused,
+		PitEnabled:                       oldClusterDesc.PitEnabled,
+		RootCertType:                     oldClusterDesc.RootCertType,
+		StateName:                        oldClusterDesc.StateName,
+		TerminationProtectionEnabled:     oldClusterDesc.TerminationProtectionEnabled,
+		VersionReleaseSystem:             oldClusterDesc.VersionReleaseSystem,
+		Tags:                             convertTagsToLatest(oldClusterDesc.Tags),
+		BiConnector:                      convertBiConnectToLatest(oldClusterDesc.BiConnector),
+		ConnectionStrings:                convertConnectionStringToLatest(oldClusterDesc.ConnectionStrings),
+		Labels:                           convertLabelsToLatest(oldClusterDesc.Labels),
+	}
 }

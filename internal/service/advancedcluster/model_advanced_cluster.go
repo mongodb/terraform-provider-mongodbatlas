@@ -356,9 +356,10 @@ func flattenLabels(l []admin.ComponentLabel) []map[string]string {
 	return labels
 }
 
-func flattenTags(tags []admin.ResourceTag) []map[string]string {
-	ret := make([]map[string]string, len(tags))
-	for i, tag := range tags {
+func flattenTags(tags *[]admin.ResourceTag) []map[string]string {
+	tagSlice := *tags
+	ret := make([]map[string]string, len(tagSlice))
+	for i, tag := range tagSlice {
 		ret[i] = map[string]string{
 			"key":   tag.GetKey(),
 			"value": tag.GetValue(),
@@ -405,7 +406,7 @@ func flattenEndpoints(listEndpoints []admin.ClusterDescriptionConnectionStringsP
 	return endpoints
 }
 
-func flattenBiConnectorConfig(biConnector admin.BiConnector) []map[string]any {
+func flattenBiConnectorConfig(biConnector *admin.BiConnector) []map[string]any {
 	return []map[string]any{
 		{
 			"enabled":         biConnector.GetEnabled(),
@@ -949,4 +950,50 @@ func expandRegionConfigAutoScaling(tfList []any) *admin.AdvancedAutoScalingSetti
 		}
 	}
 	return &settings
+}
+
+func flattenAdvancedReplicationSpecsDS(ctx context.Context, apiRepSpecs []admin.ReplicationSpec20240710, d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
+	if len(apiRepSpecs) == 0 {
+		return nil, nil
+	}
+
+	tfList := make([]map[string]any, len(apiRepSpecs))
+
+	for i, apiRepSpec := range apiRepSpecs {
+		tfReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, &apiRepSpec, nil, d, connV2)
+		if err != nil {
+			return nil, err
+		}
+		tfList[i] = tfReplicationSpec
+	}
+	return tfList, nil
+}
+
+func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.ReplicationSpec20240710, tfMapObject map[string]any,
+	d *schema.ResourceData, connV2 *admin.APIClient) (map[string]any, error) {
+	if apiObject == nil {
+		return nil, nil
+	}
+
+	tfMap := map[string]any{}
+	tfMap["external_id"] = apiObject.GetId()
+	if tfMapObject != nil {
+		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.GetRegionConfigs(), tfMapObject["region_configs"].([]any), d, connV2)
+		if err != nil {
+			return nil, err
+		}
+		tfMap["region_configs"] = object
+		tfMap["container_id"] = containerIDs
+	} else {
+		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.GetRegionConfigs(), nil, d, connV2)
+		if err != nil {
+			return nil, err
+		}
+		tfMap["region_configs"] = object
+		tfMap["container_id"] = containerIDs
+	}
+	tfMap["zone_name"] = apiObject.GetZoneName()
+	tfMap["zone_id"] = apiObject.GetZoneId()
+
+	return tfMap, nil
 }

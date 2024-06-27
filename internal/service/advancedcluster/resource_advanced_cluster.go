@@ -513,7 +513,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "backup_enabled", clusterName, err))
 	}
 
-	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(convertBiConnectToLatest(cluster.GetBiConnector()))); err != nil {
+	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(convertBiConnectToLatest(cluster.BiConnector))); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "bi_connector_config", clusterName, err))
 	}
 
@@ -521,7 +521,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "cluster_type", clusterName, err))
 	}
 
-	if err := d.Set("connection_strings", flattenConnectionStrings(convertConnectionStringToLatest(cluster.GetConnectionStrings()))); err != nil {
+	if err := d.Set("connection_strings", flattenConnectionStrings(*convertConnectionStringToLatest(cluster.ConnectionStrings))); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "connection_strings", clusterName, err))
 	}
 
@@ -537,7 +537,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "encryption_at_rest_provider", clusterName, err))
 	}
 
-	if err := d.Set("labels", flattenLabels(convertLabelsToLatest(cluster.GetLabels()))); err != nil {
+	if err := d.Set("labels", flattenLabels(*convertLabelsToLatest(cluster.Labels))); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "labels", clusterName, err))
 	}
 

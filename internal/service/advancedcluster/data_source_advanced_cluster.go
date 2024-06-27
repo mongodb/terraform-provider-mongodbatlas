@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"go.mongodb.org/atlas-sdk/v20240530001/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -21,7 +23,7 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"use_independent_shards": {
+			"use_replication_spec_per_shard": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
@@ -113,11 +115,11 @@ func DataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"zone_id": { // new API only
+						"zone_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"external_id": { // new API only
+						"external_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -252,32 +254,87 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("name").(string)
-	// useIndependentShards := false
+	useReplicationSpecPerShard := false
+	var replicationSpecs []map[string]any
+	var clusterId string
 
-	// if v, ok := d.GetOk("use_independent_shards"); ok {
-	// 	useIndependentShards = v.(bool)
-	// }
-
-	// if !useIndependentShards {
-	cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-
-	// } else {
-	//  cluster, resp, err := connPreview.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute() //var cluster *adminPreview.ClusterDescription20240710
-
-	// }
-
-	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			return nil
-		}
-		return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
+	if v, ok := d.GetOk("use_replication_spec_per_shard"); ok {
+		useReplicationSpecPerShard = v.(bool)
 	}
+
+	if !useReplicationSpecPerShard {
+		clusterDescOld, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+		if err != nil {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
+				return nil
+			}
+			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
+		}
+
+		clusterId = clusterDescOld.GetId()
+
+		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldSDK(ctx, clusterDescOld.GetReplicationSpecs(), d.Get("replication_specs").([]any), d, connLatest)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
+		}
+
+		diags := setCommonSchemaFields(d, convertClusterDescToLatestExcludeRepSpecs(clusterDescOld))
+		if diags.HasError() {
+			return diags
+		}
+
+		if err := d.Set("disk_size_gb", clusterDescOld.GetDiskSizeGB()); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
+		}
+
+	} else {
+		clusterDescLatest, resp, err := connLatest.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+		if err != nil {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
+				return nil
+			}
+			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
+		}
+
+		clusterId = clusterDescLatest.GetId()
+
+		replicationSpecs, err = flattenAdvancedReplicationSpecsDS(ctx, clusterDescLatest.GetReplicationSpecs(), d, connLatest)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
+		}
+
+		diags := setCommonSchemaFields(d, clusterDescLatest)
+		if diags.HasError() {
+			return diags
+		}
+	}
+
+	if err := d.Set("replication_specs", replicationSpecs); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
+	}
+
+	// TODO: update to use connLatest to call below API
+	processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorAdvancedConfRead, clusterName, err))
+	}
+
+	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "advanced_configuration", clusterName, err))
+	}
+
+	d.SetId(clusterId)
+	return nil
+}
+
+func setCommonSchemaFields(d *schema.ResourceData, cluster *admin.ClusterDescription20240710) diag.Diagnostics {
+	clusterName := *cluster.Name
 
 	if err := d.Set("backup_enabled", cluster.GetBackupEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "backup_enabled", clusterName, err))
 	}
 
-	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(convertBiConnectToLatest(cluster.GetBiConnector()))); err != nil {
+	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(cluster.BiConnector)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "bi_connector_config", clusterName, err))
 	}
 
@@ -285,7 +342,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "cluster_type", clusterName, err))
 	}
 
-	if err := d.Set("connection_strings", flattenConnectionStrings(convertConnectionStringToLatest(cluster.GetConnectionStrings()))); err != nil {
+	if err := d.Set("connection_strings", flattenConnectionStrings(*cluster.ConnectionStrings)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "connection_strings", clusterName, err))
 	}
 
@@ -293,19 +350,15 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "create_date", clusterName, err))
 	}
 
-	if err := d.Set("disk_size_gb", cluster.GetDiskSizeGB()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
-	}
-
 	if err := d.Set("encryption_at_rest_provider", cluster.GetEncryptionAtRestProvider()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "encryption_at_rest_provider", clusterName, err))
 	}
 
-	if err := d.Set("labels", flattenLabels(convertLabelsToLatest(cluster.GetLabels()))); err != nil {
+	if err := d.Set("labels", flattenLabels(*cluster.Labels)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "labels", clusterName, err))
 	}
 
-	if err := d.Set("tags", flattenTags(*convertTagsToLatest(cluster.Tags))); err != nil {
+	if err := d.Set("tags", flattenTags(cluster.Tags)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "tags", clusterName, err))
 	}
 
@@ -329,15 +382,6 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "pit_enabled", clusterName, err))
 	}
 
-	replicationSpecs, err := FlattenAdvancedReplicationSpecsOldSDK(ctx, cluster.GetReplicationSpecs(), d.Get("replication_specs").([]any), d, connLatest)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
-	}
-
-	if err := d.Set("replication_specs", replicationSpecs); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
-	}
-
 	if err := d.Set("root_cert_type", cluster.GetRootCertType()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "state_name", clusterName, err))
 	}
@@ -355,16 +399,5 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "global_cluster_self_managed_sharding", clusterName, err))
 	}
 
-	// TODO: update to use connLatest to call below API
-	processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorAdvancedConfRead, clusterName, err))
-	}
-
-	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "advanced_configuration", clusterName, err))
-	}
-
-	d.SetId(cluster.GetId())
 	return nil
 }
