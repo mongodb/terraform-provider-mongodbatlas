@@ -278,6 +278,10 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 		clusterID = clusterDescOld.GetId()
 
+		if err := d.Set("disk_size_gb", clusterDescOld.GetDiskSizeGB()); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
+		}
+
 		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldSDK(ctx, clusterDescOld.GetReplicationSpecs(), d.Get("replication_specs").([]any), d, connLatest)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
@@ -286,10 +290,6 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		diags := setCommonSchemaFields(d, convertClusterDescToLatestExcludeRepSpecs(clusterDescOld))
 		if diags.HasError() {
 			return diags
-		}
-
-		if err := d.Set("disk_size_gb", clusterDescOld.GetDiskSizeGB()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
 		}
 	} else {
 		clusterDescLatest, resp, err := connLatest.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
