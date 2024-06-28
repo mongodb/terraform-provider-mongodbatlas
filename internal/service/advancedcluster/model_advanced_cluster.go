@@ -516,19 +516,23 @@ func flattenAdvancedReplicationSpecOldSDK(ctx context.Context, apiObject *admin2
 	if apiObject == nil {
 		return nil, nil
 	}
+	var rootDiskSizeGB *float64
+	if v, ok := d.GetOk("disk_size_gb"); ok {
+		rootDiskSizeGB = conversion.Pointer(v.(float64))
+	}
 
 	tfMap := map[string]any{}
 	tfMap["num_shards"] = apiObject.GetNumShards()
 	tfMap["id"] = apiObject.GetId()
 	if tfMapObject != nil {
-		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, *convertRegionConfigSliceToLatest(apiObject.RegionConfigs), tfMapObject["region_configs"].([]any), d, connV2)
+		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, *convertRegionConfigSliceToLatest(apiObject.RegionConfigs, rootDiskSizeGB), tfMapObject["region_configs"].([]any), d, connV2)
 		if err != nil {
 			return nil, err
 		}
 		tfMap["region_configs"] = object
 		tfMap["container_id"] = containerIDs
 	} else {
-		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, *convertRegionConfigSliceToLatest(apiObject.RegionConfigs), nil, d, connV2)
+		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, *convertRegionConfigSliceToLatest(apiObject.RegionConfigs, rootDiskSizeGB), nil, d, connV2)
 		if err != nil {
 			return nil, err
 		}
@@ -623,6 +627,7 @@ func hwSpecToDedicatedHwSpec(apiObject *admin.HardwareSpec) *admin.DedicatedHard
 		DiskIOPS:      apiObject.DiskIOPS,
 		EbsVolumeType: apiObject.EbsVolumeType,
 		InstanceSize:  apiObject.InstanceSize,
+		DiskSizeGB:    apiObject.DiskSizeGB,
 	}
 }
 

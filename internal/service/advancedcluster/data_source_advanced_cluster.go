@@ -265,8 +265,13 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if !useReplicationSpecPerShard {
 		clusterDescOld, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				return nil
+			if resp != nil {
+				if resp.StatusCode == http.StatusNotFound {
+					return nil
+				}
+				if err.Error() == "ASYMMETRIC_SHARD_UNSUPPORTED" {
+					return diag.FromErr(fmt.Errorf("please add `use_replication_spec_per_shard = true` to your data source configuration to enable asymmetric shard support. Refer to documentation for more details. %s", err))
+				}
 			}
 			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 		}

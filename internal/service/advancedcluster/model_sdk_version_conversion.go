@@ -198,7 +198,7 @@ func convertDedicatedHardwareSpecToOldSDK(spec *admin.DedicatedHardwareSpec) *ad
 	}
 }
 
-func convertDedicatedHwSpecToLatest(spec *admin20231115.DedicatedHardwareSpec) *admin.DedicatedHardwareSpec {
+func convertDedicatedHwSpecToLatest(spec *admin20231115.DedicatedHardwareSpec, rootDiskSizeGB *float64) *admin.DedicatedHardwareSpec {
 	if spec == nil {
 		return nil
 	}
@@ -207,6 +207,7 @@ func convertDedicatedHwSpecToLatest(spec *admin20231115.DedicatedHardwareSpec) *
 		DiskIOPS:      spec.DiskIOPS,
 		EbsVolumeType: spec.EbsVolumeType,
 		InstanceSize:  spec.InstanceSize,
+		DiskSizeGB:    rootDiskSizeGB,
 	}
 }
 
@@ -241,7 +242,7 @@ func convertDiskGBAutoScalingToLatest(settings *admin20231115.DiskGBAutoScaling)
 	}
 }
 
-func convertHardwareSpecToLatest(hwspec *admin20231115.HardwareSpec) *admin.HardwareSpec {
+func convertHardwareSpecToLatest(hwspec *admin20231115.HardwareSpec, rootDiskSizeGB *float64) *admin.HardwareSpec {
 	if hwspec == nil {
 		return nil
 	}
@@ -250,10 +251,11 @@ func convertHardwareSpecToLatest(hwspec *admin20231115.HardwareSpec) *admin.Hard
 		EbsVolumeType: hwspec.EbsVolumeType,
 		InstanceSize:  hwspec.InstanceSize,
 		NodeCount:     hwspec.NodeCount,
+		DiskSizeGB:    rootDiskSizeGB,
 	}
 }
 
-func convertRegionConfigSliceToLatest(slice *[]admin20231115.CloudRegionConfig) *[]admin.CloudRegionConfig {
+func convertRegionConfigSliceToLatest(slice *[]admin20231115.CloudRegionConfig, rootDiskSizeGB *float64) *[]admin.CloudRegionConfig {
 	if slice == nil {
 		return nil
 	}
@@ -262,14 +264,14 @@ func convertRegionConfigSliceToLatest(slice *[]admin20231115.CloudRegionConfig) 
 	for i := range len(cloudRegionSlice) {
 		cloudRegion := cloudRegionSlice[i]
 		results[i] = admin.CloudRegionConfig{
-			ElectableSpecs:       convertHardwareSpecToLatest(cloudRegion.ElectableSpecs),
+			ElectableSpecs:       convertHardwareSpecToLatest(cloudRegion.ElectableSpecs, rootDiskSizeGB),
 			Priority:             cloudRegion.Priority,
 			ProviderName:         cloudRegion.ProviderName,
 			RegionName:           cloudRegion.RegionName,
 			AnalyticsAutoScaling: convertAdvancedAutoScalingSettingsToLatest(cloudRegion.AnalyticsAutoScaling),
-			AnalyticsSpecs:       convertDedicatedHwSpecToLatest(cloudRegion.AnalyticsSpecs),
+			AnalyticsSpecs:       convertDedicatedHwSpecToLatest(cloudRegion.AnalyticsSpecs, rootDiskSizeGB),
 			AutoScaling:          convertAdvancedAutoScalingSettingsToLatest(cloudRegion.AutoScaling),
-			ReadOnlySpecs:        convertDedicatedHwSpecToLatest(cloudRegion.ReadOnlySpecs),
+			ReadOnlySpecs:        convertDedicatedHwSpecToLatest(cloudRegion.ReadOnlySpecs, rootDiskSizeGB),
 			BackingProviderName:  cloudRegion.BackingProviderName,
 		}
 	}
