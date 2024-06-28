@@ -449,7 +449,7 @@ func flattenProcessArgs(p *admin20231115.ClusterDescriptionProcessArgs) []map[st
 	}
 }
 
-func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []admin20231115.ReplicationSpec, tfMapObjects []any,
+func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []admin20231115.ReplicationSpec, rootDiskSizeGB float64, tfMapObjects []any,
 	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
 	if len(apiObjects) == 0 {
 		return nil, nil
@@ -470,7 +470,7 @@ func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []adm
 				continue
 			}
 
-			advancedReplicationSpec, err := flattenAdvancedReplicationSpecOldSDK(ctx, &apiObjects[j], tfMapObject, d, connV2)
+			advancedReplicationSpec, err := flattenAdvancedReplicationSpecOldSDK(ctx, &apiObjects[j], rootDiskSizeGB, tfMapObject, d, connV2)
 
 			if err != nil {
 				return nil, err
@@ -494,7 +494,7 @@ func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []adm
 		}
 
 		j := slices.IndexFunc(wasAPIObjectUsed, func(isUsed bool) bool { return !isUsed })
-		advancedReplicationSpec, err := flattenAdvancedReplicationSpecOldSDK(ctx, &apiObjects[j], tfMapObject, d, connV2)
+		advancedReplicationSpec, err := flattenAdvancedReplicationSpecOldSDK(ctx, &apiObjects[j], rootDiskSizeGB, tfMapObject, d, connV2)
 
 		if err != nil {
 			return nil, err
@@ -511,14 +511,10 @@ func doesAdvancedReplicationSpecMatchAPI(tfObject map[string]any, apiObject *adm
 	return tfObject["id"] == apiObject.GetId() || (tfObject["id"] == nil && tfObject["zone_name"] == apiObject.GetZoneName())
 }
 
-func flattenAdvancedReplicationSpecOldSDK(ctx context.Context, apiObject *admin20231115.ReplicationSpec, tfMapObject map[string]any,
+func flattenAdvancedReplicationSpecOldSDK(ctx context.Context, apiObject *admin20231115.ReplicationSpec, rootDiskSizeGB float64, tfMapObject map[string]any,
 	d *schema.ResourceData, connV2 *admin.APIClient) (map[string]any, error) {
 	if apiObject == nil {
 		return nil, nil
-	}
-	var rootDiskSizeGB *float64
-	if v, ok := d.GetOk("disk_size_gb"); ok {
-		rootDiskSizeGB = conversion.Pointer(v.(float64))
 	}
 
 	tfMap := map[string]any{}

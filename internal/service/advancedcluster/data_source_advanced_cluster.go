@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
 	"go.mongodb.org/atlas-sdk/v20240530001/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -269,7 +270,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 				if resp.StatusCode == http.StatusNotFound {
 					return nil
 				}
-				if err.Error() == "ASYMMETRIC_SHARD_UNSUPPORTED" {
+				if admin20231115.IsErrorCode(err, "ASYMMETRIC_SHARD_UNSUPPORTED") {
 					return diag.FromErr(fmt.Errorf("please add `use_replication_spec_per_shard = true` to your data source configuration to enable asymmetric shard support. Refer to documentation for more details. %s", err))
 				}
 			}
@@ -282,7 +283,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
 		}
 
-		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldSDK(ctx, clusterDescOld.GetReplicationSpecs(), d.Get("replication_specs").([]any), d, connLatest)
+		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldSDK(ctx, clusterDescOld.GetReplicationSpecs(), clusterDescOld.GetDiskSizeGB(), d.Get("replication_specs").([]any), d, connLatest)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}

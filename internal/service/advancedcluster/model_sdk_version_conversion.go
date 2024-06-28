@@ -198,7 +198,7 @@ func convertDedicatedHardwareSpecToOldSDK(spec *admin.DedicatedHardwareSpec) *ad
 	}
 }
 
-func convertDedicatedHwSpecToLatest(spec *admin20231115.DedicatedHardwareSpec, rootDiskSizeGB *float64) *admin.DedicatedHardwareSpec {
+func convertDedicatedHwSpecToLatest(spec *admin20231115.DedicatedHardwareSpec, rootDiskSizeGB float64) *admin.DedicatedHardwareSpec {
 	if spec == nil {
 		return nil
 	}
@@ -207,7 +207,7 @@ func convertDedicatedHwSpecToLatest(spec *admin20231115.DedicatedHardwareSpec, r
 		DiskIOPS:      spec.DiskIOPS,
 		EbsVolumeType: spec.EbsVolumeType,
 		InstanceSize:  spec.InstanceSize,
-		DiskSizeGB:    rootDiskSizeGB,
+		DiskSizeGB:    &rootDiskSizeGB,
 	}
 }
 
@@ -242,7 +242,7 @@ func convertDiskGBAutoScalingToLatest(settings *admin20231115.DiskGBAutoScaling)
 	}
 }
 
-func convertHardwareSpecToLatest(hwspec *admin20231115.HardwareSpec, rootDiskSizeGB *float64) *admin.HardwareSpec {
+func convertHardwareSpecToLatest(hwspec *admin20231115.HardwareSpec, rootDiskSizeGB float64) *admin.HardwareSpec {
 	if hwspec == nil {
 		return nil
 	}
@@ -251,11 +251,11 @@ func convertHardwareSpecToLatest(hwspec *admin20231115.HardwareSpec, rootDiskSiz
 		EbsVolumeType: hwspec.EbsVolumeType,
 		InstanceSize:  hwspec.InstanceSize,
 		NodeCount:     hwspec.NodeCount,
-		DiskSizeGB:    rootDiskSizeGB,
+		DiskSizeGB:    &rootDiskSizeGB,
 	}
 }
 
-func convertRegionConfigSliceToLatest(slice *[]admin20231115.CloudRegionConfig, rootDiskSizeGB *float64) *[]admin.CloudRegionConfig {
+func convertRegionConfigSliceToLatest(slice *[]admin20231115.CloudRegionConfig, rootDiskSizeGB float64) *[]admin.CloudRegionConfig {
 	if slice == nil {
 		return nil
 	}
