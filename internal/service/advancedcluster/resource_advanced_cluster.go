@@ -517,12 +517,16 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 		}
 
+		if err := d.Set("disk_size_gb", clusterOldSDK.GetDiskSizeGB()); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
+		}
+
 		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldSDK(ctx, clusterOldSDK.GetReplicationSpecs(), clusterOldSDK.GetDiskSizeGB(), d.Get("replication_specs").([]any), d, connV2)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}
 
-		diags := setCommonResourceSchemaFields(d, convertClusterDescToLatestExcludeRepSpecs(clusterOldSDK))
+		diags := setResourceRootFields(d, convertClusterDescToLatestExcludeRepSpecs(clusterOldSDK))
 		if diags.HasError() {
 			return diags
 		}
@@ -541,7 +545,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}
 
-		diags := setCommonResourceSchemaFields(d, cluster)
+		diags := setResourceRootFields(d, cluster)
 		if diags.HasError() {
 			return diags
 		}
@@ -563,8 +567,8 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	return nil
 }
 
-// TODO: this can likely be unified with data source function setCommonSchemaFields
-func setCommonResourceSchemaFields(d *schema.ResourceData, cluster *admin.ClusterDescription20240710) diag.Diagnostics {
+// TODO: this can likely be unified with data source function setRootFields
+func setResourceRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription20240710) diag.Diagnostics {
 	clusterName := *cluster.Name
 
 	if err := d.Set("cluster_id", cluster.GetId()); err != nil {

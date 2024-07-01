@@ -288,7 +288,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}
 
-		diags := setCommonSchemaFields(d, convertClusterDescToLatestExcludeRepSpecs(clusterDescOld))
+		diags := setRootFields(d, convertClusterDescToLatestExcludeRepSpecs(clusterDescOld))
 		if diags.HasError() {
 			return diags
 		}
@@ -308,7 +308,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}
 
-		diags := setCommonSchemaFields(d, clusterDescLatest)
+		diags := setRootFields(d, clusterDescLatest)
 		if diags.HasError() {
 			return diags
 		}
@@ -332,7 +332,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return nil
 }
 
-func setCommonSchemaFields(d *schema.ResourceData, cluster *admin.ClusterDescription20240710) diag.Diagnostics {
+func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription20240710) diag.Diagnostics {
 	clusterName := *cluster.Name
 
 	if err := d.Set("backup_enabled", cluster.GetBackupEnabled()); err != nil {
