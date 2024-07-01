@@ -257,12 +257,11 @@ List of notifications to send when an alert condition is detected.
 
     | Project roles                   | Organization roles  |
     |:----------                      |:-----------         |
-    | `GROUP_CHARTS_ADMIN`            | `ORG_OWNER`         |
-    | `GROUP_CLUSTER_MANAGER`         | `ORG_MEMBER`        |
-    | `GROUP_DATA_ACCESS_ADMIN`       | `ORG_GROUP_CREATOR` |
-    | `GROUP_DATA_ACCESS_READ_ONLY`   | `ORG_BILLING_ADMIN` |
-    | `GROUP_DATA_ACCESS_READ_WRITE`  | `ORG_READ_ONLY`     |
-    | `GROUP_OWNER`                   |                     |
+    | `GROUP_CLUSTER_MANAGER`         | `ORG_OWNER`        |
+    | `GROUP_DATA_ACCESS_ADMIN`       | `ORG_MEMBER` |
+    | `GROUP_DATA_ACCESS_READ_ONLY`   | `ORG_GROUP_CREATOR` |
+    | `GROUP_DATA_ACCESS_READ_WRITE`  | `ORG_BILLING_ADMIN`     |
+    | `GROUP_OWNER`                   | `ORG_READ_ONLY`                    |
     | `GROUP_READ_ONLY`               |                     |
 
 ## Attributes Reference
@@ -280,7 +279,7 @@ In addition to all arguments above, the following attributes are exported:
 Alert Configuration can be imported using the `project_id-alert_configuration_id`, e.g.
 
 ```
-$ terraform import mongodbatlas_alert_configuration.test 5d0f1f74cf09a29120e123cd-5d0f1f74cf09a29120e1fscg
+terraform import mongodbatlas_alert_configuration.test 5d0f1f74cf09a29120e123cd-5d0f1f74cf09a29120e1fscg
 ```
 
 **NOTE**: Third-party notifications will not contain their respective credentials as these are sensitive attributes. If you wish to perform updates on these notifications without providing the original credentials, the corresponding `notifier_id` attribute must be provided instead.
