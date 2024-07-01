@@ -591,9 +591,7 @@ func setCommonResourceSchemaFields(d *schema.ResourceData, cluster *admin.Cluste
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "create_date", clusterName, err))
 	}
 
-	// if err := d.Set("disk_size_gb", cluster.GetDiskSizeGB()); err != nil {
-	// 	return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
-	// }
+	// TODO: set disk size gb at root level
 
 	if err := d.Set("encryption_at_rest_provider", cluster.GetEncryptionAtRestProvider()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "encryption_at_rest_provider", clusterName, err))
