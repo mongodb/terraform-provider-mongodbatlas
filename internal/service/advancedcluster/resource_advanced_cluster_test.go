@@ -407,10 +407,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 				Config: configMultiZoneWithShards(orgID, projectName, clusterName, 1, 1, false),
 				Check:  checkMultiZoneWithShards(clusterName, 1, 1),
 			},
-			{
-				Config: configMultiZoneWithShards(orgID, projectName, clusterName, 2, 1, false),
-				Check:  checkMultiZoneWithShards(clusterName, 2, 1),
-			},
+			// TODO: updating from single sharded to using old schema should throw an error here
 		},
 	})
 }
