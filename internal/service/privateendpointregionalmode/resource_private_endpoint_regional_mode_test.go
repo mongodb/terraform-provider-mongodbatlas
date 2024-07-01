@@ -48,7 +48,7 @@ func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithDependencies(resourceSuffix, projectID, false, dependencies),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					checkModeClustersUpToDate(projectID, clusterName, clusterResourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -58,7 +58,7 @@ func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
 			},
 			{
 				Config: configWithDependencies(resourceSuffix, projectID, true, dependencies),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					checkModeClustersUpToDate(projectID, clusterName, clusterResourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -87,7 +87,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(orgID, projectName, false),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
@@ -98,7 +98,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			},
 			{
 				Config: configBasic(orgID, projectName, true),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),

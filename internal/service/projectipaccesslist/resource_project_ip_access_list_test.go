@@ -35,11 +35,11 @@ func TestAccProjectIPAccesslist_settingIPAddress(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithIPAddress(projectID, ipAddress, comment),
-				Check:  resource.ComposeTestCheckFunc(commonChecks(ipAddress, "", "", comment)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(ipAddress, "", "", comment)...),
 			},
 			{
 				Config: configWithIPAddress(projectID, updatedIPAddress, updatedComment),
-				Check:  resource.ComposeTestCheckFunc(commonChecks(updatedIPAddress, "", "", updatedComment)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(updatedIPAddress, "", "", updatedComment)...),
 			},
 			{
 				ResourceName:      resourceName,
@@ -67,11 +67,11 @@ func TestAccProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithCIDRBlock(projectID, cidrBlock, comment),
-				Check:  resource.ComposeTestCheckFunc(commonChecks("", cidrBlock, "", comment)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", cidrBlock, "", comment)...),
 			},
 			{
 				Config: configWithCIDRBlock(projectID, updatedCIDRBlock, updatedComment),
-				Check:  resource.ComposeTestCheckFunc(commonChecks("", updatedCIDRBlock, "", updatedComment)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", updatedCIDRBlock, "", updatedComment)...),
 			},
 		},
 	})
@@ -98,11 +98,11 @@ func TestAccProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
-				Check:  resource.ComposeTestCheckFunc(commonChecks("", "", awsSGroup, comment)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", "", awsSGroup, comment)...),
 			},
 			{
 				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, updatedAWSSgroup, updatedComment),
-				Check:  resource.ComposeTestCheckFunc(commonChecks("", "", updatedAWSSgroup, updatedComment)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", "", updatedAWSSgroup, updatedComment)...),
 			},
 		},
 	})
@@ -144,11 +144,11 @@ func TestAccProjectIPAccessList_settingMultiple(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithMultiple(projectID, accessList, false),
-				Check:  resource.ComposeTestCheckFunc(checks...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 			{
 				Config: configWithMultiple(projectID, accessList, true),
-				Check:  resource.ComposeTestCheckFunc(checks...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 		},
 	})

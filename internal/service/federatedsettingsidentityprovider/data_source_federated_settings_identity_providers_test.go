@@ -23,14 +23,14 @@ func TestAccFederatedSettingsIdentityProvidersDS_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configPluralDS(federatedSettingsID, conversion.StringPtr(federatedsettingsidentityprovider.WORKFORCE), []string{oidcProtocol, samlProtocol}),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "results.#", "2"),
 				),
 			},
 			{
 				Config: configPluralDS(federatedSettingsID, conversion.StringPtr(federatedsettingsidentityprovider.WORKFORCE), []string{samlProtocol}),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "results.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "results.0.display_name", "SAML-test"),
@@ -38,7 +38,7 @@ func TestAccFederatedSettingsIdentityProvidersDS_basic(t *testing.T) {
 			},
 			{
 				Config: configPluralDS(federatedSettingsID, conversion.StringPtr(federatedsettingsidentityprovider.WORKFORCE), []string{oidcProtocol}),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "results.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "results.0.display_name", "OIDC-test"),
@@ -46,7 +46,7 @@ func TestAccFederatedSettingsIdentityProvidersDS_basic(t *testing.T) {
 			},
 			{
 				Config: configPluralDS(federatedSettingsID, conversion.StringPtr(federatedsettingsidentityprovider.WORKFORCE), []string{}),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "results.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "results.0.display_name", "SAML-test"), // if no protocol is specified, it defaults to SAML
@@ -54,7 +54,7 @@ func TestAccFederatedSettingsIdentityProvidersDS_basic(t *testing.T) {
 			},
 			{
 				Config: configPluralDS(federatedSettingsID, conversion.StringPtr(federatedsettingsidentityprovider.WORKLOAD), []string{}),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "results.#", "0"),
 				),

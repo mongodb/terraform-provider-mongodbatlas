@@ -64,7 +64,7 @@ func basicPagerDutyTest(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasicPagerDuty(projectID, serviceKey),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
 					resource.TestCheckResourceAttr(resourceName, "service_key", serviceKey),
@@ -77,7 +77,7 @@ func basicPagerDutyTest(tb testing.TB) *resource.TestCase {
 			},
 			{
 				Config: configBasicPagerDuty(projectID, updatedServiceKey),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
 					resource.TestCheckResourceAttr(resourceName, "service_key", updatedServiceKey),
@@ -103,7 +103,7 @@ func opsGenieTest(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configOpsGenie(projectID, apiKey),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
 					resource.TestCheckResourceAttr(resourceName, "api_key", apiKey),
@@ -114,7 +114,7 @@ func opsGenieTest(tb testing.TB) *resource.TestCase {
 			},
 			{
 				Config: configOpsGenie(projectID, updatedAPIKey),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
 					resource.TestCheckResourceAttr(resourceName, "api_key", updatedAPIKey),
@@ -141,7 +141,7 @@ func victorOpsTest(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configVictorOps(projectID, apiKey),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
 					resource.TestCheckResourceAttr(resourceName, "api_key", apiKey),
@@ -152,7 +152,7 @@ func victorOpsTest(tb testing.TB) *resource.TestCase {
 			},
 			{
 				Config: configVictorOps(projectID, updatedAPIKey),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
 					resource.TestCheckResourceAttr(resourceName, "api_key", updatedAPIKey),
@@ -179,7 +179,7 @@ func datadogTest(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configDatadog(projectID, apiKey, "US"),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
 					resource.TestCheckResourceAttr(resourceName, "api_key", apiKey),
@@ -190,7 +190,7 @@ func datadogTest(tb testing.TB) *resource.TestCase {
 			},
 			{
 				Config: configDatadog(projectID, updatedAPIKey, "US"),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
 					resource.TestCheckResourceAttr(resourceName, "api_key", updatedAPIKey),
@@ -220,7 +220,7 @@ func prometheusTest(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configPrometheus(projectID, username, password, serviceDiscovery, scheme),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
 					resource.TestCheckResourceAttr(resourceName, "user_name", username),
@@ -234,7 +234,7 @@ func prometheusTest(tb testing.TB) *resource.TestCase {
 			},
 			{
 				Config: configPrometheus(projectID, updatedUsername, password, serviceDiscovery, scheme),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
 					resource.TestCheckResourceAttr(resourceName, "user_name", updatedUsername),
@@ -266,7 +266,7 @@ func microsoftTeamsTest(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configMicrosoftTeams(projectID, url),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
 					resource.TestCheckResourceAttr(resourceName, "microsoft_teams_webhook_url", url),
@@ -275,7 +275,7 @@ func microsoftTeamsTest(tb testing.TB) *resource.TestCase {
 			},
 			{
 				Config: configMicrosoftTeams(projectID, updatedURL),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
 					resource.TestCheckResourceAttr(resourceName, "microsoft_teams_webhook_url", updatedURL),
@@ -301,7 +301,7 @@ func webhookTest(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configWebhook(projectID, url),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
 					resource.TestCheckResourceAttr(resourceName, "url", url),
@@ -310,7 +310,7 @@ func webhookTest(tb testing.TB) *resource.TestCase {
 			},
 			{
 				Config: configWebhook(projectID, updatedURL),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
 					resource.TestCheckResourceAttr(resourceName, "url", updatedURL),

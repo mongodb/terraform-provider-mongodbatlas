@@ -84,5 +84,5 @@ func streamConnectionsAttributeChecks(resourceName string, pageNum, itemsPerPage
 	if itemsPerPage != nil {
 		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "items_per_page", fmt.Sprint(*itemsPerPage)))
 	}
-	return resource.ComposeTestCheckFunc(resourceChecks...)
+	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
 }

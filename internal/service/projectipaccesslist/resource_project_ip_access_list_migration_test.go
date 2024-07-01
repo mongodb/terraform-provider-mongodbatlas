@@ -25,7 +25,7 @@ func TestMigProjectIPAccessList_settingIPAddress(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check:             resource.ComposeTestCheckFunc(commonChecks(ipAddress, "", "", comment)...),
+				Check:             resource.ComposeAggregateTestCheckFunc(commonChecks(ipAddress, "", "", comment)...),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},
@@ -47,7 +47,7 @@ func TestMigProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check:             resource.ComposeTestCheckFunc(commonChecks("", cidrBlock, "", comment)...),
+				Check:             resource.ComposeAggregateTestCheckFunc(commonChecks("", cidrBlock, "", comment)...),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},
@@ -75,7 +75,7 @@ func TestMigProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check:             resource.ComposeTestCheckFunc(commonChecks("", "", awsSGroup, comment)...),
+				Check:             resource.ComposeAggregateTestCheckFunc(commonChecks("", "", awsSGroup, comment)...),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},

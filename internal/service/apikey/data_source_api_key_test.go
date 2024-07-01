@@ -25,7 +25,7 @@ func TestAccConfigDSAPIKey_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configDS(orgID, description, roleName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "description", description),

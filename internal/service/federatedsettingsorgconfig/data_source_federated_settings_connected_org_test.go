@@ -22,7 +22,7 @@ func TestAccFederatedSettingsOrgDS_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasicDS(federatedSettingsID, orgID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "role_mappings.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "data_access_identity_provider_ids.#"),

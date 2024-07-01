@@ -34,7 +34,7 @@ func TestAccFederatedDatabaseInstanceDS_s3Bucket(t *testing.T) {
 				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configDSWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName, &federatedInstance),
 					checkAttributes(&federatedInstance, name),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),

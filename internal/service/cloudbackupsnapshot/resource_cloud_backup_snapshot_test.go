@@ -32,7 +32,7 @@ func TestAccBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(&clusterInfo, description, retentionInDays),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "type", "replicaSet"),
@@ -81,7 +81,7 @@ func TestAccBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configSharded(projectID, clusterName, description, retentionInDays),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "type", "shardedCluster"),

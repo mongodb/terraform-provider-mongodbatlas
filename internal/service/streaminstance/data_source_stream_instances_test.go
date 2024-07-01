@@ -30,7 +30,7 @@ func TestAccStreamDSStreamInstances_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: streamInstancesDataSourceConfig(projectID, instanceName, region, cloudProvider),
-				Check:  resource.ComposeTestCheckFunc(checks...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 		},
 	})
@@ -54,7 +54,7 @@ func TestAccStreamDSStreamInstances_withPageConfig(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: streamInstancesWithPageAttrDataSourceConfig(projectID, instanceName, region, cloudProvider, pageNumber),
-				Check:  resource.ComposeTestCheckFunc(checks...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 		},
 	})

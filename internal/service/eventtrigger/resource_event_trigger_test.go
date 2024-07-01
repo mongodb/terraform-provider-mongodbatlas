@@ -55,14 +55,14 @@ func TestAccEventTrigger_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configDatabaseTrigger(projectID, appID, `"INSERT", "UPDATE"`, &event, false, false),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				Config: configDatabaseTrigger(projectID, appID, `"INSERT", "UPDATE", "DELETE"`, &eventUpdated, true, true),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
@@ -106,7 +106,7 @@ func TestAccEventTrigger_databaseNoCollection(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configDatabaseNoCollectionTrigger(projectID, appID, `"INSERT", "UPDATE"`, &event),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "config_database", event.Config.Database),
@@ -167,14 +167,14 @@ func TestAccEventTrigger_databaseEventProccesor(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configDatabaseEPTrigger(projectID, appID, `"INSERT", "UPDATE"`, eventBridgeAwsAccountID, eventBridgeAwsRegion, &event),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				Config: configDatabaseEPTrigger(projectID, appID, `"INSERT", "UPDATE", "DELETE"`, eventBridgeAwsAccountID, eventBridgeAwsRegion, &eventUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
@@ -226,14 +226,14 @@ func TestAccEventTrigger_authBasic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configAuthenticationTrigger(projectID, appID, `"anon-user", "local-userpass"`, &event),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				Config: configAuthenticationTrigger(projectID, appID, `"anon-user", "local-userpass", "api-key"`, &eventUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
@@ -287,14 +287,14 @@ func TestAccEventTrigger_authEventProcessor(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configAuthenticationEPTrigger(projectID, appID, `"anon-user", "local-userpass"`, eventBridgeAwsAccountID, eventBridgeAwsRegion, &event),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				Config: configAuthenticationEPTrigger(projectID, appID, `"anon-user", "local-userpass", "api-key"`, eventBridgeAwsAccountID, eventBridgeAwsRegion, &eventUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
@@ -343,14 +343,14 @@ func TestAccEventTrigger_scheduleBasic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configScheduleTrigger(projectID, appID, &event),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				Config: configScheduleTrigger(projectID, appID, &eventUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
@@ -401,14 +401,14 @@ func TestAccEventTrigger_scheduleEventProcessor(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configScheduleEPTrigger(projectID, appID, eventBridgeAwsAccountID, eventBridgeAwsRegion, &event),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				Config: configScheduleEPTrigger(projectID, appID, eventBridgeAwsAccountID, eventBridgeAwsRegion, &eventUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
@@ -457,14 +457,14 @@ func TestAccEventTrigger_functionBasic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configScheduleTrigger(projectID, appID, &event),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				Config: configScheduleTrigger(projectID, appID, &eventUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),

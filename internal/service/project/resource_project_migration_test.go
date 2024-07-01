@@ -28,7 +28,7 @@ func TestMigProject_basic(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
 			},
@@ -67,7 +67,7 @@ func TestMigProject_withTeams(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -94,7 +94,7 @@ func TestMigProject_withFalseDefaultSettings(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -128,7 +128,7 @@ func TestMigProject_withLimits(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "limits.0.name", "atlas.project.deployment.clusters"),
@@ -156,14 +156,14 @@ func TestMigGovProject_regionUsageRestrictionsDefault(t *testing.T) {
 			{
 				ExternalProviders: acc.ExternalProviders("1.15.3"),
 				Config:            configGovSimple(orgID, projectName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsGov(resourceName),
 				),
 			},
 			{
 				ExternalProviders: acc.ExternalProviders("1.16.0"),
 				Config:            configGovSimple(orgID, projectName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsGov(resourceName),
 				),
 				ExpectError: regexp.MustCompile("Provider produced inconsistent result after apply"),

@@ -182,7 +182,7 @@ func sampleStreamConnectionAttributeChecks(
 		resource.TestCheckResourceAttr(resourceName, "connection_name", sampleName),
 		resource.TestCheckResourceAttr(resourceName, "type", "Sample"),
 	}
-	return resource.ComposeTestCheckFunc(resourceChecks...)
+	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
 }
 
 func kafkaStreamConnectionAttributeChecks(
@@ -209,7 +209,7 @@ func kafkaStreamConnectionAttributeChecks(
 			resource.TestCheckResourceAttrSet(resourceName, "security.broker_public_certificate"),
 		)
 	}
-	return resource.ComposeTestCheckFunc(resourceChecks...)
+	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
 }
 
 func clusterStreamConnectionConfig(projectID, instanceName, clusterName string) string {
@@ -248,7 +248,7 @@ func clusterStreamConnectionAttributeChecks(resourceName, clusterName string) re
 		resource.TestCheckResourceAttr(resourceName, "db_role_to_execute.role", "atlasAdmin"),
 		resource.TestCheckResourceAttr(resourceName, "db_role_to_execute.type", "BUILT_IN"),
 	}
-	return resource.ComposeTestCheckFunc(resourceChecks...)
+	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
 }
 
 func checkStreamConnectionImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {

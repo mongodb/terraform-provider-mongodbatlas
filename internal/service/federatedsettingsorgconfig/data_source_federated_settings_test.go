@@ -25,7 +25,7 @@ func TestAccFederatedSettingsDS_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataSourceFederatedSettingsConfig(orgID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasFederatedSettingsExists(resourceName),
 
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),

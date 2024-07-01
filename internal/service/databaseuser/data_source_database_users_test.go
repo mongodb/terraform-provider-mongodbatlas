@@ -21,7 +21,7 @@ func TestAccConfigDSDatabaseUsers_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configDSPlural(projectID, username, roleName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
 					resource.TestCheckResourceAttr(dataSourcePluralName, "results.#", "2"),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.username"),

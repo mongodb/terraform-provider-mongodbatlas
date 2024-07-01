@@ -35,11 +35,11 @@ func TestAccNetworkContainer_basicAWS(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, cidrBlock, constant.AWS, "US_EAST_1"),
-				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.AWS)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(constant.AWS)...),
 			},
 			{
 				Config: configBasic(projectID, cidrBlockUpdated, constant.AWS, "US_EAST_2"),
-				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.AWS)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(constant.AWS)...),
 			},
 			{
 				ResourceName:            resourceName,
@@ -68,11 +68,11 @@ func TestAccNetworkContainer_basicAzure(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, cidrBlock, constant.AZURE, "US_EAST_2"),
-				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.AZURE)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(constant.AZURE)...),
 			},
 			{
 				Config: configBasic(projectID, cidrBlockUpdated, constant.AZURE, "US_EAST_2"),
-				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.AZURE)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(constant.AZURE)...),
 			},
 		},
 	})
@@ -94,11 +94,11 @@ func TestAccNetworkContainer_basicGCP(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, gcpCidrBlock, constant.GCP, ""),
-				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.GCP)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(constant.GCP)...),
 			},
 			{
 				Config: configBasic(projectID, cidrBlockUpdated, constant.GCP, ""),
-				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.GCP)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(constant.GCP)...),
 			},
 		},
 	})
@@ -119,7 +119,7 @@ func TestAccNetworkContainer_withRegionsGCP(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, gcpWithRegionsCidrBlock, constant.GCP, regions),
-				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.GCP)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(constant.GCP)...),
 			},
 		},
 	})
@@ -144,15 +144,15 @@ func TestAccNetworkContainer_updateIndividualFields(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, cidrBlock, constant.AWS, region),
-				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.AWS)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(constant.AWS)...),
 			},
 			{
 				Config: configBasic(projectID, cidrBlockUpdated, constant.AWS, region),
-				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.AWS)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(constant.AWS)...),
 			},
 			{
 				Config: configBasic(projectID, cidrBlockUpdated, constant.AWS, regionUpdated),
-				Check:  resource.ComposeTestCheckFunc(commonChecks(constant.AWS)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(constant.AWS)...),
 			},
 		},
 	})
