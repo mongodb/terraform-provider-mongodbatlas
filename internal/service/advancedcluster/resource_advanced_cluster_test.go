@@ -490,7 +490,7 @@ func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *tes
 	})
 }
 
-func TestAccClusterAdvancedClusterConfig_asymmetricSharded(t *testing.T) {
+func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchema(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -503,12 +503,13 @@ func TestAccClusterAdvancedClusterConfig_asymmetricSharded(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAsymmetricShardedCluster(orgID, projectName, clusterName),
+				Config: configSymmetricShardedNewSchema(orgID, projectName, clusterName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					// resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
-					// resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					// resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.#", "2"),
+					resource.TestCheckNoResourceAttr(resourceName, "replication_specs.0.id"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.zone_id"),
 				),
 			},
 		},
@@ -1153,7 +1154,7 @@ func configMultiZoneWithShards(orgID, projectName, name string, numShardsFirstZo
 	`, orgID, projectName, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding)
 }
 
-func configAsymmetricShardedCluster(orgID, projectName, name string) string {
+func configSymmetricShardedNewSchema(orgID, projectName, name string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
@@ -1186,11 +1187,12 @@ func configAsymmetricShardedCluster(orgID, projectName, name string) string {
 			replication_specs {
 				region_configs {
 				electable_specs {
-					instance_size = "M20"
+					instance_size = "M30"
+					disk_iops = 3000
 					node_count    = 3
 				}
 				analytics_specs {
-					instance_size = "M20"
+					instance_size = "M30"
 					node_count    = 1
 				}
 				provider_name = "AWS"
