@@ -1040,7 +1040,6 @@ func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.Replic
 	}
 
 	tfMap := map[string]any{}
-	// tfMap["id"] = apiObject.GetId() TODO we should delete this right?
 	tfMap["external_id"] = apiObject.GetId()
 
 	// define num_shards for backwards compatibility as this attribute has default value of 1.
