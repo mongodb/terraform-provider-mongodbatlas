@@ -30,4 +30,4 @@ jobs:
           commit-message: "doc: Updates Terraform Compatibility Matrix documentation"
           delete-branch: true
           branch: terraform-compatibility-matrix-update
-          body: Automatic updates for Terraform Compatibility Matrix documentation
+          body: "Automatic updates for Terraform Compatibility Matrix documentation. **Action Required**: Update .tools-version file and TF_VERSION_LATEST GitHub environment variable if needed."
