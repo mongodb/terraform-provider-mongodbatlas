@@ -65,7 +65,7 @@ resource "mongodbatlas_alert_configuration" "test" {
     delay_min     = 0
     sms_enabled   = false
     email_enabled = true
-    roles         = ["GROUP_CHARTS_ADMIN", "GROUP_CLUSTER_MANAGER"]
+    roles         = ["GROUP_CLUSTER_MANAGER"]
   }
 
   matcher {
