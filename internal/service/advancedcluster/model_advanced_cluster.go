@@ -977,7 +977,7 @@ func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.Replic
 	}
 
 	tfMap := map[string]any{}
-	tfMap["id"] = apiObject.GetId()
+	// tfMap["id"] = apiObject.GetId() TODO we should delete this right?
 	tfMap["external_id"] = apiObject.GetId()
 	if tfMapObject != nil {
 		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.GetRegionConfigs(), tfMapObject["region_configs"].([]any), d, connV2)

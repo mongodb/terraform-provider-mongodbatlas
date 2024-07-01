@@ -490,6 +490,31 @@ func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *tes
 	})
 }
 
+func TestAccClusterAdvancedClusterConfig_asymmetricSharded(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configAsymmetricShardedCluster(orgID, projectName, clusterName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					// resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
+					// resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+					// resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
 func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists(resourceName)}
 	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
@@ -1126,6 +1151,55 @@ func configMultiZoneWithShards(orgID, projectName, name string, numShardsFirstZo
 			name 	     = mongodbatlas_advanced_cluster.test.name
 		}
 	`, orgID, projectName, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding)
+}
+
+func configAsymmetricShardedCluster(orgID, projectName, name string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "cluster_project" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_project.cluster_project.id
+			name = %[3]q
+			backup_enabled = false
+			cluster_type   = "SHARDED"
+
+			replication_specs {
+				region_configs {
+				electable_specs {
+					instance_size = "M30"
+					disk_iops = 3000
+					node_count    = 3
+				}
+				analytics_specs {
+					instance_size = "M30"
+					node_count    = 1
+				}
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = "EU_WEST_1"
+				}
+			}
+
+			replication_specs {
+				region_configs {
+				electable_specs {
+					instance_size = "M20"
+					node_count    = 3
+				}
+				analytics_specs {
+					instance_size = "M20"
+					node_count    = 1
+				}
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = "EU_WEST_1"
+				}
+			}
+		}
+	`, orgID, projectName, name)
 }
 
 func checkMultiZoneWithShards(name string, numShardsFirstZone, numShardsSecondZone int) resource.TestCheckFunc {

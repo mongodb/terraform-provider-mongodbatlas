@@ -174,6 +174,14 @@ func Resource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"zone_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"external_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"num_shards": {
 							Type:         schema.TypeInt,
 							Optional:     true,
@@ -374,8 +382,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf("accept_data_risks_and_force_replica_set_reconfig can not be set in creation, only in update"))
 		}
 	}
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	connV2Preview := meta.(*config.MongoDBClient).AtlasV2Preview
+	connV220231115 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV2Preview
 	projectID := d.Get("project_id").(string)
 
 	var rootDiskSizeGB *float64
@@ -437,13 +445,13 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	cluster, _, err := connV2Preview.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
+	cluster, _, err := connV2.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, err))
 	}
 
 	timeout := d.Timeout(schema.TimeoutCreate)
-	stateConf := CreateStateChangeConfig(ctx, connV2, projectID, d.Get("name").(string), timeout)
+	stateConf := CreateStateChangeConfig(ctx, connV220231115, projectID, d.Get("name").(string), timeout)
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, err))
@@ -452,7 +460,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if ac, ok := d.GetOk("advanced_configuration"); ok {
 		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
 			params := expandProcessArgs(d, aclist[0].(map[string]any))
-			_, _, err := connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.GetName(), &params).Execute()
+			_, _, err := connV220231115.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.GetName(), &params).Execute()
 			if err != nil {
 				return diag.FromErr(fmt.Errorf(errorConfigUpdate, cluster.GetName(), err))
 			}
@@ -463,7 +471,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		request := &admin20231115.AdvancedClusterDescription{
 			Paused: conversion.Pointer(v),
 		}
-		_, _, err = updateAdvancedCluster(ctx, connV2, request, projectID, d.Get("name").(string), timeout)
+		_, _, err = updateAdvancedCluster(ctx, connV220231115, request, projectID, d.Get("name").(string), timeout)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, d.Get("name").(string), err))
 		}
@@ -490,20 +498,72 @@ func CreateStateChangeConfig(ctx context.Context, connV2 *admin20231115.APIClien
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	connPreview := meta.(*config.MongoDBClient).AtlasV2Preview
+	connV220231115 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV2Preview
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			d.SetId("")
-			return nil
+	var replicationSpecs []map[string]any
+	if isUsingOldAPISchemaStructure(d) {
+		clusterOldSDK, resp, err := connV220231115.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+		if err != nil {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
+				d.SetId("")
+				return nil
+			}
+			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 		}
-		return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
+
+		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldSDK(ctx, clusterOldSDK.GetReplicationSpecs(), clusterOldSDK.GetDiskSizeGB(), d.Get("replication_specs").([]any), d, connV2)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
+		}
+
+		diags := setCommonResourceSchemaFields(d, convertClusterDescToLatestExcludeRepSpecs(clusterOldSDK))
+		if diags.HasError() {
+			return diags
+		}
+	} else {
+		cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+		if err != nil {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
+				d.SetId("")
+				return nil
+			}
+			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
+		}
+
+		replicationSpecs, err = flattenAdvancedReplicationSpecsDS(ctx, cluster.GetReplicationSpecs(), d, connV2)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
+		}
+
+		diags := setCommonResourceSchemaFields(d, cluster)
+		if diags.HasError() {
+			return diags
+		}
 	}
+
+	if err := d.Set("replication_specs", replicationSpecs); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
+	}
+
+	processArgs, _, err := connV220231115.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorConfigRead, clusterName, err))
+	}
+
+	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "advanced_configuration", clusterName, err))
+	}
+
+	return nil
+}
+
+// TODO: this can likely be unified with data source function setCommonSchemaFields
+func setCommonResourceSchemaFields(d *schema.ResourceData, cluster *admin.ClusterDescription20240710) diag.Diagnostics {
+	clusterName := *cluster.Name
 
 	if err := d.Set("cluster_id", cluster.GetId()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "cluster_id", clusterName, err))
@@ -513,7 +573,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "backup_enabled", clusterName, err))
 	}
 
-	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(convertBiConnectToLatest(cluster.BiConnector))); err != nil {
+	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(cluster.BiConnector)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "bi_connector_config", clusterName, err))
 	}
 
@@ -521,7 +581,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "cluster_type", clusterName, err))
 	}
 
-	if err := d.Set("connection_strings", flattenConnectionStrings(*convertConnectionStringToLatest(cluster.ConnectionStrings))); err != nil {
+	if err := d.Set("connection_strings", flattenConnectionStrings(*cluster.ConnectionStrings)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "connection_strings", clusterName, err))
 	}
 
@@ -529,19 +589,19 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "create_date", clusterName, err))
 	}
 
-	if err := d.Set("disk_size_gb", cluster.GetDiskSizeGB()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
-	}
+	// if err := d.Set("disk_size_gb", cluster.GetDiskSizeGB()); err != nil {
+	// 	return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
+	// }
 
 	if err := d.Set("encryption_at_rest_provider", cluster.GetEncryptionAtRestProvider()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "encryption_at_rest_provider", clusterName, err))
 	}
 
-	if err := d.Set("labels", flattenLabels(*convertLabelsToLatest(cluster.Labels))); err != nil {
+	if err := d.Set("labels", flattenLabels(cluster.GetLabels())); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "labels", clusterName, err))
 	}
 
-	if err := d.Set("tags", conversion.FlattenTags(cluster.GetTags())); err != nil {
+	if err := d.Set("tags", flattenTags(cluster.Tags)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "tags", clusterName, err))
 	}
 
@@ -563,15 +623,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	if err := d.Set("pit_enabled", cluster.GetPitEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "pit_enabled", clusterName, err))
-	}
-
-	replicationSpecs, err := FlattenAdvancedReplicationSpecsOldSDK(ctx, cluster.GetReplicationSpecs(), cluster.GetDiskSizeGB(), d.Get("replication_specs").([]any), d, connPreview)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
-	}
-
-	if err := d.Set("replication_specs", replicationSpecs); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 	}
 
 	if err := d.Set("root_cert_type", cluster.GetRootCertType()); err != nil {
@@ -598,15 +649,23 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "global_cluster_self_managed_sharding", clusterName, err))
 	}
 
-	processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorConfigRead, clusterName, err))
-	}
-
-	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "advanced_configuration", clusterName, err))
-	}
 	return nil
+}
+
+// isUsingOldAPISchemaStructure
+func isUsingOldAPISchemaStructure(d *schema.ResourceData) bool {
+	tfList := d.Get("replication_specs").([]any)
+	for _, tfMapRaw := range tfList {
+		tfMap, ok := tfMapRaw.(map[string]any)
+		if !ok || tfMap == nil {
+			continue
+		}
+		numShards := tfMap["num_shards"].(int)
+		if numShards > 1 {
+			return true
+		}
+	}
+	return false
 }
 
 func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
