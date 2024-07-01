@@ -26,7 +26,7 @@ resource "mongodbatlas_alert_configuration" "test" {
     delay_min     = 0
     sms_enabled   = false
     email_enabled = true
-    roles         = ["GROUP_CHARTS_ADMIN", "GROUP_CLUSTER_MANAGER"]
+    roles         = ["GROUP_CLUSTER_MANAGER"]
   }
 
   matcher {
@@ -60,13 +60,13 @@ resource "mongodbatlas_alert_configuration" "test" {
     delay_min     = 0
     sms_enabled   = false
     email_enabled = true
-    roles         = ["GROUP_CHARTS_ADMIN", "GROUP_CLUSTER_MANAGER"]
+    roles         = ["GROUP_CLUSTER_MANAGER"]
   }
 
   matcher {
-    field_name = "HOSTNAME_AND_PORT"
+    field_name = "CLUSTER_NAME"
     operator   = "EQUALS"
-    value      = "SECONDARY"
+    value      = "my-cluster"
   }
 
   threshold_config {
