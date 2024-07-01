@@ -31,7 +31,7 @@ func TestAccSearchIndex_withSearchType(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, indexName, databaseName, clusterName, true),
-				Check:  resource.ComposeTestCheckFunc(checks...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 		},
 	})
@@ -54,7 +54,7 @@ func TestAccSearchIndex_withMapping(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithMapping(projectID, indexName, databaseName, clusterName),
-				Check:  resource.ComposeTestCheckFunc(checks...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 		},
 	})
@@ -84,7 +84,7 @@ func TestAccSearchIndex_withSynonyms(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithSynonyms(projectID, indexName, databaseName, clusterName, with),
-				Check:  resource.ComposeTestCheckFunc(checks...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 		},
 	})
@@ -113,11 +113,11 @@ func TestAccSearchIndex_updatedToEmptySynonyms(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithSynonyms(projectID, indexName, databaseName, clusterName, with),
-				Check:  resource.ComposeTestCheckFunc(checks1...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks1...),
 			},
 			{
 				Config: configWithSynonyms(projectID, indexName, databaseName, clusterName, without),
-				Check:  resource.ComposeTestCheckFunc(checks2...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks2...),
 			},
 		},
 	})
@@ -136,14 +136,14 @@ func TestAccSearchIndex_updatedToEmptyAnalyzers(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configAdditional(projectID, indexName, databaseName, clusterName, analyzersTF),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrWith(resourceName, "analyzers", acc.JSONEquals(analyzersJSON)),
 				),
 			},
 			{
 				Config: configAdditional(projectID, indexName, databaseName, clusterName, ""),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "analyzers", ""),
 				),
@@ -165,14 +165,14 @@ func TestAccSearchIndex_updatedToEmptyMappingsFields(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configAdditional(projectID, indexName, databaseName, clusterName, mappingsFieldsTF),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrWith(resourceName, "mappings_fields", acc.JSONEquals(mappingsFieldsJSON)),
 				),
 			},
 			{
 				Config: configAdditional(projectID, indexName, databaseName, clusterName, ""),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "mappings_fields", ""),
 				),
@@ -203,7 +203,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, indexName, databaseName, clusterName, false),
-				Check:  resource.ComposeTestCheckFunc(checks...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 			{
 				Config:            configBasic(projectID, indexName, databaseName, clusterName, false),
@@ -243,7 +243,7 @@ func basicVectorTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configVector(projectID, indexName, databaseName, clusterName),
-				Check:  resource.ComposeTestCheckFunc(checks...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 		},
 	}

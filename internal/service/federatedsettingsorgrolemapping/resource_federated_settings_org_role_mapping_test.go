@@ -52,11 +52,11 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(federationSettingsID, orgID, groupID, extGroupName1),
-				Check:  resource.ComposeTestCheckFunc(checks...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 			{
 				Config: configBasic(federationSettingsID, orgID, groupID, extGroupName2),
-				Check:  resource.ComposeTestCheckFunc(resource.TestCheckResourceAttr(resourceName, "external_group_name", extGroupName2)),
+				Check:  resource.ComposeAggregateTestCheckFunc(resource.TestCheckResourceAttr(resourceName, "external_group_name", extGroupName2)),
 			},
 			{
 				Config:            configBasic(federationSettingsID, orgID, groupID, extGroupName2),

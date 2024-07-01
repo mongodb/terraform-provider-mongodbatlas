@@ -60,7 +60,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			},
 			{
 				Config: configWithIdps,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -72,7 +72,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			},
 			{
 				Config: configDetachedIdps,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "data_access_identity_provider_ids.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "identity_provider_id", ""),
@@ -80,7 +80,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			},
 			{
 				Config: configWithDomainRestriction,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "domain_restriction_enabled", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "user_conflicts.#"),

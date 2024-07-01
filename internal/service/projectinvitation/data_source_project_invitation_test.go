@@ -26,7 +26,7 @@ func TestAccProjectDSProjectInvitation_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceMongoDBAtlasProjectInvitationConfig(orgID, projectName, name, initialRole),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "username"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "invitation_id"),

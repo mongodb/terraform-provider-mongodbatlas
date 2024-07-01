@@ -26,7 +26,7 @@ func TestAccConfigDSCustomDBRoles_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configDSPlural(orgID, projectName, roleName, "INSERT", databaseName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					// Test for Resource
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),

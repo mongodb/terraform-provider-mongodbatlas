@@ -33,7 +33,7 @@ func TestAccCloudProviderAccessSetupAzure_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configSetupAzure(projectID, atlasAzureAppID, servicePrincipalID, tenantID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "role_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "azure_config.0.atlas_azure_app_id"),
@@ -70,7 +70,7 @@ func basicSetupTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configSetupAWS(projectID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					// same as regular cloud resource
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "aws_config.0.atlas_assumed_role_external_id"),

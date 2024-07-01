@@ -26,7 +26,7 @@ func TestAccConfigDSAlertConfigurations_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasicPluralDS(projectID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkCount(dataSourcePluralName),
 					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
 					resource.TestCheckNoResourceAttr(dataSourcePluralName, "total_count"),
@@ -48,7 +48,7 @@ func TestAccConfigDSAlertConfigurations_withOutputTypes(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configOutputType(projectID, outputTypes),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkCount(dataSourcePluralName),
 					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
 					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.output.#", "2"),
@@ -86,7 +86,7 @@ func TestAccConfigDSAlertConfigurations_totalCount(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configTotalCount(projectID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkCount(dataSourcePluralName),
 					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
 					resource.TestCheckResourceAttrSet(dataSourcePluralName, "total_count"),

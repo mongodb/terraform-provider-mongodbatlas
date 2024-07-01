@@ -29,7 +29,7 @@ func TestAccConfigRSOrgInvitation_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(orgID, name, initialRole),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "invitation_id"),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -40,7 +40,7 @@ func TestAccConfigRSOrgInvitation_basic(t *testing.T) {
 			},
 			{
 				Config: configBasic(orgID, name, updateRoles),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "invitation_id"),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),

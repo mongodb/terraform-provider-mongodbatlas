@@ -41,7 +41,7 @@ func newSearchNodeTestStep(resourceName, orgID, projectName, clusterName, instan
 	dataSourceChecks := searchNodeChecks(fmt.Sprintf("data.%s", resourceName), clusterName, instanceSize, searchNodeCount)
 	return resource.TestStep{
 		Config: configBasic(orgID, projectName, clusterName, instanceSize, searchNodeCount),
-		Check:  resource.ComposeTestCheckFunc(append(resourceChecks, dataSourceChecks...)...),
+		Check:  resource.ComposeAggregateTestCheckFunc(append(resourceChecks, dataSourceChecks...)...),
 	}
 }
 

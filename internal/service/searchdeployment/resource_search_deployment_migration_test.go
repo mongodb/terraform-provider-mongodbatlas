@@ -27,7 +27,7 @@ func TestMigSearchDeployment_basic(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check:             resource.ComposeTestCheckFunc(searchNodeChecks(resourceName, clusterName, instanceSize, searchNodeCount)...),
+				Check:             resource.ComposeAggregateTestCheckFunc(searchNodeChecks(resourceName, clusterName, instanceSize, searchNodeCount)...),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},

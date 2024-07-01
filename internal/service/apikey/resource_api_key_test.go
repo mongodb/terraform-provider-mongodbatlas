@@ -29,7 +29,7 @@ func TestAccConfigRSAPIKey_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(orgID, description, roleName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
@@ -37,7 +37,7 @@ func TestAccConfigRSAPIKey_basic(t *testing.T) {
 			},
 			{
 				Config: configBasic(orgID, descriptionUpdate, roleNameUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "description", descriptionUpdate),

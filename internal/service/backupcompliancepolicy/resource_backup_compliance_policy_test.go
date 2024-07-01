@@ -35,7 +35,7 @@ func TestAccBackupCompliancePolicy_update(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithoutOptionals(projectName, orgID, projectOwnerID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "authorized_user_first_name", "First"),
 					resource.TestCheckResourceAttr(resourceName, "authorized_user_last_name", "Last"),
@@ -46,7 +46,7 @@ func TestAccBackupCompliancePolicy_update(t *testing.T) {
 			},
 			{
 				Config: configBasic(projectName, orgID, projectOwnerID, true),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "authorized_user_first_name", "First"),
 					resource.TestCheckResourceAttr(resourceName, "authorized_user_last_name", "Last"),
@@ -91,7 +91,7 @@ func TestAccBackupCompliancePolicy_withoutRestoreWindowDays(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithoutRestoreDays(projectName, orgID, projectOwnerID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "copy_protection_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "encryption_at_rest_enabled", "false"),
@@ -116,7 +116,7 @@ func basicTestCase(tb testing.TB, useYearly bool) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectName, orgID, projectOwnerID, useYearly),
-				Check:  resource.ComposeTestCheckFunc(basicChecks()...),
+				Check:  resource.ComposeAggregateTestCheckFunc(basicChecks()...),
 			},
 			{
 				ResourceName:            resourceName,

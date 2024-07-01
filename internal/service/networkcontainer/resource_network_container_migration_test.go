@@ -27,7 +27,7 @@ func TestMigNetworkContainer_basicAWS(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check:             resource.ComposeTestCheckFunc(commonChecks(constant.AWS)...),
+				Check:             resource.ComposeAggregateTestCheckFunc(commonChecks(constant.AWS)...),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},
@@ -50,7 +50,7 @@ func TestMigNetworkContainer_basicAzure(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check:             resource.ComposeTestCheckFunc(commonChecks(constant.AZURE)...),
+				Check:             resource.ComposeAggregateTestCheckFunc(commonChecks(constant.AZURE)...),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},
@@ -73,7 +73,7 @@ func TestMigNetworkContainer_basicGCP(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check:             resource.ComposeTestCheckFunc(commonChecks(constant.GCP)...),
+				Check:             resource.ComposeAggregateTestCheckFunc(commonChecks(constant.GCP)...),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},

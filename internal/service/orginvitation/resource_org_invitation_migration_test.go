@@ -25,7 +25,7 @@ func TestMigConfigOrgInvitation_basic(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "invitation_id"),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),

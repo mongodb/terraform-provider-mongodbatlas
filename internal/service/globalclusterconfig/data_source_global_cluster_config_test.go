@@ -19,7 +19,7 @@ func TestAccClusterRSGlobalClusterDS_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(&clusterInfo, false, false),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "cluster_name"),
 				),

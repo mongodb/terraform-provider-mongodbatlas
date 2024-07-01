@@ -59,7 +59,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, bucketName, roleName, policyName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr),
-				Check:  resource.ComposeTestCheckFunc(checks...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 			{
 				ResourceName:      resourceName,

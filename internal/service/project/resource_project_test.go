@@ -551,7 +551,7 @@ func TestAccProject_basic(t *testing.T) {
 						},
 					},
 				),
-				Check: resource.ComposeTestCheckFunc(checks...),
+				Check: resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 			{
 				Config: configBasic(orgID, projectName, projectOwnerID, false,
@@ -570,7 +570,7 @@ func TestAccProject_basic(t *testing.T) {
 						},
 					},
 				),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -592,7 +592,7 @@ func TestAccProject_basic(t *testing.T) {
 						},
 					},
 				),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -625,7 +625,7 @@ func TestAccGovProject_withProjectOwner(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configGovWithOwner(orgID, projectName, projectOwnerID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsGov(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -651,7 +651,7 @@ func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithFalseDefaultSettings(orgID, projectName, projectOwnerID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -675,7 +675,7 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -691,7 +691,7 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 			},
 			{
 				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, true),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"),
 					resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", "true"),
@@ -704,7 +704,7 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 			},
 			{
 				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", "false"),
@@ -734,7 +734,7 @@ func TestAccProject_withUpdatedRole(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithUpdatedRole(orgID, projectName, acc.GetProjectTeamsIDsWithPos(0), roleName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
@@ -742,7 +742,7 @@ func TestAccProject_withUpdatedRole(t *testing.T) {
 			},
 			{
 				Config: configWithUpdatedRole(orgID, projectName, acc.GetProjectTeamsIDsWithPos(0), roleNameUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
@@ -771,7 +771,7 @@ func TestAccProject_updatedToEmptyRoles(t *testing.T) {
 						},
 					},
 				),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "teams.0.team_id", acc.GetProjectTeamsIDsWithPos(0)),
@@ -782,7 +782,7 @@ func TestAccProject_updatedToEmptyRoles(t *testing.T) {
 			},
 			{
 				Config: configBasic(orgID, projectName, "", false, nil),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "0"),
 				),
@@ -829,7 +829,7 @@ func TestAccProject_withUpdatedLimits(t *testing.T) {
 						Value: 1,
 					},
 				}),
-				Check: resource.ComposeTestCheckFunc(checks...),
+				Check: resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 			{
 				Config: configWithLimits(orgID, projectName, []*admin.DataFederationLimit{
@@ -838,7 +838,7 @@ func TestAccProject_withUpdatedLimits(t *testing.T) {
 						Value: 2,
 					},
 				}),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "limits.0.name", "atlas.project.deployment.nodesPerPrivateLinkRegion"),
@@ -860,7 +860,7 @@ func TestAccProject_withUpdatedLimits(t *testing.T) {
 						Value: 30,
 					},
 				}),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckTypeSetElemNestedAttrs(
@@ -910,7 +910,7 @@ func TestAccProject_updatedToEmptyLimits(t *testing.T) {
 						Value: 1,
 					},
 				}),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "limits.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "limits.0.name", "atlas.project.deployment.clusters"),
 					resource.TestCheckResourceAttr(resourceName, "limits.0.value", "1"),
@@ -918,7 +918,7 @@ func TestAccProject_updatedToEmptyLimits(t *testing.T) {
 			},
 			{
 				Config: configWithLimits(orgID, projectName, nil),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "limits.#", "0"),
 				),
 			},
@@ -963,7 +963,7 @@ func TestAccProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithLimits(orgID, projectName, []*admin.DataFederationLimit{}),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
@@ -1011,7 +1011,7 @@ func TestAccProject_withTags(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithTags(orgID, projectName, nil),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
@@ -1028,7 +1028,7 @@ func TestAccProject_withTags(t *testing.T) {
 			},
 			{
 				Config: configWithTags(orgID, projectName, tagsEmpty),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceNameByID, "tags.#", "0"),
 				),

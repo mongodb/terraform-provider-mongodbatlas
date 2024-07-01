@@ -37,7 +37,7 @@ func TestAccConfigRSOrganization_Basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasOrganizationConfigBasic(orgOwnerID, name, description, roleName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasOrganizationExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
@@ -48,7 +48,7 @@ func TestAccConfigRSOrganization_Basic(t *testing.T) {
 			},
 			{
 				Config: testAccMongoDBAtlasOrganizationConfigBasic(orgOwnerID, updatedName, description, roleName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasOrganizationExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
@@ -110,7 +110,7 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasOrganizationConfigWithSettings(orgOwnerID, name, description, roleName, settingsConfig),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasOrganizationExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
@@ -121,7 +121,7 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 			},
 			{
 				Config: testAccMongoDBAtlasOrganizationConfigWithSettings(orgOwnerID, name, description, roleName, settingsConfigUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasOrganizationExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
@@ -132,7 +132,7 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 			},
 			{
 				Config: testAccMongoDBAtlasOrganizationConfigBasic(orgOwnerID, "org-name-updated", description, roleName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasOrganizationExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
