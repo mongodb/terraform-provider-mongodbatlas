@@ -347,6 +347,7 @@ func schemaSpecs() *schema.Schema {
 		Type:     schema.TypeList,
 		MaxItems: 1,
 		Optional: true,
+		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"disk_size_gb": {
@@ -362,6 +363,7 @@ func schemaSpecs() *schema.Schema {
 				"ebs_volume_type": {
 					Type:     schema.TypeString,
 					Optional: true,
+					Computed: true,
 				},
 				"instance_size": {
 					Type:     schema.TypeString,
@@ -534,7 +536,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 		}
 
-		replicationSpecs, err = flattenAdvancedReplicationSpecsDS(ctx, cluster.GetReplicationSpecs(), d, connV2)
+		replicationSpecs, err = flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), d.Get("replication_specs").([]any), d, connV2)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}

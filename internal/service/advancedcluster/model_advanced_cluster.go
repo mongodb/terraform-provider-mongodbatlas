@@ -466,7 +466,7 @@ func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []adm
 		}
 
 		for j := 0; j < len(apiObjects); j++ {
-			if wasAPIObjectUsed[j] || !doesAdvancedReplicationSpecMatchAPI(tfMapObject, &apiObjects[j]) {
+			if wasAPIObjectUsed[j] || !doesAdvancedReplicationSpecMatchAPIOldSDK(tfMapObject, &apiObjects[j]) {
 				continue
 			}
 
@@ -507,8 +507,70 @@ func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []adm
 	return tfList, nil
 }
 
-func doesAdvancedReplicationSpecMatchAPI(tfObject map[string]any, apiObject *admin20231115.ReplicationSpec) bool {
+func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin.ReplicationSpec20240710, tfMapObjects []any,
+	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
+	if len(apiObjects) == 0 {
+		return nil, nil
+	}
+
+	tfList := make([]map[string]any, len(apiObjects))
+	wasAPIObjectUsed := make([]bool, len(apiObjects))
+
+	for i := 0; i < len(tfList); i++ {
+		var tfMapObject map[string]any
+
+		if len(tfMapObjects) > i {
+			tfMapObject = tfMapObjects[i].(map[string]any)
+		}
+
+		for j := 0; j < len(apiObjects); j++ {
+			if wasAPIObjectUsed[j] || !doesAdvancedReplicationSpecMatchAPI(tfMapObject, &apiObjects[j]) {
+				continue
+			}
+
+			advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, &apiObjects[j], tfMapObject, d, connV2)
+
+			if err != nil {
+				return nil, err
+			}
+
+			tfList[i] = advancedReplicationSpec
+			wasAPIObjectUsed[j] = true
+			break
+		}
+	}
+
+	for i, tfo := range tfList {
+		var tfMapObject map[string]any
+
+		if tfo != nil {
+			continue
+		}
+
+		if len(tfMapObjects) > i {
+			tfMapObject = tfMapObjects[i].(map[string]any)
+		}
+
+		j := slices.IndexFunc(wasAPIObjectUsed, func(isUsed bool) bool { return !isUsed })
+		advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, &apiObjects[j], tfMapObject, d, connV2)
+
+		if err != nil {
+			return nil, err
+		}
+
+		tfList[i] = advancedReplicationSpec
+		wasAPIObjectUsed[j] = true
+	}
+
+	return tfList, nil
+}
+
+func doesAdvancedReplicationSpecMatchAPIOldSDK(tfObject map[string]any, apiObject *admin20231115.ReplicationSpec) bool {
 	return tfObject["id"] == apiObject.GetId() || (tfObject["id"] == nil && tfObject["zone_name"] == apiObject.GetZoneName())
+}
+
+func doesAdvancedReplicationSpecMatchAPI(tfObject map[string]any, apiObject *admin.ReplicationSpec20240710) bool {
+	return tfObject["external_id"] == apiObject.GetId()
 }
 
 func flattenAdvancedReplicationSpecOldSDK(ctx context.Context, apiObject *admin20231115.ReplicationSpec, rootDiskSizeGB float64, tfMapObject map[string]any,
@@ -979,6 +1041,10 @@ func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.Replic
 	tfMap := map[string]any{}
 	// tfMap["id"] = apiObject.GetId() TODO we should delete this right?
 	tfMap["external_id"] = apiObject.GetId()
+
+	// define num_shards for backwards compatibility as this attribute has default value of 1.
+	tfMap["num_shards"] = 1
+
 	if tfMapObject != nil {
 		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.GetRegionConfigs(), tfMapObject["region_configs"].([]any), d, connV2)
 		if err != nil {
