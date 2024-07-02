@@ -566,7 +566,7 @@ func flattenAdvancedReplicationSpecOldSDK(ctx context.Context, apiObject *admin2
 	return tfMap, nil
 }
 
-func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, apiObjects []admin.CloudRegionConfig, tfMapObjects []any,
+func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, apiObjects []admin.CloudRegionConfig20240710, tfMapObjects []any,
 	d *schema.ResourceData, connV2 *admin.APIClient) (tfResult []map[string]any, containersIDs map[string]string, err error) {
 	if len(apiObjects) == 0 {
 		return nil, nil, nil
@@ -602,7 +602,7 @@ func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, apiObjects
 	return tfList, containerIDs, nil
 }
 
-func flattenAdvancedReplicationSpecRegionConfig(apiObject *admin.CloudRegionConfig, tfMapObject map[string]any) map[string]any {
+func flattenAdvancedReplicationSpecRegionConfig(apiObject *admin.CloudRegionConfig20240710, tfMapObject map[string]any) map[string]any {
 	if apiObject == nil {
 		return nil
 	}
@@ -640,11 +640,11 @@ func flattenAdvancedReplicationSpecRegionConfig(apiObject *admin.CloudRegionConf
 	return tfMap
 }
 
-func hwSpecToDedicatedHwSpec(apiObject *admin.HardwareSpec) *admin.DedicatedHardwareSpec {
+func hwSpecToDedicatedHwSpec(apiObject *admin.HardwareSpec20240710) *admin.DedicatedHardwareSpec20240710 {
 	if apiObject == nil {
 		return nil
 	}
-	return &admin.DedicatedHardwareSpec{
+	return &admin.DedicatedHardwareSpec20240710{
 		NodeCount:     apiObject.NodeCount,
 		DiskIOPS:      apiObject.DiskIOPS,
 		EbsVolumeType: apiObject.EbsVolumeType,
@@ -653,11 +653,11 @@ func hwSpecToDedicatedHwSpec(apiObject *admin.HardwareSpec) *admin.DedicatedHard
 	}
 }
 
-func dedicatedHwSpecToHwSpec(apiObject *admin.DedicatedHardwareSpec) *admin.HardwareSpec {
+func dedicatedHwSpecToHwSpec(apiObject *admin.DedicatedHardwareSpec20240710) *admin.HardwareSpec20240710 {
 	if apiObject == nil {
 		return nil
 	}
-	return &admin.HardwareSpec{
+	return &admin.HardwareSpec20240710{
 		DiskSizeGB:    apiObject.DiskSizeGB,
 		NodeCount:     apiObject.NodeCount,
 		DiskIOPS:      apiObject.DiskIOPS,
@@ -666,7 +666,7 @@ func dedicatedHwSpecToHwSpec(apiObject *admin.DedicatedHardwareSpec) *admin.Hard
 	}
 }
 
-func flattenAdvancedReplicationSpecRegionConfigSpec(apiObject *admin.DedicatedHardwareSpec, providerName string, tfMapObjects []any) []map[string]any {
+func flattenAdvancedReplicationSpecRegionConfigSpec(apiObject *admin.DedicatedHardwareSpec20240710, providerName string, tfMapObjects []any) []map[string]any {
 	if apiObject == nil {
 		return nil
 	}
@@ -725,7 +725,7 @@ func flattenAdvancedReplicationSpecAutoScaling(apiObject *admin.AdvancedAutoScal
 	return tfList
 }
 
-func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cluster *admin.CloudRegionConfig) string {
+func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cluster *admin.CloudRegionConfig20240710) string {
 	if len(containers) == 0 {
 		return ""
 	}
@@ -879,8 +879,8 @@ func expandAdvancedReplicationSpecOldSDK(tfMap map[string]any) *admin20231115.Re
 	return apiObject
 }
 
-func expandRegionConfigs(tfList []any, rootDiskSizeGB *float64) *[]admin.CloudRegionConfig {
-	var apiObjects []admin.CloudRegionConfig
+func expandRegionConfigs(tfList []any, rootDiskSizeGB *float64) *[]admin.CloudRegionConfig20240710 {
+	var apiObjects []admin.CloudRegionConfig20240710
 	for _, tfMapRaw := range tfList {
 		tfMap, ok := tfMapRaw.(map[string]any)
 		if !ok || tfMap == nil {
@@ -895,9 +895,9 @@ func expandRegionConfigs(tfList []any, rootDiskSizeGB *float64) *[]admin.CloudRe
 	return &apiObjects
 }
 
-func expandRegionConfig(tfMap map[string]any, rootDiskSizeGB *float64) *admin.CloudRegionConfig {
+func expandRegionConfig(tfMap map[string]any, rootDiskSizeGB *float64) *admin.CloudRegionConfig20240710 {
 	providerName := tfMap["provider_name"].(string)
-	apiObject := &admin.CloudRegionConfig{
+	apiObject := &admin.CloudRegionConfig20240710{
 		Priority:     conversion.Pointer(cast.ToInt(tfMap["priority"])),
 		ProviderName: conversion.StringPtr(providerName),
 		RegionName:   conversion.StringPtr(tfMap["region_name"].(string)),
@@ -924,9 +924,9 @@ func expandRegionConfig(tfMap map[string]any, rootDiskSizeGB *float64) *admin.Cl
 	return apiObject
 }
 
-func expandRegionConfigSpec(tfList []any, providerName string, rootDiskSizeGB *float64) *admin.DedicatedHardwareSpec {
+func expandRegionConfigSpec(tfList []any, providerName string, rootDiskSizeGB *float64) *admin.DedicatedHardwareSpec20240710 {
 	tfMap, _ := tfList[0].(map[string]any)
-	apiObject := new(admin.DedicatedHardwareSpec)
+	apiObject := new(admin.DedicatedHardwareSpec20240710)
 	if providerName == "AWS" {
 		if v, ok := tfMap["disk_iops"]; ok && v.(int) > 0 {
 			apiObject.DiskIOPS = conversion.Pointer(v.(int))
