@@ -547,7 +547,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		if _, _, err := acc.ConnV2().ClustersApi.GetCluster(context.Background(), ids["project_id"], ids["cluster_name"]).Execute(); err == nil {
+		if _, _, err := acc.ConnV2Preview().ClustersApi.GetCluster(context.Background(), ids["project_id"], ids["cluster_name"]).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("cluster(%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.ID)
