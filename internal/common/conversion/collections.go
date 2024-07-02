@@ -10,3 +10,15 @@ func HasElementsSliceOrMap(value any) bool {
 	}
 	return false
 }
+
+// ToAnySlicePointer converts to a slice pointer of any as needed in some Atlas SDK Go structs
+func ToAnySlicePointer(value *[]map[string]any) *[]any {
+	if value == nil {
+		return nil
+	}
+	ret := make([]any, len(*value))
+	for i, item := range *value {
+		ret[i] = item
+	}
+	return &ret
+}

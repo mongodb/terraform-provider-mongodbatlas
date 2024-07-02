@@ -35,3 +35,29 @@ func TestHasElementsSliceOrMap(t *testing.T) {
 		})
 	}
 }
+
+func TestToAnySlicePointer(t *testing.T) {
+	testCases := map[string]*[]map[string]any{
+		"nil":         nil,
+		"empty":       {},
+		"one element": {{"hi": "there"}},
+		"more complex": {
+			{"hi": "there"},
+			{"bye": 1234},
+		},
+	}
+	for name, value := range testCases {
+		t.Run(name, func(t *testing.T) {
+			ret := conversion.ToAnySlicePointer(value)
+			if ret == nil {
+				assert.Nil(t, value)
+			} else {
+				assert.NotNil(t, ret)
+				assert.Equal(t, len(*value), len(*ret))
+				for i := range *value {
+					assert.Equal(t, (*value)[i], (*ret)[i])
+				}
+			}
+		})
+	}
+}
