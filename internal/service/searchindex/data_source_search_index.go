@@ -123,11 +123,11 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		return diag.Errorf("error setting `index_id` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("analyzer", searchIndex.Analyzer); err != nil {
+	if err := d.Set("analyzer", searchIndex.LatestDefinition.Analyzer); err != nil {
 		return diag.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
 	}
 
-	if analyzers := searchIndex.GetAnalyzers(); len(analyzers) > 0 {
+	if analyzers := searchIndex.LatestDefinition.GetAnalyzers(); len(analyzers) > 0 {
 		searchIndexMappingFields, err := marshalSearchIndex(analyzers)
 		if err != nil {
 			return diag.FromErr(err)
@@ -150,21 +150,21 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		return diag.Errorf("error setting `name` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("search_analyzer", searchIndex.SearchAnalyzer); err != nil {
+	if err := d.Set("search_analyzer", searchIndex.LatestDefinition.SearchAnalyzer); err != nil {
 		return diag.Errorf("error setting `searchAnalyzer` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("synonyms", flattenSearchIndexSynonyms(searchIndex.GetSynonyms())); err != nil {
+	if err := d.Set("synonyms", flattenSearchIndexSynonyms(searchIndex.LatestDefinition.GetSynonyms())); err != nil {
 		return diag.Errorf("error setting `synonyms` for search index (%s): %s", d.Id(), err)
 	}
 
-	if searchIndex.Mappings != nil {
-		if err := d.Set("mappings_dynamic", searchIndex.Mappings.Dynamic); err != nil {
+	if searchIndex.LatestDefinition.Mappings != nil {
+		if err := d.Set("mappings_dynamic", searchIndex.LatestDefinition.Mappings.Dynamic); err != nil {
 			return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
 		}
 
-		if len(searchIndex.Mappings.Fields) > 0 {
-			searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Mappings.Fields)
+		if len(searchIndex.LatestDefinition.Mappings.Fields) > 0 {
+			searchIndexMappingFields, err := marshalSearchIndex(searchIndex.LatestDefinition.Mappings.Fields)
 			if err != nil {
 				return diag.FromErr(err)
 			}
@@ -174,7 +174,7 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		}
 	}
 
-	if fields := searchIndex.GetFields(); len(fields) > 0 {
+	if fields := searchIndex.LatestDefinition.GetFields(); len(fields) > 0 {
 		fieldsMarshaled, err := marshalSearchIndex(fields)
 		if err != nil {
 			return diag.FromErr(err)

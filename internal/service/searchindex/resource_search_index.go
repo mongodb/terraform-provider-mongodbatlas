@@ -198,7 +198,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("analyzer") {
-		searchIndex.Analyzer = conversion.StringPtr(d.Get("analyzer").(string))
+		searchIndex.LatestDefinition.Analyzer = conversion.StringPtr(d.Get("analyzer").(string))
 	}
 
 	if d.HasChange("collection_name") {
@@ -214,7 +214,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("search_analyzer") {
-		searchIndex.SearchAnalyzer = conversion.StringPtr(d.Get("search_analyzer").(string))
+		searchIndex.LatestDefinition.SearchAnalyzer = conversion.StringPtr(d.Get("search_analyzer").(string))
 	}
 
 	if d.HasChange("analyzers") {
@@ -222,15 +222,15 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err != nil {
 			return err
 		}
-		searchIndex.Analyzers = &analyzers
+		searchIndex.LatestDefinition.Analyzers = &analyzers
 	}
 
 	if d.HasChange("mappings_dynamic") {
 		dynamic := d.Get("mappings_dynamic").(bool)
-		if searchIndex.Mappings == nil {
-			searchIndex.Mappings = &admin.ApiAtlasFTSMappings{}
+		if searchIndex.LatestDefinition.Mappings == nil {
+			searchIndex.LatestDefinition.Mappings = &admin.ApiAtlasFTSMappings{}
 		}
-		searchIndex.Mappings.Dynamic = &dynamic
+		searchIndex.LatestDefinition.Mappings.Dynamic = &dynamic
 	}
 
 	if d.HasChange("mappings_fields") {
@@ -238,10 +238,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err != nil {
 			return err
 		}
-		if searchIndex.Mappings == nil {
-			searchIndex.Mappings = &admin.ApiAtlasFTSMappings{}
+		if searchIndex.LatestDefinition.Mappings == nil {
+			searchIndex.LatestDefinition.Mappings = &admin.ApiAtlasFTSMappings{}
 		}
-		searchIndex.Mappings.Fields = mappingsFields
+		searchIndex.LatestDefinition.Mappings.Fields = mappingsFields
 	}
 
 	if d.HasChange("fields") {
@@ -249,12 +249,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err != nil {
 			return err
 		}
-		searchIndex.Fields = &fields
+		searchIndex.LatestDefinition.Fields = &fields
 	}
 
 	if d.HasChange("synonyms") {
 		synonyms := expandSearchIndexSynonyms(d)
-		searchIndex.Synonyms = &synonyms
+		searchIndex.LatestDefinition.Synonyms = &synonyms
 	}
 
 	searchIndex.IndexID = conversion.StringPtr("")
@@ -313,11 +313,11 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf("error setting `type` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("analyzer", searchIndex.Analyzer); err != nil {
+	if err := d.Set("analyzer", searchIndex.LatestDefinition.Analyzer); err != nil {
 		return diag.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
 	}
 
-	if analyzers := searchIndex.GetAnalyzers(); len(analyzers) > 0 {
+	if analyzers := searchIndex.LatestDefinition.GetAnalyzers(); len(analyzers) > 0 {
 		searchIndexMappingFields, err := marshalSearchIndex(analyzers)
 		if err != nil {
 			return diag.FromErr(err)
@@ -339,21 +339,21 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf("error setting `name` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("search_analyzer", searchIndex.SearchAnalyzer); err != nil {
+	if err := d.Set("search_analyzer", searchIndex.LatestDefinition.SearchAnalyzer); err != nil {
 		return diag.Errorf("error setting `searchAnalyzer` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("synonyms", flattenSearchIndexSynonyms(searchIndex.GetSynonyms())); err != nil {
+	if err := d.Set("synonyms", flattenSearchIndexSynonyms(searchIndex.LatestDefinition.GetSynonyms())); err != nil {
 		return diag.Errorf("error setting `synonyms` for search index (%s): %s", d.Id(), err)
 	}
 
-	if searchIndex.Mappings != nil {
-		if err := d.Set("mappings_dynamic", searchIndex.Mappings.Dynamic); err != nil {
+	if searchIndex.LatestDefinition.Mappings != nil {
+		if err := d.Set("mappings_dynamic", searchIndex.LatestDefinition.Mappings.Dynamic); err != nil {
 			return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
 		}
 
-		if len(searchIndex.Mappings.Fields) > 0 {
-			searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Mappings.Fields)
+		if len(searchIndex.LatestDefinition.Mappings.Fields) > 0 {
+			searchIndexMappingFields, err := marshalSearchIndex(searchIndex.LatestDefinition.Mappings.Fields)
 			if err != nil {
 				return diag.FromErr(err)
 			}
@@ -363,7 +363,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		}
 	}
 
-	if fields := searchIndex.GetFields(); len(fields) > 0 {
+	if fields := searchIndex.LatestDefinition.GetFields(); len(fields) > 0 {
 		fieldsMarshaled, err := marshalSearchIndex(fields)
 		if err != nil {
 			return diag.FromErr(err)
