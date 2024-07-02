@@ -451,64 +451,28 @@ func flattenProcessArgs(p *admin20231115.ClusterDescriptionProcessArgs) []map[st
 
 func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []admin20231115.ReplicationSpec, rootDiskSizeGB float64, tfMapObjects []any,
 	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
-	if len(apiObjects) == 0 {
-		return nil, nil
+	replicationSpecFlattener := func(ctx context.Context, sdkModel *admin20231115.ReplicationSpec, tfModel map[string]any, resourceData *schema.ResourceData, client *admin.APIClient) (map[string]any, error) {
+		return flattenAdvancedReplicationSpecOldSDK(ctx, sdkModel, rootDiskSizeGB, tfModel, resourceData, connV2)
 	}
-
-	tfList := make([]map[string]any, len(apiObjects))
-	wasAPIObjectUsed := make([]bool, len(apiObjects))
-
-	for i := 0; i < len(tfList); i++ {
-		var tfMapObject map[string]any
-
-		if len(tfMapObjects) > i {
-			tfMapObject = tfMapObjects[i].(map[string]any)
-		}
-
-		for j := 0; j < len(apiObjects); j++ {
-			if wasAPIObjectUsed[j] || !doesAdvancedReplicationSpecMatchAPIOldSDK(tfMapObject, &apiObjects[j]) {
-				continue
-			}
-
-			advancedReplicationSpec, err := flattenAdvancedReplicationSpecOldSDK(ctx, &apiObjects[j], rootDiskSizeGB, tfMapObject, d, connV2)
-
-			if err != nil {
-				return nil, err
-			}
-
-			tfList[i] = advancedReplicationSpec
-			wasAPIObjectUsed[j] = true
-			break
-		}
-	}
-
-	for i, tfo := range tfList {
-		var tfMapObject map[string]any
-
-		if tfo != nil {
-			continue
-		}
-
-		if len(tfMapObjects) > i {
-			tfMapObject = tfMapObjects[i].(map[string]any)
-		}
-
-		j := slices.IndexFunc(wasAPIObjectUsed, func(isUsed bool) bool { return !isUsed })
-		advancedReplicationSpec, err := flattenAdvancedReplicationSpecOldSDK(ctx, &apiObjects[j], rootDiskSizeGB, tfMapObject, d, connV2)
-
-		if err != nil {
-			return nil, err
-		}
-
-		tfList[i] = advancedReplicationSpec
-		wasAPIObjectUsed[j] = true
-	}
-
-	return tfList, nil
+	return flattenAdvancedReplicationSpecsLogic[admin20231115.ReplicationSpec](ctx, apiObjects, tfMapObjects, d,
+		doesAdvancedReplicationSpecMatchAPIOldSDK, replicationSpecFlattener, connV2)
 }
 
 func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin.ReplicationSpec20240710, tfMapObjects []any,
 	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
+	return flattenAdvancedReplicationSpecsLogic[admin.ReplicationSpec20240710](ctx, apiObjects, tfMapObjects, d,
+		doesAdvancedReplicationSpecMatchAPI, flattenAdvancedReplicationSpec, connV2)
+}
+
+type ReplicationSpecSDKModel interface {
+	admin20231115.ReplicationSpec | admin.ReplicationSpec20240710
+}
+
+func flattenAdvancedReplicationSpecsLogic[T ReplicationSpecSDKModel](
+	ctx context.Context, apiObjects []T, tfMapObjects []any, d *schema.ResourceData,
+	tfModelWithSDKMatcher func(map[string]any, *T) bool,
+	flattenRepSpec func(context.Context, *T, map[string]any, *schema.ResourceData, *admin.APIClient) (map[string]any, error),
+	connV2 *admin.APIClient) ([]map[string]any, error) {
 	if len(apiObjects) == 0 {
 		return nil, nil
 	}
@@ -524,11 +488,11 @@ func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin.Rep
 		}
 
 		for j := 0; j < len(apiObjects); j++ {
-			if wasAPIObjectUsed[j] || !doesAdvancedReplicationSpecMatchAPI(tfMapObject, &apiObjects[j]) {
+			if wasAPIObjectUsed[j] || !tfModelWithSDKMatcher(tfMapObject, &apiObjects[j]) {
 				continue
 			}
 
-			advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, &apiObjects[j], tfMapObject, d, connV2)
+			advancedReplicationSpec, err := flattenRepSpec(ctx, &apiObjects[j], tfMapObject, d, connV2)
 
 			if err != nil {
 				return nil, err
@@ -552,7 +516,7 @@ func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin.Rep
 		}
 
 		j := slices.IndexFunc(wasAPIObjectUsed, func(isUsed bool) bool { return !isUsed })
-		advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, &apiObjects[j], tfMapObject, d, connV2)
+		advancedReplicationSpec, err := flattenRepSpec(ctx, &apiObjects[j], tfMapObject, d, connV2)
 
 		if err != nil {
 			return nil, err
