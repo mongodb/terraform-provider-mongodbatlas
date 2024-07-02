@@ -228,7 +228,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if d.HasChange("mappings_dynamic") {
 		dynamic := d.Get("mappings_dynamic").(bool)
 		if searchIndex.LatestDefinition.Mappings == nil {
-			searchIndex.LatestDefinition.Mappings = &admin.ApiAtlasFTSMappings{}
+			searchIndex.LatestDefinition.Mappings = &admin.SearchMappings{}
 		}
 		searchIndex.LatestDefinition.Mappings.Dynamic = &dynamic
 	}
@@ -239,7 +239,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return err
 		}
 		if searchIndex.LatestDefinition.Mappings == nil {
-			searchIndex.LatestDefinition.Mappings = &admin.ApiAtlasFTSMappings{}
+			searchIndex.LatestDefinition.Mappings = &admin.SearchMappings{}
 		}
 		searchIndex.LatestDefinition.Mappings.Fields = mappingsFields
 	}
@@ -398,7 +398,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 	indexType := d.Get("type").(string)
-	searchIndexRequest := &admin.ClusterSearchIndex{
+	searchIndexRequest := &admin.SearchIndexCreateRequest{
 		Type:           conversion.StringPtr(indexType),
 		Analyzer:       conversion.StringPtr(d.Get("analyzer").(string)),
 		CollectionName: d.Get("collection_name").(string),
@@ -561,8 +561,8 @@ func unmarshalSearchIndexFields(str string) ([]map[string]any, diag.Diagnostics)
 	return fields, nil
 }
 
-func unmarshalSearchIndexAnalyzersFields(str string) ([]admin.ApiAtlasFTSAnalyzers, diag.Diagnostics) {
-	fields := []admin.ApiAtlasFTSAnalyzers{}
+func unmarshalSearchIndexAnalyzersFields(str string) ([]admin.AtlasSearchAnalyzer, diag.Diagnostics) {
+	fields := []admin.AtlasSearchAnalyzer{}
 	if str == "" {
 		return fields, nil
 	}
