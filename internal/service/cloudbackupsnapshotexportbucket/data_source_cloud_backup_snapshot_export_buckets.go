@@ -83,7 +83,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return nil
 }
 
-func flattenBuckets(buckets []admin.DiskBackupSnapshotAWSExportBucket) []map[string]any {
+func flattenBuckets(buckets []admin.DiskBackupSnapshotExportBucket) []map[string]any {
 	var results []map[string]any
 
 	if len(buckets) == 0 {
