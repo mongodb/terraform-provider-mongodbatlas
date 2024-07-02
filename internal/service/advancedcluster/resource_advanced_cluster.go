@@ -656,7 +656,6 @@ func setResourceRootFields(d *schema.ResourceData, cluster *admin.ClusterDescrip
 	return nil
 }
 
-// isUsingOldAPISchemaStructure
 func isUsingOldAPISchemaStructure(d *schema.ResourceData) bool {
 	tfList := d.Get("replication_specs").([]any)
 	for _, tfMapRaw := range tfList {

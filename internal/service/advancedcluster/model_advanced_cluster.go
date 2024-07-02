@@ -681,7 +681,6 @@ func flattenAdvancedReplicationSpecRegionConfigSpec(apiObject *admin.DedicatedHa
 			if cast.ToInt64(apiObject.GetDiskIOPS()) > 0 {
 				tfMap["disk_iops"] = apiObject.GetDiskIOPS()
 			}
-			// TODO remove if condition
 			if v, ok := tfMapObject["ebs_volume_type"]; ok && v.(string) != "" {
 				tfMap["ebs_volume_type"] = apiObject.GetEbsVolumeType()
 			}
