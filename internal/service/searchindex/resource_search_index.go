@@ -193,8 +193,20 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.Errorf("error updating search index (%s): attributes name, type, database and collection_name can't be updated", indexName)
 	}
 
+	searchRead, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+	if err != nil {
+		return diag.Errorf("error getting search index information: %s", err)
+	}
 	searchIndex := &admin.SearchIndexUpdateRequest{
-		Definition: admin.SearchIndexUpdateRequestDefinition{},
+		Definition: admin.SearchIndexUpdateRequestDefinition{
+			Analyzer:       searchRead.LatestDefinition.Analyzer,
+			Analyzers:      searchRead.LatestDefinition.Analyzers,
+			Mappings:       searchRead.LatestDefinition.Mappings,
+			SearchAnalyzer: searchRead.LatestDefinition.SearchAnalyzer,
+			StoredSource:   searchRead.LatestDefinition.StoredSource,
+			Synonyms:       searchRead.LatestDefinition.Synonyms,
+			Fields:         searchRead.LatestDefinition.Fields,
+		},
 	}
 
 	if d.HasChange("analyzer") {
