@@ -504,7 +504,7 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchema(t *testing.T)
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.#", "2"),
-					resource.TestCheckNoResourceAttr(resourceName, "replication_specs.0.id"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.id", ""), // legacy id attribute is not populated
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.zone_id"),
 				),
