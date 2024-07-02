@@ -500,14 +500,28 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchema(t *testing.T)
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configSymmetricShardedNewSchema(orgID, projectName, clusterName),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "replication_specs.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.id", ""), // legacy id attribute is not populated
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.zone_id"),
-				),
+				Config: configShardedNewSchema(orgID, projectName, clusterName, "M30", "M30", 3000, 3000),
+				Check:  checkShardedNewSchema("M30", "M30", "3000", "3000"),
+			},
+		},
+	})
+}
+
+func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configShardedNewSchema(orgID, projectName, clusterName, "M30", "M40", 3000, 3000), // TODO: disk iops is failing if value is different
+				Check:  checkShardedNewSchema("M30", "M40", "3000", "3000"),
 			},
 		},
 	})
@@ -1151,7 +1165,7 @@ func configMultiZoneWithShards(orgID, projectName, name string, numShardsFirstZo
 	`, orgID, projectName, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding)
 }
 
-func configSymmetricShardedNewSchema(orgID, projectName, name string) string {
+func configShardedNewSchema(orgID, projectName, name, instanceSizeSpec1, instanceSizeSpec2 string, diskIopsSpec1, diskIopsSpec2 int) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
@@ -1166,39 +1180,58 @@ func configSymmetricShardedNewSchema(orgID, projectName, name string) string {
 
 			replication_specs {
 				region_configs {
-				electable_specs {
-					instance_size = "M30"
-					disk_iops = 3000
-					node_count    = 3
-				}
-				analytics_specs {
-					instance_size = "M30"
-					node_count    = 1
-				}
-				provider_name = "AWS"
-				priority      = 7
-				region_name   = "EU_WEST_1"
+					electable_specs {
+						instance_size = %[4]q
+						disk_iops = %[6]d
+						node_count    = 3
+					}
+					analytics_specs {
+						instance_size = %[4]q
+						node_count    = 1
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "EU_WEST_1"
 				}
 			}
 
 			replication_specs {
 				region_configs {
-				electable_specs {
-					instance_size = "M30"
-					disk_iops = 3000
-					node_count    = 3
-				}
-				analytics_specs {
-					instance_size = "M30"
-					node_count    = 1
-				}
-				provider_name = "AWS"
-				priority      = 7
-				region_name   = "EU_WEST_1"
+					electable_specs {
+						instance_size = %[5]q
+						disk_iops = %[7]d
+						node_count    = 3
+					}
+					analytics_specs {
+						instance_size = %[5]q
+						node_count    = 1
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "EU_WEST_1"
 				}
 			}
 		}
-	`, orgID, projectName, name)
+
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+			use_replication_spec_per_shard = true
+		}
+	`, orgID, projectName, name, instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2)
+}
+
+func checkShardedNewSchema(instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2 string) resource.TestCheckFunc {
+	return checkAggr(
+		[]string{"replication_specs.0.external_id", "replication_specs.0.zone_id", "replication_specs.1.external_id", "replication_specs.1.zone_id"},
+		map[string]string{
+			"replication_specs.#":    "2",
+			"replication_specs.0.id": "",
+			"replication_specs.0.region_configs.0.electable_specs.0.instance_size": instanceSizeSpec1,
+			"replication_specs.1.region_configs.0.electable_specs.0.instance_size": instanceSizeSpec2,
+			"replication_specs.0.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec1,
+			"replication_specs.1.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec2,
+		})
 }
 
 func checkMultiZoneWithShards(name string, numShardsFirstZone, numShardsSecondZone int) resource.TestCheckFunc {
