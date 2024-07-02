@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115014/admin"
+	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
 func Resource() *schema.Resource {
@@ -72,7 +72,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.Errorf("atlas only supports AWS")
 	}
 
-	request := &admin.DiskBackupSnapshotAWSExportBucket{
+	request := &admin.DiskBackupSnapshotExportBucket{
 		IamRoleId:     conversion.StringPtr(d.Get("iam_role_id").(string)),
 		BucketName:    conversion.StringPtr(d.Get("bucket_name").(string)),
 		CloudProvider: &cloudProvider,

@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115014/admin"
+	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
 const (
@@ -187,34 +187,34 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 	indexID := ids["index_id"]
+	indexName := d.Get("name").(string)
 
-	searchIndex, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+	if d.HasChange("name") || d.HasChange("type") || d.HasChange("database") || d.HasChange("collection_name") {
+		return diag.Errorf("error updating search index (%s): attributes name, type, database and collection_name can't be updated", indexName)
+	}
+
+	searchRead, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return diag.Errorf("error getting search index information: %s", err)
 	}
-
-	if d.HasChange("type") {
-		searchIndex.Type = conversion.StringPtr(d.Get("type").(string))
+	searchIndex := &admin.SearchIndexUpdateRequest{
+		Definition: admin.SearchIndexUpdateRequestDefinition{
+			Analyzer:       searchRead.LatestDefinition.Analyzer,
+			Analyzers:      searchRead.LatestDefinition.Analyzers,
+			Mappings:       searchRead.LatestDefinition.Mappings,
+			SearchAnalyzer: searchRead.LatestDefinition.SearchAnalyzer,
+			StoredSource:   searchRead.LatestDefinition.StoredSource,
+			Synonyms:       searchRead.LatestDefinition.Synonyms,
+			Fields:         searchRead.LatestDefinition.Fields,
+		},
 	}
 
 	if d.HasChange("analyzer") {
-		searchIndex.Analyzer = conversion.StringPtr(d.Get("analyzer").(string))
-	}
-
-	if d.HasChange("collection_name") {
-		searchIndex.CollectionName = d.Get("collection_name").(string)
-	}
-
-	if d.HasChange("database") {
-		searchIndex.Database = d.Get("database").(string)
-	}
-
-	if d.HasChange("name") {
-		searchIndex.Name = d.Get("name").(string)
+		searchIndex.Definition.Analyzer = conversion.StringPtr(d.Get("analyzer").(string))
 	}
 
 	if d.HasChange("search_analyzer") {
-		searchIndex.SearchAnalyzer = conversion.StringPtr(d.Get("search_analyzer").(string))
+		searchIndex.Definition.SearchAnalyzer = conversion.StringPtr(d.Get("search_analyzer").(string))
 	}
 
 	if d.HasChange("analyzers") {
@@ -222,15 +222,15 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err != nil {
 			return err
 		}
-		searchIndex.Analyzers = &analyzers
+		searchIndex.Definition.Analyzers = &analyzers
 	}
 
 	if d.HasChange("mappings_dynamic") {
 		dynamic := d.Get("mappings_dynamic").(bool)
-		if searchIndex.Mappings == nil {
-			searchIndex.Mappings = &admin.ApiAtlasFTSMappings{}
+		if searchIndex.Definition.Mappings == nil {
+			searchIndex.Definition.Mappings = &admin.SearchMappings{}
 		}
-		searchIndex.Mappings.Dynamic = &dynamic
+		searchIndex.Definition.Mappings.Dynamic = &dynamic
 	}
 
 	if d.HasChange("mappings_fields") {
@@ -238,10 +238,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err != nil {
 			return err
 		}
-		if searchIndex.Mappings == nil {
-			searchIndex.Mappings = &admin.ApiAtlasFTSMappings{}
+		if searchIndex.Definition.Mappings == nil {
+			searchIndex.Definition.Mappings = &admin.SearchMappings{}
 		}
-		searchIndex.Mappings.Fields = mappingsFields
+		searchIndex.Definition.Mappings.Fields = mappingsFields
 	}
 
 	if d.HasChange("fields") {
@@ -249,17 +249,16 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err != nil {
 			return err
 		}
-		searchIndex.Fields = &fields
+		searchIndex.Definition.Fields = conversion.ToAnySlicePointer(&fields)
 	}
 
 	if d.HasChange("synonyms") {
 		synonyms := expandSearchIndexSynonyms(d)
-		searchIndex.Synonyms = &synonyms
+		searchIndex.Definition.Synonyms = &synonyms
 	}
 
-	searchIndex.IndexID = conversion.StringPtr("")
 	if _, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchIndex(ctx, projectID, clusterName, indexID, searchIndex).Execute(); err != nil {
-		return diag.Errorf("error updating search index (%s): %s", searchIndex.Name, err)
+		return diag.Errorf("error updating search index (%s): %s", indexName, err)
 	}
 
 	if d.Get("wait_for_index_build_completion").(bool) {
@@ -274,8 +273,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 
 		// Wait, catching any errors
-		_, err = stateConf.WaitForStateContext(ctx)
-		if err != nil {
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 			d.SetId(conversion.EncodeStateID(map[string]string{
 				"project_id":   projectID,
 				"cluster_name": clusterName,
@@ -313,11 +311,11 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf("error setting `type` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("analyzer", searchIndex.Analyzer); err != nil {
+	if err := d.Set("analyzer", searchIndex.LatestDefinition.Analyzer); err != nil {
 		return diag.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
 	}
 
-	if analyzers := searchIndex.GetAnalyzers(); len(analyzers) > 0 {
+	if analyzers := searchIndex.LatestDefinition.GetAnalyzers(); len(analyzers) > 0 {
 		searchIndexMappingFields, err := marshalSearchIndex(analyzers)
 		if err != nil {
 			return diag.FromErr(err)
@@ -339,21 +337,21 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf("error setting `name` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("search_analyzer", searchIndex.SearchAnalyzer); err != nil {
+	if err := d.Set("search_analyzer", searchIndex.LatestDefinition.SearchAnalyzer); err != nil {
 		return diag.Errorf("error setting `searchAnalyzer` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("synonyms", flattenSearchIndexSynonyms(searchIndex.GetSynonyms())); err != nil {
+	if err := d.Set("synonyms", flattenSearchIndexSynonyms(searchIndex.LatestDefinition.GetSynonyms())); err != nil {
 		return diag.Errorf("error setting `synonyms` for search index (%s): %s", d.Id(), err)
 	}
 
-	if searchIndex.Mappings != nil {
-		if err := d.Set("mappings_dynamic", searchIndex.Mappings.Dynamic); err != nil {
+	if searchIndex.LatestDefinition.Mappings != nil {
+		if err := d.Set("mappings_dynamic", searchIndex.LatestDefinition.Mappings.Dynamic); err != nil {
 			return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
 		}
 
-		if len(searchIndex.Mappings.Fields) > 0 {
-			searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Mappings.Fields)
+		if conversion.HasElementsSliceOrMap(searchIndex.LatestDefinition.Mappings.Fields) {
+			searchIndexMappingFields, err := marshalSearchIndex(searchIndex.LatestDefinition.Mappings.Fields)
 			if err != nil {
 				return diag.FromErr(err)
 			}
@@ -363,7 +361,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		}
 	}
 
-	if fields := searchIndex.GetFields(); len(fields) > 0 {
+	if fields := searchIndex.LatestDefinition.GetFields(); len(fields) > 0 {
 		fieldsMarshaled, err := marshalSearchIndex(fields)
 		if err != nil {
 			return diag.FromErr(err)
@@ -398,13 +396,15 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 	indexType := d.Get("type").(string)
-	searchIndexRequest := &admin.ClusterSearchIndex{
+	searchIndexRequest := &admin.SearchIndexCreateRequest{
 		Type:           conversion.StringPtr(indexType),
-		Analyzer:       conversion.StringPtr(d.Get("analyzer").(string)),
 		CollectionName: d.Get("collection_name").(string),
 		Database:       d.Get("database").(string),
 		Name:           d.Get("name").(string),
-		SearchAnalyzer: conversion.StringPtr(d.Get("search_analyzer").(string)),
+		Definition: &admin.BaseSearchIndexCreateRequestDefinition{
+			Analyzer:       conversion.StringPtr(d.Get("analyzer").(string)),
+			SearchAnalyzer: conversion.StringPtr(d.Get("search_analyzer").(string)),
+		},
 	}
 
 	if indexType == vectorSearch {
@@ -412,24 +412,24 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err != nil {
 			return err
 		}
-		searchIndexRequest.Fields = &fields
+		searchIndexRequest.Definition.Fields = conversion.ToAnySlicePointer(&fields)
 	} else {
 		analyzers, err := unmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string))
 		if err != nil {
 			return err
 		}
-		searchIndexRequest.Analyzers = &analyzers
+		searchIndexRequest.Definition.Analyzers = &analyzers
 		mappingsFields, err := unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
 		if err != nil {
 			return err
 		}
 		dynamic := d.Get("mappings_dynamic").(bool)
-		searchIndexRequest.Mappings = &admin.ApiAtlasFTSMappings{
+		searchIndexRequest.Definition.Mappings = &admin.SearchMappings{
 			Dynamic: &dynamic,
 			Fields:  mappingsFields,
 		}
 		synonyms := expandSearchIndexSynonyms(d)
-		searchIndexRequest.Synonyms = &synonyms
+		searchIndexRequest.Definition.Synonyms = &synonyms
 	}
 
 	dbSearchIndexRes, _, err := connV2.AtlasSearchApi.CreateAtlasSearchIndex(ctx, projectID, clusterName, searchIndexRequest).Execute()
@@ -561,8 +561,8 @@ func unmarshalSearchIndexFields(str string) ([]map[string]any, diag.Diagnostics)
 	return fields, nil
 }
 
-func unmarshalSearchIndexAnalyzersFields(str string) ([]admin.ApiAtlasFTSAnalyzers, diag.Diagnostics) {
-	fields := []admin.ApiAtlasFTSAnalyzers{}
+func unmarshalSearchIndexAnalyzersFields(str string) ([]admin.AtlasSearchAnalyzer, diag.Diagnostics) {
+	fields := []admin.AtlasSearchAnalyzer{}
 	if str == "" {
 		return fields, nil
 	}
