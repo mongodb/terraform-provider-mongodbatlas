@@ -493,7 +493,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 
 	req := &admin.DiskBackupSnapshotSchedule{}
 	copySettings := d.Get("copy_settings")
-	if len(copySettings.([]any)) > 0 || d.HasChange("copy_settings") {
+	if copySettings != nil && (conversion.HasElementsSliceOrMap(copySettings) || d.HasChange("copy_settings")) {
 		req.CopySettings = expandCopySettings(copySettings.([]any))
 	}
 
@@ -642,11 +642,7 @@ func expandCopySetting(tfMap map[string]any) *admin.DiskBackupCopySetting {
 }
 
 func expandCopySettings(tfList []any) *[]admin.DiskBackupCopySetting {
-	if len(tfList) == 0 {
-		return &[]admin.DiskBackupCopySetting{}
-	}
-
-	var copySettings []admin.DiskBackupCopySetting
+	copySettings := make([]admin.DiskBackupCopySetting, 0)
 
 	for _, tfMapRaw := range tfList {
 		tfMap, ok := tfMapRaw.(map[string]any)

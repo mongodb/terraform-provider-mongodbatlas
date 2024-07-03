@@ -526,9 +526,7 @@ func configDefault(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule) s
 
 func configCopySettings(projectID, clusterName string, emptyCopySettings bool, p *admin.DiskBackupSnapshotSchedule) string {
 	var copySettings string
-	if emptyCopySettings {
-		copySettings = ""
-	} else {
+	if !emptyCopySettings {
 		copySettings = `
 			copy_settings {
 				cloud_provider = "AWS"
