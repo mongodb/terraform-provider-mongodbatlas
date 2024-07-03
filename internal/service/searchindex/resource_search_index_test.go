@@ -58,18 +58,7 @@ func TestAccSearchIndex_withSynonyms(t *testing.T) {
 		projectID, clusterName = acc.ClusterNameExecution(t)
 		indexName              = acc.RandomName()
 		databaseName           = acc.RandomName()
-		indexType              = ""
-		mappingsDynamic        = "true"
-		mapChecks              = map[string]string{
-			"synonyms.#":                   "1",
-			"synonyms.0.analyzer":          "lucene.simple",
-			"synonyms.0.name":              "synonym_test",
-			"synonyms.0.source_collection": collectionName,
-		}
 	)
-	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName, false)
-	checks = addAttrChecks(checks, mapChecks)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -77,7 +66,7 @@ func TestAccSearchIndex_withSynonyms(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithSynonyms(projectID, indexName, databaseName, clusterName, with),
-				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
+				Check:  checkWithSynonyms(projectID, indexName, databaseName, clusterName, with),
 			},
 		},
 	})
@@ -88,17 +77,7 @@ func TestAccSearchIndex_updatedToEmptySynonyms(t *testing.T) {
 		projectID, clusterName = acc.ClusterNameExecution(t)
 		indexName              = acc.RandomName()
 		databaseName           = acc.RandomName()
-		indexType              = ""
-		mappingsDynamic        = "true"
 	)
-	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName, false)
-	checks1 := addAttrChecks(checks, map[string]string{
-		"synonyms.#":                   "1",
-		"synonyms.0.analyzer":          "lucene.simple",
-		"synonyms.0.name":              "synonym_test",
-		"synonyms.0.source_collection": collectionName,
-	})
-	checks2 := addAttrChecks(checks, map[string]string{"synonyms.#": "0"})
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -106,11 +85,11 @@ func TestAccSearchIndex_updatedToEmptySynonyms(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithSynonyms(projectID, indexName, databaseName, clusterName, with),
-				Check:  resource.ComposeAggregateTestCheckFunc(checks1...),
+				Check:  checkWithSynonyms(projectID, indexName, databaseName, clusterName, with),
 			},
 			{
 				Config: configWithSynonyms(projectID, indexName, databaseName, clusterName, without),
-				Check:  resource.ComposeAggregateTestCheckFunc(checks2...),
+				Check:  checkWithSynonyms(projectID, indexName, databaseName, clusterName, without),
 			},
 		},
 	})
@@ -365,6 +344,23 @@ func configWithSynonyms(projectID, indexName, databaseName, clusterName string, 
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
 	`, clusterName, projectID, indexName, databaseName, collectionName, searchAnalyzer, synonymsStr)
+}
+
+func checkWithSynonyms(projectID, indexName, databaseName, clusterName string, has bool) resource.TestCheckFunc {
+	indexType := ""
+	mappingsDynamic := "true"
+	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName, false)
+	checks1 := addAttrChecks(checks, map[string]string{
+		"synonyms.#":                   "1",
+		"synonyms.0.analyzer":          "lucene.simple",
+		"synonyms.0.name":              "synonym_test",
+		"synonyms.0.source_collection": collectionName,
+	})
+	checks2 := addAttrChecks(checks, map[string]string{"synonyms.#": "0"})
+	if has {
+		return resource.ComposeAggregateTestCheckFunc(checks1...)
+	}
+	return resource.ComposeAggregateTestCheckFunc(checks2...)
 }
 
 func configAdditional(projectID, indexName, databaseName, clusterName, additional string) string {
