@@ -192,20 +192,23 @@ func basicVectorTestCase(tb testing.TB) *resource.TestCase {
 	}
 }
 
-func commonChecks(projectID, indexName, indexType, mappingsDynamic, databaseName, clusterName string, explicitType bool) []resource.TestCheckFunc {
+func commonChecks(projectID, clusterName, indexName, indexType, databaseName, mappingsDynamic string, explicitType bool) []resource.TestCheckFunc {
 	attributes := map[string]string{
-		"project_id":       projectID,
-		"name":             indexName,
-		"cluster_name":     clusterName,
-		"database":         databaseName,
-		"collection_name":  collectionName,
-		"mappings_dynamic": mappingsDynamic,
+		"project_id":      projectID,
+		"name":            indexName,
+		"cluster_name":    clusterName,
+		"database":        databaseName,
+		"collection_name": collectionName,
+	}
+	if indexType != "vectorSearch" {
+		attributes["mappings_dynamic"] = mappingsDynamic
 	}
 	indexTypeEffective := ""
 	if explicitType {
 		indexTypeEffective = indexType
 	}
 	checks := []resource.TestCheckFunc{
+		checkExists(resourceName),
 		resource.TestCheckResourceAttr(resourceName, "type", indexTypeEffective),
 		resource.TestCheckResourceAttr(datasourceName, "type", indexTypeEffective),
 	}
@@ -251,8 +254,8 @@ func configBasic(projectID, indexName, databaseName, clusterName string, explici
 		}
 
 		data "mongodbatlas_search_index" "data_index" {
-			cluster_name     = %[1]q
-			project_id       = %[2]q
+			cluster_name     = mongodbatlas_search_index.test.cluster_name
+			project_id       = mongodbatlas_search_index.test.project_id
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
 	`, clusterName, projectID, indexName, databaseName, collectionName, searchAnalyzer, indexType)
@@ -261,7 +264,7 @@ func configBasic(projectID, indexName, databaseName, clusterName string, explici
 func checkBasic(projectID, indexName, databaseName, clusterName string, explicitType bool) resource.TestCheckFunc {
 	indexType := "search"
 	mappingsDynamic := "true"
-	checks := commonChecks(projectID, indexName, indexType, mappingsDynamic, databaseName, clusterName, explicitType)
+	checks := commonChecks(projectID, clusterName, indexName, indexType, databaseName, mappingsDynamic, explicitType)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
@@ -280,8 +283,8 @@ func configWithMapping(projectID, indexName, databaseName, clusterName string) s
 		}
 
 		data "mongodbatlas_search_index" "data_index" {
-			cluster_name     = %[1]q
-			project_id       = %[2]q
+			cluster_name     = mongodbatlas_search_index.test.cluster_name
+			project_id       = mongodbatlas_search_index.test.project_id
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
 	`, clusterName, projectID, indexName, databaseName, collectionName, searchAnalyzer, analyzersTF, mappingsFieldsTF)
@@ -291,7 +294,7 @@ func checkWithMapping(projectID, indexName, databaseName, clusterName string) re
 	indexType := ""
 	mappingsDynamic := "false"
 	attrNames := []string{"mappings_fields", "analyzers"}
-	checks := commonChecks(projectID, indexName, indexType, mappingsDynamic, databaseName, clusterName, false)
+	checks := commonChecks(projectID, clusterName, indexName, indexType, databaseName, mappingsDynamic, false)
 	checks = acc.AddAttrSetChecks(resourceName, checks, attrNames...)
 	checks = acc.AddAttrSetChecks(datasourceName, checks, attrNames...)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
@@ -322,8 +325,8 @@ func configWithSynonyms(projectID, indexName, databaseName, clusterName string, 
 		}
 
 		data "mongodbatlas_search_index" "data_index" {
-			cluster_name     = %[1]q
-			project_id       = %[2]q
+			cluster_name     = mongodbatlas_search_index.test.cluster_name
+			project_id       = mongodbatlas_search_index.test.project_id
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
 	`, clusterName, projectID, indexName, databaseName, collectionName, searchAnalyzer, synonymsStr)
@@ -341,7 +344,7 @@ func checkWithSynonyms(projectID, indexName, databaseName, clusterName string, h
 			"synonyms.0.source_collection": collectionName,
 		}
 	}
-	checks := commonChecks(projectID, indexName, indexType, mappingsDynamic, databaseName, clusterName, false)
+	checks := commonChecks(projectID, clusterName, indexName, indexType, databaseName, mappingsDynamic, false)
 	checks = acc.AddAttrChecks(resourceName, checks, attrs)
 	checks = acc.AddAttrChecks(datasourceName, checks, attrs)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
@@ -359,11 +362,19 @@ func configAdditional(projectID, indexName, databaseName, clusterName, additiona
 			mappings_dynamic = true
 			%[7]s
 		}
+
+		data "mongodbatlas_search_index" "data_index" {
+			cluster_name     = mongodbatlas_search_index.test.cluster_name
+			project_id       = mongodbatlas_search_index.test.project_id
+			index_id 				 = mongodbatlas_search_index.test.index_id
+		}
 	`, clusterName, projectID, indexName, databaseName, collectionName, searchAnalyzer, additional)
 }
 
 func checkAdditionalAnalyzers(projectID, indexName, databaseName, clusterName string, has bool) resource.TestCheckFunc {
-	checks := []resource.TestCheckFunc{checkExists(resourceName)}
+	indexType := ""
+	mappingsDynamic := "true"
+	checks := commonChecks(projectID, clusterName, indexName, indexType, databaseName, mappingsDynamic, false)
 	if has {
 		checks = append(checks, resource.TestCheckResourceAttrWith(resourceName, "analyzers", acc.JSONEquals(analyzersJSON)))
 	} else {
@@ -373,7 +384,9 @@ func checkAdditionalAnalyzers(projectID, indexName, databaseName, clusterName st
 }
 
 func checkAdditionalMappingsFields(projectID, indexName, databaseName, clusterName string, has bool) resource.TestCheckFunc {
-	checks := []resource.TestCheckFunc{checkExists(resourceName)}
+	indexType := ""
+	mappingsDynamic := "true"
+	checks := commonChecks(projectID, clusterName, indexName, indexType, databaseName, mappingsDynamic, false)
 	if has {
 		checks = append(checks, resource.TestCheckResourceAttrWith(resourceName, "mappings_fields", acc.JSONEquals(mappingsFieldsJSON)))
 	} else {
@@ -399,8 +412,8 @@ func configVector(projectID, indexName, databaseName, clusterName string) string
 		}
 	
 		data "mongodbatlas_search_index" "data_index" {
-			cluster_name     = %[1]q
-			project_id       = %[2]q
+			cluster_name     = mongodbatlas_search_index.test.cluster_name
+			project_id       = mongodbatlas_search_index.test.project_id
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
 	`, clusterName, projectID, indexName, databaseName, collectionName, fieldsJSON)
@@ -408,6 +421,7 @@ func configVector(projectID, indexName, databaseName, clusterName string) string
 
 func checkVector(projectID, indexName, databaseName, clusterName string) resource.TestCheckFunc {
 	indexType := "vectorSearch"
+	mappingsDynamic := "true"
 	attributes := map[string]string{
 		"project_id":      projectID,
 		"name":            indexName,
@@ -416,7 +430,8 @@ func checkVector(projectID, indexName, databaseName, clusterName string) resourc
 		"collection_name": collectionName,
 		"type":            indexType,
 	}
-	checks := acc.AddAttrChecks(resourceName, nil, attributes)
+	checks := commonChecks(projectID, clusterName, indexName, indexType, databaseName, mappingsDynamic, true)
+	checks = acc.AddAttrChecks(resourceName, checks, attributes)
 	checks = acc.AddAttrChecks(datasourceName, checks, attributes)
 	checks = acc.AddAttrSetChecks(resourceName, checks, "index_id")
 	checks = acc.AddAttrSetChecks(datasourceName, checks, "index_id")
