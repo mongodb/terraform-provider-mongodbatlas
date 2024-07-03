@@ -39,11 +39,7 @@ func TestAccSearchIndex_withMapping(t *testing.T) {
 		projectID, clusterName = acc.ClusterNameExecution(t)
 		indexName              = acc.RandomName()
 		databaseName           = acc.RandomName()
-		indexType              = ""
-		mappingsDynamic        = "false"
 	)
-	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName, false)
-	checks = addAttrSetChecks(checks, "mappings_fields", "analyzers")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -51,7 +47,7 @@ func TestAccSearchIndex_withMapping(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithMapping(projectID, indexName, databaseName, clusterName),
-				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
+				Check:  checkWithMapping(projectID, indexName, databaseName, clusterName),
 			},
 		},
 	})
@@ -329,6 +325,14 @@ func configWithMapping(projectID, indexName, databaseName, clusterName string) s
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
 	`, clusterName, projectID, indexName, databaseName, collectionName, searchAnalyzer, analyzersTF, mappingsFieldsTF)
+}
+
+func checkWithMapping(projectID, indexName, databaseName, clusterName string) resource.TestCheckFunc {
+	indexType := ""
+	mappingsDynamic := "false"
+	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName, false)
+	checks = addAttrSetChecks(checks, "mappings_fields", "analyzers")
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func configWithSynonyms(projectID, indexName, databaseName, clusterName string, has bool) string {
