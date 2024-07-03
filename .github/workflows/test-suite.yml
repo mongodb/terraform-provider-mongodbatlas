@@ -42,7 +42,7 @@ concurrency:
 jobs:
   versions:
     env:
-      schedule_terraform_matrix: '["1.9.x"]'
+      schedule_terraform_matrix: '["${{ vars.TF_VERSION_LATEST }}"]'
       schedule_provider_matrix: '[""]' # "" for latest version    
     runs-on: ubuntu-latest
     outputs:
