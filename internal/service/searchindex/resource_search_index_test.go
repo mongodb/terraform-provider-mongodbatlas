@@ -192,8 +192,9 @@ func basicVectorTestCase(tb testing.TB) *resource.TestCase {
 	}
 }
 
-func commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName string, explicitType bool) []resource.TestCheckFunc {
+func commonChecks(projectID, indexName, indexType, mappingsDynamic, databaseName, clusterName string, explicitType bool) []resource.TestCheckFunc {
 	attributes := map[string]string{
+		"project_id":       projectID,
 		"name":             indexName,
 		"cluster_name":     clusterName,
 		"database":         databaseName,
@@ -204,22 +205,14 @@ func commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterNa
 	if explicitType {
 		indexTypeEffective = indexType
 	}
-	checks := addAttrChecks(nil, attributes)
-	checks = append(checks,
+	checks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceName, "type", indexTypeEffective),
-		resource.TestCheckResourceAttr(datasourceName, "type", indexTypeEffective))
-	checks = acc.AddAttrSetChecks(resourceName, checks, "project_id", "index_id")
-	return acc.AddAttrSetChecks(datasourceName, checks, "project_id", "index_id")
-}
-
-func addAttrChecks(checks []resource.TestCheckFunc, mapChecks map[string]string) []resource.TestCheckFunc {
-	checks = acc.AddAttrChecks(resourceName, checks, mapChecks)
-	return acc.AddAttrChecks(datasourceName, checks, mapChecks)
-}
-
-func addAttrSetChecks(checks []resource.TestCheckFunc, attrNames ...string) []resource.TestCheckFunc {
-	checks = acc.AddAttrSetChecks(resourceName, checks, attrNames...)
-	return acc.AddAttrSetChecks(datasourceName, checks, attrNames...)
+		resource.TestCheckResourceAttr(datasourceName, "type", indexTypeEffective),
+	}
+	checks = acc.AddAttrChecks(resourceName, checks, attributes)
+	checks = acc.AddAttrChecks(datasourceName, checks, attributes)
+	checks = acc.AddAttrSetChecks(resourceName, checks, "index_id")
+	return acc.AddAttrSetChecks(datasourceName, checks, "index_id")
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
@@ -268,7 +261,7 @@ func configBasic(projectID, indexName, databaseName, clusterName string, explici
 func checkBasic(projectID, indexName, databaseName, clusterName string, explicitType bool) resource.TestCheckFunc {
 	indexType := "search"
 	mappingsDynamic := "true"
-	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName, explicitType)
+	checks := commonChecks(projectID, indexName, indexType, mappingsDynamic, databaseName, clusterName, explicitType)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
@@ -297,8 +290,10 @@ func configWithMapping(projectID, indexName, databaseName, clusterName string) s
 func checkWithMapping(projectID, indexName, databaseName, clusterName string) resource.TestCheckFunc {
 	indexType := ""
 	mappingsDynamic := "false"
-	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName, false)
-	checks = addAttrSetChecks(checks, "mappings_fields", "analyzers")
+	attrNames := []string{"mappings_fields", "analyzers"}
+	checks := commonChecks(projectID, indexName, indexType, mappingsDynamic, databaseName, clusterName, false)
+	checks = acc.AddAttrSetChecks(resourceName, checks, attrNames...)
+	checks = acc.AddAttrSetChecks(datasourceName, checks, attrNames...)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
@@ -337,18 +332,19 @@ func configWithSynonyms(projectID, indexName, databaseName, clusterName string, 
 func checkWithSynonyms(projectID, indexName, databaseName, clusterName string, has bool) resource.TestCheckFunc {
 	indexType := ""
 	mappingsDynamic := "true"
-	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName, false)
-	checks1 := addAttrChecks(checks, map[string]string{
-		"synonyms.#":                   "1",
-		"synonyms.0.analyzer":          "lucene.simple",
-		"synonyms.0.name":              "synonym_test",
-		"synonyms.0.source_collection": collectionName,
-	})
-	checks2 := addAttrChecks(checks, map[string]string{"synonyms.#": "0"})
+	attrs := map[string]string{"synonyms.#": "0"}
 	if has {
-		return resource.ComposeAggregateTestCheckFunc(checks1...)
+		attrs = map[string]string{
+			"synonyms.#":                   "1",
+			"synonyms.0.analyzer":          "lucene.simple",
+			"synonyms.0.name":              "synonym_test",
+			"synonyms.0.source_collection": collectionName,
+		}
 	}
-	return resource.ComposeAggregateTestCheckFunc(checks2...)
+	checks := commonChecks(projectID, indexName, indexType, mappingsDynamic, databaseName, clusterName, false)
+	checks = acc.AddAttrChecks(resourceName, checks, attrs)
+	checks = acc.AddAttrChecks(datasourceName, checks, attrs)
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func configAdditional(projectID, indexName, databaseName, clusterName, additional string) string {
@@ -420,7 +416,8 @@ func checkVector(projectID, indexName, databaseName, clusterName string) resourc
 		"collection_name": collectionName,
 		"type":            indexType,
 	}
-	checks := addAttrChecks(nil, attributes)
+	checks := acc.AddAttrChecks(resourceName, nil, attributes)
+	checks = acc.AddAttrChecks(datasourceName, checks, attributes)
 	checks = acc.AddAttrSetChecks(resourceName, checks, "index_id")
 	checks = acc.AddAttrSetChecks(datasourceName, checks, "index_id")
 	checks = append(checks,
