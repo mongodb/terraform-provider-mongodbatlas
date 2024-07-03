@@ -108,17 +108,11 @@ func TestAccSearchIndex_updatedToEmptyAnalyzers(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configAdditional(projectID, indexName, databaseName, clusterName, analyzersTF),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrWith(resourceName, "analyzers", acc.JSONEquals(analyzersJSON)),
-				),
+				Check:  checkAdditional(projectID, indexName, databaseName, clusterName, true),
 			},
 			{
 				Config: configAdditional(projectID, indexName, databaseName, clusterName, ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "analyzers", ""),
-				),
+				Check:  checkAdditional(projectID, indexName, databaseName, clusterName, false),
 			},
 		},
 	})
@@ -378,6 +372,15 @@ func configAdditional(projectID, indexName, databaseName, clusterName, additiona
 	`, clusterName, projectID, indexName, databaseName, collectionName, searchAnalyzer, additional)
 }
 
+func checkAdditional(projectID, indexName, databaseName, clusterName string, hasAnalyzers bool) resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{checkExists(resourceName)}
+	if hasAnalyzers {
+		checks = append(checks, resource.TestCheckResourceAttrWith(resourceName, "analyzers", acc.JSONEquals(analyzersJSON)))
+	} else {
+		checks = append(checks, resource.TestCheckResourceAttr(resourceName, "analyzers", ""))
+	}
+	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
 func configVector(projectID, indexName, databaseName, clusterName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
